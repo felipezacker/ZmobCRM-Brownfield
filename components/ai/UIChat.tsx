@@ -561,7 +561,7 @@ export function UIChat({
                     <Sparkles className="w-5 h-5 text-primary-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h2 className="font-semibold text-white">NossoCRM Pilot</h2>
+                    <h2 className="font-semibold text-white">ZmobCRM Pilot</h2>
                     <p className="text-xs text-slate-400 truncate">
                         {headerSubtitle}
                     </p>
@@ -941,102 +941,102 @@ export function UIChat({
                                                                         {!(commonMain && !selectionMode && dealItems.length === 1 && dealItems[0].extra.length === 0 && !dealItems[0].dueDate) && (
                                                                             <div className="px-2 py-2 space-y-1">
                                                                                 {dealItems.map((p) => {
-                                                                                const checked = selectedApprovalsById[p.id] ?? true;
-                                                                                const dueBadge = getDateBadge(p.dueDate);
-                                                                                const dueText = p.dueDate ? formatDateTimePtBr(p.dueDate) : null;
+                                                                                    const checked = selectedApprovalsById[p.id] ?? true;
+                                                                                    const dueBadge = getDateBadge(p.dueDate);
+                                                                                    const dueText = p.dueDate ? formatDateTimePtBr(p.dueDate) : null;
 
-                                                                                // Se commonMain existe (ex.: mesmo "Destino" para todos):
-                                                                                // - no modo normal (sem seleção) não precisamos repetir; mostramos um placeholder amigável.
-                                                                                // - no modo seleção, é útil ter um rótulo por checkbox; usamos o commonMain.
-                                                                                const lineMain = commonMain
-                                                                                    ? (selectionMode ? commonMain : '')
-                                                                                    : p.main;
+                                                                                    // Se commonMain existe (ex.: mesmo "Destino" para todos):
+                                                                                    // - no modo normal (sem seleção) não precisamos repetir; mostramos um placeholder amigável.
+                                                                                    // - no modo seleção, é útil ter um rótulo por checkbox; usamos o commonMain.
+                                                                                    const lineMain = commonMain
+                                                                                        ? (selectionMode ? commonMain : '')
+                                                                                        : p.main;
 
-                                                                                if (!selectionMode) {
+                                                                                    if (!selectionMode) {
+                                                                                        return (
+                                                                                            <div key={p.id} className="px-2 py-2 rounded-md">
+                                                                                                <div className="flex items-start justify-between gap-2">
+                                                                                                    {lineMain ? (
+                                                                                                        <div className="text-sm text-amber-100 leading-snug truncate">
+                                                                                                            {lineMain}
+                                                                                                        </div>
+                                                                                                    ) : (
+                                                                                                        <div className="text-[12px] text-amber-200/70">
+                                                                                                            Incluído
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                    {(dueBadge || dueText) && (
+                                                                                                        <div className="shrink-0 flex items-center gap-2">
+                                                                                                            {dueBadge && (
+                                                                                                                <span className={`px-2 py-0.5 rounded-full text-[11px] ${dueBadge.className}`}>
+                                                                                                                    {dueBadge.label}
+                                                                                                                </span>
+                                                                                                            )}
+                                                                                                            {dueText && (
+                                                                                                                <span className="text-[11px] text-amber-200/80 whitespace-nowrap">
+                                                                                                                    {dueText}
+                                                                                                                </span>
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                                {p.extra.length > 0 && (
+                                                                                                    <div className="mt-1 text-[12px] text-amber-200/70 space-y-0.5">
+                                                                                                        {p.extra.map((l, idx) => (
+                                                                                                            <div key={idx} className="leading-snug">{l}</div>
+                                                                                                        ))}
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        );
+                                                                                    }
+
                                                                                     return (
-                                                                                        <div key={p.id} className="px-2 py-2 rounded-md">
-                                                                                            <div className="flex items-start justify-between gap-2">
-                                                                                                {lineMain ? (
+                                                                                        <label
+                                                                                            key={p.id}
+                                                                                            className="flex items-start gap-2 px-2 py-2 rounded-md hover:bg-amber-500/5 cursor-pointer"
+                                                                                        >
+                                                                                            <input
+                                                                                                type="checkbox"
+                                                                                                className="mt-0.5"
+                                                                                                checked={checked}
+                                                                                                onChange={(e) => {
+                                                                                                    const value = e.target.checked;
+                                                                                                    setSelectedApprovalsById((prev) => ({ ...prev, [p.id]: value }));
+                                                                                                }}
+                                                                                                aria-label="Selecionar ação"
+                                                                                            />
+                                                                                            <div className="min-w-0 flex-1">
+                                                                                                <div className="flex items-start justify-between gap-2">
                                                                                                     <div className="text-sm text-amber-100 leading-snug truncate">
-                                                                                                        {lineMain}
+                                                                                                        {lineMain || 'Incluído'}
                                                                                                     </div>
-                                                                                                ) : (
-                                                                                                    <div className="text-[12px] text-amber-200/70">
-                                                                                                        Incluído
-                                                                                                    </div>
-                                                                                                )}
-                                                                                                {(dueBadge || dueText) && (
-                                                                                                    <div className="shrink-0 flex items-center gap-2">
-                                                                                                        {dueBadge && (
-                                                                                                            <span className={`px-2 py-0.5 rounded-full text-[11px] ${dueBadge.className}`}>
-                                                                                                                {dueBadge.label}
-                                                                                                            </span>
-                                                                                                        )}
-                                                                                                        {dueText && (
-                                                                                                            <span className="text-[11px] text-amber-200/80 whitespace-nowrap">
-                                                                                                                {dueText}
-                                                                                                            </span>
-                                                                                                        )}
+                                                                                                    {(dueBadge || dueText) && (
+                                                                                                        <div className="shrink-0 flex items-center gap-2">
+                                                                                                            {dueBadge && (
+                                                                                                                <span className={`px-2 py-0.5 rounded-full text-[11px] ${dueBadge.className}`}>
+                                                                                                                    {dueBadge.label}
+                                                                                                                </span>
+                                                                                                            )}
+                                                                                                            {dueText && (
+                                                                                                                <span className="text-[11px] text-amber-200/80 whitespace-nowrap">
+                                                                                                                    {dueText}
+                                                                                                                </span>
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+
+                                                                                                {p.extra.length > 0 && (
+                                                                                                    <div className="mt-1 text-[12px] text-amber-200/70 space-y-0.5">
+                                                                                                        {p.extra.map((l, idx) => (
+                                                                                                            <div key={idx} className="leading-snug">{l}</div>
+                                                                                                        ))}
                                                                                                     </div>
                                                                                                 )}
                                                                                             </div>
-                                                                                            {p.extra.length > 0 && (
-                                                                                                <div className="mt-1 text-[12px] text-amber-200/70 space-y-0.5">
-                                                                                                    {p.extra.map((l, idx) => (
-                                                                                                        <div key={idx} className="leading-snug">{l}</div>
-                                                                                                    ))}
-                                                                                                </div>
-                                                                                            )}
-                                                                                        </div>
+                                                                                        </label>
                                                                                     );
-                                                                                }
-
-                                                                                return (
-                                                                                    <label
-                                                                                        key={p.id}
-                                                                                        className="flex items-start gap-2 px-2 py-2 rounded-md hover:bg-amber-500/5 cursor-pointer"
-                                                                                    >
-                                                                                        <input
-                                                                                            type="checkbox"
-                                                                                            className="mt-0.5"
-                                                                                            checked={checked}
-                                                                                            onChange={(e) => {
-                                                                                                const value = e.target.checked;
-                                                                                                setSelectedApprovalsById((prev) => ({ ...prev, [p.id]: value }));
-                                                                                            }}
-                                                                                            aria-label="Selecionar ação"
-                                                                                        />
-                                                                                        <div className="min-w-0 flex-1">
-                                                                                            <div className="flex items-start justify-between gap-2">
-                                                                                                <div className="text-sm text-amber-100 leading-snug truncate">
-                                                                                                    {lineMain || 'Incluído'}
-                                                                                                </div>
-                                                                                                {(dueBadge || dueText) && (
-                                                                                                    <div className="shrink-0 flex items-center gap-2">
-                                                                                                        {dueBadge && (
-                                                                                                            <span className={`px-2 py-0.5 rounded-full text-[11px] ${dueBadge.className}`}>
-                                                                                                                {dueBadge.label}
-                                                                                                            </span>
-                                                                                                        )}
-                                                                                                        {dueText && (
-                                                                                                            <span className="text-[11px] text-amber-200/80 whitespace-nowrap">
-                                                                                                                {dueText}
-                                                                                                            </span>
-                                                                                                        )}
-                                                                                                    </div>
-                                                                                                )}
-                                                                                            </div>
-
-                                                                                            {p.extra.length > 0 && (
-                                                                                                <div className="mt-1 text-[12px] text-amber-200/70 space-y-0.5">
-                                                                                                    {p.extra.map((l, idx) => (
-                                                                                                        <div key={idx} className="leading-snug">{l}</div>
-                                                                                                    ))}
-                                                                                                </div>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    </label>
-                                                                                );
                                                                                 })}
                                                                             </div>
                                                                         )}
@@ -1084,114 +1084,114 @@ export function UIChat({
                                 )}
 
                                 {messageParts.map((part, index) => {
-                                if (part.type === 'text') {
-                                    const text = message.role === 'assistant'
-                                        ? sanitizeAssistantText(part.text)
-                                        : part.text;
+                                    if (part.type === 'text') {
+                                        const text = message.role === 'assistant'
+                                            ? sanitizeAssistantText(part.text)
+                                            : part.text;
 
-                                    // Markdown só para o assistente (melhora leitura: listas, negrito, etc.).
-                                    if (message.role === 'assistant') {
-                                        return (
-                                            <div key={index} className="text-sm leading-relaxed">
-                                                <ReactMarkdown
-                                                    remarkPlugins={[remarkGfm]}
-                                                    components={{
-                                                        p: (props) => <p className="m-0 whitespace-pre-wrap" {...props} />,
-                                                        strong: (props) => <strong className="font-semibold text-slate-100" {...props} />,
-                                                        em: (props) => <em className="italic" {...props} />,
-                                                        ul: (props) => <ul className="m-0 mt-2 list-disc pl-5 space-y-1" {...props} />,
-                                                        ol: (props) => <ol className="m-0 mt-2 list-decimal pl-5 space-y-1" {...props} />,
-                                                        li: (props) => <li className="m-0" {...props} />,
-                                                        code: (props) => (
-                                                            <code className="rounded bg-black/20 px-1 py-0.5 font-mono text-[0.85em]" {...props} />
-                                                        ),
-                                                        a: (props) => (
-                                                            <a className="text-primary-300 underline underline-offset-2" target="_blank" rel="noreferrer" {...props} />
-                                                        ),
-                                                    }}
-                                                >
-                                                    {text}
-                                                </ReactMarkdown>
-                                            </div>
-                                        );
+                                        // Markdown só para o assistente (melhora leitura: listas, negrito, etc.).
+                                        if (message.role === 'assistant') {
+                                            return (
+                                                <div key={index} className="text-sm leading-relaxed">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkGfm]}
+                                                        components={{
+                                                            p: (props) => <p className="m-0 whitespace-pre-wrap" {...props} />,
+                                                            strong: (props) => <strong className="font-semibold text-slate-100" {...props} />,
+                                                            em: (props) => <em className="italic" {...props} />,
+                                                            ul: (props) => <ul className="m-0 mt-2 list-disc pl-5 space-y-1" {...props} />,
+                                                            ol: (props) => <ol className="m-0 mt-2 list-decimal pl-5 space-y-1" {...props} />,
+                                                            li: (props) => <li className="m-0" {...props} />,
+                                                            code: (props) => (
+                                                                <code className="rounded bg-black/20 px-1 py-0.5 font-mono text-[0.85em]" {...props} />
+                                                            ),
+                                                            a: (props) => (
+                                                                <a className="text-primary-300 underline underline-offset-2" target="_blank" rel="noreferrer" {...props} />
+                                                            ),
+                                                        }}
+                                                    >
+                                                        {text}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            );
+                                        }
+
+                                        return <p key={index} className="text-sm whitespace-pre-wrap m-0">{text}</p>;
                                     }
 
-                                    return <p key={index} className="text-sm whitespace-pre-wrap m-0">{text}</p>;
-                                }
+                                    const partType = part.type as string;
+                                    const isTool = partType === 'tool-invocation' || partType.startsWith('tool-');
 
-                                const partType = part.type as string;
-                                const isTool = partType === 'tool-invocation' || partType.startsWith('tool-');
+                                    if (isTool) {
+                                        const toolPart = part as any;
+                                        const toolName = toolPart.toolName || (partType.startsWith('tool-') ? partType.replace('tool-', '') : 'ferramenta');
+                                        const toolTitle = toolLabelMap[toolName] || toolName;
 
-                                if (isTool) {
-                                    const toolPart = part as any;
-                                    const toolName = toolPart.toolName || (partType.startsWith('tool-') ? partType.replace('tool-', '') : 'ferramenta');
-                                    const toolTitle = toolLabelMap[toolName] || toolName;
+                                        // Se houver múltiplas aprovações do mesmo tool, renderizamos uma confirmação
+                                        // agrupada acima. Então escondemos as individuais aqui.
+                                        if (toolPart.state === 'approval-requested' && (groupedToolCounts[toolName] ?? 0) > 1) {
+                                            return null;
+                                        }
 
-                                    // Se houver múltiplas aprovações do mesmo tool, renderizamos uma confirmação
-                                    // agrupada acima. Então escondemos as individuais aqui.
-                                    if (toolPart.state === 'approval-requested' && (groupedToolCounts[toolName] ?? 0) > 1) {
+                                        console.log('[UIChat] 🔧 Handling tool part:', { type: partType, state: toolPart.state, name: toolName });
+
+                                        if (toolPart.state === 'approval-requested') {
+                                            const toolInput = toolPart.input ?? toolPart.args;
+                                            const summaryLines = summarizeToolInput(toolName, toolInput);
+
+                                            return (
+                                                <div key={index} className="mt-2 p-3 bg-amber-900/30 border border-amber-600/50 rounded-lg">
+                                                    <div className="flex items-center gap-2 text-sm text-amber-200 mb-2">
+                                                        <Wrench className="w-4 h-4" />
+                                                        <span className="font-medium">Confirmar ação: {toolTitle}</span>
+                                                    </div>
+                                                    <div className="text-xs text-amber-200/80 mb-3 space-y-1">
+                                                        {summaryLines.map((line, i) => (
+                                                            <p key={i} className="m-0">• {line}</p>
+                                                        ))}
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => addToolApprovalResponse?.({
+                                                                id: toolPart.approval?.id || toolPart.toolCallId,
+                                                                approved: true,
+                                                            })}
+                                                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-lg transition-all"
+                                                        >
+                                                            ✓ Aprovar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => addToolApprovalResponse?.({
+                                                                id: toolPart.approval?.id || toolPart.toolCallId,
+                                                                approved: false,
+                                                            })}
+                                                            className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs rounded-lg transition-all"
+                                                        >
+                                                            ✗ Negar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+
+                                        // Não renderizar invocações de tools (nome técnico/etapas) na UI.
+                                        // O único caso em que mostramos tool é quando precisa de aprovação.
                                         return null;
                                     }
 
-                                    console.log('[UIChat] 🔧 Handling tool part:', { type: partType, state: toolPart.state, name: toolName });
-
-                                    if (toolPart.state === 'approval-requested') {
-                                        const toolInput = toolPart.input ?? toolPart.args;
-                                        const summaryLines = summarizeToolInput(toolName, toolInput);
-
-                                        return (
-                                            <div key={index} className="mt-2 p-3 bg-amber-900/30 border border-amber-600/50 rounded-lg">
-                                                <div className="flex items-center gap-2 text-sm text-amber-200 mb-2">
-                                                    <Wrench className="w-4 h-4" />
-                                                    <span className="font-medium">Confirmar ação: {toolTitle}</span>
-                                                </div>
-                                                <div className="text-xs text-amber-200/80 mb-3 space-y-1">
-                                                    {summaryLines.map((line, i) => (
-                                                        <p key={i} className="m-0">• {line}</p>
-                                                    ))}
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => addToolApprovalResponse?.({
-                                                            id: toolPart.approval?.id || toolPart.toolCallId,
-                                                            approved: true,
-                                                        })}
-                                                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-lg transition-all"
-                                                    >
-                                                        ✓ Aprovar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => addToolApprovalResponse?.({
-                                                            id: toolPart.approval?.id || toolPart.toolCallId,
-                                                            approved: false,
-                                                        })}
-                                                        className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs rounded-lg transition-all"
-                                                    >
-                                                        ✗ Negar
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    }
-
-                                    // Não renderizar invocações de tools (nome técnico/etapas) na UI.
-                                    // O único caso em que mostramos tool é quando precisa de aprovação.
                                     return null;
-                                }
+                                })}
+                            </div>
 
-                                return null;
-                            })}
+
+                            {
+                                message.role === 'user' && (
+                                    <div className="shrink-0 w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center">
+                                        <User className="w-3.5 h-3.5 text-slate-300" />
+                                    </div>
+                                )
+                            }
                         </div>
-
-
-                        {
-                            message.role === 'user' && (
-                                <div className="shrink-0 w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center">
-                                    <User className="w-3.5 h-3.5 text-slate-300" />
-                                </div>
-                            )
-                        }
-                    </div>
                     );
                 })}
 

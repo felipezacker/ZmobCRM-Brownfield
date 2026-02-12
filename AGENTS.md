@@ -1,4 +1,4 @@
-# AGENTS.md — NossoCRM
+# AGENTS.md — ZmobCRM
 
 ## Commands
 - **Dev**: `npm run dev`

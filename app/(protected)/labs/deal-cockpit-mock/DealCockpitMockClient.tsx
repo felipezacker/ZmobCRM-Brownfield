@@ -492,7 +492,7 @@ export default function DealCockpitMockClient() {
               <div className="mt-2 text-[11px] text-slate-500">Indicador sintético (mock) — objetivo é te dar leitura rápida.</div>
             </Panel>
 
-            <Panel title="Próxima ação" icon={<BadgeCheck className="h-4 w-4 text-cyan-300" /> } className="shrink-0">
+            <Panel title="Próxima ação" icon={<BadgeCheck className="h-4 w-4 text-cyan-300" />} className="shrink-0">
               <div className="text-sm font-semibold text-slate-100">{mock.nextAction.title}</div>
               <div className="mt-1 text-xs text-slate-400">{mock.nextAction.description}</div>
               <div className="mt-2 text-[11px] text-slate-500">
@@ -991,7 +991,7 @@ export default function DealCockpitMockClient() {
                     <Bot className="h-4 w-4 text-cyan-300" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-slate-100">NossoCRM Pilot</div>
+                    <div className="text-sm font-semibold text-slate-100">ZmobCRM Pilot</div>
                     <div className="text-[11px] text-slate-500">Deal: {mock.deal.title}</div>
                   </div>
                 </div>

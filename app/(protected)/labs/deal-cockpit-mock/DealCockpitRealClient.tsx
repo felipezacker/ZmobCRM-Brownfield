@@ -731,33 +731,33 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
     const boardInfo = selectedBoard
       ? {
-          id: selectedBoard.id,
-          name: selectedBoard.name,
-          description: selectedBoard.description,
-          wonStageId: selectedBoard.wonStageId,
-          lostStageId: selectedBoard.lostStageId,
-          stages: (selectedBoard.stages ?? []).map((s) => ({ id: s.id, label: s.label, color: s.color })),
-        }
+        id: selectedBoard.id,
+        name: selectedBoard.name,
+        description: selectedBoard.description,
+        wonStageId: selectedBoard.wonStageId,
+        lostStageId: selectedBoard.lostStageId,
+        stages: (selectedBoard.stages ?? []).map((s) => ({ id: s.id, label: s.label, color: s.color })),
+      }
       : undefined;
 
     const contactInfo = selectedContact
       ? {
-          id: selectedContact.id,
-          name: selectedContact.name,
-          role: selectedContact.role,
-          email: selectedContact.email,
-          phone: selectedContact.phone,
-          avatar: selectedContact.avatar,
-          status: selectedContact.status,
-          stage: selectedContact.stage,
-          source: selectedContact.source,
-          notes: selectedContact.notes,
-          lastInteraction: selectedContact.lastInteraction,
-          birthDate: selectedContact.birthDate,
-          lastPurchaseDate: selectedContact.lastPurchaseDate,
-          totalValue: selectedContact.totalValue,
-          clientCompanyId: selectedContact.clientCompanyId,
-        }
+        id: selectedContact.id,
+        name: selectedContact.name,
+        role: selectedContact.role,
+        email: selectedContact.email,
+        phone: selectedContact.phone,
+        avatar: selectedContact.avatar,
+        status: selectedContact.status,
+        stage: selectedContact.stage,
+        source: selectedContact.source,
+        notes: selectedContact.notes,
+        lastInteraction: selectedContact.lastInteraction,
+        birthDate: selectedContact.birthDate,
+        lastPurchaseDate: selectedContact.lastPurchaseDate,
+        totalValue: selectedContact.totalValue,
+        clientCompanyId: selectedContact.clientCompanyId,
+      }
       : undefined;
 
     const dealInfo = {
@@ -951,11 +951,11 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
   const openMessageComposer = useCallback(
     (channel: MessageChannel, prefill?: { subject?: string; message?: string }, ctx?: MessageLogContext | null) => {
-    setMessageChannel(channel);
-    setMessagePrefill(prefill ?? null);
-    setMessageLogContext(ctx ?? null);
-    setIsMessageModalOpen(true);
-  }, []
+      setMessageChannel(channel);
+      setMessagePrefill(prefill ?? null);
+      setMessageLogContext(ctx ?? null);
+      setIsMessageModalOpen(true);
+    }, []
   );
 
   const openScheduleModal = useCallback((initial?: { type?: ScheduleType; title?: string; description?: string }) => {
@@ -1538,7 +1538,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-slate-500">Email</span>
                       <span className="flex items-center gap-2 min-w-0">
-                          <span className="truncate text-slate-200">{contact?.email ?? ''}</span>
+                        <span className="truncate text-slate-200">{contact?.email ?? ''}</span>
                         <button
                           type="button"
                           className="shrink-0 rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
@@ -1968,7 +1968,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     <Sparkles className="h-4 w-4 text-cyan-300" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-slate-100">NossoCRM Pilot</div>
+                    <div className="text-sm font-semibold text-slate-100">ZmobCRM Pilot</div>
                     <div className="text-[11px] text-slate-500">Deal: {deal.title}</div>
                   </div>
                 </div>

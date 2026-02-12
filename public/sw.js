@@ -2,7 +2,7 @@
 // Minimal Service Worker (MVP): cache app shell assets for faster launch.
 // Note: This does NOT provide offline data sync.
 
-const CACHE_NAME = 'nossocrm-shell-v2';
+const CACHE_NAME = 'zmobcrm-shell-v2';
 const SHELL_URLS = [
   '/',
   '/login',
@@ -38,7 +38,7 @@ self.addEventListener('fetch', (event) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
+          caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => { });
           return res;
         })
         .catch(() => caches.match(req).then((r) => r || caches.match('/')))
@@ -52,7 +52,7 @@ self.addEventListener('fetch', (event) => {
       const fetchPromise = fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => {});
+          caches.open(CACHE_NAME).then((c) => c.put(req, copy)).catch(() => { });
           return res;
         })
         .catch(() => cached);

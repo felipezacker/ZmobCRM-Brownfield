@@ -4,11 +4,11 @@
  */
 
 import React, { useState } from 'react';
-import { 
-  ConsentType, 
-  REQUIRED_CONSENTS, 
+import {
+  ConsentType,
+  REQUIRED_CONSENTS,
   OPTIONAL_CONSENTS,
-  CONSENT_VERSIONS 
+  CONSENT_VERSIONS
 } from '@/lib/consent/consentService';
 
 interface ConsentModalProps {
@@ -21,7 +21,7 @@ interface ConsentModalProps {
 const CONSENT_LABELS: Record<ConsentType, { title: string; description: string }> = {
   terms: {
     title: 'Termos de Uso',
-    description: 'Li e aceito os Termos de Uso do NossoCRM.',
+    description: 'Li e aceito os Termos de Uso do ZmobCRM.',
   },
   privacy: {
     title: 'Política de Privacidade',
@@ -120,7 +120,7 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
             Consentimentos Necessários
           </h2>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Para continuar usando o NossoCRM, precisamos do seu consentimento.
+            Para continuar usando o ZmobCRM, precisamos do seu consentimento.
           </p>
         </div>
 
@@ -139,7 +139,7 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
                     type={type}
                     checked={selectedConsents.has(type)}
                     required
-                    onChange={() => {}}
+                    onChange={() => { }}
                   />
                 ))}
               </div>
@@ -169,17 +169,17 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
           {/* Legal Links */}
           <div className="mt-6 pt-4 border-t border-gray-200 dark:border-dark-border">
             <div className="flex flex-wrap gap-4 text-sm">
-              <a 
-                href="/termos-de-uso" 
-                target="_blank" 
+              <a
+                href="/termos-de-uso"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary-600 hover:text-primary-700 dark:text-primary-400"
               >
                 Termos de Uso (v{CONSENT_VERSIONS.terms})
               </a>
-              <a 
-                href="/politica-de-privacidade" 
-                target="_blank" 
+              <a
+                href="/politica-de-privacidade"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary-600 hover:text-primary-700 dark:text-primary-400"
               >

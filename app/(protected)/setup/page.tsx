@@ -130,7 +130,7 @@ export default function SetupPage() {
       <div className="max-w-md w-full relative z-10 px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight mb-2">
-            Bem-vindo ao NossoCRM
+            Bem-vindo ao ZmobCRM
           </h1>
           <p className="text-slate-500 dark:text-slate-400">Vamos preparar seu ambiente de trabalho.</p>
         </div>
@@ -142,161 +142,160 @@ export default function SetupPage() {
               Verificando configuração…
             </div>
           ) : (
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="company-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Nome da Empresa
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Building2 className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  id="company-name"
-                  name="company"
-                  type="text"
-                  required
-                  aria-required="true"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
-                  placeholder="Ex: Acme Corp"
-                  value={companyName}
-                  onChange={e => setCompanyName(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="email-address" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Email do Administrador
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  id="email-address"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  aria-required="true"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
-                  placeholder="admin@empresa.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Senha
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  aria-required="true"
-                  aria-describedby="password-requirements"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
-              </div>
-
-              {password.length > 0 && (
-                <div id="password-requirements" className="mt-2 space-y-1">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Requisitos:</p>
-                  <div className="grid grid-cols-2 gap-1 text-xs">
-                    <span className={passwordRequirements.minLength ? 'text-green-500' : 'text-slate-400'}>
-                      {passwordRequirements.minLength ? '✓' : '○'} Mínimo 6 caracteres
-                    </span>
-                    <span className={passwordRequirements.hasLowercase ? 'text-green-500' : 'text-slate-400'}>
-                      {passwordRequirements.hasLowercase ? '✓' : '○'} Letra minúscula
-                    </span>
-                    <span className={passwordRequirements.hasUppercase ? 'text-green-500' : 'text-slate-400'}>
-                      {passwordRequirements.hasUppercase ? '✓' : '○'} Letra maiúscula
-                    </span>
-                    <span className={passwordRequirements.hasDigit ? 'text-green-500' : 'text-slate-400'}>
-                      {passwordRequirements.hasDigit ? '✓' : '○'} Número
-                    </span>
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="company-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  Nome da Empresa
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Building2 className="h-5 w-5 text-slate-400" />
                   </div>
+                  <input
+                    id="company-name"
+                    name="company"
+                    type="text"
+                    required
+                    aria-required="true"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                    placeholder="Ex: Acme Corp"
+                    value={companyName}
+                    onChange={e => setCompanyName(e.target.value)}
+                  />
                 </div>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Confirmar Senha
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  id="confirm-password"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  aria-required="true"
-                  aria-invalid={confirmPassword.length > 0 && !passwordsMatch ? 'true' : undefined}
-                  className={`block w-full pl-10 pr-3 py-2.5 border rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all sm:text-sm ${
-                    confirmPassword.length > 0
-                      ? passwordsMatch
-                        ? 'border-green-500 focus:border-green-500'
-                        : 'border-red-500 focus:border-red-500'
-                      : 'border-slate-300 dark:border-slate-700 focus:border-primary-500'
-                  }`}
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                />
               </div>
 
-              {confirmPassword.length > 0 && !passwordsMatch && (
-                <p className="mt-1 text-xs text-red-500">As senhas não coincidem</p>
-              )}
-              {passwordsMatch && <p className="mt-1 text-xs text-green-500">✓ Senhas coincidem</p>}
-            </div>
+              <div>
+                <label htmlFor="email-address" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  Email do Administrador
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    id="email-address"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    aria-required="true"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                    placeholder="admin@empresa.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                  />
+                </div>
+              </div>
 
-            {error && (
-              <div
-                role="alert"
-                aria-live="assertive"
-                className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm text-center"
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  Senha
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    aria-required="true"
+                    aria-describedby="password-requirements"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                  />
+                </div>
+
+                {password.length > 0 && (
+                  <div id="password-requirements" className="mt-2 space-y-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Requisitos:</p>
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      <span className={passwordRequirements.minLength ? 'text-green-500' : 'text-slate-400'}>
+                        {passwordRequirements.minLength ? '✓' : '○'} Mínimo 6 caracteres
+                      </span>
+                      <span className={passwordRequirements.hasLowercase ? 'text-green-500' : 'text-slate-400'}>
+                        {passwordRequirements.hasLowercase ? '✓' : '○'} Letra minúscula
+                      </span>
+                      <span className={passwordRequirements.hasUppercase ? 'text-green-500' : 'text-slate-400'}>
+                        {passwordRequirements.hasUppercase ? '✓' : '○'} Letra maiúscula
+                      </span>
+                      <span className={passwordRequirements.hasDigit ? 'text-green-500' : 'text-slate-400'}>
+                        {passwordRequirements.hasDigit ? '✓' : '○'} Número
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="confirm-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  Confirmar Senha
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    id="confirm-password"
+                    name="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    aria-required="true"
+                    aria-invalid={confirmPassword.length > 0 && !passwordsMatch ? 'true' : undefined}
+                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all sm:text-sm ${confirmPassword.length > 0
+                        ? passwordsMatch
+                          ? 'border-green-500 focus:border-green-500'
+                          : 'border-red-500 focus:border-red-500'
+                        : 'border-slate-300 dark:border-slate-700 focus:border-primary-500'
+                      }`}
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+
+                {confirmPassword.length > 0 && !passwordsMatch && (
+                  <p className="mt-1 text-xs text-red-500">As senhas não coincidem</p>
+                )}
+                {passwordsMatch && <p className="mt-1 text-xs text-green-500">✓ Senhas coincidem</p>}
+              </div>
+
+              {error && (
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm text-center"
+                >
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !isPasswordValid || !passwordsMatch}
+                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-primary-500/20 text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
               >
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !isPasswordValid || !passwordsMatch}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-primary-500/20 text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
-            >
-              {loading ? (
-                <Loader2 className="animate-spin h-5 w-5" />
-              ) : (
-                <>
-                  Começar Agora
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </button>
-          </form>
+                {loading ? (
+                  <Loader2 className="animate-spin h-5 w-5" />
+                ) : (
+                  <>
+                    Começar Agora
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </form>
           )}
         </div>
 
         <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
-          &copy; {new Date().getFullYear()} NossoCRM. Todos os direitos reservados.
+          &copy; {new Date().getFullYear()} ZmobCRM. Todos os direitos reservados.
         </p>
       </div>
     </div>

@@ -30,7 +30,7 @@ export interface InstallState {
   error?: string;
 }
 
-const STORAGE_KEY = 'nossocrm_install_state';
+const STORAGE_KEY = 'zmobcrm_install_state';
 const STATE_VERSION = 1;
 const MAX_RETRY_COUNT = 3;
 
@@ -46,20 +46,20 @@ function generateSessionId(): string {
  */
 export function loadInstallState(): InstallState | null {
   if (typeof window === 'undefined') return null;
-  
+
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    
+
     const state = JSON.parse(raw) as InstallState;
-    
+
     // Verifica versão do estado
     if (state.version !== STATE_VERSION) {
       console.log('[installState] State version mismatch, clearing');
       clearInstallState();
       return null;
     }
-    
+
     // Verifica se o estado é muito antigo (mais de 1 hora)
     const ageMs = Date.now() - state.lastUpdatedAt;
     if (ageMs > 60 * 60 * 1000) {
@@ -67,7 +67,7 @@ export function loadInstallState(): InstallState | null {
       clearInstallState();
       return null;
     }
-    
+
     return state;
   } catch (err) {
     console.error('[installState] Failed to load state:', err);
@@ -80,7 +80,7 @@ export function loadInstallState(): InstallState | null {
  */
 export function saveInstallState(state: InstallState): void {
   if (typeof window === 'undefined') return;
-  
+
   try {
     state.lastUpdatedAt = Date.now();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -135,15 +135,15 @@ export function updateStepStatus(
 ): InstallState {
   const newState = { ...state };
   const stepIndex = newState.steps.findIndex(s => s.id === stepId);
-  
+
   if (stepIndex === -1) {
     console.warn('[installState] Step not found:', stepId);
     return state;
   }
-  
+
   const step = { ...newState.steps[stepIndex] };
   step.status = status;
-  
+
   if (status === 'running') {
     step.startedAt = Date.now();
     newState.currentStep = stepId;
@@ -154,10 +154,10 @@ export function updateStepStatus(
     step.retryCount = (step.retryCount || 0) + 1;
     newState.error = error;
   }
-  
+
   newState.steps[stepIndex] = step;
   saveInstallState(newState);
-  
+
   return newState;
 }
 
@@ -197,13 +197,13 @@ export function getLastFailedStep(state: InstallState): InstallStep | null {
 export function canResumeInstallation(state: InstallState | null): boolean {
   if (!state) return false;
   if (state.completedSuccessfully) return false;
-  
+
   // Pode resumir se tem passos pendentes ou falhos que podem ser retentados
   const hasPending = state.steps.some(s => s.status === 'pending');
   const hasRetryableFailed = state.steps.some(
     s => s.status === 'failed' && (s.retryCount || 0) < MAX_RETRY_COUNT
   );
-  
+
   return hasPending || hasRetryableFailed;
 }
 
@@ -221,9 +221,9 @@ export function getProgressSummary(state: InstallState): {
   ).length;
   const total = state.steps.length;
   const percentage = Math.round((completed / total) * 100);
-  
+
   const currentStep = state.steps.find(s => s.id === state.currentStep);
-  
+
   return {
     completed,
     total,
