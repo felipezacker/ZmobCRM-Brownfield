@@ -53,14 +53,12 @@ export const migrateLocalStorage = () => {
     if (leads.length > 0) {
       const newContactsFromLeads: Contact[] = leads.map(lead => ({
         id: lead.id,
-        companyId: crypto.randomUUID(), // Gera um ID temporário, idealmente buscaria empresa pelo nome
         name: lead.name,
         email: lead.email,
         phone: '',
-        role: lead.role,
         source: lead.source,
         status: 'ACTIVE',
-        stage: ContactStage.LEAD, // Define como LEAD no funil
+        stage: ContactStage.LEAD,
         createdAt: lead.createdAt,
         notes: lead.notes,
         lastPurchaseDate: '',

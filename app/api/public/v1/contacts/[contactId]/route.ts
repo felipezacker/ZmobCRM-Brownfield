@@ -4,7 +4,6 @@ import { authPublicApi } from '@/lib/public-api/auth';
 import { createStaticAdminClient } from '@/lib/supabase/server';
 import { isValidUUID } from '@/lib/supabase/utils';
 import { normalizeEmail, normalizePhone, normalizeText } from '@/lib/public-api/sanitize';
-import { sanitizeUUID } from '@/lib/supabase/utils';
 
 export const runtime = 'nodejs';
 
@@ -12,9 +11,6 @@ const ContactPatchSchema = z.object({
   name: z.string().optional(),
   email: z.string().optional(),
   phone: z.string().optional(),
-  role: z.string().optional(),
-  company_name: z.string().optional(),
-  client_company_id: z.string().uuid().nullable().optional(),
   avatar: z.string().optional(),
   status: z.string().optional(),
   stage: z.string().optional(),
@@ -55,7 +51,7 @@ export async function GET(request: Request, ctx: { params: Promise<{ contactId: 
   const sb = createStaticAdminClient();
   const { data, error } = await sb
     .from('contacts')
-    .select('id,name,email,phone,role,company_name,client_company_id,avatar,notes,status,stage,source,birth_date,last_interaction,last_purchase_date,total_value,created_at,updated_at')
+    .select('id,name,email,phone,avatar,notes,status,stage,source,birth_date,last_interaction,last_purchase_date,total_value,created_at,updated_at')
     .eq('organization_id', auth.organizationId)
     .is('deleted_at', null)
     .eq('id', contactId)
@@ -86,16 +82,11 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ contactId
   if (parsed.data.name !== undefined) updates.name = normalizeText(parsed.data.name);
   if (parsed.data.email !== undefined) updates.email = normalizeEmail(parsed.data.email);
   if (parsed.data.phone !== undefined) updates.phone = normalizePhone(parsed.data.phone);
-  if (parsed.data.role !== undefined) updates.role = normalizeText(parsed.data.role);
-  if (parsed.data.company_name !== undefined) updates.company_name = normalizeText(parsed.data.company_name);
   if (parsed.data.avatar !== undefined) updates.avatar = normalizeText(parsed.data.avatar);
   if (parsed.data.status !== undefined) updates.status = normalizeText(parsed.data.status);
   if (parsed.data.stage !== undefined) updates.stage = normalizeText(parsed.data.stage);
   if (parsed.data.source !== undefined) updates.source = normalizeText(parsed.data.source);
   if (parsed.data.notes !== undefined) updates.notes = normalizeText(parsed.data.notes);
-  if (parsed.data.client_company_id !== undefined) {
-    updates.client_company_id = parsed.data.client_company_id === null ? null : (sanitizeUUID(parsed.data.client_company_id) || null);
-  }
   if (parsed.data.birth_date !== undefined) {
     updates.birth_date = parsed.data.birth_date === null ? null : toIsoDateString(parsed.data.birth_date);
     if (updates.birth_date === '__INVALID__') {
@@ -125,7 +116,7 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ contactId
     .update(updates)
     .eq('organization_id', auth.organizationId)
     .eq('id', contactId)
-    .select('id,name,email,phone,role,company_name,client_company_id,avatar,notes,status,stage,source,birth_date,last_interaction,last_purchase_date,total_value,created_at,updated_at')
+    .select('id,name,email,phone,avatar,notes,status,stage,source,birth_date,last_interaction,last_purchase_date,total_value,created_at,updated_at')
     .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message, code: 'DB_ERROR' }, { status: 500 });
@@ -133,4 +124,3 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ contactId
 
   return NextResponse.json({ data });
 }
-

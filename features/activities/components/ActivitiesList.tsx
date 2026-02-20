@@ -1,12 +1,11 @@
 import React, { useMemo } from 'react';
-import { Activity, Deal, Contact, Company } from '@/types';
+import { Activity, Deal, Contact } from '@/types';
 import { ActivityRow } from './ActivityRow';
 
 interface ActivitiesListProps {
     activities: Activity[];
     deals: Deal[];
     contacts: Contact[];
-    companies: Company[];
     onToggleComplete: (id: string) => void;
     onEdit: (activity: Activity) => void;
     onDelete: (id: string) => void;
@@ -40,7 +39,6 @@ export const ActivitiesList: React.FC<ActivitiesListProps> = ({
     activities,
     deals,
     contacts,
-    companies,
     onToggleComplete,
     onEdit,
     onDelete,
@@ -60,12 +58,6 @@ export const ActivitiesList: React.FC<ActivitiesListProps> = ({
         return map;
     }, [contacts]);
 
-    const companyById = useMemo(() => {
-        const map = new Map<string, Company>();
-        for (const c of companies) map.set(c.id, c);
-        return map;
-    }, [companies]);
-
     if (activities.length === 0) {
         return (
             <div className="text-center py-12 bg-white dark:bg-dark-card rounded-xl border border-slate-200 dark:border-white/5 border-dashed">
@@ -82,7 +74,6 @@ export const ActivitiesList: React.FC<ActivitiesListProps> = ({
                     activity={activity}
                     deal={activity.dealId ? dealById.get(activity.dealId) : undefined}
                     contact={activity.contactId ? contactById.get(activity.contactId) : undefined}
-                    company={activity.clientCompanyId ? companyById.get(activity.clientCompanyId) : undefined}
                     onToggleComplete={onToggleComplete}
                     onEdit={onEdit}
                     onDelete={onDelete}

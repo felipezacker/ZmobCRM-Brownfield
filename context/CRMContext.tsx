@@ -34,7 +34,6 @@ import { queryKeys } from '@/lib/query';
 import {
   Deal,
   Activity,
-  Company,
   Contact,
   DealView,
   Lead,
@@ -74,8 +73,6 @@ interface CRMContextType {
   // Views (denormalized)
   /** Deals com dados de contato e empresa agregados */
   deals: DealView[];
-  /** Empresas cadastradas no CRM */
-  companies: Company[];
   /** Contatos cadastrados */
   contacts: Contact[];
   /** @deprecated Usar leadsFromContacts */
@@ -110,7 +107,7 @@ interface CRMContextType {
   deleteBoard: (id: string) => Promise<void>;
 
   // Deals
-  addDeal: (deal: Omit<Deal, 'id' | 'createdAt'>, relatedData?: { contact?: Partial<Contact>; companyName?: string }) => Promise<Deal | null>;
+  addDeal: (deal: Omit<Deal, 'id' | 'createdAt'>, relatedData?: { contact?: Partial<Contact> }) => Promise<Deal | null>;
   updateDeal: (id: string, updates: Partial<Deal>) => Promise<void>;
   // moveDeal removido - use useMoveDeal de @/lib/query/hooks
   deleteDeal: (id: string) => Promise<void>;
@@ -133,11 +130,6 @@ interface CRMContextType {
   convertLead: (leadId: string) => Promise<void>;
   /** @deprecated Usar deleteContact */
   discardLead: (id: string) => void;
-
-  // Companies
-  addCompany: (company: Omit<Company, 'id' | 'createdAt'>) => Promise<Company | null>;
-  updateCompany: (id: string, updates: Partial<Company>) => Promise<void>;
-  deleteCompany: (id: string) => Promise<void>;
 
   // Contacts
   addContact: (contact: Omit<Contact, 'id' | 'createdAt'>) => Promise<Contact | null>;
@@ -218,17 +210,9 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     addContact,
     updateContact,
     deleteContact,
-    companies,
-    companiesLoading,
-    companiesError,
-    addCompany,
-    updateCompany,
-    deleteCompany,
-    companyMap,
     contactMap,
     leadsFromContacts,
     refreshContacts,
-    refreshCompanies,
   } = useContacts();
 
   const {
@@ -310,8 +294,8 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Aggregate loading and error states
-  const loading = dealsLoading || contactsLoading || companiesLoading || activitiesLoading || boardsLoading || settingsLoading;
-  const error = dealsError || contactsError || companiesError || activitiesError || boardsError || settingsError;
+  const loading = dealsLoading || contactsLoading || activitiesLoading || boardsLoading || settingsLoading;
+  const error = dealsError || contactsError || activitiesError || boardsError || settingsError;
 
   // View Projection: deals with company/contact names
   const deals: DealView[] = useMemo(() => {
@@ -322,10 +306,6 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
       return {
         ...deal,
-        companyName: deal.companyId ? companyMap[deal.companyId]?.name : undefined,
-        clientCompanyName: (deal.clientCompanyId || deal.companyId)
-          ? companyMap[(deal.clientCompanyId || deal.companyId) as string]?.name
-          : undefined,
         contactName: deal.contactId ? (contactMap[deal.contactId]?.name || 'Sem Contato') : 'Sem Contato',
         contactEmail: deal.contactId ? (contactMap[deal.contactId]?.email || '') : '',
         stageLabel: stage?.label || 'Desconhecido',
@@ -335,7 +315,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         } : deal.owner
       };
     });
-  }, [rawDeals, companyMap, contactMap, boards, profile, user]);
+  }, [rawDeals, contactMap, boards, profile, user]);
 
   // Update contact stage helper
   const updateContactStage = useCallback(async (id: string, stage: string) => {
@@ -347,12 +327,11 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     await Promise.all([
       refreshDeals(),
       refreshContacts(),
-      refreshCompanies(),
       refreshActivities(),
       refreshBoards(),
       refreshSettings(),
     ]);
-  }, [refreshDeals, refreshContacts, refreshCompanies, refreshActivities, refreshBoards, refreshSettings]);
+  }, [refreshDeals, refreshContacts, refreshActivities, refreshBoards, refreshSettings]);
 
   // ============================================
   // COMPLEX BUSINESS LOGIC (Glue between contexts)
@@ -360,7 +339,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const addDeal = useCallback(async (
     deal: Omit<Deal, 'id' | 'createdAt'>,
-    relatedData?: { contact?: Partial<Contact>; companyName?: string }
+    relatedData?: { contact?: Partial<Contact> }
   ) => {
     // Optimistic insert into the Kanban deals query so the deal appears immediately (no 2-3s "waiting for refetch").
     const optimisticTempId = `temp-${Date.now()}`;
@@ -370,7 +349,6 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       activeBoard?.stages?.find((s) => s.id === optimisticStageId)?.label || 'Estágio não identificado';
     const optimisticContactName = (relatedData?.contact?.name || 'Sem contato').trim() || 'Sem contato';
     const optimisticContactEmail = (relatedData?.contact?.email || '').trim();
-    const optimisticCompanyName = (relatedData?.companyName || 'Sem empresa').trim() || 'Sem empresa';
 
     // #region agent log
     if (process.env.NODE_ENV !== 'production') {
@@ -391,9 +369,6 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           contactName: optimisticContactName,
           contactEmail: optimisticContactEmail,
           stageLabel: optimisticStageLabel,
-          clientCompanyName: optimisticCompanyName,
-          // @deprecated
-          companyName: optimisticCompanyName,
         };
 
         queryClient.setQueryData<DealView[]>(
@@ -412,32 +387,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       }
     }
 
-    let finalCompanyId = deal.companyId;
     let finalContactId = deal.contactId;
-
-    // Handle Company
-    if (relatedData?.companyName) {
-      const existingCompany = companies.find(
-        c => (c.name || '').toLowerCase() === relatedData.companyName!.toLowerCase()
-      );
-      if (existingCompany) {
-        finalCompanyId = existingCompany.id;
-      } else {
-        const newCompany = await addCompany({
-          name: relatedData.companyName,
-        });
-        if (newCompany) {
-          finalCompanyId = newCompany.id;
-        }
-      }
-    } else if (!companies.find(c => c.id === deal.companyId)) {
-      const newCompany = await addCompany({
-        name: 'Nova Empresa (Auto)',
-      });
-      if (newCompany) {
-        finalCompanyId = newCompany.id;
-      }
-    }
 
     // Handle Contact
     if (relatedData?.contact && relatedData.contact.name) {
@@ -457,11 +407,9 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         }
 
         const newContact = await addContact({
-          companyId: finalCompanyId,
           name: relatedData.contact.name,
           email: relatedData.contact.email || '',
           phone: relatedData.contact.phone || '',
-          role: relatedData.contact.role || '',
           status: 'ACTIVE',
           stage: initialStage,
           lastPurchaseDate: '',
@@ -482,7 +430,6 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     
     const createdDeal = await addDealState({
       ...deal,
-      companyId: finalCompanyId,
       contactId: finalContactId,
     });
 
@@ -508,8 +455,6 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             contactName: optimisticContactName,
             contactEmail: optimisticContactEmail,
             stageLabel: optimisticStageLabel,
-            clientCompanyName: optimisticCompanyName,
-            companyName: optimisticCompanyName,
           };
           
           // #region agent log
@@ -583,7 +528,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // #endregion
 
     return createdDeal;
-  }, [companies, contacts, activeBoard, addCompany, addContact, addDealState, addActivity, queryClient]);
+  }, [contacts, activeBoard, addContact, addDealState, addActivity, queryClient]);
 
   // moveDeal foi removido - use useMoveDeal de @/lib/query/hooks
   // O hook unificado trata: detecção won/lost, atividades, LinkedStage, etc.
@@ -592,21 +537,9 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const contact = contacts.find(c => c.id === contactId);
     if (!contact) return;
 
-    const company = companies.find(c => c.id === contact.companyId);
-    let companyId = contact.companyId;
-    if (!company) {
-      const newCompany = await addCompany({
-        name: 'Empresa Auto (from Contact)',
-      });
-      if (newCompany) {
-        companyId = newCompany.id;
-      }
-    }
-
     if (activeBoard && activeBoard.stages.length > 0) {
       const newDeal: Omit<Deal, 'id' | 'createdAt'> = {
         title: `Negócio com ${contact.name}`,
-        companyId,
         contactId: contact.id,
         boardId: activeBoardId,
         value: 0,
@@ -637,24 +570,16 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         });
       }
     }
-  }, [contacts, companies, activeBoard, activeBoardId, addCompany, addDealState, addActivity]);
+  }, [contacts, activeBoard, activeBoardId, addDealState, addActivity]);
 
   const convertLead = useCallback(async (leadId: string) => {
     const lead = leads.find(l => l.id === leadId);
     if (!lead) return;
 
-    const newCompany = await addCompany({
-      name: lead.companyName,
-    });
-
-    if (!newCompany) return;
-
     const newContact = await addContact({
-      companyId: newCompany.id,
       name: lead.name,
       email: lead.email,
       phone: '',
-      role: lead.role || '',
       status: 'ACTIVE',
       stage: 'LEAD',
       lastPurchaseDate: '',
@@ -664,8 +589,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     if (!newContact || !activeBoard || activeBoard.stages.length === 0) return;
 
     const newDeal: Omit<Deal, 'id' | 'createdAt'> = {
-      title: `Negócio com ${lead.companyName}`,
-      companyId: newCompany.id,
+      title: `Negócio com ${lead.name}`,
       contactId: newContact.id,
       boardId: activeBoardId,
       value: 0,
@@ -696,7 +620,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         completed: true,
       });
     }
-  }, [leads, activeBoard, activeBoardId, addCompany, addContact, addDealState, addActivity, discardLead]);
+  }, [leads, activeBoard, activeBoardId, addContact, addDealState, addActivity, discardLead]);
 
   const checkWalletHealth = useCallback(async () => {
     const thirtyDaysAgo = new Date();
@@ -736,16 +660,12 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         return !existingTask;
       })
       .map(contact => {
-        const companyId = contact.clientCompanyId || contact.companyId;
-        const company = companies.find(c => c.id === companyId);
-        const companyDisplay = company?.name ? ` (Empresa: ${company.name})` : '';
-
         return {
           dealId: '',
           dealTitle: 'Carteira de Clientes',
           type: 'TASK' as const,
           title: 'Análise de Carteira: Risco de Churn',
-          description: `O cliente ${contact.name}${companyDisplay} está inativo há mais de 30 dias.`,
+          description: `O cliente ${contact.name} está inativo há mais de 30 dias.`,
           date: new Date().toISOString(),
           user: { name: 'Sistema', avatar: '' },
           completed: false,
@@ -758,7 +678,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     }
 
     return activitiesToCreate.length;
-  }, [contacts, activities, companies, addActivity]);
+  }, [contacts, activities, addActivity]);
 
   const checkStagnantDeals = useCallback(async () => {
     const tenDaysAgo = new Date();
@@ -816,16 +736,12 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       loading,
       error,
       deals,
-      companies,
       contacts,
       leads,
       leadsFromContacts,
       products,
       customFieldDefinitions,
       availableTags,
-      addCompany,
-      updateCompany,
-      deleteCompany,
       lifecycleStages,
       addLifecycleStage,
       updateLifecycleStage,
@@ -891,16 +807,12 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       loading,
       error,
       deals,
-      companies,
       contacts,
       leads,
       leadsFromContacts,
       products,
       customFieldDefinitions,
       availableTags,
-      addCompany,
-      updateCompany,
-      deleteCompany,
       lifecycleStages,
       addLifecycleStage,
       updateLifecycleStage,

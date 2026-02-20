@@ -6,13 +6,12 @@ import React, {
   ReactNode,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Contact, Company } from '@/types';
-import { contactsService, companiesService } from '@/lib/supabase';
+import { Contact } from '@/types';
+import { contactsService } from '@/lib/supabase';
 import { useAuth } from '../AuthContext';
 import { queryKeys } from '@/lib/query';
 import {
   useContacts as useTanStackContacts,
-  useCompanies as useTanStackCompanies,
 } from '@/lib/query/hooks/useContactsQuery';
 
 interface ContactsContextType {
@@ -24,16 +23,7 @@ interface ContactsContextType {
   updateContact: (id: string, updates: Partial<Contact>) => Promise<void>;
   deleteContact: (id: string) => Promise<void>;
 
-  // Companies
-  companies: Company[];
-  companiesLoading: boolean;
-  companiesError: string | null;
-  addCompany: (company: Omit<Company, 'id' | 'createdAt'>) => Promise<Company | null>;
-  updateCompany: (id: string, updates: Partial<Company>) => Promise<void>;
-  deleteCompany: (id: string) => Promise<void>;
-
   // Lookup maps (O(1) access)
-  companyMap: Record<string, Company>;
   contactMap: Record<string, Contact>;
 
   // Derived data
@@ -41,7 +31,6 @@ interface ContactsContextType {
 
   // Refresh
   refreshContacts: () => Promise<void>;
-  refreshCompanies: () => Promise<void>;
 }
 
 const ContactsContext = createContext<ContactsContextType | undefined>(undefined);
@@ -65,23 +54,12 @@ export const ContactsProvider: React.FC<{ children: ReactNode }> = ({ children }
     error: contactsQueryError
   } = useTanStackContacts();
 
-  const {
-    data: companies = [],
-    isLoading: companiesLoading,
-    error: companiesQueryError
-  } = useTanStackCompanies();
-
   // Converte erros do TanStack Query para string
   const contactsError = contactsQueryError ? (contactsQueryError as Error).message : null;
-  const companiesError = companiesQueryError ? (companiesQueryError as Error).message : null;
 
   // Refresh = invalidar cache do TanStack Query
   const refreshContacts = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all });
-  }, [queryClient]);
-
-  const refreshCompanies = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
   }, [queryClient]);
 
   // ============================================
@@ -133,64 +111,7 @@ export const ContactsProvider: React.FC<{ children: ReactNode }> = ({ children }
     await queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all });
   }, [queryClient]);
 
-  // Company CRUD
-  const addCompany = useCallback(
-    async (company: Omit<Company, 'id' | 'createdAt'>): Promise<Company | null> => {
-      if (!profile) {
-        console.error('Usuário não autenticado');
-        return null;
-      }
-
-      const { data, error } = await companiesService.create(company);
-
-      if (error) {
-        console.error('Erro ao criar empresa:', error.message);
-        return null;
-      }
-
-      // Invalida cache para TanStack Query atualizar
-      await queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
-
-      return data;
-    },
-    [profile, queryClient]
-  );
-
-  const updateCompany = useCallback(async (id: string, updates: Partial<Company>) => {
-    const { error } = await companiesService.update(id, updates);
-
-    if (error) {
-      console.error('Erro ao atualizar empresa:', error.message);
-      return;
-    }
-
-    // Invalida cache para TanStack Query atualizar
-    await queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
-  }, [queryClient]);
-
-  const deleteCompany = useCallback(async (id: string) => {
-    const { error } = await companiesService.delete(id);
-
-    if (error) {
-      console.error('Erro ao deletar empresa:', error.message);
-      return;
-    }
-
-    // Invalida cache para TanStack Query atualizar
-    await queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
-  }, [queryClient]);
-
   // Hash Maps para O(1) lookups
-  const companyMap = useMemo(() => {
-    return companies.reduce(
-      (acc, c) => {
-        acc[c.id] = c;
-        return acc;
-      },
-      {} as Record<string, Company>
-    );
-  }, [companies]);
-
   const contactMap = useMemo(() => {
     return contacts.reduce(
       (acc, c) => {
@@ -214,17 +135,9 @@ export const ContactsProvider: React.FC<{ children: ReactNode }> = ({ children }
       addContact,
       updateContact,
       deleteContact,
-      companies,
-      companiesLoading,
-      companiesError,
-      addCompany,
-      updateCompany,
-      deleteCompany,
-      companyMap,
       contactMap,
       leadsFromContacts,
       refreshContacts,
-      refreshCompanies,
     }),
     [
       contacts,
@@ -233,17 +146,9 @@ export const ContactsProvider: React.FC<{ children: ReactNode }> = ({ children }
       addContact,
       updateContact,
       deleteContact,
-      companies,
-      companiesLoading,
-      companiesError,
-      addCompany,
-      updateCompany,
-      deleteCompany,
-      companyMap,
       contactMap,
       leadsFromContacts,
       refreshContacts,
-      refreshCompanies,
     ]
   );
 

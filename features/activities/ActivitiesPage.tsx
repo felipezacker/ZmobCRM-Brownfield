@@ -31,7 +31,6 @@ export const ActivitiesPage: React.FC = () => {
         filteredActivities,
         deals,
         contacts,
-        companies,
         handleNewActivity,
         handleEditActivity,
         handleDeleteActivity,
@@ -93,7 +92,6 @@ export const ActivitiesPage: React.FC = () => {
                         activities={filteredActivities}
                         deals={deals}
                         contacts={contacts}
-                        companies={companies}
                         onToggleComplete={handleToggleComplete}
                         onEdit={handleEditActivity}
                         onDelete={handleDeleteActivity}

@@ -7,12 +7,6 @@ import { normalizePhoneE164 } from '@/lib/phone';
 const ImportModeSchema = z.enum(['create_only', 'upsert_by_email', 'skip_duplicates_by_email']);
 type ImportMode = z.infer<typeof ImportModeSchema>;
 
-const BooleanStringSchema = z
-  .string()
-  .optional()
-  .transform(v => (v ?? '').toLowerCase())
-  .transform(v => v === 'true' || v === '1' || v === 'yes' || v === 'on');
-
 function normalizeHeader(h: string) {
   return (h || '')
     .trim()
@@ -27,8 +21,6 @@ type ParsedRow = {
   lastName?: string;
   email?: string;
   phone?: string;
-  role?: string;
-  company?: string;
   status?: string;
   stage?: string;
   notes?: string;
@@ -40,8 +32,6 @@ const HEADER_SYNONYMS: Record<keyof ParsedRow, string[]> = {
   lastName: ['last name', 'lastname', 'sobrenome'],
   email: ['email', 'e-mail', 'e-mail address', 'mail'],
   phone: ['phone', 'telefone', 'celular', 'whatsapp', 'fone'],
-  role: ['role', 'cargo', 'titulo', 'title', 'funcao', 'funçao', 'funcao/cargo'],
-  company: ['company', 'empresa', 'conta', 'account', 'organization', 'organizacao', 'organização'],
   status: ['status'],
   stage: ['stage', 'etapa', 'lifecycle stage', 'ciclo de vida', 'pipeline stage'],
   notes: ['notes', 'nota', 'notas', 'observacoes', 'observações', 'obs'],
@@ -66,8 +56,6 @@ function buildHeaderIndex(headers: string[]) {
     lastName: find(HEADER_SYNONYMS.lastName),
     email: find(HEADER_SYNONYMS.email),
     phone: find(HEADER_SYNONYMS.phone),
-    role: find(HEADER_SYNONYMS.role),
-    company: find(HEADER_SYNONYMS.company),
     status: find(HEADER_SYNONYMS.status),
     stage: find(HEADER_SYNONYMS.stage),
     notes: find(HEADER_SYNONYMS.notes),
@@ -109,8 +97,6 @@ export async function POST(req: Request) {
     const file = form.get('file');
     const modeRaw = form.get('mode');
     const delimiterRaw = form.get('delimiter');
-    const createCompanies = BooleanStringSchema.parse(String(form.get('createCompanies') ?? 'true'));
-
     const modeResult = ImportModeSchema.safeParse(String(modeRaw ?? 'upsert_by_email'));
     if (!modeResult.success) {
       return NextResponse.json({ error: 'Parâmetro mode inválido.' }, { status: 400 });
@@ -164,8 +150,6 @@ export async function POST(req: Request) {
           name: computedName,
           email,
           phone,
-          role: getCell(r, mapping.role),
-          company: getCell(r, mapping.company),
           status: normalizeStatus(getCell(r, mapping.status)),
           stage: normalizeStage(getCell(r, mapping.stage)),
           notes: getCell(r, mapping.notes),
@@ -184,46 +168,6 @@ export async function POST(req: Request) {
     }
 
     const supabase = await createClient();
-
-    // Companies: preload and optionally create missing ones
-    const { data: companies, error: companiesError } = await supabase
-      .from('crm_companies')
-      .select('id,name')
-      .is('deleted_at', null);
-
-    if (companiesError) {
-      return NextResponse.json({ error: companiesError.message }, { status: 400 });
-    }
-
-    const companyIdByName = new Map<string, string>();
-    for (const c of (companies || []) as Array<{ id: string; name: string }>) {
-      if (c?.id && c?.name) companyIdByName.set(normalizeHeader(c.name), c.id);
-    }
-
-    const missingCompanies = new Set<string>();
-    if (createCompanies) {
-      for (const p of parsed) {
-        const companyName = (p.data.company || '').trim();
-        if (!companyName) continue;
-        const key = normalizeHeader(companyName);
-        if (!companyIdByName.has(key)) missingCompanies.add(companyName);
-      }
-    }
-
-    if (createCompanies && missingCompanies.size) {
-      const payload = Array.from(missingCompanies).map(name => ({ name }));
-      const { data: createdCompanies, error: createCompaniesError } = await supabase
-        .from('crm_companies')
-        .insert(payload)
-        .select('id,name');
-
-      if (createCompaniesError) {
-        return NextResponse.json({ error: createCompaniesError.message }, { status: 400 });
-      }
-      for (const c of (createdCompanies || []) as Array<{ id: string; name: string }>) {
-        if (c?.id && c?.name) companyIdByName.set(normalizeHeader(c.name), c.id);
-      }
-    }
 
     // Existing contacts by email (batch)
     const emails = Array.from(
@@ -283,15 +227,11 @@ export async function POST(req: Request) {
       const rowNumber = p.rowNumber;
       const email = (p.data.email || '').trim().toLowerCase();
       const phoneE164 = p.data.phone ? normalizePhoneE164(p.data.phone) : undefined;
-      const companyName = (p.data.company || '').trim();
-      const companyId = companyName ? companyIdByName.get(normalizeHeader(companyName)) : undefined;
 
       const base = {
         name: p.data.name || '',
         email: p.data.email || null,
         phone: phoneE164 || null,
-        role: p.data.role || null,
-        client_company_id: companyId || null,
         notes: p.data.notes || null,
         status: p.data.status || 'ACTIVE',
         stage: p.data.stage || 'LEAD',

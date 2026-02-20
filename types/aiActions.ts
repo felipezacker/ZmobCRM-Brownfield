@@ -5,7 +5,6 @@ export interface ParsedAction {
   type: ParsedActionType;
   date?: string;
   contactName?: string;
-  companyName?: string;
   /** 0-1 */
   confidence: number;
 }

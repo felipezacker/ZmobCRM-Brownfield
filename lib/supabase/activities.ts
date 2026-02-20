@@ -50,8 +50,6 @@ export interface DbActivity {
   deal_id: string | null;
   /** ID do contato associado. */
   contact_id: string | null;
-  /** ID da empresa CRM associada à atividade (opcional). */
-  client_company_id?: string | null;
   /** IDs dos contatos participantes (opcional). */
   participant_contact_ids?: string[] | null;
   /** Data de criação. */
@@ -81,7 +79,6 @@ const transformActivity = (db: DbActivityWithDeal): Activity => ({
   completed: db.completed,
   dealId: db.deal_id || '',
   contactId: db.contact_id || undefined,
-  clientCompanyId: (db as any).client_company_id || undefined,
   participantContactIds: (db as any).participant_contact_ids || [],
   dealTitle: db.deals?.title || '',
   user: { name: 'Você', avatar: '' }, // Will be enriched later
@@ -103,7 +100,6 @@ const transformActivityToDb = (activity: Partial<Activity>): Partial<DbActivity>
   if (activity.completed !== undefined) db.completed = activity.completed;
   if (activity.dealId !== undefined) db.deal_id = sanitizeUUID(activity.dealId);
   if (activity.contactId !== undefined) db.contact_id = sanitizeUUID(activity.contactId);
-  if (activity.clientCompanyId !== undefined) (db as any).client_company_id = sanitizeUUID(activity.clientCompanyId);
   if (activity.participantContactIds !== undefined) (db as any).participant_contact_ids = activity.participantContactIds || [];
 
   return db;
@@ -157,7 +153,6 @@ export const activitiesService = {
         completed: activity.completed || false,
         deal_id: sanitizeUUID(activity.dealId),
         contact_id: sanitizeUUID(activity.contactId),
-        client_company_id: sanitizeUUID(activity.clientCompanyId),
         participant_contact_ids: activity.participantContactIds || [],
       };
 
@@ -167,12 +162,6 @@ export const activitiesService = {
         // Se a migration ainda não foi aplicada, faz retry sem os novos campos.
         const msg = (error as any)?.message || '';
         const code = (error as any)?.code || '';
-        if (code === '42703' && msg.includes('client_company_id')) {
-          delete insertData.client_company_id;
-          const retry = await sb.from('activities').insert(insertData).select().single();
-          if (retry.error) return { data: null, error: retry.error as any };
-          return { data: transformActivity(retry.data as DbActivity), error: null };
-        }
         if (code === '42703' && msg.includes('participant_contact_ids')) {
           delete insertData.participant_contact_ids;
           const retry = await sb.from('activities').insert(insertData).select().single();
@@ -207,11 +196,6 @@ export const activitiesService = {
       if (error) {
         const msg = (error as any)?.message || '';
         const code = (error as any)?.code || '';
-        if (code === '42703' && msg.includes('client_company_id')) {
-          const { client_company_id, ...rest } = dbUpdates as any;
-          const retry = await sb.from('activities').update(rest).eq('id', id);
-          return { error: retry.error as any };
-        }
         if (code === '42703' && msg.includes('participant_contact_ids')) {
           const { participant_contact_ids, ...rest } = dbUpdates as any;
           const retry = await sb.from('activities').update(rest).eq('id', id);

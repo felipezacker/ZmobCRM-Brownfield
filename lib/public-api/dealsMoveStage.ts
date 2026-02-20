@@ -112,7 +112,7 @@ export async function moveStageByDealId(opts: {
     .update(updates)
     .eq('organization_id', opts.organizationId)
     .eq('id', dealId)
-    .select('id,title,value,board_id,stage_id,contact_id,client_company_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at')
+    .select('id,title,value,board_id,stage_id,contact_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at')
     .maybeSingle();
   if (error) return { ok: false as const, status: 500, body: { error: error.message, code: 'DB_ERROR' } };
   if (!data) return { ok: false as const, status: 404, body: { error: 'Deal not found', code: 'NOT_FOUND' } };
@@ -216,7 +216,7 @@ export async function moveStageByIdentity(opts: {
     .update(updates)
     .eq('organization_id', opts.organizationId)
     .eq('id', dealId)
-    .select('id,title,value,board_id,stage_id,contact_id,client_company_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at')
+    .select('id,title,value,board_id,stage_id,contact_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at')
     .maybeSingle();
   if (updateError) return { ok: false as const, status: 500, body: { error: updateError.message, code: 'DB_ERROR' } };
   if (!updated) return { ok: false as const, status: 404, body: { error: 'Deal not found', code: 'NOT_FOUND' } };

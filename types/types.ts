@@ -45,26 +45,6 @@ export enum DealStatus {
  */
 export type OrganizationId = string;
 
-/**
- * Client Company ID - UUID de empresa CLIENTE cadastrada no CRM
- * 
- * @description
- * Este ID representa uma empresa que é cliente/prospect do usuário do CRM.
- * É um relacionamento comercial, não relacionado a segurança.
- * 
- * @origin Selecionado pelo usuário em dropdowns/formulários
- * @optional Pode ser null (contatos podem não ter empresa)
- * 
- * @example
- * ```ts
- * // ✅ Correto: client_company_id vem de seleção do usuário
- * const deal = { 
- *   organization_id: organizationId,     // Do auth (segurança)
- *   client_company_id: selectedCompany,  // Do form (opcional)
- * };
- * ```
- */
-export type ClientCompanyId = string;
 
 // =============================================================================
 // Core Types
@@ -92,10 +72,8 @@ export enum ContactStage {
 // Mantido apenas para compatibilidade de migração
 export interface Lead {
   id: string;
-  name: string; // Nome da pessoa
+  name: string;
   email: string;
-  companyName: string; // Texto solto, ainda não é uma Company
-  role?: string;
   source: 'WEBSITE' | 'LINKEDIN' | 'REFERRAL' | 'MANUAL';
   status: 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'DISQUALIFIED';
   createdAt: string;
@@ -127,24 +105,6 @@ export interface Organization {
 export type Company = Organization;
 
 // =============================================================================
-// CRM Company (Client company in the CRM)
-// =============================================================================
-
-/**
- * CRMCompany - A client company record in the CRM
- * This is a company that the user is selling to/managing
- */
-export interface CRMCompany {
-  id: ClientCompanyId;
-  organizationId?: OrganizationId; // Tenant FK (for RLS) - optional during migration
-  name: string;
-  industry?: string;
-  website?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-// =============================================================================
 // Contact (Person we talk to)
 // =============================================================================
 
@@ -152,9 +112,7 @@ export interface CRMCompany {
 export interface Contact {
   id: string;
   organizationId?: OrganizationId; // Tenant FK (for RLS) - optional during migration
-  clientCompanyId?: ClientCompanyId; // CRM company this contact belongs to
   name: string;
-  role?: string;
   email: string;
   phone: string;
   avatar?: string;
@@ -168,9 +126,7 @@ export interface Contact {
   totalValue?: number; // LTV
   createdAt: string;
   updatedAt?: string; // Última modificação do registro
-
-  // @deprecated - Use clientCompanyId instead
-  companyId?: string;
+  ownerId?: string; // ID do corretor responsável
 }
 
 // ITEM 3: Produtos e Serviços
@@ -209,7 +165,6 @@ export interface CustomFieldDefinition {
 export interface Deal {
   id: string;
   organizationId?: OrganizationId; // Tenant FK (for RLS) - optional during migration
-  clientCompanyId?: ClientCompanyId; // CRM company FK
   title: string; // Ex: "Licença Anual"
   contactId: string; // Relacionamento
   boardId: string; // Qual board este deal pertence
@@ -238,21 +193,14 @@ export interface Deal {
   customFields?: Record<string, any>; // Dynamic fields storage
   lastStageChangeDate?: string; // For stagnation tracking
   lossReason?: string; // For win/loss analysis
-
-  // @deprecated - Use clientCompanyId instead
-  companyId?: string;
 }
 
 // Helper Type para Visualização (Desnormalizado)
 export interface DealView extends Deal {
-  clientCompanyName?: string; // Name of the CRM client company
   contactName: string;
   contactEmail: string;
   /** Nome/label do estágio atual (resolvido a partir do status UUID) */
   stageLabel: string;
-
-  // @deprecated - Use clientCompanyName instead
-  companyName?: string;
 }
 
 export interface Activity {
@@ -261,8 +209,6 @@ export interface Activity {
   dealId: string;
   /** ID do contato associado (opcional). Útil para tarefas sem deal. */
   contactId?: string;
-  /** ID da empresa CRM associada (opcional). Derivado do deal ou contato. */
-  clientCompanyId?: ClientCompanyId;
   /** IDs dos contatos participantes (opcional). */
   participantContactIds?: string[];
   dealTitle: string;
@@ -478,8 +424,6 @@ export interface ContactsServerFilters {
   dateStart?: string;
   /** Data de fim (created_at <= dateEnd). */
   dateEnd?: string;
-  /** ID da empresa cliente (opcional). */
-  clientCompanyId?: string;
   /** Campo para ordenação. */
   sortBy?: ContactSortableColumn;
   /** Direção da ordenação. */

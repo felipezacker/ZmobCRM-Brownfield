@@ -7,7 +7,7 @@ import { LossReasonModal } from '@/components/ui/LossReasonModal';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { Activity } from '@/types';
-import { usePersistedState } from '@/hooks/usePersistedState';
+import { useTags } from '@/hooks/useTags';
 import { useResponsiveMode } from '@/hooks/useResponsiveMode';
 import { DealSheet } from '../DealSheet';
 import {
@@ -27,7 +27,6 @@ import {
   Pencil,
   ThumbsUp,
   ThumbsDown,
-  Building2,
   User,
   Package,
   Sword,
@@ -40,6 +39,7 @@ import {
 import { StageProgressBar } from '../StageProgressBar';
 import { ActivityRow } from '@/features/activities/components/ActivityRow';
 import { formatPriorityPtBr } from '@/lib/utils/priority';
+import { CorretorSelect } from '@/components/ui/CorretorSelect';
 
 interface DealDetailModalProps {
   dealId: string | null;
@@ -133,13 +133,12 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const [pendingLostStageId, setPendingLostStageId] = useState<string | null>(null);
   const [lossReasonOrigin, setLossReasonOrigin] = useState<'button' | 'stage'>('button');
 
-  // Tags suggestions (local for now; Settings UI writes to the same key)
-  const [availableTags, setAvailableTags] = usePersistedState<string[]>('crm_tags', []);
+  // Tags suggestions from Supabase `tags` table (shared with Settings)
+  const { tags: availableTags, addTag: addCatalogTag, tagsLowerSet: availableTagsLower } = useTags();
   const [tagQuery, setTagQuery] = useState('');
 
   const normalizeTag = (value: string) => value.trim().replace(/\s+/g, ' ');
   const tagsLower = useMemo(() => new Set((deal?.tags || []).map(t => t.toLowerCase())), [deal?.tags]);
-  const availableTagsLower = useMemo(() => new Set((availableTags || []).map(t => t.toLowerCase())), [availableTags]);
 
   // Helper functions removed as they are now handled by ActivityRow component
 
@@ -200,9 +199,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
     const nextTags = [...current, next];
     updateDeal(deal.id, { tags: nextTags });
 
-    // Keep suggestions up-to-date (case-insensitive)
+    // Persist new tag to Supabase catalog (if not already there)
     if (!availableTagsLower.has(next.toLowerCase())) {
-      setAvailableTags(prev => [...(prev || []), next]);
+      addCatalogTag(next);
     }
 
     setTagQuery('');
@@ -606,12 +605,6 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
             <div className="space-y-6">
               <div>
                 <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
-                  <Building2 size={14} /> Empresa (Conta)
-                </h3>
-                <p className="text-slate-900 dark:text-white font-medium">{deal.companyName}</p>
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
                   <User size={14} /> Contato Principal
                 </h3>
                 <div className="flex items-center gap-3">
@@ -665,6 +658,17 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     <span className="text-slate-900 dark:text-white">{deal.probability}%</span>
                   </div>
                 </div>
+              </div>
+
+              {/* CORRETOR RESPONSÁVEL */}
+              <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">
+                  Corretor Responsável
+                </h3>
+                <CorretorSelect
+                  value={deal.ownerId || profile?.id}
+                  onChange={(newOwnerId) => updateDeal(deal.id, { ownerId: newOwnerId })}
+                />
               </div>
 
               {/* TAGS */}

@@ -30,13 +30,9 @@ BEGIN
     DELETE FROM deals;
     RAISE NOTICE '   ✓ deals deletados';
     
-    -- Contacts (dependem de companies)
+    -- Contacts
     DELETE FROM contacts;
     RAISE NOTICE '   ✓ contacts deletados';
-    
-    -- CRM Companies
-    DELETE FROM crm_companies;
-    RAISE NOTICE '   ✓ crm_companies deletadas';
     
     -- Products
     DELETE FROM products;

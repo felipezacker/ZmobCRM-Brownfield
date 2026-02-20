@@ -7,6 +7,8 @@ import { Modal, ModalForm } from '@/components/ui/Modal';
 import { InputField, SubmitButton } from '@/components/ui/FormField';
 import { dealFormSchema } from '@/lib/validations/schemas';
 import type { DealFormData } from '@/lib/validations/schemas';
+import { CorretorSelect } from '@/components/ui/CorretorSelect';
+import { useAuth } from '@/context/AuthContext';
 
 interface CreateDealModalV2Props {
   isOpen: boolean;
@@ -21,13 +23,20 @@ interface CreateDealModalV2Props {
  */
 export const CreateDealModalV2: React.FC<CreateDealModalV2Props> = ({ isOpen, onClose }) => {
   const { addDeal, activeBoard, activeBoardId } = useCRM();
+  const { profile } = useAuth();
+  const [selectedOwnerId, setSelectedOwnerId] = React.useState<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedOwnerId(profile?.id);
+    }
+  }, [isOpen, profile?.id]);
 
   const form = useForm<DealFormData>({
     // @ts-expect-error - zodResolver type variance with optional value field, safe at runtime
     resolver: zodResolver(dealFormSchema),
     defaultValues: {
       title: '',
-      companyName: '',
       value: 0,
       contactName: '',
       email: '',
@@ -57,7 +66,6 @@ export const CreateDealModalV2: React.FC<CreateDealModalV2Props> = ({ isOpen, on
       return;
     }
 
-    const companyId = 'c-' + crypto.randomUUID().substring(0, 8);
     const contactId = 'p-' + crypto.randomUUID().substring(0, 8);
 
     // Usa o primeiro estágio do board ativo
@@ -66,7 +74,6 @@ export const CreateDealModalV2: React.FC<CreateDealModalV2Props> = ({ isOpen, on
     const deal: Deal = {
       id: crypto.randomUUID(),
       title: data.title,
-      companyId: companyId,
       contactId: contactId,
       boardId: activeBoardId,
       value: data.value,
@@ -78,13 +85,13 @@ export const CreateDealModalV2: React.FC<CreateDealModalV2Props> = ({ isOpen, on
       priority: 'medium',
       tags: ['Novo'],
       owner: { name: 'Eu', avatar: 'https://i.pravatar.cc/150?u=me' },
+      ownerId: selectedOwnerId || profile?.id,
       customFields: {},
       isWon: false,
       isLost: false,
     };
 
     addDeal(deal, {
-      companyName: data.companyName,
       contact: {
         name: data.contactName || '',
         email: data.email || '',
@@ -115,12 +122,6 @@ export const CreateDealModalV2: React.FC<CreateDealModalV2Props> = ({ isOpen, on
             error={errors.value}
             registration={register('value', { valueAsNumber: true })}
           />
-          <InputField
-            label="Empresa"
-            placeholder="Empresa Ltd"
-            error={errors.companyName}
-            registration={register('companyName')}
-          />
         </div>
 
         <div className="pt-2 border-t border-slate-100 dark:border-white/5">
@@ -140,6 +141,16 @@ export const CreateDealModalV2: React.FC<CreateDealModalV2Props> = ({ isOpen, on
               registration={register('email')}
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            Corretor Responsável
+          </label>
+          <CorretorSelect
+            value={selectedOwnerId}
+            onChange={setSelectedOwnerId}
+          />
         </div>
 
         <SubmitButton isLoading={isSubmitting}>Criar Negócio</SubmitButton>

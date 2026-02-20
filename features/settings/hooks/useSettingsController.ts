@@ -3,9 +3,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { CustomFieldDefinition, CustomFieldType } from '@/types';
+import { useTags } from '@/hooks/useTags';
+import { useAuth } from '@/context/AuthContext';
 
 export function useSettingsController() {
   const supabase = createClient()!;
+  const { organizationId } = useAuth();
 
   // Default route
   const [defaultRoute, setDefaultRouteState] = useState('/dashboard');
@@ -24,38 +27,16 @@ export function useSettingsController() {
     }
   }, []);
 
-  // Tags
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  // Tags (centralized via useTags hook — reads/writes Supabase `tags` table)
+  const { tags: availableTags, addTag, removeTag } = useTags();
   const [newTagName, setNewTagName] = useState('');
-
-  useEffect(() => {
-    supabase
-      .from('tags')
-      .select('name')
-      .then(({ data }) => {
-        if (data) setAvailableTags(data.map((t) => t.name));
-      });
-  }, [supabase]);
 
   const handleAddTag = useCallback(async () => {
     const trimmed = newTagName.trim();
-    if (!trimmed || availableTags.includes(trimmed)) return;
-    const { error } = await supabase.from('tags').insert({ name: trimmed });
-    if (!error) {
-      setAvailableTags((prev) => [...prev, trimmed]);
-      setNewTagName('');
-    }
-  }, [newTagName, availableTags, supabase]);
-
-  const removeTag = useCallback(
-    async (tag: string) => {
-      const { error } = await supabase.from('tags').delete().eq('name', tag);
-      if (!error) {
-        setAvailableTags((prev) => prev.filter((t) => t !== tag));
-      }
-    },
-    [supabase],
-  );
+    if (!trimmed) return;
+    await addTag(trimmed);
+    setNewTagName('');
+  }, [newTagName, addTag]);
 
   // Custom fields
   const [customFieldDefinitions, setCustomFieldDefinitions] = useState<CustomFieldDefinition[]>([]);
@@ -65,13 +46,15 @@ export function useSettingsController() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!organizationId) return;
     supabase
       .from('custom_field_definitions')
       .select('*')
+      .eq('organization_id', organizationId)
       .then(({ data }) => {
         if (data) setCustomFieldDefinitions(data as CustomFieldDefinition[]);
       });
-  }, [supabase]);
+  }, [supabase, organizationId]);
 
   const startEditingField = useCallback((field: CustomFieldDefinition) => {
     setEditingId(field.id);
@@ -102,7 +85,8 @@ export function useSettingsController() {
       const { error } = await supabase
         .from('custom_field_definitions')
         .update({ label, type: newFieldType, options })
-        .eq('id', editingId);
+        .eq('id', editingId)
+        .eq('organization_id', organizationId);
       if (!error) {
         setCustomFieldDefinitions((prev) =>
           prev.map((f) => (f.id === editingId ? { ...f, label, type: newFieldType, options } : f)),
@@ -110,9 +94,10 @@ export function useSettingsController() {
         cancelEditingField();
       }
     } else {
+      const key = label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
       const { data, error } = await supabase
         .from('custom_field_definitions')
-        .insert({ label, type: newFieldType, options })
+        .insert({ key, label, type: newFieldType, options, organization_id: organizationId })
         .select()
         .single();
       if (!error && data) {
@@ -124,7 +109,7 @@ export function useSettingsController() {
 
   const removeCustomField = useCallback(
     async (id: string) => {
-      const { error } = await supabase.from('custom_field_definitions').delete().eq('id', id);
+      const { error } = await supabase.from('custom_field_definitions').delete().eq('id', id).eq('organization_id', organizationId);
       if (!error) {
         setCustomFieldDefinitions((prev) => prev.filter((f) => f.id !== id));
       }

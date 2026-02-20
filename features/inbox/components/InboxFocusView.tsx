@@ -103,7 +103,6 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
   const {
     deals,
     contacts,
-    companies,
     boards,
     activeBoard,
     activities,
@@ -364,7 +363,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
   // Título e descrição
   const title = activity?.title || suggestion?.title || '';
   const description = activity?.description || suggestion?.description || '';
-  const context = activity?.dealTitle || suggestion?.data.deal?.companyName || suggestion?.data.contact?.name || '';
+  const context = activity?.dealTitle || suggestion?.data.deal?.title || suggestion?.data.contact?.name || '';
   const value = suggestion?.data.deal?.value;
 
   // Horário (se for reunião/call)

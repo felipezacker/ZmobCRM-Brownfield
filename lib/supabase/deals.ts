@@ -76,8 +76,6 @@ export interface DbDeal {
   stage_id: string | null;
   /** ID do contato associado. */
   contact_id: string | null;
-  /** ID da empresa CRM associada. */
-  client_company_id: string | null;
   /** Resumo gerado por IA. */
   ai_summary: string | null;
   /** Motivo da perda, se aplicável. */
@@ -165,8 +163,6 @@ const transformDeal = (db: DbDeal | DbDealWithItems, items?: DbDealItem[]): Deal
     priority: (db.priority as Deal['priority']) || 'medium',
     boardId: db.board_id || '',
     contactId: db.contact_id || '',
-    clientCompanyId: db.client_company_id || undefined,
-    companyId: db.client_company_id || '', // @deprecated - backwards compatibility
     aiSummary: db.ai_summary || undefined,
     lossReason: db.loss_reason || undefined,
     tags: db.tags || [],
@@ -213,9 +209,6 @@ const transformDealToDb = (deal: Partial<Deal>): Partial<DbDeal> => {
   if (deal.priority !== undefined) db.priority = deal.priority;
   if (deal.boardId !== undefined) db.board_id = sanitizeUUID(deal.boardId);
   if (deal.contactId !== undefined) db.contact_id = sanitizeUUID(deal.contactId);
-  // Support both new clientCompanyId and deprecated companyId
-  if (deal.clientCompanyId !== undefined) db.client_company_id = sanitizeUUID(deal.clientCompanyId);
-  else if (deal.companyId !== undefined) db.client_company_id = sanitizeUUID(deal.companyId);
   if (deal.aiSummary !== undefined) db.ai_summary = deal.aiSummary || null;
   if (deal.lossReason !== undefined) db.loss_reason = deal.lossReason || null;
   if (deal.tags !== undefined) db.tags = deal.tags;
@@ -381,7 +374,6 @@ export const dealsService = {
         board_id: boardId,
         stage_id: sanitizeUUID(stageId),
         contact_id: sanitizeUUID(deal.contactId),
-        client_company_id: sanitizeUUID(deal.clientCompanyId || deal.companyId),
         tags: deal.tags || [],
         custom_fields: deal.customFields || {},
         owner_id: sanitizeUUID(deal.ownerId),

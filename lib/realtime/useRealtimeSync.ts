@@ -52,7 +52,6 @@ type RealtimeTable =
   | 'activities'
   | 'boards'
   | 'board_stages'
-  | 'crm_companies';
 
 // Lazy getter for query keys mapping - avoids initialization issues in tests
 const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unknown[])[] => {
@@ -62,7 +61,6 @@ const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unknown[])[
     activities: [queryKeys.activities.all],
     boards: [queryKeys.boards.all],
     board_stages: [queryKeys.boards.all], // stages invalidate boards
-    crm_companies: [queryKeys.companies.all],
   };
   return mapping[table];
 };
@@ -242,10 +240,6 @@ export function useRealtimeSync(
               if (newData.contact_id !== undefined) {
                 normalizedDeal.contactId = newData.contact_id;
                 delete normalizedDeal.contact_id;
-              }
-              if (newData.company_id !== undefined) {
-                normalizedDeal.companyId = newData.company_id;
-                delete normalizedDeal.company_id;
               }
               if (newData.closed_at !== undefined) {
                 normalizedDeal.closedAt = newData.closed_at;
@@ -763,7 +757,7 @@ export function useRealtimeSync(
  * Ideal for the main app layout
  */
 export function useRealtimeSyncAll(options: UseRealtimeSyncOptions = {}) {
-  return useRealtimeSync(['deals', 'contacts', 'activities', 'boards', 'crm_companies'], options);
+  return useRealtimeSync(['deals', 'contacts', 'activities', 'boards'], options);
 }
 
 /**

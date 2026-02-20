@@ -29,7 +29,6 @@ export const GenerateEmailDraftInputSchema = z.object({
     value: z.number().optional(),
     status: z.string().optional(),
     contactName: z.string().optional(),
-    companyName: z.string().optional(),
   }),
   stageLabel: z.string().optional(),
 });

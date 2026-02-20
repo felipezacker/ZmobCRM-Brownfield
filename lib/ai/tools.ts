@@ -353,7 +353,7 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
 
                 const { data: contacts } = await supabase
                     .from('contacts')
-                    .select('id, name, email, phone, company_name')
+                    .select('id, name, email, phone')
                     .eq('organization_id', organizationId)
                     .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
                     .limit(limit);
@@ -365,7 +365,6 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
                         name: c.name,
                         email: c.email || 'N/A',
                         phone: c.phone || 'N/A',
-                        company: c.company_name || 'N/A'
                     })) || []
                 };
             },
@@ -1408,15 +1407,13 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
                 name: z.string().min(1),
                 email: z.string().email().optional(),
                 phone: z.string().optional(),
-                role: z.string().optional(),
-                companyName: z.string().optional(),
                 notes: z.string().optional(),
                 status: z.string().optional().default('ACTIVE'),
                 stage: z.string().optional().default('LEAD'),
                 source: z.string().optional(),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ name, email, phone, role, companyName, notes, status, stage, source }) => {
+            execute: async ({ name, email, phone, notes, status, stage, source }) => {
                 const { data, error } = await supabase
                     .from('contacts')
                     .insert({
@@ -1424,8 +1421,6 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
                         name,
                         email: email || null,
                         phone: phone || null,
-                        role: role || null,
-                        company_name: companyName || null,
                         notes: notes || null,
                         status,
                         stage,
@@ -1433,7 +1428,7 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
                         owner_id: userId,
                         updated_at: new Date().toISOString(),
                     })
-                    .select('id, name, email, phone, company_name')
+                    .select('id, name, email, phone')
                     .single();
                 if (error) return { error: formatSupabaseFailure(error) };
                 return { success: true, contact: data, message: `Contato "${data.name}" criado.` };
@@ -1447,8 +1442,6 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
                 name: z.string().optional(),
                 email: z.string().email().optional(),
                 phone: z.string().optional(),
-                role: z.string().optional(),
-                companyName: z.string().optional(),
                 notes: z.string().optional(),
                 status: z.string().optional(),
                 stage: z.string().optional(),
@@ -1460,8 +1453,6 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
                 if (patch.name !== undefined) updateData.name = patch.name;
                 if (patch.email !== undefined) updateData.email = patch.email;
                 if (patch.phone !== undefined) updateData.phone = patch.phone;
-                if (patch.role !== undefined) updateData.role = patch.role;
-                if (patch.companyName !== undefined) updateData.company_name = patch.companyName;
                 if (patch.notes !== undefined) updateData.notes = patch.notes;
                 if (patch.status !== undefined) updateData.status = patch.status;
                 if (patch.stage !== undefined) updateData.stage = patch.stage;
@@ -1472,7 +1463,7 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
                     .update(updateData)
                     .eq('organization_id', organizationId)
                     .eq('id', contactId)
-                    .select('id, name, email, phone, company_name')
+                    .select('id, name, email, phone')
                     .maybeSingle();
                 if (error) return { error: formatSupabaseFailure(error) };
                 if (!data) return { error: 'Contato não encontrado nesta organização.' };
@@ -1488,7 +1479,7 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
             execute: async ({ contactId }) => {
                 const { data, error } = await supabase
                     .from('contacts')
-                    .select('id, name, email, phone, role, company_name, notes, status, stage, source, created_at, updated_at')
+                    .select('id, name, email, phone, notes, status, stage, source, created_at, updated_at')
                     .eq('organization_id', organizationId)
                     .eq('id', contactId)
                     .maybeSingle();

@@ -6,7 +6,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Deal, DealView, DealItem, Company, Contact, Board } from '@/types';
+import { Deal, DealView, DealItem, Contact, Board } from '@/types';
 import { dealsService } from '@/lib/supabase';
 import { useAuth } from '../AuthContext';
 import { queryKeys, DEALS_VIEW_KEY } from '@/lib/query';
@@ -226,27 +226,15 @@ export const useDeals = () => {
 /**
  * Hook React `useDealsView` que encapsula uma lógica reutilizável.
  *
- * @param {Record<string, Organization>} companyMap - Parâmetro `companyMap`.
  * @param {Record<string, Contact>} contactMap - Parâmetro `contactMap`.
  * @param {Board[]} boards - Parâmetro `boards`.
  * @returns {DealView[]} Retorna um valor do tipo `DealView[]`.
  */
 export const useDealsView = (
-  companyMap: Record<string, Company>,
   contactMap: Record<string, Contact>,
   boards: Board[] = []
 ): DealView[] => {
   const { rawDeals } = useDeals();
-
-  // Pre-build Maps para lookups O(1) ao invés de O(n) com .find()
-  // Isso reduz de O(deals * boards * stages) para O(deals + boards + stages)
-  const boardMap = useMemo(() => {
-    const map = new Map<string, Board>();
-    for (const board of boards) {
-      map.set(board.id, board);
-    }
-    return map;
-  }, [boards]);
 
   // Map de stageId -> stageLabel para lookup direto O(1)
   const stageLabelMap = useMemo(() => {
@@ -268,14 +256,10 @@ export const useDealsView = (
 
       return {
         ...deal,
-        companyName: deal.companyId ? companyMap[deal.companyId]?.name : undefined,
-        clientCompanyName: (deal.clientCompanyId || deal.companyId)
-          ? companyMap[(deal.clientCompanyId || deal.companyId) as string]?.name
-          : undefined,
         contactName: deal.contactId ? (contactMap[deal.contactId]?.name || 'Sem Contato') : 'Sem Contato',
         contactEmail: deal.contactId ? (contactMap[deal.contactId]?.email || '') : '',
         stageLabel,
       };
     });
-  }, [rawDeals, companyMap, contactMap, stageLabelMap]);
+  }, [rawDeals, contactMap, stageLabelMap]);
 };

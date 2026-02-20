@@ -57,7 +57,6 @@ const KanbanListRow = React.memo(function KanbanListRow({
         />
         </td>
         <td className="px-6 py-3 font-bold text-slate-900 dark:text-white">{deal.title}</td>
-        <td className="px-6 py-3 text-slate-600 dark:text-slate-300">{deal.companyName}</td>
         <td className="px-6 py-3">
           {onMoveDealToStage ? (
             <button
@@ -217,9 +216,6 @@ export const KanbanList: React.FC<KanbanListProps> = ({
               <th className="px-6 py-3 font-bold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider w-10"></th>
               <th className="px-6 py-3 font-bold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Negócio
-              </th>
-              <th className="px-6 py-3 font-bold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Empresa
               </th>
               <th className="px-6 py-3 font-bold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Estágio

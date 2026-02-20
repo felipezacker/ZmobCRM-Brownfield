@@ -95,7 +95,6 @@ const ParsedActionSchema = z.object({
   type: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK']),
   date: z.string().optional(),
   contactName: z.string().optional(),
-  companyName: z.string().optional(),
   confidence: z.number().min(0).max(1),
 });
 
@@ -252,7 +251,6 @@ export async function POST(req: Request) {
         const resolved = await getResolvedPrompt(supabase as any, profile.organization_id as any, 'task_deals_email_draft');
         const prompt = renderPromptTemplate(resolved?.content || '', {
           contactName: deal?.contactName || 'Cliente',
-          companyName: deal?.companyName || 'Empresa',
           dealTitle: deal?.title || '',
         });
         const result = await generateText({
@@ -419,7 +417,7 @@ Responda em português do Brasil.`,
           maxRetries: 3,
           schema: ParsedActionSchema,
           prompt: `Parse para CRM Action: "${text}".
-Campos: title, type (CALL/MEETING/EMAIL/TASK), date, contactName, companyName, confidence.`,
+Campos: title, type (CALL/MEETING/EMAIL/TASK), date, contactName, confidence.`,
         });
         return json<AIActionResponse>({ result: result.object });
       }

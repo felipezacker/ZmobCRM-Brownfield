@@ -28,7 +28,7 @@ export {
   useContactsPaginated,
   useContactStageCounts,
   useContact,
-  useContactsByCompany,
+
   useLeadContacts,
   useCreateContact,
   useUpdateContact,
@@ -37,14 +37,6 @@ export {
   useContactHasDeals,
   usePrefetchContact,
   type ContactsFilters,
-} from './useContactsQuery';
-
-// Companies
-export {
-  useCompanies,
-  useCreateCompany,
-  useUpdateCompany,
-  useDeleteCompany,
 } from './useContactsQuery';
 
 // Activities

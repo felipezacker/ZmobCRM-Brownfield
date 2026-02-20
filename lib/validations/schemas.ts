@@ -18,7 +18,7 @@ const MAX_LENGTHS = {
   EMAIL: 254, // RFC 5321
   PHONE: 30,
   TITLE: 200,
-  COMPANY_NAME: 200,
+
   DESCRIPTION: 5000,
   NOTES: 10000,
   URL: 2000,
@@ -111,37 +111,15 @@ export const contactFormSchema = z.object({
   name: requiredString('Nome', MAX_LENGTHS.NAME),
   email: emailSchema,
   phone: phoneSchema,
-  role: optionalString.pipe(z.string().max(MAX_LENGTHS.SHORT_TEXT)),
-  companyName: optionalString.pipe(z.string().max(MAX_LENGTHS.COMPANY_NAME)),
+
 });
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;
-
-// ============ COMPANY SCHEMAS ============
-
-export const companyFormSchema = z.object({
-  name: requiredString('Nome da Empresa', MAX_LENGTHS.COMPANY_NAME),
-  industry: optionalString.pipe(z.string().max(MAX_LENGTHS.SHORT_TEXT)),
-  website: z
-    .string()
-    .max(MAX_LENGTHS.URL, `Website deve ter no máximo ${MAX_LENGTHS.URL} caracteres`)
-    .optional()
-    .or(z.literal(''))
-    .transform(val => (val || '').trim())
-    .transform(val => val.replace(/^https?:\/\//i, '').replace(/\/+$/g, ''))
-    .refine(
-      val => val === '' || /^[a-z0-9.-]+\.[a-z]{2,}.*$/i.test(val),
-      'Website inválido'
-    ),
-});
-
-export type CompanyFormData = z.infer<typeof companyFormSchema>;
 
 // ============ DEAL SCHEMAS ============
 
 export const dealFormSchema = z.object({
   title: requiredString('Nome do negócio', MAX_LENGTHS.TITLE),
-  companyName: requiredString('Empresa', MAX_LENGTHS.COMPANY_NAME),
   value: currencySchema,
   contactName: optionalString.pipe(z.string().max(MAX_LENGTHS.NAME)),
   email: z.string()

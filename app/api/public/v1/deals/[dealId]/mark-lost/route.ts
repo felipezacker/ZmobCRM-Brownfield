@@ -42,7 +42,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ dealId: st
     .eq('organization_id', auth.organizationId)
     .is('deleted_at', null)
     .eq('id', dealId)
-    .select('id,title,value,board_id,stage_id,contact_id,client_company_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at')
+    .select('id,title,value,board_id,stage_id,contact_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at')
     .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message, code: 'DB_ERROR' }, { status: 500 });

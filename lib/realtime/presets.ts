@@ -5,18 +5,18 @@
  * Reduces repetition and provides semantic naming.
  * 
  * Usage:
- *   useRealtimePreset('contacts');  // Syncs contacts + companies
+ *   useRealtimePreset('contacts');  // Syncs contacts
  *   useRealtimePreset('kanban');    // Syncs deals + stages
  */
 import { useRealtimeSync } from './useRealtimeSync';
 
 // Table combinations for common scenarios
 const REALTIME_PRESETS = {
-  /** Contacts page: contacts and their companies */
-  contacts: ['contacts', 'crm_companies'] as const,
-  
-  /** Deals page: deals with contacts and companies */
-  deals: ['deals', 'contacts', 'crm_companies'] as const,
+  /** Contacts page */
+  contacts: ['contacts'] as const,
+
+  /** Deals page: deals with contacts */
+  deals: ['deals', 'contacts'] as const,
   
   /** Kanban board: deals and stages */
   kanban: ['deals', 'board_stages'] as const,
@@ -28,7 +28,7 @@ const REALTIME_PRESETS = {
   boards: ['boards', 'board_stages'] as const,
   
   /** Full CRM sync (for main layout) */
-  all: ['deals', 'contacts', 'activities', 'boards', 'crm_companies'] as const,
+  all: ['deals', 'contacts', 'activities', 'boards'] as const,
 } as const;
 
 export type RealtimePreset = keyof typeof REALTIME_PRESETS;

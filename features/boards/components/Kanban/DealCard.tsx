@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { DealView } from '@/types';
-import { Building2, Hourglass, Trophy, XCircle } from 'lucide-react';
+import { Hourglass, Trophy, XCircle } from 'lucide-react';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
 import { priorityAriaLabelPtBr } from '@/lib/utils/priority';
 
@@ -139,7 +139,6 @@ const DealCardComponent: React.FC<DealCardProps> = ({
 
     // Main content
     parts.push(deal.title);
-    if (deal.companyName) parts.push(deal.companyName);
     parts.push(`$${deal.value.toLocaleString()}`);
 
     // Additional context
@@ -232,10 +231,6 @@ const DealCardComponent: React.FC<DealCardProps> = ({
       >
         {deal.title}
       </h4>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1">
-        <Building2 size={10} aria-hidden="true" /> {deal.companyName}
-      </p>
-
       <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-white/5">
         <div className="flex items-center gap-2">
           {deal.owner && deal.owner.name !== 'Sem Dono' && (

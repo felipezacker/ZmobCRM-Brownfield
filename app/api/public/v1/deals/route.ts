@@ -5,7 +5,7 @@ import { createStaticAdminClient } from '@/lib/supabase/server';
 import { decodeOffsetCursor, encodeOffsetCursor, parseLimit } from '@/lib/public-api/cursor';
 import { resolveBoardIdFromKey, resolveFirstStageId } from '@/lib/public-api/resolve';
 import { normalizeEmail, normalizePhone, normalizeText } from '@/lib/public-api/sanitize';
-import { isValidUUID, sanitizeUUID } from '@/lib/supabase/utils';
+import { sanitizeUUID } from '@/lib/supabase/utils';
 
 export const runtime = 'nodejs';
 
@@ -13,8 +13,6 @@ const ContactInlineSchema = z.object({
   name: z.string().optional(),
   email: z.string().optional(),
   phone: z.string().optional(),
-  role: z.string().optional(),
-  client_company_id: z.string().uuid().optional(),
 }).strict();
 
 const DealCreateSchema = z.object({
@@ -25,7 +23,6 @@ const DealCreateSchema = z.object({
   stage_id: z.string().uuid().optional(),
   contact_id: z.string().uuid().optional(),
   contact: ContactInlineSchema.optional(),
-  client_company_id: z.string().uuid().optional(),
 }).strict();
 
 export async function GET(request: Request) {
@@ -38,7 +35,6 @@ export async function GET(request: Request) {
   const boardKey = (url.searchParams.get('board_key') || '').trim();
   const stageId = sanitizeUUID(url.searchParams.get('stage_id'));
   const contactId = sanitizeUUID(url.searchParams.get('contact_id'));
-  const clientCompanyId = sanitizeUUID(url.searchParams.get('client_company_id'));
   const status = (url.searchParams.get('status') || '').trim(); // open|won|lost
   const updatedAfter = (url.searchParams.get('updated_after') || '').trim();
   const limit = parseLimit(url.searchParams.get('limit'));
@@ -53,7 +49,7 @@ export async function GET(request: Request) {
 
   let query = sb
     .from('deals')
-    .select('id,title,value,board_id,stage_id,contact_id,client_company_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at', { count: 'exact' })
+    .select('id,title,value,board_id,stage_id,contact_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at', { count: 'exact' })
     .eq('organization_id', auth.organizationId)
     .is('deleted_at', null)
     .order('updated_at', { ascending: false });
@@ -61,7 +57,6 @@ export async function GET(request: Request) {
   if (resolvedBoardId) query = query.eq('board_id', resolvedBoardId);
   if (stageId) query = query.eq('stage_id', stageId);
   if (contactId) query = query.eq('contact_id', contactId);
-  if (clientCompanyId) query = query.eq('client_company_id', clientCompanyId);
   if (updatedAfter) query = query.gte('updated_at', updatedAfter);
   if (q) query = query.ilike('title', `%${q}%`);
 
@@ -86,7 +81,6 @@ export async function GET(request: Request) {
       board_id: d.board_id,
       stage_id: d.stage_id,
       contact_id: d.contact_id,
-      client_company_id: d.client_company_id ?? null,
       is_won: !!d.is_won,
       is_lost: !!d.is_lost,
       loss_reason: d.loss_reason ?? null,
@@ -127,8 +121,6 @@ async function upsertContactForDeal(opts: {
     organization_id: opts.organizationId,
     email,
     phone,
-    role: normalizeText(opts.contact.role),
-    client_company_id: sanitizeUUID(opts.contact.client_company_id) || null,
     updated_at: now,
   };
 
@@ -201,7 +193,6 @@ export async function POST(request: Request) {
     board_id: boardId,
     stage_id: stageId,
     contact_id: contactId,
-    client_company_id: sanitizeUUID(parsed.data.client_company_id) || null,
     is_won: false,
     is_lost: false,
     created_at: now,
@@ -211,10 +202,9 @@ export async function POST(request: Request) {
   const { data, error } = await sb
     .from('deals')
     .insert(insertPayload)
-    .select('id,title,value,board_id,stage_id,contact_id,client_company_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at')
+    .select('id,title,value,board_id,stage_id,contact_id,is_won,is_lost,loss_reason,closed_at,created_at,updated_at')
     .single();
   if (error) return NextResponse.json({ error: error.message, code: 'DB_ERROR' }, { status: 500 });
 
   return NextResponse.json({ data, action: 'created' }, { status: 201 });
 }
-
