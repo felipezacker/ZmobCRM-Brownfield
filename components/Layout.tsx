@@ -237,7 +237,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             }`}
           aria-label="Menu principal"
         >
-          <div className={`h-16 flex items-center border-b border-[var(--color-border-subtle)] transition-all duration-300 px-5 ${sidebarCollapsed ? 'justify-center px-0' : 'justify-between'}`}>
+          <div className={`h-16 flex items-center border-b border-[var(--color-border-subtle)] transition-all duration-300 px-5 ${sidebarCollapsed ? 'justify-center px-0' : ''}`}>
             <div className={`flex items-center transition-all duration-300 ${sidebarCollapsed ? 'gap-0 justify-center' : 'gap-3'}`}>
               <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary-500/20 shrink-0" aria-hidden="true">
                 Z
@@ -247,11 +247,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </span>
             </div>
 
-            {/* Header Toggle Button - Only visible when expanded */}
+            {/* Header Toggle Button - pushed to the end with spacing */}
             {!sidebarCollapsed && (
               <button
                 onClick={() => setSidebarCollapsed(true)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5"
+                className="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5"
                 title="Recolher Menu"
               >
                 <PanelLeftClose size={20} />
