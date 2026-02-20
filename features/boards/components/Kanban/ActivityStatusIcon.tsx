@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef, useState, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft } from 'lucide-react';
 
 interface ActivityStatusIconProps {
@@ -81,9 +82,23 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
             );
     }
 
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+
+    useLayoutEffect(() => {
+        if (isOpen && dealId && triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            setMenuPos({
+                top: rect.top - 8, // 8px gap above the button
+                left: rect.right - 192, // 192px = w-48, align right edge
+            });
+        }
+    }, [isOpen, dealId]);
+
     return (
         <div className="relative">
-            <button 
+            <button
+                ref={triggerRef}
                 type="button"
                 onClick={onToggle}
                 aria-label={`${getStatusLabel()}. Clique para agendar atividade`}
@@ -94,11 +109,12 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                 {content}
             </button>
 
-            {isOpen && dealId && (
+            {isOpen && dealId && menuPos && createPortal(
                 <div
                     role="menu"
                     aria-label="Agendar atividade rápida"
-                    className="absolute bottom-full right-0 mb-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-white/10 z-50 overflow-hidden animate-in zoom-in-95 duration-100"
+                    className="fixed w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-white/10 z-[9999] overflow-hidden animate-in zoom-in-95 duration-100"
+                    style={{ top: menuPos.top, left: menuPos.left, transform: 'translateY(-100%)' }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="p-2 border-b border-slate-100 dark:border-white/5">
@@ -158,7 +174,8 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                             <Calendar size={14} className="text-orange-500" aria-hidden="true" /> Reunião amanhã
                         </button>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

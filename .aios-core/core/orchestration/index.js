@@ -22,6 +22,7 @@ const ParallelExecutor = require('./parallel-executor');
 const TechStackDetector = require('./tech-stack-detector');
 const ConditionEvaluator = require('./condition-evaluator');
 const SkillDispatcher = require('./skill-dispatcher');
+const executionProfileResolver = require('./execution-profile-resolver');
 
 // Epic 0: Master Orchestrator (ADE)
 const MasterOrchestrator = require('./master-orchestrator');
@@ -36,6 +37,113 @@ const { DashboardIntegration, NotificationType } = require('./dashboard-integrat
 
 // Story 0.9: CLI Commands
 const cliCommands = require('./cli-commands');
+
+// Story 11.1: Executor Assignment (Projeto Bob)
+const ExecutorAssignment = require('./executor-assignment');
+
+// Story 11.2: Terminal Spawner (Projeto Bob)
+const TerminalSpawner = require('./terminal-spawner');
+
+// Story 11.3: Workflow Executor (Projeto Bob)
+const {
+  WorkflowExecutor,
+  createWorkflowExecutor,
+  executeDevelopmentCycle,
+  PhaseStatus,
+  CheckpointDecision,
+} = require('./workflow-executor');
+
+// Story 11.4: Surface Checker (Projeto Bob)
+const {
+  SurfaceChecker,
+  createSurfaceChecker,
+  shouldSurface,
+} = require('./surface-checker');
+
+// Story 11.5: Session State Persistence (Projeto Bob)
+const {
+  SessionState,
+  createSessionState,
+  sessionStateExists,
+  loadSessionState,
+  ActionType,
+  Phase,
+  ResumeOption,
+  SESSION_STATE_VERSION,
+  SESSION_STATE_FILENAME,
+  CRASH_THRESHOLD_MINUTES,
+} = require('./session-state');
+
+// Story 11.6: Observability Panel (Projeto Bob)
+const {
+  ObservabilityPanel,
+  createPanel,
+  PanelMode,
+  PipelineStage,
+  createDefaultState,
+  PanelRenderer,
+  BOX,
+  STATUS,
+} = require('../ui');
+
+// Story 12.3: Bob Orchestrator (Projeto Bob)
+const { BobOrchestrator, ProjectState } = require('./bob-orchestrator');
+const LockManager = require('./lock-manager');
+
+// Story 12.5: Data Lifecycle Manager (Projeto Bob)
+const {
+  DataLifecycleManager,
+  createDataLifecycleManager,
+  runStartupCleanup,
+  STALE_SESSION_DAYS,
+  STALE_SNAPSHOT_DAYS,
+} = require('./data-lifecycle-manager');
+
+// Story 12.4: Epic Context Accumulator (Projeto Bob)
+const {
+  EpicContextAccumulator,
+  createEpicContextAccumulator,
+  CompressionLevel,
+  COMPRESSION_FIELDS,
+  estimateTokens,
+  getCompressionLevel,
+  buildFileIndex,
+  hasFileOverlap,
+  TOKEN_LIMIT,
+  HARD_CAP_PER_STORY,
+} = require('./epic-context-accumulator');
+
+// Story 12.6: Bob Status Writer (Projeto Bob)
+const {
+  BobStatusWriter,
+  BOB_STATUS_SCHEMA,
+  BOB_STATUS_VERSION,
+  DEFAULT_PIPELINE_STAGES,
+  createDefaultBobStatus,
+} = require('./bob-status-writer');
+
+// Story 12.7: Message Formatter (Educational Mode)
+const {
+  MessageFormatter,
+  createMessageFormatter,
+} = require('./message-formatter');
+
+// Story 12.8: Brownfield Handler (Projeto Bob)
+const {
+  BrownfieldHandler,
+  BrownfieldPhase,
+  PostDiscoveryChoice,
+  PhaseFailureAction,
+} = require('./brownfield-handler');
+
+// Story 12.13: Greenfield Handler (Projeto Bob)
+const {
+  GreenfieldHandler,
+  GreenfieldPhase,
+  PhaseFailureAction: GreenfieldPhaseFailureAction,
+  DEFAULT_GREENFIELD_INDICATORS,
+  PHASE_1_SEQUENCE,
+} = require('./greenfield-handler');
 
 module.exports = {
   // Main orchestrators
@@ -52,6 +160,8 @@ module.exports = {
   TechStackDetector,
   ConditionEvaluator,
   SkillDispatcher,
+  ExecutionProfileResolver: executionProfileResolver,
+  resolveExecutionProfile: executionProfileResolver.resolveExecutionProfile,
 
   // Epic 0: Orchestrator constants
   OrchestratorState: MasterOrchestrator.OrchestratorState,
@@ -84,6 +194,47 @@ module.exports = {
   orchestrateStop: cliCommands.orchestrateStop,
   orchestrateResume: cliCommands.orchestrateResume,
 
+  // Story 11.1: Executor Assignment (Projeto Bob)
+  ExecutorAssignment,
+  detectStoryType: ExecutorAssignment.detectStoryType,
+  assignExecutor: ExecutorAssignment.assignExecutor,
+  assignExecutorFromContent: ExecutorAssignment.assignExecutorFromContent,
+  validateExecutorAssignment: ExecutorAssignment.validateExecutorAssignment,
+  EXECUTOR_ASSIGNMENT_TABLE: ExecutorAssignment.EXECUTOR_ASSIGNMENT_TABLE,
+
+  // Story 11.2: Terminal Spawner (Projeto Bob)
+  TerminalSpawner,
+  spawnAgent: TerminalSpawner.spawnAgent,
+  createContextFile: TerminalSpawner.createContextFile,
+  pollForOutput: TerminalSpawner.pollForOutput,
+  isSpawnerAvailable: TerminalSpawner.isSpawnerAvailable,
+  getPlatform: TerminalSpawner.getPlatform,
+  cleanupOldFiles: TerminalSpawner.cleanupOldFiles,
+
+  // Story 11.3: Workflow Executor (Projeto Bob)
+  WorkflowExecutor,
+  createWorkflowExecutor,
+  executeDevelopmentCycle,
+  PhaseStatus,
+  CheckpointDecision,
+
+  // Story 11.4: Surface Checker (Projeto Bob)
+  SurfaceChecker,
+  createSurfaceChecker,
+  shouldSurface,
+
+  // Story 11.5: Session State Persistence (Projeto Bob)
+  SessionState,
+  createSessionState,
+  sessionStateExists,
+  loadSessionState,
+  ActionType,
+  Phase,
+  ResumeOption,
+  SESSION_STATE_VERSION,
+  SESSION_STATE_FILENAME,
+  CRASH_THRESHOLD_MINUTES,
+
   // Factory function for easy instantiation
   createOrchestrator(workflowPath, options = {}) {
     return new WorkflowOrchestrator(workflowPath, options);
@@ -110,4 +261,62 @@ module.exports = {
     const detector = new TechStackDetector(projectRoot);
     return await detector.detect();
   },
+
+  // Story 11.6: Observability Panel (Projeto Bob)
+  ObservabilityPanel,
+  createPanel,
+  PanelMode,
+  PipelineStage,
+  createDefaultState,
+  PanelRenderer,
+  BOX,
+  STATUS,
+
+  // Story 12.3: Bob Orchestrator (Projeto Bob)
+  BobOrchestrator,
+  ProjectState,
+  LockManager,
+
+  // Story 12.5: Data Lifecycle Manager (Projeto Bob)
+  DataLifecycleManager,
+  createDataLifecycleManager,
+  runStartupCleanup,
+  STALE_SESSION_DAYS,
+  STALE_SNAPSHOT_DAYS,
+
+  // Story 12.4: Epic Context Accumulator (Projeto Bob)
+  EpicContextAccumulator,
+  createEpicContextAccumulator,
+  CompressionLevel,
+  COMPRESSION_FIELDS,
+  estimateTokens,
+  getCompressionLevel,
+  buildFileIndex,
+  hasFileOverlap,
+  TOKEN_LIMIT,
+  HARD_CAP_PER_STORY,
+
+  // Story 12.6: Bob Status Writer (Projeto Bob)
+  BobStatusWriter,
+  BOB_STATUS_SCHEMA,
+  BOB_STATUS_VERSION,
+  DEFAULT_PIPELINE_STAGES,
+  createDefaultBobStatus,
+
+  // Story 12.7: Message Formatter (Educational Mode)
+  MessageFormatter,
+  createMessageFormatter,
+
+  // Story 12.8: Brownfield Handler (Projeto Bob)
+  BrownfieldHandler,
+  BrownfieldPhase,
+  PostDiscoveryChoice,
+  PhaseFailureAction,
+
+  // Story 12.13: Greenfield Handler (Projeto Bob)
+  GreenfieldHandler,
+  GreenfieldPhase,
+  GreenfieldPhaseFailureAction,
+  DEFAULT_GREENFIELD_INDICATORS,
+  PHASE_1_SEQUENCE,
 };

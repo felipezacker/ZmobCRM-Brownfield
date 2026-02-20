@@ -363,6 +363,33 @@ body {
  * Exemplo de uso:
  * <tr className="cv-auto cv-row-md">...</tr>
  */
+/* Global scrollbar styling — uses existing semantic tokens */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background: oklch(30% 0.015 260);
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: oklch(40% 0.015 260);
+}
+
 .cv-auto {
   content-visibility: auto;
 }

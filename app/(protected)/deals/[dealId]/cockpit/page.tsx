@@ -1,7 +1,7 @@
-import DealCockpitFocusClient from '@/features/deals/cockpit/DealCockpitFocusClient';
+import DealCockpitClient from '@/features/deals/cockpit/DealCockpitClient';
 
 /**
- * Cockpit (verdadeiro/original) - UI do Focus (Inbox) como rota canônica.
+ * Cockpit oficial — UI V2 com AI, notas, scripts e multi-tab.
  * URL: /deals/[dealId]/cockpit
  */
 export default async function DealCockpitPage({
@@ -10,5 +10,5 @@ export default async function DealCockpitPage({
   params: Promise<{ dealId: string }>;
 }) {
   const { dealId } = await params;
-  return <DealCockpitFocusClient dealId={dealId} />;
+  return <DealCockpitClient dealId={dealId} />;
 }

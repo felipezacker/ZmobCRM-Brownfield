@@ -1,10 +1,25 @@
-version: 3.11.3
-installed_at: '2026-02-10T19:46:34.753Z'
+version: 4.2.13
+installed_at: '2026-02-20T00:19:46.449Z'
 install_type: full
 files:
   - core/README.md
+  - core/code-intel-client.js
+  - core/code-intel-enricher.js
+  - core/index.js
+  - core/code-graph-provider.js
+  - core/provider-interface.js
+  - core/registry-syncer.js
   - core/config-cache.js
   - core/config-loader.js
+  - core/config-resolver.js
+  - core/env-interpolator.js
+  - core/merge-utils.js
+  - core/migrate-config.js
+  - core/framework-config.schema.json
+  - core/local-config.schema.json
+  - core/project-config.schema.json
+  - core/user-config.schema.json
+  - core/user-config.yaml
   - core/SHARD-TRANSLATION-GUIDE.md
   - core/component-creation-guide.md
   - core/session-update-pattern.md
@@ -22,6 +37,7 @@ files:
   - core/build-orchestrator.js
   - core/build-state-manager.js
   - core/context-injector.js
+  - core/parallel-executor.js
   - core/parallel-monitor.js
   - core/rate-limit-manager.js
   - core/result-aggregator.js
@@ -66,6 +82,7 @@ files:
   - core/lockfile-integrity.js
   - core/api-endpoints.js
   - core/claude-code.js
+  - core/gemini-cli.js
   - core/github-cli.js
   - core/index.js
   - core/mcp-integration.js
@@ -78,6 +95,19 @@ files:
   - core/json.js
   - core/markdown.js
   - core/ideation-engine.js
+  - core/README.md
+  - core/circuit-breaker.js
+  - core/framework-governor.js
+  - core/g1-epic-creation.js
+  - core/g2-story-creation.js
+  - core/g3-story-validation.js
+  - core/g4-dev-context.js
+  - core/incremental-decision-engine.js
+  - core/index.js
+  - core/registry-healer.js
+  - core/registry-loader.js
+  - core/registry-updater.js
+  - core/verification-gate.js
   - core/index.esm.js
   - core/index.js
   - core/manifest-generator.js
@@ -87,34 +117,47 @@ files:
   - core/index.js
   - core/os-detector.js
   - core/symlink-manager.js
-  - core/gaps-implementation.verify.js
-  - core/context-snapshot.js
-  - core/file-evolution-tracker.js
+  - core/active-modules.verify.js
   - core/gotchas-memory.js
-  - core/timeline-manager.js
   - core/migration-config.yaml
   - core/module-mapping.yaml
   - core/agent-invoker.js
+  - core/bob-orchestrator.js
+  - core/bob-status-writer.js
+  - core/bob-surface-criteria.yaml
+  - core/brownfield-handler.js
   - core/checklist-runner.js
   - core/cli-commands.js
   - core/condition-evaluator.js
   - core/context-manager.js
   - core/dashboard-integration.js
+  - core/data-lifecycle-manager.js
+  - core/epic-context-accumulator.js
+  - core/execution-profile-resolver.js
+  - core/executor-assignment.js
   - core/epic-3-executor.js
   - core/epic-4-executor.js
   - core/epic-5-executor.js
   - core/epic-6-executor.js
-  - core/epic-7-executor.js
   - core/epic-executor.js
   - core/index.js
   - core/gate-evaluator.js
+  - core/gemini-model-selector.js
+  - core/greenfield-handler.js
   - core/index.js
+  - core/lock-manager.js
   - core/master-orchestrator.js
+  - core/message-formatter.js
   - core/parallel-executor.js
   - core/recovery-handler.js
+  - core/session-state.js
   - core/skill-dispatcher.js
   - core/subagent-prompt-builder.js
+  - core/surface-checker.js
+  - core/task-complexity-classifier.js
   - core/tech-stack-detector.js
+  - core/terminal-spawner.js
+  - core/workflow-executor.js
   - core/workflow-orchestrator.js
   - core/permission-mode.test.js
   - core/index.js
@@ -138,6 +181,42 @@ files:
   - core/validate-registry.js
   - core/context-detector.js
   - core/context-loader.js
+  - core/context-builder.js
+  - core/context-tracker.js
+  - core/consistency-collector.js
+  - core/hook-collector.js
+  - core/manifest-collector.js
+  - core/output-analyzer.js
+  - core/pipeline-collector.js
+  - core/quality-collector.js
+  - core/relevance-matrix.js
+  - core/safe-read-json.js
+  - core/session-collector.js
+  - core/timing-collector.js
+  - core/uap-collector.js
+  - core/report-formatter.js
+  - core/synapse-diagnostics.js
+  - core/domain-loader.js
+  - core/engine.js
+  - core/l0-constitution.js
+  - core/l1-global.js
+  - core/l2-agent.js
+  - core/l3-workflow.js
+  - core/l4-task.js
+  - core/l5-squad.js
+  - core/l6-keyword.js
+  - core/l7-star-command.js
+  - core/layer-processor.js
+  - core/memory-bridge.js
+  - core/formatter.js
+  - core/hook-runtime.js
+  - core/generate-constitution.js
+  - core/session-manager.js
+  - core/paths.js
+  - core/tokens.js
+  - core/index.js
+  - core/observability-panel.js
+  - core/panel-renderer.js
   - core/output-formatter.js
   - core/security-utils.js
   - core/yaml-validator.js
@@ -159,24 +238,51 @@ files:
   - development/sm.md
   - development/squad-creator.md
   - development/ux-design-expert.md
+  - development/agent-quality-gate.md
+  - development/brownfield-compatibility-checklist.md
   - development/self-critique-checklist.md
+  - development/decision-heuristics-framework.md
+  - development/quality-dimensions-framework.md
+  - development/tier-system-framework.md
+  - development/activation-runtime.js
   - development/agent-assignment-resolver.js
   - development/agent-config-loader.js
   - development/agent-exit-hooks.js
   - development/apply-inline-greeting-all-agents.js
+  - development/approval-workflow.js
   - development/audit-agent-config.js
   - development/backlog-manager.js
+  - development/backup-manager.js
   - development/batch-update-agents-session-context.js
+  - development/branch-manager.js
+  - development/code-quality-improver.js
+  - development/commit-message-generator.js
+  - development/conflict-resolver.js
   - development/decision-context.js
   - development/decision-log-generator.js
   - development/decision-log-indexer.js
   - development/decision-recorder.js
+  - development/dependency-analyzer.js
   - development/dev-context-loader.js
+  - development/diff-generator.js
+  - development/elicitation-engine.js
+  - development/elicitation-session-manager.js
   - development/generate-greeting.js
+  - development/git-wrapper.js
   - development/greeting-builder.js
   - development/greeting-config-cli.js
   - development/greeting-preference-manager.js
+  - development/manifest-preview.js
+  - development/metrics-tracker.js
   - development/migrate-task-to-v2.js
+  - development/modification-validator.js
+  - development/pattern-learner.js
+  - development/performance-analyzer.js
+  - development/populate-entity-registry.js
+  - development/refactoring-suggester.js
+  - development/rollback-handler.js
+  - development/security-checker.js
+  - development/skill-validator.js
   - development/README.md
   - development/index.js
   - development/squad-analyzer.js
@@ -192,12 +298,21 @@ files:
   - development/story-manager.js
   - development/story-update-hook.js
   - development/task-identifier-resolver.js
+  - development/template-engine.js
+  - development/template-validator.js
+  - development/test-generator.js
   - development/test-greeting-system.js
+  - development/transaction-manager.js
+  - development/unified-activation-pipeline.js
+  - development/usage-tracker.js
+  - development/validate-filenames.js
   - development/validate-task-v2.js
   - development/verify-workflow-gaps.js
+  - development/version-tracker.js
   - development/workflow-navigator.js
   - development/workflow-state-manager.js
   - development/workflow-validator.js
+  - development/yaml-validator.js
   - development/add-mcp.md
   - development/advanced-elicitation.md
   - development/analyst-facilitate-brainstorming.md
@@ -211,6 +326,11 @@ files:
   - development/audit-codebase.md
   - development/audit-tailwind-config.md
   - development/audit-utilities.md
+  - development/README.md
+  - development/agent-prompt-template.md
+  - development/context-loading.md
+  - development/execution-pattern.md
+  - development/finalization.md
   - development/bootstrap-shadcn-library.md
   - development/brownfield-create-epic.md
   - development/brownfield-create-story.md
@@ -220,7 +340,6 @@ files:
   - development/build-status.md
   - development/build.md
   - development/calculate-roi.md
-  - development/capture-session-insights.md
   - development/check-docs-links.md
   - development/ci-cd-configuration.md
   - development/cleanup-utilities.md
@@ -245,7 +364,6 @@ files:
   - development/db-domain-modeling.md
   - development/db-dry-run.md
   - development/db-env-check.md
-  - development/db-expansion-pack-integration.md
   - development/db-explain.md
   - development/db-impersonate.md
   - development/db-load-csv.md
@@ -257,6 +375,7 @@ files:
   - development/db-seed.md
   - development/db-smoke-test.md
   - development/db-snapshot.md
+  - development/db-squad-integration.md
   - development/db-supabase-setup.md
   - development/db-verify-order.md
   - development/deprecate-component.md
@@ -271,6 +390,7 @@ files:
   - development/document-project.md
   - development/environment-bootstrap.md
   - development/execute-checklist.md
+  - development/execute-epic-plan.md
   - development/export-design-tokens-dtcg.md
   - development/extend-pattern.md
   - development/extract-patterns.md
@@ -287,10 +407,13 @@ files:
   - development/gotcha.md
   - development/gotchas.md
   - development/health-check.yaml
+  - development/ids-governor.md
+  - development/ids-health.md
+  - development/ids-query.md
   - development/improve-self.md
   - development/index-docs.md
   - development/init-project-status.md
-  - development/integrate-expansion-pack.md
+  - development/integrate-squad.md
   - development/kb-mode-interaction.md
   - development/learn-patterns.md
   - development/list-mcps.md
@@ -310,6 +433,7 @@ files:
   - development/plan-create-implementation.md
   - development/plan-execute-subtask.md
   - development/po-backlog-add.md
+  - development/po-close-story.md
   - development/po-manage-story-backlog.md
   - development/po-pull-story-from-clickup.md
   - development/po-pull-story.md
@@ -318,6 +442,8 @@ files:
   - development/po-sync-story.md
   - development/pr-automation.md
   - development/propose-modification.md
+  - development/publish-npm.md
+  - development/qa-after-creation.md
   - development/qa-backlog-add-followup.md
   - development/qa-browser-console-check.md
   - development/qa-create-fix-request.md
@@ -346,6 +472,7 @@ files:
   - development/search-mcp.md
   - development/security-audit.md
   - development/security-scan.md
+  - development/session-resume.md
   - development/setup-database.md
   - development/setup-design-system.md
   - development/setup-github.md
@@ -370,21 +497,28 @@ files:
   - development/squad-creator-sync-ide-command.md
   - development/squad-creator-sync-synkra.md
   - development/squad-creator-validate.md
+  - development/story-checkpoint.md
   - development/sync-documentation.md
+  - development/sync-registry-intel.md
   - development/tailwind-upgrade.md
   - development/test-as-user.md
   - development/test-validation-task.md
   - development/undo-last.md
+  - development/update-aios.md
   - development/update-manifest.md
+  - development/update-source-tree.md
   - development/ux-create-wireframe.md
   - development/ux-ds-scan-artifact.md
   - development/ux-user-research.md
+  - development/validate-agents.md
   - development/validate-next-story.md
   - development/validate-tech-preset.md
   - development/validate-workflow.md
   - development/verify-subtask.md
   - development/waves.md
+  - development/yolo-toggle.md
   - development/aios-doc-template.md
+  - development/research-prompt-tmpl.md
   - development/README.md.hbs
   - development/index.test.ts.hbs
   - development/client.ts.hbs
@@ -419,6 +553,8 @@ files:
   - development/brownfield-service.yaml
   - development/brownfield-ui.yaml
   - development/design-system-build-quality.yaml
+  - development/development-cycle.yaml
+  - development/epic-orchestration.yaml
   - development/greenfield-fullstack.yaml
   - development/greenfield-service.yaml
   - development/greenfield-ui.yaml
@@ -462,10 +598,12 @@ files:
   - product/activation-instructions-template.md
   - product/adr.hbs
   - product/agent-template.yaml
+  - product/aios-ai-config.yaml
   - product/architecture-tmpl.yaml
   - product/brainstorming-output-tmpl.yaml
   - product/brownfield-architecture-tmpl.yaml
   - product/brownfield-prd-tmpl.yaml
+  - product/brownfield-risk-report-tmpl.yaml
   - product/changelog-template.md
   - product/command-rationalization-matrix.md
   - product/competitor-analysis-tmpl.yaml
@@ -492,17 +630,17 @@ files:
   - product/front-end-architecture-tmpl.yaml
   - product/front-end-spec-tmpl.yaml
   - product/fullstack-architecture-tmpl.yaml
+  - product/settings.json
   - product/github-actions-cd.yml
   - product/github-actions-ci.yml
   - product/github-pr-template.md
   - product/gordon-mcp.yaml
   - product/antigravity-rules.md
   - product/claude-rules.md
-  - product/cline-rules.md
+  - product/codex-rules.md
   - product/copilot-rules.md
   - product/cursor-rules.md
-  - product/roo-rules.md
-  - product/windsurf-rules.md
+  - product/gemini-rules.md
   - product/index-strategy-tmpl.yaml
   - product/market-research-tmpl.yaml
   - product/mcp-workflow.js
@@ -526,6 +664,8 @@ files:
   - product/shock-report-tmpl.html
   - product/spec-tmpl.md
   - product/state-persistence-tmpl.yaml
+  - product/statusline-script.js
+  - product/track-agent.sh
   - product/story-tmpl.yaml
   - product/story.hbs
   - product/task-execution-report.md
@@ -551,7 +691,20 @@ files:
   - product/tokens-schema-tmpl.yaml
   - product/workflow-template.yaml
   - infrastructure/README.md
+  - infrastructure/aios-4.0.4.yaml
   - infrastructure/index.js
+  - infrastructure/README.md
+  - infrastructure/ai-provider-factory.js
+  - infrastructure/ai-provider.js
+  - infrastructure/claude-provider.js
+  - infrastructure/gemini-provider.js
+  - infrastructure/index.js
+  - infrastructure/cloudrun-adapter.js
+  - infrastructure/index.js
+  - infrastructure/policy-sync.js
+  - infrastructure/security-adapter.js
+  - infrastructure/supabase-adapter.js
+  - infrastructure/workspace-adapter.js
   - infrastructure/README.md
   - infrastructure/clickup-adapter.js
   - infrastructure/github-adapter.js
@@ -574,6 +727,8 @@ files:
   - infrastructure/clickup-helpers.js
   - infrastructure/code-quality-improver.js
   - infrastructure/codebase-mapper.js
+  - infrastructure/index.js
+  - infrastructure/validate.js
   - infrastructure/commit-message-generator.js
   - infrastructure/component-generator.js
   - infrastructure/component-metadata.js
@@ -596,16 +751,17 @@ files:
   - infrastructure/documentation-synchronizer.js
   - infrastructure/framework-analyzer.js
   - infrastructure/git-config-detector.js
+  - infrastructure/post-commit.js
   - infrastructure/git-wrapper.js
   - infrastructure/gotchas-documenter.js
   - infrastructure/README.md
   - infrastructure/agent-parser.js
+  - infrastructure/gemini-commands.js
   - infrastructure/index.js
   - infrastructure/redirect-generator.js
   - infrastructure/antigravity.js
   - infrastructure/claude-code.js
   - infrastructure/cursor.js
-  - infrastructure/windsurf.js
   - infrastructure/validator.js
   - infrastructure/improvement-engine.js
   - infrastructure/improvement-validator.js
@@ -660,7 +816,13 @@ files:
   - infrastructure/transaction-manager.js
   - infrastructure/usage-analytics.js
   - infrastructure/validate-agents.js
+  - infrastructure/validate-claude-integration.js
+  - infrastructure/validate-codex-integration.js
+  - infrastructure/validate-gemini-integration.js
   - infrastructure/validate-output-pattern.js
+  - infrastructure/validate-parity.js
+  - infrastructure/validate-paths.js
+  - infrastructure/validate-user-profile.js
   - infrastructure/visual-impact-generator.js
   - infrastructure/worktree-manager.js
   - infrastructure/yaml-validator.js
@@ -681,6 +843,7 @@ files:
   - infrastructure/tech-stack-tmpl.md
   - infrastructure/project-status-loader.test.js
   - infrastructure/regression-suite-v2.md
+  - infrastructure/utilities-audit-results.json
   - infrastructure/validate-module.js
   - infrastructure/worktree-manager.test.js
   - infrastructure/README.md
@@ -700,23 +863,35 @@ files:
   - infrastructure/supabase.yaml
   - data/agent-config-requirements.yaml
   - data/aios-kb.md
+  - data/entity-registry.yaml
   - data/learned-patterns.yaml
+  - data/registry-update-log.jsonl
   - data/_template.md
   - data/nextjs-react.md
   - data/technical-preferences.md
   - data/workflow-patterns.yaml
   - data/workflow-state-schema.yaml
+  - docs/SHARD-TRANSLATION-GUIDE.md
+  - docs/component-creation-guide.md
+  - docs/session-update-pattern.md
   - docs/AGENT-PERSONALIZATION-STANDARD-V1.md
   - docs/AIOS-COLOR-PALETTE-QUICK-REFERENCE.md
   - docs/AIOS-COLOR-PALETTE-V2.1.md
+  - docs/AIOS-FRAMEWORK-MASTER.md
   - docs/AIOS-LIVRO-DE-OURO-V2.1-COMPLETE.md
+  - docs/AIOS-LIVRO-DE-OURO-V2.1-SUMMARY.md
+  - docs/AIOS-LIVRO-DE-OURO-V2.1.md
   - docs/AIOS-LIVRO-DE-OURO-V2.2-SUMMARY.md
+  - docs/AIOS-LIVRO-DE-OURO.md
   - docs/EXECUTOR-DECISION-TREE.md
   - docs/OPEN-SOURCE-VS-SERVICE-DIFFERENCES.md
   - docs/QUALITY-GATES-SPECIFICATION.md
   - docs/STANDARDS-INDEX.md
   - docs/STORY-TEMPLATE-V2-SPECIFICATION.md
   - docs/TASK-FORMAT-SPECIFICATION-V1.md
+  - docs/V3-ARCHITECTURAL-DECISIONS.md
+  - docs/template-syntax.md
+  - docs/troubleshooting-guide.md
   - elicitation/agent-elicitation.js
   - elicitation/task-elicitation.js
   - elicitation/workflow-elicitation.js
@@ -769,10 +944,13 @@ files:
   - scripts/quick-diagnose.cmd
   - scripts/quick-diagnose.ps1
   - scripts/migrate-framework-docs.sh
+  - scripts/pm.sh
   - scripts/session-context-loader.js
   - scripts/test-template-system.js
+  - scripts/update-aios.sh
   - scripts/validate-phase1.ps1
   - scripts/workflow-management.md
+  - cli/index.js
   - cli/index.js
   - cli/index.js
   - cli/regenerate.js
@@ -795,6 +973,7 @@ files:
   - cli/update-imports.js
   - cli/validate.js
   - cli/index.js
+  - cli/index.js
   - cli/run.js
   - cli/status.js
   - cli/index.js
@@ -812,10 +991,50 @@ files:
   - cli/index.js
   - cli/output-formatter-cli.js
   - cli/score-calculator.js
+  - manifests/agents.csv
   - manifests/manifest-schema.json
+  - manifests/tasks.csv
+  - manifests/workers.csv
+  - schemas/README.md
+  - schemas/agent-v3-schema.json
+  - schemas/squad-design-schema.json
+  - schemas/squad-schema.json
+  - schemas/task-v3-schema.json
+  - schemas/validate-v3-schema.js
+  - workflow-intelligence/confidence-scorer.test.js
+  - workflow-intelligence/integration.test.js
+  - workflow-intelligence/suggestion-engine.test.js
+  - workflow-intelligence/wave-analyzer.test.js
+  - workflow-intelligence/workflow-registry.test.js
+  - workflow-intelligence/confidence-scorer.js
+  - workflow-intelligence/output-formatter.js
+  - workflow-intelligence/suggestion-engine.js
+  - workflow-intelligence/wave-analyzer.js
+  - workflow-intelligence/index.js
+  - workflow-intelligence/capture-hook.js
+  - workflow-intelligence/gotcha-registry.js
+  - workflow-intelligence/index.js
+  - workflow-intelligence/pattern-capture.js
+  - workflow-intelligence/pattern-store.js
+  - workflow-intelligence/pattern-validator.js
+  - workflow-intelligence/qa-feedback.js
+  - workflow-intelligence/semantic-search.js
+  - workflow-intelligence/workflow-registry.js
+  - monitor/__init__.py
+  - monitor/enrich.py
+  - monitor/send_event.py
+  - monitor/notification.py
+  - monitor/post_tool_use.py
+  - monitor/pre_compact.py
+  - monitor/pre_tool_use.py
+  - monitor/stop.py
+  - monitor/subagent_stop.py
+  - monitor/user_prompt_submit.py
+  - presets/README.md
   - index.js
   - index.esm.js
   - core-config.yaml
   - package.json
+  - constitution.md
   - user-guide.md
   - working-in-the-brownfield.md

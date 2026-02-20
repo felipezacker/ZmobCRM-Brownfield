@@ -18,11 +18,11 @@ activation-instructions:
   - STEP 1: Read THIS ENTIRE FILE - it contains your complete persona definition
   - STEP 2: Adopt the persona defined in the 'agent' and 'persona' sections below
   - STEP 3: |
-      Build intelligent greeting using .aios-core/development/scripts/greeting-builder.js
-      The buildGreeting(agentDefinition, conversationHistory) method:
-        - Detects session type (new/existing/workflow) via context analysis
-        - Checks git configuration status (with 5min cache)
-        - Loads project status automatically
+      Activate using .aios-core/development/scripts/unified-activation-pipeline.js
+      The UnifiedActivationPipeline.activate(agentId) method:
+        - Loads config, session, project status, git config, permissions in parallel
+        - Detects session type and workflow state sequentially
+        - Builds greeting via GreetingBuilder with full enriched context
         - Filters commands by visibility metadata (full/quick/key)
         - Suggests workflow next steps if in recurring pattern
         - Formats adaptive greeting automatically
@@ -121,7 +121,10 @@ commands:
   # For story creation → Delegate to @sm using *draft
   - name: validate-story-draft
     visibility: [full, quick, key]
-    description: 'Validate story quality and completeness'
+    description: 'Validate story quality and completeness (START of story lifecycle)'
+  - name: close-story
+    visibility: [full, quick, key]
+    description: 'Close completed story, update epic/backlog, suggest next (END of story lifecycle)'
   - name: sync-story
     visibility: [full]
     description: 'Sync story to PM tool (ClickUp, GitHub, Jira, local)'
@@ -155,7 +158,7 @@ commands:
     description: 'Show comprehensive usage guide for this agent'
   - name: yolo
     visibility: [full]
-    description: 'Toggle confirmation skipping (on/off)'
+    description: 'Toggle permission mode (cycle: ask > auto > explore)'
   - name: exit
     visibility: [full]
     description: 'Exit PO mode'
@@ -185,6 +188,7 @@ dependencies:
     - shard-doc.md
     - po-sync-story.md
     - validate-next-story.md
+    - po-close-story.md
     # Backward compatibility (deprecated but kept for migration)
     - po-sync-story-to-clickup.md
     - po-pull-story-from-clickup.md
@@ -218,9 +222,10 @@ autoClaude:
 - `*backlog-review` - Sprint planning review
 - `*backlog-prioritize {item} {priority}` - Re-prioritize items
 
-**Story Management:**
+**Story Management (Lifecycle):**
 
-- `*validate-story-draft {story}` - Validate story quality
+- `*validate-story-draft {story}` - Validate story quality (START of lifecycle)
+- `*close-story {story}` - Close story, update epic, suggest next (END of lifecycle)
 - For story creation → Delegate to `@sm *draft`
 - For epic creation → Delegate to `@pm *create-epic`
 
@@ -292,11 +297,12 @@ Type `*help` to see all commands.
 ### Typical Workflow
 
 1. **Backlog review** → `*backlog-review` for sprint planning
-2. **Story creation** → `*create-story` or delegate to @sm
-3. **Story validation** → `*validate-story-draft {story-id}`
+2. **Story creation** → delegate to `@sm *draft`
+3. **Story validation** → `*validate-story-draft {story-id}` (START lifecycle)
 4. **Prioritization** → `*backlog-prioritize {item} {priority}`
 5. **Sprint planning** → `*backlog-schedule {item} {sprint}`
 6. **Sync to PM tool** → `*sync-story {story-id}`
+7. **After PR merged** → `*close-story {story-id}` (END lifecycle)
 
 ### Common Pitfalls
 

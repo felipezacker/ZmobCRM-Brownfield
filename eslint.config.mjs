@@ -25,6 +25,8 @@ const eslintConfig = defineConfig([
     // AIOS Core scripts (CommonJS)
     ".aios-core/**",
     ".antigravity/**",
+    ".gemini/**",
+    ".claude/hooks/**",
   ]),
 
   // Scripts are CommonJS by design; allow require() there.

@@ -164,7 +164,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const width =
-      isDesktop ? (sidebarCollapsed ? '5rem' : '16rem')
+      isDesktop ? (sidebarCollapsed ? '5rem' : '13rem')
         : isTablet ? '5rem'
           : '0px';
     document.documentElement.style.setProperty('--app-sidebar-width', width);
@@ -233,11 +233,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Sidebar - Collapsible */}
       {isDesktop ? (
         <aside
-          className={`hidden md:flex flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20 items-center' : 'w-64'
+          className={`hidden md:flex flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20 items-center' : 'w-52'
             }`}
           aria-label="Menu principal"
         >
-          <div className={`h-16 flex items-center border-b border-[var(--color-border-subtle)] transition-all duration-300 px-5 ${sidebarCollapsed ? 'justify-center px-0' : 'justify-between'}`}>
+          <div className={`h-16 flex items-center border-b border-[var(--color-border-subtle)] transition-all duration-300 px-5 ${sidebarCollapsed ? 'justify-center px-0' : ''}`}>
             <div className={`flex items-center transition-all duration-300 ${sidebarCollapsed ? 'gap-0 justify-center' : 'gap-3'}`}>
               <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary-500/20 shrink-0" aria-hidden="true">
                 Z
@@ -247,16 +247,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </span>
             </div>
 
-            {/* Header Toggle Button - Only visible when expanded */}
-            {!sidebarCollapsed && (
-              <button
-                onClick={() => setSidebarCollapsed(true)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5"
-                title="Recolher Menu"
-              >
-                <PanelLeftClose size={20} />
-              </button>
-            )}
           </div>
 
           <nav className={`flex-1 p-4 space-y-2 flex flex-col ${sidebarCollapsed ? 'items-center px-2' : ''}`} aria-label="Navegação do sistema">
@@ -308,7 +298,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             })}
           </nav>
 
-          {/* Sidebar Toggle Button (Footer) - Only visible when collapsed */}
+          {/* Sidebar Toggle Button (Footer) - Collapse when expanded */}
+          {!sidebarCollapsed && (
+            <div className="px-4 pb-2">
+              <button
+                onClick={() => setSidebarCollapsed(true)}
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all text-sm"
+                title="Recolher Menu"
+              >
+                <PanelLeftClose size={18} />
+                <span>Recolher</span>
+              </button>
+            </div>
+          )}
+
+          {/* Sidebar Toggle Button (Footer) - Expand when collapsed */}
           {sidebarCollapsed && (
             <div className="px-4 pb-2 flex justify-center">
               <button

@@ -29,7 +29,7 @@ export function NavigationRail({ onOpenMore }: NavigationRailProps) {
     >
       <div className="flex flex-col items-center gap-2 py-4">
         <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary-500/20">
-          N
+          Z
         </div>
       </div>
 
