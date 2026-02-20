@@ -149,6 +149,9 @@ export const useContactsController = () => {
     phone: '',
     ownerId: undefined,
     cascadeDeals: false,
+    birthDate: '',
+    source: '',
+    notes: '',
   });
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
 
@@ -160,7 +163,7 @@ export const useContactsController = () => {
 
   const openCreateModal = () => {
     setEditingContact(null);
-    setFormData({ name: '', email: '', phone: '', ownerId: undefined, cascadeDeals: false });
+    setFormData({ name: '', email: '', phone: '', ownerId: undefined, cascadeDeals: false, birthDate: '', source: '', notes: '' });
     setIsModalOpen(true);
   };
 
@@ -172,6 +175,9 @@ export const useContactsController = () => {
       phone: contact.phone,
       ownerId: contact.ownerId,
       cascadeDeals: false,
+      birthDate: contact.birthDate || '',
+      source: contact.source || '',
+      notes: contact.notes || '',
     });
     setIsModalOpen(true);
   };
@@ -316,7 +322,22 @@ export const useContactsController = () => {
             phone: normalizedPhone,
           },
           {
-            onSuccess: (result) => {
+            onSuccess: async (result) => {
+              // Update extra fields separately (RPC only handles name/email/phone)
+              if (formData.birthDate || formData.source || formData.notes) {
+                try {
+                  await updateContactMutation.mutateAsync({
+                    id: editingContact.id,
+                    updates: {
+                      birthDate: formData.birthDate || undefined,
+                      source: formData.source || undefined,
+                      notes: formData.notes || undefined,
+                    },
+                  });
+                } catch {
+                  (addToast || showToast)('Campos extras não salvos, edite o contato novamente', 'warning');
+                }
+              }
               const msg = result?.deals_updated
                 ? `Contato e ${result.deals_updated} deals reatribuídos!`
                 : 'Contato reatribuído!';
@@ -338,6 +359,9 @@ export const useContactsController = () => {
               email: formData.email,
               phone: normalizedPhone,
               ownerId: formData.ownerId,
+              birthDate: formData.birthDate || undefined,
+              source: formData.source || undefined,
+              notes: formData.notes || undefined,
             },
           },
           {
@@ -358,6 +382,9 @@ export const useContactsController = () => {
           status: 'ACTIVE',
           stage: ContactStage.LEAD,
           totalValue: 0,
+          birthDate: formData.birthDate || undefined,
+          source: formData.source || undefined,
+          notes: formData.notes || undefined,
         },
         {
           onSuccess: () => {
