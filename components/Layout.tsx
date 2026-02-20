@@ -247,16 +247,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </span>
             </div>
 
-            {/* Header Toggle Button - pushed to the end with spacing */}
-            {!sidebarCollapsed && (
-              <button
-                onClick={() => setSidebarCollapsed(true)}
-                className="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5"
-                title="Recolher Menu"
-              >
-                <PanelLeftClose size={20} />
-              </button>
-            )}
           </div>
 
           <nav className={`flex-1 p-4 space-y-2 flex flex-col ${sidebarCollapsed ? 'items-center px-2' : ''}`} aria-label="Navegação do sistema">
@@ -308,7 +298,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             })}
           </nav>
 
-          {/* Sidebar Toggle Button (Footer) - Only visible when collapsed */}
+          {/* Sidebar Toggle Button (Footer) - Collapse when expanded */}
+          {!sidebarCollapsed && (
+            <div className="px-4 pb-2">
+              <button
+                onClick={() => setSidebarCollapsed(true)}
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all text-sm"
+                title="Recolher Menu"
+              >
+                <PanelLeftClose size={18} />
+                <span>Recolher</span>
+              </button>
+            </div>
+          )}
+
+          {/* Sidebar Toggle Button (Footer) - Expand when collapsed */}
           {sidebarCollapsed && (
             <div className="px-4 pb-2 flex justify-center">
               <button
