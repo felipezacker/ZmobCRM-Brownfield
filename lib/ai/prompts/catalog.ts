@@ -51,10 +51,9 @@ export const PROMPT_CATALOG: PromptCatalogItem[] = [
     defaultTemplate:
       `Gere um rascunho de email profissional para:\n` +
       `- Contato: {{contactName}}\n` +
-      `- Empresa: {{companyName}}\n` +
       `- Deal: {{dealTitle}}\n` +
       `Escreva um email conciso e eficaz em português do Brasil.`,
-    notes: 'Variáveis: contactName, companyName, dealTitle.',
+    notes: 'Variáveis: contactName, dealTitle.',
   },
   {
     key: 'task_deals_analyze',

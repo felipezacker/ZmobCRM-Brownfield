@@ -649,7 +649,6 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
   const templateVariables = useMemo(() => {
     const nome = selectedContact?.name?.split(' ')[0]?.trim() || 'Cliente';
-    const empresa = selectedDeal?.clientCompanyName?.trim() || selectedDeal?.companyName?.trim() || 'Empresa';
     const valor = typeof selectedDeal?.value === 'number' ? formatCurrencyBRL(selectedDeal.value) : '';
     const produto =
       selectedDeal?.items?.[0]?.name?.trim() ||
@@ -658,11 +657,10 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
     return {
       nome,
-      empresa,
       valor,
       produto,
     };
-  }, [selectedContact?.name, selectedDeal?.clientCompanyName, selectedDeal?.companyName, selectedDeal?.items, selectedDeal?.title, selectedDeal?.value]);
+  }, [selectedContact?.name, selectedDeal?.items, selectedDeal?.title, selectedDeal?.value]);
 
   const dealActivities = useMemo(() => {
     if (!selectedDeal) return [] as Activity[];
@@ -744,7 +742,6 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
       ? {
         id: selectedContact.id,
         name: selectedContact.name,
-        role: selectedContact.role,
         email: selectedContact.email,
         phone: selectedContact.phone,
         avatar: selectedContact.avatar,
@@ -756,7 +753,6 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
         birthDate: selectedContact.birthDate,
         lastPurchaseDate: selectedContact.lastPurchaseDate,
         totalValue: selectedContact.totalValue,
-        clientCompanyId: selectedContact.clientCompanyId,
       }
       : undefined;
 
@@ -779,10 +775,6 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
       lossReason: selectedDeal.lossReason,
       createdAt: selectedDeal.createdAt,
       updatedAt: selectedDeal.updatedAt,
-      companyId: selectedDeal.companyId,
-      clientCompanyId: selectedDeal.clientCompanyId,
-      companyName: selectedDeal.companyName,
-      clientCompanyName: selectedDeal.clientCompanyName,
       stageLabel: selectedDeal.stageLabel,
     };
 
@@ -1277,10 +1269,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
   const board = selectedBoard;
   const contact = selectedContact;
 
-  const companyName =
-    deal.clientCompanyName ||
-    deal.companyName ||
-    'Empresa';
+  const companyName = 'Contato';
 
   const phoneE164 = normalizePhoneE164(contact?.phone);
 
@@ -1318,10 +1307,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   aria-label="Selecionar deal"
                 >
                   {sortedDeals.map((d) => {
-                    const labelCompany = d.clientCompanyName || d.companyName || 'Empresa';
                     return (
                       <option key={d.id} value={d.id} className="bg-slate-950">
-                        {d.title} — {labelCompany}
+                        {d.title}
                       </option>
                     );
                   })}
@@ -1518,7 +1506,6 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
               <div className="flex min-h-0 flex-col gap-3">
                 <div>
                   <div className="text-sm font-semibold text-slate-100">{contact?.name ?? '—'}</div>
-                  <div className="mt-1 text-xs text-slate-400">{selectedContact?.role ?? ''}</div>
                   <div className="mt-3 space-y-2 text-xs">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-slate-500">Tel</span>

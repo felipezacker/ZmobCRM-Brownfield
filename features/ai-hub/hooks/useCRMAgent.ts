@@ -73,8 +73,7 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
       if (query) {
         const q = query.toLowerCase();
         filtered = filtered.filter(d =>
-          (d.title || '').toLowerCase().includes(q) ||
-          (d.companyName || '').toLowerCase().includes(q)
+          (d.title || '').toLowerCase().includes(q)
         );
       }
       if (status) {
@@ -92,7 +91,6 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
         title: d.title,
         value: d.value,
         status: d.status,
-        company: d.companyName,
         probability: d.probability,
       }));
 
@@ -121,7 +119,6 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
           name: found.name,
           email: found.email,
           phone: found.phone,
-          companyId: found.companyId,
           status: found.status,
           stage: found.stage,
         },
@@ -209,7 +206,6 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
           value: deal.value,
           status: deal.status,
           probability: deal.probability,
-          company: deal.companyName,
           contact: deal.contactName,
           createdAt: deal.createdAt,
           updatedAt: deal.updatedAt,
@@ -294,16 +290,14 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
       };
     },
 
-    createDeal: async ({ title, value, contactName, companyName, description }: {
+    createDeal: async ({ title, value, contactName, description }: {
       title: string;
       value: number;
       contactName?: string;
-      companyName?: string;
       description?: string;
     }) => {
-      // Buscar contato e empresa pelos nomes (se fornecidos)
+      // Buscar contato pelo nome (se fornecido)
       let contactId = '';
-      let companyId = '';
 
       if (contactName) {
         const found = contacts.find(c =>
@@ -311,7 +305,6 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
         );
         if (found) {
           contactId = found.id;
-          companyId = found.companyId || '';
         }
       }
 
@@ -325,7 +318,6 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
         priority: 'medium',
         probability: 20,
         contactId,
-        companyId,
         tags: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -536,7 +528,6 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
             title: z.string(),
             value: z.number(),
             contactName: z.string().optional(),
-            companyName: z.string().optional(),
             description: z.string().optional(),
           }),
           execute: toolExecutors.createDeal,

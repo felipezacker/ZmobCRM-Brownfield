@@ -35,7 +35,6 @@ export async function POST(req: Request) {
     const resolved = await getResolvedPrompt(supabase, organizationId, 'task_deals_email_draft');
     const prompt = renderPromptTemplate(resolved?.content || '', {
       contactName: deal?.contactName || 'Cliente',
-      companyName: deal?.companyName || 'Empresa',
       dealTitle: deal?.title || '',
     });
 

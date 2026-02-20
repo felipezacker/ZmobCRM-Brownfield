@@ -199,7 +199,6 @@ describeSupabase('AI Tools - matriz 5 corretores (integração real)', () => {
         name: `Contato Criado ${seller.firstName} ${fx.runId}`,
         email: `created.${seller.firstName.toLowerCase()}.${fx.runId}@example.com`,
         phone: '11999990000',
-        companyName: `Empresa ${seller.firstName}`,
       });
       expectNoFatal(createdContact, 'createContact');
 

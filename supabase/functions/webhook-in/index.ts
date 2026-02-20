@@ -34,9 +34,6 @@ type LeadPayload = {
   phone?: string;
   source?: string;
   notes?: string;
-  /** Nome da empresa (cliente) */
-  company_name?: string;
-
   // ===== Campos "produto" (espelham o modal Novo Negócio) =====
   /** Nome do negócio */
   deal_title?: string;
@@ -46,13 +43,11 @@ type LeadPayload = {
   contact_name?: string;
 
   // Aliases comuns (camelCase / curtos)
-  companyName?: string;
   dealTitle?: string;
   dealValue?: number | string;
   contactName?: string;
   title?: string;
   value?: number | string;
-  company?: string;
 };
 
 const corsHeaders = {
@@ -116,15 +111,6 @@ function toNullableNumber(v: unknown) {
     return Number.isFinite(n) ? n : null;
   }
   return null;
-}
-
-function getCompanyName(payload: LeadPayload) {
-  return (
-    toNullableString(payload.company_name) ||
-    toNullableString(payload.companyName) ||
-    toNullableString(payload.company) ||
-    null
-  );
 }
 
 function getContactName(payload: LeadPayload) {
@@ -202,7 +188,6 @@ Deno.serve(async (req) => {
   const leadEmail = payload.email?.trim()?.toLowerCase() || null;
   const leadPhone = normalizePhone(payload.phone || undefined);
   const externalEventId = payload.external_event_id?.trim() || null;
-  const companyName = getCompanyName(payload);
   const dealTitleFromPayload = getDealTitle(payload);
   const dealValue = getDealValue(payload);
 
@@ -250,47 +235,7 @@ Deno.serve(async (req) => {
 
   // 2) Upsert de contato (por email e/ou telefone)
   let contactId: string | null = null;
-  let clientCompanyId: string | null = null;
   let contactAction: "created" | "updated" | "none" = "none";
-  let companyAction: "created" | "linked" | "none" = "none";
-
-  // 2.0) Empresa (best-effort): cria/vincula em crm_companies quando companyName existir
-  if (companyName) {
-    try {
-      const { data: existingCompany, error: companyFindErr } = await supabase
-        .from("crm_companies")
-        .select("id")
-        .eq("organization_id", source.organization_id)
-        .is("deleted_at", null)
-        .eq("name", companyName)
-        .limit(1)
-        .maybeSingle();
-
-      if (companyFindErr) throw companyFindErr;
-
-      if (existingCompany?.id) {
-        clientCompanyId = existingCompany.id as string;
-        companyAction = "linked";
-      } else {
-        const { data: createdCompany, error: companyCreateErr } = await supabase
-          .from("crm_companies")
-          .insert({
-            organization_id: source.organization_id,
-            name: companyName,
-          })
-          .select("id")
-          .single();
-
-        if (companyCreateErr) throw companyCreateErr;
-        clientCompanyId = (createdCompany as any)?.id ?? null;
-        if (clientCompanyId) companyAction = "created";
-      }
-    } catch {
-      // não bloqueia o fluxo do webhook
-      clientCompanyId = null;
-      companyAction = "none";
-    }
-  }
 
   if (leadEmail || leadPhone) {
     const filters: string[] = [];
@@ -314,8 +259,6 @@ Deno.serve(async (req) => {
       if (leadName && (!existing.name || existing.name === "Sem nome")) updates.name = leadName;
       if (leadEmail && !existing.email) updates.email = leadEmail;
       if (leadPhone && !existing.phone) updates.phone = leadPhone;
-      if (companyName) updates.company_name = companyName;
-      if (clientCompanyId) updates.client_company_id = clientCompanyId;
       if (payload.notes) updates.notes = payload.notes;
       if (payload.source) updates.source = payload.source;
 
@@ -338,8 +281,6 @@ Deno.serve(async (req) => {
           email: leadEmail,
           phone: leadPhone,
           source: payload.source || "webhook",
-          company_name: companyName,
-          client_company_id: clientCompanyId,
           notes: payload.notes || null,
         })
         .select("id")
@@ -385,14 +326,12 @@ Deno.serve(async (req) => {
         updated_at: new Date().toISOString(),
       };
       if (dealValue !== null) updates.value = dealValue;
-      if (clientCompanyId) updates.client_company_id = clientCompanyId;
 
       // mantém stage atual (não “puxa” de volta pro stage de entrada)
       // apenas carimba metadados do inbound
       updates.custom_fields = {
         inbound_source_id: source.id,
         inbound_external_event_id: externalEventId,
-        inbound_company_name: companyName,
       };
 
       const { error: updDealErr } = await supabase
@@ -416,13 +355,11 @@ Deno.serve(async (req) => {
         board_id: source.entry_board_id,
         stage_id: source.entry_stage_id,
         contact_id: contactId,
-        client_company_id: clientCompanyId,
         last_stage_change_date: new Date().toISOString(),
         tags: ["Novo"],
         custom_fields: {
           inbound_source_id: source.id,
           inbound_external_event_id: externalEventId,
-          inbound_company_name: companyName,
         },
       })
       .select("id")
@@ -454,7 +391,6 @@ Deno.serve(async (req) => {
         : "Recebido! Criamos um novo negócio no funil configurado.",
     action: {
       contact: contactAction,
-      company: companyAction,
       deal: dealAction,
     },
     organization_id: source.organization_id,

@@ -123,7 +123,7 @@ function generateSuggestedAction(
     preview: {
       title: `Follow-up: ${deal.title}`,
       scheduledFor: tomorrow.toISOString(),
-      recipient: deal.contactName || deal.companyName,
+      recipient: deal.contactName || 'Contato',
     },
     requiresConfirmation: true,
     allowEdit: true,
@@ -228,7 +228,7 @@ export function analyzeStagnantDeals(
         priority,
         category: 'follow_up',
         title: `Deal "${deal.title}" parado há ${daysSinceActivity} dias`,
-        description: `${deal.companyName || 'Empresa não informada'} • R$ ${deal.value.toLocaleString('pt-BR')} • Estágio: ${deal.stageLabel}`,
+        description: `R$ ${deal.value.toLocaleString('pt-BR')} • Estágio: ${deal.stageLabel}`,
         reasoning: generateReasoning(deal, daysSinceActivity, lastActivity),
         dealId: deal.id,
         contactId: deal.contactId,

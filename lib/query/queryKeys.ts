@@ -29,7 +29,6 @@ export const queryKeys = {
         stageCounts: () => [...base.all, 'stageCounts'] as const,
     })),
 
-    companies: createQueryKeys('companies'),
     boards: createQueryKeys('boards'),
 
     // Activities with custom extension for byDeal

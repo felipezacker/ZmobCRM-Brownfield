@@ -387,8 +387,7 @@ export const useBoardsController = () => {
     return deals.filter(l => {
       // Search: usa searchLower pré-computado
       const matchesSearch =
-        (l.title || '').toLowerCase().includes(searchLower) ||
-        (l.companyName || '').toLowerCase().includes(searchLower);
+        (l.title || '').toLowerCase().includes(searchLower);
 
       const matchesOwner =
         ownerFilter === 'all' || l.ownerId === profile?.id;

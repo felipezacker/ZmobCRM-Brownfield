@@ -15,7 +15,6 @@ const ActivityCreateSchema = z.object({
   date: z.string().optional(), // ISO
   deal_id: z.string().uuid().optional(),
   contact_id: z.string().uuid().optional(),
-  client_company_id: z.string().uuid().optional(),
 }).strict();
 
 export async function GET(request: Request) {
@@ -25,7 +24,6 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const dealId = sanitizeUUID(url.searchParams.get('deal_id'));
   const contactId = sanitizeUUID(url.searchParams.get('contact_id'));
-  const clientCompanyId = sanitizeUUID(url.searchParams.get('client_company_id'));
   const type = (url.searchParams.get('type') || '').trim();
   const limit = parseLimit(url.searchParams.get('limit'));
   const offset = decodeOffsetCursor(url.searchParams.get('cursor'));
@@ -33,7 +31,7 @@ export async function GET(request: Request) {
   const sb = createStaticAdminClient();
   let query = sb
     .from('activities')
-    .select('id,title,description,type,date,completed,deal_id,contact_id,client_company_id,created_at', { count: 'exact' })
+    .select('id,title,description,type,date,completed,deal_id,contact_id,created_at', { count: 'exact' })
     .eq('organization_id', auth.organizationId)
     .is('deleted_at', null)
     .order('date', { ascending: false })
@@ -41,7 +39,6 @@ export async function GET(request: Request) {
 
   if (dealId) query = query.eq('deal_id', dealId);
   if (contactId) query = query.eq('contact_id', contactId);
-  if (clientCompanyId) query = query.eq('client_company_id', clientCompanyId);
   if (type) query = query.eq('type', type);
 
   const from = offset;
@@ -63,7 +60,6 @@ export async function GET(request: Request) {
       completed: !!a.completed,
       deal_id: a.deal_id ?? null,
       contact_id: a.contact_id ?? null,
-      client_company_id: a.client_company_id ?? null,
       created_at: a.created_at,
     })),
     nextCursor,
@@ -96,16 +92,14 @@ export async function POST(request: Request) {
     completed: false,
     deal_id: sanitizeUUID(parsed.data.deal_id) || null,
     contact_id: sanitizeUUID(parsed.data.contact_id) || null,
-    client_company_id: sanitizeUUID(parsed.data.client_company_id) || null,
     created_at: now.toISOString(),
   };
 
   const { data, error } = await sb
     .from('activities')
     .insert(insertPayload)
-    .select('id,title,description,type,date,completed,deal_id,contact_id,client_company_id,created_at')
+    .select('id,title,description,type,date,completed,deal_id,contact_id,created_at')
     .single();
   if (error) return NextResponse.json({ error: error.message, code: 'DB_ERROR' }, { status: 500 });
   return NextResponse.json({ data, action: 'created' }, { status: 201 });
 }
-

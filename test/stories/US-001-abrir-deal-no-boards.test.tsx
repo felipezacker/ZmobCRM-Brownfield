@@ -80,7 +80,6 @@ vi.mock('@/context/CRMContext', () => ({
       status: 'stage-1',
       boardId: 'board-1',
       contactId: 'contact-1',
-      companyName: 'Moreira Comércio',
       contactName: 'Fulano',
       contactEmail: 'fulano@example.com',
       createdAt: new Date().toISOString(),

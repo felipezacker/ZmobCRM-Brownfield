@@ -55,21 +55,14 @@ if (typeof window !== 'undefined') {
 // FAKE DATA GENERATORS
 // ============================================
 
-/**
- * Função pública `fakeContact` do projeto.
- * @returns {{ name: string; email: string; phone: string; role: string; companyName: string; }} Retorna um valor do tipo `{ name: string; email: string; phone: string; role: string; companyName: string; }`.
- */
 export const fakeContact = () => ({
   name: faker.person.fullName(),
   email: faker.internet.email().toLowerCase(),
-  // Evita `fromRegExp` (pode gerar barra invertida em alguns ambientes)
   phone: (() => {
     const ddd = faker.number.int({ min: 11, max: 99 });
     const subscriber = `${faker.number.int({ min: 0, max: 99999999 })}`.padStart(8, '0');
     return `+55${ddd}9${subscriber}`;
   })(),
-  role: faker.person.jobTitle(),
-  companyName: faker.company.name(),
 });
 
 /**

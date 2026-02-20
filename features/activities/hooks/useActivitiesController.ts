@@ -10,7 +10,7 @@ import {
   useDeleteActivity,
 } from '@/lib/query/hooks/useActivitiesQuery';
 import { useDeals } from '@/lib/query/hooks/useDealsQuery';
-import { useContacts, useCompanies } from '@/lib/query/hooks/useContactsQuery';
+import { useContacts } from '@/lib/query/hooks/useContactsQuery';
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 
 /**
@@ -27,7 +27,6 @@ export const useActivitiesController = () => {
   const { data: activities = [], isLoading: activitiesLoading } = useActivities();
   const { data: deals = [], isLoading: dealsLoading } = useDeals();
   const { data: contacts = [], isLoading: contactsLoading } = useContacts();
-  const { data: companies = [], isLoading: companiesLoading } = useCompanies();
   const createActivityMutation = useCreateActivity();
   const updateActivityMutation = useUpdateActivity();
   const deleteActivityMutation = useDeleteActivity();
@@ -68,7 +67,7 @@ export const useActivitiesController = () => {
     dealId: '',
   });
 
-  const isLoading = activitiesLoading || dealsLoading || contactsLoading || companiesLoading;
+  const isLoading = activitiesLoading || dealsLoading || contactsLoading;
 
   // Performance: build lookups once (avoid `.find(...)` in handlers).
   const activitiesById = useMemo(() => new Map(activities.map((a) => [a.id, a])), [activities]);
@@ -174,7 +173,6 @@ export const useActivitiesController = () => {
     const date = new Date(`${formData.date}T${formData.time}`);
     const selectedDeal = formData.dealId ? dealsById.get(formData.dealId) : undefined;
     const selectedContact = selectedDeal?.contactId ? contactsById.get(selectedDeal.contactId) : undefined;
-    const clientCompanyId = selectedDeal?.clientCompanyId || selectedContact?.clientCompanyId || undefined;
     const participantContactIds = selectedContact?.id ? [selectedContact.id] : [];
 
     if (editingActivity) {
@@ -188,7 +186,6 @@ export const useActivitiesController = () => {
             date: date.toISOString(),
             dealId: formData.dealId || '',
             contactId: selectedContact?.id || '',
-            clientCompanyId,
             participantContactIds,
           },
         },
@@ -209,7 +206,6 @@ export const useActivitiesController = () => {
             date: date.toISOString(),
             dealId: formData.dealId || '',
             contactId: selectedContact?.id || '',
-            clientCompanyId,
             participantContactIds,
             dealTitle: selectedDeal?.title || '',
             completed: false,
@@ -248,7 +244,6 @@ export const useActivitiesController = () => {
     filteredActivities,
     deals,
     contacts,
-    companies,
     isLoading,
     handleNewActivity,
     handleEditActivity,

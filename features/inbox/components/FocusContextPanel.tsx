@@ -145,10 +145,8 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                 value: deal.value,
                 status: deal.status,
                 metadata: {
-                    companyName: (deal as any).companyName,
                     currentProbability: deal.probability,
                     contactName: contact?.name,
-                    contactRole: contact?.role,
                     recentHistory: recentHistory // Inject History
                 }
             }
@@ -476,7 +474,6 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
             ? {
                 id: contact.id,
                 name: contact.name,
-                role: contact.role,
                 email: contact.email,
                 phone: contact.phone,
                 avatar: contact.avatar,
@@ -488,7 +485,6 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                 birthDate: contact.birthDate,
                 lastPurchaseDate: contact.lastPurchaseDate,
                 totalValue: contact.totalValue,
-                clientCompanyId: contact.clientCompanyId,
             }
             : undefined;
 
@@ -511,10 +507,6 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
             lossReason: deal.lossReason,
             createdAt: deal.createdAt,
             updatedAt: deal.updatedAt,
-            companyId: deal.companyId,
-            clientCompanyId: deal.clientCompanyId,
-            // Alguns fluxos ainda expõem companyName via DealView/casts
-            companyName: (deal as any)?.companyName,
         };
 
         const activitiesLimit = 25;
@@ -740,7 +732,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                     <div className="flex items-center justify-between px-6 py-3">
                         <div>
                             <h1 className="text-lg font-semibold text-white tracking-tight">
-                                {deal.title} <span className="text-slate-500 font-normal">|</span> <span className="text-slate-400 font-normal">{(deal as any).companyName || 'Empresa'}</span>
+                                {deal.title}
                             </h1>
                         </div>
                         <div className="absolute left-1/2 -translate-x-1/2">
@@ -1011,9 +1003,6 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
                                             <h4 className="text-sm font-semibold text-white truncate">{contact.name}</h4>
-                                            {contact.role && (
-                                                <span className="text-[10px] px-1.5 py-0.5 bg-slate-800 text-slate-400 rounded">{contact.role}</span>
-                                            )}
                                         </div>
 
                                         {/* Contact details grid */}

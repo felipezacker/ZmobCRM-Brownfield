@@ -8,9 +8,9 @@
  */
 import { useQuery, useMutation, useQueryClient, keepPreviousData, type QueryKey } from '@tanstack/react-query';
 import { queryKeys } from '../index';
-import { contactsService, companiesService } from '@/lib/supabase';
+import { contactsService } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import type { Contact, ContactStage, Company, PaginationState, PaginatedResponse, ContactsServerFilters } from '@/types';
+import type { Contact, ContactStage, PaginationState, PaginatedResponse, ContactsServerFilters } from '@/types';
 
 function matchesContactsServerFilters(contact: Contact, filters?: ContactsServerFilters): boolean {
   if (!filters) return true;
@@ -40,20 +40,12 @@ function matchesContactsServerFilters(contact: Contact, filters?: ContactsServer
     if (Date.parse(contact.createdAt) > Date.parse(filters.dateEnd)) return false;
   }
 
-  if (filters.clientCompanyId) {
-    const id = contact.clientCompanyId || contact.companyId || '';
-    if (id !== filters.clientCompanyId) return false;
-  }
-
   return true;
 }
 
 // ============ QUERY HOOKS ============
 
 export interface ContactsFilters {
-  clientCompanyId?: string;
-  /** @deprecated Use clientCompanyId instead */
-  companyId?: string;
   stage?: ContactStage | string;
   status?: 'ACTIVE' | 'INACTIVE';
   search?: string;
@@ -79,9 +71,6 @@ export const useContacts = (filters?: ContactsFilters) => {
       // Apply client-side filters
       if (filters) {
         contacts = contacts.filter(contact => {
-          // Support both clientCompanyId and deprecated companyId
-          const filterCompanyId = filters.clientCompanyId || filters.companyId;
-          if (filterCompanyId && contact.clientCompanyId !== filterCompanyId && contact.companyId !== filterCompanyId) return false;
           if (filters.stage && contact.stage !== filters.stage) return false;
           if (filters.status && contact.status !== filters.status) return false;
           if (filters.search) {
@@ -114,22 +103,6 @@ export const useContact = (id: string | undefined) => {
       return (data || []).find(c => c.id === id) || null;
     },
     enabled: !authLoading && !!user && !!id,
-  });
-};
-
-/**
- * Hook to fetch contacts by company (CRM client company)
- */
-export const useContactsByCompany = (clientCompanyId: string) => {
-  const { user, loading: authLoading } = useAuth();
-  return useQuery({
-    queryKey: queryKeys.contacts.list({ clientCompanyId }),
-    queryFn: async () => {
-      const { data, error } = await contactsService.getAll();
-      if (error) throw error;
-      return (data || []).filter(c => c.clientCompanyId === clientCompanyId || c.companyId === clientCompanyId);
-    },
-    enabled: !authLoading && !!user && !!clientCompanyId,
   });
 };
 
@@ -207,23 +180,6 @@ export const useContactStageCounts = () => {
       return data || {};
     },
     staleTime: 30 * 1000, // 30 seconds - counts can be slightly stale
-    enabled: !authLoading && !!user,
-  });
-};
-
-/**
- * Hook to fetch all CRM companies
- */
-export const useCompanies = () => {
-  const { user, loading: authLoading } = useAuth();
-  return useQuery({
-    queryKey: queryKeys.companies.lists(),
-    queryFn: async () => {
-      const { data, error } = await companiesService.getAll();
-      if (error) throw error;
-      return data || [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes - companies change less frequently
     enabled: !authLoading && !!user,
   });
 };
@@ -593,70 +549,6 @@ export const useBulkDeleteContacts = () => {
 };
 
 /**
- * Bulk delete companies with limited concurrency.
- * Note: company delete updates contacts/deals to unlink FK, so we invalidate related caches once at the end.
- */
-export const useBulkDeleteCompanies = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      ids,
-      concurrency = 2,
-    }: {
-      ids: string[];
-      concurrency?: number;
-    }) => {
-      let successCount = 0;
-      let errorCount = 0;
-
-      const runBatch = async (batch: string[]) => {
-        const results = await Promise.allSettled(
-          batch.map(async (id) => {
-            const { error } = await companiesService.delete(id as string);
-            if (error) throw error;
-            return id;
-          })
-        );
-
-        for (const r of results) {
-          if (r.status === 'fulfilled') successCount += 1;
-          else errorCount += 1;
-        }
-      };
-
-      for (let i = 0; i < ids.length; i += concurrency) {
-        const batch = ids.slice(i, i + concurrency);
-        await runBatch(batch);
-      }
-
-      return { successCount, errorCount };
-    },
-    onMutate: async ({ ids }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.companies.all });
-      const previousCompanies = queryClient.getQueryData<Company[]>(queryKeys.companies.lists());
-
-      // Optimistically remove from companies list cache
-      queryClient.setQueryData<Company[]>(queryKeys.companies.lists(), (old = []) =>
-        old.filter((c) => !ids.includes(c.id))
-      );
-
-      return { previousCompanies };
-    },
-    onError: (_error, _vars, context) => {
-      if (context?.previousCompanies) {
-        queryClient.setQueryData(queryKeys.companies.lists(), context.previousCompanies);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-    },
-  });
-};
-
-/**
  * Hook to check if contact has deals
  */
 export const useContactHasDeals = () => {
@@ -665,63 +557,6 @@ export const useContactHasDeals = () => {
       const result = await contactsService.hasDeals(contactId);
       if (result.error) throw result.error;
       return { hasDeals: result.hasDeals, dealCount: result.dealCount, deals: result.deals };
-    },
-  });
-};
-
-// ============ COMPANIES MUTATIONS ============
-
-/**
- * Hook to create a new company
- */
-export const useCreateCompany = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (company: Omit<Company, 'id' | 'createdAt'>) => {
-      const { data, error } = await companiesService.create(company);
-      if (error) throw error;
-      return data!;
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
-    },
-  });
-};
-
-/**
- * Hook to update a company
- */
-export const useUpdateCompany = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Company> }) => {
-      const { error } = await companiesService.update(id, updates);
-      if (error) throw error;
-      return { id, updates };
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
-    },
-  });
-};
-
-/**
- * Hook to delete a company
- */
-export const useDeleteCompany = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await companiesService.delete(id);
-      if (error) throw error;
-      return id;
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all });
     },
   });
 };

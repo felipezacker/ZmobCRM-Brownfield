@@ -193,8 +193,6 @@ export const useMoveDeal = () => {
                 // Status/stage devem refletir o board de destino (não o stage do board anterior)
                 status: entryStageId,
                 priority: deal.priority,
-                // Compat: DealView/Deal ainda pode ter companyId legado
-                clientCompanyId: deal.clientCompanyId ?? deal.companyId,
                 ownerId: deal.ownerId,
                 owner: deal.owner || { name: 'Unknown', avatar: '' },
                 items: deal.items || [],

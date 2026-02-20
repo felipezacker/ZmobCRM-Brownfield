@@ -116,7 +116,6 @@ export async function generateEmailDraft(
         value: deal.value,
         status: deal.status,
         contactName: 'contactName' in deal ? deal.contactName : undefined,
-        companyName: 'companyName' in deal ? deal.companyName : undefined,
       },
       stageLabel,
     });

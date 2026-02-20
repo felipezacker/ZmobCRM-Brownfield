@@ -16,7 +16,7 @@ import { queryKeys } from '@/lib/query';
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
 export const DataStorageSettings: React.FC = () => {
-    const { deals, contacts, companies, activities, boards, refresh } = useCRM();
+    const { deals, contacts, activities, boards, refresh } = useCRM();
     const { profile } = useAuth();
     const { addToast } = useToast();
     const queryClient = useQueryClient();
@@ -31,14 +31,13 @@ export const DataStorageSettings: React.FC = () => {
 
     // Estatísticas
     const stats = {
-        companies: companies.length,
         contacts: contacts.length,
         deals: deals.length,
         activities: activities.length,
         boards: boards.length,
     };
 
-    const totalRecords = stats.companies + stats.contacts + stats.deals + stats.activities + stats.boards;
+    const totalRecords = stats.contacts + stats.deals + stats.activities + stats.boards;
 
     const handleNukeDatabase = async () => {
         if (confirmText !== 'DELETAR TUDO') {
@@ -132,11 +131,7 @@ export const DataStorageSettings: React.FC = () => {
             const { error: contactsError } = await sb.from('contacts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
             if (contactsError) throw contactsError;
 
-            // 7. CRM Companies (empresas dos clientes, não a company do tenant!)
-            const { error: crmCompaniesError } = await sb.from('crm_companies').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (crmCompaniesError) throw crmCompaniesError;
-
-            // 8. Tags
+            // 7. Tags
             const { error: tagsError } = await sb.from('tags').delete().neq('id', '00000000-0000-0000-0000-000000000000');
             if (tagsError) throw tagsError;
 
@@ -179,11 +174,7 @@ export const DataStorageSettings: React.FC = () => {
                     Estatísticas do Sistema
                 </h3>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div className="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg text-center">
-                        <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.companies}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Empresas</div>
-                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg text-center">
                         <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.contacts}</div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">Contatos</div>
@@ -228,7 +219,6 @@ export const DataStorageSettings: React.FC = () => {
                                 <ul className="text-sm text-red-600 dark:text-red-400 list-disc list-inside space-y-1">
                                     <li>{stats.deals} negócios</li>
                                     <li>{stats.contacts} contatos</li>
-                                    <li>{stats.companies} empresas de clientes</li>
                                     <li>{stats.activities} atividades</li>
                                     <li>{stats.boards} boards (e seus stages)</li>
                                     <li>Todas as tags e produtos</li>

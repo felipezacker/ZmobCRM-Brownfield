@@ -95,7 +95,6 @@ export const createDeal = tool({
     title: z.string().describe('Título do deal'),
     value: z.number().describe('Valor estimado'),
     contactName: z.string().optional().describe('Nome do contato principal'),
-    companyName: z.string().optional().describe('Nome da empresa'),
     description: z.string().optional().describe('Descrição do deal'),
   }),
 });

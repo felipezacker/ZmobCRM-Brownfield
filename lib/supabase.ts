@@ -3,7 +3,7 @@ export { supabase } from './supabase/client';
 
 // Re-export all services
 export { boardsService, boardStagesService } from './supabase/boards';
-export { contactsService, companiesService } from './supabase/contacts';
+export { contactsService } from './supabase/contacts';
 export { dealsService } from './supabase/deals';
 export { activitiesService } from './supabase/activities';
 export { productsService } from './supabase/products';

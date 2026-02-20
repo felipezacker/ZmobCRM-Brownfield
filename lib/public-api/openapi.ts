@@ -19,7 +19,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
     tags: [
       { name: 'Meta', description: 'Sobre a API e autenticação' },
       { name: 'Boards', description: 'Pipelines/boards e etapas' },
-      { name: 'Companies', description: 'Empresas (clientes do CRM)' },
       { name: 'Contacts', description: 'Contatos (leads/pessoas)' },
       { name: 'Deals', description: 'Negócios (cards)' },
       { name: 'Activities', description: 'Atividades (nota/tarefa/reunião/ligação)' },
@@ -76,19 +75,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
           },
           required: ['id', 'label', 'color', 'order'],
         },
-        Company: {
-          type: 'object',
-          additionalProperties: false,
-          properties: {
-            id: { type: 'string' },
-            name: { type: 'string' },
-            website: { type: ['string', 'null'] },
-            industry: { type: ['string', 'null'] },
-            created_at: { type: 'string' },
-            updated_at: { type: ['string', 'null'] },
-          },
-          required: ['id', 'name', 'website', 'industry', 'created_at', 'updated_at'],
-        },
         Contact: {
           type: 'object',
           additionalProperties: false,
@@ -97,9 +83,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
             name: { type: 'string' },
             email: { type: ['string', 'null'] },
             phone: { type: ['string', 'null'] },
-            role: { type: ['string', 'null'] },
-            company_name: { type: ['string', 'null'] },
-            client_company_id: { type: ['string', 'null'] },
             avatar: { type: ['string', 'null'] },
             source: { type: ['string', 'null'] },
             notes: { type: ['string', 'null'] },
@@ -117,9 +100,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
             'name',
             'email',
             'phone',
-            'role',
-            'company_name',
-            'client_company_id',
             'avatar',
             'source',
             'notes',
@@ -143,7 +123,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
             board_id: { type: 'string' },
             stage_id: { type: 'string' },
             contact_id: { type: 'string' },
-            client_company_id: { type: ['string', 'null'] },
             is_won: { type: 'boolean' },
             is_lost: { type: 'boolean' },
             loss_reason: { type: ['string', 'null'] },
@@ -151,7 +130,7 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
             created_at: { type: 'string' },
             updated_at: { type: 'string' },
           },
-          required: ['id', 'title', 'value', 'board_id', 'stage_id', 'contact_id', 'client_company_id', 'is_won', 'is_lost', 'loss_reason', 'closed_at', 'created_at', 'updated_at'],
+          required: ['id', 'title', 'value', 'board_id', 'stage_id', 'contact_id', 'is_won', 'is_lost', 'loss_reason', 'closed_at', 'created_at', 'updated_at'],
         },
         Activity: {
           type: 'object',
@@ -165,10 +144,9 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
             completed: { type: 'boolean' },
             deal_id: { type: ['string', 'null'] },
             contact_id: { type: ['string', 'null'] },
-            client_company_id: { type: ['string', 'null'] },
             created_at: { type: 'string' },
           },
-          required: ['id', 'title', 'description', 'type', 'date', 'completed', 'deal_id', 'contact_id', 'client_company_id', 'created_at'],
+          required: ['id', 'title', 'description', 'type', 'date', 'completed', 'deal_id', 'contact_id', 'created_at'],
         },
       },
       responses: {
@@ -331,98 +309,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
           },
         },
       },
-      '/companies': {
-        get: {
-          tags: ['Companies'],
-          summary: 'Listar empresas',
-          security: [{ ApiKeyAuth: [] }],
-          parameters: [
-            { name: 'q', in: 'query', schema: { type: 'string' } },
-            { name: 'name', in: 'query', schema: { type: 'string' } },
-            { name: 'website', in: 'query', schema: { type: 'string' } },
-            { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 250 } },
-            { name: 'cursor', in: 'query', schema: { type: 'string' } },
-          ],
-          responses: {
-            200: {
-              description: 'OK',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    additionalProperties: false,
-                    properties: {
-                      data: { type: 'array', items: { $ref: '#/components/schemas/Company' } },
-                      nextCursor: { type: ['string', 'null'] },
-                    },
-                    required: ['data', 'nextCursor'],
-                  },
-                },
-              },
-            },
-            401: { $ref: '#/components/responses/Unauthorized' },
-          },
-        },
-        post: {
-          tags: ['Companies'],
-          summary: 'Criar/atualizar empresa (upsert)',
-          security: [{ ApiKeyAuth: [] }],
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  additionalProperties: false,
-                  properties: {
-                    name: { type: 'string' },
-                    website: { type: 'string' },
-                    industry: { type: 'string' },
-                  },
-                },
-              },
-            },
-          },
-          responses: {
-            201: {
-              description: 'Created',
-              content: {
-                'application/json': {
-                  schema: { type: 'object' },
-                },
-              },
-            },
-            200: { description: 'Updated', content: { 'application/json': { schema: { type: 'object' } } } },
-            401: { $ref: '#/components/responses/Unauthorized' },
-          },
-        },
-      },
-      '/companies/{companyId}': {
-        get: {
-          tags: ['Companies'],
-          summary: 'Obter empresa',
-          security: [{ ApiKeyAuth: [] }],
-          parameters: [{ name: 'companyId', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: {
-            200: {
-              description: 'OK',
-              content: { 'application/json': { schema: { type: 'object', properties: { data: { $ref: '#/components/schemas/Company' } }, required: ['data'] } } },
-            },
-            401: { $ref: '#/components/responses/Unauthorized' },
-          },
-        },
-        patch: {
-          tags: ['Companies'],
-          summary: 'Atualizar empresa',
-          security: [{ ApiKeyAuth: [] }],
-          parameters: [{ name: 'companyId', in: 'path', required: true, schema: { type: 'string' } }],
-          requestBody: { required: true, content: { 'application/json': { schema: { type: 'object' } } } },
-          responses: {
-            200: { description: 'OK', content: { 'application/json': { schema: { type: 'object' } } } },
-            401: { $ref: '#/components/responses/Unauthorized' },
-          },
-        },
-      },
       '/contacts': {
         get: {
           tags: ['Contacts'],
@@ -432,7 +318,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
             { name: 'q', in: 'query', schema: { type: 'string' } },
             { name: 'email', in: 'query', schema: { type: 'string' } },
             { name: 'phone', in: 'query', schema: { type: 'string' } },
-            { name: 'client_company_id', in: 'query', schema: { type: 'string' } },
             { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 250 } },
             { name: 'cursor', in: 'query', schema: { type: 'string' } },
           ],
@@ -471,9 +356,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
                     name: { type: 'string' },
                     email: { type: 'string' },
                     phone: { type: 'string' },
-                    role: { type: 'string' },
-                    company_name: { type: 'string', description: 'Nome da empresa (auto-cria/vincula em crm_companies quando client_company_id não é enviado)' },
-                    client_company_id: { type: 'string' },
                     avatar: { type: 'string' },
                     status: { type: 'string' },
                     stage: { type: 'string' },
@@ -529,7 +411,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
             { name: 'board_key', in: 'query', schema: { type: 'string' } },
             { name: 'stage_id', in: 'query', schema: { type: 'string' } },
             { name: 'contact_id', in: 'query', schema: { type: 'string' } },
-            { name: 'client_company_id', in: 'query', schema: { type: 'string' } },
             { name: 'status', in: 'query', schema: { type: 'string', enum: ['open', 'won', 'lost'] } },
             { name: 'updated_after', in: 'query', schema: { type: 'string' } },
             { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 250 } },
@@ -747,7 +628,6 @@ export function getPublicApiOpenApiDocument(): OpenApiDocument {
           parameters: [
             { name: 'deal_id', in: 'query', schema: { type: 'string' } },
             { name: 'contact_id', in: 'query', schema: { type: 'string' } },
-            { name: 'client_company_id', in: 'query', schema: { type: 'string' } },
             { name: 'type', in: 'query', schema: { type: 'string' } },
             { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 250 } },
             { name: 'cursor', in: 'query', schema: { type: 'string' } },

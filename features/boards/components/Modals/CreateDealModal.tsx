@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useCRM } from '@/context/CRMContext';
 import { useAuth } from '@/context/AuthContext';
-import { Deal, Board, Contact, Company } from '@/types';
-import { X, Building2, User, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react';
+import { Deal, Board, Contact } from '@/types';
+import { X, User, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react';
 import { DebugFillButton } from '@/components/debug/DebugFillButton';
-import { fakeDeal, fakeContact, fakeCompany } from '@/lib/debug';
+import { fakeDeal, fakeContact } from '@/lib/debug';
 import { ContactSearchCombobox } from '@/components/ui/ContactSearchCombobox';
 
 interface CreateDealModalProps {
@@ -35,7 +35,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
 
     // Estado para contato/empresa selecionados
     const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-    const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
     
     // Estado para criação de novo contato
     const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -43,7 +42,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
         name: '',
         email: '',
         phone: '',
-        companyName: ''
     });
 
     // Estado do deal
@@ -58,9 +56,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
 
     const resetForm = () => {
         setSelectedContact(null);
-        setSelectedCompany(null);
         setIsCreatingNew(false);
-        setNewContactData({ name: '', email: '', phone: '', companyName: '' });
+        setNewContactData({ name: '', email: '', phone: '' });
         setDealData({ title: '', value: '' });
         setError(null);
         setIsSubmitting(false);
@@ -69,19 +66,17 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
     const fillWithFakeData = () => {
         const deal = fakeDeal();
         const contact = fakeContact();
-        const company = fakeCompany();
-        
+
         setDealData({
             title: deal.title,
             value: String(deal.value)
         });
-        
+
         setIsCreatingNew(true);
         setNewContactData({
             name: contact.name,
             email: contact.email,
             phone: contact.phone,
-            companyName: company.name
         });
     };
 
@@ -135,7 +130,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
             const deal: Deal = {
                 id: crypto.randomUUID(),
                 title: dealData.title,
-                companyId: selectedCompany?.id || '',
                 contactId: selectedContact?.id || '',
                 boardId: activeBoardId || activeBoard.id,
                 ownerId: user?.id || '',
@@ -161,7 +155,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
             // Se selecionou contato existente
             if (selectedContact) {
                 result = await addDeal(deal, {
-                    companyName: selectedCompany?.name || '',
                     contact: {
                         name: selectedContact.name,
                         email: selectedContact.email,
@@ -171,7 +164,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
             } else {
                 // Criando novo contato
                 result = await addDeal(deal, {
-                    companyName: newContactData.companyName,
                     contact: {
                         name: newContactData.name,
                         email: newContactData.email,
@@ -283,7 +275,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                         type="button"
                                         onClick={() => {
                                             setSelectedContact(null);
-                                            setSelectedCompany(null);
                                         }}
                                         className="text-slate-400 hover:text-red-500 transition-colors"
                                     >
@@ -291,20 +282,12 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                     </button>
                                 </div>
                                 
-                                {selectedCompany && (
-                                    <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-sm">
-                                        <Building2 size={14} className="text-slate-400" />
-                                        <span className="text-slate-600 dark:text-slate-300">{selectedCompany.name}</span>
-                                    </div>
-                                )}
                             </div>
                         ) : !isCreatingNew ? (
                             /* Modo: Buscar Existente */
                             <ContactSearchCombobox
                                 selectedContact={selectedContact}
-                                selectedCompany={selectedCompany}
                                 onSelectContact={setSelectedContact}
-                                onSelectCompany={setSelectedCompany}
                                 onCreateNew={handleCreateNew}
                             />
                         ) : (
@@ -346,16 +329,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                     </div>
                                 </div>
                                 
-                                <div className="relative">
-                                    <Building2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Empresa"
-                                        value={newContactData.companyName}
-                                        onChange={(e) => setNewContactData(prev => ({ ...prev, companyName: e.target.value }))}
-                                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
-                                    />
-                                </div>
                             </div>
                         )}
                     </div>

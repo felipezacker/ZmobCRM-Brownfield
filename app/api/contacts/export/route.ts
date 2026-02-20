@@ -54,7 +54,7 @@ export async function GET(req: Request) {
       let q = supabase
         .from('contacts')
         .select(
-          'id,name,email,phone,role,notes,status,stage,created_at,updated_at,client_company_id,last_purchase_date'
+          'id,name,email,phone,notes,status,stage,created_at,updated_at,last_purchase_date'
         )
         .is('deleted_at', null);
 
@@ -90,38 +90,10 @@ export async function GET(req: Request) {
       page += 1;
     }
 
-    // Company name mapping (optional)
-    const companyIds = Array.from(
-      new Set(allContacts.map(c => c.client_company_id).filter(Boolean))
-    ) as string[];
-
-    const companyNameById = new Map<string, string>();
-    if (companyIds.length) {
-      // Fetch companies in chunks to avoid query limits
-      const idChunkSize = 500;
-      for (let i = 0; i < companyIds.length; i += idChunkSize) {
-        const ids = companyIds.slice(i, i + idChunkSize);
-        const { data: companies, error: companiesError } = await supabase
-          .from('crm_companies')
-          .select('id,name')
-          .in('id', ids)
-          .is('deleted_at', null);
-
-        if (companiesError) {
-          return NextResponse.json({ error: companiesError.message }, { status: 400 });
-        }
-        for (const c of (companies || []) as Array<{ id: string; name: string }>) {
-          companyNameById.set(c.id, c.name || '');
-        }
-      }
-    }
-
     const header = [
       'name',
       'email',
       'phone',
-      'role',
-      'company',
       'status',
       'stage',
       'notes',
@@ -133,8 +105,6 @@ export async function GET(req: Request) {
       c.name || '',
       c.email || '',
       c.phone || '',
-      c.role || '',
-      companyNameById.get(c.client_company_id) || '',
       c.status || '',
       c.stage || '',
       c.notes || '',

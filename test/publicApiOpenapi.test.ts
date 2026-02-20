@@ -19,8 +19,6 @@ describe('Public API OpenAPI', () => {
       '/boards',
       '/boards/{boardKeyOrId}',
       '/boards/{boardKeyOrId}/stages',
-      '/companies',
-      '/companies/{companyId}',
       '/contacts',
       '/contacts/{contactId}',
       '/deals',

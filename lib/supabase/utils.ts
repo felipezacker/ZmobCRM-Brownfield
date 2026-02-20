@@ -27,7 +27,7 @@
  * ```
  */
 
-import { OrganizationId, ClientCompanyId } from '@/types';
+import { OrganizationId } from '@/types';
 import { supabase } from './client';
 
 /**
@@ -159,18 +159,6 @@ export function requireOrganizationId(value: string | undefined | null): Organiz
   // Just return empty string or whatever satisfies the type if strictly needed, or throw if we want to catch usage
   // But to avoid breaking legacy code that might still call it:
   return (sanitizeUUID(value) || '') as OrganizationId;
-}
-
-/**
- * Sanitiza client_company_id (empresa CRM do cliente).
- * 
- * Alias semântico para empresas cadastradas no CRM.
- * 
- * @param value - Client company ID a ser sanitizado.
- * @returns ClientCompanyId válido ou null.
- */
-export function sanitizeClientCompanyId(value: string | undefined | null): ClientCompanyId | null {
-  return sanitizeUUID(value) as ClientCompanyId | null;
 }
 
 /**
