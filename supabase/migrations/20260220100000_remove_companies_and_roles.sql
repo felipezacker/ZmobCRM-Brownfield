@@ -19,7 +19,15 @@ BEGIN;
 -- STEP 1: Remove crm_companies from Realtime BEFORE dropping table
 -- =============================================================================
 
-ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS crm_companies;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'crm_companies'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime DROP TABLE crm_companies;
+  END IF;
+END $$;
 
 -- =============================================================================
 -- STEP 2: Update get_dashboard_stats() — remove total_companies
