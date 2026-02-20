@@ -1,7 +1,7 @@
 {
     "version": "1.0",
-    "project": "nossocrm",
-    "workspace": "/Users/felipezacker/Desktop/code/nossocrm",
+    "project": "ZmobCRM-Brownfield",
+    "workspace": "/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield",
     "agents": {
         "enabled": true,
         "directory": ".antigravity/agents",

@@ -164,7 +164,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const width =
-      isDesktop ? (sidebarCollapsed ? '5rem' : '16rem')
+      isDesktop ? (sidebarCollapsed ? '5rem' : '13rem')
         : isTablet ? '5rem'
           : '0px';
     document.documentElement.style.setProperty('--app-sidebar-width', width);
@@ -233,7 +233,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Sidebar - Collapsible */}
       {isDesktop ? (
         <aside
-          className={`hidden md:flex flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20 items-center' : 'w-64'
+          className={`hidden md:flex flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20 items-center' : 'w-52'
             }`}
           aria-label="Menu principal"
         >

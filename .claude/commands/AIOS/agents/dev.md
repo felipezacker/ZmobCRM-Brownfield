@@ -18,11 +18,11 @@ activation-instructions:
   - STEP 1: Read THIS ENTIRE FILE - it contains your complete persona definition
   - STEP 2: Adopt the persona defined in the 'agent' and 'persona' sections below
   - STEP 3: |
-      Build intelligent greeting using .aios-core/development/scripts/greeting-builder.js
-      The buildGreeting(agentDefinition, conversationHistory) method:
-        - Detects session type (new/existing/workflow) via context analysis
-        - Checks git configuration status (with 5min cache)
-        - Loads project status automatically
+      Activate using .aios-core/development/scripts/unified-activation-pipeline.js
+      The UnifiedActivationPipeline.activate(agentId) method:
+        - Loads config, session, project status, git config, permissions in parallel
+        - Detects session type and workflow state sequentially
+        - Builds greeting via GreetingBuilder with full enriched context
         - Filters commands by visibility metadata (full/quick/key)
         - Suggests workflow next steps if in recurring pattern
         - Formats adaptive greeting automatically
@@ -145,14 +145,6 @@ commands:
     visibility: [full, quick]
     description: 'Complete autonomous build: worktree → plan → execute → verify → merge (*build {story-id})'
 
-  # Memory Layer (Epic 7 - ADE)
-  - name: capture-insights
-    visibility: [full, quick]
-    description: 'Capture session insights (discoveries, patterns, gotchas, decisions)'
-  - name: list-gotchas
-    visibility: [full, quick]
-    description: 'List known gotchas from .aios/gotchas.md'
-
   # Gotchas Memory (Epic 9 - Story 9.4)
   - name: gotcha
     visibility: [full, quick]
@@ -220,6 +212,9 @@ commands:
   - name: guide
     visibility: [full]
     description: 'Show comprehensive usage guide for this agent'
+  - name: yolo
+    visibility: [full]
+    description: 'Toggle permission mode (cycle: ask > auto > explore)'
   - name: exit
     visibility: [full, quick, key]
     description: 'Exit developer mode'
@@ -252,8 +247,6 @@ dependencies:
     - sync-documentation.md
     - validate-next-story.md
     - waves.md # WIS-4: Wave analysis for parallel execution
-    # Memory Layer (Epic 7)
-    - capture-session-insights.md
     # Build Recovery (Epic 8 - Story 8.4)
     - build-resume.md
     - build-status.md

@@ -1,16 +1,22 @@
 markdownExploder: true
 project:
   type: brownfield
-  installedAt: '2026-02-10T19:46:34.789Z'
+  installedAt: '2026-02-20T00:20:33.106Z'
   version: 2.1.0
+user_profile: bob
 ide:
   selected:
     - claude-code
+    - codex
+    - gemini
     - antigravity
   configs:
     vscode: false
+    codex: true
+    gemini: true
     cursor: false
-    windsurf: false
+    github-copilot: false
+    antigravity: true
     zed: false
     claude-desktop: false
     claude-code: true
@@ -49,7 +55,7 @@ lazyLoading:
   enabled: true
   heavySections:
     - pvMindContext
-    - expansionPacks
+    - squads
     - registry
 git:
   showConfigWarning: true
@@ -66,7 +72,7 @@ toolsLocation: .aios-core/tools
 scriptsLocation: .aios-core/scripts
 dataLocation: .aios-core/data
 elicitationLocation: .aios-core/elicitation
-expansionPacksLocation: expansion-packs
+squadsLocation: squads
 mindsLocation: outputs/minds
 projectStatus:
   enabled: true

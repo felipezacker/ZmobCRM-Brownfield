@@ -235,6 +235,37 @@ To comprehensively validate a story draft before implementation begins, ensuring
 - **Agent section verification**: Confirm all sections from template exist for future agent use
 - **Structure compliance**: Verify story follows template structure and formatting
 
+### 1.1 Executor Assignment Validation (Story 11.1 - Projeto Bob)
+
+**PRD Reference:** AIOS v2.0 "Projeto Bob" - Section 5 (Dynamic Executor Assignment)
+
+**Required Fields Check:**
+- [ ] **executor** field present and not empty
+- [ ] **quality_gate** field present and not empty
+- [ ] **quality_gate_tools** field present as non-empty array
+
+**Constraint Validation:**
+- [ ] **executor != quality_gate** (CRITICAL - must be different)
+- [ ] **executor** is a known agent: @dev, @data-engineer, @devops, @ux-design-expert, @analyst, @architect
+- [ ] **quality_gate** is a known agent: @architect, @dev, @pm
+
+**Type-to-Executor Consistency:**
+| Work Type | Expected Executor | Expected Quality Gate |
+|-----------|-------------------|----------------------|
+| Code/Features/Logic | @dev | @architect |
+| Schema/DB/RLS/Migrations | @data-engineer | @dev |
+| Infra/CI/CD/Deploy | @devops | @architect |
+| Design/UI Components | @ux-design-expert | @dev |
+| Research/Investigation | @analyst | @pm |
+| Architecture Decisions | @architect | @pm |
+
+- [ ] Story content keywords match assigned executor type
+- [ ] Quality gate tools are appropriate for the executor type
+
+**Validation Result:**
+- [ ] PASS: All executor assignment fields valid
+- [ ] FAIL: Missing fields, invalid assignment, or executor == quality_gate
+
 ### 2. File Structure and Source Tree Validation
 
 - **Refer to tools/cli/github-cli.yaml** for repository structure validation commands and file path verification operations
@@ -345,6 +376,7 @@ To comprehensively validate a story draft before implementation begins, ensuring
 
 ### 9. Anti-Hallucination Verification
 
+- **Epic Context Enrichment**: Import `EpicContextAccumulator` from `core/orchestration` and call `buildAccumulatedContext(epicId, storyN)` to enrich validation with accumulated epic context (progressive summarization within token limits)
 - **Refer to tools/mcp/context7.yaml** for library documentation lookup to verify technical claims against official sources
 - Consult the examples section for documentation verification patterns and library-specific queries
 - **Source verification**: Every technical claim must be traceable to source documents

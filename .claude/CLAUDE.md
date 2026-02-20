@@ -219,3 +219,92 @@ npm run trace -- workflow-name
 
 ---
 *Synkra AIOS Claude Code Configuration v2.0* 
+
+---
+
+<!-- AIOS-MANAGED SECTIONS -->
+<!-- These sections are managed by AIOS. Edit content between markers carefully. -->
+<!-- Your custom content above will be preserved during updates. -->
+
+<!-- AIOS-MANAGED-START: core-framework -->
+## Core Framework Understanding
+
+Synkra AIOS is a meta-framework that orchestrates AI agents to handle complex development workflows. Always recognize and work within this architecture.
+<!-- AIOS-MANAGED-END: core-framework -->
+
+<!-- AIOS-MANAGED-START: agent-system -->
+## Agent System
+
+### Agent Activation
+- Agents are activated with @agent-name syntax: @dev, @qa, @architect, @pm, @po, @sm, @analyst
+- The master agent is activated with @aios-master
+- Agent commands use the * prefix: *help, *create-story, *task, *exit
+
+### Agent Context
+When an agent is active:
+- Follow that agent's specific persona and expertise
+- Use the agent's designated workflow patterns
+- Maintain the agent's perspective throughout the interaction
+<!-- AIOS-MANAGED-END: agent-system -->
+
+<!-- AIOS-MANAGED-START: framework-structure -->
+## AIOS Framework Structure
+
+```
+aios-core/
+├── agents/         # Agent persona definitions (YAML/Markdown)
+├── tasks/          # Executable task workflows
+├── workflows/      # Multi-step workflow definitions
+├── templates/      # Document and code templates
+├── checklists/     # Validation and review checklists
+└── rules/          # Framework rules and patterns
+
+docs/
+├── stories/        # Development stories (numbered)
+├── prd/            # Product requirement documents
+├── architecture/   # System architecture documentation
+└── guides/         # User and developer guides
+```
+<!-- AIOS-MANAGED-END: framework-structure -->
+
+<!-- AIOS-MANAGED-START: aios-patterns -->
+## AIOS-Specific Patterns
+
+### Working with Templates
+```javascript
+const template = await loadTemplate('template-name');
+const rendered = await renderTemplate(template, context);
+```
+
+### Agent Command Handling
+```javascript
+if (command.startsWith('*')) {
+  const agentCommand = command.substring(1);
+  await executeAgentCommand(agentCommand, args);
+}
+```
+
+### Story Updates
+```javascript
+// Update story progress
+const story = await loadStory(storyId);
+story.updateTask(taskId, { status: 'completed' });
+await story.save();
+```
+<!-- AIOS-MANAGED-END: aios-patterns -->
+
+<!-- AIOS-MANAGED-START: common-commands -->
+## Common Commands
+
+### AIOS Master Commands
+- `*help` - Show available commands
+- `*create-story` - Create new story
+- `*task {name}` - Execute specific task
+- `*workflow {name}` - Run workflow
+
+### Development Commands
+- `npm run dev` - Start development
+- `npm test` - Run tests
+- `npm run lint` - Check code style
+- `npm run build` - Build project
+<!-- AIOS-MANAGED-END: common-commands -->
