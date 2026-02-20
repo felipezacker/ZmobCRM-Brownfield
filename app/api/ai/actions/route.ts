@@ -281,7 +281,7 @@ export async function POST(req: Request) {
           model,
           maxRetries: 3,
           schema: RewriteMessageDraftSchema,
-          prompt: `Você é um vendedor sênior e copywriter.
+          prompt: `Você é um corretor sênior e copywriter.
 Sua tarefa é REESCREVER (melhorar) uma mensagem para enviar ao cliente.
 
 CANAL: ${channelLabel}

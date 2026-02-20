@@ -79,9 +79,9 @@ describe('SettingsPage RBAC', () => {
     vi.clearAllMocks()
   })
 
-  it('vendedor não vê seções de configuração do sistema', () => {
+  it('corretor não vê seções de configuração do sistema', () => {
     useAuthMock.mockReturnValue({
-      profile: { role: 'vendedor' },
+      profile: { role: 'corretor' },
     } as any)
 
     render(<SettingsPage />)
@@ -101,6 +101,35 @@ describe('SettingsPage RBAC', () => {
     expect(screen.getByText(/página inicial/i)).toBeInTheDocument()
     // Tabs pessoais seguem visíveis
     expect(screen.getByRole('button', { name: /central de i\.a/i })).toBeInTheDocument()
+  })
+
+  it('diretor vê aba Equipe mas NÃO vê Produtos/Integrações', () => {
+    useAuthMock.mockReturnValue({
+      profile: { role: 'diretor' },
+    } as any)
+
+    render(<SettingsPage />)
+
+    // Diretor can see Equipe tab
+    expect(screen.getByRole('button', { name: /equipe/i })).toBeInTheDocument()
+
+    // Diretor cannot see admin-only tabs
+    expect(screen.queryByRole('button', { name: /produtos/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /integrações/i })).not.toBeInTheDocument()
+
+    // Personal tabs still visible
+    expect(screen.getByRole('button', { name: /central de i\.a/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /dados/i })).toBeInTheDocument()
+  })
+
+  it('corretor NÃO vê aba Equipe', () => {
+    useAuthMock.mockReturnValue({
+      profile: { role: 'corretor' },
+    } as any)
+
+    render(<SettingsPage />)
+
+    expect(screen.queryByRole('button', { name: /equipe/i })).not.toBeInTheDocument()
   })
 
   it('admin vê seções de configuração do sistema', async () => {

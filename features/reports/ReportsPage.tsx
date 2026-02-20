@@ -103,7 +103,7 @@ const ReportsPage: React.FC = () => {
     }
   }, [goalType]);
 
-  // Calcular Performance por Vendedor (Leaderboard)
+  // Calcular Performance por Corretor (Leaderboard)
   const leaderboard = React.useMemo(() => {
     const repsMap: Record<string, { name: string; avatar: string; deals: number; revenue: number; winRate: number }> = {};
 
@@ -365,7 +365,7 @@ const ReportsPage: React.FC = () => {
           <div className="flex justify-between items-center mb-3 shrink-0">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
               <Trophy className="text-amber-500" size={20} />
-              Top Vendedores
+              Top Corretores
             </h2>
           </div>
           <div className="flex-1 overflow-y-auto min-h-0 space-y-2">

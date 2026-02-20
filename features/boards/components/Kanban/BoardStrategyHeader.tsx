@@ -303,7 +303,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                       <label className="text-[10px] text-slate-400 font-medium">Cargo</label>
                       <input
                         className="w-full bg-transparent border-b border-slate-200 dark:border-white/10 py-1 text-xs text-slate-500 focus:outline-none focus:border-purple-500 transition-colors placeholder:text-slate-300"
-                        placeholder="Ex: Vendedora"
+                        placeholder="Ex: Corretora"
                         value={editedBoard.agentPersona?.role || ''}
                         onChange={e =>
                           setEditedBoard({

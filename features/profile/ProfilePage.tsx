@@ -391,7 +391,7 @@ export const ProfilePage: React.FC = () => {
                                     : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                                     }`}>
                                     <Shield className="w-3 h-3" />
-                                    {profile?.role === 'admin' ? 'Admin' : 'Vendedor'}
+                                    {profile?.role === 'admin' ? 'Admin' : profile?.role === 'diretor' ? 'Diretor' : 'Corretor'}
                                 </span>
                             </div>
                         </div>

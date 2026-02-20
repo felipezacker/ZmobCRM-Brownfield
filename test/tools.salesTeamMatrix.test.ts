@@ -60,19 +60,19 @@ function expectNoFatal(res: unknown, context: string): void {
   }
 }
 
-describeSupabase('AI Tools - matriz 5 vendedores (integração real)', () => {
+describeSupabase('AI Tools - matriz 5 corretores (integração real)', () => {
   let fx: SalesTeamFixtureBundle | null = null;
 
   afterAll(async () => {
     if (fx) await cleanupSalesTeamFixtures(fx);
   }, 90_000);
 
-  it('executa TODAS as tools para 5 vendedores (sem crash) e valida alguns efeitos colaterais', async (ctx) => {
+  it('executa TODAS as tools para 5 corretores (sem crash) e valida alguns efeitos colaterais', async (ctx) => {
     try {
       fx = await createSalesTeamFixtures();
     } catch (e) {
       if (e instanceof AuthAdminUnavailableError) {
-        ctx.skip(`Auth Admin indisponível neste projeto Supabase (não dá para criar vendedores reais): ${e.message}`);
+        ctx.skip(`Auth Admin indisponível neste projeto Supabase (não dá para criar corretores reais): ${e.message}`);
       }
       throw e;
     }
@@ -256,7 +256,7 @@ describeSupabase('AI Tools - matriz 5 vendedores (integração real)', () => {
         'markDealAsLost',
       );
 
-      // assign deal (para o próximo vendedor, em círculo)
+      // assign deal (para o próximo corretor, em círculo)
       const idx = fx.users.findIndex((u) => u.userId === seller.userId);
       const next = fx.users[(idx + 1) % fx.users.length];
       expectNoFatal(

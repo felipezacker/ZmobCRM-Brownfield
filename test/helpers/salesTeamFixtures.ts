@@ -323,7 +323,7 @@ export async function createSalesTeamFixtures(): Promise<SalesTeamFixtureBundle>
       fx.boardsByUserId[user.userId] = { boardId, stageIds };
 
       // Alguns projetos têm restrição de unicidade de (contact, stage) para deals.
-      // Para evitar conflito ao criar 3 deals "semente" por vendedor, criamos contatos distintos.
+      // Para evitar conflito ao criar 3 deals "semente" por corretor, criamos contatos distintos.
       const openContact = await createContact({
         organizationId: fx.organizationId,
         ownerId: user.userId,

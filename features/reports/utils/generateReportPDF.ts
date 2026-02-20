@@ -253,7 +253,7 @@ export const generateReportPDF = async (data: ReportData, period: PeriodFilter, 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...COLORS.primary);
-    doc.text('Top Vendedores', margin, leaderboardY);
+    doc.text('Top Corretores', margin, leaderboardY);
 
     // Prepare data
     const repsMap: Record<string, { name: string; deals: number; revenue: number }> = {};
@@ -281,7 +281,7 @@ export const generateReportPDF = async (data: ReportData, period: PeriodFilter, 
 
     autoTable(doc, {
         startY: leaderboardY + 5,
-        head: [['#', 'Vendedor', 'Deals', 'Receita']],
+        head: [['#', 'Corretor', 'Deals', 'Receita']],
         body: tableData,
         theme: 'striped',
         tableWidth: contentWidth,

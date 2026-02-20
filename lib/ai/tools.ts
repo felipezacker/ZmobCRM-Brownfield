@@ -1003,7 +1003,7 @@ export function createCRMTools(context: CRMCallOptions, userId: string) {
         }),
 
         assignDeal: tool({
-            description: 'Reatribui um deal para outro vendedor/responsável. Requer aprovação no card (Aprovar/Negar) — não peça confirmação em texto.',
+            description: 'Reatribui um deal para outro corretor/responsável. Requer aprovação no card (Aprovar/Negar) — não peça confirmação em texto.',
             inputSchema: z.object({
                 dealId: z.string().optional().describe('ID do deal'),
                 newOwnerId: z.string().describe('ID do novo responsável (UUID)'),

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { isAllowedOrigin } from '@/lib/security/sameOrigin';
+import { hasMinRole, type Role } from '@/lib/auth/roles';
 
 function json<T>(body: T, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -9,11 +10,11 @@ function json<T>(body: T, status = 200): Response {
   });
 }
 
-type Role = 'admin' | 'vendedor';
+// Role type imported from @/lib/auth/roles
 
 const CreateInviteSchema = z
   .object({
-    role: z.enum(['admin', 'vendedor']).default('vendedor'),
+    role: z.enum(['admin', 'diretor', 'corretor']).default('corretor'),
     expiresAt: z.union([z.string().datetime(), z.null()]).optional(),
     email: z.string().email().optional(),
   })
@@ -39,7 +40,7 @@ export async function GET() {
     .single();
 
   if (meError || !me?.organization_id) return json({ error: 'Profile not found' }, 404);
-  if (me.role !== 'admin') return json({ error: 'Forbidden' }, 403);
+  if (!hasMinRole(me.role as Role, 'diretor')) return json({ error: 'Forbidden' }, 403);
 
   // Return only active (not used) invites, and let UI decide how to show expiration.
   const { data: invites, error } = await supabase
@@ -79,13 +80,18 @@ export async function POST(req: Request) {
     .single();
 
   if (meError || !me?.organization_id) return json({ error: 'Profile not found' }, 404);
-  if (me.role !== 'admin') return json({ error: 'Forbidden' }, 403);
+  if (!hasMinRole(me.role as Role, 'diretor')) return json({ error: 'Forbidden' }, 403);
 
   const raw = await req.json().catch(() => null);
   const parsed = CreateInviteSchema.safeParse(raw);
   if (!parsed.success) {
     console.error('[admin/invites POST] Validation error:', parsed.error.flatten());
     return json({ error: 'Invalid payload', details: parsed.error.flatten() }, 400);
+  }
+
+  // Diretor can only invite corretores
+  if (me.role === 'diretor' && parsed.data.role !== 'corretor') {
+    return json({ error: 'Diretores só podem convidar corretores' }, 403);
   }
 
   const expiresAt = parsed.data.expiresAt ?? null;

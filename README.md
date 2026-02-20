@@ -357,7 +357,7 @@ Use tags para categorizar seus deals:
 Configure campos específicos para seu negócio:
 - Tipo de produto
 - Origem do lead
-- Vendedor responsável
+- Corretor responsável
 - Qualquer informação importante
 
 ### Importar Dados
@@ -397,12 +397,13 @@ Para usar o assistente de IA, você precisa configurar uma chave de API:
 O ZmobCRM tem dois tipos de usuários:
 
 - **👑 Administrador**: Pode tudo (configurações, usuários, etc.)
-- **👤 Vendedor**: Pode usar o CRM normalmente, mas não altera configurações
+- **🏢 Diretor**: Vê deals de todos, relatórios completos, gerencia corretores
+- **👤 Corretor**: Pode usar o CRM normalmente, mas não altera configurações
 
 Para adicionar usuários:
 1. Vá em **Configurações → Equipe**
 2. Clique em **Convidar Usuário**
-3. Escolha o papel (admin ou vendedor)
+3. Escolha o papel (admin, diretor ou corretor)
 4. Envie o convite
 
 ### Configurar Webhooks
@@ -506,7 +507,7 @@ Veja o guia completo em: [docs/webhooks.md](./docs/webhooks.md)
 ### Documentação
 
 - **[Guia de Webhooks](./docs/webhooks.md)**: Como configurar automações
-- **[Permissões](./docs/security/RBAC.md)**: Entenda admin vs vendedor
+- **[Permissões](./docs/security/RBAC.md)**: Entenda admin vs diretor vs corretor
 - **[API Pública](./docs/public-api.md)**: Documentação para desenvolvedores
 
 ### Contato

@@ -12,6 +12,7 @@ import { AICenterSettings } from './AICenterSettings';
 
 import { UsersPage } from './UsersPage';
 import { useAuth } from '@/context/AuthContext';
+import { hasMinRole, type Role } from '@/lib/auth/roles';
 import { Settings as SettingsIcon, Users, Database, Sparkles, Plug, Package } from 'lucide-react';
 
 type SettingsTab = 'general' | 'products' | 'integrations' | 'ai' | 'data' | 'users';
@@ -204,7 +205,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ tab: initialTab }) => {
     ...(profile?.role === 'admin' ? [{ id: 'integrations' as SettingsTab, name: 'Integrações', icon: Plug }] : []),
     { id: 'ai' as SettingsTab, name: 'Central de I.A', icon: Sparkles },
     { id: 'data' as SettingsTab, name: 'Dados', icon: Database },
-    ...(profile?.role === 'admin' ? [{ id: 'users' as SettingsTab, name: 'Equipe', icon: Users }] : []),
+    ...(profile?.role && hasMinRole(profile.role as Role, 'diretor') ? [{ id: 'users' as SettingsTab, name: 'Equipe', icon: Users }] : []),
   ];
 
   const renderContent = () => {

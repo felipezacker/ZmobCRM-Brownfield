@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { hasMinRole, type Role } from '@/lib/auth/roles';
 import { useToast } from '@/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
-import { Loader2, UserPlus, Crown, Briefcase, KeyRound, Mail, Check, X, Sparkles, Clock, RefreshCw, Trash2, Link, Copy, CheckCircle2 } from 'lucide-react';
+import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Mail, Check, X, Sparkles, Clock, RefreshCw, Trash2, Link, Copy, CheckCircle2 } from 'lucide-react';
 
 interface Profile {
     id: string;
@@ -51,7 +52,7 @@ export const UsersPage: React.FC = () => {
     const [users, setUsers] = useState<Profile[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newUserRole, setNewUserRole] = useState('vendedor');
+    const [newUserRole, setNewUserRole] = useState('corretor');
     const [sendingInvites, setSendingInvites] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState<string | null>(null); // id do usuário em ação
@@ -119,7 +120,7 @@ export const UsersPage: React.FC = () => {
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
         setError(null);
-        setNewUserRole('vendedor');
+        setNewUserRole('corretor');
         setExpirationDays(7);
     }, []);
 
@@ -271,7 +272,8 @@ export const UsersPage: React.FC = () => {
     }
 
     const admins = users.filter(u => u.role === 'admin');
-    const vendedores = users.filter(u => u.role === 'vendedor');
+    const diretores = users.filter(u => u.role === 'diretor');
+    const corretores = users.filter(u => u.role === 'corretor');
 
     return (
         <div className="max-w-4xl mx-auto pb-10">
@@ -283,7 +285,7 @@ export const UsersPage: React.FC = () => {
                             Sua Equipe
                         </h1>
                         <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
-                            {users.length} {users.length === 1 ? 'membro' : 'membros'} • {admins.length} admin{admins.length !== 1 && 's'}, {vendedores.length} vendedor{vendedores.length !== 1 && 'es'}
+                            {users.length} {users.length === 1 ? 'membro' : 'membros'} • {admins.length} admin{admins.length !== 1 && 's'}, {diretores.length} diretor{diretores.length !== 1 && 'es'}, {corretores.length} corretor{corretores.length !== 1 && 'es'}
                         </p>
                     </div>
                     <button
@@ -349,10 +351,15 @@ export const UsersPage: React.FC = () => {
                                                     <Crown className="h-3.5 w-3.5" />
                                                     Administrador
                                                 </>
+                                            ) : user.role === 'diretor' ? (
+                                                <>
+                                                    <Shield className="h-3.5 w-3.5" />
+                                                    Diretor
+                                                </>
                                             ) : (
                                                 <>
                                                     <Briefcase className="h-3.5 w-3.5" />
-                                                    Vendedor
+                                                    Corretor
                                                 </>
                                             )}
                                         </span>
@@ -366,8 +373,8 @@ export const UsersPage: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Actions */}
-                                {!isCurrentUser && (
+                                {/* Actions — diretor can only manage corretores */}
+                                {!isCurrentUser && (currentUserProfile?.role === 'admin' || user.role === 'corretor') && (
                                     <div className="flex items-center gap-1">
                                         {actionLoading === user.id ? (
                                             <div className="p-2">
@@ -375,7 +382,6 @@ export const UsersPage: React.FC = () => {
                                             </div>
                                         ) : (
                                             <>
-                                                {/* Resend Invite removed as we don't use email invites anymore */}
                                                 <button
                                                     onClick={() => handleDeleteUser(user)}
                                                     className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
@@ -507,43 +513,65 @@ export const UsersPage: React.FC = () => {
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                                         Cargo
                                     </label>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className={`grid gap-3 ${currentUserProfile?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-1'}`}>
                                         <button
                                             type="button"
-                                            onClick={() => setNewUserRole('vendedor')}
-                                            className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'vendedor'
+                                            onClick={() => setNewUserRole('corretor')}
+                                            className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'corretor'
                                                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                                                 : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2 mb-1">
-                                                <Briefcase className={`h-4 w-4 ${newUserRole === 'vendedor' ? 'text-primary-600 dark:text-primary-400' : 'text-slate-400'}`} />
-                                                <span className={`font-medium text-sm ${newUserRole === 'vendedor' ? 'text-primary-900 dark:text-primary-100' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                    Vendedor
+                                                <Briefcase className={`h-4 w-4 ${newUserRole === 'corretor' ? 'text-primary-600 dark:text-primary-400' : 'text-slate-400'}`} />
+                                                <span className={`font-medium text-sm ${newUserRole === 'corretor' ? 'text-primary-900 dark:text-primary-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                    Corretor
                                                 </span>
                                             </div>
-                                            {newUserRole === 'vendedor' && (
+                                            {newUserRole === 'corretor' && (
                                                 <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary-500" />
                                             )}
                                         </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setNewUserRole('admin')}
-                                            className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'admin'
-                                                ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <Crown className={`h-4 w-4 ${newUserRole === 'admin' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`} />
-                                                <span className={`font-medium text-sm ${newUserRole === 'admin' ? 'text-amber-900 dark:text-amber-100' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                    Admin
-                                                </span>
-                                            </div>
-                                            {newUserRole === 'admin' && (
-                                                <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-amber-500" />
-                                            )}
-                                        </button>
+                                        {currentUserProfile?.role === 'admin' && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewUserRole('diretor')}
+                                                className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'diretor'
+                                                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Shield className={`h-4 w-4 ${newUserRole === 'diretor' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`} />
+                                                    <span className={`font-medium text-sm ${newUserRole === 'diretor' ? 'text-blue-900 dark:text-blue-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                        Diretor
+                                                    </span>
+                                                </div>
+                                                {newUserRole === 'diretor' && (
+                                                    <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-500" />
+                                                )}
+                                            </button>
+                                        )}
+                                        {currentUserProfile?.role === 'admin' && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewUserRole('admin')}
+                                                className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'admin'
+                                                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
+                                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Crown className={`h-4 w-4 ${newUserRole === 'admin' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`} />
+                                                    <span className={`font-medium text-sm ${newUserRole === 'admin' ? 'text-amber-900 dark:text-amber-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                        Admin
+                                                    </span>
+                                                </div>
+                                                {newUserRole === 'admin' && (
+                                                    <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-amber-500" />
+                                                )}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 

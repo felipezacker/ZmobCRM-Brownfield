@@ -1,5 +1,6 @@
 import { createClient, createStaticAdminClient } from '@/lib/supabase/server';
 import { isAllowedOrigin } from '@/lib/security/sameOrigin';
+import { hasMinRole, type Role } from '@/lib/auth/roles';
 
 function json<T>(body: T, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -36,19 +37,24 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
     .single();
 
   if (meError || !me?.organization_id) return json({ error: 'Profile not found' }, 404);
-  if (me.role !== 'admin') return json({ error: 'Forbidden' }, 403);
+  if (!hasMinRole(me.role as Role, 'diretor')) return json({ error: 'Forbidden' }, 403);
 
   if (id === user.id) return json({ error: 'Você não pode remover a si mesmo' }, 400);
 
   const { data: target, error: targetError } = await supabase
     .from('profiles')
-    .select('id, email, organization_id')
+    .select('id, email, role, organization_id')
     .eq('id', id)
     .maybeSingle();
 
   if (targetError) return json({ error: targetError.message }, 500);
   if (!target) return json({ error: 'User not found' }, 404);
   if (target.organization_id !== me.organization_id) return json({ error: 'Forbidden' }, 403);
+
+  // Diretor can only manage corretores
+  if (me.role === 'diretor' && target.role !== 'corretor') {
+    return json({ error: 'Diretores só podem gerenciar corretores' }, 403);
+  }
 
   // Delete auth user first (cascades profile via FK, but we also try to remove profile explicitly)
   const { error: authDeleteError } = await admin.auth.admin.deleteUser(id);
