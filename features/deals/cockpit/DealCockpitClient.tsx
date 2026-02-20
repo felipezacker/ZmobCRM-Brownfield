@@ -1086,10 +1086,10 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   const setDealInUrl = useCallback(
     (nextDealId: string) => {
-      // Rota V2: /deals/[dealId]/cockpit-v2
-      if (pathname?.includes('/deals/') && pathname.endsWith('/cockpit-v2')) {
+      // Rota canônica: /deals/[dealId]/cockpit (ou legada /cockpit-v2)
+      if (pathname?.includes('/deals/') && (pathname.endsWith('/cockpit') || pathname.endsWith('/cockpit-v2'))) {
         if (!nextDealId) return;
-        router.replace(`/deals/${nextDealId}/cockpit-v2`);
+        router.replace(`/deals/${nextDealId}/cockpit`);
         return;
       }
 

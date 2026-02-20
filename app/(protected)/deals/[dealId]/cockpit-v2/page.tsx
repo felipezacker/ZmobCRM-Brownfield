@@ -1,8 +1,7 @@
-import DealCockpitClient from '@/features/deals/cockpit/DealCockpitClient';
+import { redirect } from 'next/navigation';
 
 /**
- * Cockpit V2 (experimentação / rollout controlado).
- * URL: /deals/[dealId]/cockpit-v2
+ * Rota legada — redireciona para a rota canônica /deals/[dealId]/cockpit.
  */
 export default async function DealCockpitV2Page({
   params,
@@ -10,6 +9,5 @@ export default async function DealCockpitV2Page({
   params: Promise<{ dealId: string }>;
 }) {
   const { dealId } = await params;
-  return <DealCockpitClient dealId={dealId} />;
+  redirect(`/deals/${dealId}/cockpit`);
 }
-

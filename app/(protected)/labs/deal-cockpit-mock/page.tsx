@@ -29,10 +29,9 @@ export default function DealCockpitMockPage({
     return <DealCockpitMockClient />;
   }
 
-  // Se já temos um dealId, leva para a rota V2 (experimento).
-  // Mantemos /labs como ponte/entrada para o cockpit V2 durante o rollout.
+  // Se já temos um dealId, leva para a rota canônica do cockpit.
   if (searchParams?.dealId) {
-    redirect(`/deals/${searchParams.dealId}/cockpit-v2`);
+    redirect(`/deals/${searchParams.dealId}/cockpit`);
   }
 
   return <DealCockpitClient dealId={searchParams?.dealId} />;
