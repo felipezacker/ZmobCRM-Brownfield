@@ -4,13 +4,16 @@ import { Contact } from '@/types';
 import { DebugFillButton } from '@/components/debug/DebugFillButton';
 import { fakeContact } from '@/lib/debug';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
+import { CorretorSelect } from '@/components/ui/CorretorSelect';
+import { useAuth } from '@/context/AuthContext';
+import { useActiveDealsCount } from '@/hooks/useReassignContactWithDeals';
 
-interface ContactFormData {
+export interface ContactFormData {
   name: string;
   email: string;
   phone: string;
-  role: string;
-  companyName: string;
+  ownerId: string | undefined;
+  cascadeDeals: boolean;
 }
 
 interface ContactFormModalProps {
@@ -18,7 +21,7 @@ interface ContactFormModalProps {
   onClose: () => void;
   onSubmit: (e: React.FormEvent) => void;
   formData: ContactFormData;
-  setFormData: (data: ContactFormData) => void;
+  setFormData: React.Dispatch<React.SetStateAction<ContactFormData>>;
   editingContact: Contact | null;
   createFakeContactsBatch?: (count: number) => Promise<void>;
   isSubmitting?: boolean;
@@ -57,7 +60,20 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const headingId = useId();
   useFocusReturn({ enabled: isOpen });
   const [isCreatingBatch, setIsCreatingBatch] = useState(false);
-  
+  const { profile } = useAuth();
+  const [activeDealsCount, setActiveDealsCount] = useState(0);
+  const { fetchCount } = useActiveDealsCount(editingContact?.id || null);
+
+  const ownerChanged = editingContact && formData.ownerId && formData.ownerId !== editingContact.ownerId;
+
+  React.useEffect(() => {
+    if (isOpen && editingContact?.id) {
+      fetchCount().then(setActiveDealsCount);
+    } else {
+      setActiveDealsCount(0);
+    }
+  }, [isOpen, editingContact?.id, fetchCount]);
+
   if (!isOpen) return null;
 
   const fillWithFakeData = () => {
@@ -66,8 +82,8 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
       name: fake.name,
       email: fake.email,
       phone: fake.phone,
-      role: fake.role,
-      companyName: fake.companyName,
+      ownerId: formData.ownerId,
+      cascadeDeals: formData.cascadeDeals,
     });
   };
 
@@ -141,47 +157,42 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
               onChange={e => setFormData({ ...formData, email: e.target.value })}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                Telefone
-              </label>
-              <input
-                type="text"
-                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="+5511999999999"
-                value={formData.phone}
-                onChange={e => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cargo</label>
-              <input
-                type="text"
-                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Gerente"
-                value={formData.role}
-                onChange={e => setFormData({ ...formData, role: e.target.value })}
-              />
-            </div>
-          </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-              Empresa
+              Telefone
             </label>
             <input
               type="text"
               className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="Nome da Empresa"
-              value={formData.companyName}
-              onChange={e => setFormData({ ...formData, companyName: e.target.value })}
+              placeholder="+5511999999999"
+              value={formData.phone}
+              onChange={e => setFormData({ ...formData, phone: e.target.value })}
             />
-            <p className="text-[10px] text-slate-400 mt-1">
-              {editingContact
-                ? 'Edite para alterar a empresa. Deixe em branco para desvincular.'
-                : 'Se a empresa já existir, o contato será vinculado a ela.'}
-            </p>
           </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+              Corretor Responsável
+            </label>
+            <CorretorSelect
+              value={formData.ownerId || editingContact?.ownerId || profile?.id}
+              onChange={(id) => setFormData(prev => ({ ...prev, ownerId: id }))}
+            />
+          </div>
+
+          {ownerChanged && activeDealsCount > 0 && (
+            <label className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.cascadeDeals || false}
+                onChange={(e) => setFormData({ ...formData, cascadeDeals: e.target.checked })}
+                className="mt-0.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+              />
+              <span className="text-sm text-amber-800 dark:text-amber-200">
+                Reatribuir também os <strong>{activeDealsCount} deals ativos</strong> deste contato para o novo corretor?
+              </span>
+            </label>
+          )}
 
             <button
             type="submit"

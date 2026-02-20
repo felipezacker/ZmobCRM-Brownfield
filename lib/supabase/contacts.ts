@@ -1,19 +1,18 @@
 /**
- * @fileoverview Serviço Supabase para gerenciamento de contatos e empresas CRM.
- * 
- * Este módulo fornece operações CRUD para contatos e empresas (crm_companies),
+ * @fileoverview Serviço Supabase para gerenciamento de contatos.
+ *
+ * Este módulo fornece operações CRUD para contatos,
  * com transformação automática entre o formato do banco e o formato da aplicação.
- * 
+ *
  * ## Conceitos Multi-Tenant
- * 
+ *
  * - Contatos são isolados por `organization_id` (tenant)
- * - `client_company_id` vincula o contato a uma empresa cadastrada no CRM
- * 
+ *
  * @module lib/supabase/contacts
  */
 
 import { supabase } from './client';
-import { Contact, CRMCompany, OrganizationId, PaginationState, PaginatedResponse, ContactsServerFilters } from '@/types';
+import { Contact, OrganizationId, PaginationState, PaginatedResponse, ContactsServerFilters } from '@/types';
 import { sanitizeUUID, sanitizeText, sanitizeNumber } from './utils';
 import { normalizePhoneE164 } from '@/lib/phone';
 
@@ -37,12 +36,6 @@ export interface DbContact {
   email: string | null;
   /** Telefone do contato. */
   phone: string | null;
-  /** Cargo/função do contato. */
-  role: string | null;
-  /** Nome da empresa (texto livre, deprecado). */
-  company_name: string | null;
-  /** ID da empresa CRM vinculada. */
-  client_company_id: string | null;
   /** URL do avatar. */
   avatar: string | null;
   /** Observações sobre o contato. */
@@ -70,30 +63,6 @@ export interface DbContact {
 }
 
 /**
- * Representação de empresa CRM no banco de dados.
- * 
- * @interface DbCRMCompany
- */
-export interface DbCRMCompany {
-  /** ID único da empresa (UUID). */
-  id: string;
-  /** ID da organização/tenant. */
-  organization_id: string;
-  /** Nome da empresa. */
-  name: string;
-  /** Setor/indústria. */
-  industry: string | null;
-  /** Website da empresa. */
-  website: string | null;
-  /** Data de criação. */
-  created_at: string;
-  /** Data de atualização. */
-  updated_at: string;
-  /** ID do dono/responsável. */
-  owner_id: string | null;
-}
-
-/**
  * Transforma contato do formato DB para o formato da aplicação.
  * 
  * @param db - Contato no formato do banco.
@@ -105,9 +74,6 @@ const transformContact = (db: DbContact): Contact => ({
   name: db.name,
   email: db.email || '',
   phone: normalizePhoneE164(db.phone),
-  role: db.role || '',
-  clientCompanyId: db.client_company_id || undefined,
-  companyId: db.client_company_id || '', // @deprecated - backwards compatibility
   avatar: db.avatar || '',
   notes: db.notes || '',
   status: db.status as Contact['status'],
@@ -119,22 +85,7 @@ const transformContact = (db: DbContact): Contact => ({
   totalValue: db.total_value || 0,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
-});
-
-/**
- * Transforma empresa CRM do formato DB para o formato da aplicação.
- * 
- * @param db - Empresa no formato do banco.
- * @returns Empresa no formato da aplicação.
- */
-const transformCRMCompany = (db: DbCRMCompany): CRMCompany => ({
-  id: db.id,
-  organizationId: db.organization_id,
-  name: db.name,
-  industry: db.industry || undefined,
-  website: db.website || undefined,
-  createdAt: db.created_at,
-  updatedAt: db.updated_at,
+  ownerId: db.owner_id || undefined,
 });
 
 /**
@@ -152,10 +103,6 @@ const transformContactToDb = (contact: Partial<Contact>): Partial<DbContact> => 
     const e164 = normalizePhoneE164(contact.phone);
     db.phone = e164 ? e164 : null;
   }
-  if (contact.role !== undefined) db.role = contact.role || null;
-  // Support both new clientCompanyId and deprecated companyId
-  if (contact.clientCompanyId !== undefined) db.client_company_id = contact.clientCompanyId || null;
-  else if (contact.companyId !== undefined) db.client_company_id = contact.companyId || null;
   if (contact.avatar !== undefined) db.avatar = contact.avatar || null;
   if (contact.notes !== undefined) db.notes = contact.notes || null;
   if (contact.status !== undefined) db.status = contact.status;
@@ -165,6 +112,7 @@ const transformContactToDb = (contact: Partial<Contact>): Partial<DbContact> => 
   if (contact.lastInteraction !== undefined) db.last_interaction = contact.lastInteraction || null;
   if (contact.lastPurchaseDate !== undefined) db.last_purchase_date = contact.lastPurchaseDate || null;
   if (contact.totalValue !== undefined) db.total_value = contact.totalValue;
+  if (contact.ownerId !== undefined) db.owner_id = contact.ownerId || null;
 
   return db;
 };
@@ -352,10 +300,6 @@ export const contactsService = {
           query = query.lte('created_at', filters.dateEnd);
         }
 
-        // Client company filter
-        if (filters.clientCompanyId) {
-          query = query.eq('client_company_id', filters.clientCompanyId);
-        }
       }
 
       // Apply pagination and ordering
@@ -403,8 +347,6 @@ export const contactsService = {
         name: contact.name,
         email: sanitizeText(contact.email),
         phone: sanitizeText(phoneE164),
-        role: sanitizeText(contact.role),
-        client_company_id: sanitizeUUID(contact.clientCompanyId || contact.companyId),
         avatar: sanitizeText(contact.avatar),
         notes: sanitizeText(contact.notes),
         status: contact.status || 'ACTIVE',
@@ -542,172 +484,6 @@ export const contactsService = {
         .eq('id', contactId);
 
       return { error: contactError };
-    } catch (e) {
-      return { error: e as Error };
-    }
-  },
-};
-
-/**
- * Serviço de empresas CRM do Supabase.
- * 
- * Fornece operações CRUD para a tabela `crm_companies`.
- * Empresas CRM são as empresas dos clientes, não o tenant.
- * 
- * @example
- * ```typescript
- * const { data, error } = await companiesService.getAll();
- * ```
- */
-export const companiesService = {
-  /**
-   * Busca empresas por uma lista de IDs.
-   * Otimizado para buscar apenas as empresas necessárias.
-   *
-   * @param ids - Array de IDs de empresas a buscar.
-   * @returns Promise com array de empresas ou erro.
-   */
-  async getByIds(ids: string[]): Promise<{ data: CRMCompany[] | null; error: Error | null }> {
-    try {
-      if (!supabase) {
-        return { data: null, error: new Error('Supabase não configurado') };
-      }
-      // Se não há IDs, retorna array vazio
-      if (!ids || ids.length === 0) {
-        return { data: [], error: null };
-      }
-      // Remove duplicatas e valores vazios
-      const uniqueIds = [...new Set(ids.filter(Boolean))];
-      if (uniqueIds.length === 0) {
-        return { data: [], error: null };
-      }
-
-      const { data, error } = await supabase
-        .from('crm_companies')
-        .select('*')
-        .in('id', uniqueIds);
-
-      if (error) return { data: null, error };
-      return { data: (data || []).map(c => transformCRMCompany(c as DbCRMCompany)), error: null };
-    } catch (e) {
-      return { data: null, error: e as Error };
-    }
-  },
-
-  /**
-   * Busca todas as empresas CRM da organização.
-   *
-   * @returns Promise com array de empresas ou erro.
-   */
-  async getAll(): Promise<{ data: CRMCompany[] | null; error: Error | null }> {
-    try {
-      if (!supabase) {
-        return { data: null, error: new Error('Supabase não configurado') };
-      }
-      // Safety limit: Prevent unbounded queries
-      const { data, error } = await supabase
-        .from('crm_companies')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10000);
-
-      if (error) return { data: null, error };
-      return { data: (data || []).map(c => transformCRMCompany(c as DbCRMCompany)), error: null };
-    } catch (e) {
-      return { data: null, error: e as Error };
-    }
-  },
-
-  /**
-   * Cria uma nova empresa CRM.
-   * 
-   * @param company - Dados da empresa.
-   * @returns Promise com empresa criada ou erro.
-   */
-  async create(company: Omit<CRMCompany, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ data: CRMCompany | null; error: Error | null }> {
-    try {
-      if (!supabase) {
-        return { data: null, error: new Error('Supabase não configurado') };
-      }
-      const insertData = {
-        name: company.name,
-        industry: sanitizeText(company.industry),
-        website: sanitizeText(company.website),
-      };
-
-      const { data, error } = await supabase
-        .from('crm_companies')
-        .insert(insertData)
-        .select()
-        .single();
-
-      if (error) return { data: null, error };
-      return { data: transformCRMCompany(data as DbCRMCompany), error: null };
-    } catch (e) {
-      return { data: null, error: e as Error };
-    }
-  },
-
-  /**
-   * Atualiza uma empresa CRM existente.
-   * 
-   * @param id - ID da empresa.
-   * @param updates - Campos a serem atualizados.
-   * @returns Promise com erro, se houver.
-   */
-  async update(id: string, updates: Partial<CRMCompany>): Promise<{ error: Error | null }> {
-    try {
-      if (!supabase) {
-        return { error: new Error('Supabase não configurado') };
-      }
-      const dbUpdates: Partial<DbCRMCompany> = {};
-      if (updates.name !== undefined) dbUpdates.name = updates.name;
-      if (updates.industry !== undefined) dbUpdates.industry = updates.industry || null;
-      if (updates.website !== undefined) dbUpdates.website = updates.website || null;
-      dbUpdates.updated_at = new Date().toISOString();
-
-      const { error } = await supabase
-        .from('crm_companies')
-        .update(dbUpdates)
-        .eq('id', id);
-
-      return { error };
-    } catch (e) {
-      return { error: e as Error };
-    }
-  },
-
-  /**
-   * Exclui uma empresa CRM.
-   * 
-   * @param id - ID da empresa.
-   * @returns Promise com erro, se houver.
-   */
-  async delete(id: string): Promise<{ error: Error | null }> {
-    try {
-      if (!supabase) {
-        return { error: new Error('Supabase não configurado') };
-      }
-
-      // Primeiro, remove vínculo para evitar erro de FK.
-      const { error: contactsUpdateError } = await supabase
-        .from('contacts')
-        .update({ client_company_id: null })
-        .eq('client_company_id', id);
-      if (contactsUpdateError) return { error: contactsUpdateError };
-
-      const { error: dealsUpdateError } = await supabase
-        .from('deals')
-        .update({ client_company_id: null })
-        .eq('client_company_id', id);
-      if (dealsUpdateError) return { error: dealsUpdateError };
-
-      const { error } = await supabase
-        .from('crm_companies')
-        .delete()
-        .eq('id', id);
-
-      return { error };
     } catch (e) {
       return { error: e as Error };
     }

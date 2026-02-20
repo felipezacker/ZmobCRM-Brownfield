@@ -7,6 +7,8 @@ import { Modal, ModalForm } from '@/components/ui/Modal';
 import { InputField, SubmitButton } from '@/components/ui/FormField';
 import { contactFormSchema } from '@/lib/validations/schemas';
 import type { ContactFormData } from '@/lib/validations/schemas';
+import { CorretorSelect } from '@/components/ui/CorretorSelect';
+import { useAuth } from '@/context/AuthContext';
 
 type ContactFormInput = z.input<typeof contactFormSchema>;
 
@@ -15,42 +17,29 @@ interface ContactFormModalProps {
   onClose: () => void;
   onSubmit: (data: ContactFormData) => void;
   editingContact: Contact | null;
-  defaultCompanyName?: string;
 }
 
-/**
- * Componente React `ContactFormModalV2`.
- *
- * @param {ContactFormModalProps} {
-  isOpen,
-  onClose,
-  onSubmit,
-  editingContact,
-  defaultCompanyName = '',
-} - Parâmetro `{
-  isOpen,
-  onClose,
-  onSubmit,
-  editingContact,
-  defaultCompanyName = '',
-}`.
- * @returns {Element} Retorna um valor do tipo `Element`.
- */
 export const ContactFormModalV2: React.FC<ContactFormModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
   editingContact,
-  defaultCompanyName = '',
 }) => {
+  const { profile } = useAuth();
+  const [selectedOwnerId, setSelectedOwnerId] = React.useState<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedOwnerId(editingContact?.ownerId || profile?.id);
+    }
+  }, [isOpen, editingContact, profile?.id]);
+
   const form = useForm<ContactFormInput>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
       name: editingContact?.name || '',
       email: editingContact?.email || '',
       phone: editingContact?.phone || '',
-      role: editingContact?.role || '',
-      companyName: defaultCompanyName,
     },
   });
 
@@ -68,15 +57,13 @@ export const ContactFormModalV2: React.FC<ContactFormModalProps> = ({
         name: editingContact?.name || '',
         email: editingContact?.email || '',
         phone: editingContact?.phone || '',
-        role: editingContact?.role || '',
-        companyName: defaultCompanyName,
       });
     }
-  }, [isOpen, editingContact, defaultCompanyName, reset]);
+  }, [isOpen, editingContact, reset]);
 
   const handleFormSubmit = (data: ContactFormInput) => {
     const parsed = contactFormSchema.parse(data);
-    onSubmit(parsed);
+    onSubmit({ ...parsed, ownerId: selectedOwnerId } as ContactFormData & { ownerId?: string });
     onClose();
     reset();
   };
@@ -103,33 +90,23 @@ export const ContactFormModalV2: React.FC<ContactFormModalProps> = ({
           registration={register('email')}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <InputField
-            label="Telefone"
-            placeholder="+5511999999999"
-            hint="Formato E.164 (ex.: +5511999999999)"
-            error={errors.phone}
-            registration={register('phone')}
-          />
-          <InputField
-            label="Cargo"
-            placeholder="Gerente"
-            error={errors.role}
-            registration={register('role')}
+        <InputField
+          label="Telefone"
+          placeholder="+5511999999999"
+          hint="Formato E.164 (ex.: +5511999999999)"
+          error={errors.phone}
+          registration={register('phone')}
+        />
+
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            Corretor Responsável
+          </label>
+          <CorretorSelect
+            value={selectedOwnerId}
+            onChange={setSelectedOwnerId}
           />
         </div>
-
-        <InputField
-          label="Empresa"
-          placeholder="Nome da Empresa"
-          hint={
-            editingContact
-              ? 'Edite para alterar a empresa. Deixe em branco para desvincular.'
-              : 'Se a empresa já existir, o contato será vinculado a ela.'
-          }
-          error={errors.companyName}
-          registration={register('companyName')}
-        />
 
         <SubmitButton isLoading={isSubmitting}>
           {editingContact ? 'Salvar Alterações' : 'Criar Contato'}
