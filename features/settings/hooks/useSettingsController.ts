@@ -1,119 +1,145 @@
-import { useState } from 'react';
-import { useToast } from '@/context/ToastContext';
+'use client';
+
+import { useState, useCallback, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { CustomFieldDefinition, CustomFieldType } from '@/types';
-import { usePersistedState } from '@/hooks/usePersistedState';
 
-// TODO: Migrate customFieldDefinitions and tags to Supabase
-// For now, using local state as placeholder
-/**
- * Hook React `useSettingsController` que encapsula uma lógica reutilizável.
- * @returns {{ defaultRoute: string; setDefaultRoute: Dispatch<SetStateAction<string>>; customFieldDefinitions: CustomFieldDefinition[]; newFieldLabel: string; ... 14 more ...; removeTag: (tag: string) => void; }} Retorna um valor do tipo `{ defaultRoute: string; setDefaultRoute: Dispatch<SetStateAction<string>>; customFieldDefinitions: CustomFieldDefinition[]; newFieldLabel: string; ... 14 more ...; removeTag: (tag: string) => void; }`.
- */
-export const useSettingsController = () => {
-  const { addToast } = useToast();
+export function useSettingsController() {
+  const supabase = createClient()!;
 
-  // General Settings
-  const [defaultRoute, setDefaultRoute] = usePersistedState<string>('crm_default_route', '/boards');
+  // Default route
+  const [defaultRoute, setDefaultRouteState] = useState('/dashboard');
 
-  // Custom Fields State (local - TODO: migrate to Supabase)
-  const [customFieldDefinitions, setCustomFieldDefinitions] = usePersistedState<
-    CustomFieldDefinition[]
-  >('crm_custom_fields', []);
+  const setDefaultRoute = useCallback((route: string) => {
+    setDefaultRouteState(route);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('zmob_default_route', route);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('zmob_default_route');
+      if (saved) setDefaultRouteState(saved);
+    }
+  }, []);
+
+  // Tags
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [newTagName, setNewTagName] = useState('');
+
+  useEffect(() => {
+    supabase
+      .from('tags')
+      .select('name')
+      .then(({ data }) => {
+        if (data) setAvailableTags(data.map((t) => t.name));
+      });
+  }, [supabase]);
+
+  const handleAddTag = useCallback(async () => {
+    const trimmed = newTagName.trim();
+    if (!trimmed || availableTags.includes(trimmed)) return;
+    const { error } = await supabase.from('tags').insert({ name: trimmed });
+    if (!error) {
+      setAvailableTags((prev) => [...prev, trimmed]);
+      setNewTagName('');
+    }
+  }, [newTagName, availableTags, supabase]);
+
+  const removeTag = useCallback(
+    async (tag: string) => {
+      const { error } = await supabase.from('tags').delete().eq('name', tag);
+      if (!error) {
+        setAvailableTags((prev) => prev.filter((t) => t !== tag));
+      }
+    },
+    [supabase],
+  );
+
+  // Custom fields
+  const [customFieldDefinitions, setCustomFieldDefinitions] = useState<CustomFieldDefinition[]>([]);
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldType, setNewFieldType] = useState<CustomFieldType>('text');
   const [newFieldOptions, setNewFieldOptions] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Tags State (local - TODO: migrate to Supabase)
-  const [availableTags, setAvailableTags] = usePersistedState<string[]>('crm_tags', []);
-  const [newTagName, setNewTagName] = useState('');
+  useEffect(() => {
+    supabase
+      .from('custom_field_definitions')
+      .select('*')
+      .then(({ data }) => {
+        if (data) setCustomFieldDefinitions(data as CustomFieldDefinition[]);
+      });
+  }, [supabase]);
 
-  // Custom Fields Logic
-  const startEditingField = (field: CustomFieldDefinition) => {
+  const startEditingField = useCallback((field: CustomFieldDefinition) => {
     setEditingId(field.id);
     setNewFieldLabel(field.label);
     setNewFieldType(field.type);
-    setNewFieldOptions(field.options ? field.options.join(', ') : '');
-  };
+    setNewFieldOptions(field.options?.join(', ') ?? '');
+  }, []);
 
-  const cancelEditingField = () => {
+  const cancelEditingField = useCallback(() => {
     setEditingId(null);
     setNewFieldLabel('');
     setNewFieldType('text');
     setNewFieldOptions('');
-  };
+  }, []);
 
-  const handleSaveField = () => {
-    if (!newFieldLabel.trim()) return;
-
-    const optionsArray =
+  const handleSaveField = useCallback(async () => {
+    const label = newFieldLabel.trim();
+    if (!label) return;
+    const options =
       newFieldType === 'select'
         ? newFieldOptions
-          .split(',')
-          .map(opt => opt.trim())
-          .filter(opt => opt !== '')
+            .split(',')
+            .map((o) => o.trim())
+            .filter(Boolean)
         : undefined;
 
     if (editingId) {
-      // UPDATE EXISTING
-      setCustomFieldDefinitions(prev =>
-        prev.map(f =>
-          f.id === editingId
-            ? { ...f, label: newFieldLabel, type: newFieldType, options: optionsArray }
-            : f
-        )
-      );
-      addToast('Campo personalizado atualizado com sucesso!', 'success');
-      cancelEditingField();
+      const { error } = await supabase
+        .from('custom_field_definitions')
+        .update({ label, type: newFieldType, options })
+        .eq('id', editingId);
+      if (!error) {
+        setCustomFieldDefinitions((prev) =>
+          prev.map((f) => (f.id === editingId ? { ...f, label, type: newFieldType, options } : f)),
+        );
+        cancelEditingField();
+      }
     } else {
-      // CREATE NEW
-      const key = newFieldLabel
-        .toLowerCase()
-        .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) =>
-          index === 0 ? word.toLowerCase() : word.toUpperCase()
-        )
-        .replace(/\s+/g, '');
-
-      const newField: CustomFieldDefinition = {
-        id: crypto.randomUUID(),
-        key,
-        label: newFieldLabel,
-        type: newFieldType,
-        options: optionsArray,
-      };
-
-      setCustomFieldDefinitions(prev => [...prev, newField]);
-      addToast('Campo personalizado criado com sucesso!', 'success');
-      setNewFieldLabel('');
-      setNewFieldOptions('');
+      const { data, error } = await supabase
+        .from('custom_field_definitions')
+        .insert({ label, type: newFieldType, options })
+        .select()
+        .single();
+      if (!error && data) {
+        setCustomFieldDefinitions((prev) => [...prev, data as CustomFieldDefinition]);
+        cancelEditingField();
+      }
     }
-  };
+  }, [newFieldLabel, newFieldType, newFieldOptions, editingId, supabase, cancelEditingField]);
 
-  const handleRemoveField = (id: string) => {
-    setCustomFieldDefinitions(prev => prev.filter(f => f.id !== id));
-    addToast('Campo personalizado removido.', 'info');
-  };
-
-  // Tags Logic
-  const handleAddTag = () => {
-    if (newTagName.trim()) {
-      setAvailableTags(prev => [...prev, newTagName.trim()]);
-      addToast(`Tag "${newTagName}" adicionada!`, 'success');
-      setNewTagName('');
-    }
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    setAvailableTags(prev => prev.filter(t => t !== tag));
-    addToast(`Tag "${tag}" removida.`, 'info');
-  };
+  const removeCustomField = useCallback(
+    async (id: string) => {
+      const { error } = await supabase.from('custom_field_definitions').delete().eq('id', id);
+      if (!error) {
+        setCustomFieldDefinitions((prev) => prev.filter((f) => f.id !== id));
+      }
+    },
+    [supabase],
+  );
 
   return {
-    // General Settings
     defaultRoute,
     setDefaultRoute,
-
-    // Custom Fields
+    availableTags,
+    newTagName,
+    setNewTagName,
+    handleAddTag,
+    removeTag,
     customFieldDefinitions,
     newFieldLabel,
     setNewFieldLabel,
@@ -125,13 +151,6 @@ export const useSettingsController = () => {
     startEditingField,
     cancelEditingField,
     handleSaveField,
-    removeCustomField: handleRemoveField,
-
-    // Tags
-    availableTags,
-    newTagName,
-    setNewTagName,
-    handleAddTag,
-    removeTag: handleRemoveTag,
+    removeCustomField,
   };
-};
+}

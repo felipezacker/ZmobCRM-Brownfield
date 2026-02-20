@@ -733,7 +733,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
 
     return (
         <>
-            <div className={`${isExpanded ? 'fixed inset-0 w-screen h-screen' : ''} flex flex-col bg-slate-950 ${className || ''}`}>
+            <div className={`${isExpanded ? 'fixed inset-0' : ''} flex flex-col bg-slate-950 ${className || ''}`}>
                 {/* === HEADER with Pipeline Progress === */}
                 <header className="shrink-0 border-b border-dark-border">
                     {/* Top Row: Title + Board Name (center) + Value */}
@@ -855,7 +855,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                 <div className="flex-1 flex min-h-0 overflow-hidden">
 
                     {/* LEFT: Contact */}
-                    <aside className="w-[400px] shrink-0 border-r border-white/5 flex flex-col">
+                    <aside className="w-[400px] shrink-0 border-r border-white/5 flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
 
                         <div className="p-6 border-b border-white/5">
                             <div className="flex items-center justify-between mb-3">

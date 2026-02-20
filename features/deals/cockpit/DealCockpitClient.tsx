@@ -1479,7 +1479,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const phoneE164 = normalizePhoneE164(contact?.phone);
 
   return (
-    <div className="h-dvh overflow-hidden bg-slate-950 text-slate-100">
+    <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex flex-col overflow-hidden bg-slate-950 text-slate-100">
       {toast ? (
         <div className="fixed right-6 top-6 z-50">
           <div
@@ -1567,7 +1567,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
       </div>
 
       {/* Cockpit layout */}
-      <div className="h-[calc(100dvh-64px)] w-full overflow-hidden px-6 py-4 2xl:px-10">
+      <div className="flex-1 min-h-0 w-full overflow-hidden px-6 py-4 2xl:px-10">
         <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[360px_1fr_420px] lg:items-stretch">
           {/* Left rail */}
           <div className="flex min-h-0 flex-col gap-4 overflow-auto pr-1">
