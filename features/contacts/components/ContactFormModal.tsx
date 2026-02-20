@@ -1,4 +1,4 @@
-import React, { useId, useState } from 'react';
+import React, { useId, useState, useCallback } from 'react';
 import { X, Maximize2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Contact } from '@/types';
@@ -8,6 +8,7 @@ import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { useAuth } from '@/context/AuthContext';
 import { useActiveDealsCount } from '@/hooks/useReassignContactWithDeals';
+import { createClient } from '@/lib/supabase/client';
 
 export interface ContactFormData {
   name: string;
@@ -70,6 +71,24 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const { fetchCount } = useActiveDealsCount(editingContact?.id || null);
 
   const ownerChanged = editingContact && formData.ownerId && formData.ownerId !== editingContact.ownerId;
+
+  const handleOpenCockpit = useCallback(async () => {
+    if (!editingContact) return;
+    const supabase = createClient()!;
+    const { data } = await supabase
+      .from('deals')
+      .select('id')
+      .eq('contact_id', editingContact.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    onClose();
+    if (data?.id) {
+      router.push(`/deals/${data.id}/cockpit`);
+    } else {
+      router.push(`/contacts/${editingContact.id}/cockpit`);
+    }
+  }, [editingContact, onClose, router]);
 
   React.useEffect(() => {
     if (isOpen && editingContact?.id) {
@@ -135,10 +154,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
             <div className="flex items-center gap-1">
               {editingContact && (
                 <button
-                  onClick={() => {
-                    onClose();
-                    router.push(`/contacts/${editingContact.id}/cockpit`);
-                  }}
+                  onClick={handleOpenCockpit}
                   className="ml-2 text-slate-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
                   title="Abrir Cockpit"
                   type="button"
