@@ -25,6 +25,7 @@ import { useCRM } from '@/context/CRMContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { useAuth } from '@/context/AuthContext';
 import { InboxZeroState } from './InboxZeroState';
+import { useRouter } from 'next/navigation';
 
 // Performance: reuse Intl formatter instances (avoid per-render allocations).
 const PT_BR_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -112,6 +113,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
     setSidebarCollapsed,
   } = useCRM();
   const { profile } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     // UX: when moving between items, reset any manual context selection.
@@ -429,7 +431,13 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
       {currentItem && (
         <div className="flex items-center justify-center my-6">
           <button
-            onClick={() => setShowContext(true)}
+            onClick={() => {
+              if (hasResolvedContext && contextData?.deal?.id) {
+                router.push(`/deals/${contextData.deal.id}/cockpit`);
+              } else {
+                setShowContext(true);
+              }
+            }}
             className="relative flex items-center gap-2 text-yellow-400/70 hover:text-yellow-400 transition-colors font-medium text-sm group cursor-pointer bg-transparent border-0"
           >
             <span
