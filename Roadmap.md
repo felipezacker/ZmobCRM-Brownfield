@@ -1,0 +1,16 @@
+- Editar acessos individuais de usuarios 
+- Indicar corretor nos deals e leads ✅
+- Tirar empresa e cargos ✅
+- Adicionar produtos no card de deals (igual datacrazy) 
+- script de ligacao no painel de ligacao cockpit
+- painel de ligacao prospecao
+- painel de imoveis
+- match imoveis e leads
+- dashboard com dados focados na imobiliaria e metricas editaveis
+- edicao de contatos completa ✅
+- Diretor tem seus corretores proprios e ele ve tudo deles. Ramificacao de diretores e corretores (estilo setores)
+- Lista de leads  
+- Importacao de leads completa
+- Migracao de outros sistemas
+- wizard de onboarding
+- onboarding: acoes rapidas dos deals

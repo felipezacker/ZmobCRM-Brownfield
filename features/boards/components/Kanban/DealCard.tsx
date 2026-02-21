@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { DealView } from '@/types';
-import { Hourglass, Trophy, XCircle } from 'lucide-react';
+import { Hourglass, Trophy, XCircle, DollarSign, Calendar, Package } from 'lucide-react';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
 import { priorityAriaLabelPtBr } from '@/lib/utils/priority';
 
@@ -43,6 +42,18 @@ const getInitials = (name: string) => {
     .slice(0, 2)
     .join('')
     .toUpperCase();
+};
+
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const activityTypeLabels: Record<string, string> = { CALL: 'Ligação', MEETING: 'Reunião', EMAIL: 'E-mail', TASK: 'Tarefa' };
+
+const getActivityLabel = (nextActivity?: { type: string }) => {
+  if (!nextActivity) return 'Sem atividades';
+  return activityTypeLabels[nextActivity.type] || nextActivity.type;
 };
 
 const DealCardComponent: React.FC<DealCardProps> = ({
@@ -149,6 +160,12 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     return parts.join(', ');
   };
 
+  const productName = deal.items && deal.items.length > 0 ? deal.items[0].name : null;
+  const customFieldCount = deal.customFields ? Object.keys(deal.customFields).length : 0;
+  const maxVisibleTags = 4;
+  const visibleTags = deal.tags.slice(0, maxVisibleTags);
+  const extraTagCount = deal.tags.length - maxVisibleTags;
+
   return (
     <div
       data-deal-id={deal.id}
@@ -175,102 +192,135 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     >
       {/* Won Badge */}
       {deal.isWon && (
-        <div
-          className="absolute -top-2 -right-2 bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200 p-1 rounded-full shadow-sm z-10 flex items-center gap-0.5"
-          aria-label="Negócio ganho"
-        >
+        <div className="absolute -top-2 -right-2 bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200 p-1 rounded-full shadow-sm z-10" aria-label="Negócio ganho">
           <Trophy size={12} aria-hidden="true" />
         </div>
       )}
 
       {/* Lost Badge */}
       {deal.isLost && (
-        <div
-          className="absolute -top-2 -right-2 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200 p-1 rounded-full shadow-sm z-10 flex items-center gap-0.5"
-          aria-label={deal.lossReason ? `Perdido: ${deal.lossReason}` : 'Negócio perdido'}
-        >
+        <div className="absolute -top-2 -right-2 bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200 p-1 rounded-full shadow-sm z-10" aria-label={deal.lossReason ? `Perdido: ${deal.lossReason}` : 'Negócio perdido'}>
           <XCircle size={12} aria-hidden="true" />
         </div>
       )}
 
-      {/* Rotting indicator - only for open deals */}
+      {/* Rotting indicator */}
       {isRotting && !isClosed && (
-        <div
-          className="absolute -top-2 -right-2 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 p-1 rounded-full shadow-sm z-10"
-          aria-label="Negócio estagnado, mais de 10 dias sem atualização"
-        >
+        <div className="absolute -top-2 -right-2 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 p-1 rounded-full shadow-sm z-10" aria-label="Negócio estagnado, mais de 10 dias sem atualização">
           <Hourglass size={12} aria-hidden="true" />
         </div>
       )}
 
-      <div className="flex gap-1 mb-2 flex-wrap">
-        {/* Won/Lost status badge */}
-        {deal.isWon && (
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-800/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700">
-            ✓ GANHO
-          </span>
-        )}
-        {deal.isLost && (
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-800/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700">
-            ✗ PERDIDO
-          </span>
-        )}
-        {/* Regular tags */}
-        {deal.tags.slice(0, isClosed ? 1 : 2).map((tag, index) => (
-          <span
-            key={`${deal.id}-tag-${index}`}
-            className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/5"
-          >
-            {tag}
-          </span>
-        ))}
+      {/* Row 1: Avatar + Contact Name + #ID */}
+      <div className="flex items-center gap-2 mb-0.5">
+        <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-bold shrink-0">
+          {getInitials(deal.contactName || deal.title || 'SN')}
+        </div>
+        <span className="text-sm font-bold text-slate-900 dark:text-white truncate flex-1">
+          {deal.contactName || 'Sem Nome'}
+        </span>
+        <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0">
+          #{deal.id.slice(-5)}
+        </span>
       </div>
 
-      <h4
-        className={`text-sm font-bold font-display leading-snug mb-0.5 ${isRotting ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}
-      >
+      {/* Row 1b: Deal title */}
+      <div className={`text-xs mb-1 ml-9 truncate ${isRotting ? 'text-slate-500 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
         {deal.title}
-      </h4>
-      <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-white/5">
-        <div className="flex items-center gap-2">
-          {deal.owner && deal.owner.name !== 'Sem Dono' && (
-            deal.owner.avatar ? (
-              <Image
-                src={deal.owner.avatar}
-                alt={`Responsável: ${deal.owner.name}`}
-                width={20}
-                height={20}
-                className="w-5 h-5 rounded-full ring-1 ring-white dark:ring-slate-800"
-                title={`Responsável: ${deal.owner.name}`}
-                unoptimized
-              />
-            ) : (
-              <div
-                className="w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 flex items-center justify-center text-[9px] font-bold ring-1 ring-white dark:ring-slate-800"
-                title={`Responsável: ${deal.owner.name}`}
-              >
-                {getInitials(deal.owner.name)}
-              </div>
-            )
-          )}
-          <span className="text-sm font-bold text-slate-700 dark:text-slate-200 font-mono">
-            ${deal.value.toLocaleString()}
+      </div>
+
+      {/* Row 2: Product */}
+      <div className="text-xs text-green-600 dark:text-green-400 mb-1.5 ml-9">
+        {productName || 'Sem produto'}
+      </div>
+
+      {/* Row 3: Owner */}
+      {deal.owner && deal.owner.name !== 'Sem Dono' && (
+        <div className="flex items-center gap-2 mb-1 ml-9">
+          <span className="w-4 h-4 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 flex items-center justify-center text-[9px] font-bold shrink-0">
+            {deal.owner.name.charAt(0).toUpperCase()}
+          </span>
+          <span className="text-xs text-slate-600 dark:text-slate-400 truncate">
+            {deal.owner.name}
           </span>
         </div>
+      )}
 
-        <div className="flex items-center">
-          <ActivityStatusIcon
-            status={activityStatus}
-            type={deal.nextActivity?.type}
-            dealId={deal.id}
-            dealTitle={deal.title}
-            isOpen={isMenuOpen}
-            onToggle={handleToggleMenu}
-            onQuickAdd={handleQuickAdd}
-            onRequestClose={() => setOpenMenuId(null)}
-            onMoveToStage={onMoveToStage ? () => onMoveToStage(deal.id) : undefined}
-          />
+      {/* Row 4: Value */}
+      <div className="flex items-center gap-2 mb-1 ml-9">
+        <DollarSign size={14} className="text-slate-400 dark:text-slate-500 shrink-0" />
+        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+          R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+        </span>
+      </div>
+
+      {/* Row 5: Creation date */}
+      <div className="flex items-center gap-2 mb-1 ml-9">
+        <Calendar size={14} className="text-slate-400 dark:text-slate-500 shrink-0" />
+        <span className="text-xs text-slate-600 dark:text-slate-400">
+          {formatDate(deal.createdAt)}
+        </span>
+      </div>
+
+      {/* Row 6: Activity label */}
+      <div className="flex items-center gap-2 mb-1 ml-9">
+        <span className="text-xs text-slate-500 dark:text-slate-400">
+          {getActivityLabel(deal.nextActivity)}
+        </span>
+      </div>
+
+      {/* Row 7: Custom fields count */}
+      {customFieldCount > 0 && (
+        <div className="flex items-center gap-2 mb-2 ml-9">
+          <Package size={14} className="text-slate-400 dark:text-slate-500 shrink-0" />
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            {customFieldCount} campo{customFieldCount > 1 ? 's' : ''} adicional{customFieldCount > 1 ? 'is' : ''}
+          </span>
         </div>
+      )}
+
+      {/* Row 8: Tags */}
+      {deal.tags.length > 0 && (
+        <div className="flex gap-1 flex-wrap mt-2 pt-2 border-t border-slate-100 dark:border-white/5">
+          {deal.isWon && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-800/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700">
+              GANHO
+            </span>
+          )}
+          {deal.isLost && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-800/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700">
+              PERDIDO
+            </span>
+          )}
+          {visibleTags.map((tag, index) => (
+            <span
+              key={`${deal.id}-tag-${index}`}
+              className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/5"
+            >
+              {tag}
+            </span>
+          ))}
+          {extraTagCount > 0 && (
+            <span className="text-[10px] font-medium px-1.5 py-0.5 text-slate-400 dark:text-slate-500">
+              +{extraTagCount}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Bottom-right: Activity status icon */}
+      <div className="flex justify-end mt-1">
+        <ActivityStatusIcon
+          status={activityStatus}
+          type={deal.nextActivity?.type}
+          dealId={deal.id}
+          dealTitle={deal.title}
+          isOpen={isMenuOpen}
+          onToggle={handleToggleMenu}
+          onQuickAdd={handleQuickAdd}
+          onRequestClose={() => setOpenMenuId(null)}
+          onMoveToStage={onMoveToStage ? () => onMoveToStage(deal.id) : undefined}
+        />
       </div>
     </div>
   );
