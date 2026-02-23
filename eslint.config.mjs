@@ -27,6 +27,7 @@ const eslintConfig = defineConfig([
     ".antigravity/**",
     ".gemini/**",
     ".claude/hooks/**",
+    "squads/**",
   ]),
 
   // Scripts are CommonJS by design; allow require() there.
