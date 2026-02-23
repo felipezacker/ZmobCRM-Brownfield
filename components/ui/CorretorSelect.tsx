@@ -26,14 +26,14 @@ export const CorretorSelect: React.FC<CorretorSelectProps> = ({
 
   if (loading) {
     return (
-      <div className="animate-pulse h-9 bg-slate-100 dark:bg-white/5 rounded-lg" />
+      <div className="animate-pulse h-9 bg-muted dark:bg-white/5 rounded-lg" />
     );
   }
 
   if (!canEdit) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-700 dark:text-slate-300">
-        <User size={14} className="text-slate-400" />
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted dark:bg-white/5 border border-border dark:border-white/10 rounded-lg text-sm text-foreground dark:text-slate-300">
+        <User size={14} className="text-muted-foreground" />
         <span>{displayName}</span>
       </div>
     );
@@ -43,7 +43,7 @@ export const CorretorSelect: React.FC<CorretorSelectProps> = ({
     <select
       value={value || ''}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+      className="w-full bg-muted dark:bg-black/20 border border-border dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary dark:text-white"
     >
       <option value="">Selecione...</option>
       {members.map((m) => (

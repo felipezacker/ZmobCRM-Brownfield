@@ -10,39 +10,11 @@ const config = {
         "./*.{js,ts,jsx,tsx}",
     ],
     // Note: In Tailwind v4, most configuration is done in CSS with @theme
-    // This file is kept for content scanning and legacy compatibility
+    // fontFamily, colors.primary, colors.dark, and backgroundImage.gradient-radial
+    // are defined in globals.css @theme — removed here to avoid duplication.
     darkMode: 'class',
     theme: {
-        extend: {
-            fontFamily: {
-                sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
-                display: ['Space Grotesk', 'sans-serif'],
-                serif: ['Cinzel', 'serif'],
-            },
-            colors: {
-                primary: {
-                    50: '#f0f9ff',
-                    100: '#e0f2fe',
-                    200: '#bae6fd',
-                    300: '#7dd3fc',
-                    400: '#38bdf8',
-                    500: '#0ea5e9',
-                    600: '#0284c7',
-                    700: '#0369a1',
-                    800: '#075985',
-                    900: '#0c4a6e',
-                },
-                dark: {
-                    bg: '#020617',
-                    card: '#0f172a',
-                    border: '#1e293b',
-                    hover: '#334155',
-                },
-            },
-            backgroundImage: {
-                'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-            }
-        },
+        extend: {},
     },
     plugins: [],
 }
