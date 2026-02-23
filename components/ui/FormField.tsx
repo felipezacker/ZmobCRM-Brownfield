@@ -15,22 +15,22 @@ import { AlertCircle, CheckCircle2 } from 'lucide-react';
 // ============ BASE STYLES ============
 
 const baseInputStyles = cn(
-  'w-full bg-slate-50 dark:bg-black/20',
-  'border border-slate-200 dark:border-slate-700',
+  'w-full bg-muted dark:bg-black/20',
+  'border border-border dark:border-border',
   'rounded-lg px-3 py-2 text-sm',
-  'text-slate-900 dark:text-white',
+  'text-foreground dark:text-white',
   'outline-none focus:ring-2 focus:ring-primary-500',
   'transition-all duration-200',
-  'placeholder:text-slate-400'
+  'placeholder:text-muted-foreground'
 );
 
 const errorInputStyles =
-  'border-red-500 dark:border-red-400 focus:ring-red-500 bg-red-50/50 dark:bg-red-900/10';
-const successInputStyles = 'border-green-500 dark:border-green-400 focus:ring-green-500';
+  'border-destructive dark:border-destructive focus:ring-destructive bg-destructive/5 dark:bg-destructive/10';
+const successInputStyles = 'border-[var(--color-success)] dark:border-[var(--color-success)] focus:ring-[var(--color-success)]';
 
-const labelStyles = 'block text-xs font-bold text-slate-500 uppercase mb-1';
-const errorMessageStyles = 'text-xs text-red-500 mt-1 flex items-center gap-1';
-const hintStyles = 'text-[10px] text-slate-400 mt-1';
+const labelStyles = 'block text-xs font-bold text-muted-foreground uppercase mb-1';
+const errorMessageStyles = 'text-xs text-destructive mt-1 flex items-center gap-1';
+const hintStyles = 'text-[10px] text-muted-foreground mt-1';
 
 // ============ VALIDATION STATE ============
 
@@ -111,9 +111,9 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <div className={className}>
-      <label htmlFor={fieldId} className={cn(labelStyles, error && 'text-red-500')}>
+      <label htmlFor={fieldId} className={cn(labelStyles, error && 'text-destructive')}>
         {label}
-        {required && <span className="text-red-500 ml-0.5">*</span>}
+        {required && <span className="text-destructive ml-0.5">*</span>}
       </label>
 
       {/* Clone children to add ARIA attributes */}
@@ -139,7 +139,7 @@ export const FormField: React.FC<FormFieldProps> = ({
 
       {/* Success indicator */}
       {showSuccess && (
-        <p className="text-xs text-green-500 mt-1 flex items-center gap-1">
+        <p className="text-xs text-[var(--color-success)] mt-1 flex items-center gap-1">
           <CheckCircle2 size={12} />
           <span>Válido</span>
         </p>
@@ -446,17 +446,17 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
           type="checkbox"
           id={id}
           className={cn(
-            'w-4 h-4 rounded border-slate-300 dark:border-slate-600',
-            'text-primary-600 focus:ring-primary-500',
-            'dark:bg-slate-800',
-            error && 'border-red-500'
+            'w-4 h-4 rounded border-border',
+            'text-primary focus:ring-primary',
+            'dark:bg-background',
+            error && 'border-destructive'
           )}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? errorId : undefined}
           {...registration}
           {...props}
         />
-        <span className="text-sm text-slate-700 dark:text-slate-300">{label}</span>
+        <span className="text-sm text-foreground">{label}</span>
       </label>
       {error && (
         <p id={errorId} className={errorMessageStyles} role="alert">
@@ -479,8 +479,8 @@ interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
 
 const buttonVariants = {
   primary: 'bg-primary-600 hover:bg-primary-500 shadow-primary-600/20',
-  secondary: 'bg-slate-600 hover:bg-slate-500 shadow-slate-600/20',
-  danger: 'bg-red-600 hover:bg-red-500 shadow-red-600/20',
+  secondary: 'bg-secondary hover:bg-secondary/90 shadow-secondary/20',
+  danger: 'bg-destructive hover:bg-destructive/90 shadow-destructive/20',
 };
 
 /**
@@ -577,7 +577,7 @@ export const FormErrorSummary: React.FC<FormErrorSummaryProps> = ({ errors, clas
   return (
     <div
       className={cn(
-        'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800',
+        'bg-destructive/5 dark:bg-destructive/20 border border-destructive/30 dark:border-destructive/50',
         'rounded-lg p-3 mb-4',
         className
       )}
@@ -586,13 +586,13 @@ export const FormErrorSummary: React.FC<FormErrorSummaryProps> = ({ errors, clas
     >
       <h3
         id="form-errors-heading"
-        className="text-sm font-bold text-red-700 dark:text-red-400 mb-2"
+        className="text-sm font-bold text-destructive mb-2"
       >
         Por favor, corrija os seguintes erros:
       </h3>
       <ul className="list-disc list-inside space-y-1">
         {errorList.map(([field, error]) => (
-          <li key={field} className="text-xs text-red-600 dark:text-red-300">
+          <li key={field} className="text-xs text-destructive">
             {error.message}
           </li>
         ))}

@@ -21,12 +21,14 @@ const eslintConfig = defineConfig([
 
     // Build/runtime artifacts
     "public/sw.js",
+    "coverage/**",
 
     // AIOS Core scripts (CommonJS)
     ".aios-core/**",
     ".antigravity/**",
     ".gemini/**",
     ".claude/hooks/**",
+    "squads/**",
   ]),
 
   // Scripts are CommonJS by design; allow require() there.

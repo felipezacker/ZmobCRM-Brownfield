@@ -28,7 +28,7 @@ async function findUserIdByEmail(
     if (error) return null;
 
     const users = data?.users || [];
-    const found = users.find((u) => (u.email || '').toLowerCase() === target);
+    const found = users.find((u: any) => (u.email || '').toLowerCase() === target);
     if (found?.id) return found.id;
 
     if (users.length < perPage) return null;

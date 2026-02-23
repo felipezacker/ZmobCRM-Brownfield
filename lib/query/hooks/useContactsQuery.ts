@@ -9,6 +9,7 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData, type QueryKey } from '@tanstack/react-query';
 import { queryKeys } from '../index';
 import { contactsService } from '@/lib/supabase';
+import { createContact as createContactAction, updateContact as updateContactAction, deleteContact as deleteContactAction } from '@/app/actions/contacts';
 import { useAuth } from '@/context/AuthContext';
 import type { Contact, ContactStage, PaginationState, PaginatedResponse, ContactsServerFilters } from '@/types';
 
@@ -194,9 +195,9 @@ export const useCreateContact = () => {
 
   return useMutation({
     mutationFn: async (contact: Omit<Contact, 'id' | 'createdAt'>) => {
-      // organization_id will be auto-set by trigger
-      const { data, error } = await contactsService.create(contact);
-      if (error) throw error;
+      // Server Action: runs on server with authenticated Supabase client
+      const { data, error } = await createContactAction(contact);
+      if (error) throw new Error(error);
       return data!;
     },
     onMutate: async newContact => {
@@ -312,8 +313,8 @@ export const useUpdateContact = () => {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Contact> }) => {
-      const { error } = await contactsService.update(id, updates);
-      if (error) throw error;
+      const { error } = await updateContactAction(id, updates);
+      if (error) throw new Error(error);
       return { id, updates };
     },
     onMutate: async ({ id, updates }) => {
@@ -365,8 +366,8 @@ export const useUpdateContactStage = () => {
 
   return useMutation({
     mutationFn: async ({ id, stage }: { id: string; stage: string }) => {
-      const { error } = await contactsService.update(id, { stage });
-      if (error) throw error;
+      const { error } = await updateContactAction(id, { stage } as Partial<Contact>);
+      if (error) throw new Error(error);
       return { id, stage };
     },
     onMutate: async ({ id, stage }) => {
@@ -397,13 +398,13 @@ export const useDeleteContact = () => {
   return useMutation({
     mutationFn: async ({ id, forceDeleteDeals = false }: { id: string; forceDeleteDeals?: boolean }) => {
       if (forceDeleteDeals) {
-        // Delete contact and all associated deals
+        // Delete contact and all associated deals via service (complex operation)
         const { error } = await contactsService.deleteWithDeals(id);
         if (error) throw error;
       } else {
-        // Try normal delete (will fail if has deals)
-        const { error } = await contactsService.delete(id);
-        if (error) throw error;
+        // Server Action for simple delete
+        const { error } = await deleteContactAction(id);
+        if (error) throw new Error(error);
       }
       return id;
     },

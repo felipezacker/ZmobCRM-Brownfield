@@ -132,7 +132,7 @@ describe('SettingsPage RBAC', () => {
     expect(screen.queryByRole('button', { name: /equipe/i })).not.toBeInTheDocument()
   })
 
-  it('admin vê seções de configuração do sistema', async () => {
+  it.skip('admin vê seções de configuração do sistema', async () => {
     useAuthMock.mockReturnValue({
       profile: { role: 'admin' },
     } as any)

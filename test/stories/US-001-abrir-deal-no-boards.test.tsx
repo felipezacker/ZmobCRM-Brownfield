@@ -52,6 +52,10 @@ vi.mock('@/features/activities/components/ActivityRow', () => ({
   ActivityRow: () => null,
 }));
 
+vi.mock('@/components/ui/CorretorSelect', () => ({
+  CorretorSelect: () => null,
+}));
+
 vi.mock('@/lib/ai/tasksClient', () => ({
   analyzeLead: vi.fn(),
   generateEmailDraft: vi.fn(),

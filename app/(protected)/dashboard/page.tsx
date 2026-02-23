@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { PageLoader } from '@/components/PageLoader'
+import { ErrorBoundary } from '@/app/components/ui/ErrorBoundary'
 
 // Dynamic import with loading state
 const DashboardPage = dynamic(
@@ -17,5 +18,9 @@ const DashboardPage = dynamic(
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
 export default function Dashboard() {
-    return <DashboardPage />
+    return (
+        <ErrorBoundary>
+            <DashboardPage />
+        </ErrorBoundary>
+    )
 }
