@@ -10,6 +10,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys, DEALS_VIEW_KEY } from '../index';
 import { dealsService, contactsService, boardStagesService } from '@/lib/supabase';
+import { createDeal as createDealAction, updateDeal as updateDealAction, deleteDeal as deleteDealAction } from '@/app/actions/deals';
 import { useAuth } from '@/context/AuthContext';
 import type { Deal, DealView, DealItem } from '@/types';
 
@@ -224,7 +225,7 @@ export const useCreateDeal = () => {
 
   return useMutation({
     mutationFn: async (deal: CreateDealInput) => {
-      // organization_id will be auto-set by trigger on server
+      // Server Action: runs on server with authenticated Supabase client
       const fullDeal = {
         ...deal,
         isWon: deal.isWon ?? false,
@@ -232,11 +233,9 @@ export const useCreateDeal = () => {
         updatedAt: new Date().toISOString(),
       };
 
-      // Passa null ao invés de '' - o trigger vai preencher automaticamente
-      const { data, error } = await dealsService.create(fullDeal);
+      const { data, error } = await createDealAction(fullDeal);
+      if (error) throw new Error(error);
 
-      if (error) throw error;
-      
       return data!;
     },
     onMutate: async newDeal => {
@@ -324,8 +323,8 @@ export const useUpdateDeal = () => {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Deal> }) => {
-      const { error } = await dealsService.update(id, updates);
-      if (error) throw error;
+      const { error } = await updateDealAction(id, updates);
+      if (error) throw new Error(error);
       return { id, updates };
     },
     onMutate: async ({ id, updates }) => {
@@ -400,8 +399,8 @@ export const useUpdateDealStatus = () => {
         updates.closedAt = null as unknown as string;
       }
 
-      const { error } = await dealsService.update(id, updates);
-      if (error) throw error;
+      const { error } = await updateDealAction(id, updates);
+      if (error) throw new Error(error);
       return { id, status, lossReason, isWon, isLost };
     },
     onMutate: async ({ id, status, lossReason, isWon, isLost }) => {
@@ -448,8 +447,8 @@ export const useDeleteDeal = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await dealsService.delete(id);
-      if (error) throw error;
+      const { error } = await deleteDealAction(id);
+      if (error) throw new Error(error);
       return id;
     },
     onMutate: async id => {

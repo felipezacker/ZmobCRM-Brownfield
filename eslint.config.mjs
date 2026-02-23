@@ -21,6 +21,7 @@ const eslintConfig = defineConfig([
 
     // Build/runtime artifacts
     "public/sw.js",
+    "coverage/**",
 
     // AIOS Core scripts (CommonJS)
     ".aios-core/**",
