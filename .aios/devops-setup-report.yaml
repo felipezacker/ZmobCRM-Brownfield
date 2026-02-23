@@ -1,0 +1,49 @@
+# AIOS DevOps Setup Report
+# Generated: 2026-02-23
+
+setup:
+  completed: true
+  date: "2026-02-23"
+  project_type: node
+  framework: next.js-15
+
+repository:
+  url: https://github.com/felipezacker/ZmobCRM-Brownfield.git
+  owner: felipezacker
+  name: ZmobCRM-Brownfield
+  visibility: private
+
+workflows_installed:
+  - ci.yml
+  - pr-automation.yml
+  - release.yml
+
+coderabbit:
+  configured: true
+  profile: balanced
+  config_file: ".coderabbit.yaml"
+  github_app_url: "https://github.com/apps/coderabbitai"
+
+branch_protection:
+  enabled: true
+  branch: main
+  required_checks: [lint, typecheck, test, build]
+  strict_updates: true
+  required_reviewers: 1
+  dismiss_stale_reviews: true
+  allow_force_pushes: false
+  allow_deletions: false
+
+branching_strategy:
+  main: production
+  develop: staging/integration
+  feature_prefix: "feature/"
+  fix_prefix: "fix/"
+
+secrets_configured: []
+
+next_steps:
+  - "Install CodeRabbit GitHub App: https://github.com/apps/coderabbitai"
+  - "Configure branch protection manually via GitHub Rulesets"
+  - "Push develop branch to remote"
+  - "Create first PR to test CI pipeline"

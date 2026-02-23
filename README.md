@@ -585,16 +585,10 @@ Este projeto é privado e proprietário. Todos os direitos reservados.
 
 ---
 
-## 👥 Autores
-
-- **Thales Laray** - *Desenvolvimento inicial e manutenção*
-
----
-
 <div align="center">
 
 **[⬆ Voltar ao topo](#nosso-crm)**
 
-Feito com ❤️ para equipes de vendas mais produtivas
+Feito com ❤️ para imobiliárias mais produtivas
 
 </div>
