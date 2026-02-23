@@ -152,7 +152,7 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
                                transition-all group text-left focus-visible-ring"
                   >
                     <item.icon className="w-4 h-4 text-muted-foreground group-hover:text-destructive transition-colors" aria-hidden="true" />
-                    <span className="text-sm font-medium text-foreground dark:text-slate-300 group-hover:text-destructive">
+                    <span className="text-sm font-medium text-foreground dark:text-muted-foreground group-hover:text-destructive">
                       {item.label}
                     </span>
                   </button>

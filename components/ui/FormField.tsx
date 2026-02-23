@@ -449,7 +449,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
             'w-4 h-4 rounded border-border',
             'text-primary focus:ring-primary',
             'dark:bg-background',
-            error && 'border-red-500'
+            error && 'border-destructive'
           )}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? errorId : undefined}

@@ -32,7 +32,7 @@ export const CorretorSelect: React.FC<CorretorSelectProps> = ({
 
   if (!canEdit) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted dark:bg-white/5 border border-border dark:border-white/10 rounded-lg text-sm text-foreground dark:text-slate-300">
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted dark:bg-white/5 border border-border dark:border-white/10 rounded-lg text-sm text-foreground dark:text-muted-foreground">
         <User size={14} className="text-muted-foreground" />
         <span>{displayName}</span>
       </div>
