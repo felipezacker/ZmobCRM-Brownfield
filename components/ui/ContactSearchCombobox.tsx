@@ -120,7 +120,7 @@ export const ContactSearchCombobox: React.FC<ContactSearchComboboxProps> = ({
     <div className="relative">
       {/* Input de busca */}
       <div className="relative">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
           ref={inputRef}
           type="text"
@@ -132,7 +132,7 @@ export const ContactSearchCombobox: React.FC<ContactSearchComboboxProps> = ({
           onFocus={() => searchTerm && setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+          className="w-full pl-10 pr-4 py-2.5 bg-muted dark:bg-black/20 border border-border rounded-lg text-sm text-foreground dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
       </div>
 
@@ -140,7 +140,7 @@ export const ContactSearchCombobox: React.FC<ContactSearchComboboxProps> = ({
       {isOpen && searchTerm.trim() && (
         <div
           ref={listRef}
-          className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
+          className="absolute z-50 w-full mt-1 bg-popover dark:bg-popover border border-border rounded-lg shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150"
         >
           {filteredContacts.length > 0 ? (
             <div className="max-h-64 overflow-y-auto">
@@ -152,18 +152,18 @@ export const ContactSearchCombobox: React.FC<ContactSearchComboboxProps> = ({
                     onClick={() => handleSelect(contact)}
                     className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${
                       index === highlightedIndex
-                        ? 'bg-primary-50 dark:bg-primary-900/30'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                        ? 'bg-accent dark:bg-accent'
+                        : 'hover:bg-accent/50 dark:hover:bg-accent/50'
                     }`}
                   >
-                    <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User size={18} className="text-slate-500" />
+                    <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center flex-shrink-0">
+                      <User size={18} className="text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 dark:text-white truncate">
+                      <p className="font-medium text-foreground truncate">
                         {contact.name}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {contact.email && <span className="truncate">{contact.email}</span>}
                         {contact.email && contact.phone && <span>•</span>}
                         {contact.phone && <span>{contact.phone}</span>}
@@ -174,7 +174,7 @@ export const ContactSearchCombobox: React.FC<ContactSearchComboboxProps> = ({
               })}
             </div>
           ) : (
-            <div className="p-3 text-sm text-slate-500 dark:text-slate-400 text-center">
+            <div className="p-3 text-sm text-muted-foreground text-center">
               Nenhum contato encontrado
             </div>
           )}
@@ -183,10 +183,10 @@ export const ContactSearchCombobox: React.FC<ContactSearchComboboxProps> = ({
           <button
             type="button"
             onClick={handleCreateNew}
-            className={`w-full flex items-center gap-3 p-3 border-t border-slate-100 dark:border-slate-700 text-left transition-colors ${
+            className={`w-full flex items-center gap-3 p-3 border-t border-border text-left transition-colors ${
               highlightedIndex === filteredContacts.length
-                ? 'bg-primary-50 dark:bg-primary-900/30'
-                : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                ? 'bg-accent dark:bg-accent'
+                : 'hover:bg-accent/50 dark:hover:bg-accent/50'
             }`}
           >
             <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center flex-shrink-0">
@@ -197,7 +197,7 @@ export const ContactSearchCombobox: React.FC<ContactSearchComboboxProps> = ({
                 Criar novo contato
               </p>
               {searchTerm && (
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   com &quot;{searchTerm}&quot;
                 </p>
               )}

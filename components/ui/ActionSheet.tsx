@@ -52,7 +52,7 @@ export function ActionSheet({
       {isOpen ? (
         <FocusTrap active={isOpen} onEscape={handleEscape} returnFocus={true}>
           <motion.div
-            className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] bg-slate-950/70 backdrop-blur-sm"
+            className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] bg-background/70 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -67,7 +67,7 @@ export function ActionSheet({
                 'sm:w-[min(720px,92vw)]',
                 'rounded-t-2xl sm:rounded-2xl',
                 'bg-white dark:bg-dark-card',
-                'border border-slate-200 dark:border-white/10',
+                'border border-border dark:border-white/10',
                 'shadow-2xl overflow-hidden',
                 // safe area
                 'pb-[var(--app-safe-area-bottom,0px)]',
@@ -82,22 +82,22 @@ export function ActionSheet({
               {/* subtle teal rim light */}
               <div className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 dark:opacity-100 bg-[radial-gradient(900px_circle_at_20%_0%,rgba(34,211,238,0.14),transparent_55%),radial-gradient(700px_circle_at_100%_10%,rgba(45,212,191,0.10),transparent_55%)]" />
 
-              <div className={cn('relative px-4 py-4 sm:px-5 border-b border-slate-200 dark:border-white/10', className)}>
+              <div className={cn('relative px-4 py-4 sm:px-5 border-b border-border dark:border-white/10', className)}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-slate-900 dark:text-white">{title}</div>
+                    <div className="text-sm font-semibold text-foreground dark:text-white">{title}</div>
                     {description ? (
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{description}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{description}</div>
                     ) : null}
                   </div>
                   {showCloseButton ? (
                     <button
                       type="button"
                       onClick={onClose}
-                      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors focus-visible-ring"
+                      className="p-2 rounded-lg hover:bg-muted dark:hover:bg-white/5 transition-colors focus-visible-ring"
                       aria-label="Fechar"
                     >
-                      <X size={18} className="text-slate-500" />
+                      <X size={18} className="text-muted-foreground" />
                     </button>
                   ) : null}
                 </div>

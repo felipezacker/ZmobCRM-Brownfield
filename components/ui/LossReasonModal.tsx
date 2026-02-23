@@ -90,7 +90,7 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
       returnFocus={true}
     >
       <div 
-        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <div 
@@ -98,11 +98,11 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
           aria-modal="true"
           aria-labelledby={titleId}
           aria-describedby={descId}
-          className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
+          className="bg-card dark:bg-dark-card border border-border dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center" aria-hidden="true">
                 <ThumbsDown className="w-5 h-5 text-red-600 dark:text-red-400" />
@@ -110,12 +110,12 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
               <div>
                 <h3 
                   id={titleId}
-                  className="font-bold text-slate-900 dark:text-white font-display"
+                  className="font-bold text-foreground dark:text-white font-display"
                 >
                   Negócio Perdido
                 </h3>
                 {dealTitle && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px]">
+                  <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                     {dealTitle}
                   </p>
                 )}
@@ -125,9 +125,9 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Fechar modal"
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors focus-visible-ring"
+              className="p-2 rounded-lg hover:bg-muted dark:hover:bg-white/5 transition-colors focus-visible-ring"
             >
-              <X className="w-5 h-5 text-slate-400" aria-hidden="true" />
+              <X className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
             </button>
           </div>
 
@@ -135,7 +135,7 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
           <div className="p-6">
             <p 
               id={descId}
-              className="text-sm text-slate-600 dark:text-slate-400 mb-4"
+              className="text-sm text-muted-foreground mb-4"
             >
               Qual foi o motivo da perda? Isso ajuda a melhorar suas estratégias.
             </p>
@@ -147,12 +147,12 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
                     key={item.label}
                     type="button"
                     onClick={() => handleQuickReason(item.value)}
-                    className="flex items-center gap-2 p-3 rounded-xl border border-slate-200 dark:border-white/10 
-                               hover:border-red-300 dark:hover:border-red-500/50 hover:bg-red-50 dark:hover:bg-red-900/10
+                    className="flex items-center gap-2 p-3 rounded-xl border border-border dark:border-white/10
+                               hover:border-destructive/50 dark:hover:border-destructive/50 hover:bg-destructive/5 dark:hover:bg-destructive/10
                                transition-all group text-left focus-visible-ring"
                   >
-                    <item.icon className="w-4 h-4 text-slate-400 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors" aria-hidden="true" />
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-red-600 dark:group-hover:text-red-400">
+                    <item.icon className="w-4 h-4 text-muted-foreground group-hover:text-destructive transition-colors" aria-hidden="true" />
+                    <span className="text-sm font-medium text-foreground dark:text-muted-foreground group-hover:text-destructive">
                       {item.label}
                     </span>
                   </button>
@@ -170,10 +170,10 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Digite o motivo..."
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 
-                             bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white
-                             placeholder:text-slate-400 dark:placeholder:text-slate-500
-                             focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500
+                  className="w-full px-4 py-3 rounded-xl border border-border dark:border-white/10
+                             bg-muted dark:bg-white/5 text-foreground dark:text-white
+                             placeholder:text-muted-foreground
+                             focus:outline-none focus:ring-2 focus:ring-destructive/50 focus:border-destructive
                              transition-all"
                   autoFocus
                 />
@@ -181,17 +181,17 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowCustomInput(false)}
-                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400
-                               hover:bg-slate-100 dark:hover:bg-white/5 transition-colors focus-visible-ring"
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground
+                               hover:bg-muted dark:hover:bg-white/5 transition-colors focus-visible-ring"
                   >
                     Voltar
                   </button>
                   <button
                     type="submit"
                     disabled={!reason.trim()}
-                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-bold text-white
-                               bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed
-                               shadow-lg shadow-red-600/20 transition-all focus-visible-ring"
+                    className="flex-1 px-4 py-2.5 rounded-lg text-sm font-bold text-destructive-foreground
+                               bg-destructive hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed
+                               shadow-lg shadow-destructive/20 transition-all focus-visible-ring"
                   >
                     Confirmar
                   </button>
@@ -206,7 +206,7 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
               <button
                 type="button"
                 onClick={handleSkip}
-                className="w-full text-center text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors focus-visible-ring rounded p-1"
+                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors focus-visible-ring rounded p-1"
               >
                 Pular esta etapa
               </button>

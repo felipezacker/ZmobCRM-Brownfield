@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DealView } from '@/types';
-import { Hourglass, Trophy, XCircle, DollarSign, Calendar, Package } from 'lucide-react';
+import { Hourglass, Trophy, XCircle, Calendar, Package } from 'lucide-react';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
 import { priorityAriaLabelPtBr } from '@/lib/utils/priority';
 
@@ -44,8 +44,10 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
-const formatDate = (dateStr: string) => {
+const formatDate = (dateStr: string | undefined | null) => {
+  if (!dateStr) return '—';
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
@@ -161,7 +163,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   };
 
   const productName = deal.items && deal.items.length > 0 ? deal.items[0].name : null;
-  const customFieldCount = deal.customFields ? Object.keys(deal.customFields).length : 0;
+  const customFieldCount = deal.customFields && typeof deal.customFields === 'object' ? Object.keys(deal.customFields).length : 0;
   const maxVisibleTags = 4;
   const visibleTags = deal.tags.slice(0, maxVisibleTags);
   const extraTagCount = deal.tags.length - maxVisibleTags;
@@ -224,11 +226,6 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         </span>
       </div>
 
-      {/* Row 1b: Deal title */}
-      <div className={`text-xs mb-1 ml-9 truncate ${isRotting ? 'text-slate-500 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'}`}>
-        {deal.title}
-      </div>
-
       {/* Row 2: Product */}
       <div className="text-xs text-green-600 dark:text-green-400 mb-1.5 ml-9">
         {productName || 'Sem produto'}
@@ -248,9 +245,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
 
       {/* Row 4: Value */}
       <div className="flex items-center gap-2 mb-1 ml-9">
-        <DollarSign size={14} className="text-slate-400 dark:text-slate-500 shrink-0" />
         <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-          R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          ${deal.value.toLocaleString()}
         </span>
       </div>
 

@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { PageLoader } from '@/components/PageLoader'
+import { ErrorBoundary } from '@/app/components/ui/ErrorBoundary'
 
 const BoardsPage = dynamic(
     () => import('@/features/boards/BoardsPage').then(m => ({ default: m.BoardsPage })),
@@ -13,5 +14,9 @@ const BoardsPage = dynamic(
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
 export default function Boards() {
-    return <BoardsPage />
+    return (
+        <ErrorBoundary>
+            <BoardsPage />
+        </ErrorBoundary>
+    )
 }

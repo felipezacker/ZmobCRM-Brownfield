@@ -1,4 +1,5 @@
 import ContactCockpitClient from '@/features/contacts/cockpit/ContactCockpitClient';
+import { ErrorBoundary } from '@/app/components/ui/ErrorBoundary';
 
 /**
  * Cockpit do contato — scaffold inicial.
@@ -10,5 +11,9 @@ export default async function ContactCockpitPage({
   params: Promise<{ contactId: string }>;
 }) {
   const { contactId } = await params;
-  return <ContactCockpitClient contactId={contactId} />;
+  return (
+    <ErrorBoundary>
+      <ContactCockpitClient contactId={contactId} />
+    </ErrorBoundary>
+  );
 }

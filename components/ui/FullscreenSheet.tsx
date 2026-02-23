@@ -29,16 +29,16 @@ export function FullscreenSheet({ isOpen, onClose, title, children, footer, clas
       className={cn('h-[100dvh] rounded-none', className)}
     >
       <div className="flex h-[100dvh] flex-col">
-        <div className="shrink-0 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-dark-card">
+        <div className="shrink-0 border-b border-border dark:border-white/10 bg-card dark:bg-dark-card">
           <div className="flex items-center justify-between gap-3 px-4 py-3">
-            <div className="min-w-0 text-sm font-semibold text-slate-900 dark:text-white truncate">{title}</div>
+            <div className="min-w-0 text-sm font-semibold text-foreground dark:text-white truncate">{title}</div>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors focus-visible-ring"
+              className="p-2 rounded-lg hover:bg-muted dark:hover:bg-white/5 transition-colors focus-visible-ring"
               aria-label="Fechar"
             >
-              <X size={18} className="text-slate-500" />
+              <X size={18} className="text-muted-foreground" />
             </button>
           </div>
         </div>
@@ -46,7 +46,7 @@ export function FullscreenSheet({ isOpen, onClose, title, children, footer, clas
         <div className="min-h-0 flex-1 overflow-auto px-4 py-4">{children}</div>
 
         {footer ? (
-          <div className="shrink-0 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-dark-card px-4 py-3">
+          <div className="shrink-0 border-t border-border dark:border-white/10 bg-card dark:bg-dark-card px-4 py-3">
             {footer}
           </div>
         ) : null}

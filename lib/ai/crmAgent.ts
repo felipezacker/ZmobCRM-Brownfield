@@ -451,7 +451,8 @@ export async function createCRMAgent(
     userId: string,
     apiKey: string,
     modelId: string = AI_DEFAULT_MODELS.google,
-    provider: AIProvider = AI_DEFAULT_PROVIDER
+    provider: AIProvider = AI_DEFAULT_PROVIDER,
+    supabaseClient?: any
 ) {
     console.log('[CRMAgent] 🤖 Creating agent with context:', {
         boardId: context.boardId,
@@ -503,7 +504,7 @@ export async function createCRMAgent(
     })();
 
     // Create tools with context injected
-    const tools = createCRMTools(context, userId);
+    const tools = createCRMTools(context, userId, supabaseClient);
 
     console.log('[CRMAgent] 🛠️ Tools created. Checking markDealAsWon config:', {
         needsApproval: (tools.markDealAsWon as any).needsApproval,
