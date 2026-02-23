@@ -1,0 +1,26 @@
+language: pt-BR
+reviews:
+  profile: balanced
+  auto_review:
+    enabled: true
+    drafts: false
+  path_instructions:
+    - path: "app/**"
+      instructions: |
+        This is a Next.js 15 app using App Router.
+        Focus on: server/client component boundaries, proper use of async components,
+        error handling, and security (no secrets in client code).
+    - path: "components/**"
+      instructions: |
+        UI components using Radix UI + Tailwind CSS.
+        Check for accessibility, proper prop types, and reusability.
+    - path: "lib/**"
+      instructions: |
+        Shared utilities and Supabase client.
+        Focus on type safety, error handling, and security (RLS awareness).
+    - path: "**/*.test.*"
+      instructions: |
+        Tests using Vitest.
+        Ensure adequate coverage, edge cases, and proper mocking.
+chat:
+  auto_reply: true
