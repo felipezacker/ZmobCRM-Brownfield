@@ -3,70 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { sanitizeText, sanitizeNumber } from '@/lib/supabase/utils'
 import { normalizePhoneE164 } from '@/lib/phone'
+import { DbContact, transformContact, transformContactToDb } from '@/lib/supabase/contacts'
 import type { Contact } from '@/types'
-
-type DbContact = {
-  id: string
-  organization_id: string
-  name: string
-  email: string | null
-  phone: string | null
-  avatar: string | null
-  notes: string | null
-  status: string
-  stage: string
-  source: string | null
-  birth_date: string | null
-  last_interaction: string | null
-  last_purchase_date: string | null
-  total_value: number
-  created_at: string
-  updated_at: string
-  owner_id: string | null
-}
-
-function transformContact(db: DbContact): Contact {
-  return {
-    id: db.id,
-    organizationId: db.organization_id,
-    name: db.name,
-    email: db.email || '',
-    phone: normalizePhoneE164(db.phone),
-    avatar: db.avatar || '',
-    notes: db.notes || '',
-    status: db.status as Contact['status'],
-    stage: db.stage,
-    source: db.source as Contact['source'] || undefined,
-    birthDate: db.birth_date || undefined,
-    lastInteraction: db.last_interaction || undefined,
-    lastPurchaseDate: db.last_purchase_date || undefined,
-    totalValue: db.total_value || 0,
-    createdAt: db.created_at,
-    updatedAt: db.updated_at,
-    ownerId: db.owner_id || undefined,
-  }
-}
-
-function transformContactToDb(contact: Partial<Contact>): Record<string, unknown> {
-  const db: Record<string, unknown> = {}
-  if (contact.name !== undefined) db.name = contact.name
-  if (contact.email !== undefined) db.email = contact.email || null
-  if (contact.phone !== undefined) {
-    const e164 = normalizePhoneE164(contact.phone)
-    db.phone = e164 ? e164 : null
-  }
-  if (contact.avatar !== undefined) db.avatar = contact.avatar || null
-  if (contact.notes !== undefined) db.notes = contact.notes || null
-  if (contact.status !== undefined) db.status = contact.status
-  if (contact.stage !== undefined) db.stage = contact.stage
-  if (contact.source !== undefined) db.source = contact.source || null
-  if (contact.birthDate !== undefined) db.birth_date = contact.birthDate || null
-  if (contact.lastInteraction !== undefined) db.last_interaction = contact.lastInteraction || null
-  if (contact.lastPurchaseDate !== undefined) db.last_purchase_date = contact.lastPurchaseDate || null
-  if (contact.totalValue !== undefined) db.total_value = contact.totalValue
-  if (contact.ownerId !== undefined) db.owner_id = contact.ownerId || null
-  return db
-}
 
 export async function createContact(
   contact: Omit<Contact, 'id' | 'createdAt'>

@@ -14,7 +14,7 @@ CREATE OR REPLACE FUNCTION public.is_admin_or_director(p_org_id UUID)
 RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = public
 AS $$
   SELECT EXISTS (
@@ -58,8 +58,17 @@ CREATE POLICY "audit_logs_select_admin"
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
--- No INSERT/UPDATE/DELETE policies for direct access
--- Inserts happen via log_audit_event() which is SECURITY DEFINER
+-- INSERT: authenticated users can insert audit logs scoped to their own org
+-- (needed because log_audit_event() is SECURITY INVOKER)
+CREATE POLICY "audit_logs_insert_own_org"
+  ON public.audit_logs FOR INSERT TO authenticated
+  WITH CHECK (
+    organization_id = (
+      SELECT organization_id FROM public.profiles WHERE id = auth.uid()
+    )
+    AND user_id = auth.uid()
+  );
+-- No UPDATE/DELETE policies — audit logs are append-only
 
 -- ============================================================================
 -- 4. RLS: security_alerts (admin only within org)

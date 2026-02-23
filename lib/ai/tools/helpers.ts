@@ -1,6 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BoardGuardResult, DealGuardResult, StageResolveResult } from './types';
 
+/**
+ * Strips PostgREST special characters from user input before interpolation
+ * into `.or()` filter strings to prevent filter injection.
+ */
+export function sanitizeFilterValue(value: string): string {
+    // Remove PostgREST filter metacharacters: comma (separates filters),
+    // parentheses (grouping), backslash (escape). Dots and @ are kept
+    // because they appear in emails and domain names used as search terms.
+    return value.replace(/[,()\\]/g, '');
+}
+
 export function formatSupabaseFailure(error: any): string {
     const msg = (error?.message || error?.error_description || String(error || '')).trim();
     const normalized = msg.toLowerCase();
@@ -116,7 +127,7 @@ export async function resolveStageIdForBoard(
         .select('id, name, label')
         .eq('organization_id', organizationId)
         .eq('board_id', params.boardId)
-        .or(`name.ilike.%${stageName}%,label.ilike.%${stageName}%`)
+        .or(`name.ilike.%${sanitizeFilterValue(stageName)}%,label.ilike.%${sanitizeFilterValue(stageName)}%`)
         .limit(5);
 
     if (error) return { ok: false, error: formatSupabaseFailure(error) };

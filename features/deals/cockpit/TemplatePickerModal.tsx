@@ -14,7 +14,7 @@ interface TemplatePickerModalProps {
   isLoading: boolean;
   variables: Record<string, string>;
   applyVariables: (template: string, vars: Record<string, string>) => string;
-  getCategoryInfo: (category: any) => { label: string; color: string };
+  getCategoryInfo: (category: ScriptCategory) => { label: string; color: string };
   onPick: (script: QuickScript) => void;
 }
 

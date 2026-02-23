@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Chip } from './cockpit-ui';
 import type { TimelineItem, Actor } from './cockpit-types';
+import type { Activity } from '@/types';
 import { buildExecutionHeader, errorMessage } from './cockpit-utils';
 
 interface CockpitTimelineProps {
@@ -19,7 +20,7 @@ interface CockpitTimelineProps {
   actor: Actor;
   dealId: string;
   dealTitle: string;
-  addActivity: (activity: any) => Promise<any>;
+  addActivity: (activity: Omit<Activity, 'id' | 'createdAt'>) => Promise<Activity | null>;
   pushToast: (message: string, tone?: 'neutral' | 'success' | 'danger') => void;
 }
 
@@ -46,7 +47,7 @@ export function CockpitTimeline({
     });
   }, [kindFilter, query, showSystemEvents, timelineItems]);
 
-  const logOutsideCRM = async (type: string, title: string, desc: string) => {
+  const logOutsideCRM = async (type: Activity['type'], title: string, desc: string) => {
     try {
       await addActivity({
         dealId,
@@ -242,50 +243,46 @@ export function CockpitTimeline({
       </div>
 
       {/* Bottom note input */}
-      <div className="grid min-h-0 gap-4 lg:grid-cols-2 lg:max-h-[30dvh]">
-        <div className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/3 p-4">
-          <label className="block text-xs font-semibold text-slate-400">Escreva…</label>
-          <textarea
-            value={noteDraftTimeline}
-            onChange={(e) => setNoteDraftTimeline(e.target.value)}
-            className="mt-2 min-h-0 flex-1 w-full resize-none rounded-xl border border-white/10 bg-white/2 p-3 text-sm text-slate-200 outline-none placeholder:text-slate-600"
-            placeholder="Notas, resumo da call, próximos passos…"
-          />
-          <div className="mt-3 flex items-center justify-between gap-2">
-            <div className="text-[11px] text-slate-500">Isso vira uma Activity NOTE (log do deal).</div>
-            <button
-              type="button"
-              className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
-              onClick={async () => {
-                const text = noteDraftTimeline.trim();
-                if (!text) {
-                  pushToast('Escreva uma nota antes de salvar', 'danger');
-                  return;
-                }
-                try {
-                  await addActivity({
-                    dealId,
-                    dealTitle,
-                    type: 'NOTE',
-                    title: 'Nota',
-                    description: text,
-                    date: new Date().toISOString(),
-                    completed: true,
-                    user: actor,
-                  });
-                  setNoteDraftTimeline('');
-                  pushToast('Nota salva', 'success');
-                } catch (e) {
-                  pushToast(errorMessage(e, 'Não foi possível salvar a nota.'), 'danger');
-                }
-              }}
-            >
-              Salvar
-            </button>
-          </div>
+      <div className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/3 p-4">
+        <label className="block text-xs font-semibold text-slate-400">Escreva…</label>
+        <textarea
+          value={noteDraftTimeline}
+          onChange={(e) => setNoteDraftTimeline(e.target.value)}
+          className="mt-2 min-h-0 flex-1 w-full resize-none rounded-xl border border-white/10 bg-white/2 p-3 text-sm text-slate-200 outline-none placeholder:text-slate-600"
+          placeholder="Notas, resumo da call, próximos passos…"
+        />
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <div className="text-[11px] text-slate-500">Isso vira uma Activity NOTE (log do deal).</div>
+          <button
+            type="button"
+            className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
+            onClick={async () => {
+              const text = noteDraftTimeline.trim();
+              if (!text) {
+                pushToast('Escreva uma nota antes de salvar', 'danger');
+                return;
+              }
+              try {
+                await addActivity({
+                  dealId,
+                  dealTitle,
+                  type: 'NOTE',
+                  title: 'Nota',
+                  description: text,
+                  date: new Date().toISOString(),
+                  completed: true,
+                  user: actor,
+                });
+                setNoteDraftTimeline('');
+                pushToast('Nota salva', 'success');
+              } catch (e) {
+                pushToast(errorMessage(e, 'Não foi possível salvar a nota.'), 'danger');
+              }
+            }}
+          >
+            Salvar
+          </button>
         </div>
-        {/* Checklist slot - rendered by parent */}
-        <div id="cockpit-checklist-slot" />
       </div>
     </div>
   );

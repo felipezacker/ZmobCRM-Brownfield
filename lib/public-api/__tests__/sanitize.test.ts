@@ -31,4 +31,27 @@ describe('sanitize', () => {
       expect(normalizeUrl(null)).toBeNull();
     });
   });
+
+  describe('XSS / injection inputs', () => {
+    it('preserves script tags as-is (normalize functions only trim, no HTML stripping)', () => {
+      // These functions are normalizers (trim/lowercase), not sanitizers.
+      // XSS protection must happen at the rendering/output layer.
+      expect(normalizeText("<script>alert('xss')</script>")).toBe("<script>alert('xss')</script>");
+      expect(normalizeEmail("<script>alert('xss')</script>")).toBe("<script>alert('xss')</script>");
+    });
+
+    it('handles HTML entity strings', () => {
+      expect(normalizeText('&lt;b&gt;bold&lt;/b&gt;')).toBe('&lt;b&gt;bold&lt;/b&gt;');
+    });
+
+    it('handles SQL injection strings', () => {
+      const sqlInjection = "'; DROP TABLE users; --";
+      expect(normalizeText(sqlInjection)).toBe(sqlInjection);
+      expect(normalizeEmail(sqlInjection)).toBe(sqlInjection.toLowerCase());
+    });
+
+    it('handles unicode and special characters', () => {
+      expect(normalizeText('  \u0000null\u0000  ')).toBe('\u0000null\u0000');
+    });
+  });
 });

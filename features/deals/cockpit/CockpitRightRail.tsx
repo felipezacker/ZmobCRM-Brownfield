@@ -6,7 +6,7 @@ import { Chip, TabButton } from './cockpit-ui';
 import { UIChat } from '@/components/ai/UIChat';
 import type { Tab, CockpitSnapshot } from './cockpit-types';
 import { formatAtISO, humanizeTestLabel, scriptCategoryChipClass } from './cockpit-utils';
-import type { QuickScript } from '@/lib/supabase/quickScripts';
+import type { QuickScript, ScriptCategory } from '@/lib/supabase/quickScripts';
 
 interface CockpitRightRailProps {
   dealId: string;
@@ -27,7 +27,7 @@ interface CockpitRightRailProps {
   scripts: QuickScript[];
   isScriptsLoading: boolean;
   applyVariables: (template: string, vars: Record<string, string>) => string;
-  getCategoryInfo: (category: any) => { label: string; color: string };
+  getCategoryInfo: (category: ScriptCategory) => { label: string; color: string };
   templateVariables: Record<string, string>;
   crmLoading: boolean;
   onRefreshCRM: () => void;
@@ -94,7 +94,7 @@ export function CockpitRightRail({
                 boardId={boardId}
                 dealId={dealId}
                 contactId={contactId}
-                cockpitSnapshot={cockpitSnapshot as any}
+                cockpitSnapshot={cockpitSnapshot}
                 contextMode="props-only"
                 floating={false}
                 startMinimized={false}

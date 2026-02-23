@@ -6,6 +6,8 @@
 -- Pattern: user can access files only for deals in their organization.
 -- ============================================================
 
+BEGIN;
+
 -- Drop existing permissive storage policies if any
 DROP POLICY IF EXISTS "deal_files_select" ON storage.objects;
 DROP POLICY IF EXISTS "deal_files_insert" ON storage.objects;
@@ -73,3 +75,5 @@ CREATE POLICY "deal_files_delete" ON storage.objects
             )
         )
     );
+
+COMMIT;

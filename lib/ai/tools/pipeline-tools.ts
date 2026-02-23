@@ -18,11 +18,15 @@ export function createPipelineTools({ supabase, organizationId, context, bypassA
                     return { error: 'Nenhum board selecionado. Vá para um board ou especifique qual.' };
                 }
 
-                const { data: deals } = await supabase
+                const { data: deals, error: dealsError } = await supabase
                     .from('deals')
                     .select('id, title, value, is_won, is_lost, stage:board_stages(name, label)')
                     .eq('organization_id', organizationId)
                     .eq('board_id', targetBoardId);
+
+                if (dealsError) {
+                    return { error: formatSupabaseFailure(dealsError) };
+                }
 
                 const openDeals = deals?.filter(d => !d.is_won && !d.is_lost) || [];
                 const wonDeals = deals?.filter(d => d.is_won) || [];
@@ -70,11 +74,15 @@ export function createPipelineTools({ supabase, organizationId, context, bypassA
                     return { error: 'Nenhum board selecionado.' };
                 }
 
-                const { data: deals } = await supabase
+                const { data: deals, error: dealsError } = await supabase
                     .from('deals')
                     .select('id, value, is_won, is_lost, created_at')
                     .eq('organization_id', organizationId)
                     .eq('board_id', targetBoardId);
+
+                if (dealsError) {
+                    return { error: formatSupabaseFailure(dealsError) };
+                }
 
                 const total = deals?.length || 0;
                 const won = deals?.filter(d => d.is_won) || [];

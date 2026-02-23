@@ -61,7 +61,7 @@ export type CockpitSnapshot = {
   stage?: Record<string, unknown>;
   cockpitSignals: {
     nextBestAction: NextBestAction;
-    aiAnalysis: Record<string, unknown> | null;
+    aiAnalysis: unknown;
     aiAnalysisLoading: boolean;
   };
   lists: Record<string, unknown>;

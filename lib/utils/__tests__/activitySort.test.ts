@@ -40,6 +40,23 @@ describe('sortActivitiesSmart', () => {
     expect(sorted[2].id).toBe('future');
   });
 
+  it('handles activities with null/invalid dates (treats as Invalid Date)', () => {
+    const validDate = new Date();
+    validDate.setDate(validDate.getDate() - 1);
+
+    const activities = [
+      makeActivity('valid', validDate.toISOString()),
+      makeActivity('nullDate', null as any),
+      makeActivity('invalidDate', 'not-a-date'),
+    ];
+
+    // Should not throw
+    const sorted = sortActivitiesSmart(activities as any);
+    expect(sorted).toHaveLength(3);
+    // Valid activity should still be present
+    expect(sorted.some(a => a.id === 'valid')).toBe(true);
+  });
+
   it('sorts overdue by oldest first', () => {
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);

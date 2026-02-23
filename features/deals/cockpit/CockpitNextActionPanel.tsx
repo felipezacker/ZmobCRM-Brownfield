@@ -13,6 +13,8 @@ import {
 import { Panel } from './cockpit-ui';
 import type { NextBestAction, TemplatePickerMode } from './cockpit-types';
 import type { MessageChannel } from '@/features/inbox/components/MessageComposerModal';
+import type { MessageLogContext } from './cockpit-types';
+import type { ScheduleType } from '@/features/inbox/components/ScheduleModal';
 
 interface CockpitNextActionPanelProps {
   nextBestAction: NextBestAction;
@@ -20,8 +22,8 @@ interface CockpitNextActionPanelProps {
   scriptsCount: number;
   onExecuteNext: () => void;
   onCall: (title: string) => void;
-  onOpenMessageComposer: (channel: MessageChannel, prefill?: { subject?: string; message?: string }, ctx?: any) => void;
-  onOpenScheduleModal: (initial?: { type?: any; title?: string; description?: string }) => void;
+  onOpenMessageComposer: (channel: MessageChannel, prefill?: { subject?: string; message?: string }, ctx?: MessageLogContext | null) => void;
+  onOpenScheduleModal: (initial?: { type?: ScheduleType; title?: string; description?: string }) => void;
   onOpenTemplatePicker: (mode: TemplatePickerMode) => void;
   buildWhatsAppMessage: () => string;
   buildEmailBody: () => string;

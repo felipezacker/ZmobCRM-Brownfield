@@ -573,18 +573,15 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
               actor={actor}
               dealId={deal.id}
               dealTitle={deal.title}
-              addActivity={addActivity as any}
+              addActivity={addActivity}
               pushToast={pushToast}
             />
 
-            <div className="grid min-h-0 gap-4 lg:grid-cols-2 lg:max-h-[30dvh]">
-              <div /> {/* Timeline note input is inside CockpitTimeline */}
-              <CockpitChecklist
-                checklist={checklist}
-                onPersistChecklist={(next) => void persistChecklist(next)}
-                onReload={loadChecklistFromDeal}
-              />
-            </div>
+            <CockpitChecklist
+              checklist={checklist}
+              onPersistChecklist={(next) => void persistChecklist(next)}
+              onReload={loadChecklistFromDeal}
+            />
           </div>
 
           {/* Right rail */}
@@ -593,7 +590,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             dealTitle={deal.title}
             boardId={board.id}
             contactId={contact?.id}
-            cockpitSnapshot={cockpitSnapshot as any}
+            cockpitSnapshot={cockpitSnapshot}
             notes={notes}
             isNotesLoading={isNotesLoading}
             createNote={createNote}
@@ -607,7 +604,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             scripts={scripts}
             isScriptsLoading={isScriptsLoading}
             applyVariables={applyVariables}
-            getCategoryInfo={getCategoryInfo as any}
+            getCategoryInfo={getCategoryInfo}
             templateVariables={templateVariables}
             crmLoading={crmLoading}
             onRefreshCRM={() => void refreshCRM()}
@@ -649,8 +646,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
         initialMessage={messagePrefill?.message}
         onExecuted={(ev) => void handleMessageExecuted(ev)}
         aiContext={{
-          cockpitSnapshot: cockpitSnapshot as any,
-          nextBestAction: { action: nextBestAction.action, reason: nextBestAction.reason, actionType: nextBestAction.actionType as any, urgency: nextBestAction.urgency as any },
+          cockpitSnapshot,
+          nextBestAction: { action: nextBestAction.action, reason: nextBestAction.reason, actionType: nextBestAction.actionType as 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'WHATSAPP', urgency: nextBestAction.urgency as 'low' | 'medium' | 'high' },
         }}
       />
 
@@ -659,7 +656,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
         onClose={() => { setIsScheduleModalOpen(false); setScheduleInitial(null); }}
         onSave={(data) => void handleScheduleSave(data)}
         contactName={contact?.name || 'Contato'}
-        initialType={scheduleInitial?.type as any}
+        initialType={scheduleInitial?.type}
         initialTitle={scheduleInitial?.title}
         initialDescription={scheduleInitial?.description}
       />

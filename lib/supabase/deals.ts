@@ -134,11 +134,11 @@ export interface DbDealItem {
 /**
  * Tipo do deal com items aninhados (retornado por embedded select).
  */
-interface DbDealWithItems extends DbDeal {
+export interface DbDealWithItems extends DbDeal {
   deal_items: DbDealItem[];
 }
 
-const transformDeal = (db: DbDeal | DbDealWithItems, items?: DbDealItem[]): Deal => {
+export const transformDeal = (db: DbDeal | DbDealWithItems, items?: DbDealItem[]): Deal => {
   // Usar stage_id como status (UUID do estágio no kanban)
   // is_won e is_lost indicam se o deal foi fechado
   const stageStatus = db.stage_id || db.status || '';
@@ -189,7 +189,7 @@ const transformDeal = (db: DbDeal | DbDealWithItems, items?: DbDealItem[]): Deal
  * @param deal - Deal parcial no formato da aplicação.
  * @returns Deal parcial no formato do banco.
  */
-const transformDealToDb = (deal: Partial<Deal>): Partial<DbDeal> => {
+export const transformDealToDb = (deal: Partial<Deal>): Partial<DbDeal> => {
   const db: Partial<DbDeal> = {};
 
   if (deal.title !== undefined) db.title = deal.title;

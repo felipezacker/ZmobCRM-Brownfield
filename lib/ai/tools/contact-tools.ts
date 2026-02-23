@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { ToolContext } from './types';
-import { formatSupabaseFailure, ensureDealBelongsToOrganization } from './helpers';
+import { formatSupabaseFailure, sanitizeFilterValue, ensureDealBelongsToOrganization } from './helpers';
 
 export function createContactTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
@@ -18,7 +18,7 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                     .from('contacts')
                     .select('id, name, email, phone')
                     .eq('organization_id', organizationId)
-                    .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
+                    .or(`name.ilike.%${sanitizeFilterValue(query)}%,email.ilike.%${sanitizeFilterValue(query)}%`)
                     .limit(limit);
 
                 return {

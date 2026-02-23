@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { ToolContext } from './types';
-import { formatSupabaseFailure, ensureBoardBelongsToOrganization, ensureDealBelongsToOrganization, resolveStageIdForBoard } from './helpers';
+import { formatSupabaseFailure, sanitizeFilterValue, ensureBoardBelongsToOrganization, ensureDealBelongsToOrganization, resolveStageIdForBoard } from './helpers';
 
 export function createDealTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
@@ -50,7 +50,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     queryBuilder = queryBuilder.ilike('title', `%${effectiveQuery}%`);
                 } else {
                     queryBuilder = queryBuilder.or(
-                        terms.map((t) => `title.ilike.%${t}%`).join(',')
+                        terms.map((t) => `title.ilike.%${sanitizeFilterValue(t)}%`).join(',')
                     );
                 }
 
@@ -139,7 +139,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                         .select('id, name, label')
                         .eq('organization_id', organizationId)
                         .eq('board_id', targetBoardId)
-                        .or(`name.ilike.%${effectiveStageName}%,label.ilike.%${effectiveStageName}%`);
+                        .or(`name.ilike.%${sanitizeFilterValue(effectiveStageName)}%,label.ilike.%${sanitizeFilterValue(effectiveStageName)}%`);
 
                     if (stages && stages.length > 0) {
                         finalStageId = stages[0].id;
@@ -370,7 +370,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                         .select('id, name, label')
                         .eq('organization_id', organizationId)
                         .eq('board_id', deal.board_id)
-                        .or(`name.ilike.%${stageName}%,label.ilike.%${stageName}%`);
+                        .or(`name.ilike.%${sanitizeFilterValue(stageName)}%,label.ilike.%${sanitizeFilterValue(stageName)}%`);
 
                     if (stages && stages.length > 0) {
                         targetStageId = stages[0].id;
@@ -587,7 +587,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                         .select('id, name, label')
                         .eq('organization_id', organizationId)
                         .eq('board_id', targetBoardId)
-                        .or(`name.ilike.%${wonStageNameFromContext}%,label.ilike.%${wonStageNameFromContext}%`)
+                        .or(`name.ilike.%${sanitizeFilterValue(wonStageNameFromContext)}%,label.ilike.%${sanitizeFilterValue(wonStageNameFromContext)}%`)
                         .limit(1);
 
                     if (wonStages && wonStages.length > 0) {

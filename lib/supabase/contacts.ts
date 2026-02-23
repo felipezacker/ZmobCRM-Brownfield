@@ -68,7 +68,7 @@ export interface DbContact {
  * @param db - Contato no formato do banco.
  * @returns Contato no formato da aplicação.
  */
-const transformContact = (db: DbContact): Contact => ({
+export const transformContact = (db: DbContact): Contact => ({
   id: db.id,
   organizationId: db.organization_id,
   name: db.name,
@@ -94,7 +94,7 @@ const transformContact = (db: DbContact): Contact => ({
  * @param contact - Contato parcial no formato da aplicação.
  * @returns Contato parcial no formato do banco.
  */
-const transformContactToDb = (contact: Partial<Contact>): Partial<DbContact> => {
+export const transformContactToDb = (contact: Partial<Contact>): Partial<DbContact> => {
   const db: Partial<DbContact> = {};
 
   if (contact.name !== undefined) db.name = contact.name;

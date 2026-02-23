@@ -25,5 +25,26 @@ describe('csv utils', () => {
     const parsed = parseCsv(csv, ',');
     expect([parsed.headers, ...parsed.rows]).toEqual(rows);
   });
+
+  it('handles empty input', () => {
+    const { headers, rows } = parseCsv('', ',');
+    expect(headers).toEqual([]);
+    expect(rows).toEqual([]);
+  });
+
+  it('handles CRLF line endings', () => {
+    const input = 'name,email\r\nAlice,alice@x.com\r\nBob,bob@x.com\r\n';
+    const { headers, rows } = parseCsv(input, ',');
+    expect(headers).toEqual(['name', 'email']);
+    expect(rows).toEqual([
+      ['Alice', 'alice@x.com'],
+      ['Bob', 'bob@x.com'],
+    ]);
+  });
+
+  it('detects delimiter from empty/single-column input', () => {
+    expect(detectCsvDelimiter('')).toBe(',');
+    expect(detectCsvDelimiter('just-one-column')).toBe(',');
+  });
 });
 

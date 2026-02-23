@@ -8,6 +8,8 @@
 -- Pattern: admin = CRUD org, diretor = READ org + CRUD own, corretor = CRUD own
 -- ============================================================
 
+BEGIN;
+
 -- ============================================================
 -- PART 1: PERFORMANCE INDICES
 -- ============================================================
@@ -488,6 +490,9 @@ DO $$ BEGIN
 EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
 
+-- NOTE: No INSERT policy — system_notifications are created server-side only
+-- (e.g., via triggers, edge functions, or service_role). This is intentional.
+
 CREATE POLICY "system_notifications_select" ON public.system_notifications
     FOR SELECT TO authenticated
     USING (user_id = auth.uid());
@@ -613,6 +618,13 @@ CREATE POLICY "organization_settings_update" ON public.organization_settings
         AND EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
     );
 
+CREATE POLICY "organization_settings_delete" ON public.organization_settings
+    FOR DELETE TO authenticated
+    USING (
+        organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid())
+        AND EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
+    );
+
 -- ============================================================
 -- PART 17: USER_SETTINGS (own only)
 -- ============================================================
@@ -641,6 +653,9 @@ CREATE POLICY "user_settings_update" ON public.user_settings
 -- ============================================================
 -- PART 18: FIX CROSS-TENANT FUNCTIONS (DB-022, DB-023)
 -- ============================================================
+
+-- Drop the no-parameter version to avoid confusion with the org-scoped version below
+DROP FUNCTION IF EXISTS public.get_contact_stage_counts();
 
 -- DB-022: get_contact_stage_counts — add org filter
 CREATE OR REPLACE FUNCTION public.get_contact_stage_counts(p_org_id UUID)
@@ -702,3 +717,5 @@ BEGIN
     RETURN v_log_id;
 END;
 $$;
+
+COMMIT;
