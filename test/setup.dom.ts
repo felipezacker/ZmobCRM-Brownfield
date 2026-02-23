@@ -21,4 +21,22 @@ if (hasDom) {
 
   // Ajuda a evitar warnings do React sobre act() em alguns cenários.
   g.IS_REACT_ACT_ENVIRONMENT = true
+
+  // Global mock for Next.js App Router navigation
+  const { vi } = await import('vitest')
+  vi.mock('next/navigation', () => ({
+    useRouter: () => ({
+      push: vi.fn(),
+      replace: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
+    }),
+    usePathname: () => '/',
+    useSearchParams: () => new URLSearchParams(),
+    useParams: () => ({}),
+    redirect: vi.fn(),
+    notFound: vi.fn(),
+  }))
 }
