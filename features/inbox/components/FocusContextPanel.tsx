@@ -56,7 +56,7 @@ interface FocusContextPanelProps {
     onMoveStage: (stageId: string) => void;
     onMarkWon: () => void;
     onMarkLost: () => void;
-    onAddActivity: (activity: Partial<Activity>) => void;
+    onAddActivity: (activity: Partial<Activity>) => void | Promise<Activity | null>;
     onUpdateActivity: (id: string, updates: Partial<Activity>) => void;
     onClose: () => void;
     className?: string;
