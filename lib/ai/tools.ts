@@ -1,18 +1,16 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { createStaticAdminClient } from '@/lib/supabase/staticAdminClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { CRMCallOptions } from '@/types/ai';
 
 /**
- * Creates all CRM tools with context injection
- * Context is provided at runtime via the agent's callOptionsSchema
- * 
- * NOTE: Uses createStaticAdminClient (service role, no cookies) to bypass RLS
- * because async AI agent context doesn't have access to request cookies.
+ * Creates all CRM tools with context injection.
+ * When a supabaseClient is provided (from request context), it uses that client which respects RLS.
+ * Falls back to admin client for MCP/external contexts without a user session.
  */
-export function createCRMTools(context: CRMCallOptions, userId: string) {
-    // Initialize supabase admin client directly (no async, no cookies needed)
-    const supabase = createStaticAdminClient();
+export function createCRMTools(context: CRMCallOptions, userId: string, supabaseClient?: SupabaseClient) {
+    const supabase = supabaseClient ?? createStaticAdminClient();
     const organizationId = context.organizationId;
 
     // Em UI normal, ações são gateadas por um card de Aprovar/Negar.
