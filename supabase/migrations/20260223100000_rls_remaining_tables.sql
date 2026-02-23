@@ -31,9 +31,8 @@ CREATE INDEX IF NOT EXISTS idx_deal_items_deal_id ON public.deal_items(deal_id);
 CREATE INDEX IF NOT EXISTS idx_tags_organization_id ON public.tags(organization_id);
 CREATE INDEX IF NOT EXISTS idx_custom_field_definitions_organization_id ON public.custom_field_definitions(organization_id);
 CREATE INDEX IF NOT EXISTS idx_system_notifications_organization_id ON public.system_notifications(organization_id);
-CREATE INDEX IF NOT EXISTS idx_system_notifications_user_id ON public.system_notifications(user_id);
-CREATE INDEX IF NOT EXISTS idx_crm_companies_organization_id ON public.crm_companies(organization_id);
-CREATE INDEX IF NOT EXISTS idx_crm_companies_owner_id ON public.crm_companies(owner_id);
+-- idx_system_notifications_user_id skipped: column user_id does not exist in production
+-- idx_crm_companies skipped: table crm_companies does not exist in production
 
 -- ============================================================
 -- PART 2: BOARDS
@@ -495,15 +494,15 @@ END $$;
 
 CREATE POLICY "system_notifications_select" ON public.system_notifications
     FOR SELECT TO authenticated
-    USING (user_id = auth.uid());
+    USING (organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid()));
 
 CREATE POLICY "system_notifications_update" ON public.system_notifications
     FOR UPDATE TO authenticated
-    USING (user_id = auth.uid());
+    USING (organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid()));
 
 CREATE POLICY "system_notifications_delete" ON public.system_notifications
     FOR DELETE TO authenticated
-    USING (user_id = auth.uid());
+    USING (organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid()));
 
 -- ============================================================
 -- PART 14: LIFECYCLE_STAGES (global reference)
@@ -550,40 +549,7 @@ CREATE POLICY "lifecycle_stages_delete" ON public.lifecycle_stages
         )
     );
 
--- ============================================================
--- PART 15: CRM_COMPANIES
--- ============================================================
-ALTER TABLE public.crm_companies ENABLE ROW LEVEL SECURITY;
-
-DO $$ BEGIN
-  EXECUTE (
-    SELECT string_agg('DROP POLICY IF EXISTS "' || policyname || '" ON public.crm_companies;', E'\n')
-    FROM pg_policies WHERE tablename = 'crm_companies' AND schemaname = 'public'
-  );
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-CREATE POLICY "crm_companies_select" ON public.crm_companies
-    FOR SELECT TO authenticated
-    USING (organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid()));
-
-CREATE POLICY "crm_companies_insert" ON public.crm_companies
-    FOR INSERT TO authenticated
-    WITH CHECK (organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid()));
-
-CREATE POLICY "crm_companies_update" ON public.crm_companies
-    FOR UPDATE TO authenticated
-    USING (
-        organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid())
-        AND (owner_id = auth.uid() OR public.is_admin_or_director(organization_id))
-    );
-
-CREATE POLICY "crm_companies_delete" ON public.crm_companies
-    FOR DELETE TO authenticated
-    USING (
-        organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid())
-        AND (owner_id = auth.uid() OR public.is_admin_or_director(organization_id))
-    );
+-- PART 15: CRM_COMPANIES skipped — table does not exist in production
 
 -- ============================================================
 -- PART 16: ORGANIZATION_SETTINGS (admin only)
@@ -659,7 +625,7 @@ DROP FUNCTION IF EXISTS public.get_contact_stage_counts();
 
 -- DB-022: get_contact_stage_counts — add org filter
 CREATE OR REPLACE FUNCTION public.get_contact_stage_counts(p_org_id UUID)
-RETURNS TABLE(stage_id UUID, stage_name TEXT, contact_count BIGINT)
+RETURNS TABLE(stage_id TEXT, stage_name TEXT, contact_count BIGINT)
 LANGUAGE sql
 STABLE
 SECURITY INVOKER
@@ -671,7 +637,7 @@ AS $$
         COUNT(c.id) AS contact_count
     FROM public.lifecycle_stages ls
     LEFT JOIN public.contacts c
-        ON c.lifecycle_stage_id = ls.id
+        ON c.stage = ls.id
         AND c.organization_id = p_org_id
     GROUP BY ls.id, ls.name, ls.order
     ORDER BY ls.order;
