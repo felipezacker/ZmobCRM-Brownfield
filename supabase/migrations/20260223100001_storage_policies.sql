@@ -17,8 +17,7 @@ DROP POLICY IF EXISTS "Authenticated users can upload deal files" ON storage.obj
 DROP POLICY IF EXISTS "Authenticated users can read deal files" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can delete deal files" ON storage.objects;
 
--- Ensure RLS is enabled on storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Note: RLS is already enabled on storage.objects by Supabase (cannot ALTER as non-owner)
 
 -- Helper: Check if user belongs to the org that owns the deal referenced by the file path
 -- File paths follow pattern: {deal_id}/{filename}
