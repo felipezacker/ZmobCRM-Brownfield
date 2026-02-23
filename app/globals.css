@@ -54,6 +54,28 @@ svg.lucide {
   --app-safe-area-top: env(safe-area-inset-top, 0px);
   --app-bottom-nav-height: 0px;
 
+  /* shadcn/ui semantic tokens */
+  --background: var(--color-bg);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: oklch(55% 0.20 240);
+  --primary-foreground: oklch(100% 0 0);
+  --secondary: var(--color-muted);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-muted);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-muted);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error);
+  --destructive-foreground: oklch(100% 0 0);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: oklch(55% 0.20 240);
+  --radius: 0.5rem;
+
   /* Light Mode - Soft Cream (OKLCH) */
   --color-bg: oklch(97% 0.005 90);
   --color-surface: oklch(99% 0.002 90);
@@ -166,6 +188,28 @@ html, body {
   --chart-tooltip-bg: #1e293b;
   --chart-tooltip-border: rgba(255, 255, 255, 0.1);
   --chart-tooltip-text: #f8fafc;
+
+  /* shadcn/ui semantic tokens (dark) */
+  --background: var(--color-bg);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: oklch(65% 0.20 240);
+  --primary-foreground: oklch(10% 0 0);
+  --secondary: var(--color-muted);
+  --secondary-foreground: var(--color-text-primary);
+  --muted: var(--color-muted);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-muted);
+  --accent-foreground: var(--color-text-primary);
+  --destructive: var(--color-error);
+  --destructive-foreground: oklch(100% 0 0);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: oklch(65% 0.20 240);
+  --radius: 0.5rem;
 }
 
 /* ========================================
