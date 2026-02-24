@@ -21,8 +21,7 @@ export function Providers({
 }) {
     const pathname = usePathname()
     const isSetupRoute = pathname === '/setup'
-    const isLabsRoute = pathname === '/labs' || pathname.startsWith('/labs/')
-    const shouldUseAppShell = !isSetupRoute && !isLabsRoute
+    const shouldUseAppShell = !isSetupRoute
 
     return (
         <QueryProvider>

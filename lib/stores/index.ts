@@ -28,6 +28,7 @@
  * const { toggleSidebar, openModal } = useUIStore();
  * ```
  */
+import React from 'react';
 import { create } from 'zustand';
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 
@@ -389,5 +390,3 @@ export const useFormDraftAutoSave = (
   }, [formId, data, debounceMs, saveDraft]);
 };
 
-// Import React for the hook above
-import React from 'react';
