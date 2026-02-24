@@ -4,7 +4,10 @@
 
 import React, { useState } from 'react';
 import { Database, AlertTriangle, Trash2, Loader2 } from 'lucide-react';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useBoards } from '@/context/boards/BoardsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase';
@@ -16,7 +19,13 @@ import { queryKeys } from '@/lib/query';
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
 export const DataStorageSettings: React.FC = () => {
-    const { deals, contacts, activities, boards, refresh } = useCRM();
+    const { deals } = useCRMActions();
+    const { contacts } = useContacts();
+    const { activities } = useActivities();
+    const { boards } = useBoards();
+    const refresh = async () => {
+        // No-op: React Query invalidation handles data refresh
+    };
     const { profile } = useAuth();
     const { addToast } = useToast();
     const queryClient = useQueryClient();

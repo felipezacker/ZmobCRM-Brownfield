@@ -45,7 +45,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen
 } from 'lucide-react';
-import { useCRM } from '../context/CRMContext';
+import { useUIStore } from '@/lib/stores';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { prefetchRoute, RouteName } from '@/lib/prefetch';
@@ -134,7 +134,9 @@ const NavItem = ({
  */
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { darkMode, toggleDarkMode } = useTheme();
-  const { isGlobalAIOpen, setIsGlobalAIOpen, sidebarCollapsed, setSidebarCollapsed } = useCRM();
+  const { isGlobalAIOpen, setIsGlobalAIOpen, sidebarOpen, setSidebarOpen } = useUIStore();
+  const sidebarCollapsed = !sidebarOpen;
+  const setSidebarCollapsed = (collapsed: boolean) => setSidebarOpen(!collapsed);
   const { user, loading, profile, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();

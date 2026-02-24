@@ -1,6 +1,7 @@
 import React, { useState, useId } from 'react';
 import { X, Plus, Trash2, ArrowUp, ArrowDown, Check } from 'lucide-react';
-import { useCRM } from '@/context/CRMContext';
+import { useSettings } from '@/context/settings/SettingsContext';
+import { useContacts } from '@/context/contacts/ContactsContext';
 import { LifecycleStage } from '@/types';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 
@@ -32,7 +33,8 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
     const headingId = useId();
     useFocusReturn({ enabled: isOpen });
 
-    const { lifecycleStages, addLifecycleStage, updateLifecycleStage, deleteLifecycleStage, reorderLifecycleStages, contacts } = useCRM();
+    const { lifecycleStages, addLifecycleStage, updateLifecycleStage, deleteLifecycleStage, reorderLifecycleStages } = useSettings();
+    const { contacts } = useContacts();
     const [newStageName, setNewStageName] = useState('');
     const [isAdding, setIsAdding] = useState(false);
 
@@ -150,7 +152,7 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
                                     </div>
 
                                     <button
-                                        onClick={() => deleteLifecycleStage(stage.id)}
+                                        onClick={() => deleteLifecycleStage(stage.id, contacts)}
                                         disabled={stage.isDefault || (stageCounts[stage.id] || 0) > 0}
                                         className="p-1.5 text-slate-400 hover:text-red-500 disabled:opacity-30 disabled:cursor-not-allowed ml-1"
                                         title={

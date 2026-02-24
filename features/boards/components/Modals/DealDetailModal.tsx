@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect, useId, useMemo } from 'react';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useDeals } from '@/context/deals/DealsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useSettings } from '@/context/settings/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -66,23 +71,12 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const { mode } = useResponsiveMode();
   const isMobile = mode === 'mobile';
 
-  const {
-    deals,
-    contacts,
-    updateDeal,
-    deleteDeal,
-    activities,
-    addActivity,
-    updateActivity,
-    deleteActivity,
-    products,
-    addItemToDeal,
-    removeItemFromDeal,
-    customFieldDefinitions,
-    activeBoard,
-    boards,
-    lifecycleStages,
-  } = useCRM();
+  const { deals } = useCRMActions();
+  const { contacts } = useContacts();
+  const { updateDeal, deleteDeal, addItemToDeal, removeItemFromDeal } = useDeals();
+  const { activities, addActivity, updateActivity, deleteActivity } = useActivities();
+  const { activeBoard, boards } = useBoards();
+  const { products, customFieldDefinitions, lifecycleStages } = useSettings();
   const { profile } = useAuth();
   const { addToast } = useToast();
   const router = useRouter();

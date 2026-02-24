@@ -21,7 +21,6 @@ const CRITICAL_FILES = [
   path.join(LIB_QUERY_DIR, 'hooks/useDealsQuery.ts'),
   path.join(LIB_QUERY_DIR, 'hooks/useMoveDeal.ts'),
   path.join(CONTEXT_DIR, 'deals/DealsContext.tsx'),
-  path.join(CONTEXT_DIR, 'CRMContext.tsx'),
   path.join(REALTIME_DIR, 'useRealtimeSync.ts'),
 ];
 
@@ -185,23 +184,22 @@ describe('Cache Integrity - Deals', () => {
     });
   });
 
-  describe('CRMContext deve usar DEALS_VIEW_KEY', () => {
-    it('CRMContext.tsx deve importar e usar DEALS_VIEW_KEY', () => {
-      const crmContextPath = path.join(CONTEXT_DIR, 'CRMContext.tsx');
+  describe('useCRMActions deve usar DEALS_VIEW_KEY', () => {
+    it('useCRMActions.ts deve usar DEALS_VIEW_KEY ou equivalente', () => {
+      const crmActionsPath = path.join(__dirname, '../../../hooks/useCRMActions.ts');
 
-      if (!fs.existsSync(crmContextPath)) {
-        expect.fail('CRMContext.tsx not found. Ensure the file exists or update the test path.');
+      if (!fs.existsSync(crmActionsPath)) {
+        expect.fail('useCRMActions.ts not found.');
       }
 
-      const content = fs.readFileSync(crmContextPath, 'utf-8');
-      
-      // Verifica se usa a constante ou o equivalente inline
-      const usesDealsViewKey = content.includes('DEALS_VIEW_KEY') || 
+      const content = fs.readFileSync(crmActionsPath, 'utf-8');
+
+      const usesDealsViewKey = content.includes('DEALS_VIEW_KEY') ||
         content.includes("[...queryKeys.deals.lists(), 'view']");
-      
+
       expect(
         usesDealsViewKey,
-        'CRMContext deve usar DEALS_VIEW_KEY ou equivalente para setQueryData'
+        'useCRMActions deve usar DEALS_VIEW_KEY ou equivalente para setQueryData'
       ).toBe(true);
     });
   });

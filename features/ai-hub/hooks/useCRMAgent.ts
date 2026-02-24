@@ -1,7 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
 import { streamText, tool, ModelMessage, stepCountIs } from 'ai';
 import { z } from 'zod';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useDeals } from '@/context/deals/DealsContext';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useSettings } from '@/context/settings/SettingsContext';
 import { getModel } from '@/lib/ai/config';
 import { Activity, Deal } from '@/types';
@@ -28,19 +32,12 @@ interface UseCRMAgentOptions {
  * @returns {{ messages: AgentMessage[]; isLoading: boolean; error: Error | null; sendMessage: (content: string) => Promise<void>; clearMessages: () => void; stopGeneration: () => void; }} Retorna um valor do tipo `{ messages: AgentMessage[]; isLoading: boolean; error: Error | null; sendMessage: (content: string) => Promise<void>; clearMessages: () => void; stopGeneration: () => void; }`.
  */
 export function useCRMAgent(options: UseCRMAgentOptions = {}) {
-  const {
-    deals,
-    contacts,
-    activities,
-    addActivity,
-    updateActivity,
-    updateDeal,
-    addDeal,
-    activeBoard,
-    aiApiKey,
-  } = useCRM();
-
-  const { aiProvider, aiModel } = useSettings();
+  const { deals, addDeal } = useCRMActions();
+  const { updateDeal } = useDeals();
+  const { contacts } = useContacts();
+  const { activeBoard } = useBoards();
+  const { activities, addActivity, updateActivity } = useActivities();
+  const { aiProvider, aiModel, aiApiKey } = useSettings();
 
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);

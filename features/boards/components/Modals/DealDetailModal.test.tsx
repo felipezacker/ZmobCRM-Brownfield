@@ -62,62 +62,95 @@ vi.mock('@/lib/ai/tasksClient', () => ({
   generateObjectionResponse: vi.fn(),
 }));
 
-vi.mock('@/context/CRMContext', () => ({
-  useCRM: () => {
-    const board = {
-      id: 'board-1',
-      name: 'Pipeline de Vendas',
-      stages: [
-        { id: 'stage-1', label: 'Novo', order: 0, linkedLifecycleStage: 'MQL' },
-      ],
-      wonStageId: null,
-      lostStageId: null,
-      wonStayInStage: false,
-      lostStayInStage: false,
-      defaultProductId: null,
-      agentPersona: null,
-      goal: null,
-    };
+const mockBoard = {
+  id: 'board-1',
+  name: 'Pipeline de Vendas',
+  stages: [
+    { id: 'stage-1', label: 'Novo', order: 0, linkedLifecycleStage: 'MQL' },
+  ],
+  wonStageId: null,
+  lostStageId: null,
+  wonStayInStage: false,
+  lostStayInStage: false,
+  defaultProductId: null,
+  agentPersona: null,
+  goal: null,
+};
 
-    const deal = {
-      id: 'deal-1',
-      title: 'Pequeno Chapéu',
-      value: 1000,
-      status: 'stage-1',
-      boardId: 'board-1',
-      contactId: 'contact-1',
-      contactName: 'Fulano',
-      contactEmail: 'fulano@example.com',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      probability: 50,
-      tags: [],
-      items: [],
-      customFields: {},
-      isWon: false,
-      isLost: false,
-      closedAt: undefined,
-      lossReason: undefined,
-    };
+const mockDeal = {
+  id: 'deal-1',
+  title: 'Pequeno Chapéu',
+  value: 1000,
+  status: 'stage-1',
+  boardId: 'board-1',
+  contactId: 'contact-1',
+  contactName: 'Fulano',
+  contactEmail: 'fulano@example.com',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  probability: 50,
+  tags: [],
+  items: [],
+  customFields: {},
+  isWon: false,
+  isLost: false,
+  closedAt: undefined,
+  lossReason: undefined,
+};
 
-    return {
-      deals: [deal],
-      contacts: [{ id: 'contact-1', stage: null }],
-      updateDeal: vi.fn(),
-      deleteDeal: vi.fn(),
-      activities: [],
-      addActivity: vi.fn(),
-      updateActivity: vi.fn(),
-      deleteActivity: vi.fn(),
-      products: [],
-      addItemToDeal: vi.fn(),
-      removeItemFromDeal: vi.fn(),
-      customFieldDefinitions: [],
-      activeBoard: board,
-      boards: [board],
-      lifecycleStages: [],
-    };
-  },
+vi.mock('@/hooks/useCRMActions', () => ({
+  useCRMActions: () => ({
+    deals: [mockDeal],
+    addDeal: vi.fn(),
+    convertContactToDeal: vi.fn(),
+    convertLead: vi.fn(),
+    checkWalletHealth: vi.fn(),
+    checkStagnantDeals: vi.fn(),
+  }),
+}));
+
+vi.mock('@/context/deals/DealsContext', () => ({
+  useDeals: () => ({
+    rawDeals: [mockDeal],
+    updateDeal: vi.fn(),
+    deleteDeal: vi.fn(),
+    addItemToDeal: vi.fn(),
+    removeItemFromDeal: vi.fn(),
+  }),
+}));
+
+vi.mock('@/context/contacts/ContactsContext', () => ({
+  useContacts: () => ({
+    contacts: [{ id: 'contact-1', stage: null }],
+    contactMap: { 'contact-1': { id: 'contact-1', name: 'Fulano', stage: null } },
+  }),
+}));
+
+vi.mock('@/context/activities/ActivitiesContext', () => ({
+  useActivities: () => ({
+    activities: [],
+    addActivity: vi.fn(),
+    updateActivity: vi.fn(),
+    deleteActivity: vi.fn(),
+    toggleActivityCompletion: vi.fn(),
+  }),
+}));
+
+vi.mock('@/context/boards/BoardsContext', () => ({
+  useBoards: () => ({
+    boards: [mockBoard],
+    activeBoard: mockBoard,
+    activeBoardId: 'board-1',
+    getBoardById: () => mockBoard,
+  }),
+}));
+
+vi.mock('@/context/settings/SettingsContext', () => ({
+  useSettings: () => ({
+    products: [],
+    customFieldDefinitions: [],
+    lifecycleStages: [],
+  }),
 }));
 
 describe('DealDetailModal', () => {

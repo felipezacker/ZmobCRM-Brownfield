@@ -4,7 +4,9 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useDeals } from '@/context/deals/DealsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
 import { Decision, DecisionStats, SuggestedAction, ActionPayload } from '../types';
 import decisionQueueService from '../services/decisionQueueService';
 import { runAllAnalyzers } from '../analyzers';
@@ -14,7 +16,9 @@ import { runAllAnalyzers } from '../analyzers';
  * @returns {{ decisions: Decision[]; stats: DecisionStats; lastAnalyzedAt: string | undefined; isAnalyzing: boolean; executingIds: Set<string>; runAnalyzers: () => Promise<{ ...; }>; ... 5 more ...; refreshDecisions: () => void; }} Retorna um valor do tipo `{ decisions: Decision[]; stats: DecisionStats; lastAnalyzedAt: string | undefined; isAnalyzing: boolean; executingIds: Set<string>; runAnalyzers: () => Promise<{ ...; }>; ... 5 more ...; refreshDecisions: () => void; }`.
  */
 export function useDecisionQueue() {
-  const { deals, activities, addActivity, updateActivity, updateDeal } = useCRM();
+  const { deals } = useCRMActions();
+  const { updateDeal } = useDeals();
+  const { activities, addActivity, updateActivity } = useActivities();
 
   const [decisions, setDecisions] = useState<Decision[]>(() =>
     decisionQueueService.getPendingDecisions()

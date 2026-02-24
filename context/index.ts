@@ -5,5 +5,3 @@ export { ActivitiesProvider, useActivities } from './activities/ActivitiesContex
 export { BoardsProvider, useBoards } from './boards/BoardsContext';
 export { SettingsProvider, useSettings } from './settings/SettingsContext';
 
-// Export combined provider and legacy hook
-export { CRMProvider, useCRM } from './CRMContext';

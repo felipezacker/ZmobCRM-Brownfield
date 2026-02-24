@@ -12,6 +12,7 @@ import { usePathname } from 'next/navigation';
 import { LifecycleStage, Product, CustomFieldDefinition, Lead } from '@/types';
 import { settingsService, lifecycleStagesService, productsService } from '@/lib/supabase';
 import { useAuth } from '../AuthContext';
+import { useUIStore } from '@/lib/stores';
 import { AI_DEFAULT_MODELS, AI_DEFAULT_PROVIDER } from '@/lib/ai/defaults';
 
 const DEFAULT_LIFECYCLE_STAGES: LifecycleStage[] = [
@@ -167,8 +168,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   }, [aiProvider, aiHasGoogleKey, aiHasOpenaiKey, aiHasAnthropicKey, aiGoogleKey, aiOpenaiKey, aiAnthropicKey]);
 
-  // UI State
-  const [isGlobalAIOpen, setIsGlobalAIOpen] = useState(false);
+  // UI State - via Zustand
+  const isGlobalAIOpen = useUIStore(state => state.isGlobalAIOpen);
+  const setIsGlobalAIOpen = useUIStore(state => state.setIsGlobalAIOpen);
 
   // Avoid duplicate network calls (dev StrictMode / profile hydration)
   const aiConfigLoadedForUserRef = useRef<string | null>(null);

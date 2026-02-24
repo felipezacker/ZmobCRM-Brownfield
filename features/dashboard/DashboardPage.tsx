@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCRM } from '@/context/CRMContext';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useSettings } from '@/context/settings/SettingsContext';
 import { useToast } from '@/context/ToastContext';
 import { TrendingUp, TrendingDown, Users, DollarSign, Target, Clock, MoreVertical, AlertTriangle } from 'lucide-react';
 import { StatCard } from './components/StatCard';
@@ -29,7 +32,10 @@ function formatChange(value: number): { text: string; isPositive: boolean } {
  */
 const DashboardPage: React.FC = () => {
   const router = useRouter();
-  const { activities, lifecycleStages, contacts, boards } = useCRM();
+  const { activities } = useActivities();
+  const { lifecycleStages } = useSettings();
+  const { contacts } = useContacts();
+  const { boards } = useBoards();
   const { addToast } = useToast();
   const [period, setPeriod] = useState<PeriodFilter>('this_month');
   const [showPipelineAlerts, setShowPipelineAlerts] = useState(false);

@@ -6,7 +6,7 @@ import { useDashboardMetrics, PeriodFilter, COMPARISON_LABELS } from '../dashboa
 import { PeriodFilterSelect } from '@/components/filters/PeriodFilterSelect';
 import { LazyRevenueTrendChart, ChartWrapper } from '@/components/charts';
 import { generateReportPDF } from './utils/generateReportPDF';
-import { useCRM } from '@/context/CRMContext';
+import { useBoards } from '@/context/boards/BoardsContext';
 import { useAuth } from '@/context/AuthContext';
 
 /**
@@ -15,7 +15,7 @@ import { useAuth } from '@/context/AuthContext';
  */
 const ReportsPage: React.FC = () => {
   const router = useRouter();
-  const { boards } = useCRM();
+  const { boards } = useBoards();
   const { profile } = useAuth();
   const [period, setPeriod] = useState<PeriodFilter>('this_month');
   const [selectedBoardId, setSelectedBoardId] = useState<string>('');

@@ -11,7 +11,9 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { Board } from '@/types';
-import { useCRM } from '@/context/CRMContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useUIStore } from '@/lib/stores';
 
 // Performance: reuse formatter instances.
 const BRL_CURRENCY_FORMATTER = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -27,7 +29,9 @@ interface BoardStrategyHeaderProps {
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
 export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board }) => {
-  const { updateBoard, setIsGlobalAIOpen, boards, deals } = useCRM();
+  const { updateBoard, boards } = useBoards();
+  const { deals } = useCRMActions();
+  const setIsGlobalAIOpen = useUIStore((s) => s.setIsGlobalAIOpen);
   const [isEditing, setIsEditing] = useState(false);
   const [editedBoard, setEditedBoard] = useState(board);
 

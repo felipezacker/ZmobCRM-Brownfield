@@ -21,7 +21,11 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useDeals } from '@/context/deals/DealsContext';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { normalizePhoneE164 } from '@/lib/phone';
 
@@ -564,14 +568,11 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
   const { profile, user } = useAuth();
 
-  const {
-    deals,
-    contacts,
-    boards,
-    activities,
-    addActivity,
-    updateDeal,
-  } = useCRM();
+  const { deals } = useCRMActions();
+  const { updateDeal } = useDeals();
+  const { contacts } = useContacts();
+  const { boards } = useBoards();
+  const { activities, addActivity } = useActivities();
 
   const [tab, setTab] = useState<Tab>('chat');
   const [query, setQuery] = useState('');

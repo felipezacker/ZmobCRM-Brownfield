@@ -3,7 +3,7 @@ import { Plus, GripVertical, Trash2, ChevronDown, Settings, Copy } from 'lucide-
 import { Board, BoardStage, ContactStage } from '@/types';
 import { BOARD_TEMPLATES, BoardTemplateType } from '@/lib/templates/board-templates';
 import { LifecycleSettingsModal } from '@/features/settings/components/LifecycleSettingsModal';
-import { useCRM } from '@/context/CRMContext';
+import { useSettings } from '@/context/settings/SettingsContext';
 import { useToast } from '@/context/ToastContext';
 import { Modal } from '@/components/ui/Modal';
 import { MODAL_FOOTER_CLASS } from '@/components/ui/modalStyles';
@@ -118,7 +118,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
   React.useEffect(() => {
   }, [isOpen]);
 
-  const { lifecycleStages, products } = useCRM();
+  const { lifecycleStages, products } = useSettings();
   const { addToast } = useToast();
   const [name, setName] = useState('');
   const [boardKey, setBoardKey] = useState('');
