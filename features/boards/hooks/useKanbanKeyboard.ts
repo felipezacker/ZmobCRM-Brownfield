@@ -153,9 +153,7 @@ export function useKanbanKeyboard(): UseKanbanKeyboardReturn {
           }
           // Visual reorder within column is an optimistic UI concern;
           // we announce the intent and allow parent to handle if needed.
-          announce(
-            `Negócio "${deal.title}" movido para a posição ${cardIndex} de ${stageDeals.length} em "${currentStageLabel}".`
-          );
+          announce(`Reordenação dentro da coluna ainda não disponível.`);
           break;
         }
 
@@ -166,9 +164,7 @@ export function useKanbanKeyboard(): UseKanbanKeyboardReturn {
             announce(`"${deal.title}" já está na última posição de "${currentStageLabel}".`);
             break;
           }
-          announce(
-            `Negócio "${deal.title}" movido para a posição ${cardIndex + 2} de ${stageDeals.length} em "${currentStageLabel}".`
-          );
+          announce(`Reordenação dentro da coluna ainda não disponível.`);
           break;
         }
 

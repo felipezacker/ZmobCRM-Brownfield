@@ -43,7 +43,7 @@ DECLARE
     v_org_id UUID;
 BEGIN
     -- ALWAYS use singleton organization — ignore metadata to prevent cross-tenant enrollment
-    v_org_id := public.get_singleton_organization_id();
+    v_org_id := public.get_singleton_organization_id();  -- schema-qualified per DB-014
 
     IF v_org_id IS NULL THEN
         RAISE EXCEPTION 'Nenhuma organization encontrada. Rode o setup inicial antes de criar usuários.';

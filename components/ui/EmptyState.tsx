@@ -32,11 +32,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
   return (
     <div
+      role="status"
+      aria-label={title}
       className={cn(
         'flex flex-col items-center justify-center text-center',
         size === 'sm' && 'py-4',
         size === 'md' && 'py-8',
-        size === 'lg' && 'py-16',
+        size === 'lg' && 'py-8 md:py-16',
         className,
       )}
     >

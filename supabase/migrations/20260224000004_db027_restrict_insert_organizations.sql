@@ -15,12 +15,14 @@ BEGIN;
 DROP POLICY IF EXISTS "authenticated_access" ON public.organizations;
 
 -- Allow SELECT for authenticated users (read org data)
+DROP POLICY IF EXISTS "organizations_select" ON public.organizations;
 CREATE POLICY "organizations_select"
   ON public.organizations
   FOR SELECT TO authenticated
   USING (deleted_at IS NULL);
 
 -- Allow UPDATE for admin users only (e.g., rename org)
+DROP POLICY IF EXISTS "organizations_update" ON public.organizations;
 CREATE POLICY "organizations_update"
   ON public.organizations
   FOR UPDATE TO authenticated
