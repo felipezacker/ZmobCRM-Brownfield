@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Sparkles, Eye, MessageSquare, AlertCircle, Target, RefreshCw } from 'lucide-react';
 import type { ScriptCategory } from '@/lib/supabase/quickScripts';
+import { Button } from '@/app/components/ui/Button';
 
 interface ScriptEditorModalProps {
     isOpen: boolean;
@@ -123,12 +124,12 @@ export function ScriptEditorModal({
                     <h2 className="text-lg font-semibold text-white">
                         {initialData?.id ? 'Editar Script' : 'Novo Script'}
                     </h2>
-                    <button
+                    <Button
                         onClick={onClose}
                         className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors"
                     >
                         <X size={20} />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Body */}
@@ -176,7 +177,7 @@ export function ScriptEditorModal({
                                 {ICONS.map((iconOption) => {
                                     const IconComponent = iconOption.icon;
                                     return (
-                                        <button
+                                        <Button
                                             key={iconOption.value}
                                             onClick={() => setFormData({ ...formData, icon: iconOption.value })}
                                             className={`p-2.5 rounded-lg border transition-all ${formData.icon === iconOption.value
@@ -186,7 +187,7 @@ export function ScriptEditorModal({
                                             title={iconOption.label}
                                         >
                                             <IconComponent size={18} />
-                                        </button>
+                                        </Button>
                                     );
                                 })}
                             </div>
@@ -199,7 +200,7 @@ export function ScriptEditorModal({
                             <label className="text-xs font-medium text-slate-400">
                                 Mensagem Template
                             </label>
-                            <button
+                            <Button
                                 onClick={() => setShowPreview(!showPreview)}
                                 className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded transition-colors ${showPreview
                                         ? 'bg-primary-500/20 text-primary-400'
@@ -208,7 +209,7 @@ export function ScriptEditorModal({
                             >
                                 <Eye size={12} />
                                 Preview
-                            </button>
+                            </Button>
                         </div>
 
                         {!showPreview ? (
@@ -235,20 +236,20 @@ export function ScriptEditorModal({
 
                 {/* Footer */}
                 <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10 bg-slate-950/50">
-                    <button
+                    <Button
                         onClick={onClose}
                         className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
                     >
                         Cancelar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={handleSave}
                         disabled={!formData.title.trim() || !formData.template.trim() || isSaving}
                         className="flex items-center gap-2 px-5 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Save size={16} />
                         {isSaving ? 'Salvando...' : 'Salvar Script'}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

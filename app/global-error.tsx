@@ -22,6 +22,7 @@ export default function GlobalError({
     <html>
       <body>
         <h2>Something went wrong!</h2>
+        {/* eslint-disable-next-line no-restricted-syntax -- global-error renders outside app layout, no design system available */}
         <button onClick={() => reset()}>Try again</button>
       </body>
     </html>

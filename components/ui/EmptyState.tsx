@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '@/app/components/ui/Button';
 import { cn } from '@/lib/utils';
 
 export interface EmptyStateProps {
@@ -7,7 +8,8 @@ export interface EmptyStateProps {
   description?: string;
   action?: {
     label: string;
-    onClick: () => void;
+    onClick?: () => void;
+    disabled?: boolean;
   };
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -70,13 +72,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       )}
 
       {action && size === 'lg' && (
-        <button
-          type="button"
+        <Button
           onClick={action.onClick}
+          disabled={action.disabled}
           className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors"
         >
           {action.label}
-        </button>
+        </Button>
       )}
     </div>
   );

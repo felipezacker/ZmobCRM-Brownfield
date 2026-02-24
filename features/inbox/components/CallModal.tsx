@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink } from 'lucide-react';
 import { normalizePhoneE164 } from '@/lib/phone';
+import { Button } from '@/app/components/ui/Button';
 
 interface CallModalProps {
     isOpen: boolean;
@@ -154,7 +155,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                     <p className="text-xs text-slate-400">{phone || ''}</p>
                                     {phone && (
                                         <>
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={handleCopyPhone}
                                                 className="p-1 rounded-md hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
@@ -162,8 +163,8 @@ export const CallModal: React.FC<CallModalProps> = ({
                                                 aria-label={copied ? 'Copiado' : 'Copiar número'}
                                             >
                                                 <Copy size={12} />
-                                            </button>
-                                            <button
+                                            </Button>
+                                            <Button
                                                 type="button"
                                                 onClick={handleOpenPhoneApp}
                                                 className="p-1 rounded-md hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
@@ -171,18 +172,18 @@ export const CallModal: React.FC<CallModalProps> = ({
                                                 aria-label="Abrir no discador"
                                             >
                                                 <ExternalLink size={12} />
-                                            </button>
+                                            </Button>
                                         </>
                                     )}
                                 </div>
                             </div>
                         </div>
-                        <button
+                        <Button
                             onClick={handleDiscard}
                             className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
                         >
                             <X size={18} />
-                        </button>
+                        </Button>
                     </div>
                 </div>
 
@@ -216,7 +217,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                         </label>
                         <div className="grid grid-cols-2 gap-2">
                             {outcomeOptions.map(({ id, label, icon: Icon, color }) => (
-                                <button
+                                <Button
                                     key={id}
                                     onClick={() => setOutcome(id)}
                                     className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-all text-sm font-medium ${outcome === id
@@ -226,7 +227,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                 >
                                     <Icon size={16} />
                                     {label}
-                                </button>
+                                </Button>
                             ))}
                         </div>
                     </div>
@@ -263,13 +264,13 @@ export const CallModal: React.FC<CallModalProps> = ({
 
                 {/* Footer */}
                 <div className="p-4 border-t border-slate-700/50 flex flex-col sm:flex-row gap-2 shrink-0">
-                    <button
+                    <Button
                         onClick={handleDiscard}
                         className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                     >
                         Descartar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="button"
                         onClick={handleCopyPhone}
                         disabled={!phone}
@@ -278,8 +279,8 @@ export const CallModal: React.FC<CallModalProps> = ({
                     >
                         <Copy size={16} />
                         {copied ? 'Copiado' : 'Copiar número'}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="button"
                         onClick={handleOpenPhoneApp}
                         disabled={!phone}
@@ -288,15 +289,15 @@ export const CallModal: React.FC<CallModalProps> = ({
                     >
                         <ExternalLink size={16} />
                         Abrir no discador
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={handleSave}
                         disabled={!outcome}
                         className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         <Check size={16} />
                         Salvar Log
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

@@ -88,8 +88,18 @@ export const POST = withRateLimit(async function POST(request: Request) {
   if (website) lookup = lookup.eq('website', website);
   else if (name) lookup = lookup.ilike('name', name);
 
-  const existing = await lookup.maybeSingle();
-  if (existing.error) return NextResponse.json({ error: existing.error.message, code: 'DB_ERROR' }, { status: 500 });
+  // Use select() instead of maybeSingle() to handle multiple matches gracefully
+  const lookupResult = await lookup;
+  if (lookupResult.error) return NextResponse.json({ error: lookupResult.error.message, code: 'DB_ERROR' }, { status: 500 });
+
+  if (lookupResult.data && lookupResult.data.length > 1) {
+    return NextResponse.json(
+      { error: 'Multiple companies match that name. Provide a website for exact match.', code: 'AMBIGUOUS_MATCH' },
+      { status: 409 },
+    );
+  }
+
+  const existing = { data: lookupResult.data?.[0] ?? null };
 
   const now = new Date().toISOString();
   const payload: any = {

@@ -6,6 +6,7 @@ import { Panel } from './cockpit-ui';
 import type { DealView, Contact } from '@/types';
 import type { Stage, TimelineItem } from './cockpit-types';
 import { formatAtISO, formatCurrencyBRL, humanizeTestLabel } from './cockpit-utils';
+import { Button } from '@/app/components/ui/Button';
 
 interface CockpitDataPanelProps {
   deal: DealView;
@@ -47,7 +48,7 @@ export function CockpitDataPanel({
               <span className="text-slate-500">Tel</span>
               <span className="flex items-center gap-2">
                 <span className="font-mono text-slate-200">{phoneE164 ?? ''}</span>
-                <button
+                <Button
                   type="button"
                   className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
                   title="Copiar telefone"
@@ -55,14 +56,14 @@ export function CockpitDataPanel({
                   disabled={!phoneE164}
                 >
                   <Copy className="h-3.5 w-3.5" />
-                </button>
+                </Button>
               </span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-500">Email</span>
               <span className="flex items-center gap-2 min-w-0">
                 <span className="truncate text-slate-200">{contact?.email ?? ''}</span>
-                <button
+                <Button
                   type="button"
                   className="shrink-0 rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
                   title="Copiar email"
@@ -70,7 +71,7 @@ export function CockpitDataPanel({
                   disabled={!contact?.email}
                 >
                   <Copy className="h-3.5 w-3.5" />
-                </button>
+                </Button>
               </span>
             </div>
             <div className="flex items-center justify-between gap-2">

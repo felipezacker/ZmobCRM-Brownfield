@@ -4,6 +4,7 @@ import React from 'react';
 import type { DealView } from '@/types';
 import type { Stage } from './cockpit-types';
 import { formatCurrencyBRL, humanizeTestLabel, toneToBg } from './cockpit-utils';
+import { Button } from '@/app/components/ui/Button';
 
 interface CockpitPipelineBarProps {
   deal: DealView;
@@ -67,7 +68,7 @@ export function CockpitPipelineBar({
             const isActive = idx === stageIndex;
             const isDone = idx < stageIndex;
             return (
-              <button
+              <Button
                 key={s.id}
                 type="button"
                 className="min-w-0 text-left"
@@ -79,7 +80,7 @@ export function CockpitPipelineBar({
                   <div className={`h-2 w-2 rounded-full ${isActive ? toneToBg(s.tone) : isDone ? 'bg-white/30' : 'bg-white/10'}`} />
                 </div>
                 <div className={`mt-1 text-[11px] ${isActive ? 'text-slate-200' : 'text-slate-500'}`}>{s.label}</div>
-              </button>
+              </Button>
             );
           })}
         </div>

@@ -21,6 +21,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Decision, SuggestedAction, PRIORITY_COLORS, PRIORITY_LABELS } from '../types';
+import { Button } from '@/app/components/ui/Button';
 
 interface DecisionCardProps {
   decision: Decision;
@@ -134,14 +135,14 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
         </div>
 
         {/* Reasoning Toggle */}
-        <button
+        <Button
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center gap-1 mt-3 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
         >
           <Lightbulb size={14} />
           <span>Por que estou sugerindo isso?</span>
           {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </button>
+        </Button>
 
         {/* Reasoning Content */}
         {isExpanded && (
@@ -189,7 +190,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
           <div className="mt-2 flex flex-wrap gap-1">
             <span className="text-xs text-slate-400 mr-1">Ou:</span>
             {decision.alternativeActions.map((action) => (
-              <button
+              <Button
                 key={action.id}
                 onClick={() => setSelectedAction(action)}
                 className={`
@@ -201,7 +202,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
                 `}
               >
                 {action.label}
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -209,7 +210,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
 
       {/* Actions */}
       <div className="px-4 pb-4 flex items-center gap-2">
-        <button
+        <Button
           onClick={handleApprove}
           disabled={isExecuting}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
@@ -220,25 +221,25 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
             <CheckCircle size={16} />
           )}
           Aprovar: {selectedAction.label}
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => onSnooze(decision.id)}
           disabled={isExecuting}
           className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
           title="Adiar"
         >
           <Clock size={18} />
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => onReject(decision.id)}
           disabled={isExecuting}
           className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
           title="Ignorar"
         >
           <XCircle size={18} />
-        </button>
+        </Button>
       </div>
     </div>
   );

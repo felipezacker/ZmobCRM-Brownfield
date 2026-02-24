@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Activity } from '@/types';
 import { CheckCircle2, Clock, Calendar, Phone, Mail, FileText, Building2, MoreHorizontal, X, SkipForward } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 interface InboxItemProps {
   activity: Activity;
@@ -44,7 +45,7 @@ const InboxItemComponent: React.FC<InboxItemProps> = ({
             <span className="text-xs font-bold text-current">{timeString}</span>
           </div>
         ) : (
-          <button
+          <Button
             onClick={() => onToggleComplete(activity.id)}
             aria-label={activity.completed ? 'Marcar como pendente' : 'Marcar como concluído'}
             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${activity.completed
@@ -53,20 +54,20 @@ const InboxItemComponent: React.FC<InboxItemProps> = ({
               }`}
           >
             <CheckCircle2 size={12} aria-hidden="true" />
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <button
+        <Button
           onClick={() => onSelect?.(activity.id)}
           className="text-left group/title"
         >
           <h3 className={`font-medium text-slate-900 dark:text-white group-hover/title:text-primary-500 transition-colors ${activity.completed ? 'line-through text-slate-400 dark:text-slate-500' : ''}`}>
             {activity.title}
           </h3>
-        </button>
+        </Button>
 
         {activity.description && (
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
@@ -84,18 +85,18 @@ const InboxItemComponent: React.FC<InboxItemProps> = ({
 
         {/* Helper text if no deal but onSelect exists (e.g. Contact task) */}
         {!activity.dealTitle && onSelect && (
-          <button
+          <Button
             onClick={() => onSelect(activity.id)}
             className="flex items-center gap-1 mt-2 text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
           >
             Ver detalhes
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Actions Menu */}
       <div className="relative shrink-0">
-        <button
+        <Button
           onClick={() => setShowMenu(!showMenu)}
           aria-label="Menu de opções"
           aria-expanded={showMenu}
@@ -103,7 +104,7 @@ const InboxItemComponent: React.FC<InboxItemProps> = ({
           className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
         >
           <MoreHorizontal size={18} aria-hidden="true" />
-        </button>
+        </Button>
 
         {showMenu && (
           <>
@@ -113,31 +114,31 @@ const InboxItemComponent: React.FC<InboxItemProps> = ({
             />
             <div className="absolute right-0 top-full mt-1 z-20 bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-lg shadow-lg py-1 min-w-[140px]">
               {isMeeting && (
-                <button
+                <Button
                   onClick={() => { onToggleComplete(activity.id); setShowMenu(false); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
                 >
                   <CheckCircle2 size={14} className="text-green-500" />
                   Concluir
-                </button>
+                </Button>
               )}
               {onSnooze && (
-                <button
+                <Button
                   onClick={() => { onSnooze(activity.id); setShowMenu(false); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
                 >
                   <Clock size={14} className="text-orange-500" />
                   Adiar 1 dia
-                </button>
+                </Button>
               )}
               {onDiscard && (
-                <button
+                <Button
                   onClick={() => { onDiscard(activity.id); setShowMenu(false); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
                 >
                   <X size={14} />
                   Remover
-                </button>
+                </Button>
               )}
             </div>
           </>

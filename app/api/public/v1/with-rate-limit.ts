@@ -52,14 +52,20 @@ export function withRateLimit<TCtx extends AnyContext = undefined>(
       : await (handler as (r: Request) => Promise<Response | NextResponse>)(request);
 
     // Append rate-limit info headers to successful responses.
+    // Clone into a mutable Response to avoid mutating immutable headers (e.g. from fetch()).
+    const mutableResponse = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: new Headers(response.headers),
+    });
     const rateLimitHeaders = buildRateLimitHeaders(result);
     for (const [key, value] of Object.entries(rateLimitHeaders)) {
       // Skip Content-Type — the handler already set it.
       if (key === 'Content-Type') continue;
-      response.headers.set(key, value as string);
+      mutableResponse.headers.set(key, value as string);
     }
 
-    return response;
+    return mutableResponse;
   };
 
   return wrapped as RouteHandler<TCtx>;

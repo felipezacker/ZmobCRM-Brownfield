@@ -11,6 +11,7 @@ import React from 'react';
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { PaginationState } from '@/types';
 import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '@/types';
+import { Button } from '@/app/components/ui/Button';
 
 export interface PaginationControlsProps {
   /** Estado atual de paginação { pageIndex, pageSize }. */
@@ -187,7 +188,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
         {/* Navigation buttons (T015) */}
         <div className="flex items-center gap-1">
           {/* First page */}
-          <button
+          <Button
             onClick={goToFirstPage}
             disabled={!canPreviousPage || isFetching}
             className={`${buttonBaseClass} ${canPreviousPage && !isFetching ? buttonEnabledClass : buttonDisabledClass}`}
@@ -195,10 +196,10 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
             title="Primeira página"
           >
             <ChevronFirst className="w-5 h-5" />
-          </button>
+          </Button>
 
           {/* Previous page */}
-          <button
+          <Button
             onClick={goToPreviousPage}
             disabled={!canPreviousPage || isFetching}
             className={`${buttonBaseClass} ${canPreviousPage && !isFetching ? buttonEnabledClass : buttonDisabledClass}`}
@@ -206,10 +207,10 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
             title="Página anterior"
           >
             <ChevronLeft className="w-5 h-5" />
-          </button>
+          </Button>
 
           {/* Next page */}
-          <button
+          <Button
             onClick={goToNextPage}
             disabled={!canNextPage || isFetching}
             className={`${buttonBaseClass} ${canNextPage && !isFetching ? buttonEnabledClass : buttonDisabledClass}`}
@@ -217,10 +218,10 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
             title="Próxima página"
           >
             <ChevronRight className="w-5 h-5" />
-          </button>
+          </Button>
 
           {/* Last page */}
-          <button
+          <Button
             onClick={goToLastPage}
             disabled={!canNextPage || isFetching}
             className={`${buttonBaseClass} ${canNextPage && !isFetching ? buttonEnabledClass : buttonDisabledClass}`}
@@ -228,7 +229,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
             title="Última página"
           >
             <ChevronLast className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Loading indicator (T033) */}

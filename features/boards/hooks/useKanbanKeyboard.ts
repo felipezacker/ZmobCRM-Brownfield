@@ -114,14 +114,17 @@ export function useKanbanKeyboard(): UseKanbanKeyboardReturn {
         case 'ArrowLeft': {
           if (!isGrabbed) break;
           e.preventDefault();
+          if (!onMoveDealToStage) {
+            announce('Mover entre colunas não está disponível.');
+            break;
+          }
           if (stageIndex <= 0) {
             announce(`"${deal.title}" já está na primeira coluna.`);
             break;
           }
           const targetStage = stages[stageIndex - 1];
           const targetDeals = dealsByStageId.get(targetStage.id) ?? [];
-          onMoveDealToStage?.(deal.id, targetStage.id);
-          // Update grabbed ref to the same deal (it's still grabbed after move)
+          onMoveDealToStage(deal.id, targetStage.id);
           announce(
             `Negócio "${deal.title}" movido para "${targetStage.label}". Posição ${targetDeals.length + 1} de ${targetDeals.length + 1}.`
           );
@@ -131,13 +134,17 @@ export function useKanbanKeyboard(): UseKanbanKeyboardReturn {
         case 'ArrowRight': {
           if (!isGrabbed) break;
           e.preventDefault();
+          if (!onMoveDealToStage) {
+            announce('Mover entre colunas não está disponível.');
+            break;
+          }
           if (stageIndex >= stages.length - 1) {
             announce(`"${deal.title}" já está na última coluna.`);
             break;
           }
           const targetStage = stages[stageIndex + 1];
           const targetDeals = dealsByStageId.get(targetStage.id) ?? [];
-          onMoveDealToStage?.(deal.id, targetStage.id);
+          onMoveDealToStage(deal.id, targetStage.id);
           announce(
             `Negócio "${deal.title}" movido para "${targetStage.label}". Posição ${targetDeals.length + 1} de ${targetDeals.length + 1}.`
           );

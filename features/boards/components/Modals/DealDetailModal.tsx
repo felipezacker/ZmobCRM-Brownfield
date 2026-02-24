@@ -45,6 +45,7 @@ import { StageProgressBar } from '../StageProgressBar';
 import { ActivityRow } from '@/features/activities/components/ActivityRow';
 import { formatPriorityPtBr } from '@/lib/utils/priority';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
+import { Button } from '@/app/components/ui/Button';
 
 interface DealDetailModalProps {
   dealId: string | null;
@@ -398,9 +399,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     onBlur={saveTitle}
                     onKeyDown={e => e.key === 'Enter' && saveTitle()}
                   />
-                  <button onClick={saveTitle} className="text-green-500 hover:text-green-400">
+                  <Button onClick={saveTitle} className="text-green-500 hover:text-green-400">
                     <Check size={24} />
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <h2
@@ -429,9 +430,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     onBlur={saveValue}
                     onKeyDown={e => e.key === 'Enter' && saveValue()}
                   />
-                  <button onClick={saveValue} className="text-green-500 hover:text-green-400">
+                  <Button onClick={saveValue} className="text-green-500 hover:text-green-400">
                     <Check size={20} />
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <p
@@ -453,7 +454,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                   <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${deal.isWon ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
                     {deal.isWon ? '✓ GANHO' : '✗ PERDIDO'}
                   </span>
-                  <button
+                  <Button
                     onClick={() => {
                       // Find first non-won/lost stage to reopen to
                       const firstRegularStage = dealBoard?.stages.find(
@@ -469,12 +470,12 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm flex items-center gap-2 transition-all"
                   >
                     ↩ Reabrir
-                  </button>
+                  </Button>
                 </>
               ) : (
                 /* Se aberto: mostra botões Ganho e Perdido */
                 <>
-                  <button
+                  <Button
                     onClick={() => {
                       // Intelligent "Won" Logic:
                       // 0. Check for "Stay in Stage" flag (Archive/Close in place)
@@ -511,8 +512,8 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold text-sm shadow-sm flex items-center gap-2"
                   >
                     <ThumbsUp size={16} /> GANHO
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => {
                       // 0. Check for "Stay in Stage" flag
                       if (dealBoard?.lostStayInStage) {
@@ -533,10 +534,10 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     className="px-4 py-2 bg-transparent border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2"
                   >
                     <ThumbsDown size={16} /> PERDIDO
-                  </button>
+                  </Button>
                 </>
               )}
-              <button
+              <Button
                 onClick={() => {
                   onClose();
                   router.push(`/deals/${deal.id}/cockpit`);
@@ -545,20 +546,20 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                 title="Abrir Cockpit"
               >
                 <Maximize2 size={22} />
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setDeleteId(deal.id)}
                 className="ml-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                 title="Excluir Negócio"
               >
                 <Trash2 size={24} />
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={onClose}
                 className="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
               >
                 <X size={24} />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -681,7 +682,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10"
                       >
                         {tag}
-                        <button
+                        <Button
                           type="button"
                           onClick={() => removeDealTag(tag)}
                           className="ml-0.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400"
@@ -689,7 +690,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           title="Remover tag"
                         >
                           <X size={12} />
-                        </button>
+                        </Button>
                       </span>
                     ))
                   )}
@@ -714,7 +715,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       className="min-w-0 flex-1 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
                       aria-label="Adicionar tag"
                     />
-                    <button
+                    <Button
                       type="button"
                       onClick={() => addDealTag(tagQuery)}
                       disabled={!normalizeTag(tagQuery)}
@@ -723,20 +724,20 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       title="Adicionar tag"
                     >
                       <Plus size={18} aria-hidden="true" />
-                    </button>
+                    </Button>
                   </div>
 
                   {(normalizeTag(tagQuery) && tagSuggestions.length > 0) && (
                     <div className="mt-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg overflow-hidden">
                       {tagSuggestions.map((t) => (
-                        <button
+                        <Button
                           key={t}
                           type="button"
                           onClick={() => addDealTag(t)}
                           className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                         >
                           {t}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   )}
@@ -788,24 +789,24 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
           <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-dark-card">
             <div className="h-14 border-b border-slate-200 dark:border-white/5 flex items-center px-6 shrink-0">
               <div className="flex gap-6">
-                <button
+                <Button
                   onClick={() => setActiveTab('timeline')}
                   className={`text-sm font-bold h-14 border-b-2 transition-colors ${activeTab === 'timeline' ? 'border-primary-500 text-primary-600 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
                 >
                   Timeline
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setActiveTab('products')}
                   className={`text-sm font-bold h-14 border-b-2 transition-colors ${activeTab === 'products' ? 'border-primary-500 text-primary-600 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
                 >
                   Produtos
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setActiveTab('info')}
                   className={`text-sm font-bold h-14 border-b-2 transition-colors ${activeTab === 'info' ? 'border-primary-500 text-primary-600 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
                 >
                   IA Insights
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -822,13 +823,13 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     ></textarea>
                     <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-100 dark:border-white/5">
                       <div />
-                      <button
+                      <Button
                         onClick={handleAddNote}
                         disabled={!newNote.trim()}
                         className="bg-primary-600 hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 transition-all"
                       >
                         <Check size={14} /> Enviar
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -882,26 +883,26 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         value={productQuantity}
                         onChange={e => setProductQuantity(parseInt(e.target.value))}
                       />
-                      <button
+                      <Button
                         onClick={handleAddProduct}
                         disabled={!selectedProductId}
                         className="bg-primary-600 hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors"
                       >
                         Adicionar
-                      </button>
+                      </Button>
                     </div>
 
                     <div className="mt-3 flex items-center justify-between gap-3">
                       <div className="text-xs text-slate-500 dark:text-slate-400">
                         Produto depende do cliente? Use um item personalizado (não precisa estar no catálogo).
                       </div>
-                      <button
+                      <Button
                         type="button"
                         onClick={() => setShowCustomItem(v => !v)}
                         className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline"
                       >
                         {showCustomItem ? 'Fechar' : 'Adicionar item personalizado'}
-                      </button>
+                      </Button>
                     </div>
 
                     {showCustomItem && (
@@ -936,13 +937,13 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                             />
                           </div>
                           <div className="sm:col-span-1">
-                            <button
+                            <Button
                               type="button"
                               onClick={handleAddCustomItem}
                               className="w-full bg-primary-600 hover:bg-primary-500 text-white px-3 py-2 rounded-lg text-sm font-bold transition-colors"
                             >
                               +
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -983,12 +984,12 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                                 ${(item.price * item.quantity).toLocaleString()}
                               </td>
                               <td className="px-4 py-3 text-center">
-                                <button
+                                <Button
                                   onClick={() => removeItemFromDeal(deal.id, item.id)}
                                   className="text-slate-400 hover:text-red-500 transition-colors"
                                 >
                                   <Trash2 size={14} />
-                                </button>
+                                </Button>
                               </td>
                             </tr>
                           ))
@@ -1052,7 +1053,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       </div>
                     )}
                     <div className="flex gap-3 mb-5">
-                      <button
+                      <Button
                         onClick={handleAnalyzeDeal}
                         disabled={isAnalyzing}
                         className="flex-1 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-white text-sm font-medium rounded-lg shadow-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
@@ -1063,8 +1064,8 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           <BrainCircuit size={16} />
                         )}
                         Analisar Negócio
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={handleDraftEmail}
                         disabled={isDrafting}
                         className="flex-1 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-white text-sm font-medium rounded-lg shadow-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
@@ -1075,7 +1076,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           <Mail size={16} />
                         )}
                         Escrever Email
-                      </button>
+                      </Button>
                     </div>
                     {aiResult && (
                       <div className="bg-white/80 dark:bg-black/40 backdrop-blur-md p-4 rounded-lg border border-primary-100 dark:border-primary-500/20 mb-4">
@@ -1127,7 +1128,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         value={objection}
                         onChange={e => setObjection(e.target.value)}
                       />
-                      <button
+                      <Button
                         onClick={handleObjection}
                         disabled={isGeneratingObjections || !objection.trim()}
                         className="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors disabled:opacity-50"
@@ -1137,7 +1138,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         ) : (
                           'Gerar Respostas'
                         )}
-                      </button>
+                      </Button>
                     </div>
 
                     {objectionResponses.length > 0 && (

@@ -21,7 +21,7 @@
  *   
  *   return (
  *     <>
- *       <button onClick={() => setIsOpen(true)}>Deletar</button>
+ *       <Button onClick={() => setIsOpen(true)}>Deletar</Button>
  *       <ConfirmModal
  *         isOpen={isOpen}
  *         onClose={() => setIsOpen(false)}
@@ -39,6 +39,7 @@
 import React, { useId, useRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
+import { Button } from '@/app/components/ui/Button';
 
 /**
  * Props do componente ConfirmModal
@@ -138,7 +139,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         </div>
 
                         <div className="flex gap-3 justify-center">
-                            <button
+                            <Button
                                 ref={cancelButtonRef}
                                 type="button"
                                 onClick={onClose}
@@ -146,8 +147,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                                 autoFocus
                             >
                                 {cancelText}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
                                 onClick={() => {
                                     onConfirm();
@@ -159,7 +160,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                                     }`}
                             >
                                 {confirmText}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

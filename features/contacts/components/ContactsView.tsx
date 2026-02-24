@@ -1,6 +1,7 @@
 import React from 'react';
 import { Contact } from '@/types';
 import { Search, RefreshCw } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 interface ContactsViewProps {
   contacts: Contact[];
@@ -35,13 +36,13 @@ export const ContactsView: React.FC<ContactsViewProps> = ({
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Contatos (Gold Standard)</h1>
-        <button 
+        <Button 
           onClick={onRefresh}
           className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
           disabled={isLoading}
         >
           <RefreshCw size={20} className={isLoading ? 'animate-spin text-slate-500' : 'text-slate-500 dark:text-slate-400'} />
-        </button>
+        </Button>
       </div>
 
       <div className="relative mb-6">

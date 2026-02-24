@@ -25,6 +25,7 @@ import {
 import { EmptyState } from '@/components/ui/EmptyState';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/app/components/ui/Button';
 
 // Performance: reuse Intl formatter to avoid allocating options objects for every log row.
 const PT_BR_DATE_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', {
@@ -256,14 +257,14 @@ export const AuditLogDashboard: React.FC = () => {
             Monitore atividades de segurança e tentativas de acesso não autorizado
           </p>
         </div>
-        <button
+        <Button
           onClick={fetchLogs}
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Atualizar
-        </button>
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -470,13 +471,13 @@ export const AuditLogDashboard: React.FC = () => {
                       )}
                     </div>
 
-                    <button className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <Button className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5" />
                       ) : (
                         <ChevronDown className="w-5 h-5" />
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               );

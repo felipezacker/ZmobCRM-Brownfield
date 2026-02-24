@@ -2,6 +2,7 @@ import React from 'react';
 import { Mail, Phone, Plus, Calendar, Pencil, Trash2, MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Contact, ContactSortableColumn } from '@/types';
 import { StageBadge } from './ContactsStageTabs';
+import { Button } from '@/app/components/ui/Button';
 
 // Performance: reuse Intl formatters (they are relatively expensive to instantiate).
 const PT_BR_DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR');
@@ -52,7 +53,7 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentS
     
     return (
         <th scope="col" className="px-6 py-4">
-            <button
+            <Button
                 onClick={() => onSort(column)}
                 className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
                 aria-label={`Ordenar por ${label}`}
@@ -65,7 +66,7 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentS
                         <ArrowUpDown size={14} />
                     )}
                 </span>
-            </button>
+            </Button>
         </th>
     );
 };
@@ -163,7 +164,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={() => openEditModal(contact)}
                                                 className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 text-primary-700 dark:text-primary-200 flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white dark:ring-white/5 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-dark-card"
@@ -171,7 +172,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                                 title={contact.name || 'Sem nome'}
                                             >
                                                 {(contact.name || '?').charAt(0)}
-                                            </button>
+                                            </Button>
                                             <div>
                                                 <span className="font-semibold text-slate-900 dark:text-white block">{contact.name}</span>
                                             </div>
@@ -192,7 +193,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <button
+                                            <Button
                                                 onClick={() => {
                                                     const nextStatus = contact.status === 'ACTIVE' ? 'INACTIVE' : contact.status === 'INACTIVE' ? 'CHURNED' : 'ACTIVE';
                                                     updateContact(contact.id, { status: nextStatus });
@@ -204,14 +205,14 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                                     }`}
                                             >
                                                 {contact.status === 'ACTIVE' ? 'ATIVO' : contact.status === 'INACTIVE' ? 'INATIVO' : 'PERDIDO'}
-                                            </button>
-                                            <button
+                                            </Button>
+                                            <Button
                                                 onClick={() => convertContactToDeal(contact.id)}
                                                 className="p-1 text-slate-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
                                                 aria-label={`Criar oportunidade para ${contact.name}`}
                                             >
                                                 <Plus size={14} aria-hidden="true" />
-                                            </button>
+                                            </Button>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
@@ -234,20 +235,20 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                            <button
+                                            <Button
                                                 onClick={() => openEditModal(contact)}
                                                 className="p-1.5 text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
                                                 aria-label={`Editar ${contact.name}`}
                                             >
                                                 <Pencil size={16} aria-hidden="true" />
-                                            </button>
-                                            <button
+                                            </Button>
+                                            <Button
                                                 onClick={() => setDeleteId(contact.id)}
                                                 className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-slate-400 hover:text-red-500 transition-colors"
                                                 aria-label={`Excluir ${contact.name}`}
                                             >
                                                 <Trash2 size={16} aria-hidden="true" />
-                                            </button>
+                                            </Button>
                                         </div>
                                     </td>
                                 </tr>

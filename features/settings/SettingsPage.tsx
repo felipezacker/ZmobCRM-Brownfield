@@ -14,6 +14,7 @@ import { UsersPage } from './UsersPage';
 import { useAuth } from '@/context/AuthContext';
 import { hasMinRole, type Role } from '@/lib/auth/roles';
 import { Settings as SettingsIcon, Users, Database, Sparkles, Plug, Package } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 type SettingsTab = 'general' | 'products' | 'integrations' | 'ai' | 'data' | 'users';
 
@@ -141,7 +142,7 @@ const IntegrationsSettings: React.FC = () => {
         ] as const).map((t) => {
           const active = subTab === t.id;
           return (
-            <button
+            <Button
               key={t.id}
               type="button"
               onClick={() => setSubTabAndHash(t.id)}
@@ -152,7 +153,7 @@ const IntegrationsSettings: React.FC = () => {
               }`}
             >
               {t.label}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -232,7 +233,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ tab: initialTab }) => {
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
-            <button
+            <Button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${isActive
@@ -245,7 +246,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ tab: initialTab }) => {
               {isActive && (
                 <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400 rounded-full" />
               )}
-            </button>
+            </Button>
           );
         })}
       </div>

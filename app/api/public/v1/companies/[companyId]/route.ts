@@ -65,6 +65,7 @@ export const PATCH = withRateLimit(async function PATCH(request: Request, ctx: {
     .update(updates)
     .eq('organization_id', auth.organizationId)
     .eq('id', companyId)
+    .is('deleted_at', null)
     .select('id,name,website,industry,created_at,updated_at')
     .maybeSingle();
 

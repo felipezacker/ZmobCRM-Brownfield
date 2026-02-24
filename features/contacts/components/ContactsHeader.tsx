@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, Filter, Plus, Download } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 interface ContactsHeaderProps {
   viewMode: 'people' | 'companies';
@@ -89,30 +90,30 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white backdrop-blur-sm"
           />
         </div>
-        <button
+        <Button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
           aria-label={isFilterOpen ? 'Fechar filtros avançados' : 'Abrir filtros avançados'}
           aria-expanded={isFilterOpen}
           className={`p-2 border rounded-lg transition-colors ${isFilterOpen ? 'bg-primary-50 border-primary-200 text-primary-600' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/10'}`}
         >
           <Filter size={20} aria-hidden="true" />
-        </button>
+        </Button>
         {viewMode === 'people' && (
-          <button
+          <Button
             type="button"
             onClick={openImportExportModal}
             aria-label="Importar/Exportar contatos"
             className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-colors"
           >
             <Download size={20} aria-hidden="true" />
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           onClick={openCreateModal}
           className="bg-primary-600 hover:bg-primary-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all shadow-lg shadow-primary-600/20"
         >
           <Plus size={18} /> {viewMode === 'people' ? 'Novo Contato' : 'Nova Empresa'}
-        </button>
+        </Button>
       </div>
     </div>
   );

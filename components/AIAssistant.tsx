@@ -12,6 +12,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Board } from '@/types';
 import { UIChat } from '@/components/ai/UIChat';
+import { Button } from '@/app/components/ui/Button';
 
 interface AIAssistantProps {
   isOpen: boolean;
@@ -65,14 +66,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     <div className="relative flex h-full w-full flex-col">
       {variant === 'overlay' && (
         <div className="absolute right-3 top-3 z-10">
-          <button
+          <Button
             type="button"
             onClick={onClose}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800/70 text-slate-200 hover:bg-slate-700/70"
             aria-label="Fechar assistente"
           >
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       )}
 

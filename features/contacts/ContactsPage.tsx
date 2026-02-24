@@ -12,6 +12,7 @@ import { SelectBoardModal } from './components/SelectBoardModal';
 import { PaginationControls } from './components/PaginationControls';
 import { ContactsImportExportModal } from './components/ContactsImportExportModal';
 import ConfirmModal from '@/components/ConfirmModal';
+import { Button } from '@/app/components/ui/Button';
 
 /**
  * Componente React `ContactsPage`.
@@ -82,21 +83,21 @@ export const ContactsPage: React.FC = () => {
                         <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
                             {controller.selectedIds.size} contato(s) selecionado(s)
                         </span>
-                        <button
+                        <Button
                             onClick={controller.clearSelection}
                             className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
                         >
                             Limpar seleção
-                        </button>
+                        </Button>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button
+                        <Button
                             onClick={() => controller.setBulkDeleteConfirm(true)}
                             className="flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors"
                         >
                             <Trash2 size={14} />
                             Excluir selecionados
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
@@ -167,12 +168,12 @@ export const ContactsPage: React.FC = () => {
                         <ul className="text-left bg-slate-100 dark:bg-slate-800/50 rounded-lg p-3 space-y-1 max-h-32 overflow-y-auto">
                             {controller.deleteWithDeals?.deals.map((deal) => (
                                 <li key={deal.id} className="text-sm">
-                                    <button
+                                    <Button
                                         onClick={() => goToDeal(deal.id)}
                                         className="text-primary-600 dark:text-primary-400 hover:underline font-medium text-left"
                                     >
                                         • {deal.title}
-                                    </button>
+                                    </Button>
                                 </li>
                             ))}
                         </ul>

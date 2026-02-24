@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { Send, Loader2, Bot, User, Sparkles, StopCircle, Trash2, Settings, AlertCircle } from 'lucide-react';
 import { useCRMAgent, AgentMessage } from './hooks/useCRMAgent';
 import { useSettings } from '@/context/settings/SettingsContext';
+import { Button } from '@/app/components/ui/Button';
 
 // Componente de mensagem individual
 const ChatMessage: React.FC<{ message: AgentMessage }> = ({ message }) => {
@@ -69,12 +70,12 @@ const WelcomeMessage: React.FC = () => (
         'Quais deals estão parados?',
         'Crie uma reunião com Stark amanhã às 14h',
       ].map((suggestion) => (
-        <button
+        <Button
           key={suggestion}
           className="px-3 py-1.5 text-sm bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-full transition-colors"
         >
           {suggestion}
-        </button>
+        </Button>
       ))}
     </div>
   </div>
@@ -126,13 +127,13 @@ const APINotConfigured: React.FC = () => {
         </div>
 
         {/* CTA Button */}
-        <button
+        <Button
           onClick={() => router.push('/settings/ai#ai-config')}
           className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-purple-500/25 transition-all active:scale-95"
         >
           <Settings size={18} />
           Ir para Configurações
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -197,13 +198,13 @@ export const AIHubPage: React.FC = () => {
         </div>
 
         {messages.length > 0 && (
-          <button
+          <Button
             onClick={clearMessages}
             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
             title="Limpar conversa"
           >
             <Trash2 size={18} />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -240,13 +241,13 @@ export const AIHubPage: React.FC = () => {
               'Mostre meu pipeline',
               'Quais deals estão parados?',
             ].map((suggestion) => (
-              <button
+              <Button
                 key={suggestion}
                 onClick={() => handleSuggestionClick(suggestion)}
                 className="px-3 py-1.5 text-sm bg-slate-100 dark:bg-white/5 hover:bg-primary-100 dark:hover:bg-primary-500/20 text-slate-700 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 rounded-full transition-colors border border-transparent hover:border-primary-300 dark:hover:border-primary-500/30"
               >
                 {suggestion}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -267,21 +268,21 @@ export const AIHubPage: React.FC = () => {
             />
 
             {isLoading ? (
-              <button
+              <Button
                 type="button"
                 onClick={stopGeneration}
                 className="m-1.5 p-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors"
               >
                 <StopCircle size={20} />
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
                 type="submit"
                 disabled={!input.trim()}
                 className="m-1.5 p-2 bg-primary-500 hover:bg-primary-600 disabled:bg-slate-300 disabled:dark:bg-slate-700 text-white rounded-xl transition-colors disabled:cursor-not-allowed"
               >
                 <Send size={20} />
-              </button>
+              </Button>
             )}
           </div>
         </form>

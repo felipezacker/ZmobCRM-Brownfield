@@ -3,6 +3,7 @@ import { Plus, Search, LayoutGrid, Table as TableIcon, User, Settings, Lightbulb
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Board } from '@/types';
 import { BoardSelector } from '../BoardSelector';
+import { Button } from '@/app/components/ui/Button';
 
 interface KanbanHeaderProps {
     // Boards
@@ -86,37 +87,37 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
 
                 {/* Edit Board Button */}
                 {onEditBoard && (
-                    <button
+                    <Button
                         onClick={() => onEditBoard(activeBoard)}
                         className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                         title="Configurações do Board"
                     >
                         <Settings size={20} />
-                    </button>
+                    </Button>
                 )}
 
                 {/* Export Template Button */}
                 {onExportTemplates && (
-                    <button
+                    <Button
                         onClick={onExportTemplates}
                         className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                         title="Exportar template (comunidade)"
                     >
                         <Download size={20} />
-                    </button>
+                    </Button>
                 )}
 
                 {/* Automation Guide Button */}
                 {activeBoard.automationSuggestions && activeBoard.automationSuggestions.length > 0 && (
                     <Popover>
                         <PopoverTrigger asChild>
-                            <button
+                            <Button
                                 className="p-2 text-yellow-600 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors relative group"
                                 title="Automações Sugeridas"
                             >
                                 <Lightbulb size={20} className="fill-current" />
                                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                            </button>
+                            </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-80 p-0" align="start">
                             <div className="p-4 border-b border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-slate-900/50">
@@ -144,22 +145,22 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
 
                 {/* VIEW TOGGLE */}
                 <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-lg border border-slate-200 dark:border-white/10">
-                    <button
+                    <Button
                         onClick={() => setViewMode('kanban')}
                         aria-label="Visualização em quadro Kanban"
                         aria-pressed={viewMode === 'kanban'}
                         className={`p-1.5 rounded-md transition-all ${viewMode === 'kanban' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
                     >
                         <LayoutGrid size={16} aria-hidden="true" />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={() => setViewMode('list')}
                         aria-label="Visualização em lista"
                         aria-pressed={viewMode === 'list'}
                         className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
                     >
                         <TableIcon size={16} aria-hidden="true" />
-                    </button>
+                    </Button>
                 </div>
 
                 <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden sm:block"></div>
@@ -208,12 +209,12 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
             </div>
 
             <div className="flex gap-3">
-                <button
+                <Button
                     onClick={onNewDeal}
                     className="bg-primary-700 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all shadow-lg shadow-primary-700/20"
                 >
                     <Plus size={18} aria-hidden="true" /> Novo Negócio
-                </button>
+                </Button>
             </div>
         </div>
     );

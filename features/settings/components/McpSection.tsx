@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { ServerCog, Copy, CheckCircle2, Play, AlertTriangle, RefreshCw, ChevronDown } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 import { useOptionalToast } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase/client';
 import { SettingsSection } from './SettingsSection';
@@ -229,7 +230,7 @@ export const McpSection: React.FC = () => {
 
             <div className="flex flex-wrap gap-2">
               {!testResult?.ok ? (
-                <button
+                <Button
                   type="button"
                   onClick={connectMagic}
                   disabled={connecting || creatingKey || testing}
@@ -237,26 +238,26 @@ export const McpSection: React.FC = () => {
                 >
                   {(connecting || creatingKey || testing) ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                   {(connecting || creatingKey || testing) ? 'Conectando…' : 'Conectar'}
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
                   type="button"
                   onClick={copyUrlAndToken}
                   className="px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold inline-flex items-center gap-2"
                 >
                   <Copy className="h-4 w-4" />
                   Copiar URL + Token
-                </button>
+                </Button>
               )}
 
-              <button
+              <Button
                 type="button"
                 onClick={() => copy('URL do MCP', fullEndpoint)}
                 className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white text-sm font-semibold inline-flex items-center gap-2"
               >
                 <Copy className="h-4 w-4" />
                 Copiar URL
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -280,22 +281,22 @@ export const McpSection: React.FC = () => {
                   O que você precisa:
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={copyUrlAndToken}
                     className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold inline-flex items-center gap-2"
                   >
                     <Copy className="h-4 w-4" />
                     Copiar URL + Token
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => copy('URL do MCP', fullEndpoint)}
                     className="px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 hover:bg-white text-emerald-800 dark:text-emerald-200 text-sm font-semibold inline-flex items-center gap-2"
                   >
                     <Copy className="h-4 w-4" />
                     Copiar URL
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -314,14 +315,14 @@ export const McpSection: React.FC = () => {
 
         {/* "Tenho uma chave" (progressive disclosure) */}
         <div className="mt-4 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden">
-          <button
+          <Button
             type="button"
             onClick={() => setShowHaveKey((v) => !v)}
             className="w-full flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100"
           >
             <span>Já tenho uma API key</span>
             <ChevronDown className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform ${showHaveKey ? 'rotate-180' : ''}`} />
-          </button>
+          </Button>
           {showHaveKey && (
             <div className="px-4 pb-4">
               <div className="text-xs text-slate-600 dark:text-slate-300 mb-3">
@@ -335,7 +336,7 @@ export const McpSection: React.FC = () => {
                   className="min-w-[260px] flex-1 px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white font-mono text-xs"
                   placeholder="Cole aqui sua API key"
                 />
-                <button
+                <Button
                   type="button"
                   onClick={testConnection}
                   disabled={testing}
@@ -343,10 +344,10 @@ export const McpSection: React.FC = () => {
                 >
                   <Play className="h-4 w-4" />
                   {testing ? 'Testando…' : 'Testar'}
-                </button>
+                </Button>
               </div>
               <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                Precisa revogar/ver histórico? <button type="button" onClick={navigateToApiKeys} className="underline">Gerenciar API keys</button>
+                Precisa revogar/ver histórico? <Button type="button" onClick={navigateToApiKeys} className="underline">Gerenciar API keys</Button>
               </div>
             </div>
           )}

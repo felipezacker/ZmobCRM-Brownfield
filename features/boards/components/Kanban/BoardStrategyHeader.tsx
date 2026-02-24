@@ -14,6 +14,7 @@ import { Board } from '@/types';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useUIStore } from '@/lib/stores';
+import { Button } from '@/app/components/ui/Button';
 
 // Performance: reuse formatter instances.
 const BRL_CURRENCY_FORMATTER = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -99,7 +100,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
   if (!hasStrategy && !isEditing) {
     return (
       <div className="mb-4">
-        <button
+        <Button
           onClick={() => setIsEditing(true)}
           className="w-full py-3 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:border-primary-500 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-all group bg-slate-50/50 dark:bg-white/5"
         >
@@ -109,7 +110,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
           <span className="font-medium text-sm">
             Definir Estratégia do Board (Meta, Agente e Gatilhos)
           </span>
-        </button>
+        </Button>
       </div>
     );
   }
@@ -137,13 +138,13 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
       <div className="relative px-5 py-3 bg-white dark:bg-[#0B1120] rounded-lg border border-slate-100 dark:border-white/5 shadow-sm transition-all duration-300 hover:shadow-md">
         {/* Edit Button - Only visible on hover */}
         {!isEditing && (
-          <button
+          <Button
             onClick={() => setIsEditing(true)}
             className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-full transition-all opacity-0 group-hover/header:opacity-100"
             title="Editar Estratégia"
           >
             <Edit2 size={12} />
-          </button>
+          </Button>
         )}
 
         {isEditing ? (
@@ -167,18 +168,18 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                 </div>
               </div>
               <div className="flex gap-2">
-                <button
+                <Button
                   onClick={handleCancel}
                   className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleSave}
                   className="px-4 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-black text-xs font-bold rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all"
                 >
                   Salvar Alterações
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -388,12 +389,12 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                     </span>
                   </div>
                   {board.agentPersona && (
-                    <button
+                    <Button
                       onClick={() => setIsGlobalAIOpen(true)}
                       className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
                     >
                       <MessageSquare size={12} /> Falar
-                    </button>
+                    </Button>
                   )}
                 </div>
 

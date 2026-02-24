@@ -15,6 +15,7 @@ import type { NextBestAction, TemplatePickerMode } from './cockpit-types';
 import type { MessageChannel } from '@/features/inbox/components/MessageComposerModal';
 import type { MessageLogContext } from './cockpit-types';
 import type { ScheduleType } from '@/features/inbox/components/ScheduleModal';
+import { Button } from '@/app/components/ui/Button';
 
 interface CockpitNextActionPanelProps {
   nextBestAction: NextBestAction;
@@ -59,17 +60,17 @@ export function CockpitNextActionPanel({
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-600/25 hover:bg-rose-500"
           onClick={onExecuteNext}
         >
           <ActivityIcon className="h-4 w-4" />
           Executar agora
-        </button>
+        </Button>
 
         <div className="grid w-full grid-cols-4 gap-2">
-          <button
+          <Button
             type="button"
             className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
             title="Ligar (abre modal de ligação)"
@@ -78,9 +79,9 @@ export function CockpitNextActionPanel({
           >
             <Phone className="h-4 w-4 text-slate-200" />
             <span className="text-[10px] font-semibold text-slate-300">Ligar</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
             className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
             title="Preparar WhatsApp"
@@ -89,9 +90,9 @@ export function CockpitNextActionPanel({
           >
             <Sparkles className="h-4 w-4 text-slate-200" />
             <span className="text-[10px] font-semibold text-slate-300">Gerar WA</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
             className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
             title="Preparar e-mail"
@@ -102,9 +103,9 @@ export function CockpitNextActionPanel({
           >
             <Inbox className="h-4 w-4 text-slate-200" />
             <span className="text-[10px] font-semibold text-slate-300">E-mail</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
             className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
             title="Agendar (cria uma tarefa simples)"
@@ -113,11 +114,11 @@ export function CockpitNextActionPanel({
           >
             <CalendarClock className="h-4 w-4 text-slate-200" />
             <span className="text-[10px] font-semibold text-slate-300">Agendar</span>
-          </button>
+          </Button>
         </div>
 
         <div className="grid w-full grid-cols-2 gap-2">
-          <button
+          <Button
             type="button"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
             title="Usar um template persistido (Quick Scripts)"
@@ -126,9 +127,9 @@ export function CockpitNextActionPanel({
           >
             <MessageCircle className="h-4 w-4" />
             Template WhatsApp
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
             title="Usar um template persistido (Quick Scripts)"
@@ -137,7 +138,7 @@ export function CockpitNextActionPanel({
           >
             <Inbox className="h-4 w-4" />
             Template E-mail
-          </button>
+          </Button>
         </div>
       </div>
     </Panel>

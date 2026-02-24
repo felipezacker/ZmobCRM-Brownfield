@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, User, Rocket, Database, Eye, EyeOff } from 'lucide-react';
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'framer-motion';
 import { validateInstallerPassword } from '@/lib/installer/passwordPolicy';
+import { Button } from '@/app/components/ui/Button';
 
 type InstallerMeta = { enabled: boolean; requiresToken: boolean };
 
@@ -470,13 +471,13 @@ export default function InstallStartPage() {
                 autoFocus
               />
               
-              <button
+              <Button
                 onClick={handleUnlock}
                 disabled={isLoading}
                 className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:bg-amber-500/50 text-white font-semibold text-lg transition-all"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Desbloquear'}
-              </button>
+              </Button>
               
               {error && (
                 <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 text-red-400 text-sm">
@@ -574,17 +575,17 @@ export default function InstallStartPage() {
                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 pr-12 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent"
                     placeholder="Crie uma senha"
                   />
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="flex items-center justify-between gap-3 text-xs">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       const p = generateStrongPassword(16);
@@ -595,8 +596,8 @@ export default function InstallStartPage() {
                     className="text-violet-300/90 hover:text-violet-200 underline underline-offset-4"
                   >
                     Usar senha sugerida
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={async () => {
                       try {
@@ -610,7 +611,7 @@ export default function InstallStartPage() {
                     className="text-slate-400 hover:text-slate-200"
                   >
                     Copiar
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-400">
@@ -648,12 +649,12 @@ export default function InstallStartPage() {
                   )}
                 </div>
                 
-                <button
+                <Button
                   onClick={handleIdentitySubmit}
                   className="w-full py-4 rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 text-white font-semibold text-lg transition-all shadow-lg shadow-violet-500/25"
                 >
                   Continuar
-                </button>
+                </Button>
               </motion.div>
               
               {error && (

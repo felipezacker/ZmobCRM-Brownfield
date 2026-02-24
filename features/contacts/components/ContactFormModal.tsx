@@ -9,6 +9,7 @@ import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { useAuth } from '@/context/AuthContext';
 import { useActiveDealsCount } from '@/hooks/useReassignContactWithDeals';
 import { createClient } from '@/lib/supabase/client';
+import { Button } from '@/app/components/ui/Button';
 
 export interface ContactFormData {
   name: string;
@@ -153,23 +154,23 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
             </div>
             <div className="flex items-center gap-1">
               {editingContact && (
-                <button
+                <Button
                   onClick={handleOpenCockpit}
                   className="ml-2 text-slate-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
                   title="Abrir Cockpit"
                   type="button"
                 >
                   <Maximize2 size={22} />
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 onClick={onClose}
                 aria-label="Fechar modal"
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white focus-visible-ring rounded"
                 type="button"
               >
                 <X size={20} aria-hidden="true" />
-              </button>
+              </Button>
             </div>
           </div>
         <form onSubmit={onSubmit} className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
@@ -317,13 +318,13 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
             </fieldset>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
             className="w-full bg-primary-600 hover:bg-primary-500 text-white font-bold py-2.5 rounded-lg mt-2 shadow-lg shadow-primary-600/20 transition-all"
           >
             {isSubmitting ? 'Criando...' : (editingContact ? 'Salvar Alterações' : 'Criar Contato')}
-          </button>
+          </Button>
         </form>
         </div>
       </div>

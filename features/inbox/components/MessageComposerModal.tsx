@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { rewriteMessageDraft, type RewriteMessageDraftInput } from '@/lib/ai/actionsClient';
 import { isConsentError, isRateLimitError } from '@/lib/supabase/ai-proxy';
 import { toWhatsAppPhone } from '@/lib/phone';
+import { Button } from '@/app/components/ui/Button';
 
 export type MessageChannel = 'WHATSAPP' | 'EMAIL';
 
@@ -329,15 +330,15 @@ export function MessageComposerModal({
                             </p>
                             {contactValue && (
                                 <>
-                                    <button
+                                    <Button
                                         type="button"
                                         onClick={() => handleCopy('contact')}
                                         className="p-1 rounded-md hover:bg-slate-50 dark:hover:bg-white/5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
                                         title={copied === 'contact' ? 'Copiado' : 'Copiar contato'}
                                     >
                                         <Copy size={12} />
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         type="button"
                                         onClick={handleOpen}
                                         disabled={!canOpen}
@@ -345,7 +346,7 @@ export function MessageComposerModal({
                                         title={channel === 'WHATSAPP' ? 'Abrir no WhatsApp' : 'Abrir no email'}
                                     >
                                         <ExternalLink size={12} />
-                                    </button>
+                                    </Button>
                                 </>
                             )}
                         </div>
@@ -369,14 +370,14 @@ export function MessageComposerModal({
                                 className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white text-sm focus:outline-none focus-visible-ring"
                                 placeholder="Ex: Próximos passos"
                             />
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => handleCopy('subject')}
                                 className="px-3 py-2 rounded-lg text-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 transition-colors"
                                 title="Copiar assunto"
                             >
                                 <Copy size={16} />
-                            </button>
+                            </Button>
                         </div>
                         {copied === 'subject' && (
                             <p className="text-[11px] text-emerald-600 dark:text-emerald-400">Assunto copiado</p>
@@ -405,21 +406,21 @@ export function MessageComposerModal({
                             {message.length} caracteres
                         </div>
                         <div className="flex items-center gap-2">
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => handleCopy('message')}
                                 className="px-3 py-1.5 rounded-lg text-xs border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-2"
                             >
                                 <Copy size={14} />
                                 {copied === 'message' ? 'Copiado' : 'Copiar'}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2 justify-end pt-2">
                     <div className="mr-auto">
-                        <button
+                        <Button
                             type="button"
                             onClick={handleRewriteWithAI}
                             disabled={isRewriting}
@@ -432,16 +433,16 @@ export function MessageComposerModal({
                                 <Sparkles size={16} />
                             )}
                             Reescrever com IA
-                        </button>
+                        </Button>
                     </div>
-                    <button
+                    <Button
                         type="button"
                         onClick={onClose}
                         className="px-4 py-2 rounded-lg text-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 transition-colors"
                     >
                         Cancelar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="button"
                         onClick={handleOpen}
                         disabled={!canOpen}
@@ -453,7 +454,7 @@ export function MessageComposerModal({
                     >
                         <ExternalLink size={16} />
                         {channel === 'WHATSAPP' ? 'Abrir no WhatsApp' : 'Abrir no email'}
-                    </button>
+                    </Button>
                 </div>
 
                 {rewriteError && (
