@@ -5,6 +5,7 @@ import { createStaticAdminClient } from '@/lib/supabase/server';
 import { decodeOffsetCursor, encodeOffsetCursor, parseLimit } from '@/lib/public-api/cursor';
 import { sanitizeUUID } from '@/lib/supabase/utils';
 import { normalizeText } from '@/lib/public-api/sanitize';
+import { withRateLimit } from '@/app/api/public/v1/with-rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -17,7 +18,7 @@ const ActivityCreateSchema = z.object({
   contact_id: z.string().uuid().optional(),
 }).strict();
 
-export async function GET(request: Request) {
+export const GET = withRateLimit(async function GET(request: Request) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -64,9 +65,9 @@ export async function GET(request: Request) {
     })),
     nextCursor,
   });
-}
+});
 
-export async function POST(request: Request) {
+export const POST = withRateLimit(async function POST(request: Request) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -102,4 +103,4 @@ export async function POST(request: Request) {
     .single();
   if (error) return NextResponse.json({ error: error.message, code: 'DB_ERROR' }, { status: 500 });
   return NextResponse.json({ data, action: 'created' }, { status: 201 });
-}
+});

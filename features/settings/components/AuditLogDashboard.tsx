@@ -7,11 +7,11 @@
  * Shows cross-tenant attempts, suspicious activities, and data exports.
  */
 import React, { useState, useEffect } from 'react';
-import { 
-  Shield, 
-  AlertTriangle, 
-  Info, 
-  AlertCircle, 
+import {
+  Shield,
+  AlertTriangle,
+  Info,
+  AlertCircle,
   Filter,
   RefreshCw,
   ChevronDown,
@@ -22,6 +22,7 @@ import {
   Bell,
   Check
 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
@@ -375,12 +376,11 @@ export const AuditLogDashboard: React.FC = () => {
             <p className="text-slate-500 dark:text-slate-400">Carregando logs...</p>
           </div>
         ) : logs.length === 0 ? (
-          <div className="p-8 text-center">
-            <Shield className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-500 dark:text-slate-400">
-              Nenhum log encontrado para os filtros selecionados
-            </p>
-          </div>
+          <EmptyState
+            icon={<Shield className="w-6 h-6 text-slate-400 dark:text-slate-500" />}
+            title="Nenhum log encontrado para os filtros selecionados"
+            size="md"
+          />
         ) : (
           <div className="divide-y divide-slate-200 dark:divide-white/10">
             {logs.map((log) => {

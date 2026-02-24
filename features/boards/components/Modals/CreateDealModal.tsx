@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useBoards } from '@/context/boards/BoardsContext';
 import { useAuth } from '@/context/AuthContext';
 import { Deal, Board, Contact } from '@/types';
 import { X, User, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react';
@@ -26,7 +27,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
     activeBoard: propActiveBoard,
     activeBoardId: propActiveBoardId
 }) => {
-    const { addDeal, activeBoard: contextActiveBoard, activeBoardId: contextActiveBoardId } = useCRM();
+    const { addDeal } = useCRMActions();
+    const { activeBoard: contextActiveBoard, activeBoardId: contextActiveBoardId } = useBoards();
     const { profile, user } = useAuth();
 
     // Prioriza props sobre contexto (permite que o Kanban passe o board correto)

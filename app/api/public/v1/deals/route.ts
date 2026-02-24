@@ -6,6 +6,7 @@ import { decodeOffsetCursor, encodeOffsetCursor, parseLimit } from '@/lib/public
 import { resolveBoardIdFromKey, resolveFirstStageId } from '@/lib/public-api/resolve';
 import { normalizeEmail, normalizePhone, normalizeText } from '@/lib/public-api/sanitize';
 import { sanitizeUUID } from '@/lib/supabase/utils';
+import { withRateLimit } from '@/app/api/public/v1/with-rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -25,7 +26,7 @@ const DealCreateSchema = z.object({
   contact: ContactInlineSchema.optional(),
 }).strict();
 
-export async function GET(request: Request) {
+export const GET = withRateLimit(async function GET(request: Request) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -90,7 +91,7 @@ export async function GET(request: Request) {
     })),
     nextCursor,
   });
-}
+});
 
 async function upsertContactForDeal(opts: {
   organizationId: string;
@@ -144,7 +145,7 @@ async function upsertContactForDeal(opts: {
   return data.id as string;
 }
 
-export async function POST(request: Request) {
+export const POST = withRateLimit(async function POST(request: Request) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -207,4 +208,4 @@ export async function POST(request: Request) {
   if (error) return NextResponse.json({ error: error.message, code: 'DB_ERROR' }, { status: 500 });
 
   return NextResponse.json({ data, action: 'created' }, { status: 201 });
-}
+});

@@ -5,7 +5,11 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Check, X } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useDeals } from '@/context/deals/DealsContext';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { normalizePhoneE164 } from '@/lib/phone';
 
@@ -59,17 +63,16 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   const { profile, user } = useAuth();
 
-  const {
-    loading: crmLoading,
-    error: crmError,
-    refresh: refreshCRM,
-    deals,
-    contacts,
-    boards,
-    activities,
-    addActivity,
-    updateDeal,
-  } = useCRM();
+  const { deals } = useCRMActions();
+  const dealsCtx = useDeals();
+  const { updateDeal } = dealsCtx;
+  const { contacts } = useContacts();
+  const { boards } = useBoards();
+  const activitiesCtx = useActivities();
+  const { activities, addActivity } = activitiesCtx;
+  const crmLoading = dealsCtx.loading || activitiesCtx.loading;
+  const crmError = dealsCtx.error || activitiesCtx.error;
+  const refreshCRM = async () => { await dealsCtx.refresh(); await activitiesCtx.refresh(); };
 
   const [toast, setToast] = useState<ToastState | null>(null);
 

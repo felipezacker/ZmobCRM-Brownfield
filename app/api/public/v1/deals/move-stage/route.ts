@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authPublicApi } from '@/lib/public-api/auth';
 import { isValidUUID } from '@/lib/supabase/utils';
 import { moveStageByDealId, moveStageByIdentity } from '@/lib/public-api/dealsMoveStage';
+import { withRateLimit } from '@/app/api/public/v1/with-rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -28,7 +29,7 @@ const MoveStageSchema = z.object({
     return !!(v.board_key_or_id && (v.phone || v.email));
   }, { message: 'Provide deal_id OR (board_key_or_id + phone/email)' });
 
-export async function POST(request: Request) {
+export const POST = withRateLimit(async function POST(request: Request) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -62,5 +63,5 @@ export async function POST(request: Request) {
     mark,
   });
   return NextResponse.json(res.body, { status: res.status });
-}
+});
 

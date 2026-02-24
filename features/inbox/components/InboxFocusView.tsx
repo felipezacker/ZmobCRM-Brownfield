@@ -21,7 +21,12 @@ import {
 import { FocusItem, AISuggestion } from '../hooks/useInboxController';
 import { Activity, DealView } from '@/types';
 import { FocusContextPanel } from './FocusContextPanel';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useDeals } from '@/context/deals/DealsContext';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useUIStore } from '@/lib/stores';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { useAuth } from '@/context/AuthContext';
 import { InboxZeroState } from './InboxZeroState';
@@ -100,17 +105,12 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
   const [showContext, setShowContext] = useState(false);
   const [manualDealId, setManualDealId] = useState('');
   const [contextSearch, setContextSearch] = useState('');
-  const {
-    deals,
-    contacts,
-    boards,
-    activeBoard,
-    activities,
-    updateDeal,
-    addActivity,
-    updateActivity,
-    setSidebarCollapsed,
-  } = useCRM();
+  const { deals } = useCRMActions();
+  const { updateDeal } = useDeals();
+  const { contacts } = useContacts();
+  const { boards, activeBoard } = useBoards();
+  const { activities, addActivity, updateActivity } = useActivities();
+  const { setSidebarOpen } = useUIStore();
   const { profile } = useAuth();
   const router = useRouter();
 
@@ -286,8 +286,8 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
   }, [currentIndex, totalItems, showContext, contextData, onPrev, onNext, onSnooze, onSkip, onDone]);
 
   useEffect(() => {
-    setSidebarCollapsed(showContext);
-  }, [showContext, setSidebarCollapsed]);
+    setSidebarOpen(!showContext);
+  }, [showContext, setSidebarOpen]);
 
   const normalizedContextSearch = normalizeTitleKey(contextSearch);
   const suggestedDeals = useMemo(() => {

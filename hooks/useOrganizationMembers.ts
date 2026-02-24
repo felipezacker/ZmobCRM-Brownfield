@@ -21,15 +21,15 @@ export function useOrganizationMembers() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, email, role, avatar_url')
+        .select('id, first_name, last_name, email, role, avatar_url')
         .eq('organization_id', orgId!)
-        .order('name');
+        .order('first_name');
 
       if (error || !data) return [];
 
       return data.map((d): OrgMember => ({
         id: d.id,
-        name: d.name || d.email?.split('@')[0] || 'Sem nome',
+        name: [d.first_name, d.last_name].filter(Boolean).join(' ') || d.email?.split('@')[0] || 'Sem nome',
         email: d.email || '',
         role: d.role as OrgMember['role'],
         avatar_url: d.avatar_url || null,

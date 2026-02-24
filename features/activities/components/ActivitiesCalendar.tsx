@@ -157,7 +157,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                 <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     {DAYS_OF_WEEK[date.getDay()]}
                                 </div>
-                                <div className={`text-2xl font-black mt-1 font-display ${isToday(date)
+                                <div className={`text-2xl font-bold mt-1 font-display ${isToday(date)
                                         ? 'text-primary-600 dark:text-primary-400'
                                         : 'text-slate-900 dark:text-white'
                                     }`}>
@@ -209,7 +209,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                                             <div className="p-1 bg-white/20 rounded-md">
                                                                 {getActivityIcon(activity.type)}
                                                             </div>
-                                                            <span className="font-black text-white text-sm">
+                                                            <span className="font-bold text-white text-sm">
                                                                 {new Date(activity.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                                             </span>
                                                         </div>

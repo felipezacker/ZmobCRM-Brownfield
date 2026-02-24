@@ -28,6 +28,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+    try {
+      const stored = localStorage.getItem('crm_dark_mode');
+      if (stored === 'false') {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (e) {}
+  `,
+        }} />
+      </head>
       <body className={`${inter.variable} font-sans antialiased bg-[var(--color-bg)] text-[var(--color-text-primary)]`}>
         <ServiceWorkerRegister />
         <InstallBanner />

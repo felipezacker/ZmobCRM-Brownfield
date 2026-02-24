@@ -1,5 +1,6 @@
 import React from 'react';
 import { PenTool, Pencil, Check, Plus, List, Tag, Trash2 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { SettingsSection } from './SettingsSection';
 import { CustomFieldDefinition, CustomFieldType } from '@/types';
 
@@ -179,7 +180,7 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
           </div>
         ))}
         {customFieldDefinitions.length === 0 && (
-          <p className="text-center text-slate-500 text-sm py-4 italic">Nenhum campo personalizado criado.</p>
+          <EmptyState title="Nenhum campo personalizado criado." size="sm" />
         )}
       </div>
     </SettingsSection>

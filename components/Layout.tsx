@@ -45,7 +45,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen
 } from 'lucide-react';
-import { useCRM } from '../context/CRMContext';
+import { useUIStore } from '@/lib/stores';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { prefetchRoute, RouteName } from '@/lib/prefetch';
@@ -134,7 +134,9 @@ const NavItem = ({
  */
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { darkMode, toggleDarkMode } = useTheme();
-  const { isGlobalAIOpen, setIsGlobalAIOpen, sidebarCollapsed, setSidebarCollapsed } = useCRM();
+  const { isGlobalAIOpen, setIsGlobalAIOpen, sidebarOpen, setSidebarOpen } = useUIStore();
+  const sidebarCollapsed = !sidebarOpen;
+  const setSidebarCollapsed = (collapsed: boolean) => setSidebarOpen(!collapsed);
   const { user, loading, profile, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -228,12 +230,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <SkipLink targetId="main-content" />
 
       {/* Tablet rail (shows full icon set; no "More" sheet needed) */}
-      {isTablet ? <NavigationRail /> : null}
+      <div className="hidden md:flex lg:hidden">
+        <NavigationRail />
+      </div>
 
       {/* Sidebar - Collapsible */}
-      {isDesktop ? (
-        <aside
-          className={`hidden md:flex flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20 items-center' : 'w-52'
+      <aside
+          className={`hidden lg:flex flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20 items-center' : 'w-52'
             }`}
           aria-label="Menu principal"
         >
@@ -410,7 +413,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
         </aside>
-      ) : null}
 
       {/* Main Content Wrapper */}
       <div className="flex-1 flex min-w-0 overflow-hidden relative">

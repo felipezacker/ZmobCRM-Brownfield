@@ -4,6 +4,7 @@ import { authPublicApi } from '@/lib/public-api/auth';
 import { createStaticAdminClient } from '@/lib/supabase/server';
 import { isValidUUID, sanitizeUUID } from '@/lib/supabase/utils';
 import { normalizeText } from '@/lib/public-api/sanitize';
+import { withRateLimit } from '@/app/api/public/v1/with-rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -14,7 +15,7 @@ const DealPatchSchema = z.object({
   loss_reason: z.string().nullable().optional(),
 }).strict();
 
-export async function GET(request: Request, ctx: { params: Promise<{ dealId: string }> }) {
+export const GET = withRateLimit(async function GET(request: Request, ctx: { params: Promise<{ dealId: string }> }) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -36,9 +37,9 @@ export async function GET(request: Request, ctx: { params: Promise<{ dealId: str
   if (!data) return NextResponse.json({ error: 'Deal not found', code: 'NOT_FOUND' }, { status: 404 });
 
   return NextResponse.json({ data });
-}
+});
 
-export async function PATCH(request: Request, ctx: { params: Promise<{ dealId: string }> }) {
+export const PATCH = withRateLimit(async function PATCH(request: Request, ctx: { params: Promise<{ dealId: string }> }) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -73,4 +74,4 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ dealId: s
   if (!data) return NextResponse.json({ error: 'Deal not found', code: 'NOT_FOUND' }, { status: 404 });
 
   return NextResponse.json({ data });
-}
+});

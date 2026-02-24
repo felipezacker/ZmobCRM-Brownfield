@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Package, Pencil, Plus, Save, Trash2, ToggleLeft, ToggleRight, X } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { productsService } from '@/lib/supabase';
 import type { Product } from '@/types';
 
@@ -239,9 +240,7 @@ export const ProductsCatalogManager: React.FC = () => {
         {/* List */}
         <div className="mt-6 border-t border-slate-200 dark:border-white/10 pt-4">
           {sorted.length === 0 ? (
-            <div className="text-sm text-slate-500 dark:text-slate-400 py-6">
-              Nenhum produto cadastrado ainda.
-            </div>
+            <EmptyState title="Nenhum produto cadastrado ainda." size="sm" />
           ) : (
             <div className="space-y-2">
               {sorted.map((p) => {

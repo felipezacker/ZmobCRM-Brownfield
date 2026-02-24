@@ -452,7 +452,7 @@ export default function InstallStartPage() {
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="text-center"
             >
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/20 mb-8">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-8">
                 <AlertCircle className="w-10 h-10 text-amber-400" />
               </div>
               
@@ -514,7 +514,7 @@ export default function InstallStartPage() {
                 transition={{ delay: 0.15, type: 'spring', stiffness: 200 }}
                 className="flex justify-center mb-6"
               >
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20 flex items-center justify-center">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border border-violet-500/20 flex items-center justify-center">
                   <User className="w-10 h-10 text-violet-400" />
                 </div>
               </motion.div>
@@ -692,7 +692,7 @@ export default function InstallStartPage() {
                 transition={{ delay: 0.15, type: 'spring', stiffness: 200 }}
                 className="flex justify-center mb-6"
               >
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20 flex items-center justify-center">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20 flex items-center justify-center">
                   <Rocket className="w-10 h-10 text-cyan-400" />
                 </div>
               </motion.div>
@@ -835,7 +835,7 @@ export default function InstallStartPage() {
                 transition={{ delay: 0.15, type: 'spring', stiffness: 200 }}
                 className="flex justify-center mb-6"
               >
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center">
                   <Database className="w-10 h-10 text-emerald-400" />
                 </div>
               </motion.div>

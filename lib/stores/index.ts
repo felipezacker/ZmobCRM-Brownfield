@@ -28,6 +28,7 @@
  * const { toggleSidebar, openModal } = useUIStore();
  * ```
  */
+import React from 'react';
 import { create } from 'zustand';
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 
@@ -48,11 +49,20 @@ interface UIState {
   // Sidebar
   sidebarOpen: boolean;
   toggleSidebar: () => void;
+  setSidebarOpen: (open: boolean) => void;
 
   // AI Assistant
   aiAssistantOpen: boolean;
   setAIAssistantOpen: (open: boolean) => void;
   toggleAIAssistant: () => void;
+
+  // Global AI Panel (CRM-wide)
+  isGlobalAIOpen: boolean;
+  setIsGlobalAIOpen: (open: boolean) => void;
+
+  // Active Board (pipeline selection)
+  activeBoardId: string;
+  setActiveBoardId: (id: string) => void;
 
   // Modals
   activeModal: string | null;
@@ -91,11 +101,20 @@ export const useUIStore = create<UIState>()(
       // Sidebar
       sidebarOpen: true,
       toggleSidebar: () => set(state => ({ sidebarOpen: !state.sidebarOpen })),
+      setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
       // AI Assistant
       aiAssistantOpen: false,
       setAIAssistantOpen: open => set({ aiAssistantOpen: open }),
       toggleAIAssistant: () => set(state => ({ aiAssistantOpen: !state.aiAssistantOpen })),
+
+      // Global AI Panel
+      isGlobalAIOpen: false,
+      setIsGlobalAIOpen: (open) => set({ isGlobalAIOpen: open }),
+
+      // Active Board
+      activeBoardId: '',
+      setActiveBoardId: (id) => set({ activeBoardId: id }),
 
       // Modals
       activeModal: null,
@@ -310,6 +329,10 @@ export const useNotificationStore = create<NotificationState>()(
 export const useSidebarOpen = () => useUIStore(state => state.sidebarOpen);
 /** @returns {boolean} Se o assistente de IA está aberto */
 export const useAIAssistantOpen = () => useUIStore(state => state.aiAssistantOpen);
+/** @returns {boolean} Se o painel global de IA está aberto */
+export const useIsGlobalAIOpen = () => useUIStore(state => state.isGlobalAIOpen);
+/** @returns {string} ID do board/pipeline ativo */
+export const useActiveBoardId = () => useUIStore(state => state.activeBoardId);
 /** @returns {string | null} ID do modal ativo */
 export const useActiveModal = () => useUIStore(state => state.activeModal);
 /** @returns {Record<string, unknown>} Dados do modal ativo */
@@ -367,5 +390,3 @@ export const useFormDraftAutoSave = (
   }, [formId, data, debounceMs, saveDraft]);
 };
 
-// Import React for the hook above
-import React from 'react';
