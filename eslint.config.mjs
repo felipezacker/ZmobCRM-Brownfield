@@ -62,6 +62,22 @@ const eslintConfig = [
       'react-hooks/exhaustive-deps': 'off',
     },
   },
+
+  // Ban raw <button> elements in favor of design system Button component
+  {
+    files: ['**/*.tsx'],
+    ignores: ['components/ui/**'],
+    rules: {
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: "JSXOpeningElement[name.name='button']",
+          message:
+            'Use <Button> from @/components/ui/Button instead of raw <button>. Design system components ensure consistent styling and accessibility.',
+        },
+      ],
+    },
+  },
 ];
 
 export default eslintConfig;
