@@ -166,6 +166,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     [setSelectedDealId]
   );
 
+  // Performance: stable keyboard handler map keyed by deal.id to avoid inline arrows defeating React.memo
+  const keyboardHandlers = useMemo(() => {
+    const map = new Map<string, (e: React.KeyboardEvent) => void>();
+    for (const stage of stages) {
+      const stageDeals = dealsByStageId.map.get(stage.id) ?? [];
+      for (const deal of stageDeals) {
+        map.set(deal.id, (e: React.KeyboardEvent) =>
+          handleCardKeyDown(e, deal, stage.id, stages, dealsByStageId.map, onMoveDealToStage, handleSelectDeal)
+        );
+      }
+    }
+    return map;
+  }, [stages, dealsByStageId.map, handleCardKeyDown, onMoveDealToStage, handleSelectDeal]);
+
   // Handler to open move-to-stage modal (stable across re-renders when only menu state changes)
   const handleOpenMoveToStage = useCallback(
     (dealId: string) => {
@@ -310,17 +324,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   setLastMouseDownDealId={setLastMouseDownDealId}
                   onMoveToStage={onMoveDealToStage ? handleOpenMoveToStage : undefined}
                   isGrabbed={grabbedDealId === deal.id}
-                  onKeyboardMove={(e) =>
-                    handleCardKeyDown(
-                      e,
-                      deal,
-                      stage.id,
-                      stages,
-                      dealsByStageId.map,
-                      onMoveDealToStage,
-                      handleSelectDeal
-                    )
-                  }
+                  onKeyboardMove={keyboardHandlers.get(deal.id)}
                 />
               ))}
             </div>

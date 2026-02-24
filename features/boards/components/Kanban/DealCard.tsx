@@ -165,6 +165,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     if (priority) parts.push(priority);
     if (isRotting && !isClosed) parts.push('estagnado');
 
+    if (isGrabbed) parts.push('segurado para mover');
+
     return parts.join(', ');
   };
 
@@ -201,7 +203,6 @@ const DealCardComponent: React.FC<DealCardProps> = ({
       tabIndex={0}
       role="article"
       aria-roledescription="cartão movível"
-      aria-grabbed={isGrabbed ? true : undefined}
       aria-label={getAriaLabel()}
       className={`${getCardClasses()} ${getBorderLeftClass()}`}
     >

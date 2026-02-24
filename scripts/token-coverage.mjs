@@ -14,6 +14,10 @@ const SEMANTIC_CLASS_RE = /(?:text|bg|border|ring)-(?:primary|secondary|surface|
 
 const HEX_COLOR_RE = /#[0-9a-fA-F]{6}\b/g;
 
+const ARBITRARY_COLOR_RE = /(?:text|bg|border|ring|shadow|from|to|via|outline|accent|fill|stroke|divide|placeholder)-\[#[0-9A-Fa-f]+\]/g;
+
+const INLINE_COLOR_FN_RE = /(?:rgba?|hsla?)\(\s*[\d.,\s%]+\)/g;
+
 const CSS_VAR_COLOR_RE = /var\(--color-[\w-]+\)/g;
 
 // --- CLI args ---
@@ -60,17 +64,19 @@ for (const file of allFiles) {
   const semantic = content.match(SEMANTIC_CLASS_RE) || [];
   const hex = content.match(HEX_COLOR_RE) || [];
   const cssVar = content.match(CSS_VAR_COLOR_RE) || [];
+  const arbitrary = content.match(ARBITRARY_COLOR_RE) || [];
+  const inlineFn = content.match(INLINE_COLOR_FN_RE) || [];
 
-  if (hardcoded.length || semantic.length || hex.length || cssVar.length) {
+  if (hardcoded.length || semantic.length || hex.length || cssVar.length || arbitrary.length || inlineFn.length) {
     perFile[rel] = {
-      hardcoded: hardcoded.length,
+      hardcoded: hardcoded.length + arbitrary.length + inlineFn.length,
       semantic: semantic.length,
       hex: hex.length,
       cssVar: cssVar.length,
     };
   }
 
-  results.hardcoded.push(...hardcoded);
+  results.hardcoded.push(...hardcoded, ...arbitrary, ...inlineFn);
   results.semantic.push(...semantic);
   results.hex.push(...hex);
   results.cssVar.push(...cssVar);

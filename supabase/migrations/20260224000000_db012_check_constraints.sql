@@ -9,6 +9,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.check_constraints
     WHERE constraint_name = 'deals_probability_range'
+      AND constraint_schema = 'public'
   ) THEN
     ALTER TABLE public.deals
       ADD CONSTRAINT deals_probability_range CHECK (probability >= 0 AND probability <= 100);
@@ -18,6 +19,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.check_constraints
     WHERE constraint_name = 'deals_value_non_negative'
+      AND constraint_schema = 'public'
   ) THEN
     ALTER TABLE public.deals
       ADD CONSTRAINT deals_value_non_negative CHECK (value >= 0);
@@ -27,6 +29,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.check_constraints
     WHERE constraint_name = 'deal_items_price_non_negative'
+      AND constraint_schema = 'public'
   ) THEN
     ALTER TABLE public.deal_items
       ADD CONSTRAINT deal_items_price_non_negative CHECK (price >= 0);
@@ -36,6 +39,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.check_constraints
     WHERE constraint_name = 'deal_items_quantity_positive'
+      AND constraint_schema = 'public'
   ) THEN
     ALTER TABLE public.deal_items
       ADD CONSTRAINT deal_items_quantity_positive CHECK (quantity > 0);
@@ -45,6 +49,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.check_constraints
     WHERE constraint_name = 'contacts_email_format'
+      AND constraint_schema = 'public'
   ) THEN
     ALTER TABLE public.contacts
       ADD CONSTRAINT contacts_email_format CHECK (
@@ -56,6 +61,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.check_constraints
     WHERE constraint_name = 'profiles_email_format'
+      AND constraint_schema = 'public'
   ) THEN
     ALTER TABLE public.profiles
       ADD CONSTRAINT profiles_email_format CHECK (
