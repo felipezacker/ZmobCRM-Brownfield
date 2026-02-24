@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, Calendar, Clock, CheckCircle } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 export type ScheduleType = 'CALL' | 'MEETING' | 'TASK';
 
@@ -146,12 +147,12 @@ export function ScheduleModal({
                         <Calendar size={20} className="text-primary-400" />
                         Agendar Atividade
                     </h2>
-                    <button
+                    <Button
                         onClick={onClose}
                         className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
                     >
                         <X size={20} className="text-slate-400" />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Content */}
@@ -165,7 +166,7 @@ export function ScheduleModal({
                                 const Icon = cfg.icon;
                                 const isSelected = type === t;
                                 return (
-                                    <button
+                                    <Button
                                         key={t}
                                         onClick={() => setType(t)}
                                         className={`p-3 rounded-lg border flex flex-col items-center gap-1 transition-all ${isSelected
@@ -180,7 +181,7 @@ export function ScheduleModal({
                                     >
                                         <Icon size={18} />
                                         <span className="text-xs font-medium">{cfg.label}</span>
-                                    </button>
+                                    </Button>
                                 );
                             })}
                         </div>
@@ -232,7 +233,7 @@ export function ScheduleModal({
                             if (idx === 2) d.setDate(d.getDate() + 7);
                             const dateStr = d.toISOString().split('T')[0];
                             return (
-                                <button
+                                <Button
                                     key={label}
                                     onClick={() => setDate(dateStr)}
                                     className={`px-3 py-1 text-xs rounded-full transition-colors ${date === dateStr
@@ -241,7 +242,7 @@ export function ScheduleModal({
                                         }`}
                                 >
                                     {label}
-                                </button>
+                                </Button>
                             );
                         })}
                     </div>
@@ -261,13 +262,13 @@ export function ScheduleModal({
 
                 {/* Footer */}
                 <div className="flex gap-3 p-4 border-t border-slate-800 shrink-0">
-                    <button
+                    <Button
                         onClick={onClose}
                         className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors"
                     >
                         Cancelar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={handleSave}
                         disabled={!title.trim() || !date || isSaving}
                         className="flex-1 px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -278,7 +279,7 @@ export function ScheduleModal({
                             <CheckCircle size={16} />
                         )}
                         Agendar
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

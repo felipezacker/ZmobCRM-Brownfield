@@ -44,6 +44,7 @@ import { generateSalesScript } from '@/lib/ai/tasksClient';
 import { MessageComposerModal, type MessageChannel } from './MessageComposerModal';
 import { callAIProxy } from '@/lib/supabase/ai-proxy';
 import type { ScriptCategory } from '@/lib/supabase/quickScripts';
+import { Button } from '@/app/components/ui/Button';
 
 // Performance: reuse Intl formatter instances.
 const PT_BR_SHORT_DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR');
@@ -783,7 +784,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                 return (
                                     <React.Fragment key={stage.id}>
                                         {/* Stage Node */}
-                                        <button
+                                        <Button
                                             onClick={() => onMoveStage(stage.id)}
                                             className="flex flex-col items-center gap-2 group relative"
                                         >
@@ -820,7 +821,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                             >
                                                 {stage.label}
                                             </span>
-                                        </button>
+                                        </Button>
 
                                         {/* Connecting Line */}
                                         {!isLast && (
@@ -866,13 +867,13 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className={`font-mono font-bold text-2xl ${healthScore.color}`}>{healthScore.score}%</span>
-                                    <button
+                                    <Button
                                         onClick={() => refetchAI()}
                                         className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-slate-300 transition-colors"
                                         title="Reanalisar com IA"
                                     >
                                         <RefreshCw size={12} />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                             <div className="h-1.5 bg-slate-800/50 rounded-full overflow-hidden">
@@ -899,13 +900,13 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                         </span>
                                     )}
                                 </div>
-                                <button
+                                <Button
                                     onClick={() => refetchAI()}
                                     className="p-1.5 hover:bg-white/5 rounded text-slate-500 hover:text-slate-300 transition-colors"
                                     title="Reanalisar"
                                 >
                                     <RefreshCw size={12} />
-                                </button>
+                                </Button>
                             </div>
 
                             {/* Icon + Text Block */}
@@ -934,7 +935,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                         { type: 'MEETING', icon: Calendar, label: 'Reunião', color: 'text-purple-400 hover:bg-purple-500/20' },
                                         { type: 'TASK', icon: Target, label: 'Tarefa', color: 'text-slate-400 hover:bg-slate-500/20' },
                                     ].map(({ type, icon: Icon, label, color }) => (
-                                        <button
+                                        <Button
                                             key={type}
                                             onClick={() =>
                                                 handleNBAAction(
@@ -951,13 +952,13 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                             title={label}
                                         >
                                             <Icon size={16} />
-                                        </button>
+                                        </Button>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Main Action Button */}
-                            <button
+                            <Button
                                 onClick={() => handleNBAAction(undefined, 'execute')}
                                 className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${nextBestAction.urgency === 'high'
                                     ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20'
@@ -969,7 +970,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                 <nextBestAction.icon size={16} />
                                 Executar Agora
                                 <ArrowRight size={16} />
-                            </button>
+                            </Button>
                         </div>
 
                         {/* Stats - Single section */}
@@ -1008,25 +1009,25 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                         {/* Contact details grid */}
                                         <div className="mt-2 grid grid-cols-1 gap-1.5">
                                             {contact.phone && (
-                                                <button
+                                                <Button
                                                     onClick={() => navigator.clipboard.writeText(contact.phone || '')}
                                                     className="flex items-center gap-2 text-xs text-slate-400 hover:text-green-400 transition-colors group"
                                                 >
                                                     <Phone size={12} className="text-slate-600 group-hover:text-green-400 shrink-0" />
                                                     <span className="truncate">{contact.phone}</span>
                                                     <Copy size={10} className="opacity-0 group-hover:opacity-100 ml-auto shrink-0" />
-                                                </button>
+                                                </Button>
                                             )}
 
                                             {contact.email && (
-                                                <button
+                                                <Button
                                                     onClick={() => navigator.clipboard.writeText(contact.email || '')}
                                                     className="flex items-center gap-2 text-xs text-slate-400 hover:text-cyan-400 transition-colors group"
                                                 >
                                                     <Mail size={12} className="text-slate-600 group-hover:text-cyan-400 shrink-0" />
                                                     <span className="truncate">{contact.email}</span>
                                                     <Copy size={10} className="opacity-0 group-hover:opacity-100 ml-auto shrink-0" />
-                                                </button>
+                                                </Button>
                                             )}
                                         </div>
 
@@ -1166,7 +1167,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                     const daysInThisStage = isActive ? daysInStage : (isPassed ? mockDaysPerStage[idx] || Math.floor(Math.random() * 15) + 1 : 0);
 
                                     return (
-                                        <button
+                                        <Button
                                             key={stage.id}
                                             onClick={() => onMoveStage(stage.id)}
                                             className={`w-full px-3 py-2 rounded-lg flex items-center justify-between transition-all duration-200 group
@@ -1211,7 +1212,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                                 {isPassed && <CheckCircle2 size={12} style={{ color: hexColor, opacity: 0.7 }} />}
                                                 {isActive && <Target size={12} className="animate-pulse" style={{ color: hexColor }} />}
                                             </div>
-                                        </button>
+                                        </Button>
                                     );
                                 })}
                             </div>
@@ -1246,12 +1247,12 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                     Atividades
                                 </h3>
                                 <div className="flex items-center gap-1">
-                                    <button className="p-1.5 hover:bg-white/5 rounded text-slate-500 hover:text-white transition-colors">
+                                    <Button className="p-1.5 hover:bg-white/5 rounded text-slate-500 hover:text-white transition-colors">
                                         <Filter size={14} />
-                                    </button>
-                                    <button className="p-1.5 hover:bg-white/5 rounded text-slate-500 hover:text-white transition-colors">
+                                    </Button>
+                                    <Button className="p-1.5 hover:bg-white/5 rounded text-slate-500 hover:text-white transition-colors">
                                         <Search size={14} />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 
@@ -1406,7 +1407,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                             <div className="shrink-0 p-4 border-t border-white/5">
                                 {/* Quick Actions - Agendamento */}
                                 <div className="flex flex-wrap gap-2 mb-3">
-                                    <button
+                                    <Button
                                         onClick={() =>
                                             handleWhatsApp({
                                                 message: buildSuggestedWhatsAppMessage('TASK', `Queria falar sobre ${deal.title}`),
@@ -1416,8 +1417,8 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                         className="px-3 py-1.5 hover:bg-green-500/10 text-slate-500 hover:text-green-400 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-medium rounded-md transition-colors flex items-center gap-2 group"
                                     >
                                         <MessageCircle size={14} className="group-hover:text-green-400 transition-colors" /> WhatsApp
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         onClick={() =>
                                             handleEmail({
                                                 subject: `Sobre ${deal.title}`,
@@ -1428,26 +1429,26 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                         className="px-3 py-1.5 hover:bg-cyan-500/10 text-slate-500 hover:text-cyan-400 disabled:opacity-30 disabled:cursor-not-allowed text-xs font-medium rounded-md transition-colors flex items-center gap-2 group"
                                     >
                                         <Mail size={14} className="group-hover:text-cyan-400 transition-colors" /> Email
-                                    </button>
+                                    </Button>
                                     <span className="w-px h-6 bg-slate-800 self-center" />
-                                    <button
+                                    <Button
                                         onClick={() => handleQuickAction('CALL')}
                                         className="px-3 py-1.5 hover:bg-blue-500/10 text-slate-500 hover:text-blue-400 text-xs font-medium rounded-md transition-colors flex items-center gap-2 group"
                                     >
                                         <Phone size={14} className="group-hover:text-blue-400 transition-colors" /> Ag. Ligação
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         onClick={() => handleQuickAction('MEETING')}
                                         className="px-3 py-1.5 hover:bg-purple-500/10 text-slate-500 hover:text-purple-400 text-xs font-medium rounded-md transition-colors flex items-center gap-2 group"
                                     >
                                         <Calendar size={14} className="group-hover:text-purple-400 transition-colors" /> Ag. Reunião
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         onClick={() => handleQuickAction('TASK')}
                                         className="px-3 py-1.5 hover:bg-orange-500/10 text-slate-500 hover:text-orange-400 text-xs font-medium rounded-md transition-colors flex items-center gap-2 group"
                                     >
                                         <Clock size={14} className="group-hover:text-orange-400 transition-colors" /> Ag. Tarefa
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 <div className="relative group">
@@ -1483,7 +1484,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                             {/* Workspace Tabs */}
                             <div className="shrink-0 flex items-center px-4 h-14 border-b border-white/5 gap-4">
                                 {['chat', 'notas', 'scripts', 'files'].map((tab) => (
-                                    <button
+                                    <Button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
                                         className={`relative h-full flex items-center justify-center text-xs font-semibold uppercase tracking-wider transition-all ${activeTab === tab
@@ -1495,7 +1496,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                         {activeTab === tab && (
                                             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 shadow-[0_0_15px_rgba(var(--primary-500),0.8)]" />
                                         )}
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
 
@@ -1527,13 +1528,13 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                         />
                                         <div className="flex justify-between items-center mt-2">
                                             <span className="text-[10px] text-slate-600">⌘+Enter para salvar</span>
-                                            <button
+                                            <Button
                                                 onClick={handleNoteSubmit}
                                                 disabled={!note.trim() || createNote.isPending}
                                                 className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-medium rounded-lg transition-colors"
                                             >
                                                 Adicionar
-                                            </button>
+                                            </Button>
                                         </div>
                                     </div>
 
@@ -1553,12 +1554,12 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                                         <span className="text-[10px] text-slate-600">
                                                             {new Date(n.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                                         </span>
-                                                        <button
+                                                        <Button
                                                             onClick={() => deleteNote.mutate(n.id)}
                                                             className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/10 rounded text-slate-500 hover:text-red-400 transition-all"
                                                         >
                                                             <Trash2 size={12} />
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             ))
@@ -1575,7 +1576,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                             Templates de Venda
                                             {isScriptsLoading && <Loader2 size={12} className="animate-spin" />}
                                         </p>
-                                        <button
+                                        <Button
                                             onClick={() => {
                                                 setEditingScript(null);
                                                 setIsScriptEditorOpen(true);
@@ -1584,7 +1585,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                         >
                                             <Plus size={12} />
                                             Criar
-                                        </button>
+                                        </Button>
                                     </div>
 
                                     {/* AI Script Generator */}
@@ -1595,7 +1596,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                         </div>
                                         <div className="flex gap-2">
                                             {(['followup', 'closing', 'objection', 'rescue'] as ScriptCategory[]).map((type) => (
-                                                <button
+                                                <Button
                                                     key={type}
                                                     onClick={async () => {
                                                         try {
@@ -1616,7 +1617,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                                     className="flex-1 text-[9px] px-2 py-1.5 bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white rounded transition-colors capitalize"
                                                 >
                                                     {type === 'followup' ? 'Follow-up' : type === 'closing' ? 'Fechamento' : type === 'objection' ? 'Objeção' : 'Resgate'}
-                                                </button>
+                                                </Button>
                                             ))}
                                         </div>
                                     </div>
@@ -1654,7 +1655,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                                             {/* Edit/Delete for user scripts */}
                                                             {!script.is_system && (
                                                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    <button
+                                                                    <Button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             setEditingScript({
@@ -1670,8 +1671,8 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                                                         title="Editar"
                                                                     >
                                                                         <FileText size={12} />
-                                                                    </button>
-                                                                    <button
+                                                                    </Button>
+                                                                    <Button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             if (confirm('Excluir este script?')) {
@@ -1682,7 +1683,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                                                         title="Excluir"
                                                                     >
                                                                         <Trash2 size={12} />
-                                                                    </button>
+                                                                    </Button>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -1749,18 +1750,18 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                                                                 {formatFileSize(file.file_size)} • {new Date(file.created_at).toLocaleDateString('pt-BR')}
                                                             </p>
                                                         </div>
-                                                        <button
+                                                        <Button
                                                             onClick={() => downloadFile(file)}
                                                             className="p-2 hover:bg-white/10 rounded-lg text-slate-500 hover:text-white transition-colors"
                                                         >
                                                             <Download size={16} />
-                                                        </button>
-                                                        <button
+                                                        </Button>
+                                                        <Button
                                                             onClick={() => deleteFile.mutate({ fileId: file.id, filePath: file.file_path })}
                                                             className="p-2 hover:bg-red-500/10 rounded-lg text-slate-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
                                                         >
                                                             <Trash2 size={16} />
-                                                        </button>
+                                                        </Button>
                                                     </div>
                                                 );
                                             })

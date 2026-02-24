@@ -4,6 +4,7 @@ import { DealView, CustomFieldDefinition, BoardStage } from '@/types';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
 import { getActivityStatus } from '@/features/boards/hooks/useBoardsController';
 import { MoveToStageModal } from '../Modals/MoveToStageModal';
+import { Button } from '@/app/components/ui/Button';
 
 type QuickAddType = 'CALL' | 'MEETING' | 'EMAIL';
 
@@ -59,7 +60,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
         <td className="px-6 py-3 font-bold text-slate-900 dark:text-white">{deal.title}</td>
         <td className="px-6 py-3">
           {onMoveDealToStage ? (
-            <button
+            <Button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
@@ -76,7 +77,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
               title="Mover estágio"
             >
               {stageLabel}
-            </button>
+            </Button>
           ) : (
             <span
               className={`text-xs font-bold px-2 py-1 rounded ${

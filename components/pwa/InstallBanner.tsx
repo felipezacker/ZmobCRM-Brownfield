@@ -3,6 +3,7 @@
 import React from 'react';
 import { Download, X } from 'lucide-react';
 import { useInstallState } from './useInstallState';
+import { Button } from '@/app/components/ui/Button';
 
 export function InstallBanner() {
   const { isEligible, isDismissed, canPrompt, platformHint, promptInstall, dismiss } = useInstallState();
@@ -29,42 +30,42 @@ export function InstallBanner() {
             </div>
             {platformHint !== 'ios' ? (
               <div className="mt-2 flex items-center gap-2">
-                <button
+                <Button
                   type="button"
                   onClick={promptInstall}
                   disabled={!canPrompt}
                   className="px-3 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 disabled:text-slate-600 text-white text-xs font-semibold transition-colors"
                 >
                   Instalar
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={dismiss}
                   className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
                 >
                   Agora não
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="mt-2">
-                <button
+                <Button
                   type="button"
                   onClick={dismiss}
                   className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
                 >
                   Entendi
-                </button>
+                </Button>
               </div>
             )}
           </div>
-          <button
+          <Button
             type="button"
             onClick={dismiss}
             className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors focus-visible-ring"
             aria-label="Fechar"
           >
             <X className="h-4 w-4 text-slate-500" aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

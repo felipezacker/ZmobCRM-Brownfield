@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, TrendingUp, UserX, ArrowRight, Sparkles, Target } from 'lucide-react';
 import type { Activity } from '@/types';
 import type { AISuggestion } from '../hooks/useInboxController';
+import { Button } from '@/app/components/ui/Button';
 
 interface InboxOverviewViewProps {
   overdueActivities: Activity[];
@@ -98,19 +99,19 @@ const SuggestionMiniRow: React.FC<{
         <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{suggestion.description}</div>
       </div>
       <div className="shrink-0 flex items-center gap-2">
-        <button
+        <Button
           onClick={onAccept}
           className="px-2.5 py-1.5 rounded-md text-xs font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors"
         >
           Aplicar
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => navigationTarget && router.push(navigationTarget)}
           disabled={!navigationTarget}
           className="px-2.5 py-1.5 rounded-md text-xs font-semibold border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
         >
           Abrir
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -193,14 +194,14 @@ export const InboxOverviewView: React.FC<InboxOverviewViewProps> = ({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             onClick={onGoToList}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
           >
             Ver lista
             <ArrowRight size={16} aria-hidden="true" />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onStartFocus}
             disabled={!canStartFocus}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50"
@@ -208,7 +209,7 @@ export const InboxOverviewView: React.FC<InboxOverviewViewProps> = ({
           >
             <Target size={16} aria-hidden="true" />
             Começar foco
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -252,12 +253,12 @@ export const InboxOverviewView: React.FC<InboxOverviewViewProps> = ({
               <AlertTriangle size={16} className="text-orange-600 dark:text-orange-400" aria-hidden="true" />
               <h3 className="font-bold text-slate-900 dark:text-white">Risco (resgate e deals parados)</h3>
             </div>
-            <button
+            <Button
               onClick={onGoToList}
               className="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:underline"
             >
               Ver tudo
-            </button>
+            </Button>
           </div>
           {riskSuggestions.length === 0 ? (
             <div className="text-sm text-slate-500 dark:text-slate-400">Sem riscos destacados agora.</div>
@@ -280,12 +281,12 @@ export const InboxOverviewView: React.FC<InboxOverviewViewProps> = ({
               <TrendingUp size={16} className="text-green-600 dark:text-green-400" aria-hidden="true" />
               <h3 className="font-bold text-slate-900 dark:text-white">Oportunidades (upsell)</h3>
             </div>
-            <button
+            <Button
               onClick={onGoToList}
               className="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:underline"
             >
               Ver tudo
-            </button>
+            </Button>
           </div>
           {opportunitySuggestions.length === 0 ? (
             <div className="text-sm text-slate-500 dark:text-slate-400">Sem oportunidades destacadas agora.</div>

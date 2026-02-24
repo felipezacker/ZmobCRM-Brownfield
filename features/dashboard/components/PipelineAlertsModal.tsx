@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, AlertTriangle, Clock, Calendar, TrendingUp, ChevronRight } from 'lucide-react';
 import { Deal } from '@/types';
+import { Button } from '@/app/components/ui/Button';
 
 interface PipelineAlert {
   type: 'stagnant' | 'no-activity' | 'ready-to-close';
@@ -136,13 +137,13 @@ export const PipelineAlertsModal: React.FC<PipelineAlertsModalProps> = ({
               }
             </p>
           </div>
-          <button
+          <Button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
             aria-label="Fechar"
           >
             <X size={20} className="text-slate-500" />
-          </button>
+          </Button>
         </div>
 
         {/* Content */}
@@ -177,7 +178,7 @@ export const PipelineAlertsModal: React.FC<PipelineAlertsModalProps> = ({
               {alert.deals.length > 0 ? (
                 <div className="space-y-2 pl-11">
                   {alert.deals.slice(0, 5).map((deal) => (
-                    <button
+                    <Button
                       key={deal.id}
                       onClick={() => onNavigateToDeal(deal.id)}
                       className="w-full flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left group"
@@ -194,7 +195,7 @@ export const PipelineAlertsModal: React.FC<PipelineAlertsModalProps> = ({
                         size={18} 
                         className="text-slate-400 group-hover:text-primary-500 transition-colors flex-shrink-0" 
                       />
-                    </button>
+                    </Button>
                   ))}
                   {alert.deals.length > 5 && (
                     <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-2">

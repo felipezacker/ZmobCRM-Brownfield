@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils/cn';
+import { Button } from '@/app/components/ui/Button';
 
 type InboundSourceRow = {
   id: string;
@@ -458,13 +459,13 @@ export const WebhooksSection: React.FC = () => {
         <div className="text-xs text-slate-500 dark:text-slate-400">
           Dica: se você está integrando com Hotmart/n8n/Make, use o guia rápido.
         </div>
-        <button
+        <Button
           onClick={() => openQuickStart('inbound')}
           className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
         >
           <HelpCircle className="h-4 w-4" />
           Como usar
-        </button>
+        </Button>
       </div>
 
       {!canUse ? (
@@ -499,70 +500,70 @@ export const WebhooksSection: React.FC = () => {
                   ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <button
+                  <Button
                     onClick={() => copy(buildWebhookUrl(activeInbound.id), 'url')}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                   >
                     <Copy className="h-4 w-4" />
                     Copiar URL
                     {copiedKey === 'url' && <Check className="h-4 w-4 text-green-600" />}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => copy(activeInbound.secret, 'inboundSecret')}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                   >
                     <KeyRound className="h-4 w-4" />
                     Copiar secret
                     {copiedKey === 'inboundSecret' && <Check className="h-4 w-4 text-green-600" />}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => openQuickStart('inbound')}
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors disabled:opacity-60"
                   >
                     <Pencil className="h-4 w-4" />
                     Ajustar / Testar
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => handleToggleInboundActive(!activeInbound.active)}
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors disabled:opacity-60"
                   >
                     <Power className="h-4 w-4" />
                     {activeInbound.active ? 'Desativar' : 'Ativar'}
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <button
+                  <Button
                     onClick={() => copy(buildCurlExample(buildWebhookUrl(activeInbound.id), activeInbound.secret), 'inboundCurl')}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                   >
                     <Copy className="h-4 w-4" />
                     Copiar cURL (importar no n8n)
                     {copiedKey === 'inboundCurl' && <Check className="h-4 w-4 text-green-600" />}
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     onClick={() => setConfirmDeleteInboundOpen(true)}
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-60"
                   >
                     <Trash2 className="h-4 w-4" />
                     Excluir
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
               <div className="mt-4">
-                <button
+                <Button
                   onClick={() => openQuickStart('inbound')}
                   disabled={loading || boardsLoading || boards.length === 0}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 >
                   Ativar entrada de leads
                   <ArrowRight className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -588,66 +589,66 @@ export const WebhooksSection: React.FC = () => {
                   <span className="font-mono truncate max-w-[520px]">{endpoint.url}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <button
+                  <Button
                     onClick={() => copy(endpoint.url, 'outboundUrl')}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                   >
                     <Copy className="h-4 w-4" />
                     Copiar URL
                     {copiedKey === 'outboundUrl' && <Check className="h-4 w-4 text-green-600" />}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => copy(endpoint.secret, 'outboundSecret')}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                   >
                     <KeyRound className="h-4 w-4" />
                     Copiar secret
                     {copiedKey === 'outboundSecret' && <Check className="h-4 w-4 text-green-600" />}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => { setFollowUpUrl(endpoint.url); setIsFollowUpOpen(true); }}
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors disabled:opacity-60"
                   >
                     <Pencil className="h-4 w-4" />
                     Editar
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => handleToggleOutboundActive(!endpoint.active)}
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors disabled:opacity-60"
                   >
                     <Power className="h-4 w-4" />
                     {endpoint.active ? 'Desativar' : 'Ativar'}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleRegenerateOutboundSecret}
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors disabled:opacity-60"
                   >
                     <KeyRound className="h-4 w-4" />
                     Regenerar secret
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => setConfirmDeleteOutboundOpen(true)}
                     disabled={loading}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-60"
                   >
                     <Trash2 className="h-4 w-4" />
                     Excluir
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
               <div className="mt-4">
-                <button
+                <Button
                   onClick={() => setIsFollowUpOpen(true)}
                   disabled={loading}
                   className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-white dark:bg-white/5 border border-slate-300 dark:border-white/10 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                 >
                   Conectar follow-up (opcional)
                   <ArrowRight className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -672,7 +673,7 @@ export const WebhooksSection: React.FC = () => {
               </div>
             </div>
             <div className="inline-flex rounded-xl bg-slate-100 dark:bg-white/10 p-1 border border-slate-200 dark:border-white/10">
-              <button
+              <Button
                 type="button"
                 onClick={() => setQuickStartTab('inbound')}
                 className={cn(
@@ -683,8 +684,8 @@ export const WebhooksSection: React.FC = () => {
                 )}
               >
                 Receber leads
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => setQuickStartTab('outbound')}
                 className={cn(
@@ -695,7 +696,7 @@ export const WebhooksSection: React.FC = () => {
                 )}
               >
                 Follow-up
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -717,7 +718,7 @@ export const WebhooksSection: React.FC = () => {
                       <>Nenhum follow-up conectado ainda.</>
                     )}
                   </div>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       setIsQuickStartOpen(false);
@@ -728,7 +729,7 @@ export const WebhooksSection: React.FC = () => {
                   >
                     Configurar
                     <ArrowRight className="h-4 w-4" />
-                  </button>
+                  </Button>
                 </div>
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400">
@@ -744,7 +745,7 @@ export const WebhooksSection: React.FC = () => {
                   { n: 2 as const, label: 'Conexão' },
                   { n: 3 as const, label: 'Teste' },
                 ].map((s, idx) => (
-                  <button
+                  <Button
                     key={s.n}
                     type="button"
                     onClick={() => setInboundStep(s.n)}
@@ -767,7 +768,7 @@ export const WebhooksSection: React.FC = () => {
                     </span>
                     <span>{s.label}</span>
                     {idx < 2 ? <span className="text-slate-300 dark:text-white/10">/</span> : null}
-                  </button>
+                  </Button>
                 ))}
           </div>
 
@@ -829,7 +830,7 @@ export const WebhooksSection: React.FC = () => {
 
                     <div className="flex items-center gap-2">
                       {activeInbound ? (
-            <button
+            <Button
                           type="button"
                           onClick={saveInboundDestination}
                           disabled={loading || !selectedBoard?.id || !selectedStageId}
@@ -837,9 +838,9 @@ export const WebhooksSection: React.FC = () => {
             >
                           <Pencil className="h-4 w-4" />
                           Salvar destino
-            </button>
+            </Button>
                       ) : (
-            <button
+            <Button
                           type="button"
                           onClick={() => setInboundStep(2)}
                           disabled={!selectedBoard?.id || !selectedStageId}
@@ -847,7 +848,7 @@ export const WebhooksSection: React.FC = () => {
             >
                           Continuar
               <ArrowRight className="h-4 w-4" />
-            </button>
+            </Button>
                       )}
           </div>
         </div>
@@ -867,14 +868,14 @@ export const WebhooksSection: React.FC = () => {
           <div className="space-y-2">
                           <div className="flex items-center justify-between gap-2">
             <div className="text-xs font-bold text-slate-600 dark:text-slate-300">URL do webhook</div>
-              <button
+              <Button
                               type="button"
                               onClick={() => copy(buildWebhookUrl(activeInbound.id), 'qsUrl')}
                               className="inline-flex items-center gap-2 px-2 py-1 rounded-lg bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-slate-200"
               >
                               {copiedKey === 'qsUrl' ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
                               Copiar
-              </button>
+              </Button>
             </div>
                           <div className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 font-mono text-xs text-slate-800 dark:text-slate-200 break-all">
                             {buildWebhookUrl(activeInbound.id)}
@@ -884,14 +885,14 @@ export const WebhooksSection: React.FC = () => {
           <div className="space-y-2">
                           <div className="flex items-center justify-between gap-2">
                             <div className="text-xs font-bold text-slate-600 dark:text-slate-300">Secret (senha)</div>
-              <button
+              <Button
                               type="button"
                               onClick={() => copy(activeInbound.secret, 'qsSecret')}
                               className="inline-flex items-center gap-2 px-2 py-1 rounded-lg bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-slate-200"
               >
                               {copiedKey === 'qsSecret' ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
                               Copiar
-              </button>
+              </Button>
             </div>
                           <div className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 font-mono text-xs text-slate-800 dark:text-slate-200 break-all">
                             {activeInbound.secret}
@@ -910,14 +911,14 @@ export const WebhooksSection: React.FC = () => {
               <pre className="whitespace-pre-wrap text-xs p-3 rounded-lg bg-slate-900 text-slate-100 border border-slate-800">
                               {buildCurlExample(buildWebhookUrl(activeInbound.id), activeInbound.secret)}
               </pre>
-              <button
+              <Button
                               type="button"
                               onClick={() => copy(buildCurlExample(buildWebhookUrl(activeInbound.id), activeInbound.secret), 'qsCurl')}
                 className="absolute top-2 right-2 px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-xs text-slate-100 inline-flex items-center gap-1"
               >
                               {copiedKey === 'qsCurl' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 Copiar
-              </button>
+              </Button>
             </div>
                         </details>
                       </>
@@ -926,7 +927,7 @@ export const WebhooksSection: React.FC = () => {
                         <div className="text-sm text-slate-700 dark:text-slate-200">
                           Gere sua URL e Secret para começar.
                         </div>
-                        <button
+                        <Button
                           type="button"
                           onClick={createInboundSource}
                           disabled={loading || !selectedBoard?.id || !selectedStageId}
@@ -934,7 +935,7 @@ export const WebhooksSection: React.FC = () => {
                         >
                           Gerar URL e Secret
                           <ArrowRight className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </div>
                     )}
           </div>
@@ -950,7 +951,7 @@ export const WebhooksSection: React.FC = () => {
                             { key: 'make' as const, label: 'Make' },
                           ] as const
                         ).map((p) => (
-            <button
+            <Button
                             key={p.key}
                             type="button"
                             onClick={() => setInboundProvider(p.key)}
@@ -962,7 +963,7 @@ export const WebhooksSection: React.FC = () => {
                             )}
                           >
                             {p.label}
-            </button>
+            </Button>
                         ))}
                       </div>
                     </div>
@@ -994,14 +995,14 @@ export const WebhooksSection: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-between">
-            <button
+            <Button
                       type="button"
                       onClick={() => setInboundStep(1)}
                       className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                     >
                       Voltar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={() => setInboundStep(3)}
                       disabled={!activeInbound}
@@ -1009,7 +1010,7 @@ export const WebhooksSection: React.FC = () => {
             >
                       Fazer teste
                       <ArrowRight className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
                 </div>
               ) : null}
@@ -1026,7 +1027,7 @@ export const WebhooksSection: React.FC = () => {
                     <div className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="text-sm font-bold text-slate-900 dark:text-white">Teste agora</div>
-                        <button
+                        <Button
                           type="button"
                           onClick={runInboundTest}
                           disabled={!activeInbound || testLoading}
@@ -1034,7 +1035,7 @@ export const WebhooksSection: React.FC = () => {
                         >
                           {testLoading ? 'Enviando...' : 'Enviar teste'}
                           <ArrowRight className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </div>
 
                       {testResult ? (
@@ -1101,20 +1102,20 @@ export const WebhooksSection: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setInboundStep(2)}
                       className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                     >
                       Voltar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={() => setIsQuickStartOpen(false)}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-primary-600 text-white hover:bg-primary-700 transition-colors"
                     >
                       Concluir
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : null}
@@ -1145,20 +1146,20 @@ export const WebhooksSection: React.FC = () => {
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-2">
-            <button
+            <Button
               onClick={() => setIsFollowUpOpen(false)}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
             >
               Agora não
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleSaveFollowUp}
               disabled={loading || !followUpUrl.trim()}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
               {endpoint?.id ? 'Salvar' : 'Conectar'}
               <ArrowRight className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

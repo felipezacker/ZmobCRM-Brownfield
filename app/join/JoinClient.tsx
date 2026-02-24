@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getErrorMessage } from '@/lib/utils/errorUtils'
 import { Loader2, Mail, Lock, User, ArrowRight, AlertCircle } from 'lucide-react'
+import { Button } from '@/app/components/ui/Button';
 
 /**
  * Componente React `JoinClient`.
@@ -129,12 +130,12 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
           </div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Convite Inválido</h2>
           <p className="text-slate-500 dark:text-slate-400 mb-6">{error}</p>
-          <button
+          <Button
             onClick={() => router.push('/login')}
             className="w-full py-3 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
           >
             Voltar para Login
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -222,7 +223,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
               </div>
             </div>
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
               className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-primary-500/20 text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] mt-6"
@@ -235,7 +236,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

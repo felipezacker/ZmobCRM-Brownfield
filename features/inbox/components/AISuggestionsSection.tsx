@@ -1,7 +1,8 @@
 import React from 'react';
+import { Button } from '@/app/components/ui/Button';
 import { AISuggestion, AISuggestionType } from '../hooks/useInboxController';
-import { 
-  Sparkles, 
+import {
+  Sparkles,
   TrendingUp, 
   AlertTriangle, 
   Clock,
@@ -144,37 +145,37 @@ export const AISuggestionsSection: React.FC<AISuggestionsSectionProps> = ({
 
                 {/* Actions */}
                 <div className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
+                  <Button
                     onClick={() => onSnooze(suggestion.id)}
                     className="p-2 text-slate-400 hover:text-slate-600 hover:bg-white/50 dark:hover:bg-white/10 rounded-lg transition-colors"
                     title="Adiar"
                   >
                     <Clock size={18} />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => onDismiss(suggestion.id)}
                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                     title="Descartar"
                   >
                     <X size={18} />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => onAccept(suggestion)}
                     className="p-2 text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors shadow-sm"
                     title="Aceitar"
                   >
                     <Check size={18} />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               {/* Quick action button (mobile friendly) */}
-              <button
+              <Button
                 onClick={() => onAccept(suggestion)}
                 className="mt-3 w-full flex items-center justify-center gap-2 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-500/20 rounded-lg transition-colors md:hidden"
               >
                 Aceitar sugestão <ChevronRight size={16} />
-              </button>
+              </Button>
             </div>
           );
         })}

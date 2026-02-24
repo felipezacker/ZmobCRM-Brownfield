@@ -7,6 +7,7 @@ import { X, User, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react';
 import { DebugFillButton } from '@/components/debug/DebugFillButton';
 import { fakeDeal, fakeContact } from '@/lib/debug';
 import { ContactSearchCombobox } from '@/components/ui/ContactSearchCombobox';
+import { Button } from '@/app/components/ui/Button';
 
 interface CreateDealModalProps {
     isOpen: boolean;
@@ -104,12 +105,12 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                     <p className="text-slate-700 dark:text-slate-300 text-center">
                         Nenhum board selecionado ou board sem estágios.
                     </p>
-                    <button
+                    <Button
                         onClick={onClose}
                         className="w-full mt-4 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-bold py-2.5 rounded-lg transition-all"
                     >
                         Fechar
-                    </button>
+                    </Button>
                 </div>
             </div>
         );
@@ -207,9 +208,9 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                         <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">Novo Negócio</h2>
                         <DebugFillButton onClick={fillWithFakeData} />
                     </div>
-                    <button onClick={() => { onClose(); resetForm(); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <Button onClick={() => { onClose(); resetForm(); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
                         <X size={20} />
-                    </button>
+                    </Button>
                 </div>
                 
                 <form onSubmit={handleCreateDeal} className="p-5 space-y-5">
@@ -221,7 +222,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                             </label>
                             {!selectedContact && (
                                 <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 ml-auto">
-                                    <button
+                                    <Button
                                         type="button"
                                         onClick={() => setIsCreatingNew(false)}
                                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
@@ -231,8 +232,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                         }`}
                                     >
                                         Buscar
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         type="button"
                                         onClick={() => setIsCreatingNew(true)}
                                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
@@ -242,7 +243,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                         }`}
                                     >
                                         + Novo
-                                    </button>
+                                    </Button>
                                 </div>
                             )}
                         </div>
@@ -273,7 +274,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                             )}
                                         </div>
                                     </div>
-                                    <button
+                                    <Button
                                         type="button"
                                         onClick={() => {
                                             setSelectedContact(null);
@@ -281,7 +282,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                         className="text-slate-400 hover:text-red-500 transition-colors"
                                     >
                                         ✕
-                                    </button>
+                                    </Button>
                                 </div>
                                 
                             </div>
@@ -373,7 +374,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                         </div>
                     )}
 
-                    <button 
+                    <Button 
                         type="submit" 
                         disabled={!hasContact || !dealData.title || isSubmitting}
                         className="w-full bg-primary-600 hover:bg-primary-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg mt-2 shadow-lg shadow-primary-600/20 transition-all flex items-center justify-center gap-2"
@@ -386,7 +387,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                         ) : (
                             'Criar Negócio'
                         )}
-                    </button>
+                    </Button>
                 </form>
             </div>
         </div>

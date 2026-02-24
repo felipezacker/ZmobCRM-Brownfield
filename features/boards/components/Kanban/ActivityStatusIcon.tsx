@@ -1,6 +1,7 @@
 import React, { useRef, useState, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 interface ActivityStatusIconProps {
     status: string;
@@ -97,7 +98,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
 
     return (
         <div className="relative">
-            <button
+            <Button
                 ref={triggerRef}
                 type="button"
                 onClick={onToggle}
@@ -107,7 +108,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                 className="hover:scale-110 transition-transform cursor-pointer p-1 -m-1 focus-visible-ring rounded-full"
             >
                 {content}
-            </button>
+            </Button>
 
             {isOpen && dealId && menuPos && createPortal(
                 <div
@@ -124,7 +125,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                     {/* Keyboard-accessible move to stage option */}
                     {onMoveToStage && (
                         <div className="p-1 border-b border-slate-100 dark:border-white/5">
-                            <button 
+                            <Button 
                                 type="button"
                                 role="menuitem"
                                 onClick={() => {
@@ -134,13 +135,13 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                 className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                             >
                                 <ArrowRightLeft size={14} className="text-green-500" aria-hidden="true" /> Mover para estágio...
-                            </button>
+                            </Button>
                         </div>
                     )}
                     
                     <div className="p-1" role="group" aria-labelledby={`quick-add-heading-${dealId}`}>
                         <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Agendar</p>
-                        <button 
+                        <Button 
                             type="button"
                             role="menuitem"
                             onClick={() => {
@@ -150,8 +151,8 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                             className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Phone size={14} className="text-blue-500" aria-hidden="true" /> Ligar amanhã
-                        </button>
-                        <button 
+                        </Button>
+                        <Button 
                             type="button"
                             role="menuitem"
                             onClick={() => {
@@ -161,8 +162,8 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                             className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Mail size={14} className="text-purple-500" aria-hidden="true" /> Email amanhã
-                        </button>
-                        <button 
+                        </Button>
+                        <Button 
                             type="button"
                             role="menuitem"
                             onClick={() => {
@@ -172,7 +173,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                             className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Calendar size={14} className="text-orange-500" aria-hidden="true" /> Reunião amanhã
-                        </button>
+                        </Button>
                     </div>
                 </div>,
                 document.body

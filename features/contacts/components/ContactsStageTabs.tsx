@@ -1,6 +1,7 @@
 import React from 'react';
 import { ContactStage } from '@/types';
 import { Users, UserCheck, Handshake, Crown, Archive } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 interface StageCounts {
   LEAD: number;
@@ -78,7 +79,7 @@ export const ContactsStageTabs: React.FC<ContactsStageTabs> = ({
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {/* All */}
-      <button
+      <Button
         onClick={() => onStageChange('ALL')}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
           activeStage === 'ALL'
@@ -96,7 +97,7 @@ export const ContactsStageTabs: React.FC<ContactsStageTabs> = ({
         >
           {total}
         </span>
-      </button>
+      </Button>
 
       {/* Stage Tabs */}
       {Object.entries(STAGE_CONFIG).map(([stage, config]) => {
@@ -105,7 +106,7 @@ export const ContactsStageTabs: React.FC<ContactsStageTabs> = ({
         const isActive = activeStage === stage;
 
         return (
-          <button
+          <Button
             key={stage}
             onClick={() => onStageChange(stage as ContactStage)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
@@ -123,7 +124,7 @@ export const ContactsStageTabs: React.FC<ContactsStageTabs> = ({
             >
               {count}
             </span>
-          </button>
+          </Button>
         );
       })}
     </div>

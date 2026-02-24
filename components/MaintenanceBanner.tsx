@@ -5,6 +5,7 @@
  * Usage: Import and render at top of App layout
  */
 import React from 'react';
+import { Button } from '@/app/components/ui/Button';
 
 interface MaintenanceBannerProps {
   /** Whether to show the banner */
@@ -50,13 +51,13 @@ export const MaintenanceBanner: React.FC<MaintenanceBannerProps> = ({
           {message}
         </p>
         {onDismiss && (
-          <button
+          <Button
             onClick={handleDismiss}
             className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-200 text-sm font-medium"
             aria-label="Dismiss banner"
           >
             ✕
-          </button>
+          </Button>
         )}
       </div>
     </div>

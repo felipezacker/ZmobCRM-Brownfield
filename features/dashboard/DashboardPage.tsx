@@ -12,6 +12,7 @@ import { PipelineAlertsModal } from './components/PipelineAlertsModal';
 import { useDashboardMetrics, PeriodFilter, COMPARISON_LABELS } from './hooks/useDashboardMetrics';
 import { PeriodFilterSelect } from '@/components/filters/PeriodFilterSelect';
 import { LazyFunnelChart, ChartWrapper } from '@/components/charts';
+import { Button } from '@/app/components/ui/Button';
 
 
 /**
@@ -125,7 +126,7 @@ const DashboardPage: React.FC = () => {
 
           <PeriodFilterSelect value={period} onChange={setPeriod} />
 
-          <button
+          <Button
             onClick={() => setShowPipelineAlerts(true)}
             className={`p-2 rounded-lg border transition-colors relative ${(riskyCount > 0 || stagnantDealsCount > 0)
               ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/30 text-amber-600 dark:text-amber-400'
@@ -138,7 +139,7 @@ const DashboardPage: React.FC = () => {
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
             )}
             <span className="sr-only">Alertas de Pipeline</span>
-          </button>
+          </Button>
 
           {/* Button removed */}
         </div>
@@ -321,12 +322,12 @@ const DashboardPage: React.FC = () => {
               )}
             </div>
 
-            <button
+            <Button
               onClick={() => router.push('/activities')}
               className="w-full mt-4 py-2 text-sm text-primary-500 border border-dashed border-primary-500/30 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"
             >
               Ver todas as atividades
-            </button>
+            </Button>
           </div>
         </div>
       </div>

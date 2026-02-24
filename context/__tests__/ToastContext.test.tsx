@@ -2,15 +2,16 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ToastProvider, useToast, useOptionalToast } from '../ToastContext';
+import { Button } from '@/app/components/ui/Button';
 
 function TestConsumer() {
   const { addToast, removeToast } = useToast();
   return (
     <div>
-      <button onClick={() => addToast('Success!', 'success')}>Add Success</button>
-      <button onClick={() => addToast('Error!', 'error')}>Add Error</button>
-      <button onClick={() => addToast('Info!')}>Add Info</button>
-      <button onClick={() => addToast('Warning!', 'warning')}>Add Warning</button>
+      <Button onClick={() => addToast('Success!', 'success')}>Add Success</Button>
+      <Button onClick={() => addToast('Error!', 'error')}>Add Error</Button>
+      <Button onClick={() => addToast('Info!')}>Add Info</Button>
+      <Button onClick={() => addToast('Warning!', 'warning')}>Add Warning</Button>
     </div>
   );
 }
@@ -19,8 +20,8 @@ function OptionalConsumer() {
   const { addToast, showToast } = useOptionalToast();
   return (
     <div>
-      <button onClick={() => addToast('opt', 'info')}>Opt Add</button>
-      <button onClick={() => showToast('show', 'info')}>Opt Show</button>
+      <Button onClick={() => addToast('opt', 'info')}>Opt Add</Button>
+      <Button onClick={() => showToast('show', 'info')}>Opt Show</Button>
     </div>
   );
 }

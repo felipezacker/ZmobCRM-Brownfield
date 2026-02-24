@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '@/app/components/ui/Button';
 
 interface ContactsFiltersProps {
     dateRange: { start: string; end: string };
@@ -34,12 +35,12 @@ export const ContactsFilters: React.FC<ContactsFiltersProps> = ({ dateRange, set
                     />
                 </div>
                 {(dateRange.start || dateRange.end) && (
-                    <button
+                    <Button
                         onClick={() => setDateRange({ start: '', end: '' })}
                         className="text-sm text-red-500 hover:text-red-600 font-medium px-2 py-2"
                     >
                         Limpar Filtros
-                    </button>
+                    </Button>
                 )}
             </div>
         </div>

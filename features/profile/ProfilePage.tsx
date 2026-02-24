@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { isE164, normalizePhoneE164 } from '@/lib/phone';
 import { Loader2, User, Mail, Shield, Calendar, Key, Check, Eye, EyeOff, Phone, Pencil, Save, Camera, X } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 /**
  * Componente React `ProfilePage`.
@@ -345,24 +346,24 @@ export const ProfilePage: React.FC = () => {
                                 {uploadingAvatar ? (
                                     <Loader2 className="w-6 h-6 text-white animate-spin" />
                                 ) : (
-                                    <button
+                                    <Button
                                         onClick={triggerAvatarPicker}
                                         className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
                                     >
                                         <Camera className="w-5 h-5 text-white" />
-                                    </button>
+                                    </Button>
                                 )}
                             </div>
 
                             {/* Botão de remover (só aparece se tem foto) */}
                             {avatarUrl && !uploadingAvatar && (
-                                <button
+                                <Button
                                     onClick={handleRemoveAvatar}
                                     className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-lg"
                                     title="Remover foto"
                                 >
                                     <X className="w-3 h-3" />
-                                </button>
+                                </Button>
                             )}
 
                             {/* Input hidden para upload */}
@@ -398,13 +399,13 @@ export const ProfilePage: React.FC = () => {
                     </div>
 
                     {!isEditingProfile && (
-                        <button
+                        <Button
                             onClick={() => setIsEditingProfile(true)}
                             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-colors"
                         >
                             <Pencil className="w-4 h-4" />
                             Editar
-                        </button>
+                        </Button>
                     )}
                 </div>
 
@@ -469,7 +470,7 @@ export const ProfilePage: React.FC = () => {
                         </div>
 
                         <div className="flex gap-3 pt-4">
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => {
                                     setIsEditingProfile(false);
@@ -483,8 +484,8 @@ export const ProfilePage: React.FC = () => {
                                 className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                             >
                                 Cancelar
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 onClick={handleSaveProfile}
                                 disabled={savingProfile}
                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 rounded-xl shadow-lg shadow-primary-600/25 transition-all disabled:opacity-50"
@@ -497,7 +498,7 @@ export const ProfilePage: React.FC = () => {
                                         Salvar
                                     </>
                                 )}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 ) : (
@@ -509,12 +510,12 @@ export const ProfilePage: React.FC = () => {
                                 <span className="text-slate-600 dark:text-slate-300">{profile?.email}</span>
                             </div>
                             {!isChangingEmail && (
-                                <button
+                                <Button
                                     onClick={() => setIsChangingEmail(true)}
                                     className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium"
                                 >
                                     Alterar
-                                </button>
+                                </Button>
                             )}
                         </div>
 
@@ -533,7 +534,7 @@ export const ProfilePage: React.FC = () => {
                                     required
                                 />
                                 <div className="flex justify-end gap-2">
-                                    <button
+                                    <Button
                                         type="button"
                                         onClick={() => {
                                             setIsChangingEmail(false);
@@ -542,14 +543,14 @@ export const ProfilePage: React.FC = () => {
                                         className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900"
                                     >
                                         Cancelar
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         type="submit"
                                         disabled={loading}
                                         className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
                                     >
                                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmar'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
                         )}
@@ -583,12 +584,12 @@ export const ProfilePage: React.FC = () => {
                         </p>
                     </div>
                     {!isChangingPassword && (
-                        <button
+                        <Button
                             onClick={() => setIsChangingPassword(true)}
                             className="px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
                         >
                             Alterar Senha
-                        </button>
+                        </Button>
                     )}
                 </div>
 
@@ -608,13 +609,13 @@ export const ProfilePage: React.FC = () => {
                                     required
                                     minLength={6}
                                 />
-                                <button
+                                <Button
                                     type="button"
                                     onClick={() => setShowPasswords(!showPasswords)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                 >
                                     {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
+                                </Button>
                             </div>
 
                             {/* Password Requirements */}
@@ -675,7 +676,7 @@ export const ProfilePage: React.FC = () => {
                         )}
 
                         <div className="flex gap-3 pt-2">
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => {
                                     setIsChangingPassword(false);
@@ -686,8 +687,8 @@ export const ProfilePage: React.FC = () => {
                                 className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
                             >
                                 Cancelar
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="submit"
                                 disabled={loading}
                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 rounded-xl shadow-lg shadow-primary-600/25 transition-all disabled:opacity-50"
@@ -700,7 +701,7 @@ export const ProfilePage: React.FC = () => {
                                         Salvar Senha
                                     </>
                                 )}
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 )}

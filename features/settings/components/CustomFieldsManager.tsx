@@ -1,5 +1,6 @@
 import React from 'react';
 import { PenTool, Pencil, Check, Plus, List, Tag, Trash2 } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SettingsSection } from './SettingsSection';
 import { CustomFieldDefinition, CustomFieldType } from '@/types';
@@ -104,21 +105,21 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
           </div>
           <div className="flex gap-2">
             {editingId && (
-              <button
+              <Button
                 onClick={onCancelEditing}
                 className="bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 px-3 py-2 rounded-lg text-sm font-bold transition-colors h-[38px] border border-slate-200 dark:border-white/10"
               >
                 Cancelar
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               onClick={onSaveField}
               disabled={!newFieldLabel.trim()}
               className={`${editingId ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20' : 'bg-primary-600 hover:bg-primary-500 shadow-primary-600/20'} text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors h-[38px] shadow-lg`}
             >
               {editingId ? <Check size={16} /> : <Plus size={16} />}
               {editingId ? 'Salvar' : 'Criar'}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -162,20 +163,20 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
               </div>
             </div>
             <div className="flex gap-1">
-              <button
+              <Button
                 onClick={() => onStartEditing(field)}
                 className="text-slate-400 hover:text-amber-500 p-2 rounded hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
                 title="Editar campo"
               >
                 <Pencil size={16} />
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => onRemoveField(field.id)}
                 className="text-slate-400 hover:text-red-500 p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 title="Remover campo"
               >
                 <Trash2 size={16} />
-              </button>
+              </Button>
             </div>
           </div>
         ))}

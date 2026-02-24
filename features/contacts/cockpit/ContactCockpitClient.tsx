@@ -4,6 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Mail, Phone, User } from 'lucide-react';
 import { useContact } from '@/lib/query/hooks/useContactsQuery';
+import { Button } from '@/app/components/ui/Button';
 
 interface ContactCockpitClientProps {
   contactId: string;
@@ -25,12 +26,12 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
     return (
       <div className="p-8 text-center">
         <p className="text-slate-500 dark:text-slate-400">Contato não encontrado.</p>
-        <button
+        <Button
           onClick={() => router.back()}
           className="mt-4 text-primary-500 hover:underline"
         >
           Voltar
-        </button>
+        </Button>
       </div>
     );
   }
@@ -39,12 +40,12 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <button
+        <Button
           onClick={() => router.back()}
           className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
         >
           <ArrowLeft size={20} />
-        </button>
+        </Button>
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-display">
             {contact.name}

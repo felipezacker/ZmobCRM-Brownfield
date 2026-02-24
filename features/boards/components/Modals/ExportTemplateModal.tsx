@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import type { Board, BoardStage, JourneyDefinition } from '@/types';
 import { useToast } from '@/context/ToastContext';
 import { z } from 'zod';
+import { Button } from '@/app/components/ui/Button';
 
 function slugify(input: string) {
   // NOTE: avoid Unicode property escapes (\p{L}) for broader browser compatibility (Safari).
@@ -394,7 +395,7 @@ export function ExportTemplateModal(props: {
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={() => setPanel('export')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${panel === 'export'
@@ -403,8 +404,8 @@ export function ExportTemplateModal(props: {
               }`}
           >
             Exportar
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => setPanel('import')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${panel === 'import'
@@ -413,7 +414,7 @@ export function ExportTemplateModal(props: {
               }`}
           >
             Importar JSON
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -433,13 +434,13 @@ export function ExportTemplateModal(props: {
             className="block w-full text-sm text-slate-600 dark:text-slate-300"
           />
 
-          <button
+          <Button
             type="button"
             onClick={() => setShowPasteImport(v => !v)}
             className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors w-fit"
           >
             {showPasteImport ? 'Ocultar opção de colar JSON' : 'Colar JSON manualmente (avançado)'}
-          </button>
+          </Button>
 
           {showPasteImport && (
             <textarea
@@ -461,7 +462,7 @@ export function ExportTemplateModal(props: {
           )}
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => void handleInstallImportedJourney()}
               disabled={!importJourney || isImporting}
@@ -471,7 +472,7 @@ export function ExportTemplateModal(props: {
                 }`}
             >
               <Download size={16} /> {isImporting ? 'Instalando…' : 'Instalar jornada'}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -528,22 +529,22 @@ export function ExportTemplateModal(props: {
                       </label>
                       {isSelected && (
                         <div className="flex items-center gap-1 shrink-0">
-                          <button
+                          <Button
                             type="button"
                             onClick={() => moveSelected(b.id, -1)}
                             className="p-1 rounded hover:bg-slate-100 dark:hover:bg-white/10"
                             aria-label="Mover para cima"
                           >
                             <ArrowUp size={14} />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
                             onClick={() => moveSelected(b.id, 1)}
                             className="p-1 rounded hover:bg-slate-100 dark:hover:bg-white/10"
                             aria-label="Mover para baixo"
                           >
                             <ArrowDown size={14} />
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -553,29 +554,29 @@ export function ExportTemplateModal(props: {
             </div>
 
             <div className="mt-4 flex items-center gap-2">
-              <button
+              <Button
                 type="button"
                 onClick={handleDownloadJourney}
                 className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold flex items-center gap-2"
               >
                 <Download size={16} /> Baixar arquivo
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={handleCopyJourneyJson}
                 className="px-4 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold flex items-center gap-2"
               >
                 <Copy size={16} /> Copiar arquivo (texto)
-              </button>
+              </Button>
             </div>
 
-            <button
+            <Button
               type="button"
               onClick={() => setShowTechnicalDetails(v => !v)}
               className="mt-3 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               {showTechnicalDetails ? 'Ocultar detalhes técnicos' : 'Mostrar detalhes técnicos'}
-            </button>
+            </Button>
 
             {showTechnicalDetails && (
               <div className="mt-3 space-y-3">

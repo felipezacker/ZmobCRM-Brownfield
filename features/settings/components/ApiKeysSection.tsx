@@ -7,6 +7,7 @@ import { useBoards } from '@/context/boards/BoardsContext';
 import { supabase } from '@/lib/supabase/client';
 
 import { SettingsSection } from './SettingsSection';
+import { Button } from '@/app/components/ui/Button';
 
 type ApiKeyRow = {
   id: string;
@@ -436,7 +437,7 @@ export const ApiKeysSection: React.FC = () => {
               className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Nome (ex: n8n, make, parceiro-x)"
             />
-            <button
+            <Button
               type="button"
               onClick={createKey}
               disabled={creating}
@@ -444,7 +445,7 @@ export const ApiKeysSection: React.FC = () => {
             >
               {creating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               Criar
-            </button>
+            </Button>
           </div>
 
           {createdToken && (
@@ -459,14 +460,14 @@ export const ApiKeysSection: React.FC = () => {
                   value={createdToken}
                   className="w-full px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 text-slate-900 dark:text-white font-mono text-xs"
                 />
-                <button
+                <Button
                   type="button"
                   onClick={() => copy('API key', createdToken)}
                   className="shrink-0 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 hover:bg-white text-emerald-800 dark:text-emerald-200 text-sm font-semibold inline-flex items-center gap-2"
                 >
                   <Copy className="h-4 w-4" />
                   Copiar
-                </button>
+                </Button>
               </div>
               <div className="mt-2 text-xs text-emerald-700/80 dark:text-emerald-200/80">
                 Prefixo: <span className="font-mono">{createdPrefix}</span>
@@ -485,14 +486,14 @@ export const ApiKeysSection: React.FC = () => {
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white font-mono text-xs"
                 placeholder="ncrm_… (fica só em memória, não é salvo)"
               />
-              <button
+              <Button
                 type="button"
                 onClick={testMe}
                 disabled={testLoading}
                 className="shrink-0 px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-60 text-slate-800 dark:text-white text-sm font-semibold"
               >
                 {testLoading ? 'Testando…' : 'Testar chave'}
-              </button>
+              </Button>
             </div>
             {testResult && (
               <div className={`mt-2 text-xs ${testResult.ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
@@ -640,7 +641,7 @@ export const ApiKeysSection: React.FC = () => {
                 <div>
                   <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Identidade do lead</div>
                   <div className="flex items-center gap-2 mb-2">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setIdentityMode('phone')}
                       className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border ${
@@ -650,8 +651,8 @@ export const ApiKeysSection: React.FC = () => {
                       }`}
                     >
                       Telefone
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={() => setIdentityMode('email')}
                       className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border ${
@@ -661,7 +662,7 @@ export const ApiKeysSection: React.FC = () => {
                       }`}
                     >
                       Email
-                    </button>
+                    </Button>
                   </div>
 
                   {identityMode === 'phone' ? (
@@ -744,15 +745,15 @@ export const ApiKeysSection: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-3">
-          <button
+          <Button
             type="button"
             onClick={() => copy('cURL', curlExample)}
             className="px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white text-sm font-semibold inline-flex items-center gap-2"
           >
             <TerminalSquare className="h-4 w-4" />
             Copiar cURL
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={runActionTest}
             disabled={actionTestLoading}
@@ -760,7 +761,7 @@ export const ApiKeysSection: React.FC = () => {
           >
             <Play className="h-4 w-4" />
             {actionTestLoading ? 'Testando…' : 'Testar agora'}
-          </button>
+          </Button>
         </div>
 
         <pre className="text-xs font-mono whitespace-pre-wrap rounded-lg border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-black/20 p-3 text-slate-800 dark:text-slate-100">
@@ -782,14 +783,14 @@ export const ApiKeysSection: React.FC = () => {
           Se você (ou o time técnico) precisar, aqui está o OpenAPI para importar em Swagger/Postman e gerar integrações.
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
+          <Button
             type="button"
             onClick={() => copy('URL do OpenAPI', openApiUrl)}
             className="px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white text-sm font-semibold inline-flex items-center gap-2"
           >
             <Copy className="h-4 w-4" />
             Copiar URL
-          </button>
+          </Button>
           <a
             href={swaggerUrl}
             target="_blank"
@@ -819,7 +820,7 @@ export const ApiKeysSection: React.FC = () => {
           <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">
             Chaves existentes
           </div>
-          <button
+          <Button
             type="button"
             onClick={loadKeys}
             disabled={loadingKeys}
@@ -827,7 +828,7 @@ export const ApiKeysSection: React.FC = () => {
           >
             <RefreshCw className={`h-4 w-4 ${loadingKeys ? 'animate-spin' : ''}`} />
             Atualizar
-          </button>
+          </Button>
         </div>
 
         <div className="rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden">
@@ -857,7 +858,7 @@ export const ApiKeysSection: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     {k.revoked_at ? (
-                      <button
+                      <Button
                         type="button"
                         disabled={deletingId === k.id}
                         onClick={() => openDeleteConfirm(k)}
@@ -865,9 +866,9 @@ export const ApiKeysSection: React.FC = () => {
                       >
                         <Trash2 className="h-4 w-4" />
                         {deletingId === k.id ? 'Excluindo…' : 'Excluir'}
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
                         type="button"
                         disabled={revokingId === k.id}
                         onClick={() => revokeKey(k.id)}
@@ -875,7 +876,7 @@ export const ApiKeysSection: React.FC = () => {
                       >
                         <Trash2 className="h-4 w-4" />
                         {revokingId === k.id ? 'Revogando…' : 'Revogar'}
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>

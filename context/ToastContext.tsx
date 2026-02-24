@@ -33,13 +33,14 @@
  *     }
  *   };
  *   
- *   return <button onClick={handleSave}>Salvar</button>;
+ *   return <Button onClick={handleSave}>Salvar</Button>;
  * }
  * ```
  */
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 /** Tipos de notificação toast */
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
@@ -133,14 +134,14 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                         {toast.type === 'warning' && <AlertCircle size={18} aria-hidden="true" />}
                         {toast.type === 'info' && <Info size={18} aria-hidden="true" />}
                         <span className="text-sm font-medium text-foreground">{toast.message}</span>
-                        <button
+                        <Button
                             type="button"
                             onClick={() => removeToast(toast.id)}
                             aria-label={`Fechar notificação: ${toast.message}`}
                             className="text-muted-foreground hover:text-foreground focus-visible-ring rounded p-0.5"
                         >
                             <X size={14} aria-hidden="true" />
-                        </button>
+                        </Button>
                     </div>
                 ))}
             </div>

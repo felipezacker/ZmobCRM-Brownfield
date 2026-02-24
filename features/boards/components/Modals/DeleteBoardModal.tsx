@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, AlertTriangle, ChevronDown, Trash2, FolderOutput } from 'lucide-react';
 import { Board } from '@/types';
+import { Button } from '@/app/components/ui/Button';
 
 interface DeleteBoardModalProps {
   isOpen: boolean;
@@ -75,12 +76,12 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
               Excluir Board
             </h2>
           </div>
-          <button
+          <Button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 dark:hover:bg-dark-hover rounded-lg transition-colors"
           >
             <X className="w-5 h-5 text-slate-500" />
-          </button>
+          </Button>
         </div>
 
         {/* Content */}
@@ -104,7 +105,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
                     {/* Opções de destino */}
                     <div className="space-y-2">
                       {availableBoards.map((board) => (
-                        <button
+                        <Button
                           key={board.id}
                           onClick={() => onSelectTargetBoard(board.id)}
                           className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
@@ -125,11 +126,11 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
                           }`}>
                             Mover para "{board.name}"
                           </span>
-                        </button>
+                        </Button>
                       ))}
                       
                       {/* Opção de deletar */}
-                      <button
+                      <Button
                         onClick={() => onSelectTargetBoard('__DELETE__')}
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
                           selectedTargetBoardId === '__DELETE__'
@@ -149,7 +150,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
                         }`}>
                           Excluir negócios também
                         </span>
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -171,7 +172,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
                   <p className="text-sm text-slate-600 dark:text-slate-400">
                     Este é o único board. Para excluí-lo, os negócios também serão removidos.
                   </p>
-                  <button
+                  <Button
                     onClick={() => onSelectTargetBoard('__DELETE__')}
                     className={`w-full p-3 rounded-xl border-2 transition-colors flex items-center justify-center gap-2 ${
                       selectedTargetBoardId === '__DELETE__'
@@ -181,7 +182,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
                   >
                     <Trash2 className="w-4 h-4" />
                     Excluir negócios junto com o board
-                  </button>
+                  </Button>
                 </>
               )}
             </>
@@ -195,13 +196,13 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
 
         {/* Footer */}
         <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-dark-border">
-          <button
+          <Button
             onClick={onClose}
             className="flex-1 px-4 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-hover rounded-xl font-medium transition-colors"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onConfirm}
             disabled={!canDelete}
             className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition-colors ${
@@ -215,7 +216,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
               : hasDeals && selectedTargetBoardId 
                 ? 'Mover e Excluir' 
                 : 'Excluir'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

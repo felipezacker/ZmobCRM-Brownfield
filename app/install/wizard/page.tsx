@@ -15,6 +15,7 @@ import {
   type InstallState,
 } from '@/lib/installer/installState';
 import { validateInstallerPassword } from '@/lib/installer/passwordPolicy';
+import { Button } from '@/app/components/ui/Button';
 
 // Types
 type InstallerMeta = { enabled: boolean; requiresToken: boolean };
@@ -1438,13 +1439,13 @@ export default function InstallWizardPage() {
                                 <div className="text-white font-medium truncate">{p.name}</div>
                                 <div className="text-slate-500 text-sm truncate">{p.orgName}</div>
                               </div>
-                              <button
+                              <Button
                                 onClick={() => void pauseProject(p.ref)}
                                 disabled={supabasePausingRef === p.ref || pausePolling}
                                 className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-all disabled:opacity-50 shrink-0"
                               >
                                 {supabasePausingRef === p.ref ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Pausar'}
-                              </button>
+                              </Button>
                             </div>
                           ))}
                         </div>
@@ -1613,14 +1614,14 @@ export default function InstallWizardPage() {
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-6"><CheckCircle2 className="w-8 h-8 text-emerald-400" /></div>
                         <h1 className="text-2xl font-bold text-white mb-2">Supabase configurado</h1>
                         <p className="text-slate-400 mb-8">Projeto pronto para usar.</p>
-                        <button onClick={goNext} className="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-white font-semibold text-lg transition-all shadow-lg shadow-cyan-500/25">Continuar</button>
+                        <Button onClick={goNext} className="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-white font-semibold text-lg transition-all shadow-lg shadow-cyan-500/25">Continuar</Button>
                       </>
                     ) : supabaseResolveError ? (
                       <>
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-6"><AlertCircle className="w-8 h-8 text-amber-400" /></div>
                         <h1 className="text-2xl font-bold text-white mb-2">Quase lá</h1>
                         <p className="text-slate-400 mb-4">{supabaseResolveError}</p>
-                        <button onClick={() => void resolveKeys('manual')} className="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-white font-semibold transition-all">Tentar novamente</button>
+                        <Button onClick={() => void resolveKeys('manual')} className="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-white font-semibold transition-all">Tentar novamente</Button>
                       </>
                     ) : (
                       <>
@@ -1645,7 +1646,7 @@ export default function InstallWizardPage() {
                   <div className="text-amber-200 font-medium">Só falta fortalecer sua senha</div>
                   <div className="text-slate-400 text-sm mt-1">Use 8+ caracteres com pelo menos 1 letra e 1 número.</div>
                   <div className="mt-3 flex gap-2">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => {
                         const p = generateStrongPassword(16);
@@ -1656,28 +1657,28 @@ export default function InstallWizardPage() {
                       className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-semibold"
                     >
                       Gerar senha sugerida
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={() => setShowChangePasswordModal(true)}
                       className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm"
                     >
                       Ajustar senha
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
 
-              <button onClick={runInstaller} disabled={!canInstall || installing} className="w-full py-5 rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white font-bold text-xl transition-all shadow-xl shadow-cyan-500/30 disabled:opacity-50">
+              <Button onClick={runInstaller} disabled={!canInstall || installing} className="w-full py-5 rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white font-bold text-xl transition-all shadow-xl shadow-cyan-500/30 disabled:opacity-50">
                 {installing ? <span className="flex items-center justify-center gap-3"><Loader2 className="w-6 h-6 animate-spin" />Iniciando…</span> : '🚀 Iniciar viagem'}
-              </button>
+              </Button>
               {runError && !showInstallOverlay && <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm">{runError}</div>}
             </motion.div>
           )}
         </AnimatePresence>
 
         {currentStep === 1 && supabaseUiStep === 'pat' && (
-          <button onClick={goBack} className="mt-6 w-full py-3 text-slate-400 hover:text-white transition-colors">← Voltar</button>
+          <Button onClick={goBack} className="mt-6 w-full py-3 text-slate-400 hover:text-white transition-colors">← Voltar</Button>
         )}
       </div>
 
@@ -1883,7 +1884,7 @@ export default function InstallWizardPage() {
                     Seu novo mundo está pronto.<br />
                     <span className="text-slate-500 text-sm">Tudo está pronto — você já pode entrar. (Se parecer desatualizado, recarregue a página.)</span>
                   </p>
-                  <button
+                  <Button
                     onClick={() => {
                       clearInstallerLocalData();
                       window.location.href = '/login';
@@ -1891,7 +1892,7 @@ export default function InstallWizardPage() {
                     className="px-10 py-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-white font-bold text-xl shadow-2xl shadow-emerald-500/30 transition-all transform hover:scale-105"
                   >
                     🌍 Explorar o novo mundo
-                  </button>
+                  </Button>
                 </motion.div>
               )}
 
@@ -1913,20 +1914,20 @@ export default function InstallWizardPage() {
                         {(h.primaryAction || h.secondaryAction) && (
                           <div className="mt-4 flex flex-wrap gap-3">
                             {h.primaryAction && (
-                              <button
+                              <Button
                                 onClick={h.primaryAction.run}
                                 className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold"
                               >
                                 {h.primaryAction.label}
-                              </button>
+                              </Button>
                             )}
                             {h.secondaryAction && (
-                              <button
+                              <Button
                                 onClick={h.secondaryAction.run}
                                 className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm"
                               >
                                 {h.secondaryAction.label}
-                              </button>
+                              </Button>
                             )}
                           </div>
                         )}
@@ -1935,7 +1936,7 @@ export default function InstallWizardPage() {
                   })()}
 
                   <div className="flex gap-4 justify-center">
-                    <button
+                    <Button
                       onClick={() => {
                         setShowInstallOverlay(false);
                         // Mantém o "save game" para retry/retomada; use o botão de limpar acima se necessário.
@@ -1943,18 +1944,18 @@ export default function InstallWizardPage() {
                       className="px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold transition-all"
                     >
                       Voltar
-                    </button>
+                    </Button>
                     {isRedeployStillRunningError(runError || '') && (vercelDeploymentId || (typeof window !== 'undefined' && localStorage.getItem(STORAGE_VERCEL_DEPLOYMENT_ID))) ? (
-                      <button
+                      <Button
                         onClick={() => void finalizeRedeploy()}
                         disabled={finalizing}
                         className="px-8 py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-white font-semibold transition-all flex items-center gap-2 disabled:opacity-50"
                       >
                         {finalizing ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
                         Verificar de novo (Vercel)
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
                         onClick={() => {
                           setShowInstallOverlay(false);
                           setCinePhase('preparing');
@@ -1967,7 +1968,7 @@ export default function InstallWizardPage() {
                       >
                         <RefreshCw className="w-5 h-5" />
                         Tentar novamente
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </motion.div>
@@ -2021,13 +2022,13 @@ export default function InstallWizardPage() {
                   placeholder="Confirmar senha"
                 />
 
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowNewPassword((v) => !v)}
                   className="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-200 text-sm transition-all"
                 >
                   {showNewPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                </button>
+                </Button>
 
                 {changePasswordError && (
                   <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-4 text-red-300 text-sm text-center">
@@ -2036,7 +2037,7 @@ export default function InstallWizardPage() {
                 )}
 
                 <div className="flex gap-3 pt-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       setShowChangePasswordModal(false);
@@ -2045,14 +2046,14 @@ export default function InstallWizardPage() {
                     className="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-medium transition-all"
                   >
                     Cancelar
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => void applyNewInstallerPassword()}
                     className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white font-semibold transition-all"
                   >
                     Salvar
-                  </button>
+                  </Button>
                 </div>
               </div>
             </motion.div>
@@ -2104,7 +2105,7 @@ export default function InstallWizardPage() {
               </div>
 
               <div className="flex gap-3">
-                <button
+                <Button
                   onClick={() => {
                     clearInstallState();
                     setInstallState(null);
@@ -2113,8 +2114,8 @@ export default function InstallWizardPage() {
                   className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-all"
                 >
                   Recomeçar
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => {
                     setShowResumeModal(false);
                     // Vai direto para a instalação
@@ -2124,7 +2125,7 @@ export default function InstallWizardPage() {
                   className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white font-medium transition-all"
                 >
                   Continuar
-                </button>
+                </Button>
               </div>
             </motion.div>
           </motion.div>

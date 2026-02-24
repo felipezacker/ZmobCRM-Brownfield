@@ -3,6 +3,7 @@ import { useSettings } from '@/context/settings/SettingsContext';
 import { Bot, Key, Cpu, CheckCircle, AlertCircle, Loader2, Save, Trash2, ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/app/components/ui/Button';
 
 // Performance: keep provider/model catalog outside the component to avoid reallocations on every render.
 const AI_PROVIDERS = [
@@ -398,7 +399,7 @@ export const AIConfigSection: React.FC = () => {
                                 </p>
 
                                 <div className="mt-2 flex items-center gap-2">
-                                    <button
+                                    <Button
                                         type="button"
                                         onClick={async () => {
                                             const trimmed = customModelDraft.trim();
@@ -429,9 +430,9 @@ export const AIConfigSection: React.FC = () => {
                                     >
                                         {isSavingModel ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                                         Salvar modelo
-                                    </button>
+                                    </Button>
 
-                                    <button
+                                    <Button
                                         type="button"
                                         onClick={() => {
                                             setCustomModelDraft(aiModel);
@@ -440,7 +441,7 @@ export const AIConfigSection: React.FC = () => {
                                         className="px-3 py-2 rounded-lg text-sm font-medium bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 transition-colors"
                                     >
                                         Reset
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         )}
@@ -556,7 +557,7 @@ export const AIConfigSection: React.FC = () => {
                                 ) : null}
                             </div>
                         </div>
-                        <button
+                        <Button
                             onClick={handleSaveApiKey}
                             disabled={isValidating || !localApiKey.trim() || (!hasUnsavedChanges && validationStatus === 'valid')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all ${isValidating || !localApiKey.trim() || (!hasUnsavedChanges && validationStatus === 'valid')
@@ -575,16 +576,16 @@ export const AIConfigSection: React.FC = () => {
                                     {hasUnsavedChanges ? 'Salvar' : 'Salvo'}
                                 </>
                             )}
-                        </button>
+                        </Button>
                         {aiApiKey && (
-                            <button
+                            <Button
                                 onClick={handleRemoveApiKey}
                                 disabled={isValidating}
                                 className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1 transition-all text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-500/30"
                                 title="Remover chave"
                             >
                                 <Trash2 size={16} />
-                            </button>
+                            </Button>
                         )}
                     </div>
                     {validationError && (
@@ -599,7 +600,7 @@ export const AIConfigSection: React.FC = () => {
 
                     {/* Seção LGPD Colapsável - Expandida por padrão */}
                     <div className="mt-4 border border-amber-200 dark:border-amber-500/30 rounded-lg overflow-hidden">
-                        <button
+                        <Button
                             type="button"
                             onClick={() => setLgpdExpanded(!lgpdExpanded)}
                             className="w-full flex items-center justify-between p-2.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
@@ -615,7 +616,7 @@ export const AIConfigSection: React.FC = () => {
                             ) : (
                                 <ChevronDown size={18} className="text-amber-600 dark:text-amber-400" />
                             )}
-                        </button>
+                        </Button>
 
                         {lgpdExpanded && (
                             <div className="p-3 bg-amber-50/50 dark:bg-amber-900/10 space-y-3 animate-in slide-in-from-top-2 duration-200">
