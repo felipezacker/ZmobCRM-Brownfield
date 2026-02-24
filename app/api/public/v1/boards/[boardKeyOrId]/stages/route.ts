@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { authPublicApi } from '@/lib/public-api/auth';
 import { createStaticAdminClient } from '@/lib/supabase/server';
 import { isValidUUID } from '@/lib/supabase/utils';
+import { withRateLimit } from '@/app/api/public/v1/with-rate-limit';
 
 export const runtime = 'nodejs';
 
-export async function GET(request: Request, ctx: { params: Promise<{ boardKeyOrId: string }> }) {
+export const GET = withRateLimit(async function GET(request: Request, ctx: { params: Promise<{ boardKeyOrId: string }> }) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -43,5 +44,5 @@ export async function GET(request: Request, ctx: { params: Promise<{ boardKeyOrI
       order: s.order ?? 0,
     })),
   });
-}
+});
 

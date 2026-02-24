@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authPublicApi } from '@/lib/public-api/auth';
 import { moveStageByIdentity } from '@/lib/public-api/dealsMoveStage';
+import { withRateLimit } from '@/app/api/public/v1/with-rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -15,7 +16,7 @@ const MoveStageByIdentitySchema = z.object({
 }).strict().refine((v) => !!(v.phone || v.email), { message: 'phone or email is required' })
   .refine((v) => !!(v.to_stage_id || v.to_stage_label), { message: 'to_stage_id or to_stage_label is required' });
 
-export async function POST(request: Request) {
+export const POST = withRateLimit(async function POST(request: Request) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -35,5 +36,5 @@ export async function POST(request: Request) {
   });
   // Compatibility alias (old name) — keep working.
   return NextResponse.json(res.body, { status: res.status });
-}
+});
 

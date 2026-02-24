@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authPublicApi } from '@/lib/public-api/auth';
 import { isValidUUID, sanitizeUUID } from '@/lib/supabase/utils';
 import { moveStageByDealId } from '@/lib/public-api/dealsMoveStage';
+import { withRateLimit } from '@/app/api/public/v1/with-rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -14,7 +15,7 @@ const MoveStageSchema = z.object({
   message: 'to_stage_id or to_stage_label is required',
 });
 
-export async function POST(request: Request, ctx: { params: Promise<{ dealId: string }> }) {
+export const POST = withRateLimit(async function POST(request: Request, ctx: { params: Promise<{ dealId: string }> }) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -36,5 +37,5 @@ export async function POST(request: Request, ctx: { params: Promise<{ dealId: st
     mark: parsed.data.mark ?? null,
   });
   return NextResponse.json(res.body, { status: res.status });
-}
+});
 
