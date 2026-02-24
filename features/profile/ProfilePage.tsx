@@ -441,7 +441,7 @@ export const ProfilePage: React.FC = () => {
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Apelido
-                                <span className="text-slate-400 font-normal ml-1">(como gostaria de ser chamado)</span>
+                                <span className="text-slate-400 font-medium ml-1">(como gostaria de ser chamado)</span>
                             </label>
                             <input
                                 type="text"

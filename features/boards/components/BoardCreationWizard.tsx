@@ -1000,7 +1000,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                           className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-pink-500"
                         />
                         <div className="flex flex-col items-center leading-tight">
-                          <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 dark:from-indigo-400 dark:to-pink-400">
+                          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 dark:from-indigo-400 dark:to-pink-400">
                             Criar com IA
                           </span>
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">
