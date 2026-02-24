@@ -18,8 +18,32 @@ import { sanitizeUUID } from './utils';
 import { sortActivitiesSmart } from '@/lib/utils/activitySort';
 
 // ============================================
-// HELPERS REMOVED
+// HELPERS
 // ============================================
+
+let cachedOrgUserId: string | null = null;
+let cachedOrgId: string | null = null;
+
+async function getOrganizationId(): Promise<string | null> {
+  if (!supabase) return null;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  if (cachedOrgUserId === user.id && cachedOrgId) return cachedOrgId;
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single();
+
+  if (error) return null;
+
+  const orgId = sanitizeUUID((profile as any)?.organization_id);
+  cachedOrgUserId = user.id;
+  cachedOrgId = orgId;
+  return orgId;
+}
 
 
 // ============================================
@@ -145,6 +169,11 @@ export const activitiesService = {
       const sb = supabase;
       if (!sb) return { data: null, error: new Error('Supabase não configurado') };
 
+      const orgId = await getOrganizationId();
+      if (!orgId) return { data: null, error: new Error('Organização não encontrada') };
+
+      const { data: { user } } = await sb.auth.getUser();
+
       const insertData: any = {
         title: activity.title,
         description: activity.description || null,
@@ -154,6 +183,8 @@ export const activitiesService = {
         deal_id: sanitizeUUID(activity.dealId),
         contact_id: sanitizeUUID(activity.contactId),
         participant_contact_ids: activity.participantContactIds || [],
+        organization_id: orgId,
+        owner_id: user?.id || null,
       };
 
       const { data, error } = await sb.from('activities').insert(insertData).select().single();
