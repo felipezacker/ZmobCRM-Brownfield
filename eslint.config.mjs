@@ -34,6 +34,7 @@ const eslintConfig = [
       '.antigravity/**',
       '.gemini/**',
       '.claude/hooks/**',
+      '.claude/worktrees/**',
       'squads/**',
     ],
   },

@@ -1260,7 +1260,7 @@ export function UIChat({
                         onClick={() => setIsExpanded(false)}
                     />
                     {/* Drawer Panel */}
-                    <div className="fixed top-0 right-0 z-50 w-full max-w-lg h-full bg-slate-900 border-l border-slate-700/50 shadow-2xl shadow-black/50 flex flex-col transition-transform duration-300">
+                    <div className="fixed top-0 right-0 z-50 w-full md:max-w-lg h-full bg-slate-900 md:border-l md:border-slate-700/50 shadow-2xl shadow-black/50 flex flex-col transition-transform duration-300">
                         {chatContent}
                     </div>
                 </>
@@ -1269,7 +1269,7 @@ export function UIChat({
 
         // Minimized: Small widget in corner
         return (
-            <div className="fixed bottom-6 right-6 z-50 w-96 h-125 bg-slate-900/95 rounded-2xl border border-slate-700/50 shadow-2xl shadow-black/50 flex flex-col overflow-hidden backdrop-blur-xl transition-all duration-300">
+            <div className="fixed inset-0 md:inset-auto md:bottom-6 md:right-6 z-50 w-full md:w-96 h-full md:h-125 bg-slate-900/95 md:rounded-2xl md:border md:border-slate-700/50 shadow-2xl shadow-black/50 flex flex-col overflow-hidden md:backdrop-blur-xl transition-all duration-300">
                 {chatContent}
             </div>
         );

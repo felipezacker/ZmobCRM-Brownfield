@@ -100,14 +100,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm md:p-4"
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900 shadow-2xl shadow-black/50"
+        className="h-full md:h-[85vh] w-full md:max-w-3xl overflow-hidden md:rounded-2xl md:border md:border-slate-700/50 bg-slate-900 md:shadow-2xl md:shadow-black/50"
         onClick={(e) => e.stopPropagation()}
       >
         {content}
