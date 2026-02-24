@@ -1,12 +1,15 @@
 import React from 'react';
-import { Plus, LayoutList, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, LayoutList, Calendar as CalendarIcon, ArrowDownUp } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
+import type { SortOrder } from './ActivitiesFilters';
 
 interface ActivitiesHeaderProps {
   viewMode: 'list' | 'calendar';
   setViewMode: (mode: 'list' | 'calendar') => void;
   onNewActivity: () => void;
   dateFilter?: 'ALL' | 'overdue' | 'today' | 'upcoming';
+  sortOrder: SortOrder;
+  setSortOrder: (order: SortOrder) => void;
 }
 
 /**
@@ -30,6 +33,8 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
   setViewMode,
   onNewActivity,
   dateFilter = 'ALL',
+  sortOrder,
+  setSortOrder,
 }) => {
   const filterLabel =
     dateFilter === 'overdue'
@@ -56,6 +61,17 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
         </div>
       </div>
       <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 bg-white dark:bg-dark-card px-2 py-1 rounded-lg border border-slate-200 dark:border-white/10">
+          <ArrowDownUp size={16} className="text-slate-400" />
+          <select
+            className="bg-transparent text-sm outline-none text-slate-700 dark:text-slate-300 cursor-pointer"
+            value={sortOrder}
+            onChange={e => setSortOrder(e.target.value as SortOrder)}
+          >
+            <option value="newest">Mais recentes</option>
+            <option value="oldest">Mais antigas</option>
+          </select>
+        </div>
         <div className="flex bg-white dark:bg-dark-card p-1 rounded-lg border border-slate-200 dark:border-white/10">
           <Button
             onClick={() => setViewMode('list')}

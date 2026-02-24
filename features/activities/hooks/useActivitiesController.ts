@@ -12,6 +12,7 @@ import {
 import { useDeals } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/lib/query/hooks/useContactsQuery';
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
+import type { DatePreset, SortOrder } from '../components/ActivitiesFilters';
 
 /**
  * Hook React `useActivitiesController` que encapsula uma lógica reutilizável.
@@ -40,6 +41,10 @@ export const useActivitiesController = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<Activity['type'] | 'ALL'>('ALL');
   const [dateFilter, setDateFilter] = useState<'ALL' | 'overdue' | 'today' | 'upcoming'>('ALL');
+  const [datePreset, setDatePreset] = useState<DatePreset>('ALL');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
@@ -83,8 +88,38 @@ export const useActivitiesController = () => {
     return { todayTs: today.getTime(), tomorrowTs: tomorrow.getTime() };
   }, []);
 
+  // Resolve datePreset em range (fromTs, toTs)
+  const presetRange = useMemo(() => {
+    const { todayTs, tomorrowTs } = dateBoundaries;
+
+    switch (datePreset) {
+      case 'today':
+        return { fromTs: todayTs, toTs: tomorrowTs - 1 };
+      case 'yesterday': {
+        const yesterdayTs = todayTs - 86_400_000;
+        return { fromTs: yesterdayTs, toTs: todayTs - 1 };
+      }
+      case 'last7': {
+        const sevenDaysAgo = todayTs - 7 * 86_400_000;
+        return { fromTs: sevenDaysAgo, toTs: tomorrowTs - 1 };
+      }
+      case 'last30': {
+        const thirtyDaysAgo = todayTs - 30 * 86_400_000;
+        return { fromTs: thirtyDaysAgo, toTs: tomorrowTs - 1 };
+      }
+      case 'custom': {
+        const from = dateFrom ? new Date(dateFrom + 'T00:00:00').getTime() : 0;
+        const to = dateTo ? new Date(dateTo + 'T23:59:59').getTime() : 0;
+        return { fromTs: from, toTs: to };
+      }
+      default: // 'ALL'
+        return { fromTs: 0, toTs: 0 };
+    }
+  }, [datePreset, dateBoundaries, dateFrom, dateTo]);
+
   const filteredActivities = useMemo(() => {
     const { todayTs, tomorrowTs } = dateBoundaries;
+    const { fromTs, toTs } = presetRange;
     const q = searchTerm.toLowerCase();
 
     return activities
@@ -94,6 +129,7 @@ export const useActivitiesController = () => {
         const matchesType = filterType === 'ALL' || activity.type === filterType;
         const isPending = !activity.completed;
 
+        // Deep-link filter (overdue/today/upcoming via URL)
         const matchesDateFilter =
           dateFilter === 'ALL'
             ? true
@@ -103,12 +139,15 @@ export const useActivitiesController = () => {
                 ? isPending && ts >= todayTs && ts < tomorrowTs
                 : isPending && ts >= tomorrowTs;
 
-        return matchesSearch && matchesType && matchesDateFilter;
+        // Preset/custom date range
+        const matchesDateRange =
+          (!fromTs || ts >= fromTs) && (!toTs || ts <= toTs);
+
+        return matchesSearch && matchesType && matchesDateFilter && matchesDateRange;
       })
-      // Performance: sort by numeric timestamp (avoid `new Date(...)` in comparator).
-      .sort((a, b) => a.ts - b.ts)
+      .sort((a, b) => sortOrder === 'newest' ? b.ts - a.ts : a.ts - b.ts)
       .map(({ activity }) => activity);
-  }, [activities, dateBoundaries, searchTerm, filterType, dateFilter]);
+  }, [activities, dateBoundaries, presetRange, searchTerm, filterType, dateFilter, sortOrder]);
 
   const handleNewActivity = () => {
     setEditingActivity(null);
@@ -234,6 +273,14 @@ export const useActivitiesController = () => {
     setFilterType,
     dateFilter,
     setDateFilter,
+    datePreset,
+    setDatePreset,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
+    sortOrder,
+    setSortOrder,
     currentDate,
     setCurrentDate,
     isModalOpen,

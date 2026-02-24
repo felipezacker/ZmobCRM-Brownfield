@@ -21,6 +21,14 @@ export const ActivitiesPage: React.FC = () => {
         filterType,
         setFilterType,
         dateFilter,
+        datePreset,
+        setDatePreset,
+        dateFrom,
+        setDateFrom,
+        dateTo,
+        setDateTo,
+        sortOrder,
+        setSortOrder,
         currentDate,
         setCurrentDate,
         isModalOpen,
@@ -78,6 +86,8 @@ export const ActivitiesPage: React.FC = () => {
                 setViewMode={setViewMode}
                 onNewActivity={handleNewActivity}
                 dateFilter={dateFilter}
+                sortOrder={sortOrder}
+                setSortOrder={setSortOrder}
             />
 
             {viewMode === 'list' ? (
@@ -87,6 +97,12 @@ export const ActivitiesPage: React.FC = () => {
                         setSearchTerm={setSearchTerm}
                         filterType={filterType}
                         setFilterType={setFilterType}
+                        datePreset={datePreset}
+                        setDatePreset={setDatePreset}
+                        dateFrom={dateFrom}
+                        setDateFrom={setDateFrom}
+                        dateTo={dateTo}
+                        setDateTo={setDateTo}
                     />
                     <ActivitiesList
                         activities={filteredActivities}
