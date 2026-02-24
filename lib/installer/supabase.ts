@@ -133,7 +133,6 @@ export async function bootstrapInstance({
     {
       id: userId,
       email: emailNorm,
-      name: displayName,
       first_name: displayName,
       organization_id: organizationId,
       role: 'admin',

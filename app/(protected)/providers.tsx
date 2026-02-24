@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { usePathname } from 'next/navigation'
 
 import { QueryProvider } from '@/lib/query'
@@ -14,6 +15,38 @@ import { DealsProvider } from '@/context/deals/DealsContext'
 import { AIProvider } from '@/context/AIContext'
 import Layout from '@/components/Layout'
 
+type ProviderComponent = React.FC<{ children: React.ReactNode }>
+
+function composeProviders(...providers: ProviderComponent[]): ProviderComponent {
+    const Composed = providers.reduce<ProviderComponent>(
+        (Accumulated, Current) => {
+            const Wrapper: ProviderComponent = ({ children }) => (
+                <Accumulated>
+                    <Current>{children}</Current>
+                </Accumulated>
+            )
+            Wrapper.displayName = `Composed(${Current.displayName || Current.name || 'Provider'})`
+            return Wrapper
+        },
+        ({ children }) => <>{children}</>,
+    )
+    Composed.displayName = 'ComposedProviders'
+    return Composed
+}
+
+const ComposedProviders = composeProviders(
+    QueryProvider,
+    ToastProvider,
+    ThemeProvider,
+    AuthProvider,
+    SettingsProvider,
+    BoardsProvider,
+    ContactsProvider,
+    ActivitiesProvider,
+    DealsProvider,
+    AIProvider,
+)
+
 export function Providers({
     children,
 }: {
@@ -24,26 +57,8 @@ export function Providers({
     const shouldUseAppShell = !isSetupRoute
 
     return (
-        <QueryProvider>
-            <ToastProvider>
-                <ThemeProvider>
-                    <AuthProvider>
-                        <SettingsProvider>
-                            <BoardsProvider>
-                                <ContactsProvider>
-                                    <ActivitiesProvider>
-                                        <DealsProvider>
-                                            <AIProvider>
-                                                {shouldUseAppShell ? <Layout>{children}</Layout> : children}
-                                            </AIProvider>
-                                        </DealsProvider>
-                                    </ActivitiesProvider>
-                                </ContactsProvider>
-                            </BoardsProvider>
-                        </SettingsProvider>
-                    </AuthProvider>
-                </ThemeProvider>
-            </ToastProvider>
-        </QueryProvider>
+        <ComposedProviders>
+            {shouldUseAppShell ? <Layout>{children}</Layout> : children}
+        </ComposedProviders>
     )
 }
