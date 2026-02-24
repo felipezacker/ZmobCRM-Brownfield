@@ -6,6 +6,7 @@ import { ActivitiesList } from './components/ActivitiesList';
 import { ActivitiesCalendar } from './components/ActivitiesCalendar';
 import { ActivityFormModal } from './components/ActivityFormModal';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
+import { Button } from '@/app/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
 
 /**
@@ -94,7 +95,7 @@ export const ActivitiesPage: React.FC = () => {
 
             {/* Abas */}
             <div className="flex gap-1 mb-6 border-b border-slate-200 dark:border-white/10">
-                <button
+                <Button
                     onClick={() => setActiveTab('activities')}
                     className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                         activeTab === 'activities'
@@ -103,8 +104,8 @@ export const ActivitiesPage: React.FC = () => {
                     }`}
                 >
                     Atividades
-                </button>
-                <button
+                </Button>
+                <Button
                     onClick={() => setActiveTab('history')}
                     className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                         activeTab === 'history'
@@ -113,7 +114,7 @@ export const ActivitiesPage: React.FC = () => {
                     }`}
                 >
                     Histórico
-                </button>
+                </Button>
             </div>
 
             {viewMode === 'list' ? (
