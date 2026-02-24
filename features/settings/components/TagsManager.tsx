@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tag, Plus, X } from 'lucide-react';
 import { SettingsSection } from './SettingsSection';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface TagsManagerProps {
   availableTags: string[];
@@ -43,7 +44,7 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
       </div>
 
       {availableTags.length === 0 ? (
-        <p className="text-sm text-slate-400">Nenhuma tag criada ainda.</p>
+        <EmptyState title="Nenhuma tag criada ainda." size="sm" />
       ) : (
         <div className="flex flex-wrap gap-2">
           {availableTags.map((tag) => (

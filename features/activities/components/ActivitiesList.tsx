@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Activity, Deal, Contact } from '@/types';
 import { ActivityRow } from './ActivityRow';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface ActivitiesListProps {
     activities: Activity[];
@@ -60,9 +61,7 @@ export const ActivitiesList: React.FC<ActivitiesListProps> = ({
 
     if (activities.length === 0) {
         return (
-            <div className="text-center py-12 bg-white dark:bg-dark-card rounded-xl border border-slate-200 dark:border-white/5 border-dashed">
-                <p className="text-slate-500 dark:text-slate-400">Nenhuma atividade encontrada</p>
-            </div>
+            <EmptyState title="Nenhuma atividade encontrada" size="md" />
         );
     }
 

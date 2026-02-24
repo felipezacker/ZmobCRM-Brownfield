@@ -16,6 +16,7 @@ import {
   Inbox,
   Zap,
 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { DecisionCard } from './components/DecisionCard';
 import { useDecisionQueue } from './hooks/useDecisionQueue';
 import { PRIORITY_LABELS, CATEGORY_LABELS } from './types';
@@ -185,30 +186,16 @@ export const DecisionQueuePage: React.FC = () => {
 
       {/* Empty State */}
       {decisions.length === 0 && (
-        <div className="text-center py-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-50 dark:bg-primary-500/10 text-primary-500 mb-4">
-            <Sparkles size={32} />
-          </div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-            Nenhuma decisão pendente
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
-            Clique em "Analisar Agora" para que a IA analise seu CRM e sugira ações
-            baseadas em deals parados, atividades atrasadas e oportunidades.
-          </p>
-          <button
-            onClick={runAnalyzers}
-            disabled={isAnalyzing}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
-          >
-            {isAnalyzing ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : (
-              <Sparkles size={18} />
-            )}
-            Analisar Meu CRM
-          </button>
-        </div>
+        <EmptyState
+          icon={<Sparkles size={32} className="text-primary-500" />}
+          title="Nenhuma decisão pendente"
+          description='Clique em "Analisar Agora" para que a IA analise seu CRM e sugira ações baseadas em deals parados, atividades atrasadas e oportunidades.'
+          size="lg"
+          action={{
+            label: isAnalyzing ? 'Analisando…' : 'Analisar Meu CRM',
+            onClick: runAnalyzers,
+          }}
+        />
       )}
 
       {/* Decision Groups */}

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Copy, FileText, Inbox, Sparkles, StickyNote, X } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Chip, TabButton } from './cockpit-ui';
 import { UIChat } from '@/components/ai/UIChat';
 import type { Tab, CockpitSnapshot } from './cockpit-types';
@@ -229,7 +230,7 @@ export function CockpitRightRail({
               </div>
               <div className="mt-3 space-y-2">
                 {files.length === 0 && !isFilesLoading ? (
-                  <div className="text-sm text-slate-400">Nenhum arquivo.</div>
+                  <EmptyState title="Nenhum arquivo." size="sm" />
                 ) : (
                   files.map((f) => (
                     <div key={f.id} className="rounded-2xl border border-white/10 bg-white/3 p-3">
