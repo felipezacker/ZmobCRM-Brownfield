@@ -57,7 +57,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     aria-describedby={descId}
                 >
                     {/* Main Card */}
-                    <div className="bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 rounded-3xl shadow-2xl overflow-hidden">
+                    <div className="bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 rounded-2xl shadow-2xl overflow-hidden">
                         {/* Skip Button */}
                         <button
                             type="button"

@@ -699,8 +699,8 @@ export function UIChat({
                                 </div>
                             )}
                             <div className={`max-w-[85%] ${message.role === 'user'
-                                ? 'bg-primary-600 text-white rounded-2xl rounded-tr-sm'
-                                : 'bg-slate-800/80 text-slate-200 rounded-2xl rounded-tl-sm border border-slate-700/50'
+                                ? 'bg-primary-600 text-white rounded-2xl rounded-tr-md'
+                                : 'bg-slate-800/80 text-slate-200 rounded-2xl rounded-tl-md border border-slate-700/50'
                                 } px-3 py-2`}>
 
                                 {groupedApprovals.length > 0 && (
@@ -1200,7 +1200,7 @@ export function UIChat({
                         <div className="shrink-0 w-7 h-7 rounded-full bg-linear-to-br from-primary-500 to-violet-500 flex items-center justify-center">
                             <Bot className="w-3.5 h-3.5 text-white" />
                         </div>
-                        <div className="bg-slate-800/80 text-slate-400 rounded-2xl rounded-tl-sm px-3 py-2 border border-slate-700/50">
+                        <div className="bg-slate-800/80 text-slate-400 rounded-2xl rounded-tl-md px-3 py-2 border border-slate-700/50">
                             <div className="flex items-center gap-2 text-sm">
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                 <span>Pensando...</span>
