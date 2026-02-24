@@ -1,10 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useId, useMemo, useState } from 'react';
 import { DealView, BoardStage } from '@/types';
 import { DealCard } from './DealCard';
 import { isDealRotting, getActivityStatus } from '@/features/boards/hooks/useBoardsController';
 import { MoveToStageModal } from '../Modals/MoveToStageModal';
+import { useKanbanKeyboard } from '@/features/boards/hooks/useKanbanKeyboard';
 
-import { useCRM } from '@/context/CRMContext';
+import { useSettings } from '@/context/settings/SettingsContext';
 
 /**
  * UI: Drop highlight should follow the stage color.
@@ -113,9 +114,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   setLastMouseDownDealId,
   onMoveDealToStage,
 }) => {
-  const { lifecycleStages } = useCRM();
+  const { lifecycleStages } = useSettings();
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
-  
+  const instructionsId = useId();
+
+  // Keyboard accessibility hook for grab-and-move with Arrow keys
+  const { grabbedDealId, announcement, handleCardKeyDown } = useKanbanKeyboard();
+
   // State for move-to-stage modal (keyboard accessibility alternative to drag-and-drop)
   const [moveToStageModal, setMoveToStageModal] = useState<{
     isOpen: boolean;
@@ -161,6 +166,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     [setSelectedDealId]
   );
 
+  // Performance: stable keyboard handler map keyed by deal.id to avoid inline arrows defeating React.memo
+  const keyboardHandlers = useMemo(() => {
+    const map = new Map<string, (e: React.KeyboardEvent) => void>();
+    for (const stage of stages) {
+      const stageDeals = dealsByStageId.map.get(stage.id) ?? [];
+      for (const deal of stageDeals) {
+        map.set(deal.id, (e: React.KeyboardEvent) =>
+          handleCardKeyDown(e, deal, stage.id, stages, dealsByStageId.map, onMoveDealToStage, handleSelectDeal)
+        );
+      }
+    }
+    return map;
+  }, [stages, dealsByStageId.map, handleCardKeyDown, onMoveDealToStage, handleSelectDeal]);
+
   // Handler to open move-to-stage modal (stable across re-renders when only menu state changes)
   const handleOpenMoveToStage = useCallback(
     (dealId: string) => {
@@ -186,6 +205,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <div className="flex gap-4 h-full overflow-x-auto pb-2 w-full">
+      {/* Visually hidden keyboard instructions */}
+      <p id={instructionsId} className="sr-only">
+        Pressione G para segurar um cartão. Use as setas esquerda e direita para mover entre colunas. Pressione G novamente para soltar ou Escape para cancelar.
+      </p>
+
+      {/* ARIA live region for move announcements */}
+      <div
+        role="status"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
+
       {stages.map(stage => {
         const stageDeals = dealsByStageId.map.get(stage.id) ?? [];
         const stageValue = dealsByStageId.totals.get(stage.id) ?? 0;
@@ -254,6 +288,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             </div>
 
             <div
+              role="group"
+              aria-label={`Coluna ${stage.label}, ${stageDeals.length} negócio${stageDeals.length !== 1 ? 's' : ''}`}
+              aria-describedby={instructionsId}
               className={`flex-1 p-2 overflow-y-auto space-y-2 bg-slate-100/50 dark:bg-black/20 scrollbar-thin min-h-[100px]`}
             >
               {stageDeals.length === 0 && !draggingId && (
@@ -286,6 +323,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onQuickAddActivity={handleQuickAddActivity}
                   setLastMouseDownDealId={setLastMouseDownDealId}
                   onMoveToStage={onMoveDealToStage ? handleOpenMoveToStage : undefined}
+                  isGrabbed={grabbedDealId === deal.id}
+                  onKeyboardMove={keyboardHandlers.get(deal.id)}
                 />
               ))}
             </div>

@@ -14,6 +14,7 @@ import { Chip } from './cockpit-ui';
 import type { TimelineItem, Actor } from './cockpit-types';
 import type { Activity } from '@/types';
 import { buildExecutionHeader, errorMessage } from './cockpit-utils';
+import { Button } from '@/app/components/ui/Button';
 
 interface CockpitTimelineProps {
   timelineItems: TimelineItem[];
@@ -71,7 +72,7 @@ export function CockpitTimeline({
         <div>
           <div className="text-sm font-semibold text-slate-100">Atividades</div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <button
+            <Button
               type="button"
               className={
                 kindFilter === 'all'
@@ -81,9 +82,9 @@ export function CockpitTimeline({
               onClick={() => setKindFilter('all')}
             >
               Tudo
-            </button>
+            </Button>
             {(['call', 'note', 'status'] as const).map((k) => (
-              <button
+              <Button
                 key={k}
                 type="button"
                 className={
@@ -94,10 +95,10 @@ export function CockpitTimeline({
                 onClick={() => setKindFilter(k)}
               >
                 {k === 'call' ? 'Ligações' : k === 'note' ? 'Notas' : 'Mudanças'}
-              </button>
+              </Button>
             ))}
 
-            <button
+            <Button
               type="button"
               className={
                 showSystemEvents
@@ -108,7 +109,7 @@ export function CockpitTimeline({
               title="System events (hoje: quase tudo vem de Activity)"
             >
               Sistemas
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -122,14 +123,14 @@ export function CockpitTimeline({
               className="w-44 bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-600"
             />
           </div>
-          <button
+          <Button
             type="button"
             className="rounded-xl border border-white/10 bg-white/3 p-2 hover:bg-white/5"
             title="Filtros"
             onClick={() => pushToast('Use os chips para filtrar', 'neutral')}
           >
             <Filter className="h-4 w-4 text-slate-200" />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -147,7 +148,7 @@ export function CockpitTimeline({
               </div>
               {timelineItems.length !== 0 ? (
                 <div className="mt-4 flex items-center justify-center gap-2">
-                  <button
+                  <Button
                     type="button"
                     className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
                     onClick={() => {
@@ -157,7 +158,7 @@ export function CockpitTimeline({
                     }}
                   >
                     Limpar filtros
-                  </button>
+                  </Button>
                 </div>
               ) : null}
             </div>
@@ -193,7 +194,7 @@ export function CockpitTimeline({
               Registrar (fora do CRM):
             </span>
 
-            <button
+            <Button
               type="button"
               className="inline-flex items-center gap-2 hover:text-slate-200"
               onClick={() => {
@@ -202,9 +203,9 @@ export function CockpitTimeline({
               }}
             >
               <MessageCircle className="h-4 w-4" /> WhatsApp
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
               className="inline-flex items-center gap-2 hover:text-slate-200"
               onClick={() => {
@@ -213,31 +214,31 @@ export function CockpitTimeline({
               }}
             >
               <Inbox className="h-4 w-4" /> Email
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
               className="inline-flex items-center gap-2 hover:text-slate-200"
               onClick={() => void logOutsideCRM('CALL', 'Ligação', 'Fonte: Cockpit\nFora do CRM: sim\n\n---\n\nRealizada (registrado fora do CRM).')}
             >
               <Phone className="h-4 w-4" /> Ligação
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
               className="inline-flex items-center gap-2 hover:text-slate-200"
               onClick={() => void logOutsideCRM('MEETING', 'Reunião', 'Fonte: Cockpit\nFora do CRM: sim\n\n---\n\nRegistrada fora do CRM.')}
             >
               <CalendarClock className="h-4 w-4" /> Reunião
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
               className="inline-flex items-center gap-2 hover:text-slate-200"
               onClick={() => void logOutsideCRM('TASK', 'Tarefa', 'Fonte: Cockpit\nFora do CRM: sim\n\n---\n\nCriada (registrado fora do CRM).')}
             >
               <ActivityIcon className="h-4 w-4" /> Tarefa
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -253,7 +254,7 @@ export function CockpitTimeline({
         />
         <div className="mt-3 flex items-center justify-between gap-2">
           <div className="text-[11px] text-slate-500">Isso vira uma Activity NOTE (log do deal).</div>
-          <button
+          <Button
             type="button"
             className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
             onClick={async () => {
@@ -281,7 +282,7 @@ export function CockpitTimeline({
             }}
           >
             Salvar
-          </button>
+          </Button>
         </div>
       </div>
     </div>

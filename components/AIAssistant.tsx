@@ -12,6 +12,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Board } from '@/types';
 import { UIChat } from '@/components/ai/UIChat';
+import { Button } from '@/app/components/ui/Button';
 
 interface AIAssistantProps {
   isOpen: boolean;
@@ -65,14 +66,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     <div className="relative flex h-full w-full flex-col">
       {variant === 'overlay' && (
         <div className="absolute right-3 top-3 z-10">
-          <button
+          <Button
             type="button"
             onClick={onClose}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800/70 text-slate-200 hover:bg-slate-700/70"
             aria-label="Fechar assistente"
           >
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -100,14 +101,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm md:p-4 pb-[env(safe-area-inset-bottom)]"
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900 shadow-2xl shadow-black/50"
+        className="h-full md:h-[85vh] w-full md:max-w-3xl overflow-hidden md:rounded-2xl md:border md:border-slate-700/50 bg-slate-900 md:shadow-2xl md:shadow-black/50"
         onClick={(e) => e.stopPropagation()}
       >
         {content}

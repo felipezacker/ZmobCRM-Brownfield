@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Button } from '@/app/components/ui/Button';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -44,7 +45,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               {this.state.error?.message || 'Erro inesperado'}
             </p>
           </div>
-          <button
+          <Button
             onClick={() => this.setState({ hasError: false, error: null })}
             className="rounded-md px-4 py-2 text-sm font-medium transition-colors"
             style={{
@@ -53,7 +54,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             }}
           >
             Tentar novamente
-          </button>
+          </Button>
         </div>
       );
     }

@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { Button } from '@/app/components/ui/Button';
 import {
   ConsentType,
   REQUIRED_CONSENTS,
@@ -193,21 +194,21 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
         <div className="px-6 py-4 border-t border-gray-200 dark:border-dark-border bg-gray-50 dark:bg-dark-bg">
           <div className="flex justify-end gap-3">
             {onClose && (
-              <button
+              <Button
                 onClick={onClose}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg transition-colors"
                 disabled={isSubmitting}
               >
                 Cancelar
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               onClick={handleAccept}
               disabled={!canSubmit || isSubmitting}
               className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Salvando...' : 'Aceitar e Continuar'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { Activity, Deal } from '@/types';
+import { Button } from '@/app/components/ui/Button';
 
 interface ActivityFormData {
   title: string;
@@ -80,12 +81,12 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
           <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">
             {editingActivity ? 'Editar Atividade' : 'Nova Atividade'}
           </h2>
-          <button
+          <Button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
           >
             <X size={20} />
-          </button>
+          </Button>
         </div>
         <form onSubmit={onSubmit} className="p-5 space-y-4 overflow-auto pb-[calc(1.25rem+var(--app-safe-area-bottom,0px))]">
           <div>
@@ -171,12 +172,12 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             className="w-full bg-primary-600 hover:bg-primary-500 text-white font-bold py-2.5 rounded-lg mt-2 shadow-lg shadow-primary-600/20 transition-all"
           >
             {editingActivity ? 'Salvar Alterações' : 'Criar Atividade'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

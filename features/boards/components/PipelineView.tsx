@@ -13,6 +13,7 @@ import { DealView, CustomFieldDefinition, Board, BoardStage } from '@/types';
 import { ExportTemplateModal } from './Modals/ExportTemplateModal';
 import { useAuth } from '@/context/AuthContext';
 import PageLoader from '@/components/PageLoader';
+import { Button } from '@/app/components/ui/Button';
 
 interface PipelineViewProps {
   // Boards
@@ -300,12 +301,12 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
             Você ainda não tem nenhum board criado. Comece criando seu primeiro fluxo de trabalho
             para organizar seus negócios.
           </p>
-          <button
+          <Button
             onClick={() => setIsWizardOpen(true)}
             className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors flex items-center gap-2 shadow-lg shadow-primary-600/20"
           >
             ✨ Criar meu primeiro Board
-          </button>
+          </Button>
         </div>
       ) : (
         <>

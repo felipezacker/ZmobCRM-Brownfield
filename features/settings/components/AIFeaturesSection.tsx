@@ -2,11 +2,12 @@
 
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useCRM } from '@/context/CRMContext';
+import { useSettings } from '@/context/settings/SettingsContext';
 import { Copy, Loader2, Pencil, RotateCcw, SlidersHorizontal, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { Modal } from '@/components/ui/Modal';
 import { getPromptCatalogMap } from '@/lib/ai/prompts/catalog';
+import { Button } from '@/app/components/ui/Button';
 
 type FeatureItem = {
   key: string;
@@ -35,7 +36,7 @@ const FEATURES: FeatureItem[] = [
 export const AIFeaturesSection: React.FC = () => {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
-  const { aiFeatureFlags, setAIFeatureFlag } = useCRM();
+  const { aiFeatureFlags, setAIFeatureFlag } = useSettings();
   const { showToast } = useToast();
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
@@ -191,7 +192,7 @@ export const AIFeaturesSection: React.FC = () => {
                     {saving ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
 
                     {f.promptKey ? (
-                      <button
+                      <Button
                         type="button"
                         onClick={() => openPromptEditor(f)}
                         disabled={!isAdmin || saving}
@@ -200,10 +201,10 @@ export const AIFeaturesSection: React.FC = () => {
                         aria-label="Editar prompt"
                       >
                         <Pencil className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-                      </button>
+                      </Button>
                     ) : null}
 
-                    <button
+                    <Button
                       type="button"
                       onClick={() => toggle(f.key, !enabled)}
                       className="px-2 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -216,7 +217,7 @@ export const AIFeaturesSection: React.FC = () => {
                       ) : (
                         <ToggleLeft className="h-4 w-4 text-red-500" />
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               );
@@ -236,7 +237,7 @@ export const AIFeaturesSection: React.FC = () => {
           <>
             <div className="flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
               <div className="font-mono truncate">key: {editingFeature.promptKey}</div>
-              <button
+              <Button
                 type="button"
                 onClick={() => copyToClipboard(editingFeature.promptKey!)}
                 className="h-8 w-8 rounded-lg border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 inline-flex items-center justify-center"
@@ -244,7 +245,7 @@ export const AIFeaturesSection: React.FC = () => {
                 aria-label="Copiar key"
               >
                 <Copy size={16} />
-              </button>
+              </Button>
             </div>
 
             {promptLoading ? (
@@ -264,7 +265,7 @@ export const AIFeaturesSection: React.FC = () => {
             )}
 
             <div className="flex items-center justify-between gap-2 pt-2">
-              <button
+              <Button
                 type="button"
                 onClick={resetPromptOverride}
                 disabled={!isAdmin || promptResetting || promptSaving}
@@ -276,18 +277,18 @@ export const AIFeaturesSection: React.FC = () => {
               >
                 {promptResetting ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
                 Reset
-              </button>
+              </Button>
 
               <div className="flex items-center gap-2">
-                <button
+                <Button
                   type="button"
                   onClick={closePromptEditor}
                   disabled={promptSaving}
                   className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-60"
                 >
                   Fechar
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={savePromptOverride}
                   disabled={!isAdmin || promptSaving || promptLoading || !promptDraft.trim()}
@@ -299,7 +300,7 @@ export const AIFeaturesSection: React.FC = () => {
                 >
                   {promptSaving ? <Loader2 size={16} className="animate-spin" /> : null}
                   Salvar
-                </button>
+                </Button>
               </div>
             </div>
           </>

@@ -5,7 +5,11 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Check, X } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useDeals } from '@/context/deals/DealsContext';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { normalizePhoneE164 } from '@/lib/phone';
 
@@ -51,6 +55,7 @@ import { CockpitTimeline } from './CockpitTimeline';
 import { CockpitChecklist } from './CockpitChecklist';
 import { CockpitRightRail } from './CockpitRightRail';
 import { TemplatePickerModal } from './TemplatePickerModal';
+import { Button } from '@/app/components/ui/Button';
 
 export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const router = useRouter();
@@ -59,17 +64,16 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   const { profile, user } = useAuth();
 
-  const {
-    loading: crmLoading,
-    error: crmError,
-    refresh: refreshCRM,
-    deals,
-    contacts,
-    boards,
-    activities,
-    addActivity,
-    updateDeal,
-  } = useCRM();
+  const { deals } = useCRMActions();
+  const dealsCtx = useDeals();
+  const { updateDeal } = dealsCtx;
+  const { contacts } = useContacts();
+  const { boards } = useBoards();
+  const activitiesCtx = useActivities();
+  const { activities, addActivity } = activitiesCtx;
+  const crmLoading = dealsCtx.loading || activitiesCtx.loading;
+  const crmError = dealsCtx.error || activitiesCtx.error;
+  const refreshCRM = async () => { await dealsCtx.refresh(); await activitiesCtx.refresh(); };
 
   const [toast, setToast] = useState<ToastState | null>(null);
 
@@ -446,8 +450,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
           <div className="mt-3 text-sm text-slate-100">Não foi possível carregar os dados do CRM.</div>
           <div className="mt-2 text-xs text-rose-100/80 wrap-break-word">{crmError}</div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100" onClick={() => void refreshCRM()}>Recarregar</button>
-            <button type="button" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</button>
+            <Button type="button" className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100" onClick={() => void refreshCRM()}>Recarregar</Button>
+            <Button type="button" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
           </div>
         </div>
       </div>
@@ -484,8 +488,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
           <div className="mt-3 text-sm text-slate-300">Não encontrei nenhum deal carregado no contexto.</div>
           <div className="mt-2 text-xs text-slate-500">Dica: abra o app normal (Boards) para carregar dados.</div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100" onClick={() => void refreshCRM()}>Recarregar</button>
-            <button type="button" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</button>
+            <Button type="button" className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100" onClick={() => void refreshCRM()}>Recarregar</Button>
+            <Button type="button" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
           </div>
         </div>
       </div>

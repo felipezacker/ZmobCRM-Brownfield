@@ -1,5 +1,6 @@
 import React from 'react';
 import { BoardStage } from '@/types';
+import { Button } from '@/app/components/ui/Button';
 
 interface StageProgressBarProps {
     stages: BoardStage[];
@@ -86,7 +87,7 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
 
                                 return (
                                     <React.Fragment key={stage.id}>
-                                        <button
+                                        <Button
                                             type="button"
                                             onClick={() => onStageClick(stage.id)}
                                             aria-current={isCurrent ? 'step' : undefined}
@@ -100,7 +101,7 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
                                             >
                                                 {stage.label}
                                             </span>
-                                        </button>
+                                        </Button>
 
                                         {index < stages.length - 1 && (
                                             <span
@@ -143,7 +144,7 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
                 }
 
                 return (
-                    <button
+                    <Button
                         key={stage.id}
                         type="button"
                         onClick={() => onStageClick(stage.id)}
@@ -151,7 +152,7 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
                         ${isCurrent || isPast ? activeColor : inactiveColor}`}
                     >
                         {stage.label}
-                    </button>
+                    </Button>
                 );
             })}
         </div>

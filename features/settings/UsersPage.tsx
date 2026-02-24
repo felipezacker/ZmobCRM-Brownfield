@@ -5,6 +5,7 @@ import { hasMinRole, type Role } from '@/lib/auth/roles';
 import { useToast } from '@/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
 import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Mail, Check, X, Sparkles, Clock, RefreshCw, Trash2, Link, Copy, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 interface Profile {
     id: string;
@@ -288,13 +289,13 @@ export const UsersPage: React.FC = () => {
                             {users.length} {users.length === 1 ? 'membro' : 'membros'} • {admins.length} admin{admins.length !== 1 && 's'}, {diretores.length} diretor{diretores.length !== 1 && 'es'}, {corretores.length} corretor{corretores.length !== 1 && 'es'}
                         </p>
                     </div>
-                    <button
+                    <Button
                         onClick={() => setIsModalOpen(true)}
                         className="group flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition-all shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5 font-medium"
                     >
                         <UserPlus className="w-4 h-4 transition-transform group-hover:scale-110" />
                         Convidar
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -382,13 +383,13 @@ export const UsersPage: React.FC = () => {
                                             </div>
                                         ) : (
                                             <>
-                                                <button
+                                                <Button
                                                     onClick={() => handleDeleteUser(user)}
                                                     className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
                                                     title={user.status === 'pending' ? 'Cancelar convite' : 'Remover usuário'}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
-                                                </button>
+                                                </Button>
                                             </>
                                         )}
                                     </div>
@@ -409,13 +410,13 @@ export const UsersPage: React.FC = () => {
                     <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
                         Comece convidando membros da sua equipe para colaborar no CRM.
                     </p>
-                    <button
+                    <Button
                         onClick={() => setIsModalOpen(true)}
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition-all font-medium"
                     >
                         <UserPlus className="w-4 h-4" />
                         Convidar primeiro membro
-                    </button>
+                    </Button>
                 </div>
             )}
 
@@ -429,7 +430,7 @@ export const UsersPage: React.FC = () => {
                     }}
                 >
                     <div
-                        className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                        className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Header */}
@@ -480,20 +481,20 @@ export const UsersPage: React.FC = () => {
                                                     </code>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <button
+                                                    <Button
                                                         onClick={() => copyLink(invite.token)}
                                                         className="p-2 text-primary-600 hover:bg-primary-100 dark:hover:bg-primary-900/30 rounded-lg transition-colors"
                                                         title="Copiar link"
                                                     >
                                                         <Copy className="h-4 w-4" />
-                                                    </button>
-                                                    <button
+                                                    </Button>
+                                                    <Button
                                                         onClick={() => handleDeleteInvite(invite.id)}
                                                         className="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                                                         title="Revogar link"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             </div>
                                         ))}
@@ -514,7 +515,7 @@ export const UsersPage: React.FC = () => {
                                         Cargo
                                     </label>
                                     <div className={`grid gap-3 ${currentUserProfile?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-1'}`}>
-                                        <button
+                                        <Button
                                             type="button"
                                             onClick={() => setNewUserRole('corretor')}
                                             className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'corretor'
@@ -531,9 +532,9 @@ export const UsersPage: React.FC = () => {
                                             {newUserRole === 'corretor' && (
                                                 <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary-500" />
                                             )}
-                                        </button>
+                                        </Button>
                                         {currentUserProfile?.role === 'admin' && (
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={() => setNewUserRole('diretor')}
                                                 className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'diretor'
@@ -550,10 +551,10 @@ export const UsersPage: React.FC = () => {
                                                 {newUserRole === 'diretor' && (
                                                     <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-500" />
                                                 )}
-                                            </button>
+                                            </Button>
                                         )}
                                         {currentUserProfile?.role === 'admin' && (
-                                            <button
+                                            <Button
                                                 type="button"
                                                 onClick={() => setNewUserRole('admin')}
                                                 className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'admin'
@@ -570,7 +571,7 @@ export const UsersPage: React.FC = () => {
                                                 {newUserRole === 'admin' && (
                                                     <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-amber-500" />
                                                 )}
-                                            </button>
+                                            </Button>
                                         )}
                                     </div>
                                 </div>
@@ -586,7 +587,7 @@ export const UsersPage: React.FC = () => {
                                             { label: '30 dias', value: 30 },
                                             { label: 'Nunca', value: null }
                                         ].map((opt) => (
-                                            <button
+                                            <Button
                                                 key={opt.label}
                                                 type="button"
                                                 onClick={() => setExpirationDays(opt.value)}
@@ -596,7 +597,7 @@ export const UsersPage: React.FC = () => {
                                                     }`}
                                             >
                                                 {opt.label}
-                                            </button>
+                                            </Button>
                                         ))}
                                     </div>
                                 </div>
@@ -614,15 +615,15 @@ export const UsersPage: React.FC = () => {
 
                             {/* Modal Footer */}
                             <div className="flex gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-white/5">
-                                <button
+                                <Button
                                     type="button"
                                     onClick={closeModal}
                                     className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
                                 >
                                     Fechar
-                                </button>
+                                </Button>
 
-                                <button
+                                <Button
                                     onClick={handleGenerateLink}
                                     disabled={sendingInvites}
                                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-600/25 transition-all"
@@ -638,7 +639,7 @@ export const UsersPage: React.FC = () => {
                                             Gerar Link
                                         </>
                                     )}
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

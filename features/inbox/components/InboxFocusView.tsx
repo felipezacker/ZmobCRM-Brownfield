@@ -21,11 +21,17 @@ import {
 import { FocusItem, AISuggestion } from '../hooks/useInboxController';
 import { Activity, DealView } from '@/types';
 import { FocusContextPanel } from './FocusContextPanel';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useDeals } from '@/context/deals/DealsContext';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useUIStore } from '@/lib/stores';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { useAuth } from '@/context/AuthContext';
 import { InboxZeroState } from './InboxZeroState';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/app/components/ui/Button';
 
 // Performance: reuse Intl formatter instances (avoid per-render allocations).
 const PT_BR_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -100,17 +106,12 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
   const [showContext, setShowContext] = useState(false);
   const [manualDealId, setManualDealId] = useState('');
   const [contextSearch, setContextSearch] = useState('');
-  const {
-    deals,
-    contacts,
-    boards,
-    activeBoard,
-    activities,
-    updateDeal,
-    addActivity,
-    updateActivity,
-    setSidebarCollapsed,
-  } = useCRM();
+  const { deals } = useCRMActions();
+  const { updateDeal } = useDeals();
+  const { contacts } = useContacts();
+  const { boards, activeBoard } = useBoards();
+  const { activities, addActivity, updateActivity } = useActivities();
+  const { setSidebarOpen } = useUIStore();
   const { profile } = useAuth();
   const router = useRouter();
 
@@ -286,8 +287,8 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
   }, [currentIndex, totalItems, showContext, contextData, onPrev, onNext, onSnooze, onSkip, onDone]);
 
   useEffect(() => {
-    setSidebarCollapsed(showContext);
-  }, [showContext, setSidebarCollapsed]);
+    setSidebarOpen(!showContext);
+  }, [showContext, setSidebarOpen]);
 
   const normalizedContextSearch = normalizeTitleKey(contextSearch);
   const suggestedDeals = useMemo(() => {
@@ -429,7 +430,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
       {/* Ver detalhes - sempre aparece; quando não há contexto, abre painel para vincular um deal */}
       {currentItem && (
         <div className="flex items-center justify-center my-6">
-          <button
+          <Button
             onClick={() => {
               if (hasResolvedContext && contextData?.deal?.id) {
                 router.push(`/deals/${contextData.deal.id}/cockpit`);
@@ -451,13 +452,13 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
             <kbd className="hidden group-hover:inline-flex h-5 items-center gap-1 rounded border border-yellow-500/20 bg-yellow-500/10 px-1.5 font-mono text-[10px] font-medium text-yellow-500/50 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out translate-x-1 group-hover:translate-x-0 ml-2">
               SPACE
             </kbd>
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Ações */}
       <div className="flex items-center gap-4 mt-8" role="group" aria-label="Ações">
-        <button
+        <Button
           onClick={onSnooze}
           className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-all font-medium border border-transparent hover:border-slate-300 dark:hover:border-white/10"
         >
@@ -466,9 +467,9 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
           <kbd className="hidden group-hover:inline-flex h-5 items-center justify-center rounded border border-slate-300 dark:border-white/10 bg-slate-200 dark:bg-white/5 px-1.5 font-mono text-[10px] uppercase text-slate-500 font-bold opacity-0 group-hover:opacity-100 transition-all">
             A
           </kbd>
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={onDone}
           className="group flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] transition-all duration-300 font-bold text-lg border-t border-white/20 ring-1 ring-emerald-600/50"
         >
@@ -479,9 +480,9 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
           <kbd className="ml-1 inline-flex h-6 items-center justify-center rounded bg-black/10 px-2 font-sans text-xs text-white/70 font-semibold border border-white/10">
             ⏎
           </kbd>
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={onSkip}
           className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-all font-medium border border-transparent hover:border-slate-300 dark:hover:border-white/10"
         >
@@ -490,19 +491,19 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
             P
           </kbd>
           <SkipForward size={18} aria-hidden="true" className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200" />
-        </button>
+        </Button>
       </div>
 
       {/* Navegação */}
       <nav aria-label="Navegação entre itens" className="flex items-center gap-6 mt-12">
-        <button
+        <Button
           onClick={onPrev}
           disabled={currentIndex === 0}
           aria-label="Item anterior"
           className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft size={24} aria-hidden="true" />
-        </button>
+        </Button>
 
         {/* Progress dots */}
         <div className="flex items-center gap-1.5" role="group" aria-label={`Progresso: item ${currentIndex + 1} de ${totalItems}`}>
@@ -521,14 +522,14 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
           )}
         </div>
 
-        <button
+        <Button
           onClick={onNext}
           disabled={currentIndex >= totalItems - 1}
           aria-label="Próximo item"
           className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronRight size={24} aria-hidden="true" />
-        </button>
+        </Button>
       </nav>
 
 
@@ -588,13 +589,13 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
                       Esta atividade não tem deal/contato associado. Selecione um negócio para abrir o Cockpit.
                     </div>
                   </div>
-                  <button
+                  <Button
                     onClick={() => setShowContext(false)}
                     className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                     aria-label="Fechar"
                   >
                     ×
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="mt-4">
@@ -608,14 +609,14 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
 
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[50vh] overflow-auto pr-1">
                   {suggestedDeals.map(d => (
-                    <button
+                    <Button
                       key={d.id}
                       onClick={() => setManualDealId(d.id)}
                       className="text-left rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 px-3 py-2 transition-colors"
                     >
                       <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">{d.title}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{d.contactName}</div>
-                    </button>
+                    </Button>
                   ))}
                   {suggestedDeals.length === 0 && (
                     <div className="text-sm text-slate-500 dark:text-slate-400 py-6 text-center col-span-full">

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Button } from '@/app/components/ui/Button';
 
 export function Chip({
   children,
@@ -57,7 +58,7 @@ export function TabButton({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <Button
       type="button"
       className={
         active
@@ -67,6 +68,6 @@ export function TabButton({
       onClick={onClick}
     >
       {children}
-    </button>
+    </Button>
   );
 }

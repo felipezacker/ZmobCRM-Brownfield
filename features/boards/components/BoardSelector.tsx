@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, Plus, Settings, Trash2 } from 'lucide-react';
 import { Board } from '@/types';
+import { Button } from '@/app/components/ui/Button';
 
 interface BoardSelectorProps {
   boards: Board[];
@@ -43,7 +44,7 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
 
   return (
     <div className="relative">
-      <button
+      <Button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
       >
@@ -54,7 +55,7 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
           </span>
         </div>
         <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
+      </Button>
 
       {isOpen && (
         <>
@@ -96,7 +97,7 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
                   {/* Action buttons - aparecem no hover */}
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {onEditBoard && (
-                      <button
+                      <Button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -107,11 +108,11 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
                         title="Editar board"
                       >
                         <Settings size={14} />
-                      </button>
+                      </Button>
                     )}
                     {/* Pode deletar se não for o único board */}
                     {onDeleteBoard && boards.length > 1 && (
-                      <button
+                      <Button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -122,7 +123,7 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
                         title="Excluir board"
                       >
                         <Trash2 size={14} />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -131,14 +132,14 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
 
             {/* Create New Board */}
             <div className="border-t border-slate-200 dark:border-white/10">
-              <button
+              <Button
                 type="button"
                 onClick={() => { onCreateBoard(); setIsOpen(false); }}
                 className="w-full flex items-center gap-2 px-4 py-3 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"
               >
                 <Plus size={16} />
                 Criar novo board
-              </button>
+              </Button>
             </div>
           </div>
         </>

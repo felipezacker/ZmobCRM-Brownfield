@@ -15,6 +15,7 @@ import { useToast } from '../ToastContext';
 import { queryKeys } from '@/lib/query';
 import { useBoards as useTanStackBoards } from '@/lib/query/hooks/useBoardsQuery';
 import { isValidUUID } from '@/lib/supabase/utils';
+import { useUIStore } from '@/lib/stores';
 
 interface BoardsContextType {
   boards: Board[];
@@ -24,7 +25,7 @@ interface BoardsContextType {
   updateBoard: (id: string, updates: Partial<Board>) => Promise<void>;
   deleteBoard: (id: string) => Promise<void>;
 
-  // Active board state (UI state - permanece em useState)
+  // Active board state (Zustand)
   activeBoardId: string;
   setActiveBoardId: (id: string) => void;
   activeBoard: Board | null;
@@ -68,20 +69,19 @@ export const BoardsProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const error = queryError ? (queryError as Error).message : null;
 
   // ============================================
-  // UI State - activeBoardId permanece em useState
+  // UI State - activeBoardId via Zustand
   // ============================================
-  const [activeBoardId, setActiveBoardIdRaw] = useState<string>('');
+  const activeBoardId = useUIStore(state => state.activeBoardId);
+  const setActiveBoardIdStore = useUIStore(state => state.setActiveBoardId);
 
   // Wrapper que valida antes de setar
   const setActiveBoardId = useCallback((id: string) => {
-    // Só seta se for um UUID válido que existe nos boards
     if (id && isValidUUID(id) && boards.some(b => b.id === id)) {
-      setActiveBoardIdRaw(id);
+      setActiveBoardIdStore(id);
     } else if (boards.length > 0) {
-      // Fallback para primeiro board se ID inválido
-      setActiveBoardIdRaw(boards[0].id);
+      setActiveBoardIdStore(boards[0].id);
     }
-  }, [boards]);
+  }, [boards, setActiveBoardIdStore]);
 
   // Auto-seleciona primeiro board quando carrega ou quando activeBoardId é inválido
   useEffect(() => {
@@ -89,10 +89,10 @@ export const BoardsProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       const currentBoardExists = boards.some(b => b.id === activeBoardId);
       if (!activeBoardId || !currentBoardExists) {
         const defaultBoard = boards.find(b => b.isDefault) || boards[0];
-        setActiveBoardIdRaw(defaultBoard.id);
+        setActiveBoardIdStore(defaultBoard.id);
       }
     }
-  }, [boards, activeBoardId]);
+  }, [boards, activeBoardId, setActiveBoardIdStore]);
 
   // Refresh = invalidar cache do TanStack Query
   const refresh = useCallback(async () => {

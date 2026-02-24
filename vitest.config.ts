@@ -19,7 +19,7 @@ export default defineConfig({
     setupFiles: ['test/setup.ts', 'test/setup.dom.ts'],
     // Cobrir testes unitários tanto em /test quanto em components/features
     include: ['**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['node_modules', '.next', 'dist', 'tmp', '**/*.bak', '**/*.bkp'],
+    exclude: ['node_modules', '.next', 'dist', 'tmp', '**/*.bak', '**/*.bkp', '.claude/worktrees/**'],
     testTimeout: 60_000,
     hookTimeout: 60_000,
   },

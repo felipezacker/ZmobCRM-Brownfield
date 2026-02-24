@@ -19,7 +19,7 @@ import { usePersistedState } from '@/hooks/usePersistedState';
 import { useRealtimeSyncKanban } from '@/lib/realtime/useRealtimeSync';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
-import { useCRM } from '@/context/CRMContext';
+import { useSettings } from '@/context/settings/SettingsContext';
 import { useAI } from '@/context/AIContext';
 
 /**
@@ -252,7 +252,7 @@ export const useBoardsController = () => {
   }, [activeBoard, deals, statusFilter, ownerFilter, searchTerm, dateRange.start, dateRange.end]);
 
   // Get lifecycle stages from CRM context for automations
-  const { lifecycleStages } = useCRM();
+  const { lifecycleStages } = useSettings();
 
   // Enable realtime sync for Kanban
   useRealtimeSyncKanban();

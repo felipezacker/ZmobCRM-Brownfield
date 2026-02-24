@@ -14,6 +14,7 @@ import { fetchRegistry, fetchTemplateJourney } from '@/lib/templates/registrySer
 import { RegistryIndex, RegistryTemplate, JourneyDefinition } from '@/types';
 import { OFFICIAL_JOURNEYS } from '@/lib/templates/journey-templates';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
+import { Button } from '@/app/components/ui/Button';
 
 interface BoardCreationWizardProps {
   isOpen: boolean;
@@ -876,12 +877,12 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
               'Criar Novo Board'
             )}
           </h2>
-          <button
+          <Button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
           >
             <X size={20} className="text-slate-500" />
-          </button>
+          </Button>
         </div>
 
         {/* Content Body */}
@@ -915,7 +916,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                     {/* Proposal Actions */}
                     {msg.proposalData && (
                       <div className="mt-2 flex gap-2">
-                        <button
+                        <Button
                           onClick={() => handlePreviewToggle(msg.proposalData!)}
                           className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors flex items-center gap-1 ${previewBoard === msg.proposalData
                             ? 'bg-blue-100 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-500/50 dark:text-blue-300'
@@ -925,13 +926,13 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                           {previewBoard === msg.proposalData
                             ? '👁️ Esconder Preview'
                             : '👁️ Ver Preview'}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => handleApplyProposal(msg.proposalData!)}
                           className="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-600 hover:bg-green-500 text-white transition-colors flex items-center gap-1"
                         >
                           ✅ Aplicar
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -961,13 +962,13 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                     className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     disabled={isRefining}
                   />
-                  <button
+                  <Button
                     onClick={handleRefineBoard}
                     disabled={!chatInput.trim() || isRefining}
                     className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 disabled:opacity-50 transition-colors"
                   >
                     <Send size={18} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -989,7 +990,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                     </p>
 
                     {/* Primary CTA: AI */}
-                    <button
+                    <Button
                       onClick={() => setStep('ai-input')}
                       className="mt-4 w-full relative overflow-hidden p-1 rounded-2xl group transition-all hover:shadow-lg hover:shadow-primary-500/20"
                     >
@@ -1000,7 +1001,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                           className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-pink-500"
                         />
                         <div className="flex flex-col items-center leading-tight">
-                          <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 dark:from-indigo-400 dark:to-pink-400">
+                          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 dark:from-indigo-400 dark:to-pink-400">
                             Criar com IA
                           </span>
                           <span className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -1008,11 +1009,11 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                           </span>
                         </div>
                       </div>
-                    </button>
+                    </Button>
 
                     {/* Compact chooser list */}
                     <div className="mt-3 space-y-2">
-                      <button
+                      <Button
                         onClick={() => {
                           setSelectMode('browse');
                           setSelectBrowseFocus('playbooks');
@@ -1033,9 +1034,9 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                             </div>
                           </div>
                         </div>
-                      </button>
+                      </Button>
 
-                      <button
+                      <Button
                         onClick={() => {
                           setSelectMode('browse');
                           setSelectBrowseFocus('templates');
@@ -1056,9 +1057,9 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                             </div>
                           </div>
                         </div>
-                      </button>
+                      </Button>
 
-                      <button
+                      <Button
                         onClick={() => {
                           // UX: open editor immediately (same "one click" feeling as picking a template).
                           onClose();
@@ -1078,11 +1079,11 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                             </div>
                           </div>
                         </div>
-                      </button>
+                      </Button>
                     </div>
 
                     <div className="mt-3 text-center">
-                      <button
+                      <Button
                         onClick={() => {
                           setSelectMode('browse');
                           setSelectBrowseFocus('community');
@@ -1091,21 +1092,21 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                         className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                       >
                         Ver templates da comunidade →
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between gap-3">
-                      <button
+                      <Button
                         onClick={() => setSelectMode('home')}
                         className="px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors font-medium"
                       >
                         ← Voltar
-                      </button>
+                      </Button>
 
                       <div className="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl">
-                        <button
+                        <Button
                           onClick={() => {
                             setSelectBrowseFocus('playbooks');
                             setActiveTab('official');
@@ -1116,8 +1117,8 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                             }`}
                         >
                           Playbooks
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => {
                             setSelectBrowseFocus('templates');
                             setActiveTab('official');
@@ -1128,8 +1129,8 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                             }`}
                         >
                           Templates
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => {
                             setSelectBrowseFocus('community');
                             setActiveTab('community');
@@ -1140,7 +1141,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                             }`}
                         >
                           Comunidade
-                        </button>
+                        </Button>
                       </div>
                     </div>
 
@@ -1152,7 +1153,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                         <div className="flex flex-col gap-3">
                           {OFFICIAL_JOURNEYS &&
                             Object.values(OFFICIAL_JOURNEYS).map(journey => (
-                              <button
+                              <Button
                                 key={journey.id}
                                 onClick={() => {
                                   setSelectedPlaybookId(journey.id);
@@ -1179,7 +1180,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                                     </div>
                                   </div>
                                 </div>
-                              </button>
+                              </Button>
                             ))}
                         </div>
                       </div>
@@ -1198,7 +1199,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                             .map(key => {
                             const template = BOARD_TEMPLATES[key];
                             return (
-                              <button
+                              <Button
                                 key={key}
                                 onClick={() => {
                                   handleTemplateSelect(key);
@@ -1226,7 +1227,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                                     </span>
                                   ))}
                                 </div>
-                              </button>
+                              </Button>
                             );
                           })}
                         </div>
@@ -1246,7 +1247,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                         ) : (
                           <div className="grid grid-cols-1 gap-4 mb-6">
                             {registryIndex?.templates.map(template => (
-                              <button
+                              <Button
                                 key={template.id}
                                 onClick={() => handleInstallJourney(template.path)}
                                 disabled={isInstalling}
@@ -1279,7 +1280,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                                     por {template.author}
                                   </span>
                                 </div>
-                              </button>
+                              </Button>
                             ))}
                           </div>
                         )}
@@ -1437,7 +1438,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                   {error && (
                     <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/20 rounded-lg">
                       <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-                      <button
+                      <Button
                         onClick={() => {
                           onClose();
                           router.push('/settings/ai#ai-config');
@@ -1447,7 +1448,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                       >
                         <Settings size={16} />
                         Configurar IA
-                      </button>
+                      </Button>
                     </div>
                   )}
 
@@ -1535,7 +1536,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
           <div className="p-6 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-dark-card shrink-0">
           {step === 'playbook-preview' && selectedPlaybookId && (
             <div className="flex gap-3 justify-between items-center w-full">
-              <button
+              <Button
                 onClick={() => {
                   setStep('select');
                   setSelectedPlaybookId(null);
@@ -1543,19 +1544,19 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                 className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors font-medium"
               >
                 ← Voltar
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => handleInstallOfficialJourney(selectedPlaybookId)}
                 className="px-8 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-xl transition-all shadow-lg hover:shadow-primary-500/25 font-bold flex items-center gap-2"
               >
                 <span className="text-lg">🚀</span> Instalar Playbook Completo
-              </button>
+              </Button>
             </div>
           )}
 
           {step === 'ai-input' && (
             <div className="flex gap-3 justify-end">
-              <button
+              <Button
                 onClick={() => {
                   setStep('select');
                   setError(null);
@@ -1563,8 +1564,8 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                 className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
               >
                 Voltar
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleAIGenerate}
                 disabled={!aiInput.trim() || isGenerating}
                 className="px-6 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -1580,7 +1581,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                     Gerar Board
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           )}
 
@@ -1589,7 +1590,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
               {isChatMode ? (
                 <div className="text-sm text-slate-500">Modo de refinamento ativo</div>
               ) : (
-                <button
+                <Button
                   onClick={() => {
                     setStep('ai-input');
                     setGeneratedBoard(null);
@@ -1597,25 +1598,25 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
                   className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                 >
                   Não é isso
-                </button>
+                </Button>
               )}
 
               <div className="flex gap-3">
                 {!isChatMode && (
-                  <button
+                  <Button
                     onClick={startChatMode}
                     className="px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 rounded-lg transition-colors flex items-center gap-2"
                   >
                     <MessageSquare size={18} />
                     Refinar com IA
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
                   onClick={handleCreateFromAI}
                   className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors shadow-lg flex items-center gap-2"
                 >
                   ✅ Perfeito! Criar Board
-                </button>
+                </Button>
               </div>
             </div>
           )}

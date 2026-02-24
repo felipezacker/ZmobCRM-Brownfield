@@ -1,6 +1,8 @@
 import React from 'react';
 import { Tag, Plus, X } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 import { SettingsSection } from './SettingsSection';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface TagsManagerProps {
   availableTags: string[];
@@ -31,7 +33,7 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
           placeholder="Nova tag..."
           className="flex-1 max-w-xs px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-        <button
+        <Button
           type="button"
           onClick={onAddTag}
           disabled={!newTagName.trim()}
@@ -39,11 +41,11 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
         >
           <Plus className="h-4 w-4" />
           Adicionar
-        </button>
+        </Button>
       </div>
 
       {availableTags.length === 0 ? (
-        <p className="text-sm text-slate-400">Nenhuma tag criada ainda.</p>
+        <EmptyState title="Nenhuma tag criada ainda." size="sm" />
       ) : (
         <div className="flex flex-wrap gap-2">
           {availableTags.map((tag) => (
@@ -52,14 +54,14 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 text-sm rounded-full"
             >
               {tag}
-              <button
+              <Button
                 type="button"
                 onClick={() => onRemoveTag(tag)}
                 className="text-slate-400 hover:text-red-500 transition-colors"
                 aria-label={`Remover tag ${tag}`}
               >
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             </span>
           ))}
         </div>

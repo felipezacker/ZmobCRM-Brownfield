@@ -5,6 +5,7 @@ import { Search, X } from 'lucide-react';
 import type { QuickScript, ScriptCategory } from '@/lib/supabase/quickScripts';
 import type { TemplatePickerMode } from './cockpit-types';
 import { scriptCategoryChipClass } from './cockpit-utils';
+import { Button } from '@/app/components/ui/Button';
 
 interface TemplatePickerModalProps {
   isOpen: boolean;
@@ -51,13 +52,13 @@ export function TemplatePickerModal({
           <div className="text-sm font-semibold text-slate-100">
             {mode === 'WHATSAPP' ? 'Template WhatsApp' : 'Template E-mail'}
           </div>
-          <button
+          <Button
             type="button"
             className="rounded-lg border border-white/10 bg-white/3 p-2 text-slate-300 hover:bg-white/5"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
 
         <div className="px-6 py-3 border-b border-white/10 flex items-center gap-3">
@@ -95,7 +96,7 @@ export function TemplatePickerModal({
                 const info = getCategoryInfo(s.category);
                 const preview = applyVariables(s.template, variables);
                 return (
-                  <button
+                  <Button
                     key={s.id}
                     type="button"
                     className="w-full text-left rounded-2xl border border-white/10 bg-white/3 p-4 hover:bg-white/5 transition-colors"
@@ -108,7 +109,7 @@ export function TemplatePickerModal({
                       <div className="truncate text-sm font-semibold text-slate-100">{s.title}</div>
                     </div>
                     <div className="mt-2 line-clamp-4 text-xs text-slate-400 whitespace-pre-wrap">{preview}</div>
-                  </button>
+                  </Button>
                 );
               })}
             </div>

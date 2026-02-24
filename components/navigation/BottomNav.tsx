@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { PRIMARY_NAV } from './navConfig';
+import { Button } from '@/app/components/ui/Button';
 
 export interface BottomNavProps {
   onOpenMore: () => void;
@@ -32,7 +33,7 @@ export function BottomNav({ onOpenMore }: BottomNavProps) {
 
           if (item.id === 'more') {
             return (
-              <button
+              <Button
                 key={item.id}
                 type="button"
                 onClick={onOpenMore}
@@ -45,7 +46,7 @@ export function BottomNav({ onOpenMore }: BottomNavProps) {
               >
                 <Icon className="h-5 w-5" aria-hidden="true" />
                 <span className="font-display tracking-wide">{item.label}</span>
-              </button>
+              </Button>
             );
           }
 

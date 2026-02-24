@@ -2,6 +2,7 @@ import React, { useCallback, useId, useMemo } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { BoardStage, DealView } from '@/types';
+import { Button } from '@/app/components/ui/Button';
 
 interface MoveToStageModalProps {
   isOpen: boolean;
@@ -81,7 +82,7 @@ export const MoveToStageModal: React.FC<MoveToStageModalProps> = ({
           </p>
           <div className="space-y-2" role="listbox" aria-label="Estágios disponíveis">
             {stageData.availableStages.map((stage, index) => (
-              <button
+              <Button
                 key={stage.id}
                 type="button"
                 role="option"
@@ -106,20 +107,20 @@ export const MoveToStageModal: React.FC<MoveToStageModalProps> = ({
                   className="text-slate-400 group-hover:text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" 
                   aria-hidden="true"
                 />
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
         {/* Cancel button */}
-        <button
+        <Button
           type="button"
           onClick={onClose}
           className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400
                      hover:bg-slate-100 dark:hover:bg-white/5 transition-colors focus-visible-ring"
         >
           Cancelar
-        </button>
+        </Button>
       </div>
     </Modal>
   );

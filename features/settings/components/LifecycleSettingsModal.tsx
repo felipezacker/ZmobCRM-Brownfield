@@ -1,6 +1,8 @@
 import React, { useState, useId } from 'react';
 import { X, Plus, Trash2, ArrowUp, ArrowDown, Check } from 'lucide-react';
-import { useCRM } from '@/context/CRMContext';
+import { Button } from '@/app/components/ui/Button';
+import { useSettings } from '@/context/settings/SettingsContext';
+import { useContacts } from '@/context/contacts/ContactsContext';
 import { LifecycleStage } from '@/types';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 
@@ -32,7 +34,8 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
     const headingId = useId();
     useFocusReturn({ enabled: isOpen });
 
-    const { lifecycleStages, addLifecycleStage, updateLifecycleStage, deleteLifecycleStage, reorderLifecycleStages, contacts } = useCRM();
+    const { lifecycleStages, addLifecycleStage, updateLifecycleStage, deleteLifecycleStage, reorderLifecycleStages } = useSettings();
+    const { contacts } = useContacts();
     const [newStageName, setNewStageName] = useState('');
     const [isAdding, setIsAdding] = useState(false);
 
@@ -83,13 +86,13 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
                 <div className="relative z-10 w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
                     <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
                         <h3 id={headingId} className="font-bold text-slate-900 dark:text-white">Gerenciar Ciclos de Vida</h3>
-                        <button
+                        <Button
                             onClick={onClose}
                             aria-label="Fechar modal"
                             className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors focus-visible-ring"
                         >
                             <X size={20} className="text-slate-500" aria-hidden="true" />
-                        </button>
+                        </Button>
                     </div>
 
                     <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
@@ -133,24 +136,24 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
                                 {/* Actions */}
                                 <div className="flex items-center gap-1">
                                     <div className="flex flex-col">
-                                        <button
+                                        <Button
                                             onClick={() => handleMove(index, 'up')}
                                             disabled={index === 0}
                                             className="p-0.5 text-slate-400 hover:text-primary-500 disabled:opacity-30"
                                         >
                                             <ArrowUp size={12} />
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
                                             onClick={() => handleMove(index, 'down')}
                                             disabled={index === lifecycleStages.length - 1}
                                             className="p-0.5 text-slate-400 hover:text-primary-500 disabled:opacity-30"
                                         >
                                             <ArrowDown size={12} />
-                                        </button>
+                                        </Button>
                                     </div>
 
-                                    <button
-                                        onClick={() => deleteLifecycleStage(stage.id)}
+                                    <Button
+                                        onClick={() => deleteLifecycleStage(stage.id, contacts)}
                                         disabled={stage.isDefault || (stageCounts[stage.id] || 0) > 0}
                                         className="p-1.5 text-slate-400 hover:text-red-500 disabled:opacity-30 disabled:cursor-not-allowed ml-1"
                                         title={
@@ -162,7 +165,7 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
                                         }
                                     >
                                         <Trash2 size={14} />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         ))}
@@ -180,28 +183,28 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
                                     placeholder="Nome do novo estágio..."
                                     className="flex-1 bg-transparent text-sm outline-none text-slate-900 dark:text-white placeholder:text-slate-400"
                                 />
-                                <button
+                                <Button
                                     onClick={handleAdd}
                                     disabled={!newStageName.trim()}
                                     className="p-1.5 bg-primary-500 text-white rounded-md hover:bg-primary-600 disabled:opacity-50"
                                 >
                                     <Check size={14} />
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     onClick={() => setIsAdding(false)}
                                     className="p-1.5 text-slate-500 hover:text-slate-700"
                                 >
                                     <X size={14} />
-                                </button>
+                                </Button>
                             </div>
                         ) : (
-                            <button
+                            <Button
                                 onClick={() => setIsAdding(true)}
                                 className="w-full py-2 flex items-center justify-center gap-2 text-sm text-slate-500 hover:text-primary-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 transition-all"
                             >
                                 <Plus size={16} />
                                 Adicionar Estágio
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>

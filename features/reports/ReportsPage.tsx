@@ -6,8 +6,9 @@ import { useDashboardMetrics, PeriodFilter, COMPARISON_LABELS } from '../dashboa
 import { PeriodFilterSelect } from '@/components/filters/PeriodFilterSelect';
 import { LazyRevenueTrendChart, ChartWrapper } from '@/components/charts';
 import { generateReportPDF } from './utils/generateReportPDF';
-import { useCRM } from '@/context/CRMContext';
+import { useBoards } from '@/context/boards/BoardsContext';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/app/components/ui/Button';
 
 /**
  * Componente React `ReportsPage`.
@@ -15,7 +16,7 @@ import { useAuth } from '@/context/AuthContext';
  */
 const ReportsPage: React.FC = () => {
   const router = useRouter();
-  const { boards } = useCRM();
+  const { boards } = useBoards();
   const { profile } = useAuth();
   const [period, setPeriod] = useState<PeriodFilter>('this_month');
   const [selectedBoardId, setSelectedBoardId] = useState<string>('');
@@ -198,7 +199,7 @@ const ReportsPage: React.FC = () => {
 
           <PeriodFilterSelect value={period} onChange={setPeriod} />
 
-          <button
+          <Button
             type="button"
             onClick={handleExportPDF}
             className="group flex items-center gap-2 px-3 py-2 rounded-lg glass border border-slate-200/50 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:border-slate-300 dark:hover:border-white/20 transition-all duration-200"
@@ -206,7 +207,7 @@ const ReportsPage: React.FC = () => {
           >
             <Download size={16} className="group-hover:scale-110 transition-transform" />
             <span className="text-sm font-medium opacity-80 group-hover:opacity-100">PDF</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -266,12 +267,12 @@ const ReportsPage: React.FC = () => {
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Meta não configurada</h3>
               <p className="text-xs text-slate-500">Defina uma meta no board para acompanhar o forecast.</p>
             </div>
-            <button
+            <Button
               onClick={() => router.push('/boards')}
               className="px-3 py-1.5 text-xs font-medium bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
             >
               Configurar
-            </button>
+            </Button>
           </div>
         </div>
       )}

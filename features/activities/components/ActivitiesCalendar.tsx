@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Phone, Users, Mail, CheckSquare } from 'lucide-react';
 import { Activity, Deal } from '@/types';
+import { Button } from '@/app/components/ui/Button';
 
 interface ActivitiesCalendarProps {
     activities: Activity[];
@@ -122,21 +123,21 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                     <h2 className="font-bold text-2xl text-slate-900 dark:text-white font-display">
                         {weekStart.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                     </h2>
-                    <button
+                    <Button
                         onClick={goToToday}
                         className="px-4 py-2 text-sm font-bold bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:scale-105"
                     >
                         <CalendarIcon size={14} />
                         Hoje
-                    </button>
+                    </Button>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={prevWeek} className="p-3 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110">
+                    <Button onClick={prevWeek} className="p-3 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110">
                         <ChevronLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                    </button>
-                    <button onClick={nextWeek} className="p-3 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110">
+                    </Button>
+                    <Button onClick={nextWeek} className="p-3 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110">
                         <ChevronRight size={20} className="text-slate-600 dark:text-slate-400" />
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -157,7 +158,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                 <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     {DAYS_OF_WEEK[date.getDay()]}
                                 </div>
-                                <div className={`text-2xl font-black mt-1 font-display ${isToday(date)
+                                <div className={`text-2xl font-bold mt-1 font-display ${isToday(date)
                                         ? 'text-primary-600 dark:text-primary-400'
                                         : 'text-slate-900 dark:text-white'
                                     }`}>
@@ -209,7 +210,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                                             <div className="p-1 bg-white/20 rounded-md">
                                                                 {getActivityIcon(activity.type)}
                                                             </div>
-                                                            <span className="font-black text-white text-sm">
+                                                            <span className="font-bold text-white text-sm">
                                                                 {new Date(activity.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                                             </span>
                                                         </div>

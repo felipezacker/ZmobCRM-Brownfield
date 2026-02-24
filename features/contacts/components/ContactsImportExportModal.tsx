@@ -3,6 +3,7 @@ import { Download, Upload, FileDown } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/context/ToastContext';
 import { stringifyCsv, withUtf8Bom, type CsvDelimiter } from '@/lib/utils/csv';
+import { Button } from '@/app/components/ui/Button';
 
 type Panel = 'export' | 'import';
 
@@ -174,7 +175,7 @@ export function ContactsImportExportModal(props: {
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={() => setPanel('export')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
@@ -184,8 +185,8 @@ export function ContactsImportExportModal(props: {
             }`}
           >
             Exportar
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => setPanel('import')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
@@ -195,7 +196,7 @@ export function ContactsImportExportModal(props: {
             }`}
           >
             Importar CSV
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -230,7 +231,7 @@ export function ContactsImportExportModal(props: {
             <b>Campos exportados:</b> name, email, phone, role, company, status, stage, notes, created_at, updated_at.
           </div>
 
-          <button
+          <Button
             type="button"
             onClick={() => void handleExport()}
             disabled={isExporting}
@@ -241,7 +242,7 @@ export function ContactsImportExportModal(props: {
             }`}
           >
             <FileDown size={16} /> {isExporting ? 'Gerando…' : 'Exportar CSV'}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -257,13 +258,13 @@ export function ContactsImportExportModal(props: {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
+            <Button
               type="button"
               onClick={handleDownloadTemplate}
               className="px-3 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold flex items-center gap-2"
             >
               <Download size={16} /> Baixar template
-            </button>
+            </Button>
           </div>
 
           <div className="space-y-2">
@@ -334,7 +335,7 @@ export function ContactsImportExportModal(props: {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => void handleImport()}
               disabled={!file || isImporting}
@@ -345,7 +346,7 @@ export function ContactsImportExportModal(props: {
               }`}
             >
               <Upload size={16} /> {isImporting ? 'Importando…' : 'Importar'}
-            </button>
+            </Button>
           </div>
 
           {importResult && (
@@ -357,13 +358,13 @@ export function ContactsImportExportModal(props: {
                 {importResult.totals?.errors ?? 0} erros
               </div>
               {(importResult.totals?.errors ?? 0) > 0 && (
-                <button
+                <Button
                   type="button"
                   onClick={handleDownloadErrorReport}
                   className="text-xs font-semibold text-primary-700 dark:text-primary-300 hover:underline w-fit"
                 >
                   Baixar relatório de erros (CSV)
-                </button>
+                </Button>
               )}
             </div>
           )}

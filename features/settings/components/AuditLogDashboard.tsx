@@ -7,11 +7,11 @@
  * Shows cross-tenant attempts, suspicious activities, and data exports.
  */
 import React, { useState, useEffect } from 'react';
-import { 
-  Shield, 
-  AlertTriangle, 
-  Info, 
-  AlertCircle, 
+import {
+  Shield,
+  AlertTriangle,
+  Info,
+  AlertCircle,
   Filter,
   RefreshCw,
   ChevronDown,
@@ -22,8 +22,10 @@ import {
   Bell,
   Check
 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/app/components/ui/Button';
 
 // Performance: reuse Intl formatter to avoid allocating options objects for every log row.
 const PT_BR_DATE_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', {
@@ -255,14 +257,14 @@ export const AuditLogDashboard: React.FC = () => {
             Monitore atividades de segurança e tentativas de acesso não autorizado
           </p>
         </div>
-        <button
+        <Button
           onClick={fetchLogs}
           disabled={loading}
           className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Atualizar
-        </button>
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -375,12 +377,11 @@ export const AuditLogDashboard: React.FC = () => {
             <p className="text-slate-500 dark:text-slate-400">Carregando logs...</p>
           </div>
         ) : logs.length === 0 ? (
-          <div className="p-8 text-center">
-            <Shield className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-500 dark:text-slate-400">
-              Nenhum log encontrado para os filtros selecionados
-            </p>
-          </div>
+          <EmptyState
+            icon={<Shield className="w-6 h-6 text-slate-400 dark:text-slate-500" />}
+            title="Nenhum log encontrado para os filtros selecionados"
+            size="md"
+          />
         ) : (
           <div className="divide-y divide-slate-200 dark:divide-white/10">
             {logs.map((log) => {
@@ -470,13 +471,13 @@ export const AuditLogDashboard: React.FC = () => {
                       )}
                     </div>
 
-                    <button className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <Button className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5" />
                       ) : (
                         <ChevronDown className="w-5 h-5" />
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               );

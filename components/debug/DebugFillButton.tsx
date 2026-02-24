@@ -8,6 +8,7 @@ import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { debugButtonStyles } from '@/lib/debug';
 import { useDebugMode } from '@/lib/debug/useDebugMode';
+import { Button } from '@/app/components/ui/Button';
 
 interface DebugFillButtonProps {
   onClick: () => void;
@@ -44,7 +45,7 @@ export const DebugFillButton: React.FC<DebugFillButtonProps> = ({
   if (!debugEnabled) return null;
 
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
       disabled={disabled}
@@ -53,7 +54,7 @@ export const DebugFillButton: React.FC<DebugFillButtonProps> = ({
     >
       <Sparkles className="w-3 h-3" />
       {label}
-    </button>
+    </Button>
   );
 };
 

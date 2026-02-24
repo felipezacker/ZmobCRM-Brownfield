@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { getErrorMessage } from '@/lib/utils/errorUtils'
 import { useAuth } from '@/context/AuthContext'
 import { Loader2, Building2, User, Lock, ArrowRight } from 'lucide-react'
+import { Button } from '@/app/components/ui/Button';
 
 /**
  * Componente React `SetupPage`.
@@ -276,7 +277,7 @@ export default function SetupPage() {
                 </div>
               )}
 
-              <button
+              <Button
                 type="submit"
                 disabled={loading || !isPasswordValid || !passwordsMatch}
                 className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-primary-500/20 text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
@@ -289,7 +290,7 @@ export default function SetupPage() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
-              </button>
+              </Button>
             </form>
           )}
         </div>

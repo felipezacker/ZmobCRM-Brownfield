@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Bell, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { useSystemNotifications, SystemNotification } from '@/hooks/useSystemNotifications';
 import Link from 'next/link';
+import { Button } from '@/app/components/ui/Button';
 
 const getTimeAgo = (date: Date) => {
     const now = new Date();
@@ -68,7 +69,7 @@ export const NotificationPopover = () => {
 
     return (
         <div className="relative" ref={popoverRef}>
-            <button
+            <Button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
@@ -83,7 +84,7 @@ export const NotificationPopover = () => {
                         aria-hidden="true"
                     />
                 )}
-            </button>
+            </Button>
 
             {isOpen && (
                 <div
@@ -95,12 +96,12 @@ export const NotificationPopover = () => {
                         <h3 className="font-semibold text-slate-900 dark:text-white">Notificações</h3>
                         <div className="flex items-center gap-2">
                             {count > 0 && (
-                                <button
+                                <Button
                                     onClick={() => markAllAsRead()}
                                     className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
                                 >
                                     Marcar todas como lidas
-                                </button>
+                                </Button>
                             )}
                             {count > 0 && (
                                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400">

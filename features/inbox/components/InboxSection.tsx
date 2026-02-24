@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ChevronDown, ChevronRight, ArrowRight } from 'lucide-react';
 import { Activity } from '@/types';
 import { InboxItem } from './InboxItem';
+import { Button } from '@/app/components/ui/Button';
 
 const MAX_ITEMS = 5;
 
@@ -71,7 +72,7 @@ export const InboxSection: React.FC<InboxSectionProps> = ({
 
   return (
     <div className="mb-6">
-      <button
+      <Button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 w-full mb-3 group"
       >
@@ -85,7 +86,7 @@ export const InboxSection: React.FC<InboxSectionProps> = ({
           </span>
         </h2>
         <div className="flex-1 h-px bg-slate-100 dark:bg-white/5 ml-2 group-hover:bg-slate-200 dark:group-hover:bg-white/10 transition-colors"></div>
-      </button>
+      </Button>
 
       {isOpen && (
         <div className="space-y-3 pl-2">

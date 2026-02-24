@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle2, CalendarClock, X } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 interface BulkActionsToolbarProps {
     selectedCount: number;
@@ -45,29 +46,29 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <button
+                    <Button
                         onClick={onCompleteAll}
                         className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
                     >
                         <CheckCircle2 size={16} />
                         Concluir
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                         onClick={onSnoozeAll}
                         className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
                     >
                         <CalendarClock size={16} />
                         Adiar 1 Dia
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                         onClick={onClearSelection}
                         className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                         title="Limpar seleção"
                     >
                         <X size={20} />
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

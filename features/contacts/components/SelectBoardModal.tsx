@@ -2,6 +2,7 @@ import React, { useId } from 'react';
 import { X, LayoutGrid } from 'lucide-react';
 import { Board } from '@/types';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
+import { Button } from '@/app/components/ui/Button';
 
 interface SelectBoardModalProps {
   isOpen: boolean;
@@ -66,20 +67,20 @@ export const SelectBoardModal: React.FC<SelectBoardModalProps> = ({
                 Selecione o board para <strong>{contactName}</strong>
               </p>
             </div>
-            <button
+            <Button
               onClick={onClose}
               aria-label="Fechar modal"
               className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors focus-visible-ring"
             >
               <X size={20} className="text-slate-500" aria-hidden="true" />
-            </button>
+            </Button>
           </div>
 
         {/* Board List */}
         <div className="p-4 max-h-80 overflow-y-auto">
           <div className="space-y-2">
             {boards.map(board => (
-              <button
+              <Button
                 key={board.id}
                 onClick={() => onSelect(board.id)}
                 className="w-full flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-primary-500 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-all group"
@@ -100,7 +101,7 @@ export const SelectBoardModal: React.FC<SelectBoardModalProps> = ({
                     {board.stages?.length || 0} estágios
                   </p>
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         </div>

@@ -26,6 +26,10 @@ interface DealCardProps {
   setLastMouseDownDealId: (id: string | null) => void;
   /** Callback to open move-to-stage modal for keyboard accessibility */
   onMoveToStage?: (dealId: string) => void;
+  /** Whether this card is currently in keyboard "grab" mode */
+  isGrabbed?: boolean;
+  /** Keyboard handler for Arrow-key movement (provided by useKanbanKeyboard) */
+  onKeyboardMove?: (e: React.KeyboardEvent) => void;
 }
 
 // Check if deal is closed (won or lost)
@@ -70,6 +74,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   onQuickAddActivity,
   setLastMouseDownDealId,
   onMoveToStage,
+  isGrabbed = false,
+  onKeyboardMove,
 }) => {
   const [localDragging, setLocalDragging] = useState(false);
   const isClosed = isDealClosed(deal);
@@ -159,6 +165,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     if (priority) parts.push(priority);
     if (isRotting && !isClosed) parts.push('estagnado');
 
+    if (isGrabbed) parts.push('segurado para mover');
+
     return parts.join(', ');
   };
 
@@ -180,6 +188,11 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         onSelect(deal.id);
       }}
       onKeyDown={e => {
+        // Delegate Arrow keys, G, and Escape to the keyboard-move handler when provided
+        if (onKeyboardMove && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'g', 'G', 'Escape'].includes(e.key)) {
+          onKeyboardMove(e);
+          return;
+        }
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           if (!(e.target as HTMLElement).closest('button')) {
@@ -188,7 +201,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         }
       }}
       tabIndex={0}
-      role="button"
+      role="article"
+      aria-roledescription="cartão movível"
       aria-label={getAriaLabel()}
       className={`${getCardClasses()} ${getBorderLeftClass()}`}
     >

@@ -45,7 +45,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen
 } from 'lucide-react';
-import { useCRM } from '../context/CRMContext';
+import { useUIStore } from '@/lib/stores';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { prefetchRoute, RouteName } from '@/lib/prefetch';
@@ -59,6 +59,7 @@ import { BottomNav, MoreMenuSheet, NavigationRail } from '@/components/navigatio
 import { UIChat } from './ai/UIChat';
 
 import { NotificationPopover } from './notifications/NotificationPopover';
+import { Button } from '@/app/components/ui/Button';
 
 /**
  * Props do componente Layout
@@ -134,7 +135,9 @@ const NavItem = ({
  */
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { darkMode, toggleDarkMode } = useTheme();
-  const { isGlobalAIOpen, setIsGlobalAIOpen, sidebarCollapsed, setSidebarCollapsed } = useCRM();
+  const { isGlobalAIOpen, setIsGlobalAIOpen, sidebarOpen, setSidebarOpen } = useUIStore();
+  const sidebarCollapsed = !sidebarOpen;
+  const setSidebarCollapsed = (collapsed: boolean) => setSidebarOpen(!collapsed);
   const { user, loading, profile, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -228,12 +231,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <SkipLink targetId="main-content" />
 
       {/* Tablet rail (shows full icon set; no "More" sheet needed) */}
-      {isTablet ? <NavigationRail /> : null}
+      <div className="hidden md:flex lg:hidden">
+        <NavigationRail />
+      </div>
 
       {/* Sidebar - Collapsible */}
-      {isDesktop ? (
-        <aside
-          className={`hidden md:flex flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20 items-center' : 'w-52'
+      <aside
+          className={`hidden lg:flex flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20 items-center' : 'w-52'
             }`}
           aria-label="Menu principal"
         >
@@ -301,34 +305,34 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {/* Sidebar Toggle Button (Footer) - Collapse when expanded */}
           {!sidebarCollapsed && (
             <div className="px-4 pb-2">
-              <button
+              <Button
                 onClick={() => setSidebarCollapsed(true)}
                 className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all text-sm"
                 title="Recolher Menu"
               >
                 <PanelLeftClose size={18} />
                 <span>Recolher</span>
-              </button>
+              </Button>
             </div>
           )}
 
           {/* Sidebar Toggle Button (Footer) - Expand when collapsed */}
           {sidebarCollapsed && (
             <div className="px-4 pb-2 flex justify-center">
-              <button
+              <Button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 className="flex items-center justify-center w-10 h-10 p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
                 title="Expandir Menu"
               >
                 <PanelLeftOpen size={20} />
-              </button>
+              </Button>
             </div>
           )}
 
           <div className={`p-4 border-t border-[var(--color-border-subtle)] ${sidebarCollapsed ? 'flex justify-center' : ''}`}>
             <div className="relative">
               {/* User Card - Clickable */}
-              <button
+              <Button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className={`flex items-center gap-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group focus-visible-ring ${sidebarCollapsed ? 'p-0 w-10 h-10 justify-center' : 'w-full p-3'
                   }`}
@@ -371,7 +375,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </svg>
                   </>
                 )}
-              </button>
+              </Button>
 
               {/* Dropdown Menu */}
               {isUserMenuOpen && (
@@ -393,7 +397,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         <User className="w-4 h-4 text-slate-400" />
                         Editar Perfil
                       </Link>
-                      <button
+                      <Button
                         onClick={() => {
                           setIsUserMenuOpen(false);
                           signOut();
@@ -402,7 +406,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       >
                         <LogOut className="w-4 h-4" />
                         Sair da conta
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </>
@@ -410,7 +414,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
         </aside>
-      ) : null}
 
       {/* Main Content Wrapper */}
       <div className="flex-1 flex min-w-0 overflow-hidden relative">
@@ -425,7 +428,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {/* Header */}
           <header className="h-16 glass border-b border-[var(--color-border-subtle)] flex items-center justify-end px-6 z-40 shrink-0" role="banner">
             <div className="flex items-center gap-4">
-              <button
+              <Button
                 type="button"
                 onClick={() => setIsGlobalAIOpen(!isGlobalAIOpen)}
                 className={`p-2 rounded-full transition-all active:scale-95 focus-visible-ring ${isGlobalAIOpen
@@ -434,9 +437,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   }`}
               >
                 <Sparkles size={20} aria-hidden="true" />
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="button"
                 onClick={toggleDebugMode}
                 className={`p-2 rounded-full transition-all active:scale-95 focus-visible-ring ${debugEnabled
@@ -445,16 +448,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   }`}
               >
                 <Bug size={20} aria-hidden="true" />
-              </button>
+              </Button>
 
               <NotificationPopover />
-              <button
+              <Button
                 type="button"
                 onClick={toggleDarkMode}
                 className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-all active:scale-95 focus-visible-ring"
               >
                 {darkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
-              </button>
+              </Button>
             </div>
           </header>
 

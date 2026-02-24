@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { authPublicApi } from '@/lib/public-api/auth';
 import { createStaticAdminClient } from '@/lib/supabase/server';
 import { isValidUUID } from '@/lib/supabase/utils';
+import { withRateLimit } from '@/app/api/public/v1/with-rate-limit';
 
 export const runtime = 'nodejs';
 
-export async function POST(request: Request, ctx: { params: Promise<{ dealId: string }> }) {
+export const POST = withRateLimit(async function POST(request: Request, ctx: { params: Promise<{ dealId: string }> }) {
   const auth = await authPublicApi(request);
   if (!auth.ok) return NextResponse.json(auth.body, { status: auth.status });
 
@@ -33,5 +34,5 @@ export async function POST(request: Request, ctx: { params: Promise<{ dealId: st
   if (error) return NextResponse.json({ error: error.message, code: 'DB_ERROR' }, { status: 500 });
   if (!data) return NextResponse.json({ error: 'Deal not found', code: 'NOT_FOUND' }, { status: 404 });
   return NextResponse.json({ data, action: 'won' });
-}
+});
 

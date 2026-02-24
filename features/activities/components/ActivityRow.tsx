@@ -1,8 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { Phone, Users, Mail, CheckSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, Building2 } from 'lucide-react';
-import { useCRM } from '@/context/CRMContext';
+import { useBoards } from '@/context/boards/BoardsContext';
 import { Activity, Deal, Contact, Company } from '@/types';
+import { Button } from '@/app/components/ui/Button';
 
 interface ActivityRowProps {
     activity: Activity;
@@ -42,7 +43,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
         }
     };
 
-    const { activeBoard, boards } = useCRM();
+    const { activeBoard, boards } = useBoards();
 
     const translateStatus = (status: string) => {
         // Se não parece ser um UUID, retorna direto (já é um label legível)
@@ -137,7 +138,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                 />
             )}
 
-            <button
+            <Button
                 onClick={() => onToggleComplete(activity.id)}
                 className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${activity.completed
                     ? 'bg-green-500 border-green-500 text-white'
@@ -145,7 +146,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                     }`}
             >
                 <CheckCircle2 size={14} fill="currentColor" />
-            </button>
+            </Button>
 
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -192,20 +193,20 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
             </div>
 
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
+                <Button
                     onClick={() => onEdit(activity)}
                     className="p-2 text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-colors"
                     title="Editar"
                 >
                     <Edit2 size={16} />
-                </button>
-                <button
+                </Button>
+                <Button
                     onClick={() => onDelete(activity.id)}
                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                     title="Excluir"
                 >
                     <Trash2 size={16} />
-                </button>
+                </Button>
             </div>
         </div>
     );

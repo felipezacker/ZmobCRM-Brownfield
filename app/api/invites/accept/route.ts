@@ -83,7 +83,6 @@ export async function POST(req: Request) {
       {
         id: userId,
         email,
-        name: displayName,
         first_name: displayName,
         organization_id: invite.organization_id,
         role: invite.role,

@@ -1,6 +1,7 @@
 import React, { useId } from 'react';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
+import { Button } from '@/app/components/ui/Button';
 
 interface OnboardingModalProps {
     isOpen: boolean;
@@ -57,16 +58,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     aria-describedby={descId}
                 >
                     {/* Main Card */}
-                    <div className="bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 rounded-3xl shadow-2xl overflow-hidden">
+                    <div className="bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 rounded-2xl shadow-2xl overflow-hidden">
                         {/* Skip Button */}
-                        <button
+                        <Button
                             type="button"
                             onClick={onSkip}
                             aria-label="Pular tutorial de boas-vindas"
                             className="absolute top-4 right-4 p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-visible-ring"
                         >
                             <X size={20} aria-hidden="true" />
-                        </button>
+                        </Button>
 
                         {/* Content */}
                         <div className="p-12 text-center text-white">
@@ -117,7 +118,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
                             {/* CTA Buttons */}
                             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                <button
+                                <Button
                                     type="button"
                                     onClick={onStart}
                                     className="px-8 py-4 bg-white text-primary-600 font-bold rounded-xl hover:bg-white/90 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg focus-visible-ring"
@@ -125,15 +126,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                                 >
                                     Começar agora
                                     <ArrowRight size={20} aria-hidden="true" />
-                                </button>
+                                </Button>
 
-                                <button
+                                <Button
                                     type="button"
                                     onClick={onSkip}
                                     className="px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all backdrop-blur-sm focus-visible-ring"
                                 >
                                     Explorar por conta
-                                </button>
+                                </Button>
                             </div>
 
                             {/* Small print */}

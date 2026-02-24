@@ -1,5 +1,6 @@
 import React from 'react';
 import { Plus, LayoutList, Calendar as CalendarIcon } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 interface ActivitiesHeaderProps {
   viewMode: 'list' | 'calendar';
@@ -56,7 +57,7 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
       </div>
       <div className="flex items-center gap-3">
         <div className="flex bg-white dark:bg-dark-card p-1 rounded-lg border border-slate-200 dark:border-white/10">
-          <button
+          <Button
             onClick={() => setViewMode('list')}
             className={`p-2 rounded-md transition-all ${
               viewMode === 'list'
@@ -65,8 +66,8 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
             }`}
           >
             <LayoutList size={20} />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setViewMode('calendar')}
             className={`p-2 rounded-md transition-all ${
               viewMode === 'calendar'
@@ -75,15 +76,15 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
             }`}
           >
             <CalendarIcon size={20} />
-          </button>
+          </Button>
         </div>
-        <button
+        <Button
           onClick={onNewActivity}
           className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-primary-600/20"
         >
           <Plus size={20} />
           Nova Atividade
-        </button>
+        </Button>
       </div>
     </div>
   );
