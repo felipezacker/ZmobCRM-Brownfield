@@ -6,7 +6,7 @@ import type { SortOrder } from './ActivitiesFilters';
 interface ActivitiesHeaderProps {
   viewMode: 'list' | 'calendar';
   setViewMode: (mode: 'list' | 'calendar') => void;
-  onNewActivity: () => void;
+  onNewActivity?: () => void;
   dateFilter?: 'ALL' | 'overdue' | 'today' | 'upcoming';
   sortOrder: SortOrder;
   setSortOrder: (order: SortOrder) => void;
@@ -94,13 +94,15 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
             <CalendarIcon size={20} />
           </Button>
         </div>
-        <Button
-          onClick={onNewActivity}
-          className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-primary-600/20"
-        >
-          <Plus size={20} />
-          Nova Atividade
-        </Button>
+        {onNewActivity && (
+          <Button
+            onClick={onNewActivity}
+            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-primary-600/20"
+          >
+            <Plus size={20} />
+            Nova Atividade
+          </Button>
+        )}
       </div>
     </div>
   );

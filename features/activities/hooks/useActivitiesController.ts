@@ -37,6 +37,7 @@ export const useActivitiesController = () => {
 
   const { showToast } = useToast();
 
+  const [activeTab, setActiveTab] = useState<'activities' | 'history'>('activities');
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<Activity['type'] | 'ALL'>('ALL');
@@ -93,19 +94,26 @@ export const useActivitiesController = () => {
     const { todayTs, tomorrowTs } = dateBoundaries;
 
     switch (datePreset) {
+      case 'overdue':
+        return { fromTs: 0, toTs: todayTs - 1 };
       case 'today':
         return { fromTs: todayTs, toTs: tomorrowTs - 1 };
-      case 'yesterday': {
-        const yesterdayTs = todayTs - 86_400_000;
-        return { fromTs: yesterdayTs, toTs: todayTs - 1 };
+      case 'tomorrow': {
+        const dayAfterTomorrow = tomorrowTs + 86_400_000;
+        return { fromTs: tomorrowTs, toTs: dayAfterTomorrow - 1 };
       }
-      case 'last7': {
-        const sevenDaysAgo = todayTs - 7 * 86_400_000;
-        return { fromTs: sevenDaysAgo, toTs: tomorrowTs - 1 };
+      case 'thisWeek': {
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // 0=dom
+        const weekStart = todayTs - dayOfWeek * 86_400_000;
+        const weekEnd = weekStart + 7 * 86_400_000 - 1;
+        return { fromTs: weekStart, toTs: weekEnd };
       }
-      case 'last30': {
-        const thirtyDaysAgo = todayTs - 30 * 86_400_000;
-        return { fromTs: thirtyDaysAgo, toTs: tomorrowTs - 1 };
+      case 'thisMonth': {
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).getTime();
+        return { fromTs: monthStart, toTs: monthEnd };
       }
       case 'custom': {
         const from = dateFrom ? new Date(dateFrom + 'T00:00:00').getTime() : 0;
@@ -125,8 +133,13 @@ export const useActivitiesController = () => {
     return activities
       .map((activity) => ({ activity, ts: Date.parse(activity.date) }))
       .filter(({ activity, ts }) => {
+        // Separacao por aba
+        const isStatusChange = activity.type === 'STATUS_CHANGE';
+        if (activeTab === 'activities' && isStatusChange) return false;
+        if (activeTab === 'history' && !isStatusChange) return false;
+
         const matchesSearch = (activity.title || '').toLowerCase().includes(q);
-        const matchesType = filterType === 'ALL' || activity.type === filterType;
+        const matchesType = activeTab === 'history' || filterType === 'ALL' || activity.type === filterType;
         const isPending = !activity.completed;
 
         // Deep-link filter (overdue/today/upcoming via URL)
@@ -147,7 +160,7 @@ export const useActivitiesController = () => {
       })
       .sort((a, b) => sortOrder === 'newest' ? b.ts - a.ts : a.ts - b.ts)
       .map(({ activity }) => activity);
-  }, [activities, dateBoundaries, presetRange, searchTerm, filterType, dateFilter, sortOrder]);
+  }, [activities, dateBoundaries, presetRange, searchTerm, filterType, dateFilter, sortOrder, activeTab]);
 
   const handleNewActivity = () => {
     setEditingActivity(null);
@@ -265,6 +278,8 @@ export const useActivitiesController = () => {
   };
 
   return {
+    activeTab,
+    setActiveTab,
     viewMode,
     setViewMode,
     searchTerm,
