@@ -155,7 +155,7 @@ export function useCRMActions() {
     }
 
     return createdDeal;
-  }, [contacts, activeBoard, addContact, addDealState, addActivity, queryClient]);
+  }, [contacts, activeBoard, addContact, addDealState, addActivity, queryClient, ownerName, ownerAvatar]);
 
   const convertContactToDeal = useCallback(async (contactId: string) => {
     const contact = contacts.find(c => c.id === contactId);
@@ -226,6 +226,10 @@ export function useCRMActions() {
     };
 
     const createdDeal = await addDealState(newDeal);
+
+    if (!createdDeal) return;
+
+    // Only discard lead after deal is successfully created to prevent data loss
     discardLead(leadId);
 
     if (createdDeal) {

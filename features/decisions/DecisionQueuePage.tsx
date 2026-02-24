@@ -16,6 +16,7 @@ import {
   Inbox,
   Zap,
 } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { DecisionCard } from './components/DecisionCard';
 import { useDecisionQueue } from './hooks/useDecisionQueue';
@@ -92,7 +93,7 @@ export const DecisionQueuePage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
+          <Button
             onClick={runAnalyzers}
             disabled={isAnalyzing}
             className="flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
@@ -103,16 +104,18 @@ export const DecisionQueuePage: React.FC = () => {
               <RefreshCw size={16} />
             )}
             Analisar Agora
-          </button>
+          </Button>
 
           {decisions.length > 0 && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={clearAll}
               className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
               title="Limpar tudo"
             >
               <Trash2 size={18} />
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -174,13 +177,14 @@ export const DecisionQueuePage: React.FC = () => {
       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
         <span>Última análise: {lastAnalyzedLabel}</span>
         {decisions.length > 0 && (
-          <button
+          <Button
+            variant="ghost"
             onClick={approveAll}
-            className="flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
+            className="flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium h-auto p-0"
           >
             <CheckCircle2 size={14} />
             Aprovar todas as sugeridas
-          </button>
+          </Button>
         )}
       </div>
 
@@ -193,7 +197,8 @@ export const DecisionQueuePage: React.FC = () => {
           size="lg"
           action={{
             label: isAnalyzing ? 'Analisando…' : 'Analisar Meu CRM',
-            onClick: runAnalyzers,
+            onClick: isAnalyzing ? undefined : runAnalyzers,
+            disabled: isAnalyzing,
           }}
         />
       )}
