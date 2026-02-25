@@ -51,12 +51,13 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
         return new Date(d.setDate(diff));
     };
 
-    const weekStart = getWeekStart(currentDate);
-    const weekDays = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date(weekStart);
-        date.setDate(weekStart.getDate() + i);
+    const weekStartTs = useMemo(() => getWeekStart(currentDate).getTime(), [currentDate]);
+    const weekStart = new Date(weekStartTs);
+    const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(weekStartTs);
+        date.setDate(date.getDate() + i);
         return date;
-    });
+    }), [weekStartTs]);
 
     const prevWeek = () => {
         const newDate = new Date(currentDate);
@@ -103,6 +104,44 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
         return new Date(activity.date) < new Date() && !activity.completed;
     };
 
+    // Avanca cursor ate (ou alem de) targetTs usando calculo direto O(1) para daily/weekly,
+    // e loop limitado para monthly (maximo ~12 iteracoes/ano).
+    const advanceCursorToTarget = (cursor: Date, targetTs: number, type: string, originDay: number) => {
+        if (cursor.getTime() >= targetTs) return;
+        const diffMs = targetTs - cursor.getTime();
+        if (type === 'daily') {
+            const steps = Math.floor(diffMs / 86_400_000);
+            cursor.setDate(cursor.getDate() + steps);
+        } else if (type === 'weekly') {
+            const steps = Math.floor(diffMs / (7 * 86_400_000));
+            cursor.setDate(cursor.getDate() + steps * 7);
+        }
+        // Para monthly (ou remainder de daily/weekly), loop residual
+        while (cursor.getTime() < targetTs) {
+            switch (type) {
+                case 'daily': cursor.setDate(cursor.getDate() + 1); break;
+                case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
+                case 'monthly': {
+                    cursor.setMonth(cursor.getMonth() + 1);
+                    if (cursor.getDate() !== originDay) cursor.setDate(0);
+                    break;
+                }
+            }
+        }
+    };
+
+    const advanceCursor = (cursor: Date, type: string, originDay: number) => {
+        switch (type) {
+            case 'daily': cursor.setDate(cursor.getDate() + 1); break;
+            case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
+            case 'monthly': {
+                cursor.setMonth(cursor.getMonth() + 1);
+                if (cursor.getDate() !== originDay) cursor.setDate(0);
+                break;
+            }
+        }
+    };
+
     // Expande atividades recorrentes em instancias virtuais para a semana visivel
     const expandRecurringForWeek = useMemo(() => {
         const projected: ProjectedActivity[] = [];
@@ -113,33 +152,22 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
             if (!activity.recurrenceType || activity.completed) continue;
 
             const activityDate = new Date(activity.date);
+            const originDay = activityDate.getDate();
             const activityHours = activityDate.getHours();
             const activityMinutes = activityDate.getMinutes();
             const endDate = activity.recurrenceEndDate ? new Date(activity.recurrenceEndDate + 'T23:59:59') : null;
 
-            // Gerar datas futuras baseado no tipo de recorrencia
+            // Avancar cursor ate o inicio da semana visivel — O(1) para daily/weekly
             const cursor = new Date(activityDate);
-            // Avancar cursor ate o inicio da semana visivel
-            while (cursor.getTime() < weekStartTs) {
-                switch (activity.recurrenceType) {
-                    case 'daily': cursor.setDate(cursor.getDate() + 1); break;
-                    case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
-                    case 'monthly': {
-                        const day = activityDate.getDate();
-                        cursor.setMonth(cursor.getMonth() + 1);
-                        if (cursor.getDate() !== day) cursor.setDate(0);
-                        break;
-                    }
-                }
-            }
+            advanceCursorToTarget(cursor, weekStartTs, activity.recurrenceType, originDay);
 
             // Gerar instancias dentro da semana visivel
+            const activityDateStr = activityDate.toISOString().split('T')[0];
             while (cursor.getTime() <= weekEndTs) {
                 if (endDate && cursor.getTime() > endDate.getTime()) break;
 
                 // So projetar se nao e a mesma data da atividade original (ja aparece como real)
                 const cursorDateStr = cursor.toISOString().split('T')[0];
-                const activityDateStr = activityDate.toISOString().split('T')[0];
                 if (cursorDateStr !== activityDateStr) {
                     const projectedDate = new Date(cursor);
                     projectedDate.setHours(activityHours, activityMinutes, 0, 0);
@@ -153,17 +181,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                     });
                 }
 
-                // Avancar
-                switch (activity.recurrenceType) {
-                    case 'daily': cursor.setDate(cursor.getDate() + 1); break;
-                    case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
-                    case 'monthly': {
-                        const day = activityDate.getDate();
-                        cursor.setMonth(cursor.getMonth() + 1);
-                        if (cursor.getDate() !== day) cursor.setDate(0);
-                        break;
-                    }
-                }
+                advanceCursor(cursor, activity.recurrenceType, originDay);
             }
         }
         return projected;

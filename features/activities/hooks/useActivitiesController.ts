@@ -349,16 +349,12 @@ export const useActivitiesController = () => {
   );
 
   const handleBulkComplete = useCallback(
-    (ids: string[]): { dispatched: number; skipped: number } => {
-      let dispatched = 0;
-      let skipped = 0;
+    (ids: string[]) => {
       for (const id of ids) {
         const activity = activitiesById.get(id);
-        if (!activity || activity.completed) { skipped++; continue; }
+        if (!activity || activity.completed) continue;
         handleToggleComplete(id);
-        dispatched++;
       }
-      return { dispatched, skipped };
     },
     [activitiesById, handleToggleComplete]
   );
