@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Phone, Users, Mail, CheckSquare, Repeat } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Repeat } from 'lucide-react';
 import { Activity, Deal } from '@/types';
 import { Button } from '@/app/components/ui/Button';
+import { getActivityIconCalendar } from '../utils';
 
 interface ProjectedActivity extends Activity {
     _isProjected: true;
@@ -17,25 +18,9 @@ interface ActivitiesCalendarProps {
     onCreateFromProjected?: (activity: Activity) => void;
 }
 
-const HOURS = Array.from({ length: 10 }, (_, i) => i + 9); // 9:00 to 18:00
+const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7:00 to 20:00
 const DAYS_OF_WEEK = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-/**
- * Componente React `ActivitiesCalendar`.
- *
- * @param {ActivitiesCalendarProps} {
-    activities,
-    deals,
-    currentDate,
-    setCurrentDate
-} - Parâmetro `{
-    activities,
-    deals,
-    currentDate,
-    setCurrentDate
-}`.
- * @returns {Element} Retorna um valor do tipo `Element`.
- */
 export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
     activities,
     deals,
@@ -52,7 +37,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
     };
 
     const weekStartTs = useMemo(() => getWeekStart(currentDate).getTime(), [currentDate]);
-    const weekStart = new Date(weekStartTs);
+    const weekStart = useMemo(() => new Date(weekStartTs), [weekStartTs]);
     const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => {
         const date = new Date(weekStartTs);
         date.setDate(date.getDate() + i);
@@ -75,21 +60,13 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
         setCurrentDate(new Date());
     };
 
-    const getActivityIcon = (type: Activity['type']) => {
-        switch (type) {
-            case 'CALL': return <Phone size={14} className="text-white" />;
-            case 'MEETING': return <Users size={14} className="text-white" />;
-            case 'EMAIL': return <Mail size={14} className="text-white" />;
-            case 'TASK': return <CheckSquare size={14} className="text-white" />;
-        }
-    };
-
     const getActivityGradient = (type: Activity['type']) => {
         switch (type) {
             case 'CALL': return 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 border-blue-400';
             case 'MEETING': return 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70 border-purple-400';
             case 'EMAIL': return 'bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/50 hover:shadow-green-500/70 border-green-400';
             case 'TASK': return 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/50 hover:shadow-orange-500/70 border-orange-400';
+            default: return 'bg-gradient-to-br from-slate-500 to-slate-600 shadow-lg shadow-slate-500/50 hover:shadow-slate-500/70 border-slate-400';
         }
     };
 
@@ -123,7 +100,8 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                 case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
                 case 'monthly': {
                     cursor.setMonth(cursor.getMonth() + 1);
-                    if (cursor.getDate() !== originDay) cursor.setDate(0);
+                    const lastDay = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+                    cursor.setDate(Math.min(originDay, lastDay));
                     break;
                 }
             }
@@ -136,7 +114,8 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
             case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
             case 'monthly': {
                 cursor.setMonth(cursor.getMonth() + 1);
-                if (cursor.getDate() !== originDay) cursor.setDate(0);
+                const lastDay = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+                cursor.setDate(Math.min(originDay, lastDay));
                 break;
             }
         }
@@ -249,8 +228,8 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
             </div>
 
             {/* Calendar Grid */}
-            <div className="overflow-auto max-h-[650px]">
-                <div className="min-w-[900px]">
+            <div className="overflow-auto max-h-[calc(100dvh-280px)]">
+                <div className="min-w-[800px]">
                     {/* Day Headers */}
                     <div className="grid grid-cols-8 border-b border-slate-200 dark:border-white/10 sticky top-0 bg-white dark:bg-dark-card z-10 shadow-sm">
                         <div className="p-3 text-xs font-bold text-slate-500 uppercase bg-slate-50 dark:bg-white/5"></div>
@@ -339,7 +318,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                                     <div className="relative z-10">
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <div className="p-1 bg-white/20 rounded-md">
-                                                                {isProjected ? <Repeat size={14} className="text-white" /> : getActivityIcon(activity.type)}
+                                                                {isProjected ? <Repeat size={14} className="text-white" /> : getActivityIconCalendar(activity.type)}
                                                             </div>
                                                             <span className="font-bold text-white text-sm">
                                                                 {new Date(activity.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -352,11 +331,13 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                                         {/* Hover Expanded Info */}
                                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2 pt-2 border-t border-white/20">
                                                             <p className="text-xs text-white/90 leading-relaxed">
-                                                                {isProjected ? 'Clique para materializar esta ocorrência' : activity.description}
+                                                                {isProjected ? 'Clique para materializar esta ocorrência' : (activity.description || '')}
                                                             </p>
-                                                            <p className="text-xs text-white/80 mt-1 font-medium">
-                                                                {activity.dealId ? (dealTitleById.get(activity.dealId) ?? 'Sem deal vinculado') : 'Sem deal vinculado'}
-                                                            </p>
+                                                            {activity.dealId && (
+                                                                <p className="text-xs text-white/80 mt-1 font-medium">
+                                                                    {dealTitleById.get(activity.dealId) || 'Deal vinculado'}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
