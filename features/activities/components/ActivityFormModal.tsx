@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { Activity, Deal } from '@/types';
 import { Button } from '@/app/components/ui/Button';
 import { DealSearchCombobox } from '@/components/ui/DealSearchCombobox';
+import type { RecurrenceType } from '@/features/activities/types';
 
 interface ActivityFormData {
   title: string;
@@ -11,6 +12,8 @@ interface ActivityFormData {
   time: string;
   description: string;
   dealId: string;
+  recurrenceType: 'none' | RecurrenceType;
+  recurrenceEndDate: string;
 }
 
 interface ActivityFormModalProps {
@@ -132,6 +135,38 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
           </div>
 
           <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Repetir</label>
+            <select
+              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+              value={formData.recurrenceType}
+              onChange={e =>
+                setFormData({ ...formData, recurrenceType: e.target.value as ActivityFormData['recurrenceType'] })
+              }
+            >
+              <option value="none">Não repetir</option>
+              <option value="daily">Diariamente</option>
+              <option value="weekly">Semanalmente</option>
+              <option value="monthly">Mensalmente</option>
+            </select>
+          </div>
+
+          {formData.recurrenceType !== 'none' && (
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Repetir até (opcional)</label>
+              <input
+                type="date"
+                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                value={formData.recurrenceEndDate}
+                min={formData.date}
+                onChange={e => setFormData({ ...formData, recurrenceEndDate: e.target.value })}
+              />
+              {formData.recurrenceEndDate && formData.recurrenceEndDate < formData.date && (
+                <p className="text-xs text-red-500 mt-1">Data limite deve ser igual ou posterior à data da atividade</p>
+              )}
+            </div>
+          )}
+
+          <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
               Descrição
             </label>
@@ -145,7 +180,8 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
 
           <Button
             type="submit"
-            className="w-full bg-primary-600 hover:bg-primary-500 text-white font-bold py-2.5 rounded-lg mt-2 shadow-lg shadow-primary-600/20 transition-all"
+            disabled={formData.recurrenceType !== 'none' && !!formData.recurrenceEndDate && formData.recurrenceEndDate < formData.date}
+            className="w-full bg-primary-600 hover:bg-primary-500 text-white font-bold py-2.5 rounded-lg mt-2 shadow-lg shadow-primary-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {editingActivity ? 'Salvar Alterações' : 'Criar Atividade'}
           </Button>

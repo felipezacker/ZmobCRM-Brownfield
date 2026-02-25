@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Phone, Users, Mail, CheckSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, Building2, Copy } from 'lucide-react';
+import { Phone, Users, Mail, CheckSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, Building2, Copy, Repeat } from 'lucide-react';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { Activity, Deal, Contact, Company } from '@/types';
 import { Button } from '@/app/components/ui/Button';
@@ -158,6 +158,12 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                     <h3 className={`font-medium text-slate-900 dark:text-white truncate ${activity.completed ? 'line-through text-slate-500' : ''}`}>
                         {formatTitle(activity.title)}
                     </h3>
+                    {activity.recurrenceType && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 rounded-full flex items-center gap-1">
+                            <Repeat size={10} />
+                            {activity.recurrenceType === 'daily' ? 'Diário' : activity.recurrenceType === 'weekly' ? 'Semanal' : 'Mensal'}
+                        </span>
+                    )}
                     {isOverdue && (
                         <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 rounded-full">
                             ATRASADO

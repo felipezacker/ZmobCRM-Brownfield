@@ -1,7 +1,12 @@
 import React, { useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Phone, Users, Mail, CheckSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Phone, Users, Mail, CheckSquare, Repeat } from 'lucide-react';
 import { Activity, Deal } from '@/types';
 import { Button } from '@/app/components/ui/Button';
+
+interface ProjectedActivity extends Activity {
+    _isProjected: true;
+    _sourceId: string;
+}
 
 interface ActivitiesCalendarProps {
     activities: Activity[];
@@ -9,6 +14,7 @@ interface ActivitiesCalendarProps {
     currentDate: Date;
     setCurrentDate: (date: Date) => void;
     onEdit?: (activity: Activity) => void;
+    onCreateFromProjected?: (activity: Activity) => void;
 }
 
 const HOURS = Array.from({ length: 10 }, (_, i) => i + 9); // 9:00 to 18:00
@@ -35,7 +41,8 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
     deals,
     currentDate,
     setCurrentDate,
-    onEdit
+    onEdit,
+    onCreateFromProjected
 }) => {
     const getWeekStart = (date: Date) => {
         const d = new Date(date);
@@ -96,11 +103,80 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
         return new Date(activity.date) < new Date() && !activity.completed;
     };
 
+    // Expande atividades recorrentes em instancias virtuais para a semana visivel
+    const expandRecurringForWeek = useMemo(() => {
+        const projected: ProjectedActivity[] = [];
+        const weekStartTs = weekDays[0].getTime();
+        const weekEndTs = weekDays[6].getTime() + 86_400_000 - 1;
+
+        for (const activity of activities) {
+            if (!activity.recurrenceType || activity.completed) continue;
+
+            const activityDate = new Date(activity.date);
+            const activityHours = activityDate.getHours();
+            const activityMinutes = activityDate.getMinutes();
+            const endDate = activity.recurrenceEndDate ? new Date(activity.recurrenceEndDate + 'T23:59:59') : null;
+
+            // Gerar datas futuras baseado no tipo de recorrencia
+            const cursor = new Date(activityDate);
+            // Avancar cursor ate o inicio da semana visivel
+            while (cursor.getTime() < weekStartTs) {
+                switch (activity.recurrenceType) {
+                    case 'daily': cursor.setDate(cursor.getDate() + 1); break;
+                    case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
+                    case 'monthly': {
+                        const day = activityDate.getDate();
+                        cursor.setMonth(cursor.getMonth() + 1);
+                        if (cursor.getDate() !== day) cursor.setDate(0);
+                        break;
+                    }
+                }
+            }
+
+            // Gerar instancias dentro da semana visivel
+            while (cursor.getTime() <= weekEndTs) {
+                if (endDate && cursor.getTime() > endDate.getTime()) break;
+
+                // So projetar se nao e a mesma data da atividade original (ja aparece como real)
+                const cursorDateStr = cursor.toISOString().split('T')[0];
+                const activityDateStr = activityDate.toISOString().split('T')[0];
+                if (cursorDateStr !== activityDateStr) {
+                    const projectedDate = new Date(cursor);
+                    projectedDate.setHours(activityHours, activityMinutes, 0, 0);
+
+                    projected.push({
+                        ...activity,
+                        id: `projected-${activity.id}-${cursorDateStr}`,
+                        date: projectedDate.toISOString(),
+                        _isProjected: true,
+                        _sourceId: activity.id,
+                    });
+                }
+
+                // Avancar
+                switch (activity.recurrenceType) {
+                    case 'daily': cursor.setDate(cursor.getDate() + 1); break;
+                    case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
+                    case 'monthly': {
+                        const day = activityDate.getDate();
+                        cursor.setMonth(cursor.getMonth() + 1);
+                        if (cursor.getDate() !== day) cursor.setDate(0);
+                        break;
+                    }
+                }
+            }
+        }
+        return projected;
+    }, [activities, weekDays]);
+
+    // Combina atividades reais + projetadas
+    const allActivities = useMemo(() => [...activities, ...expandRecurringForWeek], [activities, expandRecurringForWeek]);
+
     // Performance: grid chama `getActivitiesForDateTime` muitas vezes.
     // Indexamos atividades por (YYYY-MM-DD|hour) uma vez para evitar filters repetidos.
     const activitiesByDayHour = useMemo(() => {
-        const map = new Map<string, Activity[]>();
-        for (const a of activities) {
+        const map = new Map<string, (Activity | ProjectedActivity)[]>();
+        for (const a of allActivities) {
             const d = new Date(a.date);
             const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}|${d.getHours()}`;
             const list = map.get(key);
@@ -108,18 +184,18 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
             else map.set(key, [a]);
         }
         return map;
-    }, [activities]);
+    }, [allActivities]);
 
-    // Contagem de atividades por dia para exibir nos headers
+    // Contagem de atividades por dia para exibir nos headers (inclui projetadas)
     const countByDay = useMemo(() => {
         const map = new Map<string, number>();
-        for (const a of activities) {
+        for (const a of allActivities) {
             const d = new Date(a.date);
             const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
             map.set(key, (map.get(key) || 0) + 1);
         }
         return map;
-    }, [activities]);
+    }, [allActivities]);
 
     // Performance: evitar `deals.find` em hover/tooltips.
     const dealTitleById = useMemo(() => {
@@ -209,25 +285,35 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                             }`}
                                     >
                                         <div className="space-y-2">
-                                            {hourActivities.map(activity => (
+                                            {hourActivities.map(activity => {
+                                                const isProjected = '_isProjected' in activity && (activity as ProjectedActivity)._isProjected;
+                                                const handleClick = () => {
+                                                    if (isProjected && onCreateFromProjected) {
+                                                        onCreateFromProjected(activity);
+                                                    } else {
+                                                        onEdit?.(activity);
+                                                    }
+                                                };
+                                                return (
                                                 <div
                                                     key={activity.id}
-                                                    role={onEdit ? 'button' : undefined}
-                                                    tabIndex={onEdit ? 0 : undefined}
-                                                    onClick={() => onEdit?.(activity)}
-                                                    onKeyDown={(e) => { if (onEdit && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onEdit(activity); } }}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={handleClick}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } }}
                                                     className={`
                                                         group relative
-                                                        text-xs p-3 rounded-xl border-2
+                                                        text-xs p-3 rounded-xl
+                                                        ${isProjected ? 'border-2 border-dashed opacity-70' : 'border-2'}
                                                         ${getActivityGradient(activity.type)}
                                                         ${activity.completed ? 'opacity-50 saturate-50' : ''}
-                                                        ${isOverdue(activity) && !activity.completed ? 'ring-2 ring-red-500 ring-offset-2 dark:ring-offset-slate-900' : ''}
+                                                        ${!isProjected && isOverdue(activity) && !activity.completed ? 'ring-2 ring-red-500 ring-offset-2 dark:ring-offset-slate-900' : ''}
                                                         transition-all duration-300
                                                         hover:scale-105 hover:-translate-y-1
                                                         cursor-pointer
                                                         overflow-hidden
                                                     `}
-                                                    title={`${onEdit ? 'Clique para editar — ' : ''}${activity.title} - ${activity.dealId ? (dealTitleById.get(activity.dealId) ?? '') : ''}`}
+                                                    title={isProjected ? 'Clique para criar esta atividade' : `${onEdit ? 'Clique para editar — ' : ''}${activity.title}`}
                                                 >
                                                     {/* Shine effect on hover */}
                                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
@@ -235,7 +321,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                                     <div className="relative z-10">
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <div className="p-1 bg-white/20 rounded-md">
-                                                                {getActivityIcon(activity.type)}
+                                                                {isProjected ? <Repeat size={14} className="text-white" /> : getActivityIcon(activity.type)}
                                                             </div>
                                                             <span className="font-bold text-white text-sm">
                                                                 {new Date(activity.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -248,15 +334,16 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                                         {/* Hover Expanded Info */}
                                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2 pt-2 border-t border-white/20">
                                                             <p className="text-xs text-white/90 leading-relaxed">
-                                                                {activity.description}
+                                                                {isProjected ? 'Clique para materializar esta ocorrência' : activity.description}
                                                             </p>
                                                             <p className="text-xs text-white/80 mt-1 font-medium">
-                                                                📎 {activity.dealId ? (dealTitleById.get(activity.dealId) ?? 'Sem deal vinculado') : 'Sem deal vinculado'}
+                                                                {activity.dealId ? (dealTitleById.get(activity.dealId) ?? 'Sem deal vinculado') : 'Sem deal vinculado'}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 );

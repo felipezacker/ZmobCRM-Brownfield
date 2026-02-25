@@ -80,6 +80,10 @@ export interface DbActivity {
   created_at: string;
   /** ID do dono/responsável. */
   owner_id: string | null;
+  /** Tipo de recorrência (daily, weekly, monthly). */
+  recurrence_type?: string | null;
+  /** Data limite da recorrência. */
+  recurrence_end_date?: string | null;
 }
 
 // Interface auxiliar para o retorno do Supabase com o join
@@ -106,6 +110,8 @@ const transformActivity = (db: DbActivityWithDeal): Activity => ({
   participantContactIds: (db as any).participant_contact_ids || [],
   dealTitle: db.deals?.title || '',
   user: { name: 'Você', avatar: '' }, // Will be enriched later
+  recurrenceType: (db.recurrence_type as Activity['recurrenceType']) || null,
+  recurrenceEndDate: db.recurrence_end_date || null,
 });
 
 /**
@@ -125,6 +131,8 @@ const transformActivityToDb = (activity: Partial<Activity>): Partial<DbActivity>
   if (activity.dealId !== undefined) db.deal_id = sanitizeUUID(activity.dealId);
   if (activity.contactId !== undefined) db.contact_id = sanitizeUUID(activity.contactId);
   if (activity.participantContactIds !== undefined) (db as any).participant_contact_ids = activity.participantContactIds || [];
+  if (activity.recurrenceType !== undefined) db.recurrence_type = activity.recurrenceType || null;
+  if (activity.recurrenceEndDate !== undefined) db.recurrence_end_date = activity.recurrenceEndDate || null;
 
   return db;
 };
@@ -185,6 +193,8 @@ export const activitiesService = {
         participant_contact_ids: activity.participantContactIds || [],
         organization_id: orgId,
         owner_id: user?.id || null,
+        recurrence_type: activity.recurrenceType || null,
+        recurrence_end_date: activity.recurrenceEndDate || null,
       };
 
       const { data, error } = await sb.from('activities').insert(insertData).select().single();
@@ -193,8 +203,11 @@ export const activitiesService = {
         // Se a migration ainda não foi aplicada, faz retry sem os novos campos.
         const msg = (error as any)?.message || '';
         const code = (error as any)?.code || '';
-        if (code === '42703' && msg.includes('participant_contact_ids')) {
-          delete insertData.participant_contact_ids;
+        if (code === '42703') {
+          // Retry sem colunas que podem nao existir ainda
+          if (msg.includes('participant_contact_ids')) delete insertData.participant_contact_ids;
+          if (msg.includes('recurrence_type')) delete insertData.recurrence_type;
+          if (msg.includes('recurrence_end_date')) delete insertData.recurrence_end_date;
           const retry = await sb.from('activities').insert(insertData).select().single();
           if (retry.error) return { data: null, error: retry.error as any };
           return { data: transformActivity(retry.data as DbActivity), error: null };
@@ -227,9 +240,12 @@ export const activitiesService = {
       if (error) {
         const msg = (error as any)?.message || '';
         const code = (error as any)?.code || '';
-        if (code === '42703' && msg.includes('participant_contact_ids')) {
-          const { participant_contact_ids, ...rest } = dbUpdates as any;
-          const retry = await sb.from('activities').update(rest).eq('id', id);
+        if (code === '42703') {
+          const cleaned = { ...dbUpdates } as any;
+          if (msg.includes('participant_contact_ids')) delete cleaned.participant_contact_ids;
+          if (msg.includes('recurrence_type')) delete cleaned.recurrence_type;
+          if (msg.includes('recurrence_end_date')) delete cleaned.recurrence_end_date;
+          const retry = await sb.from('activities').update(cleaned).eq('id', id);
           return { error: retry.error as any };
         }
       }

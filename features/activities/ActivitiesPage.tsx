@@ -54,6 +54,7 @@ export const ActivitiesPage: React.FC = () => {
         handleDuplicateActivity,
         handleBulkComplete,
         handleBulkDelete,
+        handleCreateFromProjected,
         handleSubmit
     } = useActivitiesController();
 
@@ -194,6 +195,7 @@ export const ActivitiesPage: React.FC = () => {
                     currentDate={currentDate}
                     setCurrentDate={setCurrentDate}
                     onEdit={handleEditActivity}
+                    onCreateFromProjected={handleCreateFromProjected}
                 />
             )}
 

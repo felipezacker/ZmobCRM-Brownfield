@@ -221,6 +221,8 @@ export interface Activity {
     avatar: string;
   };
   completed: boolean;
+  recurrenceType?: 'daily' | 'weekly' | 'monthly' | null;
+  recurrenceEndDate?: string | null;
 }
 
 export interface DashboardStats {
