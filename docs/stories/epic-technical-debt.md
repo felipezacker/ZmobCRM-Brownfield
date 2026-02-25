@@ -1,7 +1,7 @@
 # Epic: Resolucao de Debitos Tecnicos -- ZmobCRM
 
 **ID:** EPIC-TD
-**Status:** Draft
+**Status:** Done
 **Data:** 2026-02-23
 **Responsavel:** @pm (Morgan)
 **Origem:** Brownfield Discovery Phase 10
@@ -66,15 +66,23 @@ Resolver os 69 debitos tecnicos identificados na auditoria Brownfield Discovery 
 
 ## Stories
 
-| ID | Titulo | Sprint | Horas |
-|---|---|---|---|
-| 1.1 | Seguranca Critica: RLS em 21 Tabelas | 1 | ~33h |
-| 1.2 | Seguranca Critica: Funcoes Cross-Tenant e Role Injection | 1 | ~10h |
-| 1.3 | Seguranca Foundation: API Keys, Storage, Admin Client | 2 | ~88-128h |
-| 1.4 | Design System Foundation: Tokens e Componentes Base | 1-2 | ~52-86h |
-| 1.5 | Arquitetura Frontend: Decomposicao de Monolitos | 3-4 | ~148-232h |
-| 1.6 | Qualidade de Codigo: Strict Mode, Testes, Error Boundaries | 3-4 | ~170-296h |
-| 1.7 | Cleanup Backlog: Codigo Morto, Constraints, Archiving | Backlog | ~259-415h |
+| ID | Titulo | Sprint | Horas | Status |
+|---|---|---|---|---|
+| 1.1 | Seguranca Critica: RLS em 21 Tabelas | 1 | ~33h | Done |
+| 1.2 | Seguranca Critica: Funcoes Cross-Tenant e Role Injection | 1 | ~10h | Done |
+| 1.3 | Seguranca Foundation: API Keys, Storage, Admin Client | 2 | ~88-128h | Done |
+| 1.4 | Design System Foundation: Tokens e Componentes Base | 1-2 | ~52-86h | Done |
+| 1.5 | Arquitetura Frontend: Decomposicao de Monolitos | 3-4 | ~148-232h | Done |
+| 1.6 | Qualidade de Codigo: Strict Mode, Testes, Error Boundaries | 3-4 | ~170-296h | Done |
+| 1.7 | Cleanup Backlog: Codigo Morto, Constraints, Archiving | Backlog | ~259-415h | Done |
+
+## Resumo de Conclusao
+
+- **7/7 stories concluidas** — todas passaram pelo QA gate
+- **Cobertura brownfield:** 64/69 debitos resolvidos ou N/A (**92.8%**)
+- **5 debitos NAO MEXER:** DB-016, DB-020 + 3 subcontados (conforme planejado)
+- **4 itens movidos para backlog futuro:** DB-013 (pg_cron 12h), FE-008 (tokens 72-108h), FE-010 (PWA 16-24h), Storybook (24-40h)
+- **Todos os quality gates passam:** lint (0 errors), typecheck (0 errors), tests (336 passed), build OK
 
 ## Riscos Cruzados
 
@@ -103,3 +111,10 @@ Story 1.6 (Strict mode) ──desbloqueia──> Backlog (as any, testes)
 | Data | Agente | Acao |
 |---|---|---|
 | 2026-02-23 | @pm (Morgan) | Epic criado a partir do Technical Debt Assessment FINAL |
+| 2026-02-23 | @po (Pax) | Stories 1.1-1.7 validadas (GO). Status Draft → Ready para todas |
+| 2026-02-23 | @dev (Dex) | Stories 1.1, 1.2 concluidas (Sprint 1 — Seguranca Critica P0) |
+| 2026-02-23 | @dev (Dex) | Stories 1.3, 1.4 concluidas (Sprint 2 — Security Foundation + Design System) |
+| 2026-02-23 | @dev (Dex) | Story 1.5 concluida (Sprint 3-4 — Frontend Architecture). QA PASS apos re-review |
+| 2026-02-23 | @dev (Dex) | Story 1.6 concluida (Sprint 3-4 — Code Quality, strict mode, testes) |
+| 2026-02-24 | @dev (Dex) | Story 1.7 concluida (Backlog — 30 itens, 3 N/A, 4 movidos backlog). 92.8% cobertura |
+| 2026-02-24 | @po (Pax) | Auditoria final: 7/7 stories Done. Epic Status Draft → Done |

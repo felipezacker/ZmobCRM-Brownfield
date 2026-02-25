@@ -1,20 +1,23 @@
 status:
-  branch: main
+  branch: develop
   modifiedFiles:
-    - .aios/
+    - .aios/project-status.yaml
+    - .claude/CLAUDE.md
     - Roadmap.md
-    - supabase/.branches/
-    - supabase/migrations/20260220100001_rls_protect_owner_id.sql
-  modifiedFilesTotalCount: 4
+    - docs/stories/1.5-frontend-architecture.md
+    - docs/stories/epic-technical-debt.md
+  modifiedFilesTotalCount: 14
   recentCommits:
     - >-
-      feat(contacts): expand contact form with birthDate, source, notes, cockpit
-      route [Story 1.5]
-    - Merge branch 'aios' into main
+      feat(activities): add recurrence support — types, form, calendar,
+      migration
+    - >-
+      fix: address CodeRabbit PR#10 review 3 — status filter history tab, snooze
+      feedback, duplicate guard
   currentEpic: null
   currentStory: null
-  lastUpdate: '2026-02-20T18:42:50.169Z'
+  lastUpdate: '2026-02-25T04:52:04.490Z'
   isGitRepo: true
-timestamp: 1771612970173
+timestamp: 1771995124497
 ttl: 60
-gitFingerprint: 1771601609663.9658:1771612653781.4768
+gitFingerprint: 1771989348921.7832:1771995107651.8977
