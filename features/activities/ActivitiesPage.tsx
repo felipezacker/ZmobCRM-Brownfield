@@ -91,14 +91,12 @@ export const ActivitiesPage: React.FC = () => {
         setSelectedActivities(new Set());
     }, [selectedActivities, handleBulkComplete, showToast]);
 
-    const handleSnoozeAll = useCallback(async () => {
+    const handleSnoozeAll = useCallback(() => {
         const ids = Array.from(selectedActivities);
-        let succeeded = 0;
         for (const id of ids) {
             handleSnoozeActivity(id);
-            succeeded++;
         }
-        showToast(`${succeeded} atividade(s) adiada(s) para amanhã`, 'success');
+        showToast(`${ids.length} atividade(s) sendo adiada(s) para amanhã...`, 'success');
         setSelectedActivities(new Set());
     }, [selectedActivities, handleSnoozeActivity, showToast]);
 

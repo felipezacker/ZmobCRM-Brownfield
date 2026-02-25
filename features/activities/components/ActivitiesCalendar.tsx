@@ -99,6 +99,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                 case 'daily': cursor.setDate(cursor.getDate() + 1); break;
                 case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
                 case 'monthly': {
+                    cursor.setDate(1);
                     cursor.setMonth(cursor.getMonth() + 1);
                     const lastDay = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
                     cursor.setDate(Math.min(originDay, lastDay));
@@ -113,6 +114,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
             case 'daily': cursor.setDate(cursor.getDate() + 1); break;
             case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
             case 'monthly': {
+                cursor.setDate(1);
                 cursor.setMonth(cursor.getMonth() + 1);
                 const lastDay = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
                 cursor.setDate(Math.min(originDay, lastDay));

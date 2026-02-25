@@ -262,6 +262,7 @@ export const useActivitiesController = () => {
         // Usa o dia original da série (não o dia clampado do mês anterior)
         // Ex: dia 31 jan → 28 fev → 31 mar (não 28 mar)
         const targetDay = originalDayOfMonth || d.getDate();
+        d.setDate(1);
         d.setMonth(d.getMonth() + 1);
         // Clamp para ultimo dia do mes se o targetDay não existe nesse mês
         const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();

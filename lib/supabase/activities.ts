@@ -205,7 +205,6 @@ export const activitiesService = {
         const code = (error as any)?.code || '';
         const isColumnMissing = code === '42703' || msg.includes('schema cache') || code === 'PGRST204';
         if (isColumnMissing) {
-          const hadRecurrence = !!insertData.recurrence_type;
           if (msg.includes('participant_contact_ids')) delete insertData.participant_contact_ids;
           if (msg.includes('recurrence_type')) delete insertData.recurrence_type;
           if (msg.includes('recurrence_end_date')) delete insertData.recurrence_end_date;
