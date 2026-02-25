@@ -10,22 +10,6 @@ interface BulkActionsToolbarProps {
     onClearSelection: () => void;
 }
 
-/**
- * Componente React `BulkActionsToolbar`.
- *
- * @param {BulkActionsToolbarProps} {
-    selectedCount,
-    onCompleteAll,
-    onSnoozeAll,
-    onClearSelection
-} - Parâmetro `{
-    selectedCount,
-    onCompleteAll,
-    onSnoozeAll,
-    onClearSelection
-}`.
- * @returns {Element | null} Retorna um valor do tipo `Element | null`.
- */
 export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
     selectedCount,
     onCompleteAll,

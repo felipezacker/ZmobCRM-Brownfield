@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useActivitiesController } from './hooks/useActivitiesController';
 import { ActivitiesHeader } from './components/ActivitiesHeader';
 import { ActivitiesFilters } from './components/ActivitiesFilters';
@@ -8,7 +8,7 @@ import { ActivityFormModal } from './components/ActivityFormModal';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 import ConfirmModal from '@/components/ConfirmModal';
 import { Button } from '@/app/components/ui/Button';
-import { useToast } from '@/context/ToastContext';
+import { Loader2 } from 'lucide-react';
 
 export const ActivitiesPage: React.FC = () => {
     const {
@@ -41,9 +41,11 @@ export const ActivitiesPage: React.FC = () => {
         filteredActivities,
         deals,
         contacts,
+        isLoading,
         tabCounts,
         overdueCount,
         deletingActivityId,
+        showToast,
         handleNewActivity,
         handleEditActivity,
         handleDeleteActivity,
@@ -58,11 +60,10 @@ export const ActivitiesPage: React.FC = () => {
         handleSubmit
     } = useActivitiesController();
 
-    const { addToast } = useToast();
     const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
     const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
-    const handleSelectActivity = (id: string, selected: boolean) => {
+    const handleSelectActivity = useCallback((id: string, selected: boolean) => {
         setSelectedActivities(prev => {
             const newSet = new Set(prev);
             if (selected) {
@@ -72,40 +73,62 @@ export const ActivitiesPage: React.FC = () => {
             }
             return newSet;
         });
-    };
+    }, []);
 
-    const handleClearSelection = () => {
+    const handleClearSelection = useCallback(() => {
         setSelectedActivities(new Set());
-    };
+    }, []);
 
-    const handleCompleteAll = () => {
+    // Limpa seleção ao trocar de tab
+    const handleTabChange = useCallback((tab: 'activities' | 'history') => {
+        setActiveTab(tab);
+        setSelectedActivities(new Set());
+    }, [setActiveTab]);
+
+    const handleCompleteAll = useCallback(() => {
         handleBulkComplete(Array.from(selectedActivities));
-        addToast(`${selectedActivities.size} atividades concluídas!`, 'success');
-        handleClearSelection();
-    };
+        showToast(`${selectedActivities.size} atividade(s) sendo concluída(s)...`, 'success');
+        setSelectedActivities(new Set());
+    }, [selectedActivities, handleBulkComplete, showToast]);
 
-    const handleSnoozeAll = () => {
-        selectedActivities.forEach(id => {
+    const handleSnoozeAll = useCallback(() => {
+        const ids = Array.from(selectedActivities);
+        for (const id of ids) {
             handleSnoozeActivity(id);
-        });
-        addToast(`${selectedActivities.size} atividades adiadas para amanhã!`, 'success');
-        handleClearSelection();
-    };
+        }
+        showToast(`${ids.length} atividade(s) sendo adiada(s) para amanhã...`, 'success');
+        setSelectedActivities(new Set());
+    }, [selectedActivities, handleSnoozeActivity, showToast]);
 
-    const handleDeleteAll = () => {
+    const handleDeleteAll = useCallback(() => {
         setShowBulkDeleteConfirm(true);
-    };
+    }, []);
 
-    const confirmBulkDelete = () => {
+    const confirmBulkDelete = useCallback(async () => {
         const count = selectedActivities.size;
-        handleBulkDelete(Array.from(selectedActivities));
-        addToast(`${count} atividades excluídas!`, 'success');
-        handleClearSelection();
+        const { succeeded, failed } = await handleBulkDelete(Array.from(selectedActivities));
+        if (failed > 0) {
+            showToast(`${succeeded} excluída(s), ${failed} falharam`, 'error');
+        } else {
+            showToast(`${count} atividade(s) excluída(s)`, 'success');
+        }
+        setSelectedActivities(new Set());
         setShowBulkDeleteConfirm(false);
-    };
+    }, [selectedActivities, handleBulkDelete, showToast]);
+
+    if (isLoading) {
+        return (
+            <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[400px]">
+                <div className="flex flex-col items-center gap-3 text-slate-400">
+                    <Loader2 size={32} className="animate-spin" />
+                    <span className="text-sm font-medium">Carregando atividades...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="p-8 max-w-400 mx-auto">
+        <div className="p-8 max-w-7xl mx-auto">
             <ActivitiesHeader
                 viewMode={viewMode}
                 setViewMode={setViewMode}
@@ -119,7 +142,7 @@ export const ActivitiesPage: React.FC = () => {
             {/* Abas com contadores */}
             <div className="flex gap-1 mb-6 border-b border-slate-200 dark:border-white/10">
                 <Button
-                    onClick={() => setActiveTab('activities')}
+                    onClick={() => handleTabChange('activities')}
                     className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-2 ${
                         activeTab === 'activities'
                             ? 'border-primary-500 text-primary-600 dark:text-primary-400'
@@ -138,7 +161,7 @@ export const ActivitiesPage: React.FC = () => {
                     )}
                 </Button>
                 <Button
-                    onClick={() => setActiveTab('history')}
+                    onClick={() => handleTabChange('history')}
                     className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-2 ${
                         activeTab === 'history'
                             ? 'border-primary-500 text-primary-600 dark:text-primary-400'
@@ -209,13 +232,15 @@ export const ActivitiesPage: React.FC = () => {
                 deals={deals}
             />
 
-            <BulkActionsToolbar
-                selectedCount={selectedActivities.size}
-                onCompleteAll={handleCompleteAll}
-                onSnoozeAll={handleSnoozeAll}
-                onDeleteAll={handleDeleteAll}
-                onClearSelection={handleClearSelection}
-            />
+            {activeTab === 'activities' && (
+                <BulkActionsToolbar
+                    selectedCount={selectedActivities.size}
+                    onCompleteAll={handleCompleteAll}
+                    onSnoozeAll={handleSnoozeAll}
+                    onDeleteAll={handleDeleteAll}
+                    onClearSelection={handleClearSelection}
+                />
+            )}
 
             <ConfirmModal
                 isOpen={deletingActivityId !== null}

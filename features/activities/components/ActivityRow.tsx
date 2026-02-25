@@ -1,15 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
-import { Phone, Users, Mail, CheckSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, Building2, Copy, Repeat } from 'lucide-react';
+import { Clock, Trash2, Edit2, CheckCircle2, Circle, Users, Copy, Repeat } from 'lucide-react';
 import { useBoards } from '@/context/boards/BoardsContext';
-import { Activity, Deal, Contact, Company } from '@/types';
+import { Activity, Deal, Contact } from '@/types';
 import { Button } from '@/app/components/ui/Button';
+import { getActivityIconList } from '../utils';
 
 interface ActivityRowProps {
     activity: Activity;
     deal?: Deal;
     contact?: Contact;
-    company?: Company;
     onToggleComplete: (id: string) => void;
     onEdit: (activity: Activity) => void;
     onDelete: (id: string) => void;
@@ -26,7 +26,6 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
     activity,
     deal,
     contact,
-    company,
     onToggleComplete,
     onEdit,
     onDelete,
@@ -34,16 +33,6 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
     isSelected = false,
     onSelect
 }) => {
-    const getActivityIcon = (type: Activity['type']) => {
-        switch (type) {
-            case 'CALL': return <Phone size={16} className="text-blue-500" />;
-            case 'MEETING': return <Users size={16} className="text-purple-500" />;
-            case 'EMAIL': return <Mail size={16} className="text-green-500" />;
-            case 'TASK': return <CheckSquare size={16} className="text-orange-500" />;
-            case 'STATUS_CHANGE': return <CheckCircle2 size={16} className="text-slate-500" />;
-            default: return <Circle size={16} className="text-slate-400" />;
-        }
-    };
 
     const { activeBoard, boards } = useBoards();
 
@@ -153,7 +142,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                     <span className="p-1.5 bg-slate-100 dark:bg-white/5 rounded-lg">
-                        {getActivityIcon(activity.type)}
+                        {getActivityIconList(activity.type)}
                     </span>
                     <h3 className={`font-medium text-slate-900 dark:text-white truncate ${activity.completed ? 'line-through text-slate-500' : ''}`}>
                         {formatTitle(activity.title)}
@@ -193,12 +182,6 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                             <Users size={14} />
                             <span className="truncate max-w-[200px]">{contact.name}</span>
                         </Link>
-                    )}
-                    {!deal && !contact && company && (
-                        <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                            <Building2 size={14} />
-                            <span className="truncate max-w-[200px]">{company.name}</span>
-                        </span>
                     )}
                     <span className="flex items-center gap-1.5">
                         <Clock size={14} />

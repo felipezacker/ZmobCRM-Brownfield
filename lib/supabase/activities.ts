@@ -200,17 +200,18 @@ export const activitiesService = {
       const { data, error } = await sb.from('activities').insert(insertData).select().single();
 
       if (error) {
-        // Se a migration ainda não foi aplicada, faz retry sem os novos campos.
+        // Se a migration ainda não foi aplicada ou schema cache desatualizado, retry sem os novos campos.
         const msg = (error as any)?.message || '';
         const code = (error as any)?.code || '';
-        if (code === '42703') {
-          // Retry sem colunas que podem nao existir ainda
+        const isColumnMissing = code === '42703' || msg.includes('schema cache') || code === 'PGRST204';
+        if (isColumnMissing) {
           if (msg.includes('participant_contact_ids')) delete insertData.participant_contact_ids;
           if (msg.includes('recurrence_type')) delete insertData.recurrence_type;
           if (msg.includes('recurrence_end_date')) delete insertData.recurrence_end_date;
           const retry = await sb.from('activities').insert(insertData).select().single();
           if (retry.error) return { data: null, error: retry.error as any };
-          return { data: transformActivity(retry.data as DbActivity), error: null };
+          const result = transformActivity(retry.data as DbActivity);
+          return { data: result, error: null };
         }
         return { data: null, error };
       }
@@ -236,17 +237,19 @@ export const activitiesService = {
 
       const { error } = await sb.from('activities').update(dbUpdates as any).eq('id', id);
 
-      // Retry se colunas novas não existem ainda
+      // Retry se colunas novas não existem ainda ou schema cache desatualizado
       if (error) {
         const msg = (error as any)?.message || '';
         const code = (error as any)?.code || '';
-        if (code === '42703') {
+        const isColumnMissing = code === '42703' || msg.includes('schema cache') || code === 'PGRST204';
+        if (isColumnMissing) {
           const cleaned = { ...dbUpdates } as any;
           if (msg.includes('participant_contact_ids')) delete cleaned.participant_contact_ids;
           if (msg.includes('recurrence_type')) delete cleaned.recurrence_type;
           if (msg.includes('recurrence_end_date')) delete cleaned.recurrence_end_date;
           const retry = await sb.from('activities').update(cleaned).eq('id', id);
-          return { error: retry.error as any };
+          if (retry.error) return { error: retry.error as any };
+          return { error: null };
         }
       }
 

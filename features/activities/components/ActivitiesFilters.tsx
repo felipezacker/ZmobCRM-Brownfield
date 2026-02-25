@@ -56,6 +56,7 @@ export const ActivitiesFilters: React.FC<ActivitiesFiltersProps> = ({
         <div className="flex items-center gap-2">
           <Filter size={20} className="text-slate-400" />
           <select
+            aria-label="Tipo de atividade"
             className={selectClass}
             value={filterType}
             onChange={e => setFilterType(e.target.value as Activity['type'] | 'ALL')}

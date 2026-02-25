@@ -17,7 +17,7 @@ import type { DatePreset, RecurrenceType, SortOrder } from '@/features/activitie
 export const useActivitiesController = () => {
   const searchParams = useSearchParams();
 
-  useAuth(); // ensures auth context is active
+  const { profile } = useAuth();
 
   // TanStack Query hooks
   const { data: activities = [], isLoading: activitiesLoading } = useActivities();
@@ -72,6 +72,12 @@ export const useActivitiesController = () => {
   });
 
   const isLoading = activitiesLoading || dealsLoading || contactsLoading;
+
+  // Dados reais do usuário autenticado (evita hardcoded "Eu")
+  const currentUser = useMemo(() => ({
+    name: profile?.first_name || profile?.nickname || 'Eu',
+    avatar: profile?.avatar_url || '',
+  }), [profile?.first_name, profile?.nickname, profile?.avatar_url]);
 
   // Performance: build lookups once (avoid `.find(...)` in handlers).
   const activitiesById = useMemo(() => new Map(activities.map((a) => [a.id, a])), [activities]);
@@ -243,7 +249,7 @@ export const useActivitiesController = () => {
     setDeletingActivityId(null);
   };
 
-  const calculateNextDate = useCallback((dateStr: string, type: RecurrenceType): string => {
+  const calculateNextDate = useCallback((dateStr: string, type: RecurrenceType, originalDayOfMonth?: number): string => {
     const d = new Date(dateStr);
     switch (type) {
       case 'daily':
@@ -253,10 +259,14 @@ export const useActivitiesController = () => {
         d.setDate(d.getDate() + 7);
         break;
       case 'monthly': {
-        const dayOfMonth = d.getDate();
+        // Usa o dia original da série (não o dia clampado do mês anterior)
+        // Ex: dia 31 jan → 28 fev → 31 mar (não 28 mar)
+        const targetDay = originalDayOfMonth || d.getDate();
+        d.setDate(1);
         d.setMonth(d.getMonth() + 1);
-        // Clamp para ultimo dia do mes (ex: 31 jan → 28 fev)
-        if (d.getDate() !== dayOfMonth) d.setDate(0);
+        // Clamp para ultimo dia do mes se o targetDay não existe nesse mês
+        const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+        d.setDate(Math.min(targetDay, lastDay));
         break;
       }
     }
@@ -284,7 +294,8 @@ export const useActivitiesController = () => {
           onSuccess: () => {
             // Se e recorrente, criar proxima ocorrencia
             if (activity.recurrenceType) {
-              const nextDateStr = calculateNextDate(activity.date, activity.recurrenceType);
+              const originalDay = new Date(activity.date).getDate();
+              const nextDateStr = calculateNextDate(activity.date, activity.recurrenceType, originalDay);
               const nextDate = new Date(nextDateStr);
 
               // Checar data limite
@@ -307,13 +318,19 @@ export const useActivitiesController = () => {
                     participantContactIds: activity.participantContactIds,
                     dealTitle: selectedDeal?.title || activity.dealTitle || '',
                     completed: false,
-                    user: { name: 'Eu', avatar: '' },
+                    user: currentUser,
                     recurrenceType: activity.recurrenceType,
                     recurrenceEndDate: activity.recurrenceEndDate,
                   },
                 },
                 {
-                  onSuccess: () => showToast('Atividade concluída — próxima criada', 'success'),
+                  onSuccess: (created) => {
+                    if (activity.recurrenceType && !created.recurrenceType) {
+                      showToast('Concluída — próxima criada, mas recorrência não salva (migração pendente)', 'warning');
+                    } else {
+                      showToast('Atividade concluída — próxima criada', 'success');
+                    }
+                  },
                   onError: () => {
                     // Rollback: reabrir a atividade se a criacao da proxima falhou
                     updateActivityMutation.mutate({ id, updates: { completed: false } });
@@ -328,7 +345,7 @@ export const useActivitiesController = () => {
         }
       );
     },
-    [activitiesById, showToast, updateActivityMutation, createActivityMutation, calculateNextDate, dealsById]
+    [activitiesById, showToast, updateActivityMutation, createActivityMutation, calculateNextDate, dealsById, currentUser]
   );
 
   const handleSnoozeActivity = useCallback(
@@ -460,14 +477,18 @@ export const useActivitiesController = () => {
             participantContactIds,
             dealTitle: selectedDeal?.title || '',
             completed: false,
-            user: { name: 'Eu', avatar: '' },
+            user: currentUser,
             recurrenceType,
             recurrenceEndDate,
           },
         },
         {
-          onSuccess: () => {
-            showToast('Atividade criada com sucesso', 'success');
+          onSuccess: (created) => {
+            if (recurrenceType && !created.recurrenceType) {
+              showToast('Atividade criada, mas recorrência não salva (migração pendente)', 'warning');
+            } else {
+              showToast('Atividade criada com sucesso', 'success');
+            }
             setIsModalOpen(false);
           },
           onError: (error: Error) => {
@@ -510,6 +531,7 @@ export const useActivitiesController = () => {
     deals,
     contacts,
     isLoading,
+    showToast,
     tabCounts,
     overdueCount,
     deletingActivityId,
