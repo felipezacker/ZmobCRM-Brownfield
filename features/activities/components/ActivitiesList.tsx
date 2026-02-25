@@ -47,9 +47,9 @@ export const ActivitiesList: React.FC<ActivitiesListProps> = ({
     const handleSelectAll = () => {
         if (!onSelectActivity) return;
         if (allSelected) {
-            activities.forEach(a => onSelectActivity(a.id, false));
+            activities.forEach(a => { onSelectActivity(a.id, false); });
         } else {
-            activities.forEach(a => onSelectActivity(a.id, true));
+            activities.forEach(a => { onSelectActivity(a.id, true); });
         }
     };
 

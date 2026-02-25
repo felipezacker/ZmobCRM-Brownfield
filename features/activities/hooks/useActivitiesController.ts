@@ -36,7 +36,7 @@ export const useActivitiesController = () => {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<Activity['type'] | 'ALL'>('ALL');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'pending' | 'completed'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'pending' | 'completed' | 'overdue'>('ALL');
   const [dateFilter, setDateFilter] = useState<'ALL' | 'overdue' | 'today' | 'upcoming'>('ALL');
   const [datePreset, setDatePreset] = useState<DatePreset>('ALL');
   const [dateFrom, setDateFrom] = useState('');
@@ -157,7 +157,14 @@ export const useActivitiesController = () => {
 
         const matchesSearch = (activity.title || '').toLowerCase().includes(q);
         const matchesType = activeTab === 'history' || filterType === 'ALL' || activity.type === filterType;
-        const matchesStatus = statusFilter === 'ALL' || (statusFilter === 'pending' ? !activity.completed : activity.completed);
+        const matchesStatus =
+          statusFilter === 'ALL'
+            ? true
+            : statusFilter === 'pending'
+              ? !activity.completed
+              : statusFilter === 'completed'
+                ? activity.completed
+                : /* overdue */ !activity.completed && ts < dateBoundaries.todayTs;
         const isPending = !activity.completed;
 
         // Deep-link filter (overdue/today/upcoming via URL)
@@ -262,22 +269,39 @@ export const useActivitiesController = () => {
   );
 
   const handleBulkComplete = useCallback(
-    (ids: string[]) => {
-      for (const id of ids) {
+    async (ids: string[]): Promise<{ succeeded: number; failed: number }> => {
+      let succeeded = 0;
+      let failed = 0;
+      const promises = ids.map((id) => {
         const activity = activitiesById.get(id);
-        if (activity && !activity.completed) {
-          updateActivityMutation.mutate({ id, updates: { completed: true } });
-        }
-      }
+        if (!activity || activity.completed) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          updateActivityMutation.mutate(
+            { id, updates: { completed: true } },
+            { onSuccess: () => { succeeded++; resolve(); }, onError: () => { failed++; resolve(); } }
+          );
+        });
+      });
+      await Promise.all(promises);
+      return { succeeded, failed };
     },
     [activitiesById, updateActivityMutation]
   );
 
   const handleBulkDelete = useCallback(
-    (ids: string[]) => {
-      for (const id of ids) {
-        deleteActivityMutation.mutate(id);
-      }
+    async (ids: string[]): Promise<{ succeeded: number; failed: number }> => {
+      let succeeded = 0;
+      let failed = 0;
+      const promises = ids.map((id) =>
+        new Promise<void>((resolve) => {
+          deleteActivityMutation.mutate(id, {
+            onSuccess: () => { succeeded++; resolve(); },
+            onError: () => { failed++; resolve(); },
+          });
+        })
+      );
+      await Promise.all(promises);
+      return { succeeded, failed };
     },
     [deleteActivityMutation]
   );

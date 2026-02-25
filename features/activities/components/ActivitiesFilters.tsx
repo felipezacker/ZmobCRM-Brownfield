@@ -14,8 +14,8 @@ interface ActivitiesFiltersProps {
   setSearchTerm: (term: string) => void;
   filterType: Activity['type'] | 'ALL';
   setFilterType: (type: Activity['type'] | 'ALL') => void;
-  statusFilter?: 'ALL' | 'pending' | 'completed';
-  setStatusFilter?: (status: 'ALL' | 'pending' | 'completed') => void;
+  statusFilter?: 'ALL' | 'pending' | 'completed' | 'overdue';
+  setStatusFilter?: (status: 'ALL' | 'pending' | 'completed' | 'overdue') => void;
   datePreset: DatePreset;
   setDatePreset: (preset: DatePreset) => void;
   dateFrom: string;
@@ -73,11 +73,12 @@ export const ActivitiesFilters: React.FC<ActivitiesFiltersProps> = ({
           aria-label="Status"
           className={selectClass}
           value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value as 'ALL' | 'pending' | 'completed')}
+          onChange={e => setStatusFilter(e.target.value as 'ALL' | 'pending' | 'completed' | 'overdue')}
         >
           <option value="ALL">Todos os status</option>
           <option value="pending">Pendentes</option>
           <option value="completed">Concluídas</option>
+          <option value="overdue">Atrasadas</option>
         </select>
       )}
       <div className="flex items-center gap-2">
