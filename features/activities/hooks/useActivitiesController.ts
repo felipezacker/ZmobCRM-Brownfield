@@ -349,17 +349,16 @@ export const useActivitiesController = () => {
   );
 
   const handleBulkComplete = useCallback(
-    async (ids: string[]): Promise<{ succeeded: number; failed: number }> => {
-      let succeeded = 0;
-      const failed = 0;
+    (ids: string[]): { dispatched: number; skipped: number } => {
+      let dispatched = 0;
+      let skipped = 0;
       for (const id of ids) {
         const activity = activitiesById.get(id);
-        if (!activity || activity.completed) continue;
-        // Delega para handleToggleComplete que cuida da recorrencia
+        if (!activity || activity.completed) { skipped++; continue; }
         handleToggleComplete(id);
-        succeeded++;
+        dispatched++;
       }
-      return { succeeded, failed };
+      return { dispatched, skipped };
     },
     [activitiesById, handleToggleComplete]
   );
