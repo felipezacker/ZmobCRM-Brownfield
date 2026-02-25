@@ -16,7 +16,7 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { Popover, PopoverTrigger, PopoverContent } from './popover';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { cn } from '@/lib/utils/cn';
 
 interface DateRangePickerProps {
@@ -107,6 +107,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           <div className="flex items-center justify-between mb-2">
             <button
               type="button"
+              aria-label="Mês anterior"
               onClick={() => setViewMonth(subMonths(viewMonth, 1))}
               className="p-1 rounded hover:bg-slate-100 dark:hover:bg-white/10"
             >
@@ -117,6 +118,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             </span>
             <button
               type="button"
+              aria-label="Próximo mês"
               onClick={() => setViewMonth(addMonths(viewMonth, 1))}
               className="p-1 rounded hover:bg-slate-100 dark:hover:bg-white/10"
             >
@@ -148,6 +150,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 <button
                   key={i}
                   type="button"
+                  aria-label={format(day, "d 'de' MMMM", { locale: ptBR })}
                   onClick={() => handleDayClick(day)}
                   onMouseEnter={() => picking === 'end' && setHovered(day)}
                   onMouseLeave={() => setHovered(null)}

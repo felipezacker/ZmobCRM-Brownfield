@@ -12,12 +12,8 @@ import {
 import { useDeals } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/lib/query/hooks/useContactsQuery';
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
-import type { DatePreset, SortOrder } from '../components/ActivitiesFilters';
+import type { DatePreset, SortOrder } from '@/features/activities/types';
 
-/**
- * Hook React `useActivitiesController` que encapsula uma lógica reutilizável.
- * @returns {{ viewMode: "list" | "calendar"; setViewMode: Dispatch<SetStateAction<"list" | "calendar">>; searchTerm: string; setSearchTerm: Dispatch<SetStateAction<string>>; ... 18 more ...; handleSubmit: (e: FormEvent<...>) => void; }} Retorna um valor do tipo `{ viewMode: "list" | "calendar"; setViewMode: Dispatch<SetStateAction<"list" | "calendar">>; searchTerm: string; setSearchTerm: Dispatch<SetStateAction<string>>; ... 18 more ...; handleSubmit: (e: FormEvent<...>) => void; }`.
- */
 export const useActivitiesController = () => {
   const searchParams = useSearchParams();
 
@@ -103,16 +99,15 @@ export const useActivitiesController = () => {
         return { fromTs: tomorrowTs, toTs: dayAfterTomorrow - 1 };
       }
       case 'thisWeek': {
-        const now = new Date();
-        const dayOfWeek = now.getDay(); // 0=dom
+        const dayOfWeek = new Date(todayTs).getDay(); // 0=dom
         const weekStart = todayTs - dayOfWeek * 86_400_000;
         const weekEnd = weekStart + 7 * 86_400_000 - 1;
         return { fromTs: weekStart, toTs: weekEnd };
       }
       case 'thisMonth': {
-        const now = new Date();
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).getTime();
+        const d = new Date(todayTs);
+        const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+        const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59).getTime();
         return { fromTs: monthStart, toTs: monthEnd };
       }
       case 'custom': {

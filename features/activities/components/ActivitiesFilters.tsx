@@ -3,8 +3,11 @@ import { Search, Filter, Calendar } from 'lucide-react';
 import { Activity } from '@/types';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 
-export type DatePreset = 'ALL' | 'overdue' | 'today' | 'tomorrow' | 'thisWeek' | 'thisMonth' | 'custom';
-export type SortOrder = 'newest' | 'oldest';
+import type { DatePreset, SortOrder } from '@/features/activities/types';
+export type { DatePreset, SortOrder };
+
+const selectClass =
+  'bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white';
 
 interface ActivitiesFiltersProps {
   searchTerm: string;
@@ -33,8 +36,6 @@ export const ActivitiesFilters: React.FC<ActivitiesFiltersProps> = ({
   setDateTo,
   showTypeFilter = true,
 }) => {
-  const selectClass = "bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white";
-
   return (
     <div className="flex flex-wrap gap-4 mb-6">
       <div className="flex-1 min-w-[200px] relative">
@@ -66,6 +67,7 @@ export const ActivitiesFilters: React.FC<ActivitiesFiltersProps> = ({
       <div className="flex items-center gap-2">
         <Calendar size={20} className="text-slate-400" />
         <select
+          aria-label="Período"
           className={selectClass}
           value={datePreset}
           onChange={e => setDatePreset(e.target.value as DatePreset)}
