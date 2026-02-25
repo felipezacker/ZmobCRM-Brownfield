@@ -2,6 +2,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Activity, Deal } from '@/types';
 import { Button } from '@/app/components/ui/Button';
+import { DealSearchCombobox } from '@/components/ui/DealSearchCombobox';
 
 interface ActivityFormData {
   title: string;
@@ -22,28 +23,6 @@ interface ActivityFormModalProps {
   deals: Deal[];
 }
 
-/**
- * Componente React `ActivityFormModal`.
- *
- * @param {ActivityFormModalProps} {
-  isOpen,
-  onClose,
-  onSubmit,
-  formData,
-  setFormData,
-  editingActivity,
-  deals,
-} - Parâmetro `{
-  isOpen,
-  onClose,
-  onSubmit,
-  formData,
-  setFormData,
-  editingActivity,
-  deals,
-}`.
- * @returns {Element | null} Retorna um valor do tipo `Element | null`.
- */
 export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
   isOpen,
   onClose,
@@ -101,40 +80,32 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label>
-              <select
-                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
-                value={formData.type}
-                onChange={e =>
-                  setFormData({ ...formData, type: e.target.value as Activity['type'] })
-                }
-              >
-                <option value="CALL">Ligação</option>
-                <option value="MEETING">Reunião</option>
-                <option value="EMAIL">Email</option>
-                <option value="TASK">Tarefa</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                Negócio Relacionado
-              </label>
-              <select
-                required={!editingActivity}
-                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
-                value={formData.dealId}
-                onChange={e => setFormData({ ...formData, dealId: e.target.value })}
-              >
-                <option value="">Selecione...</option>
-                {deals.map(deal => (
-                  <option key={deal.id} value={deal.id}>
-                    {deal.title}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label>
+            <select
+              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+              value={formData.type}
+              onChange={e =>
+                setFormData({ ...formData, type: e.target.value as Activity['type'] })
+              }
+            >
+              <option value="CALL">Ligação</option>
+              <option value="MEETING">Reunião</option>
+              <option value="EMAIL">Email</option>
+              <option value="TASK">Tarefa</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+              Negócio Relacionado
+            </label>
+            <DealSearchCombobox
+              deals={deals}
+              selectedDealId={formData.dealId}
+              onSelect={(dealId) => setFormData({ ...formData, dealId })}
+              required={!editingActivity}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
