@@ -87,17 +87,6 @@ export const useActivitiesController = () => {
     return { activities: activitiesCount, history: historyCount };
   }, [activities]);
 
-  // Overdue count: pending activities with date < today
-  const overdueCount = useMemo(() => {
-    const now = Date.now();
-    let count = 0;
-    for (const a of activities) {
-      if (a.type === 'STATUS_CHANGE') continue;
-      if (!a.completed && Date.parse(a.date) < now) count++;
-    }
-    return count;
-  }, [activities]);
-
   // Performance: compute date boundaries once per render (used inside memoized filters).
   const dateBoundaries = useMemo(() => {
     const today = new Date();
@@ -106,6 +95,17 @@ export const useActivitiesController = () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     return { todayTs: today.getTime(), tomorrowTs: tomorrow.getTime() };
   }, []);
+
+  // Overdue count: pending activities with date < start of today
+  const overdueCount = useMemo(() => {
+    const { todayTs } = dateBoundaries;
+    let count = 0;
+    for (const a of activities) {
+      if (a.type === 'STATUS_CHANGE') continue;
+      if (!a.completed && Date.parse(a.date) < todayTs) count++;
+    }
+    return count;
+  }, [activities, dateBoundaries]);
 
   // Resolve datePreset em range (fromTs, toTs)
   const presetRange = useMemo(() => {
@@ -225,9 +225,12 @@ export const useActivitiesController = () => {
     deleteActivityMutation.mutate(deletingActivityId, {
       onSuccess: () => {
         showToast('Atividade excluída com sucesso', 'success');
+        setDeletingActivityId(null);
+      },
+      onError: (error: Error) => {
+        showToast(`Erro ao excluir atividade: ${error.message}`, 'error');
       },
     });
-    setDeletingActivityId(null);
   };
 
   const cancelDeleteActivity = () => {
