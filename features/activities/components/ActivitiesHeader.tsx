@@ -10,6 +10,7 @@ interface ActivitiesHeaderProps {
   dateFilter?: 'ALL' | 'overdue' | 'today' | 'upcoming';
   sortOrder: SortOrder;
   setSortOrder: (order: SortOrder) => void;
+  overdueCount?: number;
 }
 
 export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
@@ -19,6 +20,7 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
   dateFilter = 'ALL',
   sortOrder,
   setSortOrder,
+  overdueCount = 0,
 }) => {
   const filterLabel =
     dateFilter === 'overdue'
@@ -40,6 +42,11 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
           {filterLabel && (
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
               Filtro: {filterLabel}
+            </span>
+          )}
+          {overdueCount > 0 && (
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">
+              {overdueCount} atrasada{overdueCount > 1 ? 's' : ''}
             </span>
           )}
         </div>

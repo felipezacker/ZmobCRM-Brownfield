@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
@@ -17,8 +17,7 @@ import type { DatePreset, SortOrder } from '@/features/activities/types';
 export const useActivitiesController = () => {
   const searchParams = useSearchParams();
 
-  // Auth for tenant organization_id
-  const { profile, organizationId } = useAuth();
+  useAuth(); // ensures auth context is active
 
   // TanStack Query hooks
   const { data: activities = [], isLoading: activitiesLoading } = useActivities();
@@ -37,6 +36,7 @@ export const useActivitiesController = () => {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<Activity['type'] | 'ALL'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'pending' | 'completed'>('ALL');
   const [dateFilter, setDateFilter] = useState<'ALL' | 'overdue' | 'today' | 'upcoming'>('ALL');
   const [datePreset, setDatePreset] = useState<DatePreset>('ALL');
   const [dateFrom, setDateFrom] = useState('');
@@ -75,6 +75,28 @@ export const useActivitiesController = () => {
   const activitiesById = useMemo(() => new Map(activities.map((a) => [a.id, a])), [activities]);
   const dealsById = useMemo(() => new Map(deals.map((d) => [d.id, d])), [deals]);
   const contactsById = useMemo(() => new Map(contacts.map((c) => [c.id, c])), [contacts]);
+
+  // Tab counts (unfiltered) for badge display
+  const tabCounts = useMemo(() => {
+    let activitiesCount = 0;
+    let historyCount = 0;
+    for (const a of activities) {
+      if (a.type === 'STATUS_CHANGE') historyCount++;
+      else activitiesCount++;
+    }
+    return { activities: activitiesCount, history: historyCount };
+  }, [activities]);
+
+  // Overdue count: pending activities with date < today
+  const overdueCount = useMemo(() => {
+    const now = Date.now();
+    let count = 0;
+    for (const a of activities) {
+      if (a.type === 'STATUS_CHANGE') continue;
+      if (!a.completed && Date.parse(a.date) < now) count++;
+    }
+    return count;
+  }, [activities]);
 
   // Performance: compute date boundaries once per render (used inside memoized filters).
   const dateBoundaries = useMemo(() => {
@@ -135,6 +157,7 @@ export const useActivitiesController = () => {
 
         const matchesSearch = (activity.title || '').toLowerCase().includes(q);
         const matchesType = activeTab === 'history' || filterType === 'ALL' || activity.type === filterType;
+        const matchesStatus = statusFilter === 'ALL' || (statusFilter === 'pending' ? !activity.completed : activity.completed);
         const isPending = !activity.completed;
 
         // Deep-link filter (overdue/today/upcoming via URL)
@@ -151,11 +174,11 @@ export const useActivitiesController = () => {
         const matchesDateRange =
           (!fromTs || ts >= fromTs) && (!toTs || ts <= toTs);
 
-        return matchesSearch && matchesType && matchesDateFilter && matchesDateRange;
+        return matchesSearch && matchesType && matchesStatus && matchesDateFilter && matchesDateRange;
       })
       .sort((a, b) => sortOrder === 'newest' ? b.ts - a.ts : a.ts - b.ts)
       .map(({ activity }) => activity);
-  }, [activities, dateBoundaries, presetRange, searchTerm, filterType, dateFilter, sortOrder, activeTab]);
+  }, [activities, dateBoundaries, presetRange, searchTerm, filterType, statusFilter, dateFilter, sortOrder, activeTab]);
 
   const handleNewActivity = () => {
     setEditingActivity(null);
@@ -184,14 +207,24 @@ export const useActivitiesController = () => {
     setIsModalOpen(true);
   };
 
+  const [deletingActivityId, setDeletingActivityId] = useState<string | null>(null);
+
   const handleDeleteActivity = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta atividade?')) {
-      deleteActivityMutation.mutate(id, {
-        onSuccess: () => {
-          showToast('Atividade excluída com sucesso', 'success');
-        },
-      });
-    }
+    setDeletingActivityId(id);
+  };
+
+  const confirmDeleteActivity = () => {
+    if (!deletingActivityId) return;
+    deleteActivityMutation.mutate(deletingActivityId, {
+      onSuccess: () => {
+        showToast('Atividade excluída com sucesso', 'success');
+      },
+    });
+    setDeletingActivityId(null);
+  };
+
+  const cancelDeleteActivity = () => {
+    setDeletingActivityId(null);
   };
 
   const handleToggleComplete = useCallback(
@@ -214,7 +247,58 @@ export const useActivitiesController = () => {
     [activitiesById, showToast, updateActivityMutation]
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSnoozeActivity = useCallback(
+    (id: string) => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(9, 0, 0, 0);
+
+      updateActivityMutation.mutate({
+        id,
+        updates: { date: tomorrow.toISOString(), completed: false },
+      });
+    },
+    [updateActivityMutation]
+  );
+
+  const handleBulkComplete = useCallback(
+    (ids: string[]) => {
+      for (const id of ids) {
+        const activity = activitiesById.get(id);
+        if (activity && !activity.completed) {
+          updateActivityMutation.mutate({ id, updates: { completed: true } });
+        }
+      }
+    },
+    [activitiesById, updateActivityMutation]
+  );
+
+  const handleBulkDelete = useCallback(
+    (ids: string[]) => {
+      for (const id of ids) {
+        deleteActivityMutation.mutate(id);
+      }
+    },
+    [deleteActivityMutation]
+  );
+
+  const handleDuplicateActivity = (activity: Activity) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    setEditingActivity(null);
+    setFormData({
+      title: activity.title,
+      type: activity.type,
+      date: tomorrow.toISOString().split('T')[0],
+      time: new Date(activity.date).toTimeString().slice(0, 5),
+      description: activity.description || '',
+      dealId: activity.dealId,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     const date = new Date(`${formData.date}T${formData.time}`);
@@ -281,6 +365,8 @@ export const useActivitiesController = () => {
     setSearchTerm,
     filterType,
     setFilterType,
+    statusFilter,
+    setStatusFilter,
     dateFilter,
     setDateFilter,
     datePreset,
@@ -302,10 +388,19 @@ export const useActivitiesController = () => {
     deals,
     contacts,
     isLoading,
+    tabCounts,
+    overdueCount,
+    deletingActivityId,
     handleNewActivity,
     handleEditActivity,
     handleDeleteActivity,
+    confirmDeleteActivity,
+    cancelDeleteActivity,
     handleToggleComplete,
+    handleSnoozeActivity,
+    handleDuplicateActivity,
+    handleBulkComplete,
+    handleBulkDelete,
     handleSubmit,
   };
 };

@@ -8,6 +8,7 @@ interface ActivitiesCalendarProps {
     deals: Deal[];
     currentDate: Date;
     setCurrentDate: (date: Date) => void;
+    onEdit?: (activity: Activity) => void;
 }
 
 const HOURS = Array.from({ length: 10 }, (_, i) => i + 9); // 9:00 to 18:00
@@ -33,7 +34,8 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
     activities,
     deals,
     currentDate,
-    setCurrentDate
+    setCurrentDate,
+    onEdit
 }) => {
     const getWeekStart = (date: Date) => {
         const d = new Date(date);
@@ -108,6 +110,17 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
         return map;
     }, [activities]);
 
+    // Contagem de atividades por dia para exibir nos headers
+    const countByDay = useMemo(() => {
+        const map = new Map<string, number>();
+        for (const a of activities) {
+            const d = new Date(a.date);
+            const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            map.set(key, (map.get(key) || 0) + 1);
+        }
+        return map;
+    }, [activities]);
+
     // Performance: evitar `deals.find` em hover/tooltips.
     const dealTitleById = useMemo(() => {
         const map = new Map<string, string>();
@@ -158,11 +171,21 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                 <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     {DAYS_OF_WEEK[date.getDay()]}
                                 </div>
-                                <div className={`text-2xl font-bold mt-1 font-display ${isToday(date)
-                                        ? 'text-primary-600 dark:text-primary-400'
-                                        : 'text-slate-900 dark:text-white'
-                                    }`}>
-                                    {date.getDate()}
+                                <div className="flex items-center justify-center gap-1.5 mt-1">
+                                    <span className={`text-2xl font-bold font-display ${isToday(date)
+                                            ? 'text-primary-600 dark:text-primary-400'
+                                            : 'text-slate-900 dark:text-white'
+                                        }`}>
+                                        {date.getDate()}
+                                    </span>
+                                    {(() => {
+                                        const dayCount = countByDay.get(`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`) || 0;
+                                        return dayCount > 0 ? (
+                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
+                                                {dayCount}
+                                            </span>
+                                        ) : null;
+                                    })()}
                                 </div>
                             </div>
                         ))}
@@ -189,6 +212,10 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                             {hourActivities.map(activity => (
                                                 <div
                                                     key={activity.id}
+                                                    role={onEdit ? 'button' : undefined}
+                                                    tabIndex={onEdit ? 0 : undefined}
+                                                    onClick={() => onEdit?.(activity)}
+                                                    onKeyDown={(e) => { if (onEdit && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onEdit(activity); } }}
                                                     className={`
                                                         group relative
                                                         text-xs p-3 rounded-xl border-2
@@ -200,7 +227,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                                         cursor-pointer
                                                         overflow-hidden
                                                     `}
-                                                    title={`${activity.title} - ${activity.dealId ? (dealTitleById.get(activity.dealId) ?? '') : ''}`}
+                                                    title={`${onEdit ? 'Clique para editar — ' : ''}${activity.title} - ${activity.dealId ? (dealTitleById.get(activity.dealId) ?? '') : ''}`}
                                                 >
                                                     {/* Shine effect on hover */}
                                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
