@@ -6,6 +6,7 @@ import { ActivitiesList } from './components/ActivitiesList';
 import { ActivitiesCalendar } from './components/ActivitiesCalendar';
 import { ActivityFormModal } from './components/ActivityFormModal';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
+import { Button } from '@/app/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
 
 /**
@@ -14,6 +15,8 @@ import { useToast } from '@/context/ToastContext';
  */
 export const ActivitiesPage: React.FC = () => {
     const {
+        activeTab,
+        setActiveTab,
         viewMode,
         setViewMode,
         searchTerm,
@@ -21,6 +24,14 @@ export const ActivitiesPage: React.FC = () => {
         filterType,
         setFilterType,
         dateFilter,
+        datePreset,
+        setDatePreset,
+        dateFrom,
+        setDateFrom,
+        dateTo,
+        setDateTo,
+        sortOrder,
+        setSortOrder,
         currentDate,
         setCurrentDate,
         isModalOpen,
@@ -76,9 +87,35 @@ export const ActivitiesPage: React.FC = () => {
             <ActivitiesHeader
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                onNewActivity={handleNewActivity}
+                onNewActivity={activeTab === 'activities' ? handleNewActivity : undefined}
                 dateFilter={dateFilter}
+                sortOrder={sortOrder}
+                setSortOrder={setSortOrder}
             />
+
+            {/* Abas */}
+            <div className="flex gap-1 mb-6 border-b border-slate-200 dark:border-white/10">
+                <Button
+                    onClick={() => setActiveTab('activities')}
+                    className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                        activeTab === 'activities'
+                            ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                    }`}
+                >
+                    Atividades
+                </Button>
+                <Button
+                    onClick={() => setActiveTab('history')}
+                    className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                        activeTab === 'history'
+                            ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                    }`}
+                >
+                    Histórico
+                </Button>
+            </div>
 
             {viewMode === 'list' ? (
                 <>
@@ -87,6 +124,13 @@ export const ActivitiesPage: React.FC = () => {
                         setSearchTerm={setSearchTerm}
                         filterType={filterType}
                         setFilterType={setFilterType}
+                        datePreset={datePreset}
+                        setDatePreset={setDatePreset}
+                        dateFrom={dateFrom}
+                        setDateFrom={setDateFrom}
+                        dateTo={dateTo}
+                        setDateTo={setDateTo}
+                        showTypeFilter={activeTab === 'activities'}
                     />
                     <ActivitiesList
                         activities={filteredActivities}

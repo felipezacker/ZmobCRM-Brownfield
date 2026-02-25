@@ -1,35 +1,24 @@
 import React from 'react';
-import { Plus, LayoutList, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, LayoutList, Calendar as CalendarIcon, ArrowDownUp } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
+import type { SortOrder } from '@/features/activities/types';
 
 interface ActivitiesHeaderProps {
   viewMode: 'list' | 'calendar';
   setViewMode: (mode: 'list' | 'calendar') => void;
-  onNewActivity: () => void;
+  onNewActivity?: () => void;
   dateFilter?: 'ALL' | 'overdue' | 'today' | 'upcoming';
+  sortOrder: SortOrder;
+  setSortOrder: (order: SortOrder) => void;
 }
 
-/**
- * Componente React `ActivitiesHeader`.
- *
- * @param {ActivitiesHeaderProps} {
-  viewMode,
-  setViewMode,
-  onNewActivity,
-  dateFilter = 'ALL',
-} - Parâmetro `{
-  viewMode,
-  setViewMode,
-  onNewActivity,
-  dateFilter = 'ALL',
-}`.
- * @returns {Element} Retorna um valor do tipo `Element`.
- */
 export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
   viewMode,
   setViewMode,
   onNewActivity,
   dateFilter = 'ALL',
+  sortOrder,
+  setSortOrder,
 }) => {
   const filterLabel =
     dateFilter === 'overdue'
@@ -56,6 +45,18 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
         </div>
       </div>
       <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 bg-white dark:bg-dark-card px-2 py-1 rounded-lg border border-slate-200 dark:border-white/10">
+          <ArrowDownUp size={16} className="text-slate-400" />
+          <select
+            aria-label="Ordenar atividades"
+            className="bg-transparent text-sm outline-none text-slate-700 dark:text-slate-300 cursor-pointer"
+            value={sortOrder}
+            onChange={e => setSortOrder(e.target.value as SortOrder)}
+          >
+            <option value="newest">Mais recentes</option>
+            <option value="oldest">Mais antigas</option>
+          </select>
+        </div>
         <div className="flex bg-white dark:bg-dark-card p-1 rounded-lg border border-slate-200 dark:border-white/10">
           <Button
             onClick={() => setViewMode('list')}
@@ -78,13 +79,15 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
             <CalendarIcon size={20} />
           </Button>
         </div>
-        <Button
-          onClick={onNewActivity}
-          className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-primary-600/20"
-        >
-          <Plus size={20} />
-          Nova Atividade
-        </Button>
+        {onNewActivity && (
+          <Button
+            onClick={onNewActivity}
+            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-primary-600/20"
+          >
+            <Plus size={20} />
+            Nova Atividade
+          </Button>
+        )}
       </div>
     </div>
   );

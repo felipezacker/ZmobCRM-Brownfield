@@ -12,11 +12,8 @@ import {
 import { useDeals } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/lib/query/hooks/useContactsQuery';
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
+import type { DatePreset, SortOrder } from '@/features/activities/types';
 
-/**
- * Hook React `useActivitiesController` que encapsula uma lógica reutilizável.
- * @returns {{ viewMode: "list" | "calendar"; setViewMode: Dispatch<SetStateAction<"list" | "calendar">>; searchTerm: string; setSearchTerm: Dispatch<SetStateAction<string>>; ... 18 more ...; handleSubmit: (e: FormEvent<...>) => void; }} Retorna um valor do tipo `{ viewMode: "list" | "calendar"; setViewMode: Dispatch<SetStateAction<"list" | "calendar">>; searchTerm: string; setSearchTerm: Dispatch<SetStateAction<string>>; ... 18 more ...; handleSubmit: (e: FormEvent<...>) => void; }`.
- */
 export const useActivitiesController = () => {
   const searchParams = useSearchParams();
 
@@ -36,10 +33,15 @@ export const useActivitiesController = () => {
 
   const { showToast } = useToast();
 
+  const [activeTab, setActiveTab] = useState<'activities' | 'history'>('activities');
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<Activity['type'] | 'ALL'>('ALL');
   const [dateFilter, setDateFilter] = useState<'ALL' | 'overdue' | 'today' | 'upcoming'>('ALL');
+  const [datePreset, setDatePreset] = useState<DatePreset>('ALL');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
@@ -83,17 +85,59 @@ export const useActivitiesController = () => {
     return { todayTs: today.getTime(), tomorrowTs: tomorrow.getTime() };
   }, []);
 
+  // Resolve datePreset em range (fromTs, toTs)
+  const presetRange = useMemo(() => {
+    const { todayTs, tomorrowTs } = dateBoundaries;
+
+    switch (datePreset) {
+      case 'overdue':
+        return { fromTs: 0, toTs: todayTs - 1 };
+      case 'today':
+        return { fromTs: todayTs, toTs: tomorrowTs - 1 };
+      case 'tomorrow': {
+        const dayAfterTomorrow = tomorrowTs + 86_400_000;
+        return { fromTs: tomorrowTs, toTs: dayAfterTomorrow - 1 };
+      }
+      case 'thisWeek': {
+        const dayOfWeek = new Date(todayTs).getDay(); // 0=dom
+        const weekStart = todayTs - dayOfWeek * 86_400_000;
+        const weekEnd = weekStart + 7 * 86_400_000 - 1;
+        return { fromTs: weekStart, toTs: weekEnd };
+      }
+      case 'thisMonth': {
+        const d = new Date(todayTs);
+        const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+        const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59).getTime();
+        return { fromTs: monthStart, toTs: monthEnd };
+      }
+      case 'custom': {
+        const from = dateFrom ? new Date(dateFrom + 'T00:00:00').getTime() : 0;
+        const to = dateTo ? new Date(dateTo + 'T23:59:59').getTime() : 0;
+        return { fromTs: from, toTs: to };
+      }
+      default: // 'ALL'
+        return { fromTs: 0, toTs: 0 };
+    }
+  }, [datePreset, dateBoundaries, dateFrom, dateTo]);
+
   const filteredActivities = useMemo(() => {
     const { todayTs, tomorrowTs } = dateBoundaries;
+    const { fromTs, toTs } = presetRange;
     const q = searchTerm.toLowerCase();
 
     return activities
       .map((activity) => ({ activity, ts: Date.parse(activity.date) }))
       .filter(({ activity, ts }) => {
+        // Separacao por aba
+        const isStatusChange = activity.type === 'STATUS_CHANGE';
+        if (activeTab === 'activities' && isStatusChange) return false;
+        if (activeTab === 'history' && !isStatusChange) return false;
+
         const matchesSearch = (activity.title || '').toLowerCase().includes(q);
-        const matchesType = filterType === 'ALL' || activity.type === filterType;
+        const matchesType = activeTab === 'history' || filterType === 'ALL' || activity.type === filterType;
         const isPending = !activity.completed;
 
+        // Deep-link filter (overdue/today/upcoming via URL)
         const matchesDateFilter =
           dateFilter === 'ALL'
             ? true
@@ -103,12 +147,15 @@ export const useActivitiesController = () => {
                 ? isPending && ts >= todayTs && ts < tomorrowTs
                 : isPending && ts >= tomorrowTs;
 
-        return matchesSearch && matchesType && matchesDateFilter;
+        // Preset/custom date range
+        const matchesDateRange =
+          (!fromTs || ts >= fromTs) && (!toTs || ts <= toTs);
+
+        return matchesSearch && matchesType && matchesDateFilter && matchesDateRange;
       })
-      // Performance: sort by numeric timestamp (avoid `new Date(...)` in comparator).
-      .sort((a, b) => a.ts - b.ts)
+      .sort((a, b) => sortOrder === 'newest' ? b.ts - a.ts : a.ts - b.ts)
       .map(({ activity }) => activity);
-  }, [activities, dateBoundaries, searchTerm, filterType, dateFilter]);
+  }, [activities, dateBoundaries, presetRange, searchTerm, filterType, dateFilter, sortOrder, activeTab]);
 
   const handleNewActivity = () => {
     setEditingActivity(null);
@@ -226,6 +273,8 @@ export const useActivitiesController = () => {
   };
 
   return {
+    activeTab,
+    setActiveTab,
     viewMode,
     setViewMode,
     searchTerm,
@@ -234,6 +283,14 @@ export const useActivitiesController = () => {
     setFilterType,
     dateFilter,
     setDateFilter,
+    datePreset,
+    setDatePreset,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
+    sortOrder,
+    setSortOrder,
     currentDate,
     setCurrentDate,
     isModalOpen,
