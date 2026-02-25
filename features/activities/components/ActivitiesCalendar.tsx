@@ -1,13 +1,20 @@
 import React, { useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Phone, Users, Mail, CheckSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Phone, Users, Mail, CheckSquare, Repeat } from 'lucide-react';
 import { Activity, Deal } from '@/types';
 import { Button } from '@/app/components/ui/Button';
+
+interface ProjectedActivity extends Activity {
+    _isProjected: true;
+    _sourceId: string;
+}
 
 interface ActivitiesCalendarProps {
     activities: Activity[];
     deals: Deal[];
     currentDate: Date;
     setCurrentDate: (date: Date) => void;
+    onEdit?: (activity: Activity) => void;
+    onCreateFromProjected?: (activity: Activity) => void;
 }
 
 const HOURS = Array.from({ length: 10 }, (_, i) => i + 9); // 9:00 to 18:00
@@ -33,7 +40,9 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
     activities,
     deals,
     currentDate,
-    setCurrentDate
+    setCurrentDate,
+    onEdit,
+    onCreateFromProjected
 }) => {
     const getWeekStart = (date: Date) => {
         const d = new Date(date);
@@ -42,12 +51,13 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
         return new Date(d.setDate(diff));
     };
 
-    const weekStart = getWeekStart(currentDate);
-    const weekDays = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date(weekStart);
-        date.setDate(weekStart.getDate() + i);
+    const weekStartTs = useMemo(() => getWeekStart(currentDate).getTime(), [currentDate]);
+    const weekStart = new Date(weekStartTs);
+    const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(weekStartTs);
+        date.setDate(date.getDate() + i);
         return date;
-    });
+    }), [weekStartTs]);
 
     const prevWeek = () => {
         const newDate = new Date(currentDate);
@@ -94,11 +104,97 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
         return new Date(activity.date) < new Date() && !activity.completed;
     };
 
+    // Avanca cursor ate (ou alem de) targetTs usando calculo direto O(1) para daily/weekly,
+    // e loop limitado para monthly (maximo ~12 iteracoes/ano).
+    const advanceCursorToTarget = (cursor: Date, targetTs: number, type: string, originDay: number) => {
+        if (cursor.getTime() >= targetTs) return;
+        const diffMs = targetTs - cursor.getTime();
+        if (type === 'daily') {
+            const steps = Math.floor(diffMs / 86_400_000);
+            cursor.setDate(cursor.getDate() + steps);
+        } else if (type === 'weekly') {
+            const steps = Math.floor(diffMs / (7 * 86_400_000));
+            cursor.setDate(cursor.getDate() + steps * 7);
+        }
+        // Para monthly (ou remainder de daily/weekly), loop residual
+        while (cursor.getTime() < targetTs) {
+            switch (type) {
+                case 'daily': cursor.setDate(cursor.getDate() + 1); break;
+                case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
+                case 'monthly': {
+                    cursor.setMonth(cursor.getMonth() + 1);
+                    if (cursor.getDate() !== originDay) cursor.setDate(0);
+                    break;
+                }
+            }
+        }
+    };
+
+    const advanceCursor = (cursor: Date, type: string, originDay: number) => {
+        switch (type) {
+            case 'daily': cursor.setDate(cursor.getDate() + 1); break;
+            case 'weekly': cursor.setDate(cursor.getDate() + 7); break;
+            case 'monthly': {
+                cursor.setMonth(cursor.getMonth() + 1);
+                if (cursor.getDate() !== originDay) cursor.setDate(0);
+                break;
+            }
+        }
+    };
+
+    // Expande atividades recorrentes em instancias virtuais para a semana visivel
+    const expandRecurringForWeek = useMemo(() => {
+        const projected: ProjectedActivity[] = [];
+        const weekStartTs = weekDays[0].getTime();
+        const weekEndTs = weekDays[6].getTime() + 86_400_000 - 1;
+
+        for (const activity of activities) {
+            if (!activity.recurrenceType || activity.completed) continue;
+
+            const activityDate = new Date(activity.date);
+            const originDay = activityDate.getDate();
+            const activityHours = activityDate.getHours();
+            const activityMinutes = activityDate.getMinutes();
+            const endDate = activity.recurrenceEndDate ? new Date(activity.recurrenceEndDate + 'T23:59:59') : null;
+
+            // Avancar cursor ate o inicio da semana visivel — O(1) para daily/weekly
+            const cursor = new Date(activityDate);
+            advanceCursorToTarget(cursor, weekStartTs, activity.recurrenceType, originDay);
+
+            // Gerar instancias dentro da semana visivel
+            const activityDateStr = activityDate.toISOString().split('T')[0];
+            while (cursor.getTime() <= weekEndTs) {
+                if (endDate && cursor.getTime() > endDate.getTime()) break;
+
+                // So projetar se nao e a mesma data da atividade original (ja aparece como real)
+                const cursorDateStr = cursor.toISOString().split('T')[0];
+                if (cursorDateStr !== activityDateStr) {
+                    const projectedDate = new Date(cursor);
+                    projectedDate.setHours(activityHours, activityMinutes, 0, 0);
+
+                    projected.push({
+                        ...activity,
+                        id: `projected-${activity.id}-${cursorDateStr}`,
+                        date: projectedDate.toISOString(),
+                        _isProjected: true,
+                        _sourceId: activity.id,
+                    });
+                }
+
+                advanceCursor(cursor, activity.recurrenceType, originDay);
+            }
+        }
+        return projected;
+    }, [activities, weekDays]);
+
+    // Combina atividades reais + projetadas
+    const allActivities = useMemo(() => [...activities, ...expandRecurringForWeek], [activities, expandRecurringForWeek]);
+
     // Performance: grid chama `getActivitiesForDateTime` muitas vezes.
     // Indexamos atividades por (YYYY-MM-DD|hour) uma vez para evitar filters repetidos.
     const activitiesByDayHour = useMemo(() => {
-        const map = new Map<string, Activity[]>();
-        for (const a of activities) {
+        const map = new Map<string, (Activity | ProjectedActivity)[]>();
+        for (const a of allActivities) {
             const d = new Date(a.date);
             const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}|${d.getHours()}`;
             const list = map.get(key);
@@ -106,7 +202,18 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
             else map.set(key, [a]);
         }
         return map;
-    }, [activities]);
+    }, [allActivities]);
+
+    // Contagem de atividades por dia para exibir nos headers (inclui projetadas)
+    const countByDay = useMemo(() => {
+        const map = new Map<string, number>();
+        for (const a of allActivities) {
+            const d = new Date(a.date);
+            const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+            map.set(key, (map.get(key) || 0) + 1);
+        }
+        return map;
+    }, [allActivities]);
 
     // Performance: evitar `deals.find` em hover/tooltips.
     const dealTitleById = useMemo(() => {
@@ -158,11 +265,21 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                 <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     {DAYS_OF_WEEK[date.getDay()]}
                                 </div>
-                                <div className={`text-2xl font-bold mt-1 font-display ${isToday(date)
-                                        ? 'text-primary-600 dark:text-primary-400'
-                                        : 'text-slate-900 dark:text-white'
-                                    }`}>
-                                    {date.getDate()}
+                                <div className="flex items-center justify-center gap-1.5 mt-1">
+                                    <span className={`text-2xl font-bold font-display ${isToday(date)
+                                            ? 'text-primary-600 dark:text-primary-400'
+                                            : 'text-slate-900 dark:text-white'
+                                        }`}>
+                                        {date.getDate()}
+                                    </span>
+                                    {(() => {
+                                        const dayCount = countByDay.get(`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`) || 0;
+                                        return dayCount > 0 ? (
+                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
+                                                {dayCount}
+                                            </span>
+                                        ) : null;
+                                    })()}
                                 </div>
                             </div>
                         ))}
@@ -186,21 +303,35 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                             }`}
                                     >
                                         <div className="space-y-2">
-                                            {hourActivities.map(activity => (
+                                            {hourActivities.map(activity => {
+                                                const isProjected = '_isProjected' in activity && (activity as ProjectedActivity)._isProjected;
+                                                const handleClick = () => {
+                                                    if (isProjected && onCreateFromProjected) {
+                                                        onCreateFromProjected(activity);
+                                                    } else {
+                                                        onEdit?.(activity);
+                                                    }
+                                                };
+                                                return (
                                                 <div
                                                     key={activity.id}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={handleClick}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } }}
                                                     className={`
                                                         group relative
-                                                        text-xs p-3 rounded-xl border-2
+                                                        text-xs p-3 rounded-xl
+                                                        ${isProjected ? 'border-2 border-dashed opacity-70' : 'border-2'}
                                                         ${getActivityGradient(activity.type)}
                                                         ${activity.completed ? 'opacity-50 saturate-50' : ''}
-                                                        ${isOverdue(activity) && !activity.completed ? 'ring-2 ring-red-500 ring-offset-2 dark:ring-offset-slate-900' : ''}
+                                                        ${!isProjected && isOverdue(activity) && !activity.completed ? 'ring-2 ring-red-500 ring-offset-2 dark:ring-offset-slate-900' : ''}
                                                         transition-all duration-300
                                                         hover:scale-105 hover:-translate-y-1
                                                         cursor-pointer
                                                         overflow-hidden
                                                     `}
-                                                    title={`${activity.title} - ${activity.dealId ? (dealTitleById.get(activity.dealId) ?? '') : ''}`}
+                                                    title={isProjected ? 'Clique para criar esta atividade' : `${onEdit ? 'Clique para editar — ' : ''}${activity.title}`}
                                                 >
                                                     {/* Shine effect on hover */}
                                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
@@ -208,7 +339,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                                     <div className="relative z-10">
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <div className="p-1 bg-white/20 rounded-md">
-                                                                {getActivityIcon(activity.type)}
+                                                                {isProjected ? <Repeat size={14} className="text-white" /> : getActivityIcon(activity.type)}
                                                             </div>
                                                             <span className="font-bold text-white text-sm">
                                                                 {new Date(activity.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -221,15 +352,16 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                                         {/* Hover Expanded Info */}
                                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2 pt-2 border-t border-white/20">
                                                             <p className="text-xs text-white/90 leading-relaxed">
-                                                                {activity.description}
+                                                                {isProjected ? 'Clique para materializar esta ocorrência' : activity.description}
                                                             </p>
                                                             <p className="text-xs text-white/80 mt-1 font-medium">
-                                                                📎 {activity.dealId ? (dealTitleById.get(activity.dealId) ?? 'Sem deal vinculado') : 'Sem deal vinculado'}
+                                                                {activity.dealId ? (dealTitleById.get(activity.dealId) ?? 'Sem deal vinculado') : 'Sem deal vinculado'}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 );

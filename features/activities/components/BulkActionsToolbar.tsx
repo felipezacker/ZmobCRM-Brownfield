@@ -1,11 +1,12 @@
 import React from 'react';
-import { CheckCircle2, CalendarClock, X } from 'lucide-react';
+import { CheckCircle2, CalendarClock, Trash2, X } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 
 interface BulkActionsToolbarProps {
     selectedCount: number;
     onCompleteAll: () => void;
     onSnoozeAll: () => void;
+    onDeleteAll?: () => void;
     onClearSelection: () => void;
 }
 
@@ -29,6 +30,7 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
     selectedCount,
     onCompleteAll,
     onSnoozeAll,
+    onDeleteAll,
     onClearSelection
 }) => {
     if (selectedCount === 0) return null;
@@ -61,6 +63,16 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
                         <CalendarClock size={16} />
                         Adiar 1 Dia
                     </Button>
+
+                    {onDeleteAll && (
+                        <Button
+                            onClick={onDeleteAll}
+                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
+                        >
+                            <Trash2 size={16} />
+                            Excluir
+                        </Button>
+                    )}
 
                     <Button
                         onClick={onClearSelection}

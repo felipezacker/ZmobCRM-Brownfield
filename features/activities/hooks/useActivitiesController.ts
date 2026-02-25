@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
@@ -12,13 +12,12 @@ import {
 import { useDeals } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/lib/query/hooks/useContactsQuery';
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
-import type { DatePreset, SortOrder } from '@/features/activities/types';
+import type { DatePreset, RecurrenceType, SortOrder } from '@/features/activities/types';
 
 export const useActivitiesController = () => {
   const searchParams = useSearchParams();
 
-  // Auth for tenant organization_id
-  const { profile, organizationId } = useAuth();
+  useAuth(); // ensures auth context is active
 
   // TanStack Query hooks
   const { data: activities = [], isLoading: activitiesLoading } = useActivities();
@@ -37,6 +36,7 @@ export const useActivitiesController = () => {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<Activity['type'] | 'ALL'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'pending' | 'completed' | 'overdue'>('ALL');
   const [dateFilter, setDateFilter] = useState<'ALL' | 'overdue' | 'today' | 'upcoming'>('ALL');
   const [datePreset, setDatePreset] = useState<DatePreset>('ALL');
   const [dateFrom, setDateFrom] = useState('');
@@ -67,6 +67,8 @@ export const useActivitiesController = () => {
     time: '09:00',
     description: '',
     dealId: '',
+    recurrenceType: 'none' as 'none' | RecurrenceType,
+    recurrenceEndDate: '',
   });
 
   const isLoading = activitiesLoading || dealsLoading || contactsLoading;
@@ -76,6 +78,17 @@ export const useActivitiesController = () => {
   const dealsById = useMemo(() => new Map(deals.map((d) => [d.id, d])), [deals]);
   const contactsById = useMemo(() => new Map(contacts.map((c) => [c.id, c])), [contacts]);
 
+  // Tab counts (unfiltered) for badge display
+  const tabCounts = useMemo(() => {
+    let activitiesCount = 0;
+    let historyCount = 0;
+    for (const a of activities) {
+      if (a.type === 'STATUS_CHANGE') historyCount++;
+      else activitiesCount++;
+    }
+    return { activities: activitiesCount, history: historyCount };
+  }, [activities]);
+
   // Performance: compute date boundaries once per render (used inside memoized filters).
   const dateBoundaries = useMemo(() => {
     const today = new Date();
@@ -84,6 +97,17 @@ export const useActivitiesController = () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     return { todayTs: today.getTime(), tomorrowTs: tomorrow.getTime() };
   }, []);
+
+  // Overdue count: pending activities with date < start of today
+  const overdueCount = useMemo(() => {
+    const { todayTs } = dateBoundaries;
+    let count = 0;
+    for (const a of activities) {
+      if (a.type === 'STATUS_CHANGE') continue;
+      if (!a.completed && Date.parse(a.date) < todayTs) count++;
+    }
+    return count;
+  }, [activities, dateBoundaries]);
 
   // Resolve datePreset em range (fromTs, toTs)
   const presetRange = useMemo(() => {
@@ -135,6 +159,14 @@ export const useActivitiesController = () => {
 
         const matchesSearch = (activity.title || '').toLowerCase().includes(q);
         const matchesType = activeTab === 'history' || filterType === 'ALL' || activity.type === filterType;
+        // Skip status filter on history tab — STATUS_CHANGE items have no completed state
+        const matchesStatus = isStatusChange || statusFilter === 'ALL'
+          ? true
+          : statusFilter === 'pending'
+            ? !activity.completed
+            : statusFilter === 'completed'
+              ? activity.completed
+              : /* overdue */ !activity.completed && ts < dateBoundaries.todayTs;
         const isPending = !activity.completed;
 
         // Deep-link filter (overdue/today/upcoming via URL)
@@ -151,11 +183,11 @@ export const useActivitiesController = () => {
         const matchesDateRange =
           (!fromTs || ts >= fromTs) && (!toTs || ts <= toTs);
 
-        return matchesSearch && matchesType && matchesDateFilter && matchesDateRange;
+        return matchesSearch && matchesType && matchesStatus && matchesDateFilter && matchesDateRange;
       })
       .sort((a, b) => sortOrder === 'newest' ? b.ts - a.ts : a.ts - b.ts)
       .map(({ activity }) => activity);
-  }, [activities, dateBoundaries, presetRange, searchTerm, filterType, dateFilter, sortOrder, activeTab]);
+  }, [activities, dateBoundaries, presetRange, searchTerm, filterType, statusFilter, dateFilter, sortOrder, activeTab]);
 
   const handleNewActivity = () => {
     setEditingActivity(null);
@@ -166,6 +198,8 @@ export const useActivitiesController = () => {
       time: '09:00',
       description: '',
       dealId: '',
+      recurrenceType: 'none',
+      recurrenceEndDate: '',
     });
     setIsModalOpen(true);
   };
@@ -180,47 +214,215 @@ export const useActivitiesController = () => {
       time: date.toTimeString().slice(0, 5),
       description: activity.description || '',
       dealId: activity.dealId,
+      recurrenceType: activity.recurrenceType || 'none',
+      recurrenceEndDate: activity.recurrenceEndDate || '',
     });
     setIsModalOpen(true);
   };
 
+  const [deletingActivityId, setDeletingActivityId] = useState<string | null>(null);
+
   const handleDeleteActivity = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta atividade?')) {
-      deleteActivityMutation.mutate(id, {
-        onSuccess: () => {
-          showToast('Atividade excluída com sucesso', 'success');
-        },
-      });
-    }
+    setDeletingActivityId(id);
   };
+
+  const confirmDeleteActivity = () => {
+    if (!deletingActivityId) return;
+    deleteActivityMutation.mutate(deletingActivityId, {
+      onSuccess: () => {
+        showToast('Atividade excluída com sucesso', 'success');
+        setDeletingActivityId(null);
+      },
+      onError: (error: Error) => {
+        showToast(`Erro ao excluir atividade: ${error.message}`, 'error');
+      },
+    });
+  };
+
+  const cancelDeleteActivity = () => {
+    setDeletingActivityId(null);
+  };
+
+  const calculateNextDate = useCallback((dateStr: string, type: RecurrenceType): string => {
+    const d = new Date(dateStr);
+    switch (type) {
+      case 'daily':
+        d.setDate(d.getDate() + 1);
+        break;
+      case 'weekly':
+        d.setDate(d.getDate() + 7);
+        break;
+      case 'monthly': {
+        const dayOfMonth = d.getDate();
+        d.setMonth(d.getMonth() + 1);
+        // Clamp para ultimo dia do mes (ex: 31 jan → 28 fev)
+        if (d.getDate() !== dayOfMonth) d.setDate(0);
+        break;
+      }
+    }
+    return d.toISOString();
+  }, []);
 
   const handleToggleComplete = useCallback(
     (id: string) => {
       const activity = activitiesById.get(id);
       if (!activity) return;
 
+      // Se esta reabrindo (uncomplete), nao faz logica de recorrencia
+      if (activity.completed) {
+        updateActivityMutation.mutate(
+          { id, updates: { completed: false } },
+          { onSuccess: () => showToast('Atividade reaberta', 'success') }
+        );
+        return;
+      }
+
+      // Completar atividade
       updateActivityMutation.mutate(
-        {
-          id,
-          updates: { completed: !activity.completed },
-        },
+        { id, updates: { completed: true } },
         {
           onSuccess: () => {
-            showToast(activity.completed ? 'Atividade reaberta' : 'Atividade concluída', 'success');
+            // Se e recorrente, criar proxima ocorrencia
+            if (activity.recurrenceType) {
+              const nextDateStr = calculateNextDate(activity.date, activity.recurrenceType);
+              const nextDate = new Date(nextDateStr);
+
+              // Checar data limite
+              if (activity.recurrenceEndDate && nextDate > new Date(activity.recurrenceEndDate + 'T23:59:59')) {
+                showToast('Última ocorrência concluída (data limite atingida)', 'success');
+                return;
+              }
+
+              // Criar proxima atividade
+              const selectedDeal = activity.dealId ? dealsById.get(activity.dealId) : undefined;
+              createActivityMutation.mutate(
+                {
+                  activity: {
+                    title: activity.title,
+                    type: activity.type,
+                    description: activity.description,
+                    date: nextDateStr,
+                    dealId: activity.dealId,
+                    contactId: activity.contactId,
+                    participantContactIds: activity.participantContactIds,
+                    dealTitle: selectedDeal?.title || activity.dealTitle || '',
+                    completed: false,
+                    user: { name: 'Eu', avatar: '' },
+                    recurrenceType: activity.recurrenceType,
+                    recurrenceEndDate: activity.recurrenceEndDate,
+                  },
+                },
+                {
+                  onSuccess: () => showToast('Atividade concluída — próxima criada', 'success'),
+                  onError: () => {
+                    // Rollback: reabrir a atividade se a criacao da proxima falhou
+                    updateActivityMutation.mutate({ id, updates: { completed: false } });
+                    showToast('Erro ao criar próxima ocorrência — atividade reaberta', 'error');
+                  },
+                }
+              );
+            } else {
+              showToast('Atividade concluída', 'success');
+            }
           },
         }
       );
     },
-    [activitiesById, showToast, updateActivityMutation]
+    [activitiesById, showToast, updateActivityMutation, createActivityMutation, calculateNextDate, dealsById]
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSnoozeActivity = useCallback(
+    (id: string) => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(9, 0, 0, 0);
+
+      updateActivityMutation.mutate(
+        { id, updates: { date: tomorrow.toISOString(), completed: false } },
+        {
+          onSuccess: () => showToast('Atividade adiada para amanhã', 'success'),
+          onError: (error: Error) => showToast(`Erro ao adiar atividade: ${error.message}`, 'error'),
+        }
+      );
+    },
+    [updateActivityMutation, showToast]
+  );
+
+  const handleBulkComplete = useCallback(
+    (ids: string[]) => {
+      for (const id of ids) {
+        const activity = activitiesById.get(id);
+        if (!activity || activity.completed) continue;
+        handleToggleComplete(id);
+      }
+    },
+    [activitiesById, handleToggleComplete]
+  );
+
+  const handleBulkDelete = useCallback(
+    async (ids: string[]): Promise<{ succeeded: number; failed: number }> => {
+      let succeeded = 0;
+      let failed = 0;
+      const promises = ids.map((id) =>
+        new Promise<void>((resolve) => {
+          deleteActivityMutation.mutate(id, {
+            onSuccess: () => { succeeded++; resolve(); },
+            onError: () => { failed++; resolve(); },
+          });
+        })
+      );
+      await Promise.all(promises);
+      return { succeeded, failed };
+    },
+    [deleteActivityMutation]
+  );
+
+  const handleDuplicateActivity = (activity: Activity) => {
+    if (activity.type === 'STATUS_CHANGE') return;
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    setEditingActivity(null);
+    setFormData({
+      title: activity.title,
+      type: activity.type,
+      date: tomorrow.toISOString().split('T')[0],
+      time: new Date(activity.date).toTimeString().slice(0, 5),
+      description: activity.description || '',
+      dealId: activity.dealId,
+      recurrenceType: activity.recurrenceType || 'none',
+      recurrenceEndDate: activity.recurrenceEndDate || '',
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleCreateFromProjected = (activity: Activity) => {
+    const date = new Date(activity.date);
+    setEditingActivity(null);
+    setFormData({
+      title: activity.title,
+      type: activity.type,
+      date: date.toISOString().split('T')[0],
+      time: date.toTimeString().slice(0, 5),
+      description: activity.description || '',
+      dealId: activity.dealId,
+      recurrenceType: activity.recurrenceType || 'none',
+      recurrenceEndDate: activity.recurrenceEndDate || '',
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     const date = new Date(`${formData.date}T${formData.time}`);
     const selectedDeal = formData.dealId ? dealsById.get(formData.dealId) : undefined;
     const selectedContact = selectedDeal?.contactId ? contactsById.get(selectedDeal.contactId) : undefined;
     const participantContactIds = selectedContact?.id ? [selectedContact.id] : [];
+
+    const recurrenceType = formData.recurrenceType === 'none' ? null : formData.recurrenceType;
+    const recurrenceEndDate = formData.recurrenceEndDate || null;
 
     if (editingActivity) {
       updateActivityMutation.mutate(
@@ -234,6 +436,8 @@ export const useActivitiesController = () => {
             dealId: formData.dealId || '',
             contactId: selectedContact?.id || '',
             participantContactIds,
+            recurrenceType,
+            recurrenceEndDate,
           },
         },
         {
@@ -257,6 +461,8 @@ export const useActivitiesController = () => {
             dealTitle: selectedDeal?.title || '',
             completed: false,
             user: { name: 'Eu', avatar: '' },
+            recurrenceType,
+            recurrenceEndDate,
           },
         },
         {
@@ -281,6 +487,8 @@ export const useActivitiesController = () => {
     setSearchTerm,
     filterType,
     setFilterType,
+    statusFilter,
+    setStatusFilter,
     dateFilter,
     setDateFilter,
     datePreset,
@@ -302,10 +510,20 @@ export const useActivitiesController = () => {
     deals,
     contacts,
     isLoading,
+    tabCounts,
+    overdueCount,
+    deletingActivityId,
     handleNewActivity,
     handleEditActivity,
     handleDeleteActivity,
+    confirmDeleteActivity,
+    cancelDeleteActivity,
     handleToggleComplete,
+    handleSnoozeActivity,
+    handleDuplicateActivity,
+    handleBulkComplete,
+    handleBulkDelete,
+    handleCreateFromProjected,
     handleSubmit,
   };
 };

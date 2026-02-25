@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Phone, Users, Mail, CheckSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, Building2 } from 'lucide-react';
+import { Phone, Users, Mail, CheckSquare, Clock, Trash2, Edit2, CheckCircle2, Circle, Building2, Copy, Repeat } from 'lucide-react';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { Activity, Deal, Contact, Company } from '@/types';
 import { Button } from '@/app/components/ui/Button';
@@ -13,6 +13,7 @@ interface ActivityRowProps {
     onToggleComplete: (id: string) => void;
     onEdit: (activity: Activity) => void;
     onDelete: (id: string) => void;
+    onDuplicate?: (activity: Activity) => void;
     isSelected?: boolean;
     onSelect?: (id: string, selected: boolean) => void;
 }
@@ -29,6 +30,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
     onToggleComplete,
     onEdit,
     onDelete,
+    onDuplicate,
     isSelected = false,
     onSelect
 }) => {
@@ -156,33 +158,46 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                     <h3 className={`font-medium text-slate-900 dark:text-white truncate ${activity.completed ? 'line-through text-slate-500' : ''}`}>
                         {formatTitle(activity.title)}
                     </h3>
+                    {activity.recurrenceType && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 rounded-full flex items-center gap-1">
+                            <Repeat size={10} />
+                            {activity.recurrenceType === 'daily' ? 'Diário' : activity.recurrenceType === 'weekly' ? 'Semanal' : 'Mensal'}
+                        </span>
+                    )}
                     {isOverdue && (
                         <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 rounded-full">
                             ATRASADO
                         </span>
                     )}
                 </div>
+                {activity.description && (
+                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate mt-0.5 mb-1">{activity.description}</p>
+                )}
                 <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
                     {deal && (
-                        <span className="flex items-center gap-1.5 text-primary-600 dark:text-primary-400 font-medium">
+                        <Link
+                            href={`/deals/${deal.id}`}
+                            className="flex items-center gap-1.5 text-primary-600 dark:text-primary-400 font-medium hover:underline"
+                            title={`Abrir negócio: ${deal.title}`}
+                        >
                             <Circle size={8} fill="currentColor" />
-                            {deal.title}
-                        </span>
+                            <span className="truncate max-w-[200px]">{deal.title}</span>
+                        </Link>
                     )}
-                    {!deal && contact && (
+                    {contact && (
                         <Link
                             href={`/contacts?contactId=${contact.id}`}
                             className="flex items-center gap-1.5 text-primary-600 dark:text-primary-400 font-medium hover:underline"
                             title={`Abrir contato: ${contact.name}`}
                         >
                             <Users size={14} />
-                            <span className="truncate max-w-[280px]">{contact.name}</span>
+                            <span className="truncate max-w-[200px]">{contact.name}</span>
                         </Link>
                     )}
-                    {!deal && company && (
+                    {!deal && !contact && company && (
                         <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
                             <Building2 size={14} />
-                            <span className="truncate max-w-[280px]">{company.name}</span>
+                            <span className="truncate max-w-[200px]">{company.name}</span>
                         </span>
                     )}
                     <span className="flex items-center gap-1.5">
@@ -192,7 +207,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                 <Button
                     onClick={() => onEdit(activity)}
                     className="p-2 text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-colors"
@@ -200,6 +215,16 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                 >
                     <Edit2 size={16} />
                 </Button>
+                {onDuplicate && (
+                    <Button
+                        onClick={() => onDuplicate(activity)}
+                        className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                        title="Duplicar"
+                        aria-label="Duplicar atividade"
+                    >
+                        <Copy size={16} />
+                    </Button>
+                )}
                 <Button
                     onClick={() => onDelete(activity.id)}
                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
