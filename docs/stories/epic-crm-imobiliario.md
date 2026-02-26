@@ -1,7 +1,7 @@
 # Epic: CRM Imobiliario Foundation — Contatos + Deals para Imobiliarias
 
 **ID:** EPIC-CRM-IMOB
-**Status:** In Progress (Wave 1 Done)
+**Status:** In Progress (Wave 2 Done)
 **Data:** 2026-02-25
 **Responsavel:** @pm (Morgan)
 **Origem:** Analise competitiva (6 concorrentes) + auditoria de codebase + decisoes do stakeholder
@@ -90,9 +90,9 @@ Transformar o ZmobCRM de um CRM generico em um CRM imobiliario competitivo, expa
 | 3.2 | Perfil de interesse do contato | 1 | 3 | @dev | Done |
 | 3.3 | Modelo de dados imobiliario — Deals | 1 | 3 | @dev | Done |
 | 3.4 | Tech debt: soft delete, notas unificadas, org_id | 1 | 3 | @dev | Done |
-| 3.5 | Lista de contatos enriquecida | 2 | 5 | @dev | Draft |
-| 3.6 | Cockpit do contato completo | 2 | 8 | @dev | Draft |
-| 3.7 | Deteccao e merge de duplicatas | 2 | 5 | @dev | Draft |
+| 3.5 | Lista de contatos enriquecida | 2 | 5 | @dev | Done |
+| 3.6 | Cockpit do contato completo | 2 | 8 | @dev | Done |
+| 3.7 | Deteccao e merge de duplicatas | 2 | 5 | @dev | Done |
 | 3.8 | Lead scoring com IA | 3 | 5 | @dev | Draft |
 | 3.9 | Notificacoes inteligentes | 3 | 3 | @dev | Draft |
 | 3.10 | LTV automatico + metricas de contatos | 3 | 3 | @dev | Draft |
@@ -352,8 +352,12 @@ Transformar o ZmobCRM de um CRM generico em um CRM imobiliario competitivo, expa
 5. ~~**@dev** — Implementar Wave 1 (Stories 3.1-3.4)~~ DONE (commit e7cec53)
 6. ~~**@qa** — QA Gate Wave 1~~ DONE (PASS — 4/4 stories)
 7. ~~**@devops** — Push Wave 1 para remote~~ DONE (branch refactor-contatos)
-8. **@sm** — Criar stories Wave 2 (3.5-3.7) apos Wave 1 validada
-9. **@dev** — Implementar Wave 2
+8. ~~**@sm** — Criar stories Wave 2 (3.5-3.7) apos Wave 1 validada~~ DONE
+9. ~~**@dev** — Implementar Wave 2 (Stories 3.5-3.7)~~ DONE
+10. ~~**@qa** — QA Gate Wave 2~~ DONE (PASS — 3/3 stories)
+11. ~~**@devops** — Push Wave 2 para remote~~ DONE (branch refactor-contatos)
+12. **@sm** — Criar stories Wave 3 (3.8-3.10) apos Wave 2 validada
+13. **@dev** — Implementar Wave 3
 
 ---
 
@@ -373,3 +377,8 @@ Transformar o ZmobCRM de um CRM generico em um CRM imobiliario competitivo, expa
 | 2026-02-26 | @dev (Dex) | Wave 1 implementada: 6 migrations, types, services, UI (ContactFormModal, ContactPreferencesSection, CreateDealModal, DealDetailModal, CockpitDataPanel, ProfilePage, ContactsList). Commit e7cec53 |
 | 2026-02-26 | @qa (Quinn) | QA Gate Wave 1: PASS (4/4 stories). Issues 3.1 HIGH + 3.2 MEDIUM/LOW corrigidos e re-reviewed |
 | 2026-02-26 | @devops (Gage) | Push Wave 1 para origin/refactor-contatos. Status Stories 3.1-3.4: Done. Epic: In Progress (Wave 1 Done) |
+| 2026-02-26 | @sm (River) | Stories Wave 2 criadas: 3.5, 3.6, 3.7 — Status: Draft |
+| 2026-02-26 | @po (Pax) | Validacao Wave 2: GO. Status: Draft → Ready |
+| 2026-02-26 | @dev (Dex) | Wave 2 implementada: lista enriquecida (filtros, busca, bulk), cockpit 360 (timeline, deals, IA), dedup (scan, merge RPC, audit). Commits 8731769-130a3f0 |
+| 2026-02-26 | @qa (Quinn) | QA Gate Wave 2: PASS (3/3 stories). Story 3.7 re-reviewed apos fix de 4 issues (org filter, RPC transaction, batch scan, audit log) |
+| 2026-02-26 | @devops (Gage) | Push Wave 2 para origin/refactor-contatos. Status Stories 3.5-3.7: Done. Epic: In Progress (Wave 2 Done) |
