@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/context/ToastContext';
 import { Contact, ContactStage, PaginationState, ContactsServerFilters, DEFAULT_PAGE_SIZE, ContactSortableColumn } from '@/types';
 import {
@@ -16,6 +17,7 @@ import { useBoards } from '@/lib/query/hooks/useBoardsQuery';
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { contactPhonesService } from '@/lib/supabase/contacts';
+import { supabase } from '@/lib/supabase/client';
 import { generateFakeContacts } from '@/lib/debug';
 import { useReassignContactWithDeals } from '@/hooks/useReassignContactWithDeals';
 import type { ContactFormData, PhoneFormEntry } from '@/features/contacts/components/ContactFormModal';
@@ -87,6 +89,7 @@ export const useContactsController = () => {
   });
 
   // TanStack Query hooks
+  const queryClient = useQueryClient();
   const { data: boards = [] } = useBoards();
   const createContactMutation = useCreateContact();
   const updateContactMutation = useUpdateContact();
@@ -123,6 +126,42 @@ export const useContactsController = () => {
   const [sortBy, setSortBy] = useState<ContactSortableColumn>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  // Story 3.5 — Filter state
+  const [classificationFilter, setClassificationFilter] = useState<string[]>(() => {
+    const param = searchParams?.get('classification');
+    return param ? param.split(',').filter(Boolean) : [];
+  });
+  const [temperatureFilter, setTemperatureFilter] = useState<string>(() => {
+    return searchParams?.get('temperature') || 'ALL';
+  });
+  const [contactTypeFilter, setContactTypeFilter] = useState<string>(() => {
+    return searchParams?.get('contactType') || 'ALL';
+  });
+  const [ownerFilter, setOwnerFilter] = useState<string>(() => {
+    return searchParams?.get('ownerId') || '';
+  });
+  const [sourceFilter, setSourceFilter] = useState<string>(() => {
+    return searchParams?.get('source') || 'ALL';
+  });
+
+  // Story 3.5 — Fetch org profiles for owner filter/column
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      if (!supabase) return [];
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .order('full_name');
+      return (data || []).map(p => ({
+        id: p.id,
+        name: p.full_name || 'Sem nome',
+        avatar: p.avatar_url || undefined,
+      }));
+    },
+    staleTime: 5 * 60 * 1000, // 5 min
+  });
+
   // Toggle sort handler
   const handleSort = useCallback((column: ContactSortableColumn) => {
     if (sortBy === column) {
@@ -157,17 +196,24 @@ export const useContactsController = () => {
       filters.dateEnd = dateRange.end;
     }
 
+    // Story 3.5 filters
+    if (classificationFilter.length > 0) filters.classification = classificationFilter;
+    if (temperatureFilter !== 'ALL') filters.temperature = temperatureFilter;
+    if (contactTypeFilter !== 'ALL') filters.contactType = contactTypeFilter;
+    if (ownerFilter) filters.ownerId = ownerFilter;
+    if (sourceFilter !== 'ALL') filters.source = sourceFilter;
+
     // Always include sorting
     filters.sortBy = sortBy;
     filters.sortOrder = sortOrder;
 
     // Return filters (always has at least sorting)
     return filters;
-  }, [search, stageFilter, statusFilter, dateRange, sortBy, sortOrder]);
+  }, [search, stageFilter, statusFilter, dateRange, sortBy, sortOrder, classificationFilter, temperatureFilter, contactTypeFilter, ownerFilter, sourceFilter]);
 
   // T029: Track filter changes to reset pagination synchronously
   // This prevents 416 errors when filters change while on a high page number
-  const filterKey = `${search}-${stageFilter}-${statusFilter}-${dateRange.start}-${dateRange.end}`;
+  const filterKey = `${search}-${stageFilter}-${statusFilter}-${dateRange.start}-${dateRange.end}-${classificationFilter.join(',')}-${temperatureFilter}-${contactTypeFilter}-${ownerFilter}-${sourceFilter}`;
   const prevFilterKeyRef = React.useRef<string>(filterKey);
 
   // Reset to first page when filters change (safe: inside effect)
@@ -633,6 +679,25 @@ export const useContactsController = () => {
     });
   };
 
+  // Story 3.5 — Bulk reassign owner
+  const bulkReassignOwner = useCallback(async (newOwnerId: string) => {
+    if (!supabase || selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase
+      .from('contacts')
+      .update({ owner_id: newOwnerId, updated_at: new Date().toISOString() })
+      .in('id', ids);
+
+    if (error) {
+      (addToast || showToast)(`Erro ao reatribuir: ${error.message}`, 'error');
+    } else {
+      (addToast || showToast)(`${ids.length} contato(s) reatribuido(s)`, 'success');
+      setSelectedIds(new Set());
+      // Invalidate contacts query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+    }
+  }, [selectedIds, addToast, showToast, queryClient]);
+
   // T030: Removed client-side filtering - now using server-side filters
   // contacts already comes filtered from the server
   const filteredContacts = contacts;
@@ -699,6 +764,20 @@ export const useContactsController = () => {
     sortBy,
     sortOrder,
     handleSort,
+
+    // Story 3.5 — Filters
+    classificationFilter,
+    setClassificationFilter,
+    temperatureFilter,
+    setTemperatureFilter,
+    contactTypeFilter,
+    setContactTypeFilter,
+    ownerFilter,
+    setOwnerFilter,
+    sourceFilter,
+    setSourceFilter,
+    profiles,
+    bulkReassignOwner,
 
     // Create Deal State
     createDealContactId,

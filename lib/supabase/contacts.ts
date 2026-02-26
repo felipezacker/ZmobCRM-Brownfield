@@ -365,6 +365,23 @@ export const contactsService = {
           query = query.lte('created_at', filters.dateEnd);
         }
 
+        // Story 3.5 filters
+        if (filters.classification && filters.classification.length > 0) {
+          query = query.in('classification', filters.classification);
+        }
+        if (filters.temperature && filters.temperature !== 'ALL') {
+          query = query.eq('temperature', filters.temperature);
+        }
+        if (filters.contactType && filters.contactType !== 'ALL') {
+          query = query.eq('contact_type', filters.contactType);
+        }
+        if (filters.ownerId) {
+          query = query.eq('owner_id', filters.ownerId);
+        }
+        if (filters.source && filters.source !== 'ALL') {
+          query = query.eq('source', filters.source);
+        }
+
       }
 
       // Apply pagination and ordering

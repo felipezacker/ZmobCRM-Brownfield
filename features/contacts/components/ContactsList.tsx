@@ -4,6 +4,34 @@ import { Contact, ContactSortableColumn, ContactClassification, ContactTemperatu
 import { StageBadge } from './ContactsStageTabs';
 import { Button } from '@/app/components/ui/Button';
 
+// ============================================
+// Story 3.5 — Source Badge Config
+// ============================================
+const SOURCE_CONFIG: Record<string, { label: string; color: string }> = {
+    WEBSITE: { label: 'Website', color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' },
+    LINKEDIN: { label: 'LinkedIn', color: 'bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20' },
+    REFERRAL: { label: 'Indicacao', color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' },
+    MANUAL: { label: 'Manual', color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20' },
+};
+
+const SourceBadge: React.FC<{ source?: string }> = ({ source }) => {
+    if (!source) return <span className="text-xs text-slate-400">---</span>;
+    const config = SOURCE_CONFIG[source];
+    if (!config) return <span className="text-xs text-slate-400">{source}</span>;
+    return (
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
+            {config.label}
+        </span>
+    );
+};
+
+/** Profile info for owner display */
+export interface ProfileInfo {
+    id: string;
+    name: string;
+    avatar?: string;
+}
+
 // Performance: reuse Intl formatters (they are relatively expensive to instantiate).
 const PT_BR_DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR');
 const PT_BR_DATE_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', {
@@ -142,6 +170,9 @@ interface ContactsListProps {
     sortBy?: ContactSortableColumn;
     sortOrder?: 'asc' | 'desc';
     onSort?: (column: ContactSortableColumn) => void;
+    // Story 3.5 props
+    profiles?: ProfileInfo[];
+    totalCount?: number;
 }
 
 /**
@@ -159,7 +190,17 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     sortBy = 'created_at',
     sortOrder = 'desc',
     onSort,
+    profiles = [],
+    totalCount,
 }) => {
+    // Story 3.5 — Map profiles for quick lookup
+    const profilesMap = React.useMemo(() => {
+        const map = new Map<string, ProfileInfo>();
+        for (const p of profiles) {
+            map.set(p.id, p);
+        }
+        return map;
+    }, [profiles]);
     const activeListIds = filteredContacts.map(c => c.id);
     const allSelected = activeListIds.length > 0 && selectedIds.size === activeListIds.length;
 
@@ -170,6 +211,14 @@ export const ContactsList: React.FC<ContactsListProps> = ({
 
     return (
         <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+            {/* Story 3.5 — Result count */}
+            {totalCount !== undefined && (
+                <div className="px-6 py-2 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        {totalCount} contato{totalCount !== 1 ? 's' : ''} encontrado{totalCount !== 1 ? 's' : ''}
+                    </span>
+                </div>
+            )}
             <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-slate-50/80 dark:bg-white/5 border-b border-slate-200 dark:border-white/5">
@@ -194,6 +243,16 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                 <th scope="col" className={HEADER_CLASS}>Estagio</th>
                                 <th scope="col" className={HEADER_CLASS}>Contato</th>
                                 <th scope="col" className={HEADER_CLASS}>Status</th>
+                                {onSort ? (
+                                    <SortableHeader label="Responsavel" column="owner_id" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Responsavel</th>
+                                )}
+                                {onSort ? (
+                                    <SortableHeader label="Origem" column="source" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Origem</th>
+                                )}
                                 {onSort ? (
                                     <SortableHeader label="Criado" column="created_at" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
                                 ) : (
@@ -274,6 +333,25 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                                 <Plus size={14} aria-hidden="true" />
                                             </Button>
                                         </div>
+                                    </td>
+                                    {/* Story 3.5 — Responsavel */}
+                                    <td className="px-6 py-4">
+                                        {contact.ownerId && profilesMap.has(contact.ownerId) ? (
+                                            <div className="flex items-center gap-2">
+                                                <span className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                                                    {(profilesMap.get(contact.ownerId)!.name || '?').charAt(0).toUpperCase()}
+                                                </span>
+                                                <span className="text-xs text-slate-700 dark:text-slate-300 truncate max-w-[120px]">
+                                                    {profilesMap.get(contact.ownerId)!.name}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-slate-400">---</span>
+                                        )}
+                                    </td>
+                                    {/* Story 3.5 — Origem */}
+                                    <td className="px-6 py-4">
+                                        <SourceBadge source={contact.source} />
                                     </td>
                                     <td className="px-6 py-4">
                                         <div

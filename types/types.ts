@@ -508,7 +508,17 @@ export interface ContactsServerFilters {
   sortBy?: ContactSortableColumn;
   /** Direção da ordenação. */
   sortOrder?: 'asc' | 'desc';
+  /** Story 3.5 — Filtro por classificação (multi-select). */
+  classification?: string[];
+  /** Story 3.5 — Filtro por temperatura. */
+  temperature?: string;
+  /** Story 3.5 — Filtro por tipo de contato (PF/PJ). */
+  contactType?: string;
+  /** Story 3.5 — Filtro por responsável (owner_id). */
+  ownerId?: string;
+  /** Story 3.5 — Filtro por origem. */
+  source?: string;
 }
 
 /** Colunas ordenáveis na tabela de contatos. */
-export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage';
+export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source';
