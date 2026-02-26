@@ -1,7 +1,7 @@
 # Epic: CRM Imobiliario Foundation — Contatos + Deals para Imobiliarias
 
 **ID:** EPIC-CRM-IMOB
-**Status:** In Progress (Wave 2 Done)
+**Status:** Done
 **Data:** 2026-02-25
 **Responsavel:** @pm (Morgan)
 **Origem:** Analise competitiva (6 concorrentes) + auditoria de codebase + decisoes do stakeholder
@@ -93,9 +93,9 @@ Transformar o ZmobCRM de um CRM generico em um CRM imobiliario competitivo, expa
 | 3.5 | Lista de contatos enriquecida | 2 | 5 | @dev | Done |
 | 3.6 | Cockpit do contato completo | 2 | 8 | @dev | Done |
 | 3.7 | Deteccao e merge de duplicatas | 2 | 5 | @dev | Done |
-| 3.8 | Lead scoring com IA | 3 | 5 | @dev | Ready |
-| 3.9 | Notificacoes inteligentes | 3 | 3 | @dev | Ready |
-| 3.10 | LTV automatico + metricas de contatos | 3 | 3 | @dev | Ready |
+| 3.8 | Lead scoring com IA | 3 | 5 | @dev | Done |
+| 3.9 | Notificacoes inteligentes | 3 | 3 | @dev | Done |
+| 3.10 | LTV automatico + metricas de contatos | 3 | 3 | @dev | Done |
 
 **Total:** 10 stories, ~43 pontos
 
@@ -356,8 +356,12 @@ Transformar o ZmobCRM de um CRM generico em um CRM imobiliario competitivo, expa
 9. ~~**@dev** — Implementar Wave 2 (Stories 3.5-3.7)~~ DONE
 10. ~~**@qa** — QA Gate Wave 2~~ DONE (PASS — 3/3 stories)
 11. ~~**@devops** — Push Wave 2 para remote~~ DONE (branch refactor-contatos)
-12. **@sm** — Criar stories Wave 3 (3.8-3.10) apos Wave 2 validada
-13. **@dev** — Implementar Wave 3
+12. ~~**@sm** — Criar stories Wave 3 (3.8-3.10) apos Wave 2 validada~~ DONE
+13. ~~**@po** — Validar stories Wave 3 (10/10 x3)~~ DONE
+14. ~~**@dev** — Implementar Wave 3 (Stories 3.8-3.10)~~ DONE (commit c8643c1)
+15. ~~**@qa** — QA Gate Wave 3~~ DONE (PASS — 3/3 stories, 8/8 issues resolvidos)
+16. ~~**@devops** — Push Wave 3 para remote~~ DONE (branch refactor-contatos)
+17. **EPIC COMPLETO** — 10/10 stories Done, 3/3 waves entregues
 
 ---
 
@@ -384,3 +388,7 @@ Transformar o ZmobCRM de um CRM generico em um CRM imobiliario competitivo, expa
 | 2026-02-26 | @devops (Gage) | Push Wave 2 para origin/refactor-contatos. Status Stories 3.5-3.7: Done. Epic: In Progress (Wave 2 Done) |
 | 2026-02-26 | @sm (River) | Stories Wave 3 criadas: 3.8, 3.9, 3.10 — Status: Draft |
 | 2026-02-26 | @po (Pax) | Validacao Wave 3: GO (10/10 x3). Notas: activities query via deals (3.8), stage UUID/name handling (3.10). Status: Draft → Ready |
+| 2026-02-26 | @dev (Dex) | Wave 3 implementada: lead scoring (7 fatores, triggers, badges), notificacoes (4 tipos, dashboard, badge header), LTV automatico (RPC increment/decrement), metricas dashboard (5 charts CSS-only). Commit c8643c1 |
+| 2026-02-26 | @qa (Quinn) | QA Gate Wave 3: PASS (3/3 stories). Story 3.10 re-reviewed — 8/8 issues resolvidos incl. UUID stage resolution |
+| 2026-02-26 | @devops (Gage) | Push Wave 3 para origin/refactor-contatos. Status Stories 3.8-3.10: Done. Epic: Done (10/10 stories, 3/3 waves) |
+| 2026-02-26 | @po (Pax) | Epic closure: status atualizado para Done. Todas stories 3.1-3.10 marcadas Done. Proximo Passo completo |
