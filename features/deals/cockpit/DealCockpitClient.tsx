@@ -12,6 +12,8 @@ import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { normalizePhoneE164 } from '@/lib/phone';
+import { supabase } from '@/lib/supabase/client';
+import { calculateEstimatedCommission } from '@/lib/supabase';
 
 import { useAIDealAnalysis, deriveHealthFromProbability } from '@/features/inbox/hooks/useAIDealAnalysis';
 import { useDealNotes } from '@/features/inbox/hooks/useDealNotes';
@@ -108,6 +110,9 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   const [checklist, setChecklist] = useState<ChecklistItem[]>(defaultChecklist);
 
+  // Broker commission rate (fetched from profiles for the deal owner)
+  const [brokerCommissionRate, setBrokerCommissionRate] = useState<number | null>(null);
+
   const actor: Actor = useMemo(() => {
     const name =
       profile?.nickname?.trim() ||
@@ -154,6 +159,41 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     if (!selectedDeal) return null;
     return boardsById.get(selectedDeal.boardId) ?? null;
   }, [boardsById, selectedDeal]);
+
+  // Fetch broker commission rate when deal owner changes
+  useEffect(() => {
+    const ownerId = selectedDeal?.ownerId;
+    if (!ownerId || !supabase) {
+      setBrokerCommissionRate(null);
+      return;
+    }
+    // If the owner is the current user, use profile from context
+    if (ownerId === user?.id) {
+      setBrokerCommissionRate(profile?.commission_rate ?? null);
+      return;
+    }
+    // Otherwise, fetch from Supabase
+    let cancelled = false;
+    supabase
+      .from('profiles')
+      .select('commission_rate')
+      .eq('id', ownerId)
+      .single()
+      .then(({ data }) => {
+        if (!cancelled) setBrokerCommissionRate(data?.commission_rate ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [selectedDeal?.ownerId, user?.id, profile?.commission_rate]);
+
+  // Commission calculation
+  const estimatedCommission = useMemo(() => {
+    if (!selectedDeal) return null;
+    return calculateEstimatedCommission(
+      selectedDeal.value,
+      selectedDeal.commissionRate,
+      brokerCommissionRate,
+    );
+  }, [selectedDeal, brokerCommissionRate]);
 
   const templateVariables = useMemo(() => {
     const nome = selectedContact?.name?.split(' ')[0]?.trim() || 'Cliente';
@@ -567,6 +607,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
               latestCall={latestCall}
               latestMove={latestMove}
               onCopy={(label, text) => void copyToClipboard(label, text)}
+              estimatedCommission={estimatedCommission}
             />
           </div>
 

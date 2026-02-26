@@ -246,6 +246,7 @@ Deno.serve(async (req) => {
       .from("contacts")
       .select("id, name, email, phone, organization_id")
       .eq("organization_id", source.organization_id)
+      .is("deleted_at", null)
       .or(filters.join(","))
       .limit(1);
 

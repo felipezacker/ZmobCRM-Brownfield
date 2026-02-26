@@ -21,7 +21,7 @@ export function createNoteTools({ supabase, organizationId, context, userId, byp
 
                 const { data, error } = await supabase
                     .from('deal_notes')
-                    .insert({ deal_id: targetDealId, content, created_by: userId })
+                    .insert({ deal_id: targetDealId, content, created_by: userId, organization_id: organizationId })
                     .select('id, content, created_at')
                     .single();
 

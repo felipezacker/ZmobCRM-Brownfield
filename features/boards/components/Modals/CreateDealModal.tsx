@@ -50,7 +50,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
     // Estado do deal
     const [dealData, setDealData] = useState({
         title: '',
-        value: ''
+        value: '',
+        dealType: 'VENDA' as 'VENDA' | 'LOCACAO' | 'PERMUTA',
     });
 
     // Estado de UI
@@ -61,7 +62,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
         setSelectedContact(null);
         setIsCreatingNew(false);
         setNewContactData({ name: '', email: '', phone: '' });
-        setDealData({ title: '', value: '' });
+        setDealData({ title: '', value: '', dealType: 'VENDA' });
         setError(null);
         setIsSubmitting(false);
     };
@@ -72,7 +73,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
 
         setDealData({
             title: deal.title,
-            value: String(deal.value)
+            value: String(deal.value),
+            dealType: 'VENDA',
         });
 
         setIsCreatingNew(true);
@@ -151,6 +153,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                 customFields: {},
                 isWon: false,
                 isLost: false,
+                dealType: dealData.dealType,
             };
 
             let result;
@@ -353,15 +356,29 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                 />
                             </div>
                             
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Valor Estimado (R$)</label>
-                                <input
-                                    type="number"
-                                    className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
-                                    placeholder="0.00"
-                                    value={dealData.value}
-                                    onChange={e => setDealData(prev => ({ ...prev, value: e.target.value }))}
-                                />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Valor Estimado (R$)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                                        placeholder="0.00"
+                                        value={dealData.value}
+                                        onChange={e => setDealData(prev => ({ ...prev, value: e.target.value }))}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Tipo de Negócio</label>
+                                    <select
+                                        value={dealData.dealType}
+                                        onChange={e => setDealData(prev => ({ ...prev, dealType: e.target.value as 'VENDA' | 'LOCACAO' | 'PERMUTA' }))}
+                                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                                    >
+                                        <option value="VENDA">Venda</option>
+                                        <option value="LOCACAO">Locação</option>
+                                        <option value="PERMUTA">Permuta</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>

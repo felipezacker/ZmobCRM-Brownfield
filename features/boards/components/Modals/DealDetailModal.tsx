@@ -7,6 +7,7 @@ import { useBoards } from '@/context/boards/BoardsContext';
 import { useSettings } from '@/context/settings/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
+import { dealNotesService } from '@/lib/supabase/dealNotes';
 import ConfirmModal from '@/components/ConfirmModal';
 import { LossReasonModal } from '@/components/ui/LossReasonModal';
 import { useMoveDealSimple } from '@/lib/query/hooks';
@@ -46,6 +47,8 @@ import { ActivityRow } from '@/features/activities/components/ActivityRow';
 import { formatPriorityPtBr } from '@/lib/utils/priority';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { Button } from '@/app/components/ui/Button';
+import { supabase } from '@/lib/supabase/client';
+import { calculateEstimatedCommission } from '@/lib/supabase';
 
 interface DealDetailModalProps {
   dealId: string | null;
@@ -127,6 +130,27 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const [showLossReasonModal, setShowLossReasonModal] = useState(false);
   const [pendingLostStageId, setPendingLostStageId] = useState<string | null>(null);
   const [lossReasonOrigin, setLossReasonOrigin] = useState<'button' | 'stage'>('button');
+
+  // Broker commission rate for estimated commission display
+  const [brokerCommissionRate, setBrokerCommissionRate] = useState<number | null>(null);
+  useEffect(() => {
+    const ownerId = deal?.ownerId;
+    if (!ownerId || !supabase) { setBrokerCommissionRate(null); return; }
+    if (ownerId === profile?.id) { setBrokerCommissionRate(profile?.commission_rate ?? null); return; }
+    let cancelled = false;
+    supabase
+      .from('profiles')
+      .select('commission_rate')
+      .eq('id', ownerId)
+      .single()
+      .then(({ data }) => { if (!cancelled) setBrokerCommissionRate(data?.commission_rate ?? null); });
+    return () => { cancelled = true; };
+  }, [deal?.ownerId, profile?.id, profile?.commission_rate]);
+
+  const estimatedCommission = useMemo(() => {
+    if (!deal) return null;
+    return calculateEstimatedCommission(deal.value, deal.commissionRate, brokerCommissionRate);
+  }, [deal, brokerCommissionRate]);
 
   // Tags suggestions from Supabase `tags` table (shared with Settings)
   const { tags: availableTags, addTag: addCatalogTag, tagsLowerSet: availableTagsLower } = useTags();
@@ -271,23 +295,20 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
     }
   };
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!newNote.trim()) return;
 
-    const noteActivity: Activity = {
-      id: crypto.randomUUID(),
-      dealId: deal.id,
-      dealTitle: deal.title,
-      type: 'NOTE',
-      title: 'Nota Adicionada',
-      description: newNote,
-      date: new Date().toISOString(),
-      user: { name: 'Eu', avatar: 'https://i.pravatar.cc/150?u=me' },
-      completed: true,
-    };
+    const orgId = profile?.organization_id;
+    const { error } = await dealNotesService.createNote(deal.id, newNote.trim(), orgId ?? undefined);
 
-    addActivity(noteActivity);
+    if (error) {
+      console.error('[DealDetailModal] Erro ao salvar nota em deal_notes:', error);
+      addToast('Falha ao salvar nota. Tente novamente.', 'warning');
+      return;
+    }
+
     setNewNote('');
+    addToast('Nota salva', 'success');
   };
 
   const handleAddProduct = () => {
@@ -636,6 +657,27 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
               <div className="pt-4 border-t border-slate-100 dark:border-white/5">
                 <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">Detalhes</h3>
                 <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500">Tipo</span>
+                    <select
+                      value={deal.dealType || 'VENDA'}
+                      onChange={e => updateDeal(deal.id, { dealType: e.target.value as 'VENDA' | 'LOCACAO' | 'PERMUTA' })}
+                      className="text-sm text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-1 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                    >
+                      <option value="VENDA">Venda</option>
+                      <option value="LOCACAO">Locação</option>
+                      <option value="PERMUTA">Permuta</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500">Previsão Fech.</span>
+                    <input
+                      type="date"
+                      value={deal.expectedCloseDate ? deal.expectedCloseDate.split('T')[0] : ''}
+                      onChange={e => updateDeal(deal.id, { expectedCloseDate: e.target.value || undefined })}
+                      className="text-sm text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-1 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                    />
+                  </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">Prioridade</span>
                     <span className="text-slate-900 dark:text-white">
@@ -652,6 +694,15 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     <span className="text-slate-500">Probabilidade</span>
                     <span className="text-slate-900 dark:text-white">{deal.probability}%</span>
                   </div>
+                  {estimatedCommission && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500">Comissão Est.</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium" title={`Taxa: ${estimatedCommission.rate}%`}>
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimatedCommission.estimated)}
+                        <span className="text-xs text-slate-400 ml-1">({estimatedCommission.rate}%)</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 

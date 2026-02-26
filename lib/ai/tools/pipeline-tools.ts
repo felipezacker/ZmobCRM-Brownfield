@@ -22,7 +22,8 @@ export function createPipelineTools({ supabase, organizationId, context, bypassA
                     .from('deals')
                     .select('id, title, value, is_won, is_lost, stage:board_stages(name, label)')
                     .eq('organization_id', organizationId)
-                    .eq('board_id', targetBoardId);
+                    .eq('board_id', targetBoardId)
+                    .is('deleted_at', null);
 
                 if (dealsError) {
                     return { error: formatSupabaseFailure(dealsError) };
@@ -78,7 +79,8 @@ export function createPipelineTools({ supabase, organizationId, context, bypassA
                     .from('deals')
                     .select('id, value, is_won, is_lost, created_at')
                     .eq('organization_id', organizationId)
-                    .eq('board_id', targetBoardId);
+                    .eq('board_id', targetBoardId)
+                    .is('deleted_at', null);
 
                 if (dealsError) {
                     return { error: formatSupabaseFailure(dealsError) };

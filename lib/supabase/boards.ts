@@ -658,7 +658,8 @@ export const boardsService = {
       const { count, error } = await supabase
         .from('deals')
         .select('*', { count: 'exact', head: true })
-        .eq('board_id', boardId);
+        .eq('board_id', boardId)
+        .is('deleted_at', null);
 
       if (error) return { canDelete: false, dealCount: 0, error };
 
@@ -852,7 +853,8 @@ export const boardsService = {
       const { count, error: countError } = await supabase
         .from('deals')
         .select('*', { count: 'exact', head: true })
-        .eq('stage_id', stageId);
+        .eq('stage_id', stageId)
+        .is('deleted_at', null);
 
       if (countError) {
         return { error: countError };

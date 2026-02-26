@@ -1,6 +1,6 @@
 import React from 'react';
-import { Mail, Phone, Plus, Calendar, Pencil, Trash2, MoreHorizontal, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { Contact, ContactSortableColumn } from '@/types';
+import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Contact, ContactSortableColumn, ContactClassification, ContactTemperature } from '@/types';
 import { StageBadge } from './ContactsStageTabs';
 import { Button } from '@/app/components/ui/Button';
 
@@ -15,28 +15,84 @@ const PT_BR_DATE_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', {
 });
 
 /**
- * Formata uma data para exibição relativa (ex: "Hoje", "Ontem", "Há 3 dias", "15/11/2024")
+ * Formata uma data para exibicao relativa (ex: "Hoje", "Ontem", "Ha 3 dias", "15/11/2024")
  */
 function formatRelativeDate(dateString: string | undefined | null, now: Date): string {
     if (!dateString) return '---';
-    
+
     const date = new Date(dateString);
-    
+
     // Reset hours for accurate day comparison
     const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     const diffTime = today.getTime() - dateDay.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) return 'Hoje';
     if (diffDays === 1) return 'Ontem';
-    if (diffDays < 7) return `Há ${diffDays} dias`;
-    if (diffDays < 30) return `Há ${Math.floor(diffDays / 7)} sem.`;
-    
+    if (diffDays < 7) return `Ha ${diffDays} dias`;
+    if (diffDays < 30) return `Ha ${Math.floor(diffDays / 7)} sem.`;
+
     // For older dates, show the actual date
     return PT_BR_DATE_FORMATTER.format(date);
 }
+
+// ============================================
+// Story 3.1 — Classification Badge
+// ============================================
+const CLASSIFICATION_CONFIG: Record<ContactClassification, { label: string; color: string }> = {
+    COMPRADOR: { label: 'Comprador', color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' },
+    VENDEDOR: { label: 'Vendedor', color: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20' },
+    LOCATARIO: { label: 'Locatario', color: 'bg-cyan-100 text-cyan-700 border-cyan-200 dark:bg-cyan-500/10 dark:text-cyan-400 dark:border-cyan-500/20' },
+    LOCADOR: { label: 'Locador', color: 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20' },
+    INVESTIDOR: { label: 'Investidor', color: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' },
+    PERMUTANTE: { label: 'Permutante', color: 'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-500/10 dark:text-pink-400 dark:border-pink-500/20' },
+};
+
+const ClassificationBadge: React.FC<{ classification?: ContactClassification }> = ({ classification }) => {
+    if (!classification) return <span className="text-xs text-slate-400">---</span>;
+    const config = CLASSIFICATION_CONFIG[classification];
+    if (!config) return <span className="text-xs text-slate-400">{classification}</span>;
+    return (
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
+            {config.label}
+        </span>
+    );
+};
+
+// ============================================
+// Story 3.1 — Temperature Icon
+// ============================================
+const TEMPERATURE_CONFIG: Record<ContactTemperature, { label: string; icon: React.ReactNode; color: string }> = {
+    HOT: {
+        label: 'Quente',
+        icon: <Flame size={14} />,
+        color: 'text-red-500 dark:text-red-400',
+    },
+    WARM: {
+        label: 'Morno',
+        icon: <Thermometer size={14} />,
+        color: 'text-amber-500 dark:text-amber-400',
+    },
+    COLD: {
+        label: 'Frio',
+        icon: <Snowflake size={14} />,
+        color: 'text-blue-500 dark:text-blue-400',
+    },
+};
+
+const TemperatureIcon: React.FC<{ temperature?: ContactTemperature }> = ({ temperature }) => {
+    if (!temperature) return null;
+    const config = TEMPERATURE_CONFIG[temperature];
+    if (!config) return null;
+    return (
+        <span className={`flex items-center gap-1 ${config.color}`} title={config.label}>
+            {config.icon}
+            <span className="text-[10px] font-bold">{config.label}</span>
+        </span>
+    );
+};
 
 /** Props for sortable column header */
 interface SortableHeaderProps {
@@ -50,7 +106,7 @@ interface SortableHeaderProps {
 /** Sortable column header component */
 const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentSort, sortOrder, onSort }) => {
     const isActive = currentSort === column;
-    
+
     return (
         <th scope="col" className="px-6 py-4">
             <Button
@@ -71,6 +127,8 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentS
     );
 };
 
+const HEADER_CLASS = 'px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider';
+
 interface ContactsListProps {
     filteredContacts: Contact[];
     selectedIds: Set<string>;
@@ -87,8 +145,7 @@ interface ContactsListProps {
 }
 
 /**
- * Componente React `ContactsList`.
- * @returns {Element} Retorna um valor do tipo `Element`.
+ * Componente React `ContactsList` — Story 3.1 com classificacao e temperatura.
  */
 export const ContactsList: React.FC<ContactsListProps> = ({
     filteredContacts,
@@ -109,10 +166,8 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     const someSelected = selectedIds.size > 0 && selectedIds.size < activeListIds.length;
 
     // Performance: avoid creating `new Date()` for each row in formatRelativeDate.
-    // Memoized para evitar hydration mismatch (server vs client timestamp) e
-    // evitar recriação a cada render
     const now = React.useMemo(() => new Date(), []);
-    
+
     return (
         <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
@@ -120,46 +175,43 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                         <thead className="bg-slate-50/80 dark:bg-white/5 border-b border-slate-200 dark:border-white/5">
                             <tr>
                                 <th scope="col" className="w-12 px-6 py-4">
-                                    <input 
-                                        type="checkbox" 
+                                    <input
+                                        type="checkbox"
                                         checked={allSelected}
                                         ref={(el) => { if (el) el.indeterminate = someSelected; }}
                                         onChange={toggleSelectAll}
                                         aria-label={allSelected ? 'Desmarcar todos os contatos' : 'Selecionar todos os contatos'}
-                                        className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10" 
+                                        className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
                                     />
                                 </th>
                                 {onSort ? (
                                     <SortableHeader label="Nome" column="name" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
                                 ) : (
-                                    <th scope="col" className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider">Nome</th>
+                                    <th scope="col" className={HEADER_CLASS}>Nome</th>
                                 )}
-                                <th scope="col" className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider">Estágio</th>
-                                <th scope="col" className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider">Contato</th>
-                                <th scope="col" className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider">Status</th>
+                                <th scope="col" className={HEADER_CLASS}>Classificacao</th>
+                                <th scope="col" className={HEADER_CLASS}>Temp.</th>
+                                <th scope="col" className={HEADER_CLASS}>Estagio</th>
+                                <th scope="col" className={HEADER_CLASS}>Contato</th>
+                                <th scope="col" className={HEADER_CLASS}>Status</th>
                                 {onSort ? (
                                     <SortableHeader label="Criado" column="created_at" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
                                 ) : (
-                                    <th scope="col" className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider">Criado</th>
+                                    <th scope="col" className={HEADER_CLASS}>Criado</th>
                                 )}
-                                {onSort ? (
-                                    <SortableHeader label="Modificado" column="updated_at" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
-                                ) : (
-                                    <th scope="col" className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider">Modificado</th>
-                                )}
-                                <th scope="col" className="px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider"><span className="sr-only">Ações</span></th>
+                                <th scope="col" className={HEADER_CLASS}><span className="sr-only">Acoes</span></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                             {filteredContacts.map((contact) => (
                                 <tr key={contact.id} className={`hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group ${selectedIds.has(contact.id) ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}>
                                     <td className="px-6 py-4">
-                                        <input 
-                                            type="checkbox" 
+                                        <input
+                                            type="checkbox"
                                             checked={selectedIds.has(contact.id)}
                                             onChange={() => toggleSelect(contact.id)}
                                             aria-label={`Selecionar ${contact.name}`}
-                                            className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10" 
+                                            className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
                                         />
                                     </td>
                                     <td className="px-6 py-4">
@@ -177,6 +229,14 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                                 <span className="font-semibold text-slate-900 dark:text-white block">{contact.name}</span>
                                             </div>
                                         </div>
+                                    </td>
+                                    {/* Story 3.1 — Classificacao */}
+                                    <td className="px-6 py-4">
+                                        <ClassificationBadge classification={contact.classification} />
+                                    </td>
+                                    {/* Story 3.1 — Temperatura */}
+                                    <td className="px-6 py-4">
+                                        <TemperatureIcon temperature={contact.temperature} />
                                     </td>
                                     <td className="px-6 py-4">
                                         <StageBadge stage={contact.stage} />
@@ -222,15 +282,6 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                         >
                                             <Calendar size={14} className="text-slate-400" />
                                             <span>{formatRelativeDate(contact.createdAt, now)}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div
-                                            className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-xs"
-                                            title={contact.updatedAt ? PT_BR_DATE_TIME_FORMATTER.format(new Date(contact.updatedAt)) : undefined}
-                                        >
-                                            <Calendar size={14} className="text-slate-400" />
-                                            <span>{formatRelativeDate(contact.updatedAt, now)}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">

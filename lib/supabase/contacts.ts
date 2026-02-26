@@ -12,7 +12,7 @@
  */
 
 import { supabase } from './client';
-import { Contact, OrganizationId, PaginationState, PaginatedResponse, ContactsServerFilters } from '@/types';
+import { Contact, ContactPhone, OrganizationId, PaginationState, PaginatedResponse, ContactsServerFilters } from '@/types';
 import { sanitizeUUID, sanitizeText, sanitizeNumber } from './utils';
 import { normalizePhoneE164 } from '@/lib/phone';
 
@@ -60,6 +60,37 @@ export interface DbContact {
   updated_at: string;
   /** ID do dono/responsável. */
   owner_id: string | null;
+
+  // Story 3.1 — Novos campos
+  /** CPF do contato (somente PF). */
+  cpf: string | null;
+  /** Tipo de contato: PF ou PJ. */
+  contact_type: string | null;
+  /** Classificação no mercado imobiliário. */
+  classification: string | null;
+  /** Temperatura do lead. */
+  temperature: string | null;
+  /** CEP do endereço. */
+  address_cep: string | null;
+  /** Cidade do endereço. */
+  address_city: string | null;
+  /** UF do endereço (2 caracteres). */
+  address_state: string | null;
+  /** Dados extras em JSONB. */
+  profile_data: Record<string, unknown> | null;
+}
+
+/** Representação de contact_phones no banco de dados. */
+export interface DbContactPhone {
+  id: string;
+  contact_id: string;
+  phone_number: string;
+  phone_type: string;
+  is_whatsapp: boolean;
+  is_primary: boolean;
+  organization_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 /**
@@ -86,6 +117,28 @@ export const transformContact = (db: DbContact): Contact => ({
   createdAt: db.created_at,
   updatedAt: db.updated_at,
   ownerId: db.owner_id || undefined,
+  // Story 3.1
+  cpf: db.cpf || undefined,
+  contactType: (db.contact_type as Contact['contactType']) || undefined,
+  classification: (db.classification as Contact['classification']) || undefined,
+  temperature: (db.temperature as Contact['temperature']) || undefined,
+  addressCep: db.address_cep || undefined,
+  addressCity: db.address_city || undefined,
+  addressState: db.address_state || undefined,
+  profileData: db.profile_data || undefined,
+});
+
+/** Transforma ContactPhone do formato DB para o formato da aplicação. */
+export const transformContactPhone = (db: DbContactPhone): ContactPhone => ({
+  id: db.id,
+  contactId: db.contact_id,
+  phoneNumber: db.phone_number,
+  phoneType: db.phone_type as ContactPhone['phoneType'],
+  isWhatsapp: db.is_whatsapp,
+  isPrimary: db.is_primary,
+  organizationId: db.organization_id || undefined,
+  createdAt: db.created_at,
+  updatedAt: db.updated_at || undefined,
 });
 
 /**
@@ -113,6 +166,15 @@ export const transformContactToDb = (contact: Partial<Contact>): Partial<DbConta
   if (contact.lastPurchaseDate !== undefined) db.last_purchase_date = contact.lastPurchaseDate || null;
   if (contact.totalValue !== undefined) db.total_value = contact.totalValue;
   if (contact.ownerId !== undefined) db.owner_id = contact.ownerId || null;
+  // Story 3.1
+  if (contact.cpf !== undefined) db.cpf = contact.cpf || null;
+  if (contact.contactType !== undefined) db.contact_type = contact.contactType || null;
+  if (contact.classification !== undefined) db.classification = contact.classification || null;
+  if (contact.temperature !== undefined) db.temperature = contact.temperature || null;
+  if (contact.addressCep !== undefined) db.address_cep = contact.addressCep || null;
+  if (contact.addressCity !== undefined) db.address_city = contact.addressCity || null;
+  if (contact.addressState !== undefined) db.address_state = contact.addressState || null;
+  if (contact.profileData !== undefined) db.profile_data = contact.profileData || null;
 
   return db;
 };
@@ -196,7 +258,8 @@ export const contactsService = {
       const { data, error } = await supabase
         .from('contacts')
         .select('*')
-        .in('id', uniqueIds);
+        .in('id', uniqueIds)
+        .is('deleted_at', null);
 
       if (error) return { data: null, error };
       return { data: (data || []).map(c => transformContact(c as DbContact)), error: null };
@@ -220,6 +283,7 @@ export const contactsService = {
       const { data, error } = await supabase
         .from('contacts')
         .select('*')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(10000);
 
@@ -263,7 +327,8 @@ export const contactsService = {
       // Build query with count
       let query = supabase
         .from('contacts')
-        .select('*', { count: 'exact' });
+        .select('*', { count: 'exact' })
+        .is('deleted_at', null);
 
       // Apply filters
       if (filters) {
@@ -356,6 +421,15 @@ export const contactsService = {
         last_interaction: sanitizeText(contact.lastInteraction),
         last_purchase_date: sanitizeText(contact.lastPurchaseDate),
         total_value: sanitizeNumber(contact.totalValue, 0),
+        // Story 3.1
+        cpf: sanitizeText(contact.cpf),
+        contact_type: sanitizeText(contact.contactType) || 'PF',
+        classification: sanitizeText(contact.classification),
+        temperature: sanitizeText(contact.temperature) || 'WARM',
+        address_cep: sanitizeText(contact.addressCep),
+        address_city: sanitizeText(contact.addressCity),
+        address_state: sanitizeText(contact.addressState),
+        profile_data: contact.profileData || null,
       };
 
       const { data, error } = await supabase
@@ -399,8 +473,9 @@ export const contactsService = {
   },
 
   /**
-   * Exclui um contato.
-   * 
+   * Soft-delete de um contato (SET deleted_at = NOW()).
+   * O trigger cascade_contact_delete no banco soft-deleta activities associadas.
+   *
    * @param id - ID do contato a ser excluído.
    * @returns Promise com erro, se houver.
    */
@@ -409,19 +484,12 @@ export const contactsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
-      // UX: ao excluir contato, também removemos atividades "contact-only"
-      // (FK em activities.contact_id é SET NULL, então deletamos explicitamente
-      // para evitar tarefas órfãs aparecerem no Inbox/Focus.)
-      const { error: activitiesError } = await supabase
-        .from('activities')
-        .delete()
-        .eq('contact_id', id);
-      if (activitiesError) return { error: activitiesError };
 
       const { error } = await supabase
         .from('contacts')
-        .delete()
-        .eq('id', id);
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
+        .is('deleted_at', null);
 
       return { error };
     } catch (e) {
@@ -448,7 +516,8 @@ export const contactsService = {
       const { data, count, error } = await supabase
         .from('deals')
         .select('id, title', { count: 'exact' })
-        .eq('contact_id', contactId);
+        .eq('contact_id', contactId)
+        .is('deleted_at', null);
 
       if (error) return { hasDeals: false, dealCount: 0, deals: [], error };
       const deals = (data || []).map(d => ({ id: d.id, title: d.title }));
@@ -459,8 +528,8 @@ export const contactsService = {
   },
 
   /**
-   * Exclui contato e todos os deals associados (cascade).
-   * 
+   * Soft-delete de contato e todos os deals associados (cascade).
+   *
    * @param contactId - ID do contato.
    * @returns Promise com erro, se houver.
    */
@@ -469,23 +538,224 @@ export const contactsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
-      // First delete all deals for this contact
+      const now = new Date().toISOString();
+
+      // Soft-delete all deals for this contact
       const { error: dealsError } = await supabase
         .from('deals')
-        .delete()
-        .eq('contact_id', contactId);
+        .update({ deleted_at: now })
+        .eq('contact_id', contactId)
+        .is('deleted_at', null);
 
       if (dealsError) return { error: dealsError };
 
-      // Then delete the contact
+      // Then soft-delete the contact
       const { error: contactError } = await supabase
         .from('contacts')
-        .delete()
-        .eq('id', contactId);
+        .update({ deleted_at: now })
+        .eq('id', contactId)
+        .is('deleted_at', null);
 
       return { error: contactError };
     } catch (e) {
       return { error: e as Error };
     }
+  },
+};
+
+// ============================================
+// CONTACT PHONES SERVICE (Story 3.1)
+// ============================================
+
+/**
+ * Serviço de telefones de contatos.
+ * CRUD para a tabela `contact_phones`.
+ */
+export const contactPhonesService = {
+  /**
+   * Busca todos os telefones de um contato.
+   */
+  async getByContactId(contactId: string): Promise<{ data: ContactPhone[] | null; error: Error | null }> {
+    try {
+      if (!supabase) {
+        return { data: null, error: new Error('Supabase não configurado') };
+      }
+      const { data, error } = await supabase
+        .from('contact_phones')
+        .select('*')
+        .eq('contact_id', contactId)
+        .order('is_primary', { ascending: false })
+        .order('created_at', { ascending: true });
+
+      if (error) return { data: null, error };
+      return {
+        data: (data || []).map(p => transformContactPhone(p as DbContactPhone)),
+        error: null,
+      };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Cria um novo telefone para um contato.
+   * Se is_primary=true, desativa o flag dos demais telefones do mesmo contato.
+   * Sincroniza o campo legacy `phone` em contacts com o telefone primário.
+   */
+  async create(
+    phone: Omit<ContactPhone, 'id' | 'createdAt' | 'updatedAt' | 'organizationId'>
+  ): Promise<{ data: ContactPhone | null; error: Error | null }> {
+    try {
+      if (!supabase) {
+        return { data: null, error: new Error('Supabase não configurado') };
+      }
+
+      // Se este vai ser primário, desativa os demais
+      if (phone.isPrimary) {
+        await supabase
+          .from('contact_phones')
+          .update({ is_primary: false })
+          .eq('contact_id', phone.contactId);
+      }
+
+      const { data, error } = await supabase
+        .from('contact_phones')
+        .insert({
+          contact_id: phone.contactId,
+          phone_number: phone.phoneNumber,
+          phone_type: phone.phoneType,
+          is_whatsapp: phone.isWhatsapp,
+          is_primary: phone.isPrimary,
+        })
+        .select()
+        .single();
+
+      if (error) return { data: null, error };
+
+      // Sincroniza campo legacy `phone` em contacts
+      if (phone.isPrimary) {
+        await this.syncPrimaryPhone(phone.contactId);
+      }
+
+      return { data: transformContactPhone(data as DbContactPhone), error: null };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Atualiza um telefone existente.
+   */
+  async update(
+    id: string,
+    updates: Partial<Pick<ContactPhone, 'phoneNumber' | 'phoneType' | 'isWhatsapp' | 'isPrimary'>>
+  ): Promise<{ data: ContactPhone | null; error: Error | null }> {
+    try {
+      if (!supabase) {
+        return { data: null, error: new Error('Supabase não configurado') };
+      }
+
+      // Se marcando como primário, desativa os demais
+      if (updates.isPrimary) {
+        // Primeiro busca o contact_id
+        const { data: phoneData } = await supabase
+          .from('contact_phones')
+          .select('contact_id')
+          .eq('id', id)
+          .single();
+
+        if (phoneData) {
+          await supabase
+            .from('contact_phones')
+            .update({ is_primary: false })
+            .eq('contact_id', phoneData.contact_id)
+            .neq('id', id);
+        }
+      }
+
+      const dbUpdates: Record<string, unknown> = {};
+      if (updates.phoneNumber !== undefined) dbUpdates.phone_number = updates.phoneNumber;
+      if (updates.phoneType !== undefined) dbUpdates.phone_type = updates.phoneType;
+      if (updates.isWhatsapp !== undefined) dbUpdates.is_whatsapp = updates.isWhatsapp;
+      if (updates.isPrimary !== undefined) dbUpdates.is_primary = updates.isPrimary;
+      dbUpdates.updated_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('contact_phones')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) return { data: null, error };
+
+      const result = transformContactPhone(data as DbContactPhone);
+
+      // Sincroniza campo legacy `phone`
+      if (updates.isPrimary || updates.phoneNumber !== undefined) {
+        await this.syncPrimaryPhone(result.contactId);
+      }
+
+      return { data: result, error: null };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Exclui um telefone.
+   */
+  async delete(id: string): Promise<{ error: Error | null }> {
+    try {
+      if (!supabase) {
+        return { error: new Error('Supabase não configurado') };
+      }
+
+      // Busca dados antes de deletar para sincronizar depois
+      const { data: phoneData } = await supabase
+        .from('contact_phones')
+        .select('contact_id, is_primary')
+        .eq('id', id)
+        .single();
+
+      const { error } = await supabase
+        .from('contact_phones')
+        .delete()
+        .eq('id', id);
+
+      if (error) return { error };
+
+      // Sincroniza campo legacy `phone` se deletou o primário
+      if (phoneData?.is_primary) {
+        await this.syncPrimaryPhone(phoneData.contact_id);
+      }
+
+      return { error: null };
+    } catch (e) {
+      return { error: e as Error };
+    }
+  },
+
+  /**
+   * Sincroniza o campo legacy `phone` em contacts com o telefone primário de contact_phones.
+   * Se não há telefone primário, usa o primeiro disponível; se não há nenhum, seta null.
+   */
+  async syncPrimaryPhone(contactId: string): Promise<void> {
+    if (!supabase) return;
+
+    const { data: phones } = await supabase
+      .from('contact_phones')
+      .select('phone_number, is_primary')
+      .eq('contact_id', contactId)
+      .order('is_primary', { ascending: false })
+      .order('created_at', { ascending: true })
+      .limit(1);
+
+    const primaryNumber = phones?.[0]?.phone_number || null;
+
+    await supabase
+      .from('contacts')
+      .update({ phone: primaryNumber, updated_at: new Date().toISOString() })
+      .eq('id', contactId);
   },
 };

@@ -15,9 +15,65 @@ import { useCreateDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useBoards } from '@/lib/query/hooks/useBoardsQuery';
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 import { normalizePhoneE164 } from '@/lib/phone';
+import { contactPhonesService } from '@/lib/supabase/contacts';
 import { generateFakeContacts } from '@/lib/debug';
 import { useReassignContactWithDeals } from '@/hooks/useReassignContactWithDeals';
-import type { ContactFormData } from '@/features/contacts/components/ContactFormModal';
+import type { ContactFormData, PhoneFormEntry } from '@/features/contacts/components/ContactFormModal';
+import { unformatCPF, formatCPF, formatCEP } from '@/lib/validations/cpf-cep';
+
+/**
+ * Sincroniza telefones do formulário com a tabela contact_phones.
+ * Cria novos (temp-*), atualiza existentes, deleta removidos.
+ */
+async function syncPhones(contactId: string, phones: PhoneFormEntry[]) {
+  const { data: existingPhones } = await contactPhonesService.getByContactId(contactId);
+  const existing = existingPhones || [];
+
+  if (phones.length === 0 && existing.length === 0) return;
+
+  const formIds = new Set(phones.map(p => p.id));
+  const existingIds = new Set(existing.map(p => p.id));
+
+  // Delete phones removed from form
+  for (const ph of existing) {
+    if (!formIds.has(ph.id)) {
+      await contactPhonesService.delete(ph.id);
+    }
+  }
+
+  // Create new phones (temp-* ids)
+  for (const ph of phones) {
+    if (ph.id.startsWith('temp-')) {
+      await contactPhonesService.create({
+        contactId,
+        phoneNumber: ph.phoneNumber,
+        phoneType: ph.phoneType,
+        isWhatsapp: ph.isWhatsapp,
+        isPrimary: ph.isPrimary,
+      });
+    }
+  }
+
+  // Update existing phones that changed
+  for (const ph of phones) {
+    if (!ph.id.startsWith('temp-') && existingIds.has(ph.id)) {
+      const old = existing.find(p => p.id === ph.id);
+      if (old && (
+        old.phoneNumber !== ph.phoneNumber ||
+        old.phoneType !== ph.phoneType ||
+        old.isWhatsapp !== ph.isWhatsapp ||
+        old.isPrimary !== ph.isPrimary
+      )) {
+        await contactPhonesService.update(ph.id, {
+          phoneNumber: ph.phoneNumber,
+          phoneType: ph.phoneType,
+          isWhatsapp: ph.isWhatsapp,
+          isPrimary: ph.isPrimary,
+        });
+      }
+    }
+  }
+}
 
 /**
  * Hook React `useContactsController` que encapsula uma lógica reutilizável.
@@ -143,7 +199,7 @@ export const useContactsController = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteWithDeals, setDeleteWithDeals] = useState<{ id: string; dealCount: number; deals: Array<{ id: string; title: string }> } | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
-  const [formData, setFormData] = useState<ContactFormData>({
+  const emptyFormData: ContactFormData = {
     name: '',
     email: '',
     phone: '',
@@ -152,7 +208,17 @@ export const useContactsController = () => {
     birthDate: '',
     source: '',
     notes: '',
-  });
+    // Story 3.1
+    cpf: '',
+    contactType: 'PF',
+    classification: '',
+    temperature: 'WARM',
+    addressCep: '',
+    addressCity: '',
+    addressState: '',
+    phones: [],
+  };
+  const [formData, setFormData] = useState<ContactFormData>(emptyFormData);
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
 
   // Create Deal State
@@ -163,7 +229,7 @@ export const useContactsController = () => {
 
   const openCreateModal = () => {
     setEditingContact(null);
-    setFormData({ name: '', email: '', phone: '', ownerId: undefined, cascadeDeals: false, birthDate: '', source: '', notes: '' });
+    setFormData(emptyFormData);
     setIsModalOpen(true);
   };
 
@@ -178,8 +244,33 @@ export const useContactsController = () => {
       birthDate: contact.birthDate || '',
       source: contact.source || '',
       notes: contact.notes || '',
+      // Story 3.1
+      cpf: contact.cpf ? formatCPF(contact.cpf) : '',
+      contactType: contact.contactType || 'PF',
+      classification: contact.classification || '',
+      temperature: contact.temperature || 'WARM',
+      addressCep: contact.addressCep ? formatCEP(contact.addressCep) : '',
+      addressCity: contact.addressCity || '',
+      addressState: contact.addressState || '',
+      phones: [],
     });
     setIsModalOpen(true);
+
+    // Load phones asynchronously from contact_phones table
+    contactPhonesService.getByContactId(contact.id).then(({ data }) => {
+      if (data && data.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          phones: data.map(p => ({
+            id: p.id,
+            phoneNumber: p.phoneNumber,
+            phoneType: p.phoneType as PhoneFormEntry['phoneType'],
+            isWhatsapp: p.isWhatsapp,
+            isPrimary: p.isPrimary,
+          })),
+        }));
+      }
+    });
   };
 
   const confirmDelete = async () => {
@@ -299,6 +390,7 @@ export const useContactsController = () => {
     const t0 = Date.now();
     setIsSubmittingContact(true);
     const normalizedPhone = normalizePhoneE164(formData.phone);
+    const phonesToSync = [...formData.phones];
 
     // Close immediately to avoid "modal close lag" while we wait for Supabase.
     // (TanStack Query does not support onMutate in mutate() call options.)
@@ -324,20 +416,28 @@ export const useContactsController = () => {
           {
             onSuccess: async (result) => {
               // Update extra fields separately (RPC only handles name/email/phone)
-              if (formData.birthDate || formData.source || formData.notes) {
-                try {
-                  await updateContactMutation.mutateAsync({
-                    id: editingContact.id,
-                    updates: {
-                      birthDate: formData.birthDate || undefined,
-                      source: formData.source || undefined,
-                      notes: formData.notes || undefined,
-                    },
-                  });
-                } catch {
-                  (addToast || showToast)('Campos extras não salvos, edite o contato novamente', 'warning');
-                }
+              try {
+                await updateContactMutation.mutateAsync({
+                  id: editingContact.id,
+                  updates: {
+                    birthDate: formData.birthDate || undefined,
+                    source: formData.source || undefined,
+                    notes: formData.notes || undefined,
+                    // Story 3.1
+                    cpf: formData.cpf ? unformatCPF(formData.cpf) : undefined,
+                    contactType: formData.contactType || undefined,
+                    classification: formData.classification || undefined,
+                    temperature: formData.temperature || undefined,
+                    addressCep: formData.addressCep?.replace(/\D/g, '') || undefined,
+                    addressCity: formData.addressCity || undefined,
+                    addressState: formData.addressState || undefined,
+                  },
+                });
+              } catch {
+                (addToast || showToast)('Campos extras não salvos, edite o contato novamente', 'warning');
               }
+              // Sync phones
+              await syncPhones(editingContact.id, phonesToSync).catch(() => {});
               const msg = result?.deals_updated
                 ? `Contato e ${result.deals_updated} deals reatribuídos!`
                 : 'Contato reatribuído!';
@@ -362,10 +462,19 @@ export const useContactsController = () => {
               birthDate: formData.birthDate || undefined,
               source: formData.source || undefined,
               notes: formData.notes || undefined,
+              // Story 3.1
+              cpf: formData.cpf ? unformatCPF(formData.cpf) : undefined,
+              contactType: formData.contactType || undefined,
+              classification: formData.classification || undefined,
+              temperature: formData.temperature || undefined,
+              addressCep: formData.addressCep?.replace(/\D/g, '') || undefined,
+              addressCity: formData.addressCity || undefined,
+              addressState: formData.addressState || undefined,
             },
           },
           {
-            onSuccess: () => {
+            onSuccess: async () => {
+              await syncPhones(editingContact.id, phonesToSync).catch(() => {});
               (addToast || showToast)('Contato atualizado!', 'success');
               setIsModalOpen(false);
             },
@@ -385,9 +494,20 @@ export const useContactsController = () => {
           birthDate: formData.birthDate || undefined,
           source: formData.source || undefined,
           notes: formData.notes || undefined,
+          // Story 3.1
+          cpf: formData.cpf ? unformatCPF(formData.cpf) : undefined,
+          contactType: formData.contactType || 'PF',
+          classification: formData.classification || undefined,
+          temperature: formData.temperature || 'WARM',
+          addressCep: formData.addressCep?.replace(/\D/g, '') || undefined,
+          addressCity: formData.addressCity || undefined,
+          addressState: formData.addressState || undefined,
         },
         {
-          onSuccess: () => {
+          onSuccess: async (data) => {
+            if (phonesToSync.length > 0) {
+              await syncPhones(data.id, phonesToSync).catch(() => {});
+            }
             (addToast || showToast)('Contato criado!', 'success');
           },
           onError: (error: Error) => {

@@ -7,6 +7,7 @@ import { supabase } from './client';
 export interface DealNote {
     id: string;
     deal_id: string;
+    organization_id: string;
     content: string;
     created_at: string;
     updated_at: string;
@@ -31,19 +32,36 @@ export const dealNotesService = {
     },
 
     /**
-     * Create a new note
+     * Create a new note.
+     * organization_id is required (NOT NULL in DB since migration 20260226100005).
      */
-    async createNote(dealId: string, content: string) {
+    async createNote(dealId: string, content: string, organizationId?: string) {
         if (!supabase) {
             return { data: null as DealNote | null, error: new Error('Supabase não configurado') };
         }
         const { data: { user } } = await supabase.auth.getUser();
+
+        // Resolve organization_id: caller-provided > profile lookup
+        let orgId = organizationId;
+        if (!orgId && user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('organization_id')
+                .eq('id', user.id)
+                .single();
+            orgId = (profile as any)?.organization_id ?? undefined;
+        }
+
+        if (!orgId) {
+            return { data: null as DealNote | null, error: new Error('organization_id obrigatório para criar nota') };
+        }
 
         const { data, error } = await supabase
             .from('deal_notes')
             .insert({
                 deal_id: dealId,
                 content,
+                organization_id: orgId,
                 created_by: user?.id || null,
             })
             .select()

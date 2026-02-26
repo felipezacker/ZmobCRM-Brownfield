@@ -18,6 +18,7 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                     .from('contacts')
                     .select('id, name, email, phone')
                     .eq('organization_id', organizationId)
+                    .is('deleted_at', null)
                     .or(`name.ilike.%${sanitizeFilterValue(query)}%,email.ilike.%${sanitizeFilterValue(query)}%`)
                     .limit(limit);
 
@@ -114,6 +115,7 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                     .select('id, name, email, phone, notes, status, stage, source, created_at, updated_at')
                     .eq('organization_id', organizationId)
                     .eq('id', contactId)
+                    .is('deleted_at', null)
                     .maybeSingle();
                 if (error) return { error: formatSupabaseFailure(error) };
                 if (!data) return { error: 'Contato não encontrado nesta organização.' };
@@ -140,6 +142,7 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                     .select('id, name')
                     .eq('organization_id', organizationId)
                     .eq('id', contactId)
+                    .is('deleted_at', null)
                     .maybeSingle();
                 if (contactError) return { error: formatSupabaseFailure(contactError) };
                 if (!contact) return { error: 'Contato não encontrado nesta organização.' };

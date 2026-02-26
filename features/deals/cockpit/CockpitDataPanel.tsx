@@ -8,6 +8,13 @@ import type { Stage, TimelineItem } from './cockpit-types';
 import { formatAtISO, formatCurrencyBRL, humanizeTestLabel } from './cockpit-utils';
 import { Button } from '@/app/components/ui/Button';
 
+/** Labels legíveis para deal_type. */
+const DEAL_TYPE_LABELS: Record<string, string> = {
+  VENDA: 'Venda',
+  LOCACAO: 'Locação',
+  PERMUTA: 'Permuta',
+};
+
 interface CockpitDataPanelProps {
   deal: DealView;
   contact: Contact | null;
@@ -17,6 +24,7 @@ interface CockpitDataPanelProps {
   latestCall: TimelineItem | null;
   latestMove: TimelineItem | null;
   onCopy: (label: string, text: string) => void;
+  estimatedCommission?: { rate: number; estimated: number } | null;
 }
 
 export function CockpitDataPanel({
@@ -28,6 +36,7 @@ export function CockpitDataPanel({
   latestCall,
   latestMove,
   onCopy,
+  estimatedCommission,
 }: CockpitDataPanelProps) {
   return (
     <Panel
@@ -128,6 +137,21 @@ export function CockpitDataPanel({
                 {latestMove ? latestMove.at : formatAtISO(deal.updatedAt)}
               </div>
             </div>
+            <div className="rounded-lg border border-white/10 bg-white/2 p-2">
+              <div className="text-slate-500">Tipo</div>
+              <div className="mt-0.5 font-semibold text-slate-100">
+                {DEAL_TYPE_LABELS[deal.dealType ?? 'VENDA'] ?? 'Venda'}
+              </div>
+            </div>
+            {estimatedCommission && (
+              <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2">
+                <div className="text-slate-500">Comissão Est.</div>
+                <div className="mt-0.5 font-semibold text-emerald-300" title={`Taxa: ${estimatedCommission.rate}%`}>
+                  {formatCurrencyBRL(estimatedCommission.estimated)}
+                </div>
+                <div className="text-[10px] text-slate-500">{estimatedCommission.rate}%</div>
+              </div>
+            )}
           </div>
         </div>
       </div>

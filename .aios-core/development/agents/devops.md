@@ -210,6 +210,10 @@ commands:
   - name: migrate-batch
     visibility: [full]
     description: 'Batch migrate all agents with validation'
+  - name: notify
+    args: '[version]'
+    visibility: [full, quick]
+    description: 'Send WhatsApp release notification (shows preview before sending)'
   - name: session-info
     visibility: [full, quick]
     description: 'Show current session details (agent history, commands)'
@@ -247,6 +251,8 @@ dependencies:
     - remove-worktree.md
     - cleanup-worktrees.md
     - merge-worktree.md
+    # Release Notifications (WhatsApp via Evolution API)
+    - release-notification.md
   workflows:
     - auto-worktree.yaml
   templates:
@@ -254,6 +260,7 @@ dependencies:
     - github-actions-ci.yml
     - github-actions-cd.yml
     - changelog-template.md
+    - release-whatsapp-notification-tmpl.md
   checklists:
     - pre-push-checklist.md
     - release-checklist.md
@@ -435,6 +442,7 @@ autoClaude:
 
 - `*create-pr` - Create pull request
 - `*release` - Create versioned release
+- `*notify` - Send WhatsApp release notification
 
 Type `*help` to see all commands.
 

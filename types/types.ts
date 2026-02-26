@@ -108,6 +108,58 @@ export type Company = Organization;
 // Contact (Person we talk to)
 // =============================================================================
 
+// Tipos de contato
+export type ContactType = 'PF' | 'PJ';
+
+// Classificação do contato no mercado imobiliário
+export type ContactClassification =
+  | 'COMPRADOR'
+  | 'VENDEDOR'
+  | 'LOCATARIO'
+  | 'LOCADOR'
+  | 'INVESTIDOR'
+  | 'PERMUTANTE';
+
+// Temperatura do lead
+export type ContactTemperature = 'HOT' | 'WARM' | 'COLD';
+
+// Tipo de telefone
+export type PhoneType = 'CELULAR' | 'COMERCIAL' | 'RESIDENCIAL';
+
+// =============================================================================
+// Contact Preferences (Story 3.2 — Perfil de Interesse do Contato)
+// =============================================================================
+
+/** Tipos de imovel disponiveis para preferencia. */
+export type PropertyType = 'APARTAMENTO' | 'CASA' | 'TERRENO' | 'COMERCIAL' | 'RURAL' | 'GALPAO';
+
+/** Finalidade da busca de imovel. */
+export type PreferencePurpose = 'MORADIA' | 'INVESTIMENTO' | 'VERANEIO';
+
+/** Urgencia na busca de imovel. */
+export type PreferenceUrgency = 'IMMEDIATE' | '3_MONTHS' | '6_MONTHS' | '1_YEAR';
+
+/** Perfil de interesse de imovel de um contato. */
+export interface ContactPreference {
+  id: string;
+  contactId: string;
+  propertyTypes: string[];
+  purpose: PreferencePurpose | null;
+  priceMin: number | null;
+  priceMax: number | null;
+  regions: string[];
+  bedroomsMin: number | null;
+  parkingMin: number | null;
+  areaMin: number | null;
+  acceptsFinancing: boolean | null;
+  acceptsFgts: boolean | null;
+  urgency: PreferenceUrgency | null;
+  notes: string | null;
+  organizationId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // A Pessoa (Com quem falamos)
 export interface Contact {
   id: string;
@@ -127,6 +179,29 @@ export interface Contact {
   createdAt: string;
   updatedAt?: string; // Última modificação do registro
   ownerId?: string; // ID do corretor responsável
+
+  // Story 3.1 — Modelo de Dados Contatos
+  cpf?: string; // CPF (somente PF)
+  contactType?: ContactType; // PF ou PJ (default PF)
+  classification?: ContactClassification; // Perfil no mercado imobiliário
+  temperature?: ContactTemperature; // Temperatura do lead (default WARM)
+  addressCep?: string; // CEP (formato 00000-000)
+  addressCity?: string; // Cidade
+  addressState?: string; // UF (2 caracteres)
+  profileData?: Record<string, unknown>; // Dados extras em JSONB
+}
+
+// Telefone de contato (tabela contact_phones)
+export interface ContactPhone {
+  id: string;
+  contactId: string;
+  phoneNumber: string;
+  phoneType: PhoneType;
+  isWhatsapp: boolean;
+  isPrimary: boolean;
+  organizationId?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 // ITEM 3: Produtos e Serviços
@@ -193,6 +268,9 @@ export interface Deal {
   customFields?: Record<string, any>; // Dynamic fields storage
   lastStageChangeDate?: string; // For stagnation tracking
   lossReason?: string; // For win/loss analysis
+  dealType?: 'VENDA' | 'LOCACAO' | 'PERMUTA'; // Tipo da transação imobiliária
+  expectedCloseDate?: string; // Data prevista de fechamento (ISO date)
+  commissionRate?: number | null; // Taxa de comissão override (0-100, nullable)
 }
 
 // Helper Type para Visualização (Desnormalizado)

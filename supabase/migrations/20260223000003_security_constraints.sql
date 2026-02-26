@@ -8,9 +8,16 @@ BEGIN;
 -- 1. CHECK constraint on profiles.role
 --    Restricts the role column to the three known application roles.
 -- ============================================================
-ALTER TABLE public.profiles
-  ADD CONSTRAINT profiles_role_check
-  CHECK (role IN ('admin', 'diretor', 'corretor'));
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'profiles_role_check'
+  ) THEN
+    ALTER TABLE public.profiles
+      ADD CONSTRAINT profiles_role_check
+      CHECK (role IN ('admin', 'diretor', 'corretor'));
+  END IF;
+END $$;
 
 -- ============================================================
 -- 2. Fix leads_insert RLS policy

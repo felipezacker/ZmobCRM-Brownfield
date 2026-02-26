@@ -135,10 +135,12 @@ export async function deleteDeal(
 ): Promise<{ error: string | null }> {
   try {
     const supabase = await createClient()
+    // Soft-delete: marca deleted_at em vez de remover fisicamente
     const { error } = await supabase
       .from('deals')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
+      .is('deleted_at', null)
 
     return { error: error?.message ?? null }
   } catch (e) {

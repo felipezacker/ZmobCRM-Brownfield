@@ -26,6 +26,15 @@ export async function createContact(
       last_interaction: sanitizeText(contact.lastInteraction),
       last_purchase_date: sanitizeText(contact.lastPurchaseDate),
       total_value: sanitizeNumber(contact.totalValue, 0),
+      // Story 3.1
+      cpf: sanitizeText(contact.cpf),
+      contact_type: sanitizeText(contact.contactType) || 'PF',
+      classification: sanitizeText(contact.classification),
+      temperature: sanitizeText(contact.temperature) || 'WARM',
+      address_cep: sanitizeText(contact.addressCep),
+      address_city: sanitizeText(contact.addressCity),
+      address_state: sanitizeText(contact.addressState),
+      profile_data: contact.profileData || null,
     }
 
     const { data, error } = await supabase
@@ -66,10 +75,12 @@ export async function deleteContact(
 ): Promise<{ error: string | null }> {
   try {
     const supabase = await createClient()
+    // Soft-delete: marca deleted_at em vez de remover fisicamente
     const { error } = await supabase
       .from('contacts')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
+      .is('deleted_at', null)
 
     return { error: error?.message ?? null }
   } catch (e) {

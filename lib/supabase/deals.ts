@@ -47,6 +47,32 @@ async function getCurrentOrganizationId(): Promise<string | null> {
 }
 
 // ============================================
+// COMMISSION UTILITY
+// ============================================
+
+/** Default commission rate when neither deal nor broker have one configured. */
+const DEFAULT_COMMISSION_RATE = 1.5;
+
+/**
+ * Calcula a comissão estimada de um deal usando a cadeia de fallback:
+ * deal.commissionRate → brokerCommissionRate → 1.5%
+ *
+ * @param dealValue - Valor monetário do deal.
+ * @param dealCommissionRate - Taxa de comissão override no deal (nullable).
+ * @param brokerCommissionRate - Taxa de comissão padrão do corretor (nullable).
+ * @returns {{ rate: number; estimated: number }} Taxa efetiva e valor estimado da comissão.
+ */
+export function calculateEstimatedCommission(
+  dealValue: number,
+  dealCommissionRate?: number | null,
+  brokerCommissionRate?: number | null,
+): { rate: number; estimated: number } {
+  const rate = dealCommissionRate ?? brokerCommissionRate ?? DEFAULT_COMMISSION_RATE;
+  const estimated = dealValue * (rate / 100);
+  return { rate, estimated };
+}
+
+// ============================================
 // DEALS SERVICE
 // ============================================
 
@@ -98,6 +124,12 @@ export interface DbDeal {
   is_lost: boolean;
   /** Data de fechamento. */
   closed_at: string | null;
+  /** Tipo da transação (VENDA, LOCACAO, PERMUTA). */
+  deal_type: string;
+  /** Data prevista de fechamento. */
+  expected_close_date: string | null;
+  /** Taxa de comissão override (0-100, nullable). */
+  commission_rate: number | null;
 }
 
 /**
@@ -180,6 +212,9 @@ export const transformDeal = (db: DbDeal | DbDealWithItems, items?: DbDealItem[]
     })),
     owner: { name: 'Sem Dono', avatar: '' }, // Will be enriched later
     ownerId: db.owner_id || undefined,
+    dealType: (db.deal_type as Deal['dealType']) || 'VENDA',
+    expectedCloseDate: db.expected_close_date || undefined,
+    commissionRate: db.commission_rate ?? null,
   };
 };
 
@@ -215,6 +250,9 @@ export const transformDealToDb = (deal: Partial<Deal>): Partial<DbDeal> => {
   if (deal.lastStageChangeDate !== undefined) db.last_stage_change_date = deal.lastStageChangeDate || null;
   if (deal.customFields !== undefined) db.custom_fields = deal.customFields;
   if (deal.ownerId !== undefined) db.owner_id = sanitizeUUID(deal.ownerId);
+  if (deal.dealType !== undefined) db.deal_type = deal.dealType || 'VENDA';
+  if (deal.expectedCloseDate !== undefined) db.expected_close_date = deal.expectedCloseDate || null;
+  if (deal.commissionRate !== undefined) db.commission_rate = deal.commissionRate ?? null;
 
   return db;
 };
@@ -257,6 +295,7 @@ export const dealsService = {
           *,
           deal_items (*)
         `)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) return { data: null, error };
@@ -383,6 +422,9 @@ export const dealsService = {
         is_won: deal.isWon ?? false,
         is_lost: deal.isLost ?? false,
         closed_at: deal.closedAt ?? null,
+        deal_type: deal.dealType || 'VENDA',
+        expected_close_date: deal.expectedCloseDate || null,
+        commission_rate: deal.commissionRate ?? null,
       };
 
       const { data, error } = await supabase
@@ -468,11 +510,12 @@ export const dealsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
-      // Items are deleted automatically via CASCADE
+      // Soft-delete: marca deleted_at em vez de remover fisicamente
       const { error } = await supabase
         .from('deals')
-        .delete()
-        .eq('id', id);
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
+        .is('deleted_at', null);
 
       return { error };
     } catch (e) {
@@ -485,11 +528,12 @@ export const dealsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
-      // Items are deleted automatically via CASCADE
+      // Soft-delete: marca deleted_at em vez de remover fisicamente
       const { error } = await supabase
         .from('deals')
-        .delete()
-        .eq('board_id', boardId);
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('board_id', boardId)
+        .is('deleted_at', null);
 
       return { error };
     } catch (e) {
