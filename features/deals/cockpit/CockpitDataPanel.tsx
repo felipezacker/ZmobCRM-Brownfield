@@ -97,6 +97,27 @@ export function CockpitDataPanel({
         <div className="rounded-xl border border-white/10 bg-white/2 p-3">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Sinais</div>
           <div className="mt-2 space-y-1 text-xs text-slate-300">
+            {/* Story 3.8 — Lead Score */}
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-slate-500">Lead Score</span>
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-16 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      (contact?.leadScore ?? 0) <= 30 ? 'bg-red-500' :
+                      (contact?.leadScore ?? 0) <= 60 ? 'bg-amber-500' : 'bg-emerald-500'
+                    }`}
+                    style={{ width: `${Math.min(100, contact?.leadScore ?? 0)}%` }}
+                  />
+                </div>
+                <span className="font-semibold text-slate-200">
+                  {contact?.leadScore ?? 0}
+                  <span className="ml-1 text-[10px] font-normal text-slate-400">
+                    {(contact?.leadScore ?? 0) <= 30 ? 'Frio' : (contact?.leadScore ?? 0) <= 60 ? 'Morno' : 'Quente'}
+                  </span>
+                </span>
+              </div>
+            </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-slate-500">Último evento</span>
               <span className="truncate text-slate-200">

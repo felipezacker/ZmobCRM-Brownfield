@@ -189,6 +189,9 @@ export interface Contact {
   addressCity?: string; // Cidade
   addressState?: string; // UF (2 caracteres)
   profileData?: Record<string, unknown>; // Dados extras em JSONB
+
+  // Story 3.8 — Lead Scoring
+  leadScore?: number; // Score 0-100 calculado automaticamente
 }
 
 // Telefone de contato (tabela contact_phones)
@@ -521,4 +524,25 @@ export interface ContactsServerFilters {
 }
 
 /** Colunas ordenáveis na tabela de contatos. */
-export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source';
+export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source' | 'lead_score';
+
+// =============================================================================
+// Notifications (Story 3.9 — Notificacoes Inteligentes)
+// =============================================================================
+
+/** Tipos de notificacao CRM. */
+export type NotificationType = 'BIRTHDAY' | 'CHURN_ALERT' | 'DEAL_STAGNANT' | 'SCORE_DROP';
+
+/** Notificacao CRM persistida no banco. */
+export interface CrmNotification {
+  id: string;
+  organizationId: string;
+  type: NotificationType;
+  title: string;
+  description: string | null;
+  contactId: string | null;
+  dealId: string | null;
+  isRead: boolean;
+  createdAt: string;
+  ownerId: string | null;
+}

@@ -2,6 +2,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { ToolContext } from './types';
 import { formatSupabaseFailure, sanitizeFilterValue, ensureDealBelongsToOrganization } from './helpers';
+import { calculateLeadScore } from '@/lib/supabase/lead-scoring';
 
 export function createContactTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
@@ -155,6 +156,40 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                 if (error) return { error: formatSupabaseFailure(error) };
 
                 return { success: true, message: `Deal "${dealGuard.deal.title}" associado ao contato "${contact.name}".` };
+            },
+        }),
+
+        // Story 3.8 — Lead Score
+        getLeadScore: tool({
+            description: 'Retorna o lead score (0-100) de um contato com breakdown dos fatores e sugestão de ação.',
+            inputSchema: z.object({
+                contactId: z.string().describe('ID do contato'),
+            }),
+            execute: async ({ contactId }) => {
+                const { breakdown, error } = await calculateLeadScore(contactId, organizationId, supabase);
+                if (error) return { error: error.message };
+
+                const score = breakdown.total;
+                const suggestion = score >= 61
+                    ? 'Lead quente — priorize o contato, agende reunião ou envie proposta.'
+                    : score >= 31
+                    ? 'Lead morno — mantenha engajamento, envie conteúdo relevante ou faça follow-up.'
+                    : 'Lead frio — nutrir com automação, reavaliar interesse.';
+
+                return {
+                    score,
+                    label: score >= 61 ? 'Quente' : score >= 31 ? 'Morno' : 'Frio',
+                    suggestion,
+                    breakdown: {
+                        recentInteraction: breakdown.recentInteraction,
+                        ltv: breakdown.ltv,
+                        stageAge: breakdown.stageAge,
+                        completedActivities: breakdown.completedActivities,
+                        preferences: breakdown.preferences,
+                        activeDeals: breakdown.activeDeals,
+                        temperature: breakdown.temperature,
+                    },
+                };
             },
         }),
     };

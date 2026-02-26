@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, Plus, Download, GitMerge } from 'lucide-react';
+import { Search, Filter, Plus, Download, GitMerge, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/app/components/ui/Button';
 
@@ -102,6 +102,15 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
         </Button>
         {viewMode === 'people' && (
           <>
+            <Button
+              type="button"
+              onClick={() => router.push('/contacts/metrics')}
+              aria-label="Metricas de contatos"
+              title="Metricas de Contatos"
+              className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-colors"
+            >
+              <BarChart3 size={20} aria-hidden="true" />
+            </Button>
             <Button
               type="button"
               onClick={() => router.push('/contacts/duplicates')}

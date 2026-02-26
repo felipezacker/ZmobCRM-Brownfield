@@ -13,7 +13,7 @@ export type ContactsExportParams = {
   status?: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'CHURNED' | 'RISK';
   dateStart?: string;
   dateEnd?: string;
-  sortBy?: 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source';
+  sortBy?: 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source' | 'lead_score';
   sortOrder?: 'asc' | 'desc';
 };
 

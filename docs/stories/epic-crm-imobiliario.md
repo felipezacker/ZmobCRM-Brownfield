@@ -93,9 +93,9 @@ Transformar o ZmobCRM de um CRM generico em um CRM imobiliario competitivo, expa
 | 3.5 | Lista de contatos enriquecida | 2 | 5 | @dev | Done |
 | 3.6 | Cockpit do contato completo | 2 | 8 | @dev | Done |
 | 3.7 | Deteccao e merge de duplicatas | 2 | 5 | @dev | Done |
-| 3.8 | Lead scoring com IA | 3 | 5 | @dev | Draft |
-| 3.9 | Notificacoes inteligentes | 3 | 3 | @dev | Draft |
-| 3.10 | LTV automatico + metricas de contatos | 3 | 3 | @dev | Draft |
+| 3.8 | Lead scoring com IA | 3 | 5 | @dev | Ready |
+| 3.9 | Notificacoes inteligentes | 3 | 3 | @dev | Ready |
+| 3.10 | LTV automatico + metricas de contatos | 3 | 3 | @dev | Ready |
 
 **Total:** 10 stories, ~43 pontos
 
@@ -382,3 +382,5 @@ Transformar o ZmobCRM de um CRM generico em um CRM imobiliario competitivo, expa
 | 2026-02-26 | @dev (Dex) | Wave 2 implementada: lista enriquecida (filtros, busca, bulk), cockpit 360 (timeline, deals, IA), dedup (scan, merge RPC, audit). Commits 8731769-130a3f0 |
 | 2026-02-26 | @qa (Quinn) | QA Gate Wave 2: PASS (3/3 stories). Story 3.7 re-reviewed apos fix de 4 issues (org filter, RPC transaction, batch scan, audit log) |
 | 2026-02-26 | @devops (Gage) | Push Wave 2 para origin/refactor-contatos. Status Stories 3.5-3.7: Done. Epic: In Progress (Wave 2 Done) |
+| 2026-02-26 | @sm (River) | Stories Wave 3 criadas: 3.8, 3.9, 3.10 — Status: Draft |
+| 2026-02-26 | @po (Pax) | Validacao Wave 3: GO (10/10 x3). Notas: activities query via deals (3.8), stage UUID/name handling (3.10). Status: Draft → Ready |

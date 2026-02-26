@@ -122,6 +122,25 @@ const TemperatureIcon: React.FC<{ temperature?: ContactTemperature }> = ({ tempe
     );
 };
 
+// ============================================
+// Story 3.8 — Lead Score Badge
+// ============================================
+const SCORE_CONFIG = [
+    { max: 30, label: 'Frio', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' },
+    { max: 60, label: 'Morno', color: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' },
+    { max: 100, label: 'Quente', color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' },
+] as const;
+
+const LeadScoreBadge: React.FC<{ score?: number }> = ({ score }) => {
+    if (score == null) return <span className="text-xs text-slate-400">---</span>;
+    const config = SCORE_CONFIG.find(c => score <= c.max) || SCORE_CONFIG[2];
+    return (
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
+            {score}
+        </span>
+    );
+};
+
 /** Props for sortable column header */
 interface SortableHeaderProps {
     label: string;
@@ -253,6 +272,12 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                 ) : (
                                     <th scope="col" className={HEADER_CLASS}>Origem</th>
                                 )}
+                                {/* Story 3.8 — Lead Score */}
+                                {onSort ? (
+                                    <SortableHeader label="Score" column="lead_score" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Score</th>
+                                )}
                                 {onSort ? (
                                     <SortableHeader label="Criado" column="created_at" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
                                 ) : (
@@ -352,6 +377,10 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     {/* Story 3.5 — Origem */}
                                     <td className="px-6 py-4">
                                         <SourceBadge source={contact.source} />
+                                    </td>
+                                    {/* Story 3.8 — Lead Score */}
+                                    <td className="px-6 py-4">
+                                        <LeadScoreBadge score={contact.leadScore} />
                                     </td>
                                     <td className="px-6 py-4">
                                         <div

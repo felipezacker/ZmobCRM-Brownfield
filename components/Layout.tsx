@@ -59,6 +59,7 @@ import { BottomNav, MoreMenuSheet, NavigationRail } from '@/components/navigatio
 import { UIChat } from './ai/UIChat';
 
 import { NotificationPopover } from './notifications/NotificationPopover';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { Button } from '@/app/components/ui/Button';
 
 /**
@@ -450,6 +451,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Bug size={20} aria-hidden="true" />
               </Button>
 
+              <NotificationBell />
               <NotificationPopover />
               <Button
                 type="button"

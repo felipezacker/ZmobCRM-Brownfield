@@ -17,6 +17,7 @@
 import { supabase } from './client';
 import { Deal, DealItem, OrganizationId } from '@/types';
 import { sanitizeUUID, requireUUID, isValidUUID } from './utils';
+import { recalculateScore } from './lead-scoring';
 
 // =============================================================================
 // Organization inference (client-side, RLS-safe)
@@ -638,6 +639,28 @@ export const dealsService = {
         })
         .eq('id', dealId);
 
+      // Story 3.8: Fire-and-forget lead score recalculation
+      // Story 3.10: Increment contact LTV (total_value) with deal value
+      if (!error) {
+        const { data: deal } = await supabase
+          .from('deals')
+          .select('contact_id, organization_id, value')
+          .eq('id', dealId)
+          .single();
+        if (deal?.contact_id && deal?.organization_id) {
+          recalculateScore(deal.contact_id, deal.organization_id).catch(() => {});
+        }
+        // LTV increment: add deal value to contact's total_value (atomic RPC)
+        if (deal?.contact_id && deal?.value != null && deal.value !== 0) {
+          supabase.rpc('increment_contact_ltv', {
+            p_contact_id: deal.contact_id,
+            p_amount: deal.value,
+          }).then(() => undefined, (err) => {
+            console.error('[LTV] Failed to increment contact total_value:', err);
+          });
+        }
+      }
+
       return { error };
     } catch (e) {
       return { error: e as Error };
@@ -666,6 +689,18 @@ export const dealsService = {
         .update(updates)
         .eq('id', dealId);
 
+      // Story 3.8: Fire-and-forget lead score recalculation
+      if (!error) {
+        const { data: deal } = await supabase
+          .from('deals')
+          .select('contact_id, organization_id')
+          .eq('id', dealId)
+          .single();
+        if (deal?.contact_id && deal?.organization_id) {
+          recalculateScore(deal.contact_id, deal.organization_id).catch(() => {});
+        }
+      }
+
       return { error };
     } catch (e) {
       return { error: e as Error };
@@ -678,6 +713,14 @@ export const dealsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
+
+      // Story 3.10: Check if deal was won before reopening — need to decrement LTV
+      const { data: dealBefore } = await supabase
+        .from('deals')
+        .select('contact_id, value, is_won')
+        .eq('id', dealId)
+        .single();
+
       const { error } = await supabase
         .from('deals')
         .update({
@@ -687,6 +730,16 @@ export const dealsService = {
           updated_at: new Date().toISOString(),
         })
         .eq('id', dealId);
+
+      // Story 3.10: Decrement LTV if deal was previously won (atomic RPC)
+      if (!error && dealBefore?.is_won && dealBefore?.contact_id && dealBefore?.value != null && dealBefore.value !== 0) {
+        supabase.rpc('decrement_contact_ltv', {
+          p_contact_id: dealBefore.contact_id,
+          p_amount: dealBefore.value,
+        }).then(() => undefined, (err) => {
+          console.error('[LTV] Failed to decrement contact total_value:', err);
+        });
+      }
 
       return { error };
     } catch (e) {
