@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/app/components/ui/Button';
 import { formatCPF, validateCPF, unformatCPF, formatCEP, validateCEP, BRAZILIAN_STATES } from '@/lib/validations/cpf-cep';
 import { ContactPreferencesSection } from './ContactPreferencesSection';
+import { findDuplicates, DuplicateMatch } from '@/lib/supabase/contact-dedup';
 
 // ============================================
 // Tipos de dados do formulário de telefone
@@ -80,6 +81,10 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const { fetchCount } = useActiveDealsCount(editingContact?.id || null);
   const [cpfError, setCpfError] = useState<string | null>(null);
   const [cepError, setCepError] = useState<string | null>(null);
+  // Story 3.7 — Duplicate detection
+  const [duplicateMatches, setDuplicateMatches] = useState<DuplicateMatch[]>([]);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [pendingSubmitEvent, setPendingSubmitEvent] = useState<React.FormEvent | null>(null);
 
   const ownerChanged = editingContact && formData.ownerId && formData.ownerId !== editingContact.ownerId;
 
@@ -109,11 +114,14 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
     }
   }, [isOpen, editingContact?.id, fetchCount]);
 
-  // Reset validation errors when modal opens/closes
+  // Reset validation errors and duplicate state when modal opens/closes
   React.useEffect(() => {
     if (isOpen) {
       setCpfError(null);
       setCepError(null);
+      setDuplicateMatches([]);
+      setShowDuplicateWarning(false);
+      setPendingSubmitEvent(null);
     }
   }, [isOpen]);
 
@@ -230,7 +238,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   // ============================================
   // Form submit com validação
   // ============================================
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Validar CPF se preenchido
     if (formData.cpf && !validateCPF(formData.cpf)) {
@@ -242,7 +250,49 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
       setCepError('CEP inválido (formato: 00000-000)');
       return;
     }
+
+    // Story 3.7 — Check duplicates before creating (only for new contacts)
+    if (!editingContact && profile?.organization_id) {
+      const cpfRaw = formData.cpf ? unformatCPF(formData.cpf) : undefined;
+      const primaryPhone = formData.phones.find(p => p.isPrimary)?.phoneNumber || formData.phone || undefined;
+
+      const { data: matches } = await findDuplicates(
+        profile.organization_id,
+        {
+          email: formData.email || undefined,
+          phone: primaryPhone,
+          cpf: cpfRaw,
+        }
+      );
+
+      if (matches && matches.length > 0) {
+        setDuplicateMatches(matches);
+        setShowDuplicateWarning(true);
+        setPendingSubmitEvent(e);
+        return;
+      }
+    }
+
     onSubmit(e);
+  };
+
+  // Story 3.7 — "Criar mesmo assim" callback
+  const handleCreateAnyway = () => {
+    setShowDuplicateWarning(false);
+    setDuplicateMatches([]);
+    if (pendingSubmitEvent) {
+      onSubmit(pendingSubmitEvent);
+      setPendingSubmitEvent(null);
+    }
+  };
+
+  // Story 3.7 — "Abrir contato existente" callback
+  const handleOpenExisting = (contactId: string) => {
+    setShowDuplicateWarning(false);
+    setDuplicateMatches([]);
+    setPendingSubmitEvent(null);
+    onClose();
+    router.push(`/contacts/${contactId}/cockpit`);
   };
 
   return (
@@ -626,6 +676,54 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 </span>
               </div>
             </fieldset>
+          )}
+
+          {/* Story 3.7 — Duplicate warning */}
+          {showDuplicateWarning && duplicateMatches.length > 0 && (
+            <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-xl space-y-3">
+              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 font-bold text-sm">
+                <span>Contato similar encontrado</span>
+              </div>
+              {duplicateMatches.map(match => (
+                <div key={match.contact.id} className="p-3 bg-white dark:bg-black/20 rounded-lg border border-amber-200 dark:border-amber-800/50">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{match.contact.name}</span>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {match.contact.email && <span>{match.contact.email}</span>}
+                        {match.contact.phone && <span> | {match.contact.phone}</span>}
+                      </div>
+                      <div className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                        Match: {match.matchFields.join(', ')} (score: {match.score})
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => handleOpenExisting(match.contact.id)}
+                      className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 hover:underline"
+                    >
+                      Abrir existente
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              <div className="flex gap-2 pt-1">
+                <Button
+                  type="button"
+                  onClick={handleCreateAnyway}
+                  className="text-xs font-medium px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors"
+                >
+                  Criar mesmo assim
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => { setShowDuplicateWarning(false); setDuplicateMatches([]); setPendingSubmitEvent(null); }}
+                  className="text-xs font-medium px-3 py-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
           )}
 
           <Button
