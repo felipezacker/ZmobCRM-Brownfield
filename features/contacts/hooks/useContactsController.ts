@@ -144,6 +144,26 @@ export const useContactsController = () => {
     return searchParams?.get('source') || 'ALL';
   });
 
+  // Story 3.5 — Sync filters to URL (AC8: write-back)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const set = (key: string, val: string, defaultVal: string) => {
+      if (val && val !== defaultVal) params.set(key, val);
+      else params.delete(key);
+    };
+    set('temperature', temperatureFilter, 'ALL');
+    set('contactType', contactTypeFilter, 'ALL');
+    set('ownerId', ownerFilter, '');
+    set('source', sourceFilter, 'ALL');
+    if (classificationFilter.length > 0) params.set('classification', classificationFilter.join(','));
+    else params.delete('classification');
+
+    const newUrl = params.toString()
+      ? `${window.location.pathname}?${params.toString()}`
+      : window.location.pathname;
+    window.history.replaceState(null, '', newUrl);
+  }, [classificationFilter, temperatureFilter, contactTypeFilter, ownerFilter, sourceFilter]);
+
   // Story 3.5 — Fetch org profiles for owner filter/column
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles'],
