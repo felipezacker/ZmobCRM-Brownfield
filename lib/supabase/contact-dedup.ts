@@ -2,6 +2,7 @@
  * @fileoverview Service de deteccao e merge de contatos duplicados.
  *
  * Story 3.7 — Deteccao e Merge de Contatos Duplicados.
+ * QA fixes: org_id filter, RPC transaction, batch phone scan, audit always created.
  *
  * @module lib/supabase/contact-dedup
  */
@@ -40,10 +41,10 @@ export interface MergeResult {
 // ============================================
 
 /**
- * Busca contatos duplicados por email, telefone ou CPF.
- * Retorna matches agrupados com score (mais criterios = mais provavel duplicata).
+ * Busca contatos duplicados por email, telefone ou CPF dentro da organizacao.
+ * Usa indexes compostos: idx_contacts_email_org, idx_contact_phones_number_org, idx_contacts_cpf_org_unique.
  *
- * @param orgId - ID da organizacao.
+ * @param orgId - ID da organizacao (filtro explicito alem de RLS).
  * @param criteria - Criterios de busca (pelo menos um obrigatorio).
  * @param excludeId - ID de contato a excluir (util ao editar).
  */
@@ -59,11 +60,12 @@ export async function findDuplicates(
 
     const matchMap = new Map<string, { contact: Contact; fields: Set<('email' | 'phone' | 'cpf')> }>();
 
-    // Query por email
-    if (criteria.email && criteria.email.trim()) {
+    // Query por email — uses idx_contacts_email_org
+    if (criteria.email?.trim()) {
       const { data, error } = await supabase
         .from('contacts')
         .select('*')
+        .eq('organization_id', orgId)
         .eq('email', criteria.email.trim().toLowerCase())
         .is('deleted_at', null);
 
@@ -81,12 +83,13 @@ export async function findDuplicates(
       }
     }
 
-    // Query por telefone (contact_phones)
-    if (criteria.phone && criteria.phone.trim()) {
+    // Query por telefone — uses idx_contact_phones_number_org
+    if (criteria.phone?.trim()) {
       const phoneNumber = criteria.phone.trim();
       const { data, error } = await supabase
         .from('contact_phones')
         .select('contact_id')
+        .eq('organization_id', orgId)
         .eq('phone_number', phoneNumber);
 
       if (!error && data) {
@@ -114,11 +117,12 @@ export async function findDuplicates(
       }
     }
 
-    // Query por CPF
-    if (criteria.cpf && criteria.cpf.trim()) {
+    // Query por CPF — uses idx_contacts_cpf_org_unique
+    if (criteria.cpf?.trim()) {
       const { data, error } = await supabase
         .from('contacts')
         .select('*')
+        .eq('organization_id', orgId)
         .eq('cpf', criteria.cpf.trim())
         .is('deleted_at', null);
 
@@ -163,8 +167,10 @@ export async function findDuplicates(
  * Scan de duplicatas na organizacao inteira.
  * Agrupa contatos com mesmo email, telefone ou CPF.
  * Limitado a 100 grupos para performance.
+ *
+ * @param orgId - ID da organizacao (filtro explicito para usar indexes compostos).
  */
-export async function scanDuplicates(): Promise<{
+export async function scanDuplicates(orgId: string): Promise<{
   data: DuplicateGroup[] | null;
   error: Error | null;
 }> {
@@ -180,6 +186,7 @@ export async function scanDuplicates(): Promise<{
     const { data: allContacts, error: err1 } = await supabase
       .from('contacts')
       .select('*')
+      .eq('organization_id', orgId)
       .is('deleted_at', null)
       .not('email', 'is', null)
       .order('email');
@@ -209,6 +216,7 @@ export async function scanDuplicates(): Promise<{
     const { data: cpfContacts, error: err2 } = await supabase
       .from('contacts')
       .select('*')
+      .eq('organization_id', orgId)
       .is('deleted_at', null)
       .not('cpf', 'is', null)
       .order('cpf');
@@ -233,10 +241,11 @@ export async function scanDuplicates(): Promise<{
       }
     }
 
-    // 3. Duplicatas por telefone (contact_phones)
+    // 3. Duplicatas por telefone — batch fetch (fix N+1 queries)
     const { data: phones, error: err3 } = await supabase
       .from('contact_phones')
       .select('contact_id, phone_number')
+      .eq('organization_id', orgId)
       .order('phone_number');
 
     if (!err3 && phones) {
@@ -246,25 +255,49 @@ export async function scanDuplicates(): Promise<{
         list.push(p.contact_id);
         phoneMap.set(p.phone_number, list);
       }
+
+      // Collect ALL contact IDs that need fetching (batch)
+      const allPhoneContactIds = new Set<string>();
+      const phoneGroups: { phoneNumber: string; contactIds: string[] }[] = [];
+
       for (const [phoneNumber, contactIds] of phoneMap) {
         const uniqueIds = [...new Set(contactIds)];
         if (uniqueIds.length > 1) {
           const key = `phone:${phoneNumber}`;
           if (!seenKeys.has(key)) {
             seenKeys.add(key);
-            // Fetch contacts
-            const { data: contactsData } = await supabase
-              .from('contacts')
-              .select('*')
-              .in('id', uniqueIds)
-              .is('deleted_at', null);
+            phoneGroups.push({ phoneNumber, contactIds: uniqueIds });
+            uniqueIds.forEach(id => allPhoneContactIds.add(id));
+          }
+        }
+      }
 
-            if (contactsData && contactsData.length > 1) {
+      // Single batch fetch for all phone-duplicate contacts
+      if (allPhoneContactIds.size > 0) {
+        const { data: contactsData } = await supabase
+          .from('contacts')
+          .select('*')
+          .in('id', [...allPhoneContactIds])
+          .is('deleted_at', null);
+
+        if (contactsData) {
+          const contactById = new Map<string, Contact>();
+          for (const row of contactsData) {
+            const c = transformContact(row as DbContact);
+            contactById.set(c.id, c);
+          }
+
+          for (const { phoneNumber, contactIds } of phoneGroups) {
+            const contacts = contactIds
+              .map(id => contactById.get(id))
+              .filter((c): c is Contact => c !== undefined);
+
+            if (contacts.length > 1) {
               groups.push({
-                key,
+                key: `phone:${phoneNumber}`,
                 matchType: 'phone',
                 matchValue: phoneNumber,
-                contacts: contactsData.map((r: unknown) => transformContact(r as DbContact)),
+                contacts,
               });
             }
           }
@@ -280,16 +313,18 @@ export async function scanDuplicates(): Promise<{
 }
 
 // ============================================
-// MERGE SERVICE
+// MERGE SERVICE (via Supabase RPC — transactional)
 // ============================================
 
 /**
- * Merge de 2 contatos: transfere deals, telefones, preferencias para o winner.
+ * Merge de 2 contatos usando RPC transacional.
+ * Transfere deals, telefones, preferencias para o winner.
  * Soft-deleta o loser. Cria audit log como activity.
+ * Todas as operacoes em uma unica transaction (rollback automatico em caso de erro).
  *
  * @param winnerId - ID do contato que permanece.
  * @param loserId - ID do contato a ser absorvido.
- * @param fieldsFromLoser - Campos a copiar do loser para o winner.
+ * @param fieldsFromLoser - Campos do frontend a copiar do loser para o winner.
  * @param userId - ID do usuario que executou o merge (para audit).
  * @param userName - Nome do usuario (para audit log).
  */
@@ -309,7 +344,24 @@ export async function mergeContacts(
       return { data: null, error: new Error('Nao e possivel fazer merge de um contato consigo mesmo') };
     }
 
-    // 1. Buscar dados do loser para copiar campos selecionados
+    // Map frontend field names to DB column names for the RPC
+    const fieldMapping: Record<string, string> = {
+      name: 'name',
+      email: 'email',
+      phone: 'phone',
+      cpf: 'cpf',
+      classification: 'classification',
+      temperature: 'temperature',
+      contactType: 'contact_type',
+      source: 'source',
+      addressCep: 'address_cep',
+      addressCity: 'address_city',
+      addressState: 'address_state',
+      notes: 'notes',
+      birthDate: 'birth_date',
+    };
+
+    // Fetch loser data to get the actual values to copy
     const { data: loserData, error: loserErr } = await supabase
       .from('contacts')
       .select('*')
@@ -321,147 +373,36 @@ export async function mergeContacts(
       return { data: null, error: loserErr || new Error('Contato perdedor nao encontrado') };
     }
 
-    // 2. Copiar campos selecionados do loser para o winner
-    if (fieldsFromLoser.length > 0) {
-      const fieldMapping: Record<string, string> = {
-        name: 'name',
-        email: 'email',
-        phone: 'phone',
-        cpf: 'cpf',
-        classification: 'classification',
-        temperature: 'temperature',
-        contactType: 'contact_type',
-        source: 'source',
-        addressCep: 'address_cep',
-        addressCity: 'address_city',
-        addressState: 'address_state',
-        notes: 'notes',
-        birthDate: 'birth_date',
-      };
-
-      const updates: Record<string, unknown> = {};
-      for (const field of fieldsFromLoser) {
-        const dbField = fieldMapping[field];
-        if (dbField && loserData[dbField] !== undefined) {
-          updates[dbField] = loserData[dbField];
-        }
-      }
-
-      if (Object.keys(updates).length > 0) {
-        updates.updated_at = new Date().toISOString();
-        const { error: updateErr } = await supabase
-          .from('contacts')
-          .update(updates)
-          .eq('id', winnerId);
-
-        if (updateErr) {
-          return { data: null, error: updateErr };
-        }
+    // Build field_updates JSONB: { db_column_name: value }
+    const fieldUpdates: Record<string, unknown> = {};
+    for (const field of fieldsFromLoser) {
+      const dbField = fieldMapping[field];
+      if (dbField && loserData[dbField] !== undefined && loserData[dbField] !== null) {
+        fieldUpdates[dbField] = loserData[dbField];
       }
     }
 
-    // 3. Transferir deals
-    const { data: dealsData } = await supabase
-      .from('deals')
-      .select('id')
-      .eq('contact_id', loserId)
-      .is('deleted_at', null);
+    // Call RPC — all operations in a single transaction
+    const { data, error } = await supabase.rpc('merge_contacts', {
+      p_winner_id: winnerId,
+      p_loser_id: loserId,
+      p_field_updates: fieldUpdates,
+      p_user_id: userId,
+      p_user_name: userName,
+    });
 
-    const dealsTransferred = dealsData?.length || 0;
-
-    if (dealsTransferred > 0) {
-      const { error: dealsErr } = await supabase
-        .from('deals')
-        .update({ contact_id: winnerId, updated_at: new Date().toISOString() })
-        .eq('contact_id', loserId)
-        .is('deleted_at', null);
-
-      if (dealsErr) {
-        return { data: null, error: dealsErr };
-      }
+    if (error) {
+      return { data: null, error };
     }
 
-    // 4. Transferir telefones
-    const { data: phonesData } = await supabase
-      .from('contact_phones')
-      .select('id')
-      .eq('contact_id', loserId);
-
-    const phonesTransferred = phonesData?.length || 0;
-
-    if (phonesTransferred > 0) {
-      const { error: phonesErr } = await supabase
-        .from('contact_phones')
-        .update({ contact_id: winnerId, updated_at: new Date().toISOString() })
-        .eq('contact_id', loserId);
-
-      if (phonesErr) {
-        return { data: null, error: phonesErr };
-      }
-    }
-
-    // 5. Transferir preferencias
-    const { data: prefsData } = await supabase
-      .from('contact_preferences')
-      .select('id')
-      .eq('contact_id', loserId);
-
-    const preferencesTransferred = prefsData?.length || 0;
-
-    if (preferencesTransferred > 0) {
-      const { error: prefsErr } = await supabase
-        .from('contact_preferences')
-        .update({ contact_id: winnerId, updated_at: new Date().toISOString() })
-        .eq('contact_id', loserId);
-
-      if (prefsErr) {
-        return { data: null, error: prefsErr };
-      }
-    }
-
-    // 6. Soft delete do loser
-    const { error: deleteErr } = await supabase
-      .from('contacts')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', loserId);
-
-    if (deleteErr) {
-      return { data: null, error: deleteErr };
-    }
-
-    // 7. Audit log — registrar o merge como atividade
-    const loserContact = transformContact(loserData as DbContact);
-    // Find a deal to attach the activity to (use first deal of winner)
-    const { data: winnerDeals } = await supabase
-      .from('deals')
-      .select('id, title')
-      .eq('contact_id', winnerId)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    const dealId = winnerDeals?.[0]?.id;
-    const dealTitle = winnerDeals?.[0]?.title || 'N/A';
-
-    if (dealId) {
-      await supabase.from('activities').insert({
-        deal_id: dealId,
-        type: 'NOTE',
-        title: 'Merge de contatos',
-        description: `Contato "${loserContact.name}" (${loserId}) foi unificado com este contato. ${dealsTransferred} deals, ${phonesTransferred} telefones e ${preferencesTransferred} preferencias transferidos. Executado por ${userName}.`,
-        date: new Date().toISOString(),
-        user: JSON.stringify({ name: userName, avatar: '' }),
-        completed: true,
-      });
-    }
-
+    const result = data as MergeResult;
     return {
       data: {
-        winnerId,
-        loserId,
-        dealsTransferred,
-        phonesTransferred,
-        preferencesTransferred,
+        winnerId: result.winnerId || winnerId,
+        loserId: result.loserId || loserId,
+        dealsTransferred: result.dealsTransferred || 0,
+        phonesTransferred: result.phonesTransferred || 0,
+        preferencesTransferred: result.preferencesTransferred || 0,
       },
       error: null,
     };

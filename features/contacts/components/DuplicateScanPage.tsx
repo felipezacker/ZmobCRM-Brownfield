@@ -7,6 +7,7 @@ import { Contact } from '@/types';
 import { scanDuplicates, DuplicateGroup } from '@/lib/supabase/contact-dedup';
 import { ContactMergeModal } from './ContactMergeModal';
 import { Button } from '@/app/components/ui/Button';
+import { useAuth } from '@/context/AuthContext';
 
 // ============================================
 // Match type icons and labels
@@ -19,6 +20,7 @@ const MATCH_CONFIG: Record<string, { icon: React.ReactNode; label: string; color
 
 export const DuplicateScanPage: React.FC = () => {
   const router = useRouter();
+  const { profile } = useAuth();
   const [groups, setGroups] = useState<DuplicateGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,17 +29,20 @@ export const DuplicateScanPage: React.FC = () => {
   const [mergeContactA, setMergeContactA] = useState<Contact | null>(null);
   const [mergeContactB, setMergeContactB] = useState<Contact | null>(null);
 
+  const orgId = profile?.organization_id;
+
   const loadDuplicates = useCallback(async () => {
+    if (!orgId) return;
     setLoading(true);
     setError(null);
-    const { data, error: err } = await scanDuplicates();
+    const { data, error: err } = await scanDuplicates(orgId);
     setLoading(false);
     if (err) {
       setError(err.message);
     } else {
       setGroups(data || []);
     }
-  }, []);
+  }, [orgId]);
 
   useEffect(() => {
     loadDuplicates();
