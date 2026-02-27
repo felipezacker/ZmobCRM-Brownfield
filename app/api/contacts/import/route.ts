@@ -24,6 +24,17 @@ type ParsedRow = {
   status?: string;
   stage?: string;
   notes?: string;
+  cpf?: string;
+  contactType?: string;
+  classification?: string;
+  temperature?: string;
+  addressCep?: string;
+  addressCity?: string;
+  addressState?: string;
+  birthDate?: string;
+  source?: string;
+  // lead_score is intentionally excluded — it's auto-calculated, not user-importable
+  leadScore?: string;
 };
 
 const HEADER_SYNONYMS: Record<keyof ParsedRow, string[]> = {
@@ -35,6 +46,17 @@ const HEADER_SYNONYMS: Record<keyof ParsedRow, string[]> = {
   status: ['status'],
   stage: ['stage', 'etapa', 'lifecycle stage', 'ciclo de vida', 'pipeline stage'],
   notes: ['notes', 'nota', 'notas', 'observacoes', 'observações', 'obs'],
+  cpf: ['cpf', 'cpf/cnpj', 'documento'],
+  contactType: ['contact_type', 'tipo', 'tipo de contato', 'type'],
+  classification: ['classification', 'classificacao', 'classificação', 'perfil'],
+  temperature: ['temperature', 'temperatura', 'temp'],
+  addressCep: ['address_cep', 'cep', 'zip', 'zipcode', 'codigo postal'],
+  addressCity: ['address_city', 'city', 'cidade'],
+  addressState: ['address_state', 'state', 'estado', 'uf'],
+  birthDate: ['birth_date', 'birthdate', 'data de nascimento', 'nascimento', 'aniversario'],
+  source: ['source', 'origem', 'canal', 'channel'],
+  // lead_score appears in exports but is auto-calculated — silently ignored on import
+  leadScore: ['lead_score', 'leadscore', 'lead score', 'score', 'pontuacao'],
 };
 
 function buildHeaderIndex(headers: string[]) {
@@ -59,6 +81,16 @@ function buildHeaderIndex(headers: string[]) {
     status: find(HEADER_SYNONYMS.status),
     stage: find(HEADER_SYNONYMS.stage),
     notes: find(HEADER_SYNONYMS.notes),
+    cpf: find(HEADER_SYNONYMS.cpf),
+    contactType: find(HEADER_SYNONYMS.contactType),
+    classification: find(HEADER_SYNONYMS.classification),
+    temperature: find(HEADER_SYNONYMS.temperature),
+    addressCep: find(HEADER_SYNONYMS.addressCep),
+    addressCity: find(HEADER_SYNONYMS.addressCity),
+    addressState: find(HEADER_SYNONYMS.addressState),
+    birthDate: find(HEADER_SYNONYMS.birthDate),
+    source: find(HEADER_SYNONYMS.source),
+    leadScore: find(HEADER_SYNONYMS.leadScore),
   };
 
   return mapping;
@@ -88,6 +120,37 @@ function normalizeStage(v: string | undefined): string | undefined {
   if (s === 'PROSPECT' || s === 'OPORTUNIDADE') return 'PROSPECT';
   if (s === 'CUSTOMER' || s === 'CLIENTE') return 'CUSTOMER';
   if (s === 'OTHER' || s === 'OUTRO' || s === 'OUTROS') return 'OTHER';
+  return undefined;
+}
+
+const VALID_CLASSIFICATIONS = ['COMPRADOR', 'VENDEDOR', 'LOCATARIO', 'LOCADOR', 'INVESTIDOR', 'PERMUTANTE'];
+function normalizeClassification(v: string | undefined): string | undefined {
+  if (!v) return undefined;
+  const s = normalizeHeader(v).toUpperCase();
+  if (VALID_CLASSIFICATIONS.includes(s)) return s;
+  // Common synonyms
+  if (s === 'BUYER' || s === 'COMPRADORA') return 'COMPRADOR';
+  if (s === 'SELLER' || s === 'VENDEDORA') return 'VENDEDOR';
+  if (s === 'TENANT' || s === 'INQUILINO' || s === 'LOCATARIA') return 'LOCATARIO';
+  if (s === 'LANDLORD' || s === 'PROPRIETARIO' || s === 'LOCADORA') return 'LOCADOR';
+  if (s === 'INVESTOR' || s === 'INVESTIDORA') return 'INVESTIDOR';
+  return undefined;
+}
+
+function normalizeTemperature(v: string | undefined): string | undefined {
+  if (!v) return undefined;
+  const s = normalizeHeader(v).toUpperCase();
+  if (s === 'HOT' || s === 'QUENTE') return 'HOT';
+  if (s === 'WARM' || s === 'MORNO') return 'WARM';
+  if (s === 'COLD' || s === 'FRIO') return 'COLD';
+  return undefined;
+}
+
+function normalizeContactType(v: string | undefined): string | undefined {
+  if (!v) return undefined;
+  const s = normalizeHeader(v).toUpperCase();
+  if (s === 'PF' || s === 'PESSOA FISICA' || s === 'PHYSICAL') return 'PF';
+  if (s === 'PJ' || s === 'PESSOA JURIDICA' || s === 'LEGAL' || s === 'EMPRESA') return 'PJ';
   return undefined;
 }
 
@@ -153,6 +216,15 @@ export async function POST(req: Request) {
           status: normalizeStatus(getCell(r, mapping.status)),
           stage: normalizeStage(getCell(r, mapping.stage)),
           notes: getCell(r, mapping.notes),
+          cpf: getCell(r, mapping.cpf),
+          contactType: normalizeContactType(getCell(r, mapping.contactType)),
+          classification: normalizeClassification(getCell(r, mapping.classification)),
+          temperature: normalizeTemperature(getCell(r, mapping.temperature)),
+          addressCep: getCell(r, mapping.addressCep),
+          addressCity: getCell(r, mapping.addressCity),
+          addressState: getCell(r, mapping.addressState),
+          birthDate: getCell(r, mapping.birthDate),
+          source: getCell(r, mapping.source),
         },
       });
     }
@@ -228,7 +300,7 @@ export async function POST(req: Request) {
       const email = (p.data.email || '').trim().toLowerCase();
       const phoneE164 = p.data.phone ? normalizePhoneE164(p.data.phone) : undefined;
 
-      const base = {
+      const base: Record<string, unknown> = {
         name: p.data.name || '',
         email: p.data.email || null,
         phone: phoneE164 || null,
@@ -237,6 +309,16 @@ export async function POST(req: Request) {
         stage: p.data.stage || 'LEAD',
         updated_at: new Date().toISOString(),
       };
+      // Epic 3 imob fields — only include if present in CSV
+      if (p.data.cpf) base.cpf = p.data.cpf;
+      if (p.data.contactType) base.contact_type = p.data.contactType;
+      if (p.data.classification) base.classification = p.data.classification;
+      if (p.data.temperature) base.temperature = p.data.temperature;
+      if (p.data.addressCep) base.address_cep = p.data.addressCep;
+      if (p.data.addressCity) base.address_city = p.data.addressCity;
+      if (p.data.addressState) base.address_state = p.data.addressState;
+      if (p.data.birthDate) base.birth_date = p.data.birthDate;
+      if (p.data.source) base.source = p.data.source;
 
       const existingIds = email ? (contactIdsByEmail.get(email) || []) : [];
 

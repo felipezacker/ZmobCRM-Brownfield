@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { stringifyCsv, withUtf8Bom, type CsvDelimiter } from '@/lib/utils/csv';
 
-type SortBy = 'name' | 'created_at' | 'updated_at' | 'stage';
+type SortBy = 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source' | 'lead_score';
 type SortOrder = 'asc' | 'desc';
 
 function getParam(searchParams: URLSearchParams, key: string): string | undefined {
@@ -10,8 +10,9 @@ function getParam(searchParams: URLSearchParams, key: string): string | undefine
   return v && v.trim() ? v.trim() : undefined;
 }
 
+const VALID_SORT_BY: SortBy[] = ['name', 'created_at', 'updated_at', 'stage', 'owner_id', 'source', 'lead_score'];
 function parseSortBy(v: string | undefined): SortBy {
-  if (v === 'name' || v === 'created_at' || v === 'updated_at' || v === 'stage') return v;
+  if (v && VALID_SORT_BY.includes(v as SortBy)) return v as SortBy;
   return 'created_at';
 }
 
@@ -54,12 +55,14 @@ export async function GET(req: Request) {
       let q = supabase
         .from('contacts')
         .select(
-          'id,name,email,phone,notes,status,stage,created_at,updated_at,last_purchase_date'
+          'id,name,email,phone,notes,status,stage,source,cpf,contact_type,classification,temperature,address_cep,address_city,address_state,birth_date,lead_score,created_at,updated_at,last_purchase_date'
         )
         .is('deleted_at', null);
 
       if (search) {
-        q = q.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
+        // Sanitize search to prevent PostgREST filter injection (escape special chars)
+        const safe = search.replace(/[%_.,()"'\\]/g, c => `\\${c}`);
+        q = q.or(`name.ilike.%${safe}%,email.ilike.%${safe}%`);
       }
       if (stage && stage !== 'ALL') {
         q = q.eq('stage', stage);
@@ -94,8 +97,18 @@ export async function GET(req: Request) {
       'name',
       'email',
       'phone',
+      'cpf',
+      'contact_type',
+      'classification',
+      'temperature',
       'status',
       'stage',
+      'source',
+      'address_cep',
+      'address_city',
+      'address_state',
+      'birth_date',
+      'lead_score',
       'notes',
       'created_at',
       'updated_at',
@@ -105,8 +118,18 @@ export async function GET(req: Request) {
       c.name || '',
       c.email || '',
       c.phone || '',
+      c.cpf || '',
+      c.contact_type || '',
+      c.classification || '',
+      c.temperature || '',
       c.status || '',
       c.stage || '',
+      c.source || '',
+      c.address_cep || '',
+      c.address_city || '',
+      c.address_state || '',
+      c.birth_date || '',
+      c.lead_score != null ? String(c.lead_score) : '',
       c.notes || '',
       c.created_at || '',
       c.updated_at || '',
