@@ -25,6 +25,7 @@ const DEAL_CRM_FIELDS: Array<{ value: string; label: string }> = [
   { value: 'deal_title', label: 'Título do negócio' },
   { value: 'deal_value', label: 'Valor' },
   { value: 'deal_type', label: 'Tipo (VENDA/LOCAÇÃO/PERMUTA)' },
+  { value: 'deal_product', label: 'Produto' },
   { value: 'deal_activity', label: 'Nota/Atividade' },
   { value: '_ignore', label: 'Ignorar coluna' },
 ];

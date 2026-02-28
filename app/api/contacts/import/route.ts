@@ -637,8 +637,43 @@ export async function POST(req: Request) {
         }
       }
 
+      // ── Product lookup/creation for deal_product column ──
+      const productNameToId = new Map<string, string>();
+      if (dealFieldIdx.deal_product !== undefined) {
+        const allProductNames = new Set<string>();
+        for (const p of parsed) {
+          const row = rows[p.rowNumber - (ignoreHeader ? 1 : 2)] || [];
+          const prodName = getCell(row, dealFieldIdx.deal_product);
+          if (prodName) allProductNames.add(prodName);
+        }
+        if (allProductNames.size > 0) {
+          const prodArray = Array.from(allProductNames);
+          const { data: existingProducts } = await supabase
+            .from('products')
+            .select('id, name')
+            .eq('organization_id', organizationId)
+            .in('name', prodArray);
+          for (const ep of (existingProducts || []) as Array<{ id: string; name: string }>) {
+            productNameToId.set(ep.name, ep.id);
+          }
+          const missingProducts = prodArray.filter(n => !productNameToId.has(n));
+          if (missingProducts.length > 0) {
+            const { data: created, error: prodInsertErr } = await supabase
+              .from('products')
+              .insert(missingProducts.map(name => ({ name, price: 0, organization_id: organizationId })))
+              .select('id, name');
+            if (prodInsertErr) {
+              errors.push({ rowNumber: 0, message: `Erro ao criar produtos: ${prodInsertErr.message}` });
+            }
+            for (const cp of (created || []) as Array<{ id: string; name: string }>) {
+              productNameToId.set(cp.name, cp.id);
+            }
+          }
+        }
+      }
+
       // Create deals in batch
-      const dealPayloads: Array<{ deal: Record<string, unknown>; activityNote?: string }> = [];
+      const dealPayloads: Array<{ deal: Record<string, unknown>; activityNote?: string; productName?: string }> = [];
       for (const p of parsed) {
         const contactId = rowToContactId.get(p.rowNumber);
         if (!contactId) continue;
@@ -649,6 +684,7 @@ export async function POST(req: Request) {
         const value = valueStr ? parseFloat(valueStr.replace(/[^\d.,]/g, '').replace(',', '.')) || 0 : 0;
         const dealType = getCell(row, dealFieldIdx.deal_type) || 'VENDA';
         const activityNote = getCell(row, dealFieldIdx.deal_activity);
+        const productName = getCell(row, dealFieldIdx.deal_product);
 
         dealPayloads.push({
           deal: {
@@ -661,6 +697,7 @@ export async function POST(req: Request) {
             deal_type: dealType.toUpperCase(),
           },
           activityNote,
+          productName,
         });
       }
 
@@ -678,6 +715,31 @@ export async function POST(req: Request) {
         }
         if (insertedDeals) {
           dealsCreated += insertedDeals.length;
+
+          // Create deal_items for deals that have a product
+          const dealItemPayloads: Array<Record<string, unknown>> = [];
+          for (let j = 0; j < batch.length; j++) {
+            if (batch[j].productName && insertedDeals[j]) {
+              const productId = productNameToId.get(batch[j].productName!);
+              if (productId) {
+                dealItemPayloads.push({
+                  organization_id: organizationId,
+                  deal_id: insertedDeals[j].id,
+                  product_id: productId,
+                  name: batch[j].productName,
+                  quantity: 1,
+                  price: (batch[j].deal.value as number) || 0,
+                });
+              }
+            }
+          }
+          if (dealItemPayloads.length > 0) {
+            const { error: itemError } = await supabase.from('deal_items').insert(dealItemPayloads);
+            if (itemError) {
+              errors.push({ rowNumber: 0, message: `Erro ao vincular produtos: ${itemError.message}` });
+            }
+          }
+
           // Create activities for deals that have notes
           const activityPayloads: Array<Record<string, unknown>> = [];
           for (let j = 0; j < batch.length; j++) {
