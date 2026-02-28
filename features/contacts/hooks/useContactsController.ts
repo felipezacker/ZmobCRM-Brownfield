@@ -574,30 +574,38 @@ export const useContactsController = () => {
             if (phonesToSync.length > 0) {
               await syncPhones(data.id, phonesToSync).catch(() => {});
             }
-            // Flush buffered preferences (fire-and-forget)
+            // Flush buffered preferences
             const prefsToSave = bufferedPrefsRef.current;
+            let prefsFailed = 0;
             if (prefsToSave.length > 0) {
               bufferedPrefsRef.current = [];
               for (const pref of prefsToSave) {
-                contactPreferencesService.create({
-                  contactId: data.id,
-                  organizationId: data.organizationId || '',
-                  propertyTypes: pref.propertyTypes,
-                  purpose: pref.purpose,
-                  priceMin: pref.priceMin,
-                  priceMax: pref.priceMax,
-                  regions: pref.regions,
-                  bedroomsMin: pref.bedroomsMin,
-                  parkingMin: pref.parkingMin,
-                  areaMin: pref.areaMin,
-                  acceptsFinancing: pref.acceptsFinancing,
-                  acceptsFgts: pref.acceptsFgts,
-                  urgency: pref.urgency,
-                  notes: pref.notes,
-                } as Omit<ContactPreference, 'id' | 'createdAt' | 'updatedAt'>).catch(() => {});
+                try {
+                  const result = await contactPreferencesService.create({
+                    contactId: data.id,
+                    organizationId: data.organizationId || '',
+                    propertyTypes: pref.propertyTypes,
+                    purpose: pref.purpose,
+                    priceMin: pref.priceMin,
+                    priceMax: pref.priceMax,
+                    regions: pref.regions,
+                    bedroomsMin: pref.bedroomsMin,
+                    parkingMin: pref.parkingMin,
+                    areaMin: pref.areaMin,
+                    acceptsFinancing: pref.acceptsFinancing,
+                    acceptsFgts: pref.acceptsFgts,
+                    urgency: pref.urgency,
+                    notes: pref.notes,
+                  } as Omit<ContactPreference, 'id' | 'createdAt' | 'updatedAt'>);
+                  if (result.error) prefsFailed++;
+                } catch { prefsFailed++; }
               }
             }
-            (addToast || showToast)('Contato criado!', 'success');
+            if (prefsFailed > 0) {
+              (addToast || showToast)(`Contato criado, mas ${prefsFailed} preferencia(s) nao foram salvas.`, 'warning');
+            } else {
+              (addToast || showToast)('Contato criado!', 'success');
+            }
             setIsModalOpen(false);
           },
           onError: (error: Error) => {

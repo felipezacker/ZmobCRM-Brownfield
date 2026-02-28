@@ -57,7 +57,7 @@ export async function createContact(
       .select()
       .single()
 
-    if (error) return { data: null, error: error.message }
+    if (error) return { data: null, error: 'Erro ao criar contato. Tente novamente.' }
 
     // Story 3.8 — calculate lead score before returning so the UI shows it immediately
     const { score } = await recalculateScore(data.id, profile.organization_id, supabase)
@@ -65,7 +65,8 @@ export async function createContact(
 
     return { data: transformContact(contactData), error: null }
   } catch (e) {
-    return { data: null, error: (e as Error).message }
+    console.error('createContact error:', e)
+    return { data: null, error: 'Erro inesperado ao criar contato.' }
   }
 }
 
@@ -83,7 +84,7 @@ export async function updateContact(
       .update(dbUpdates)
       .eq('id', id)
 
-    if (error) return { error: error.message }
+    if (error) return { error: 'Erro ao atualizar contato. Tente novamente.' }
 
     // Story 3.8 — recalculate lead score synchronously so UI updates immediately
     const { data: contact } = await supabase
@@ -100,7 +101,8 @@ export async function updateContact(
 
     return { error: null, leadScore }
   } catch (e) {
-    return { error: (e as Error).message }
+    console.error('updateContact error:', e)
+    return { error: 'Erro inesperado ao atualizar contato.' }
   }
 }
 
@@ -116,9 +118,11 @@ export async function deleteContact(
       .eq('id', id)
       .is('deleted_at', null)
 
-    return { error: error?.message ?? null }
+    if (error) return { error: 'Erro ao excluir contato. Tente novamente.' }
+    return { error: null }
   } catch (e) {
-    return { error: (e as Error).message }
+    console.error('deleteContact error:', e)
+    return { error: 'Erro inesperado ao excluir contato.' }
   }
 }
 
@@ -132,17 +136,18 @@ export async function recalculateLeadScore(
     const supabase = await createClient()
 
     const { breakdown, error } = await calculateLeadScore(contactId, orgId, supabase)
-    if (error) return { score: 0, breakdown: null, error: error.message }
+    if (error) return { score: 0, breakdown: null, error: 'Erro ao calcular lead score.' }
 
     const { error: updateError } = await supabase
       .from('contacts')
       .update({ lead_score: breakdown.total })
       .eq('id', contactId)
 
-    if (updateError) return { score: 0, breakdown: null, error: updateError.message }
+    if (updateError) return { score: 0, breakdown: null, error: 'Erro ao salvar lead score.' }
 
     return { score: breakdown.total, breakdown, error: null }
   } catch (e) {
-    return { score: 0, breakdown: null, error: (e as Error).message }
+    console.error('recalculateLeadScore error:', e)
+    return { score: 0, breakdown: null, error: 'Erro inesperado ao recalcular score.' }
   }
 }

@@ -87,6 +87,7 @@ export function ContactCockpitRightRail({
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   // ---- Tab: Deals ----
   const sortedDeals = useMemo(
@@ -100,6 +101,7 @@ export function ContactCockpitRightRail({
     if (!text || !supabase) return;
 
     setSavingNote(true);
+    setNoteError(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       let orgId: string | undefined;
@@ -112,21 +114,29 @@ export function ContactCockpitRightRail({
         orgId = (profile as any)?.organization_id ?? undefined;
       }
 
-      // If we have a deal, save as deal_note on the first deal
       const dealId = deals[0]?.id;
-      if (dealId && orgId) {
-        await supabase.from('deal_notes').insert({
-          deal_id: dealId,
-          content: text,
-          organization_id: orgId,
-          created_by: user?.id ?? null,
-        });
+      if (!dealId || !orgId) {
+        setNoteError('Nao foi possivel salvar: sem deal ou organizacao vinculada.');
+        return;
+      }
+
+      const { error } = await supabase.from('deal_notes').insert({
+        deal_id: dealId,
+        content: text,
+        organization_id: orgId,
+        created_by: user?.id ?? null,
+      });
+
+      if (error) {
+        setNoteError('Erro ao salvar nota. Tente novamente.');
+        return;
       }
 
       setNoteDraft('');
       onNoteCreated();
     } catch (e) {
       console.error('Failed to create note:', e);
+      setNoteError('Erro ao salvar nota. Tente novamente.');
     } finally {
       setSavingNote(false);
     }
@@ -284,6 +294,9 @@ export function ContactCockpitRightRail({
                     placeholder="Escreva uma nota..."
                     className="w-full resize-none rounded-xl border border-white/10 bg-white/2 p-3 text-xs text-slate-200 outline-none placeholder:text-slate-600 min-h-[60px]"
                   />
+                  {noteError && (
+                    <p className="text-xs text-red-400">{noteError}</p>
+                  )}
                   <Button
                     type="button"
                     className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-50"

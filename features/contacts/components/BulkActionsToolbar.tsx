@@ -85,7 +85,9 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
                         <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                             Selecione o novo responsavel para {selectedCount} contato{selectedCount !== 1 ? 's' : ''}:
                         </p>
+                        <label htmlFor="reassign-select" className="sr-only">Novo responsavel</label>
                         <select
+                            id="reassign-select"
                             className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white mb-4"
                             value={selectedProfileId}
                             onChange={(e) => setSelectedProfileId(e.target.value)}

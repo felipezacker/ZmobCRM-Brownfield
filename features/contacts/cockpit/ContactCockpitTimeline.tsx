@@ -98,6 +98,7 @@ export function ContactCockpitTimeline({
   const [query, setQuery] = useState('');
   const [noteDraft, setNoteDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return activities;
@@ -115,37 +116,28 @@ export function ContactCockpitTimeline({
     if (!text || !supabase) return;
 
     setSaving(true);
+    setSaveError(null);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from('activities').insert({
+        deal_id: firstDealId || null,
+        contact_id: contactId,
+        type: 'NOTE',
+        title: 'Nota',
+        description: text,
+        date: new Date().toISOString(),
+        completed: true,
+      });
 
-      // Save as activity NOTE on the first deal
-      if (firstDealId) {
-        await supabase.from('activities').insert({
-          deal_id: firstDealId,
-          contact_id: contactId,
-          type: 'NOTE',
-          title: 'Nota',
-          description: text,
-          date: new Date().toISOString(),
-          completed: true,
-        });
-      } else {
-        // No deal linked — save as activity with only contact reference
-        await supabase.from('activities').insert({
-          deal_id: null,
-          contact_id: contactId,
-          type: 'NOTE',
-          title: 'Nota',
-          description: text,
-          date: new Date().toISOString(),
-          completed: true,
-        });
+      if (error) {
+        setSaveError('Erro ao salvar nota. Tente novamente.');
+        return;
       }
 
       setNoteDraft('');
       onNoteCreated();
     } catch (e) {
       console.error('Failed to save note:', e);
+      setSaveError('Erro ao salvar nota. Tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -228,6 +220,9 @@ export function ContactCockpitTimeline({
           className="mt-2 min-h-[60px] w-full resize-none rounded-xl border border-white/10 bg-white/2 p-3 text-sm text-slate-200 outline-none placeholder:text-slate-600"
           placeholder="Escreva uma nota sobre este contato..."
         />
+        {saveError && (
+          <p className="mt-1 text-xs text-red-400">{saveError}</p>
+        )}
         <div className="mt-3 flex items-center justify-between gap-2">
           <div className="text-[11px] text-slate-500">
             {firstDealId

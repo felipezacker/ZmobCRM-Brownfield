@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Plus, Trash2, Save, X, Home } from 'lucide-reac
 import { ContactPreference, PropertyType, PreferencePurpose, PreferenceUrgency } from '@/types';
 import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
 import { Button } from '@/app/components/ui/Button';
+import ConfirmModal from '@/components/ConfirmModal';
 
 import { INPUT_CLASS, LABEL_CLASS, LEGEND_CLASS } from '@/features/contacts/constants';
 
@@ -418,6 +419,7 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
   const [isCreating, setIsCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Carregar preferencias (skip em modo buffered)
   const loadPreferences = useCallback(async () => {
@@ -558,7 +560,10 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
       return;
     }
 
-    if (!window.confirm('Tem certeza que deseja excluir este perfil de interesse?')) return;
+    setConfirmDeleteId(id);
+  };
+
+  const executeDelete = async (id: string) => {
     const result = await contactPreferencesService.delete(id);
     if (result.error) {
       setError(`Erro ao excluir: ${result.error.message}`);
@@ -687,6 +692,16 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
           Adicionar perfil de interesse
         </Button>
       )}
+
+      <ConfirmModal
+        isOpen={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={() => { if (confirmDeleteId) executeDelete(confirmDeleteId); }}
+        title="Excluir perfil de interesse"
+        message="Tem certeza que deseja excluir este perfil de interesse?"
+        confirmText="Excluir"
+        variant="danger"
+      />
     </fieldset>
   );
 };
