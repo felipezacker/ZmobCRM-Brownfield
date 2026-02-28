@@ -145,12 +145,10 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                 updatedAt: new Date().toISOString(),
                 probability: 10,
                 priority: 'medium',
-                tags: ['Novo'],
                 owner: {
                     name: ownerName,
                     avatar: profile?.avatar_url || ''
                 },
-                customFields: {},
                 isWon: false,
                 isLost: false,
                 dealType: dealData.dealType,

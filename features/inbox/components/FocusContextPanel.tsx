@@ -501,9 +501,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
             owner: deal.owner,
             ownerId: deal.ownerId,
             nextActivity: deal.nextActivity,
-            tags: deal.tags,
             items: deal.items,
-            customFields: deal.customFields,
             lastStageChangeDate: deal.lastStageChangeDate,
             lossReason: deal.lossReason,
             createdAt: deal.createdAt,
@@ -1104,15 +1102,15 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                             </div>
 
                             {/* Tags */}
-                            {deal.tags && deal.tags.length > 0 && (
+                            {contact?.tags && contact.tags.length > 0 && (
                                 <div className="mt-2 flex flex-wrap gap-1">
-                                    {deal.tags.slice(0, 4).map((tag, i) => (
+                                    {contact.tags.slice(0, 4).map((tag: string, i: number) => (
                                         <span key={i} className="text-[10px] px-1.5 py-0.5 bg-primary-500/10 text-primary-400 rounded">
                                             #{tag}
                                         </span>
                                     ))}
-                                    {deal.tags.length > 4 && (
-                                        <span className="text-[10px] text-slate-500">+{deal.tags.length - 4}</span>
+                                    {contact.tags.length > 4 && (
+                                        <span className="text-[10px] text-slate-500">+{contact.tags.length - 4}</span>
                                     )}
                                 </div>
                             )}

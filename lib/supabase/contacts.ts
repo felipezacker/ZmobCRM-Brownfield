@@ -80,6 +80,10 @@ export interface DbContact {
   profile_data: Record<string, unknown> | null;
   /** Lead score calculado (0-100). Story 3.8. */
   lead_score: number;
+  /** Tags do contato. */
+  tags: string[];
+  /** Campos customizados (JSONB). */
+  custom_fields: Record<string, any>;
 }
 
 /** Representação de contact_phones no banco de dados. */
@@ -129,6 +133,8 @@ export const transformContact = (db: DbContact): Contact => ({
   addressState: db.address_state || undefined,
   profileData: db.profile_data || undefined,
   leadScore: db.lead_score || 0,
+  tags: db.tags || [],
+  customFields: db.custom_fields || {},
 });
 
 /** Transforma ContactPhone do formato DB para o formato da aplicação. */
@@ -178,6 +184,8 @@ export const transformContactToDb = (contact: Partial<Contact>): Partial<DbConta
   if (contact.addressCity !== undefined) db.address_city = contact.addressCity || null;
   if (contact.addressState !== undefined) db.address_state = contact.addressState || null;
   if (contact.profileData !== undefined) db.profile_data = contact.profileData || null;
+  if (contact.tags !== undefined) db.tags = contact.tags;
+  if (contact.customFields !== undefined) db.custom_fields = contact.customFields;
 
   return db;
 };
@@ -450,6 +458,8 @@ export const contactsService = {
         address_city: sanitizeText(contact.addressCity),
         address_state: sanitizeText(contact.addressState),
         profile_data: contact.profileData || null,
+        tags: contact.tags || [],
+        custom_fields: contact.customFields || {},
       };
 
       const { data, error } = await supabase

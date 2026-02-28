@@ -150,8 +150,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     if (deal.isWon) parts.push('ganho');
     if (deal.isLost) parts.push('perdido');
 
-    // Tags (visible text) - include all shown tags
-    const shownTags = deal.tags.slice(0, isClosed ? 1 : 2);
+    // Tags (visible text) - include all shown tags from contact
+    const shownTags = (deal.contactTags || []).slice(0, isClosed ? 1 : 2);
     if (shownTags.length > 0) {
       parts.push(...shownTags);
     }
@@ -171,10 +171,11 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   };
 
   const productName = deal.items && deal.items.length > 0 ? deal.items[0].name : null;
-  const customFieldCount = deal.customFields && typeof deal.customFields === 'object' ? Object.keys(deal.customFields).length : 0;
+  const contactTags = deal.contactTags || [];
+  const customFieldCount = deal.contactCustomFields && typeof deal.contactCustomFields === 'object' ? Object.keys(deal.contactCustomFields).length : 0;
   const maxVisibleTags = 4;
-  const visibleTags = deal.tags.slice(0, maxVisibleTags);
-  const extraTagCount = deal.tags.length - maxVisibleTags;
+  const visibleTags = contactTags.slice(0, maxVisibleTags);
+  const extraTagCount = contactTags.length - maxVisibleTags;
 
   return (
     <div
@@ -290,7 +291,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
       )}
 
       {/* Row 8: Tags */}
-      {deal.tags.length > 0 && (
+      {contactTags.length > 0 && (
         <div className="flex gap-1 flex-wrap mt-2 pt-2 border-t border-slate-100 dark:border-white/5">
           {deal.isWon && (
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-800/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700">

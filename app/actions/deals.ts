@@ -51,8 +51,6 @@ export async function createDeal(
       board_id: boardId,
       stage_id: sanitizeUUID(stageId),
       contact_id: sanitizeUUID(deal.contactId),
-      tags: deal.tags || [],
-      custom_fields: deal.customFields || {},
       owner_id: sanitizeUUID(deal.ownerId),
       is_won: deal.isWon ?? false,
       is_lost: deal.isLost ?? false,

@@ -104,7 +104,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
         {/* Custom Fields Cells */}
         {customFieldDefinitions.map((field) => (
           <td key={field.id} className="px-6 py-3 text-right text-slate-600 dark:text-slate-300 text-sm">
-            {deal.customFields?.[field.key] || '-'}
+            {deal.contactCustomFields?.[field.key] || '-'}
           </td>
         ))}
       </tr>

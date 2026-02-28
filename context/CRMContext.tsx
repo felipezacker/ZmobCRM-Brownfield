@@ -308,6 +308,8 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         ...deal,
         contactName: deal.contactId ? (contactMap[deal.contactId]?.name || 'Sem Contato') : 'Sem Contato',
         contactEmail: deal.contactId ? (contactMap[deal.contactId]?.email || '') : '',
+        contactTags: deal.contactId ? (contactMap[deal.contactId]?.tags || []) : [],
+        contactCustomFields: deal.contactId ? (contactMap[deal.contactId]?.customFields || {}) : {},
         stageLabel: stage?.label || 'Desconhecido',
         owner: (deal.ownerId === profile?.id || deal.ownerId === user?.id) ? {
           name: profile?.nickname || profile?.first_name || (user?.email?.split('@')[0]) || 'Eu',
@@ -368,6 +370,8 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           contactId: deal.contactId || '',
           contactName: optimisticContactName,
           contactEmail: optimisticContactEmail,
+          contactTags: [],
+          contactCustomFields: {},
           stageLabel: optimisticStageLabel,
         };
 
@@ -549,8 +553,6 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         probability: 20,
         priority: 'medium',
         owner: { name: 'Eu', avatar: 'https://i.pravatar.cc/150?u=me' },
-        tags: [],
-        customFields: {},
         isWon: false,
         isLost: false,
       };
@@ -584,6 +586,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       stage: 'LEAD',
       lastPurchaseDate: '',
       totalValue: 0,
+      tags: lead.source ? ['Origem: ' + lead.source] : [],
     } as Omit<Contact, 'id' | 'createdAt'>);
 
     if (!newContact || !activeBoard || activeBoard.stages.length === 0) return;
@@ -599,8 +602,6 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       probability: 20,
       priority: 'medium',
       owner: { name: 'Eu', avatar: 'https://i.pravatar.cc/150?u=me' },
-      tags: ['Origem: ' + lead.source],
-      customFields: {},
       isWon: false,
       isLost: false,
     };

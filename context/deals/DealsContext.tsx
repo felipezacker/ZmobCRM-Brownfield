@@ -252,6 +252,8 @@ export const useDealsView = (
         ...deal,
         contactName: deal.contactId ? (contactMap[deal.contactId]?.name || 'Sem Contato') : 'Sem Contato',
         contactEmail: deal.contactId ? (contactMap[deal.contactId]?.email || '') : '',
+        contactTags: deal.contactId ? (contactMap[deal.contactId]?.tags || []) : [],
+        contactCustomFields: deal.contactId ? (contactMap[deal.contactId]?.customFields || {}) : {},
         stageLabel,
       };
     });

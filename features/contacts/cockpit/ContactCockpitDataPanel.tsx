@@ -10,14 +10,18 @@ import {
   MapPin,
   Mail,
   User,
-  Tag,
+  Tag as TagIcon,
   Home,
   DollarSign,
   Search,
+  Plus,
+  X,
+  PenTool,
 } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 import { Panel, Chip } from '@/features/deals/cockpit/cockpit-ui';
 import { formatCurrencyBRL } from '@/features/deals/cockpit/cockpit-utils';
-import type { Contact, ContactPhone, ContactPreference } from '@/types';
+import type { Contact, ContactPhone, ContactPreference, CustomFieldDefinition } from '@/types';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -104,6 +108,11 @@ interface ContactCockpitDataPanelProps {
   contact: Contact;
   phones: ContactPhone[];
   preferences: ContactPreference | null;
+  availableTags: string[];
+  customFieldDefinitions: CustomFieldDefinition[];
+  onAddTag: (tag: string) => void;
+  onRemoveTag: (tag: string) => void;
+  onUpdateCustomField: (key: string, value: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -114,7 +123,34 @@ export function ContactCockpitDataPanel({
   contact,
   phones,
   preferences,
+  availableTags,
+  customFieldDefinitions,
+  onAddTag,
+  onRemoveTag,
+  onUpdateCustomField,
 }: ContactCockpitDataPanelProps) {
+  const [tagQuery, setTagQuery] = React.useState('');
+  const contactTags = contact.tags || [];
+  const contactTagsLower = new Set(contactTags.map(t => t.toLowerCase()));
+
+  const normalizeTag = (value: string) => value.trim().replace(/\s+/g, ' ');
+
+  const tagSuggestions = (() => {
+    const q = normalizeTag(tagQuery);
+    if (!q) return [];
+    const qLower = q.toLowerCase();
+    return (availableTags || [])
+      .filter(t => !contactTagsLower.has(t.toLowerCase()))
+      .filter(t => t.toLowerCase().includes(qLower))
+      .slice(0, 8);
+  })();
+
+  const handleAddTag = (raw: string) => {
+    const next = normalizeTag(raw);
+    if (!next || contactTagsLower.has(next.toLowerCase())) return;
+    onAddTag(next);
+    setTagQuery('');
+  };
   return (
     <div className="flex min-h-0 flex-col gap-4 overflow-auto pr-1">
       {/* Temperature */}
@@ -181,6 +217,117 @@ export function ContactCockpitDataPanel({
                     <Chip tone="success">Principal</Chip>
                   )}
                 </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      )}
+
+      {/* Tags */}
+      <Panel
+        title="Tags"
+        icon={<TagIcon className="h-4 w-4 text-slate-300" />}
+      >
+        <div className="flex flex-wrap gap-2">
+          {contactTags.length === 0 ? (
+            <p className="text-xs text-slate-500 italic">Sem tags.</p>
+          ) : (
+            contactTags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-white/5 text-slate-300 border border-white/10"
+              >
+                {tag}
+                <Button
+                  type="button"
+                  onClick={() => onRemoveTag(tag)}
+                  className="ml-0.5 text-slate-500 hover:text-red-400"
+                  aria-label={`Remover tag ${tag}`}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </span>
+            ))
+          )}
+        </div>
+
+        <div className="mt-3">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={tagQuery}
+              onChange={(e) => setTagQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddTag(tagQuery);
+                }
+              }}
+              placeholder="Adicionar tag..."
+              className="min-w-0 flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-cyan-500 text-white placeholder-slate-500"
+              aria-label="Adicionar tag"
+            />
+            <Button
+              type="button"
+              onClick={() => handleAddTag(tagQuery)}
+              disabled={!normalizeTag(tagQuery)}
+              className="shrink-0 h-8 w-8 inline-flex items-center justify-center rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+              aria-label="Adicionar tag"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {normalizeTag(tagQuery) && tagSuggestions.length > 0 && (
+            <div className="mt-2 bg-black/20 border border-white/10 rounded-lg overflow-hidden">
+              {tagSuggestions.map((t) => (
+                <Button
+                  key={t}
+                  type="button"
+                  onClick={() => handleAddTag(t)}
+                  className="w-full text-left px-3 py-1.5 text-xs text-slate-200 hover:bg-white/5 transition-colors"
+                >
+                  {t}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      </Panel>
+
+      {/* Custom Fields */}
+      {customFieldDefinitions.length > 0 && (
+        <Panel
+          title="Campos Personalizados"
+          icon={<PenTool className="h-4 w-4 text-slate-300" />}
+        >
+          <div className="space-y-3">
+            {customFieldDefinitions.map((field) => (
+              <div key={field.id}>
+                <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                  {field.label}
+                </label>
+                {field.type === 'select' ? (
+                  <select
+                    value={contact.customFields?.[field.key] || ''}
+                    onChange={(e) => onUpdateCustomField(field.key, e.target.value)}
+                    className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:ring-1 focus:ring-cyan-500"
+                  >
+                    <option value="">Selecione...</option>
+                    {field.options?.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={field.type}
+                    value={contact.customFields?.[field.key] || ''}
+                    onChange={(e) => onUpdateCustomField(field.key, e.target.value)}
+                    className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:ring-1 focus:ring-cyan-500"
+                  />
+                )}
               </div>
             ))}
           </div>

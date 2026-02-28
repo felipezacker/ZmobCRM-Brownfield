@@ -13,7 +13,6 @@ import { LossReasonModal } from '@/components/ui/LossReasonModal';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { Activity } from '@/types';
-import { useTags } from '@/hooks/useTags';
 import { useResponsiveMode } from '@/hooks/useResponsiveMode';
 import { DealSheet } from '../DealSheet';
 import {
@@ -39,7 +38,6 @@ import {
   CheckCircle2,
   Bot,
   Tag as TagIcon,
-  Plus,
   Maximize2,
 } from 'lucide-react';
 import { StageProgressBar } from '../StageProgressBar';
@@ -152,12 +150,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
     return calculateEstimatedCommission(deal.value, deal.commissionRate, brokerCommissionRate);
   }, [deal, brokerCommissionRate]);
 
-  // Tags suggestions from Supabase `tags` table (shared with Settings)
-  const { tags: availableTags, addTag: addCatalogTag, tagsLowerSet: availableTagsLower } = useTags();
-  const [tagQuery, setTagQuery] = useState('');
-
-  const normalizeTag = (value: string) => value.trim().replace(/\s+/g, ' ');
-  const tagsLower = useMemo(() => new Set((deal?.tags || []).map(t => t.toLowerCase())), [deal?.tags]);
+  // Contact tags/customFields (read-only — migrated from deal to contact)
 
   // Helper functions removed as they are now handled by ActivityRow component
 
@@ -176,7 +169,6 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
       setShowLossReasonModal(false);
       setPendingLostStageId(null);
       setLossReasonOrigin('button');
-      setTagQuery('');
     }
   }, [isOpen, dealId]); // Depend on dealId to reset when switching deals
 
@@ -209,38 +201,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
   if (!isOpen || !deal) return null;
 
-  const addDealTag = (raw: string) => {
-    const next = normalizeTag(raw);
-    if (!next) return;
-    if (tagsLower.has(next.toLowerCase())) return;
-
-    const current = deal.tags || [];
-    const nextTags = [...current, next];
-    updateDeal(deal.id, { tags: nextTags });
-
-    // Persist new tag to Supabase catalog (if not already there)
-    if (!availableTagsLower.has(next.toLowerCase())) {
-      addCatalogTag(next);
-    }
-
-    setTagQuery('');
-  };
-
-  const removeDealTag = (tag: string) => {
-    const current = deal.tags || [];
-    const nextTags = current.filter(t => t !== tag);
-    updateDeal(deal.id, { tags: nextTags });
-  };
-
-  const tagSuggestions = (() => {
-    const q = normalizeTag(tagQuery);
-    if (!q) return [];
-    const qLower = q.toLowerCase();
-    return (availableTags || [])
-      .filter(t => !tagsLower.has(t.toLowerCase()))
-      .filter(t => t.toLowerCase().includes(qLower))
-      .slice(0, 8);
-  })();
+  // Tags/custom fields are now on the contact (read-only in deal view)
 
   const handleAnalyzeDeal = async () => {
     setIsAnalyzing(true);
@@ -382,10 +343,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
     }
   };
 
-  const updateCustomField = (key: string, value: string | number | boolean) => {
-    const updatedFields = { ...deal.customFields, [key]: value };
-    updateDeal(deal.id, { customFields: updatedFields });
-  };
+  // updateCustomField removed — custom fields moved to contact
 
   // dealActivities memoized above.
 
@@ -717,120 +675,48 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                 />
               </div>
 
-              {/* TAGS */}
+              {/* TAGS (read-only from contact) */}
               <div className="pt-4 border-t border-slate-100 dark:border-white/5">
                 <h3 className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
-                  <TagIcon size={14} /> Tags
+                  <TagIcon size={14} /> Tags do Contato
                 </h3>
 
                 <div className="flex flex-wrap gap-2">
-                  {(deal.tags || []).length === 0 ? (
+                  {(contact?.tags || []).length === 0 ? (
                     <p className="text-xs text-slate-500 italic">Sem tags.</p>
                   ) : (
-                    (deal.tags || []).map((tag) => (
+                    (contact?.tags || []).map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10"
+                        className="inline-flex items-center text-[11px] font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10"
                       >
                         {tag}
-                        <Button
-                          type="button"
-                          onClick={() => removeDealTag(tag)}
-                          className="ml-0.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400"
-                          aria-label={`Remover tag ${tag}`}
-                          title="Remover tag"
-                        >
-                          <X size={12} />
-                        </Button>
                       </span>
                     ))
                   )}
                 </div>
-
-                <div className="mt-3">
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">
-                    Adicionar tag
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={tagQuery}
-                      onChange={(e) => setTagQuery(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addDealTag(tagQuery);
-                        }
-                      }}
-                      placeholder="Ex: VIP, Urgente, Q4..."
-                      className="min-w-0 flex-1 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
-                      aria-label="Adicionar tag"
-                    />
-                    <Button
-                      type="button"
-                      onClick={() => addDealTag(tagQuery)}
-                      disabled={!normalizeTag(tagQuery)}
-                      className="shrink-0 h-10 w-10 inline-flex items-center justify-center rounded-lg bg-primary-600 hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
-                      aria-label="Adicionar tag"
-                      title="Adicionar tag"
-                    >
-                      <Plus size={18} aria-hidden="true" />
-                    </Button>
-                  </div>
-
-                  {(normalizeTag(tagQuery) && tagSuggestions.length > 0) && (
-                    <div className="mt-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg overflow-hidden">
-                      {tagSuggestions.map((t) => (
-                        <Button
-                          key={t}
-                          type="button"
-                          onClick={() => addDealTag(t)}
-                          className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-                        >
-                          {t}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <p className="mt-2 text-[10px] text-slate-400 italic">Edite tags no cockpit do contato.</p>
               </div>
 
-              {/* DYNAMIC CUSTOM FIELDS INPUTS */}
+              {/* CUSTOM FIELDS (read-only from contact) */}
               {customFieldDefinitions.length > 0 && (
                 <div className="pt-4 border-t border-slate-100 dark:border-white/5">
                   <h3 className="text-xs font-bold text-slate-400 uppercase mb-3">
-                    Campos Personalizados
+                    Campos Personalizados do Contato
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {customFieldDefinitions.map(field => (
-                      <div key={field.id}>
-                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                      <div key={field.id} className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                           {field.label}
-                        </label>
-                        {field.type === 'select' ? (
-                          <select
-                            value={deal.customFields?.[field.key] || ''}
-                            onChange={e => updateCustomField(field.key, e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded px-2 py-1.5 text-sm dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
-                          >
-                            <option value="">Selecione...</option>
-                            {field.options?.map(opt => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <input
-                            type={field.type}
-                            value={deal.customFields?.[field.key] || ''}
-                            onChange={e => updateCustomField(field.key, e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded px-2 py-1.5 text-sm dark:text-white focus:ring-1 focus:ring-primary-500 outline-none"
-                          />
-                        )}
+                        </span>
+                        <span className="text-xs text-slate-700 dark:text-slate-200 truncate text-right">
+                          {contact?.customFields?.[field.key] || '\u2014'}
+                        </span>
                       </div>
                     ))}
                   </div>
+                  <p className="mt-2 text-[10px] text-slate-400 italic">Edite campos no cockpit do contato.</p>
                 </div>
               )}
             </div>

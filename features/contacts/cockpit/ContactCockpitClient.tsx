@@ -7,6 +7,8 @@ import { useContact } from '@/lib/query/hooks/useContactsQuery';
 import { supabase } from '@/lib/supabase/client';
 import { contactPhonesService } from '@/lib/supabase/contacts';
 import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
+import { useTags } from '@/hooks/useTags';
+import { useSettingsController } from '@/features/settings/hooks/useSettingsController';
 import { Button } from '@/app/components/ui/Button';
 import { Chip } from '@/features/deals/cockpit/cockpit-ui';
 import { formatCurrencyBRL } from '@/features/deals/cockpit/cockpit-utils';
@@ -62,6 +64,8 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
   const router = useRouter();
   const { data: contact, isLoading, refetch: refetchContact } = useContact(contactId);
   const updateContactMutation = useUpdateContact();
+  const { tags: availableTags, addTag: addCatalogTag } = useTags();
+  const { customFieldDefinitions } = useSettingsController();
 
   // ---- Parallel data state ----
   const [phones, setPhones] = useState<ContactPhone[]>([]);
@@ -183,6 +187,54 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
     setNotes((data as DealNote[]) || []);
     setIsNotesLoading(false);
   }, [deals]);
+
+  // ---- Tag handlers ----
+  const handleAddTag = useCallback(
+    async (tag: string) => {
+      if (!contact) return;
+      const currentTags = contact.tags || [];
+      const nextTags = [...currentTags, tag];
+      try {
+        await updateContactMutation.mutateAsync({ id: contact.id, updates: { tags: nextTags } });
+        // Also persist to catalog
+        addCatalogTag(tag);
+        refetchContact();
+      } catch (e) {
+        console.error('Failed to add tag:', e);
+      }
+    },
+    [contact, refetchContact, updateContactMutation, addCatalogTag]
+  );
+
+  const handleRemoveTag = useCallback(
+    async (tag: string) => {
+      if (!contact) return;
+      const currentTags = contact.tags || [];
+      const nextTags = currentTags.filter(t => t !== tag);
+      try {
+        await updateContactMutation.mutateAsync({ id: contact.id, updates: { tags: nextTags } });
+        refetchContact();
+      } catch (e) {
+        console.error('Failed to remove tag:', e);
+      }
+    },
+    [contact, refetchContact, updateContactMutation]
+  );
+
+  // ---- Custom field handler ----
+  const handleUpdateCustomField = useCallback(
+    async (key: string, value: string) => {
+      if (!contact) return;
+      const updatedFields = { ...(contact.customFields || {}), [key]: value };
+      try {
+        await updateContactMutation.mutateAsync({ id: contact.id, updates: { customFields: updatedFields } });
+        refetchContact();
+      } catch (e) {
+        console.error('Failed to update custom field:', e);
+      }
+    },
+    [contact, refetchContact, updateContactMutation]
+  );
 
   // ---- Stage change (AC 10) ----
   const handleStageChange = useCallback(
@@ -464,6 +516,11 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
             contact={contact}
             phones={phones}
             preferences={preferences}
+            availableTags={availableTags}
+            customFieldDefinitions={customFieldDefinitions}
+            onAddTag={handleAddTag}
+            onRemoveTag={handleRemoveTag}
+            onUpdateCustomField={handleUpdateCustomField}
           />
 
           {/* Center — Timeline (AC 3, AC 4) */}

@@ -106,6 +106,8 @@ export const useDealsView = (filters?: DealsFilters) => {
           ...deal,
           contactName: contact?.name || 'Sem contato',
           contactEmail: contact?.email || '',
+          contactTags: contact?.tags || [],
+          contactCustomFields: contact?.customFields || {},
           stageLabel: stageMap.get(deal.status) || 'Estágio não identificado',
         };
       });
@@ -193,6 +195,8 @@ export const useDealsByBoard = (boardId: string) => {
           ...deal,
           contactName: contact?.name || 'Sem contato',
           contactEmail: contact?.email || '',
+          contactTags: contact?.tags || [],
+          contactCustomFields: contact?.customFields || {},
           stageLabel: stageMap.get(deal.status) || 'Estágio não identificado',
         };
       });
@@ -257,6 +261,8 @@ export const useCreateDeal = () => {
         contactName: '',
         contactEmail: '',
         contactPhone: '',
+        contactTags: [],
+        contactCustomFields: {},
         stageLabel: '',
       } as DealView;
 
@@ -276,6 +282,8 @@ export const useCreateDeal = () => {
         contactName: '',
         contactEmail: '',
         contactPhone: '',
+        contactTags: [],
+        contactCustomFields: {},
         stageLabel: '',
       } as DealView;
       

@@ -170,9 +170,7 @@ export const useMoveDeal = () => {
                 ownerId: deal.ownerId,
                 owner: deal.owner || { name: 'Unknown', avatar: '' },
                 items: deal.items || [],
-                tags: deal.tags || [],
-                // Rastreabilidade (ajuda também a prevenir duplicidade no futuro)
-                customFields: {
+                metadata: {
                   originDealId: deal.id,
                   originBoardId: board.id,
                   originAutomation: 'NEXT_BOARD',

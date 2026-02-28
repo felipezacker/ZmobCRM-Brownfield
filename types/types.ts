@@ -192,6 +192,10 @@ export interface Contact {
 
   // Story 3.8 — Lead Scoring
   leadScore?: number; // Score 0-100 calculado automaticamente
+
+  // Tags & Custom Fields (migrado de Deal para Contact)
+  tags?: string[];
+  customFields?: Record<string, any>;
 }
 
 // Telefone de contato (tabela contact_phones)
@@ -266,9 +270,9 @@ export interface Deal {
     date: string;
     isOverdue?: boolean;
   };
-  tags: string[];
   aiSummary?: string;
-  customFields?: Record<string, any>; // Dynamic fields storage
+  /** Metadados internos do deal (checklist, rastreabilidade, etc.) — não é user-facing. */
+  metadata?: Record<string, unknown>;
   lastStageChangeDate?: string; // For stagnation tracking
   lossReason?: string; // For win/loss analysis
   dealType?: 'VENDA' | 'LOCACAO' | 'PERMUTA'; // Tipo da transação imobiliária
@@ -280,6 +284,10 @@ export interface Deal {
 export interface DealView extends Deal {
   contactName: string;
   contactEmail: string;
+  /** Tags do contato vinculado (read-only no deal). */
+  contactTags: string[];
+  /** Campos customizados do contato vinculado (read-only no deal). */
+  contactCustomFields: Record<string, any>;
   /** Nome/label do estágio atual (resolvido a partir do status UUID) */
   stageLabel: string;
 }

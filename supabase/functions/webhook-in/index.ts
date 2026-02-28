@@ -357,8 +357,7 @@ Deno.serve(async (req) => {
         stage_id: source.entry_stage_id,
         contact_id: contactId,
         last_stage_change_date: new Date().toISOString(),
-        tags: ["Novo"],
-        custom_fields: {
+        metadata: {
           inbound_source_id: source.id,
           inbound_external_event_id: externalEventId,
         },

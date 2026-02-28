@@ -107,12 +107,10 @@ export interface DbDeal {
   ai_summary: string | null;
   /** Motivo da perda, se aplicável. */
   loss_reason: string | null;
-  /** Tags associadas. */
-  tags: string[];
+  /** Metadados internos (checklist, rastreabilidade, etc.). */
+  metadata: Record<string, unknown>;
   /** Data da última mudança de estágio. */
   last_stage_change_date: string | null;
-  /** Campos customizados. */
-  custom_fields: Record<string, any>;
   /** Data de criação. */
   created_at: string;
   /** Data de atualização. */
@@ -198,9 +196,8 @@ export const transformDeal = (db: DbDeal | DbDealWithItems, items?: DbDealItem[]
     contactId: db.contact_id || '',
     aiSummary: db.ai_summary || undefined,
     lossReason: db.loss_reason || undefined,
-    tags: db.tags || [],
+    metadata: db.metadata || {},
     lastStageChangeDate: db.last_stage_change_date || undefined,
-    customFields: db.custom_fields || {},
     createdAt: db.created_at,
     updatedAt: db.updated_at,
     items: filteredItems.map(i => ({
@@ -247,9 +244,8 @@ export const transformDealToDb = (deal: Partial<Deal>): Partial<DbDeal> => {
   if (deal.contactId !== undefined) db.contact_id = sanitizeUUID(deal.contactId);
   if (deal.aiSummary !== undefined) db.ai_summary = deal.aiSummary || null;
   if (deal.lossReason !== undefined) db.loss_reason = deal.lossReason || null;
-  if (deal.tags !== undefined) db.tags = deal.tags;
+  if (deal.metadata !== undefined) db.metadata = deal.metadata;
   if (deal.lastStageChangeDate !== undefined) db.last_stage_change_date = deal.lastStageChangeDate || null;
-  if (deal.customFields !== undefined) db.custom_fields = deal.customFields;
   if (deal.ownerId !== undefined) db.owner_id = sanitizeUUID(deal.ownerId);
   if (deal.dealType !== undefined) db.deal_type = deal.dealType || 'VENDA';
   if (deal.expectedCloseDate !== undefined) db.expected_close_date = deal.expectedCloseDate || null;
@@ -414,8 +410,6 @@ export const dealsService = {
         board_id: boardId,
         stage_id: sanitizeUUID(stageId),
         contact_id: sanitizeUUID(deal.contactId),
-        tags: deal.tags || [],
-        custom_fields: deal.customFields || {},
         owner_id: sanitizeUUID(deal.ownerId),
         // Importante: deals legados podem ficar com is_won/is_lost = NULL se o schema
         // estiver permissivo ou se defaults não estiverem aplicados. Forçamos valores
@@ -426,6 +420,7 @@ export const dealsService = {
         deal_type: deal.dealType || 'VENDA',
         expected_close_date: deal.expectedCloseDate || null,
         commission_rate: deal.commissionRate ?? null,
+        metadata: deal.metadata || {},
       };
 
       const { data, error } = await supabase

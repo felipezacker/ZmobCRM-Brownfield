@@ -768,9 +768,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
       owner: selectedDeal.owner,
       ownerId: selectedDeal.ownerId,
       nextActivity: selectedDeal.nextActivity,
-      tags: selectedDeal.tags,
+      contactTags: selectedDeal.contactTags || [],
       items: selectedDeal.items,
-      customFields: selectedDeal.customFields,
+      contactCustomFields: selectedDeal.contactCustomFields || {},
       lastStageChangeDate: selectedDeal.lastStageChangeDate,
       lossReason: selectedDeal.lossReason,
       createdAt: selectedDeal.createdAt,
@@ -1024,11 +1024,11 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
   );
 
   const loadChecklistFromDeal = useCallback(() => {
-    const raw = (selectedDeal?.customFields as any)?.cockpitChecklist;
+    const raw = (selectedDeal?.metadata as any)?.cockpitChecklist;
     const parsed = normalizeChecklist(raw);
     setChecklist(parsed ?? defaultChecklist);
     setChecklistDraft('');
-  }, [defaultChecklist, normalizeChecklist, selectedDeal?.customFields]);
+  }, [defaultChecklist, normalizeChecklist, selectedDeal?.metadata]);
 
   useEffect(() => {
     loadChecklistFromDeal();
@@ -1038,12 +1038,8 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
     async (next: ChecklistItem[]) => {
       if (!selectedDeal) return;
       setChecklist(next);
-
-      const nextCustomFields = {
-        ...(selectedDeal.customFields ?? {}),
-        cockpitChecklist: next,
-      };
-      await updateDeal(selectedDeal.id, { customFields: nextCustomFields });
+      const nextMetadata = { ...(selectedDeal.metadata ?? {}), cockpitChecklist: next };
+      await updateDeal(selectedDeal.id, { metadata: nextMetadata });
     },
     [selectedDeal, updateDeal]
   );

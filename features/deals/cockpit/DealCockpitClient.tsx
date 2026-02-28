@@ -289,8 +289,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
         id: selectedDeal.id, title: selectedDeal.title, value: selectedDeal.value, status: selectedDeal.status,
         isWon: selectedDeal.isWon, isLost: selectedDeal.isLost, probability: selectedDeal.probability,
         priority: selectedDeal.priority, owner: selectedDeal.owner, ownerId: selectedDeal.ownerId,
-        nextActivity: selectedDeal.nextActivity, tags: selectedDeal.tags, items: selectedDeal.items,
-        customFields: selectedDeal.customFields, lastStageChangeDate: selectedDeal.lastStageChangeDate,
+        nextActivity: selectedDeal.nextActivity, contactTags: selectedDeal.contactTags, items: selectedDeal.items,
+        contactCustomFields: selectedDeal.contactCustomFields, lastStageChangeDate: selectedDeal.lastStageChangeDate,
         lossReason: selectedDeal.lossReason, createdAt: selectedDeal.createdAt, updatedAt: selectedDeal.updatedAt,
         stageLabel: selectedDeal.stageLabel,
       },
@@ -385,18 +385,18 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   }, []);
 
   const loadChecklistFromDeal = useCallback(() => {
-    const raw = (selectedDeal?.customFields as any)?.cockpitChecklist;
+    const raw = (selectedDeal?.metadata as any)?.cockpitChecklist;
     const parsed = normalizeChecklist(raw);
     setChecklist(parsed ?? defaultChecklist);
-  }, [defaultChecklist, normalizeChecklist, selectedDeal?.customFields]);
+  }, [defaultChecklist, normalizeChecklist, selectedDeal?.metadata]);
 
   useEffect(() => { loadChecklistFromDeal(); }, [loadChecklistFromDeal, selectedDeal?.id]);
 
   const persistChecklist = useCallback(async (next: ChecklistItem[]) => {
     if (!selectedDeal) return;
     setChecklist(next);
-    const nextCustomFields = { ...(selectedDeal.customFields ?? {}), cockpitChecklist: next };
-    try { await updateDeal(selectedDeal.id, { customFields: nextCustomFields }); }
+    const nextMetadata = { ...(selectedDeal.metadata ?? {}), cockpitChecklist: next };
+    try { await updateDeal(selectedDeal.id, { metadata: nextMetadata }); }
     catch (e) { pushToast(errorMessage(e, 'Não foi possível salvar o checklist.'), 'danger'); }
   }, [pushToast, selectedDeal, updateDeal]);
 

@@ -51,6 +51,7 @@ export function useSettingsController() {
       .from('custom_field_definitions')
       .select('*')
       .eq('organization_id', organizationId)
+      .eq('entity_type', 'contact')
       .then(({ data }) => {
         if (data) setCustomFieldDefinitions(data as CustomFieldDefinition[]);
       });
@@ -97,7 +98,7 @@ export function useSettingsController() {
       const key = label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
       const { data, error } = await supabase
         .from('custom_field_definitions')
-        .insert({ key, label, type: newFieldType, options, organization_id: organizationId })
+        .insert({ key, label, type: newFieldType, options, organization_id: organizationId, entity_type: 'contact' })
         .select()
         .single();
       if (!error && data) {
