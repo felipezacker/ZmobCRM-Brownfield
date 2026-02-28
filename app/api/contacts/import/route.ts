@@ -298,6 +298,21 @@ export async function POST(req: Request) {
 
     const supabase = await createClient();
 
+    // Get authenticated user's organization_id for RLS compliance
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Usuário não autenticado.' }, { status: 401 });
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+    if (!profile?.organization_id) {
+      return NextResponse.json({ error: 'Perfil sem organização associada.' }, { status: 400 });
+    }
+    const organizationId = profile.organization_id;
+
     // Existing contacts by email (batch)
     const emails = Array.from(
       new Set(
@@ -364,6 +379,7 @@ export async function POST(req: Request) {
         notes: p.data.notes || null,
         status: p.data.status || 'ACTIVE',
         stage: p.data.stage || 'LEAD',
+        organization_id: organizationId,
         updated_at: new Date().toISOString(),
       };
       // Epic 3 imob fields — only include if present in CSV
