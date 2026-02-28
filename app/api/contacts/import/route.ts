@@ -96,6 +96,42 @@ function buildHeaderIndex(headers: string[]) {
   return mapping;
 }
 
+const CRM_TO_PARSED: Record<string, keyof ParsedRow> = {
+  name: 'name',
+  email: 'email',
+  phone: 'phone',
+  cpf: 'cpf',
+  contact_type: 'contactType',
+  classification: 'classification',
+  temperature: 'temperature',
+  status: 'status',
+  stage: 'stage',
+  source: 'source',
+  address_cep: 'addressCep',
+  address_city: 'addressCity',
+  address_state: 'addressState',
+  birth_date: 'birthDate',
+  notes: 'notes',
+};
+
+function buildManualMapping(manualMap: Record<string, string>): Record<keyof ParsedRow, number | undefined> {
+  const mapping: Record<keyof ParsedRow, number | undefined> = {
+    name: undefined, firstName: undefined, lastName: undefined,
+    email: undefined, phone: undefined, status: undefined,
+    stage: undefined, notes: undefined, cpf: undefined,
+    contactType: undefined, classification: undefined,
+    temperature: undefined, addressCep: undefined,
+    addressCity: undefined, addressState: undefined,
+    birthDate: undefined, source: undefined, leadScore: undefined,
+  };
+  for (const [colIdx, crmField] of Object.entries(manualMap)) {
+    if (crmField === '_ignore') continue;
+    const parsedKey = CRM_TO_PARSED[crmField];
+    if (parsedKey) mapping[parsedKey] = parseInt(colIdx, 10);
+  }
+  return mapping;
+}
+
 function getCell(row: string[], idx: number | undefined): string | undefined {
   if (idx === undefined) return undefined;
   const v = row[idx];
@@ -170,26 +206,42 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Arquivo CSV não enviado (field "file").' }, { status: 400 });
     }
 
+    const columnMappingRaw = form.get('columnMapping');
+    const ignoreHeader = form.get('ignoreHeader') === 'true';
+
     const text = await file.text();
     const delimiter: CsvDelimiter =
       delimiterRaw === ',' || delimiterRaw === ';' || delimiterRaw === '\t'
         ? (delimiterRaw as CsvDelimiter)
         : detectCsvDelimiter(text);
 
-    const { headers, rows } = parseCsv(text, delimiter);
-    if (!headers.length) {
-      return NextResponse.json({ error: 'CSV sem cabeçalho.' }, { status: 400 });
+    let { headers, rows } = parseCsv(text, delimiter);
+
+    if (ignoreHeader) {
+      // First line was parsed as header but is actually data — prepend it back
+      rows = [headers, ...rows];
+      headers = [];
     }
 
-    const mapping = buildHeaderIndex(headers);
+    let mapping: Record<keyof ParsedRow, number | undefined>;
+    if (columnMappingRaw) {
+      const manualMap = JSON.parse(String(columnMappingRaw)) as Record<string, string>;
+      mapping = buildManualMapping(manualMap);
+    } else {
+      if (!headers.length) {
+        return NextResponse.json({ error: 'CSV sem cabeçalho. Use mapeamento manual.' }, { status: 400 });
+      }
+      mapping = buildHeaderIndex(headers);
+    }
 
     // Parse rows
     const parsed: Array<{ rowNumber: number; data: ParsedRow }> = [];
     const errors: Array<{ rowNumber: number; message: string }> = [];
+    const dataRowOffset = ignoreHeader ? 1 : 2; // row number in original file
 
     for (let i = 0; i < rows.length; i += 1) {
       const r = rows[i];
-      const rowNumber = i + 2; // +1 header, +1 1-indexed
+      const rowNumber = i + dataRowOffset;
 
       const firstName = getCell(r, mapping.firstName);
       const lastName = getCell(r, mapping.lastName);
