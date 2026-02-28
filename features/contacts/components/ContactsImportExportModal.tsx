@@ -199,6 +199,17 @@ export function ContactsImportExportModal(props: {
     return used;
   }, [columnMapping]);
 
+  // Computed: detect duplicate CRM field selections
+  const hasDuplicates = useMemo(() => {
+    const seen = new Set<string>();
+    for (const field of Object.values(columnMapping)) {
+      if (field === '_ignore') continue;
+      if (seen.has(field)) return true;
+      seen.add(field);
+    }
+    return false;
+  }, [columnMapping]);
+
   // Computed: mapped fields summary for confirm step
   const mappedFieldsSummary = useMemo(() => {
     return Object.entries(columnMapping)
@@ -628,9 +639,9 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={() => setWizardStep('confirm')}
-                  disabled={mappedFieldsSummary.length === 0}
+                  disabled={mappedFieldsSummary.length === 0 || hasDuplicates}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
-                    mappedFieldsSummary.length === 0
+                    mappedFieldsSummary.length === 0 || hasDuplicates
                       ? 'bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed'
                       : 'bg-primary-600 hover:bg-primary-700 text-white'
                   }`}

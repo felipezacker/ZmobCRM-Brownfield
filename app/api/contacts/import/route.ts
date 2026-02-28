@@ -225,7 +225,12 @@ export async function POST(req: Request) {
 
     let mapping: Record<keyof ParsedRow, number | undefined>;
     if (columnMappingRaw) {
-      const manualMap = JSON.parse(String(columnMappingRaw)) as Record<string, string>;
+      let manualMap: Record<string, string>;
+      try {
+        manualMap = JSON.parse(String(columnMappingRaw)) as Record<string, string>;
+      } catch {
+        return NextResponse.json({ error: 'columnMapping JSON inválido.' }, { status: 400 });
+      }
       mapping = buildManualMapping(manualMap);
     } else {
       if (!headers.length) {
