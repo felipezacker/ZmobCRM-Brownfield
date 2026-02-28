@@ -182,14 +182,15 @@ export async function scanDuplicates(orgId: string): Promise<{
     const groups: DuplicateGroup[] = [];
     const seenKeys = new Set<string>();
 
-    // 1. Duplicatas por email
+    // 1. Duplicatas por email — select only needed columns, limit to 5000
     const { data: allContacts, error: err1 } = await supabase
       .from('contacts')
-      .select('*')
+      .select('id, name, email, phone, cpf, stage, status, temperature, classification, contact_type, source, avatar, owner_id, created_at, organization_id')
       .eq('organization_id', orgId)
       .is('deleted_at', null)
       .not('email', 'is', null)
-      .order('email');
+      .order('email')
+      .limit(5000);
 
     if (!err1 && allContacts) {
       const emailMap = new Map<string, Contact[]>();
@@ -212,14 +213,15 @@ export async function scanDuplicates(orgId: string): Promise<{
       }
     }
 
-    // 2. Duplicatas por CPF
+    // 2. Duplicatas por CPF — select only needed columns, limit to 5000
     const { data: cpfContacts, error: err2 } = await supabase
       .from('contacts')
-      .select('*')
+      .select('id, name, email, phone, cpf, stage, status, temperature, classification, contact_type, source, avatar, owner_id, created_at, organization_id')
       .eq('organization_id', orgId)
       .is('deleted_at', null)
       .not('cpf', 'is', null)
-      .order('cpf');
+      .order('cpf')
+      .limit(5000);
 
     if (!err2 && cpfContacts) {
       const cpfMap = new Map<string, Contact[]>();
@@ -276,7 +278,7 @@ export async function scanDuplicates(orgId: string): Promise<{
       if (allPhoneContactIds.size > 0) {
         const { data: contactsData } = await supabase
           .from('contacts')
-          .select('*')
+          .select('id, name, email, phone, cpf, stage, status, temperature, classification, contact_type, source, avatar, owner_id, created_at, organization_id')
           .in('id', [...allPhoneContactIds])
           .is('deleted_at', null);
 

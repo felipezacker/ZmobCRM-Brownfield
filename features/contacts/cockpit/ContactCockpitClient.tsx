@@ -104,7 +104,7 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
     let cancelled = false;
 
     const loadAll = async () => {
-      const [phonesResult, prefResult, dealsResult, scoreHistoryResult] = await Promise.all([
+      const results = await Promise.allSettled([
         contactPhonesService.getByContactId(contactId),
         contactPreferencesService.getByContactId(contactId),
         supabase
@@ -123,11 +123,16 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
 
       if (cancelled) return;
 
+      const phonesResult = results[0].status === 'fulfilled' ? results[0].value : { data: [] };
+      const prefResult = results[1].status === 'fulfilled' ? results[1].value : { data: [] };
+      const dealsResult = results[2].status === 'fulfilled' ? results[2].value : { data: [] };
+      const scoreHistoryResult = results[3].status === 'fulfilled' ? results[3].value : { data: [] };
+
       setPhones(phonesResult.data || []);
 
       // preferences returns an array; take first if exists
       const prefArray = prefResult.data;
-      setPreferences(prefArray && prefArray.length > 0 ? prefArray[0] : null);
+      setPreferences(prefArray && (prefArray as any[]).length > 0 ? (prefArray as any[])[0] : null);
 
       const fetchedDeals = (dealsResult?.data as Deal[]) || [];
       setDeals(fetchedDeals);
@@ -137,7 +142,7 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
       // Fetch activities for linked deals + notes
       const dealIds = fetchedDeals.map((d) => d.id);
 
-      const [activitiesResult, notesResult] = await Promise.all([
+      const secondaryResults = await Promise.allSettled([
         dealIds.length > 0
           ? supabase
               .from('activities')
@@ -157,6 +162,9 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
       ]);
 
       if (cancelled) return;
+
+      const activitiesResult = secondaryResults[0].status === 'fulfilled' ? secondaryResults[0].value : { data: [] };
+      const notesResult = secondaryResults[1].status === 'fulfilled' ? secondaryResults[1].value : { data: [] };
 
       setActivities((activitiesResult?.data as Activity[]) || []);
       setNotes((notesResult?.data as DealNote[]) || []);

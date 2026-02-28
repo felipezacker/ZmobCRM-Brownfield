@@ -246,6 +246,28 @@ export const contactsService = {
   },
 
   /**
+   * Busca um contato por ID.
+   */
+  async getById(id: string): Promise<{ data: Contact | null; error: Error | null }> {
+    try {
+      if (!supabase) return { data: null, error: new Error('Supabase não configurado') };
+      if (!id) return { data: null, error: new Error('ID obrigatório') };
+
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', id)
+        .is('deleted_at', null)
+        .single();
+
+      if (error) return { data: null, error };
+      return { data: transformContact(data as DbContact), error: null };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
    * Busca contatos por uma lista de IDs.
    * Otimizado para buscar apenas os contatos necessários.
    *

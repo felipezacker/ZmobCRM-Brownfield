@@ -247,34 +247,50 @@ export async function generateScoreDropNotifications(
     const sb = client || supabase;
     if (!sb) return { count: 0, error: new Error('Supabase nao configurado') };
 
-    // Busca notificacoes anteriores de score para comparar
-    // Score drop e detectado comparando score atual com ultimo score notificado
-    // Para simplificar (sem historico de score), buscamos contatos com score baixo (< 30)
-    // que tiveram notificacao de score acima previamente, ou contatos com score que caiu
-    // Abordagem: contatos com lead_score baixo (< 30) que tem deals ativos (indicando engajamento previo)
-    const { data: contacts, error } = await sb
-      .from('contacts')
-      .select('id, name, lead_score, owner_id')
+    // Use lead_score_history to detect actual drops (>= 20 points) in the last 24h
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: recentDrops, error } = await sb
+      .from('lead_score_history')
+      .select('contact_id, old_score, new_score, change')
       .eq('organization_id', orgId)
-      .is('deleted_at', null)
-      .lt('lead_score', 30)
-      .gt('lead_score', 0)
-      .limit(1000);
+      .lt('change', -19) // drops of 20+ points
+      .gte('created_at', oneDayAgo)
+      .limit(500);
 
     if (error) return { count: 0, error };
 
-    // Sem historico de score, geramos alerta para contatos com score baixo
-    // que nunca receberam este alerta hoje
+    // Deduplicate by contact_id (keep biggest drop)
+    const dropByContact = new Map<string, { old_score: number; new_score: number; change: number }>();
+    for (const row of recentDrops || []) {
+      const existing = dropByContact.get(row.contact_id);
+      if (!existing || row.change < existing.change) {
+        dropByContact.set(row.contact_id, row);
+      }
+    }
+
+    if (dropByContact.size === 0) return { count: 0, error: null };
+
+    // Fetch contact names for notification text
+    const contactIds = [...dropByContact.keys()];
+    const { data: contacts } = await sb
+      .from('contacts')
+      .select('id, name, owner_id')
+      .in('id', contactIds)
+      .is('deleted_at', null);
+
     let created = 0;
     for (const contact of contacts || []) {
+      const drop = dropByContact.get(contact.id);
+      if (!drop) continue;
+
       const exists = await notificationExistsToday(sb, orgId, 'SCORE_DROP', contact.id);
       if (exists) continue;
 
       await sb.from('notifications').insert({
         organization_id: orgId,
         type: 'SCORE_DROP',
-        title: `Lead score de ${contact.name} esta baixo`,
-        description: `Score atual: ${contact.lead_score}/100. Considere reengajar este contato.`,
+        title: `Lead score de ${contact.name} caiu ${Math.abs(drop.change)} pontos`,
+        description: `Score: ${drop.old_score} → ${drop.new_score}. Considere reengajar este contato.`,
         contact_id: contact.id,
         owner_id: contact.owner_id,
       });

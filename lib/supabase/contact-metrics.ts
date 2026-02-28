@@ -64,6 +64,8 @@ export async function getNewContactsByPeriod(
     const sb = client || supabase;
     if (!sb) return { data: [], error: new Error('Supabase nao configurado') };
 
+    // Use count with head=true per month would be ideal but PostgREST doesn't support GROUP BY.
+    // Instead, fetch only the created_at column (minimal payload) with a safety limit.
     const { data, error } = await sb
       .from('contacts')
       .select('created_at')
@@ -71,14 +73,15 @@ export async function getNewContactsByPeriod(
       .is('deleted_at', null)
       .gte('created_at', startDate)
       .lte('created_at', endDate)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .limit(50000);
 
     if (error) return { data: [], error };
 
-    // Group by month client-side
+    // Group by month client-side (only created_at was fetched, minimal memory)
     const grouped: Record<string, number> = {};
     for (const c of data || []) {
-      const month = c.created_at.substring(0, 7); // YYYY-MM
+      const month = (c.created_at as string).substring(0, 7); // YYYY-MM
       grouped[month] = (grouped[month] || 0) + 1;
     }
 
@@ -108,7 +111,8 @@ export async function getContactsBySource(
       .eq('organization_id', orgId)
       .is('deleted_at', null)
       .gte('created_at', startDate)
-      .lte('created_at', endDate);
+      .lte('created_at', endDate)
+      .limit(50000);
 
     if (error) return { data: [], error };
 
@@ -145,7 +149,8 @@ export async function getConversionFunnel(
       .from('contacts')
       .select('stage')
       .eq('organization_id', orgId)
-      .is('deleted_at', null);
+      .is('deleted_at', null)
+      .limit(50000);
 
     if (error) return { data: [], error };
 
@@ -215,7 +220,8 @@ export async function getDistribution(
       .from('contacts')
       .select('classification, temperature')
       .eq('organization_id', orgId)
-      .is('deleted_at', null);
+      .is('deleted_at', null)
+      .limit(50000);
 
     if (error) return { data: { byClassification: [], byTemperature: [] }, error };
 
@@ -264,12 +270,13 @@ export async function getBrokerPerformance(
 
     if (profErr) return { data: [], error: profErr };
 
-    // Get contacts per owner
+    // Get contacts per owner (minimal columns)
     const { data: contacts, error: conErr } = await sb
       .from('contacts')
-      .select('owner_id, total_value')
+      .select('owner_id')
       .eq('organization_id', orgId)
-      .is('deleted_at', null);
+      .is('deleted_at', null)
+      .limit(50000);
 
     if (conErr) return { data: [], error: conErr };
 

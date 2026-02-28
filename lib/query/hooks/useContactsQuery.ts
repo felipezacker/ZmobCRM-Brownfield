@@ -99,9 +99,9 @@ export const useContact = (id: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.contacts.detail(id || ''),
     queryFn: async () => {
-      const { data, error } = await contactsService.getAll();
+      const { data, error } = await contactsService.getById(id!);
       if (error) throw error;
-      return (data || []).find(c => c.id === id) || null;
+      return data;
     },
     enabled: !authLoading && !!user && !!id,
   });
@@ -589,9 +589,9 @@ export const usePrefetchContact = () => {
     await queryClient.prefetchQuery({
       queryKey: queryKeys.contacts.detail(id),
       queryFn: async () => {
-        const { data, error } = await contactsService.getAll();
+        const { data, error } = await contactsService.getById(id);
         if (error) throw error;
-        return (data || []).find(c => c.id === id) || null;
+        return data;
       },
       staleTime: 5 * 60 * 1000,
     });
