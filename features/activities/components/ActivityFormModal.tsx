@@ -101,13 +101,13 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
 
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-              Negócio Relacionado
+              Negócio Relacionado{formData.type === 'TASK' ? ' (opcional)' : ''}
             </label>
             <DealSearchCombobox
               deals={deals}
               selectedDealId={formData.dealId}
               onSelect={(dealId) => setFormData({ ...formData, dealId })}
-              required={!editingActivity}
+              required={!editingActivity && formData.type !== 'TASK'}
             />
           </div>
 
