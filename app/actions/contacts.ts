@@ -58,7 +58,12 @@ export async function createContact(
       .single()
 
     if (error) return { data: null, error: error.message }
-    return { data: transformContact(data as DbContact), error: null }
+
+    // Story 3.8 — calculate lead score before returning so the UI shows it immediately
+    const { score } = await recalculateScore(data.id, profile.organization_id, supabase)
+    const contactData = { ...data, lead_score: score } as DbContact
+
+    return { data: transformContact(contactData), error: null }
   } catch (e) {
     return { data: null, error: (e as Error).message }
   }
@@ -67,7 +72,7 @@ export async function createContact(
 export async function updateContact(
   id: string,
   updates: Partial<Contact>
-): Promise<{ error: string | null }> {
+): Promise<{ error: string | null; leadScore?: number }> {
   try {
     const supabase = await createClient()
     const dbUpdates = transformContactToDb(updates)
@@ -78,19 +83,22 @@ export async function updateContact(
       .update(dbUpdates)
       .eq('id', id)
 
-    // Story 3.8 — fire-and-forget lead score recalculation on relevant changes
-    if (!error && (updates.temperature !== undefined || updates.stage !== undefined || updates.totalValue !== undefined)) {
-      const { data: contact } = await supabase
-        .from('contacts')
-        .select('organization_id')
-        .eq('id', id)
-        .single()
-      if (contact?.organization_id) {
-        recalculateScore(id, contact.organization_id, supabase).catch(() => {})
-      }
+    if (error) return { error: error.message }
+
+    // Story 3.8 — recalculate lead score synchronously so UI updates immediately
+    const { data: contact } = await supabase
+      .from('contacts')
+      .select('organization_id')
+      .eq('id', id)
+      .single()
+
+    let leadScore: number | undefined
+    if (contact?.organization_id) {
+      const { score } = await recalculateScore(id, contact.organization_id, supabase)
+      leadScore = score
     }
 
-    return { error: error?.message ?? null }
+    return { error: null, leadScore }
   } catch (e) {
     return { error: (e as Error).message }
   }

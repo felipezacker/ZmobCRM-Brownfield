@@ -313,9 +313,9 @@ export const useUpdateContact = () => {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Contact> }) => {
-      const { error } = await updateContactAction(id, updates);
+      const { error, leadScore } = await updateContactAction(id, updates);
       if (error) throw new Error(error);
-      return { id, updates };
+      return { id, updates, leadScore };
     },
     onMutate: async ({ id, updates }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.contacts.all });
@@ -352,6 +352,22 @@ export const useUpdateContact = () => {
         }
       }
     },
+    onSuccess: (data) => {
+      if (data.leadScore !== undefined) {
+        const scoreUpdate = { leadScore: data.leadScore };
+        queryClient.setQueryData<Contact[]>(queryKeys.contacts.lists(), (old = []) =>
+          old.map(c => (c.id === data.id ? { ...c, ...scoreUpdate } : c))
+        );
+        const queries = queryClient.getQueriesData<PaginatedResponse<Contact>>({ queryKey: queryKeys.contacts.all });
+        for (const [key, qData] of queries) {
+          if (!Array.isArray(key) || key[1] !== 'paginated' || !qData) continue;
+          queryClient.setQueryData<PaginatedResponse<Contact>>(key, (old) => {
+            if (!old) return old;
+            return { ...old, data: old.data.map(c => (c.id === data.id ? { ...c, ...scoreUpdate } : c)) };
+          });
+        }
+      }
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all });
     },
@@ -366,9 +382,9 @@ export const useUpdateContactStage = () => {
 
   return useMutation({
     mutationFn: async ({ id, stage }: { id: string; stage: string }) => {
-      const { error } = await updateContactAction(id, { stage } as Partial<Contact>);
+      const { error, leadScore } = await updateContactAction(id, { stage } as Partial<Contact>);
       if (error) throw new Error(error);
-      return { id, stage };
+      return { id, stage, leadScore };
     },
     onMutate: async ({ id, stage }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.contacts.all });

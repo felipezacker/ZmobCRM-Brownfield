@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/context/ToastContext';
-import { Contact, ContactStage, PaginationState, ContactsServerFilters, DEFAULT_PAGE_SIZE, ContactSortableColumn } from '@/types';
+import { Contact, ContactStage, ContactPreference, PaginationState, ContactsServerFilters, DEFAULT_PAGE_SIZE, ContactSortableColumn } from '@/types';
 import {
   useContactsPaginated,
   useContactStageCounts,
@@ -17,6 +17,7 @@ import { useBoards } from '@/lib/query/hooks/useBoardsQuery';
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { contactPhonesService } from '@/lib/supabase/contacts';
+import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
 import { supabase } from '@/lib/supabase/client';
 import { generateFakeContacts } from '@/lib/debug';
 import { useReassignContactWithDeals } from '@/hooks/useReassignContactWithDeals';
@@ -262,6 +263,8 @@ export const useContactsController = () => {
   // CRUD State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  // Buffered preferences ref — shared with ContactPreferencesSection during creation
+  const bufferedPrefsRef = useRef<ContactPreference[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteWithDeals, setDeleteWithDeals] = useState<{ id: string; dealCount: number; deals: Array<{ id: string; title: string }> } | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
@@ -296,6 +299,7 @@ export const useContactsController = () => {
   const openCreateModal = () => {
     setEditingContact(null);
     setFormData(emptyFormData);
+    bufferedPrefsRef.current = [];
     setIsModalOpen(true);
   };
 
@@ -458,12 +462,8 @@ export const useContactsController = () => {
     const normalizedPhone = normalizePhoneE164(formData.phone);
     const phonesToSync = [...formData.phones];
 
-    // Close immediately to avoid "modal close lag" while we wait for Supabase.
-    // (TanStack Query does not support onMutate in mutate() call options.)
-    if (!editingContact) {
-      setIsModalOpen(false);
-      (addToast || showToast)('Criando contato...', 'info');
-    }
+    // For edit: close handled in onSuccess.
+    // For create: keep modal open — switches to edit mode in-place on success (preferences become available).
 
     if (editingContact) {
       const ownerChanged = formData.ownerId && formData.ownerId !== editingContact.ownerId;
@@ -574,12 +574,34 @@ export const useContactsController = () => {
             if (phonesToSync.length > 0) {
               await syncPhones(data.id, phonesToSync).catch(() => {});
             }
+            // Flush buffered preferences (fire-and-forget)
+            const prefsToSave = bufferedPrefsRef.current;
+            if (prefsToSave.length > 0) {
+              bufferedPrefsRef.current = [];
+              for (const pref of prefsToSave) {
+                contactPreferencesService.create({
+                  contactId: data.id,
+                  organizationId: data.organizationId || '',
+                  propertyTypes: pref.propertyTypes,
+                  purpose: pref.purpose,
+                  priceMin: pref.priceMin,
+                  priceMax: pref.priceMax,
+                  regions: pref.regions,
+                  bedroomsMin: pref.bedroomsMin,
+                  parkingMin: pref.parkingMin,
+                  areaMin: pref.areaMin,
+                  acceptsFinancing: pref.acceptsFinancing,
+                  acceptsFgts: pref.acceptsFgts,
+                  urgency: pref.urgency,
+                  notes: pref.notes,
+                } as Omit<ContactPreference, 'id' | 'createdAt' | 'updatedAt'>).catch(() => {});
+              }
+            }
             (addToast || showToast)('Contato criado!', 'success');
+            setIsModalOpen(false);
           },
           onError: (error: Error) => {
             (addToast || showToast)(`Erro ao criar contato: ${error.message}`, 'error');
-            // Re-open modal so user can adjust and retry
-            setIsModalOpen(true);
           },
           onSettled: () => setIsSubmittingContact(false),
         }
@@ -819,5 +841,8 @@ export const useContactsController = () => {
     createDealForContact,
     confirmBulkDelete,
     addToast: addToast || showToast,
+
+    // Buffered preferences ref for creation mode
+    bufferedPrefsRef,
   };
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2, Save, X, Home } from 'lucide-react';
 import { ContactPreference, PropertyType, PreferencePurpose, PreferenceUrgency } from '@/types';
 import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
@@ -391,17 +391,24 @@ function PreferenceForm({
 // Componente principal: ContactPreferencesSection
 // ============================================
 interface ContactPreferencesSectionProps {
-  contactId: string;
-  organizationId: string;
+  contactId?: string;
+  organizationId?: string;
+  /** Ref exposta para o pai ler buffered prefs antes de fechar o modal */
+  bufferedPrefsRef?: React.MutableRefObject<ContactPreference[]>;
 }
 
 export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps> = ({
   contactId,
   organizationId,
+  bufferedPrefsRef: externalBufferRef,
 }) => {
   const [preferences, setPreferences] = useState<ContactPreference[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!contactId);
   const [error, setError] = useState<string | null>(null);
+
+  // Buffered mode: track temp preferences when no contactId (creation mode)
+  const internalBufferRef = useRef<ContactPreference[]>([]);
+  const bufferedPrefsRef = externalBufferRef || internalBufferRef;
 
   // Estado de edicao: qual pref esta expandida
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -412,8 +419,12 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
   const [saving, setSaving] = useState(false);
   const [priceError, setPriceError] = useState<string | null>(null);
 
-  // Carregar preferencias
+  // Carregar preferencias (skip em modo buffered)
   const loadPreferences = useCallback(async () => {
+    if (!contactId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     const result = await contactPreferencesService.getByContactId(contactId);
@@ -473,6 +484,18 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
     if (!validatePrice(editForm)) return;
     if (!expandedId) return;
 
+    // Modo buffered: atualizar localmente
+    if (!contactId) {
+      const payload = formToPayload(editForm);
+      const updater = (prev: ContactPreference[]) => prev.map(p =>
+        p.id === expandedId ? { ...p, ...payload } : p
+      );
+      setPreferences(updater);
+      bufferedPrefsRef.current = updater(bufferedPrefsRef.current);
+      setExpandedId(null);
+      return;
+    }
+
     setSaving(true);
     const payload = formToPayload(editForm);
     const result = await contactPreferencesService.update(expandedId, payload);
@@ -489,6 +512,24 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
   // Salvar novo
   const handleSaveNew = async () => {
     if (!validatePrice(editForm)) return;
+
+    // Modo buffered: salvar localmente com ID temporario
+    if (!contactId) {
+      const payload = formToPayload(editForm);
+      const tempPref = {
+        id: `temp-${Date.now()}`,
+        contactId: '',
+        organizationId: organizationId || '',
+        ...payload,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as ContactPreference;
+      setPreferences(prev => [...prev, tempPref]);
+      bufferedPrefsRef.current = [...bufferedPrefsRef.current, tempPref];
+      setIsCreating(false);
+      setEditForm(emptyForm);
+      return;
+    }
 
     setSaving(true);
     const payload = formToPayload(editForm);
@@ -509,6 +550,14 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
 
   // Deletar (com confirmacao)
   const handleDelete = async (id: string) => {
+    // Modo buffered: remover localmente sem confirmacao (dados nao salvos)
+    if (!contactId) {
+      setPreferences(prev => prev.filter(p => p.id !== id));
+      bufferedPrefsRef.current = bufferedPrefsRef.current.filter(p => p.id !== id);
+      if (expandedId === id) setExpandedId(null);
+      return;
+    }
+
     if (!window.confirm('Tem certeza que deseja excluir este perfil de interesse?')) return;
     const result = await contactPreferencesService.delete(id);
     if (result.error) {

@@ -1,7 +1,7 @@
-import React, { useId, useState, useCallback } from 'react';
+import React, { useId, useState, useCallback, useRef } from 'react';
 import { X, Maximize2, Plus, Trash2, Phone as PhoneIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Contact, ContactType, ContactClassification, ContactTemperature, PhoneType } from '@/types';
+import { Contact, ContactType, ContactClassification, ContactTemperature, PhoneType, ContactPreference } from '@/types';
 import { DebugFillButton } from '@/components/debug/DebugFillButton';
 import { fakeContact } from '@/lib/debug';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
@@ -54,6 +54,8 @@ interface ContactFormModalProps {
   editingContact: Contact | null;
   createFakeContactsBatch?: (count: number) => Promise<void>;
   isSubmitting?: boolean;
+  /** Ref compartilhado para preferencias buffered durante criacao */
+  bufferedPrefsRef?: React.MutableRefObject<ContactPreference[]>;
 }
 
 import { INPUT_CLASS, LABEL_CLASS, LEGEND_CLASS, INPUT_ERROR_CLASS } from '@/features/contacts/constants';
@@ -70,6 +72,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   editingContact,
   createFakeContactsBatch,
   isSubmitting = false,
+  bufferedPrefsRef,
 }) => {
   const headingId = useId();
   const router = useRouter();
@@ -624,13 +627,12 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
             </div>
           </fieldset>
 
-          {/* Secao: Perfil de Interesse (Story 3.2 — somente edicao) */}
-          {editingContact && editingContact.organizationId && (
-            <ContactPreferencesSection
-              contactId={editingContact.id}
-              organizationId={editingContact.organizationId}
-            />
-          )}
+          {/* Secao: Perfil de Interesse (Story 3.2 — criacao e edicao) */}
+          <ContactPreferencesSection
+            contactId={editingContact?.id}
+            organizationId={editingContact?.organizationId || profile?.organization_id}
+            bufferedPrefsRef={!editingContact ? bufferedPrefsRef : undefined}
+          />
 
           {/* Secao: Historico (somente edicao, read-only) */}
           {editingContact && (
