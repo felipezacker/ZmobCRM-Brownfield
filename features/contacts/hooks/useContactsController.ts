@@ -731,7 +731,7 @@ export const useContactsController = () => {
       MQL: serverStageCounts.MQL || 0,
       PROSPECT: serverStageCounts.PROSPECT || 0,
       CUSTOMER: serverStageCounts.CUSTOMER || 0,
-      OTHER: (serverStageCounts.CHURNED || 0) + (serverStageCounts.OTHER || 0),
+      OTHER: serverStageCounts.OTHER || 0,
     }),
     [serverStageCounts]
   );

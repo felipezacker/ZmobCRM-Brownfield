@@ -172,16 +172,16 @@ export const useContactsPaginated = (
  * ```
  */
 export const useContactStageCounts = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, organizationId, loading: authLoading } = useAuth();
   return useQuery({
-    queryKey: queryKeys.contacts.stageCounts(),
+    queryKey: [...queryKeys.contacts.stageCounts(), organizationId],
     queryFn: async () => {
-      const { data, error } = await contactsService.getStageCounts();
+      const { data, error } = await contactsService.getStageCounts(organizationId!);
       if (error) throw error;
       return data || {};
     },
     staleTime: 30 * 1000, // 30 seconds - counts can be slightly stale
-    enabled: !authLoading && !!user,
+    enabled: !authLoading && !!user && !!organizationId,
   });
 };
 

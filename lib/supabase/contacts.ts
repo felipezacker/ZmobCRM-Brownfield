@@ -213,28 +213,29 @@ export const contactsService = {
    * Busca contagens de contatos por estágio do funil.
    * Usa RPC para query eficiente no servidor.
    * 
+   * @param orgId - ID da organização (tenant) para filtrar contatos.
    * @returns Promise com objeto de contagens por estágio.
-   * 
+   *
    * @example
    * ```typescript
-   * const { data } = await contactsService.getStageCounts();
+   * const { data } = await contactsService.getStageCounts('org-uuid');
    * // data = { LEAD: 1500, MQL: 2041, PROSPECT: 800, ... }
    * ```
    */
-  async getStageCounts(): Promise<{ data: Record<string, number> | null; error: Error | null }> {
+  async getStageCounts(orgId: string): Promise<{ data: Record<string, number> | null; error: Error | null }> {
     try {
       if (!supabase) {
         return { data: null, error: new Error('Supabase não configurado') };
       }
-      const { data, error } = await supabase.rpc('get_contact_stage_counts');
+      const { data, error } = await supabase.rpc('get_contact_stage_counts', { p_org_id: orgId });
 
       if (error) return { data: null, error };
 
-      // Transform array to object
+      // Transform array to object (RPC returns stage_id, contact_count)
       const counts: Record<string, number> = {};
       if (data) {
-        for (const row of data as Array<{ stage: string; count: number }>) {
-          counts[row.stage] = row.count;
+        for (const row of data as Array<{ stage_id: string; stage_name: string; contact_count: number }>) {
+          counts[row.stage_id] = row.contact_count;
         }
       }
 
