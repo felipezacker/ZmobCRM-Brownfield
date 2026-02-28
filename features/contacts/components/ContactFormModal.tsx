@@ -8,7 +8,6 @@ import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { useAuth } from '@/context/AuthContext';
 import { useActiveDealsCount } from '@/hooks/useReassignContactWithDeals';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/app/components/ui/Button';
 import { formatCPF, validateCPF, unformatCPF, formatCEP, validateCEP, BRAZILIAN_STATES } from '@/lib/validations/cpf-cep';
 import { ContactPreferencesSection } from './ContactPreferencesSection';
@@ -88,22 +87,10 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
   const ownerChanged = editingContact && formData.ownerId && formData.ownerId !== editingContact.ownerId;
 
-  const handleOpenCockpit = useCallback(async () => {
+  const handleOpenCockpit = useCallback(() => {
     if (!editingContact) return;
-    const supabase = createClient()!;
-    const { data } = await supabase
-      .from('deals')
-      .select('id')
-      .eq('contact_id', editingContact.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
     onClose();
-    if (data?.id) {
-      router.push(`/deals/${data.id}/cockpit`);
-    } else {
-      router.push(`/contacts/${editingContact.id}/cockpit`);
-    }
+    router.push(`/contacts/${editingContact.id}/cockpit`);
   }, [editingContact, onClose, router]);
 
   React.useEffect(() => {
