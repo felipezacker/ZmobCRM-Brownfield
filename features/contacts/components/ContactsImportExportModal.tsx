@@ -1,12 +1,14 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { Download, Upload, FileDown, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+import { Download, Upload, FileDown, ChevronLeft, ChevronRight, Check, Plus } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/context/ToastContext';
 import { stringifyCsv, withUtf8Bom, parseCsv, detectCsvDelimiter, type CsvDelimiter } from '@/lib/utils/csv';
 import { Button } from '@/app/components/ui/Button';
 
+type CustomFieldDef = { id: string; key: string; label: string; type: string };
+
 type Panel = 'export' | 'import';
-type WizardStep = 'upload' | 'mapping' | 'confirm';
+type WizardStep = 'upload' | 'mapping' | 'deal_mapping' | 'confirm';
 
 export type ContactsExportParams = {
   search?: string;
@@ -18,8 +20,17 @@ export type ContactsExportParams = {
   sortOrder?: 'asc' | 'desc';
 };
 
-/* ── CRM field options for mapping dropdown ── */
-const CRM_FIELDS: Array<{ value: string; label: string }> = [
+/* ── Deal CRM fields for deal mapping step ── */
+const DEAL_CRM_FIELDS: Array<{ value: string; label: string }> = [
+  { value: 'deal_title', label: 'Título do negócio' },
+  { value: 'deal_value', label: 'Valor' },
+  { value: 'deal_type', label: 'Tipo (VENDA/LOCAÇÃO/PERMUTA)' },
+  { value: 'deal_activity', label: 'Nota/Atividade' },
+  { value: '_ignore', label: 'Ignorar coluna' },
+];
+
+/* ── CRM field options for mapping dropdown (static — custom fields appended at runtime) ── */
+const STATIC_CRM_FIELDS: Array<{ value: string; label: string }> = [
   { value: 'name', label: 'Nome' },
   { value: 'email', label: 'E-mail' },
   { value: 'phone', label: 'Telefone' },
@@ -35,6 +46,7 @@ const CRM_FIELDS: Array<{ value: string; label: string }> = [
   { value: 'address_state', label: 'Estado' },
   { value: 'birth_date', label: 'Data de Nascimento' },
   { value: 'notes', label: 'Notas' },
+  { value: 'tags', label: 'Tags (separadas por vírgula)' },
   { value: '_ignore', label: 'Ignorar coluna' },
 ];
 
@@ -55,6 +67,7 @@ const HEADER_SYNONYMS: Record<string, string[]> = {
   address_state: ['address_state', 'state', 'estado', 'uf'],
   birth_date: ['birth_date', 'birthdate', 'data de nascimento', 'nascimento', 'aniversario'],
   notes: ['notes', 'nota', 'notas', 'observacoes', 'observações', 'obs'],
+  tags: ['tags', 'tag', 'etiquetas', 'labels'],
 };
 
 function normalizeHeaderStr(h: string): string {
@@ -103,8 +116,9 @@ function parseFilenameFromDisposition(disposition: string | null): string | null
 /* ── Stepper ── */
 const WIZARD_STEPS: Array<{ key: WizardStep; label: string; num: number }> = [
   { key: 'upload', label: 'Arquivo', num: 1 },
-  { key: 'mapping', label: 'Mapeamento', num: 2 },
-  { key: 'confirm', label: 'Confirmação', num: 3 },
+  { key: 'mapping', label: 'Contatos', num: 2 },
+  { key: 'deal_mapping', label: 'Negócios', num: 3 },
+  { key: 'confirm', label: 'Confirmação', num: 4 },
 ];
 
 function WizardStepper({ step }: { step: WizardStep }) {
@@ -158,6 +172,7 @@ export function ContactsImportExportModal(props: {
 
   const [panel, setPanel] = useState<Panel>('export');
   const [delimiter, setDelimiter] = useState<'auto' | CsvDelimiter>('auto');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Export state
   const [isExporting, setIsExporting] = useState(false);
@@ -170,11 +185,101 @@ export function ContactsImportExportModal(props: {
   const [parsedRows, setParsedRows] = useState<string[][]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<number, string>>({});
   const [resolvedDelimiter, setResolvedDelimiter] = useState<CsvDelimiter>(';');
-  const [mode, setMode] = useState<'upsert_by_email' | 'skip_duplicates_by_email' | 'create_only'>(
-    'upsert_by_email'
+  const [mode, setMode] = useState<'upsert' | 'skip_duplicates' | 'create_only'>(
+    'upsert'
   );
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<Record<string, unknown> | null>(null);
+
+  // Custom field definitions
+  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDef[]>([]);
+  const [newCfLabel, setNewCfLabel] = useState('');
+  const [showNewCfInput, setShowNewCfInput] = useState(false);
+
+  // Deal mapping state
+  const [enableDealMapping, setEnableDealMapping] = useState(false);
+  const [boards, setBoards] = useState<Array<{ id: string; name: string; stages: Array<{ id: string; name: string }> }>>([]);
+  const [selectedBoardId, setSelectedBoardId] = useState('');
+  const [selectedStageId, setSelectedStageId] = useState('');
+  const [dealColumnMapping, setDealColumnMapping] = useState<Record<number, string>>({});
+
+  // Fetch custom field definitions when opening import panel
+  useEffect(() => {
+    if (!isOpen || panel !== 'import') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/custom-fields?entity_type=contact');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data)) {
+          setCustomFieldDefs(data);
+        }
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+  }, [isOpen, panel]);
+
+  // Fetch boards + stages when entering deal_mapping step
+  useEffect(() => {
+    if (wizardStep !== 'deal_mapping' || boards.length > 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/boards');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data)) {
+          setBoards(data);
+          if (data.length > 0) {
+            setSelectedBoardId(data[0].id);
+            if (data[0].stages?.length > 0) {
+              setSelectedStageId(data[0].stages[0].id);
+            }
+          }
+        }
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+  }, [wizardStep, boards.length]);
+
+  // Build CRM_FIELDS dynamically: static fields + custom fields
+  const CRM_FIELDS = useMemo(() => {
+    const cfOptions = customFieldDefs.map(cf => ({
+      value: `cf_${cf.key}`,
+      label: `[Personalizado] ${cf.label}`,
+    }));
+    // Insert custom fields before "_ignore" (last item)
+    const base = [...STATIC_CRM_FIELDS];
+    const ignoreIdx = base.findIndex(f => f.value === '_ignore');
+    base.splice(ignoreIdx, 0, ...cfOptions);
+    return base;
+  }, [customFieldDefs]);
+
+  // Handle creating a new custom field definition inline
+  const handleCreateCustomField = useCallback(async () => {
+    const label = newCfLabel.trim();
+    if (!label) return;
+    const key = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    try {
+      const res = await fetch('/api/custom-fields', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, label, type: 'text', entity_type: 'contact' }),
+      });
+      if (!res.ok) {
+        toast?.('Erro ao criar campo personalizado.', 'error');
+        return;
+      }
+      const created = await res.json();
+      setCustomFieldDefs(prev => [...prev, created]);
+      setNewCfLabel('');
+      setShowNewCfInput(false);
+      toast?.(`Campo "${label}" criado.`, 'success');
+    } catch {
+      toast?.('Erro ao criar campo personalizado.', 'error');
+    }
+  }, [newCfLabel, toast]);
 
   // Reset wizard when switching panels
   const handlePanelSwitch = useCallback((p: Panel) => {
@@ -187,6 +292,15 @@ export function ContactsImportExportModal(props: {
       setParsedRows([]);
       setColumnMapping({});
       setImportResult(null);
+      // Reset deal state
+      setEnableDealMapping(false);
+      setSelectedBoardId('');
+      setSelectedStageId('');
+      setDealColumnMapping({});
+      setBoards([]);
+      // Reset custom field state
+      setShowNewCfInput(false);
+      setNewCfLabel('');
     }
   }, []);
 
@@ -293,6 +407,14 @@ export function ContactsImportExportModal(props: {
       fd.append('ignoreHeader', String(ignoreHeader));
       fd.append('columnMapping', JSON.stringify(columnMapping));
 
+      if (enableDealMapping && selectedBoardId && selectedStageId) {
+        fd.append('dealConfig', JSON.stringify({
+          boardId: selectedBoardId,
+          stageId: selectedStageId,
+          columnMapping: dealColumnMapping,
+        }));
+      }
+
       const res = await fetch('/api/contacts/import', { method: 'POST', body: fd });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -300,8 +422,16 @@ export function ContactsImportExportModal(props: {
       }
       setImportResult(data);
       const totals = data?.totals as Record<string, number> | undefined;
+      const scoreMsg = data?.scoresQueued
+        ? ' • Scores enfileirados (use backfill)'
+        : (totals?.scoresRecalculated ?? 0) > 0
+          ? ` • ${totals?.scoresRecalculated} scores recalculados`
+          : '';
+      const dealMsg = (totals?.dealsCreated ?? 0) > 0
+        ? ` • ${totals?.dealsCreated} negócios criados`
+        : '';
       toast?.(
-        `Import concluído: ${totals?.created ?? 0} criados, ${totals?.updated ?? 0} atualizados, ${totals?.skipped ?? 0} ignorados, ${totals?.errors ?? 0} erros.`,
+        `Import concluído: ${totals?.created ?? 0} criados, ${totals?.updated ?? 0} atualizados, ${totals?.skipped ?? 0} ignorados, ${totals?.errors ?? 0} erros${dealMsg}${scoreMsg}.`,
         (totals?.errors ?? 0) > 0 ? 'warning' : 'success'
       );
     } catch (e) {
@@ -309,7 +439,7 @@ export function ContactsImportExportModal(props: {
     } finally {
       setIsImporting(false);
     }
-  }, [file, mode, resolvedDelimiter, ignoreHeader, columnMapping, toast]);
+  }, [file, mode, resolvedDelimiter, ignoreHeader, columnMapping, enableDealMapping, selectedBoardId, selectedStageId, dealColumnMapping, toast]);
 
   /* ── Export (unchanged) ── */
   const templateCsv = useMemo(() => {
@@ -378,7 +508,7 @@ export function ContactsImportExportModal(props: {
       isOpen={isOpen}
       onClose={onClose}
       title="Importar / Exportar contatos"
-      size="lg"
+      size="5xl"
       bodyClassName="space-y-5 max-h-[75vh] overflow-y-auto"
     >
       {/* Panel selector + delimiter */}
@@ -491,14 +621,29 @@ export function ContactsImportExportModal(props: {
                   Arquivo CSV
                 </label>
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept=".csv,text/csv"
                   onChange={e => {
                     setFile(e.target.files?.[0] ?? null);
                     setImportResult(null);
                   }}
-                  className="block w-full text-sm text-slate-600 dark:text-slate-300"
+                  className="hidden"
                 />
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white"
+                  >
+                    <Upload size={16} /> Selecionar arquivo
+                  </Button>
+                  {file && (
+                    <span className="text-sm text-slate-600 dark:text-slate-300 truncate max-w-[300px]">
+                      {file.name}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
@@ -628,6 +773,45 @@ export function ContactsImportExportModal(props: {
                 {mappedFieldsSummary.length} campo(s) mapeado(s)
               </div>
 
+              {/* Inline new custom field creator */}
+              <div className="flex items-center gap-2">
+                {!showNewCfInput ? (
+                  <Button
+                    type="button"
+                    onClick={() => setShowNewCfInput(true)}
+                    className="text-xs text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
+                  >
+                    <Plus size={12} /> Novo campo personalizado
+                  </Button>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="Nome do campo"
+                      value={newCfLabel}
+                      onChange={e => setNewCfLabel(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleCreateCustomField()}
+                      className="text-xs rounded border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-2 py-1 w-40"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => void handleCreateCustomField()}
+                      disabled={!newCfLabel.trim()}
+                      className="text-xs px-2 py-1 rounded bg-primary-600 text-white disabled:opacity-50"
+                    >
+                      Criar
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => { setShowNewCfInput(false); setNewCfLabel(''); }}
+                      className="text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      Cancelar
+                    </Button>
+                  </>
+                )}
+              </div>
+
               <div className="flex justify-between">
                 <Button
                   type="button"
@@ -638,7 +822,7 @@ export function ContactsImportExportModal(props: {
                 </Button>
                 <Button
                   type="button"
-                  onClick={() => setWizardStep('confirm')}
+                  onClick={() => setWizardStep('deal_mapping')}
                   disabled={mappedFieldsSummary.length === 0 || hasDuplicates}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
                     mappedFieldsSummary.length === 0 || hasDuplicates
@@ -652,12 +836,151 @@ export function ContactsImportExportModal(props: {
             </div>
           )}
 
-          {/* ── Step 3: Confirm ── */}
+          {/* ── Step 3: Deal Mapping ── */}
+          {wizardStep === 'deal_mapping' && (
+            <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5 space-y-4">
+              <div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                  3. Criar negócios (opcional)
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Configure se deseja criar negócios automaticamente para os contatos importados.
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={enableDealMapping}
+                  onChange={e => setEnableDealMapping(e.target.checked)}
+                />
+                <span>Criar negócios para cada contato importado</span>
+              </label>
+
+              {enableDealMapping && (
+                <div className="space-y-4 pl-1">
+                  {/* Board + Stage selectors */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        Quadro (Board)
+                      </label>
+                      <select
+                        value={selectedBoardId}
+                        onChange={e => {
+                          setSelectedBoardId(e.target.value);
+                          const board = boards.find(b => b.id === e.target.value);
+                          setSelectedStageId(board?.stages?.[0]?.id || '');
+                        }}
+                        className="w-full text-sm rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-2 py-1.5"
+                      >
+                        {boards.map(b => (
+                          <option key={b.id} value={b.id}>{b.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                        Etapa (Stage)
+                      </label>
+                      <select
+                        value={selectedStageId}
+                        onChange={e => setSelectedStageId(e.target.value)}
+                        className="w-full text-sm rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-2 py-1.5"
+                      >
+                        {(boards.find(b => b.id === selectedBoardId)?.stages || []).map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Deal column mapping table */}
+                  <div>
+                    <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                      Mapear colunas do CSV para campos de negócio
+                    </div>
+                    <div className="overflow-x-auto -mx-4 px-4">
+                      <table className="min-w-full border-collapse">
+                        <thead>
+                          <tr>
+                            {parsedHeaders.map((h, i) => {
+                              const currentDealField = dealColumnMapping[i] || '_ignore';
+                              const isDealDup =
+                                currentDealField !== '_ignore' &&
+                                Object.entries(dealColumnMapping).some(
+                                  ([idx, f]) => f === currentDealField && parseInt(idx, 10) !== i
+                                );
+                              return (
+                              <th
+                                key={i}
+                                className="px-2 py-1 text-left align-top border-b border-slate-200 dark:border-white/10 min-w-[160px]"
+                              >
+                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate mb-1">
+                                  {h}
+                                </div>
+                                <select
+                                  value={currentDealField}
+                                  onChange={e => setDealColumnMapping(prev => ({ ...prev, [i]: e.target.value }))}
+                                  className={`w-full text-xs rounded border px-1.5 py-1 ${
+                                    isDealDup
+                                      ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                                      : currentDealField === '_ignore'
+                                        ? 'border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 text-slate-400'
+                                        : 'border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                                  }`}
+                                >
+                                  {DEAL_CRM_FIELDS.map(f => {
+                                    const dealUsedElsewhere =
+                                      f.value !== '_ignore' &&
+                                      f.value !== currentDealField &&
+                                      Object.values(dealColumnMapping).includes(f.value);
+                                    return (
+                                      <option key={f.value} value={f.value} disabled={dealUsedElsewhere}>
+                                        {f.label}{dealUsedElsewhere ? ' (já usado)' : ''}
+                                      </option>
+                                    );
+                                  })}
+                                </select>
+                                {isDealDup && (
+                                  <div className="text-[10px] text-red-500 mt-0.5">Duplicado!</div>
+                                )}
+                              </th>
+                              );
+                            })}
+                          </tr>
+                        </thead>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between">
+                <Button
+                  type="button"
+                  onClick={() => setWizardStep('mapping')}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10"
+                >
+                  <ChevronLeft size={16} /> Voltar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setWizardStep('confirm')}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white"
+                >
+                  Próximo <ChevronRight size={16} />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 4: Confirm ── */}
           {wizardStep === 'confirm' && !importResult && (
             <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5 space-y-4">
               <div>
                 <div className="text-sm font-bold text-slate-900 dark:text-white">
-                  3. Confirmar importação
+                  4. Confirmar importação
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Revise os campos mapeados e selecione o modo de tratamento de duplicados.
@@ -685,20 +1008,33 @@ export function ContactsImportExportModal(props: {
               <div className="text-xs text-slate-500 dark:text-slate-400">
                 {parsedRows.length} linha(s) de dados serão processadas
                 {ignoreHeader && ' • Cabeçalho ignorado'}
+                {enableDealMapping && ' • Negócios serão criados'}
               </div>
+
+              {enableDealMapping && (
+                <div className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-black/30 p-3">
+                  <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                    Criação de negócios
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    Quadro: {boards.find(b => b.id === selectedBoardId)?.name || '—'} •{' '}
+                    Etapa: {boards.find(b => b.id === selectedBoardId)?.stages?.find(s => s.id === selectedStageId)?.name || '—'}
+                  </div>
+                </div>
+              )}
 
               {/* Duplicate mode */}
               <div className="space-y-2">
                 <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                  Duplicados (match por email)
+                  Duplicados (match por email e/ou telefone)
                 </div>
                 <div className="flex flex-col gap-2 text-sm text-slate-700 dark:text-slate-200">
                   <label className="flex items-center gap-2">
                     <input
                       type="radio"
                       name="importMode"
-                      checked={mode === 'upsert_by_email'}
-                      onChange={() => setMode('upsert_by_email')}
+                      checked={mode === 'upsert'}
+                      onChange={() => setMode('upsert')}
                     />
                     Atualizar se existir (recomendado)
                   </label>
@@ -706,10 +1042,10 @@ export function ContactsImportExportModal(props: {
                     <input
                       type="radio"
                       name="importMode"
-                      checked={mode === 'skip_duplicates_by_email'}
-                      onChange={() => setMode('skip_duplicates_by_email')}
+                      checked={mode === 'skip_duplicates'}
+                      onChange={() => setMode('skip_duplicates')}
                     />
-                    Ignorar linhas com email já existente
+                    Ignorar linhas com email/telefone já existente
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -726,7 +1062,7 @@ export function ContactsImportExportModal(props: {
               <div className="flex justify-between">
                 <Button
                   type="button"
-                  onClick={() => setWizardStep('mapping')}
+                  onClick={() => setWizardStep('deal_mapping')}
                   className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10"
                 >
                   <ChevronLeft size={16} /> Voltar
@@ -760,6 +1096,15 @@ export function ContactsImportExportModal(props: {
                   {(importResult.totals as Record<string, number> | undefined)?.updated ?? 0} atualizados •{' '}
                   {(importResult.totals as Record<string, number> | undefined)?.skipped ?? 0} ignorados •{' '}
                   {(importResult.totals as Record<string, number> | undefined)?.errors ?? 0} erros
+                  {((importResult.totals as Record<string, number> | undefined)?.dealsCreated ?? 0) > 0 && (
+                    <> • {(importResult.totals as Record<string, number> | undefined)?.dealsCreated} negócios criados</>
+                  )}
+                  {((importResult.totals as Record<string, number> | undefined)?.scoresRecalculated ?? 0) > 0 && (
+                    <> • {(importResult.totals as Record<string, number> | undefined)?.scoresRecalculated} scores recalculados</>
+                  )}
+                  {Boolean(importResult.scoresQueued) && (
+                    <> • Scores enfileirados (use backfill para recalcular)</>
+                  )}
                 </div>
                 {((importResult.totals as Record<string, number> | undefined)?.errors ?? 0) > 0 && (
                   <Button
