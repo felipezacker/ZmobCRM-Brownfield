@@ -61,9 +61,6 @@ const DashboardPage: React.FC = () => {
     return counts;
   }, [contacts]);
 
-  useEffect(() => {
-    console.log('DashboardPage mounted');
-  }, []);
 
   const {
     deals,
