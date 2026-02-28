@@ -14,12 +14,16 @@ export async function createContact(
     const supabase = await createClient()
     const phoneE164 = normalizePhoneE164(contact.phone)
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { data: null, error: 'Usuário não autenticado' }
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('id, organization_id')
+      .eq('id', user.id)
       .single()
 
-    if (!profile) return { data: null, error: 'Usuário não autenticado ou sem organização' }
+    if (!profile) return { data: null, error: 'Perfil não encontrado ou sem organização' }
 
     const insertData = {
       name: contact.name,
