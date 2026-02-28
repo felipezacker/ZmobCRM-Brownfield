@@ -73,6 +73,7 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
   const [deals, setDeals] = useState<Deal[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [notes, setNotes] = useState<DealNote[]>([]);
+  const [scoreHistory, setScoreHistory] = useState<{ id: string; old_score: number; new_score: number; change: number; created_at: string }[]>([]);
   const [isNotesLoading, setIsNotesLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -103,7 +104,7 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
     let cancelled = false;
 
     const loadAll = async () => {
-      const [phonesResult, prefResult, dealsResult] = await Promise.all([
+      const [phonesResult, prefResult, dealsResult, scoreHistoryResult] = await Promise.all([
         contactPhonesService.getByContactId(contactId),
         contactPreferencesService.getByContactId(contactId),
         supabase
@@ -112,6 +113,12 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
           .eq('contact_id', contactId)
           .is('deleted_at', null)
           .order('created_at', { ascending: false }),
+        supabase
+          .from('lead_score_history')
+          .select('id, old_score, new_score, change, created_at')
+          .eq('contact_id', contactId)
+          .order('created_at', { ascending: false })
+          .limit(50),
       ]);
 
       if (cancelled) return;
@@ -124,6 +131,8 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
 
       const fetchedDeals = (dealsResult?.data as Deal[]) || [];
       setDeals(fetchedDeals);
+
+      setScoreHistory((scoreHistoryResult?.data as { id: string; old_score: number; new_score: number; change: number; created_at: string }[]) || []);
 
       // Fetch activities for linked deals + notes
       const dealIds = fetchedDeals.map((d) => d.id);
@@ -319,7 +328,7 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
   // ---- Timeline entries ----
   const timelineEntries = useMemo(() => {
     const dealsMap = new Map(deals.map((d) => [d.id, d]));
-    return activities.map((a) => ({
+    const activityEntries = activities.map((a) => ({
       id: a.id,
       type: a.type,
       title: a.title,
@@ -328,7 +337,25 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
       dealTitle: dealsMap.get(a.dealId)?.title || '',
       dealId: a.dealId,
     }));
-  }, [activities, deals]);
+
+    const scoreEntries = scoreHistory.map((s) => {
+      const sign = s.change > 0 ? '+' : '';
+      return {
+        id: s.id,
+        type: 'SCORE_CHANGE' as const,
+        title: `Score: ${s.old_score} → ${s.new_score} (${sign}${s.change})`,
+        description: undefined as string | undefined,
+        date: s.created_at,
+        dealTitle: '',
+        dealId: '',
+        scoreChange: s.change,
+      };
+    });
+
+    return [...activityEntries, ...scoreEntries].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [activities, deals, scoreHistory]);
 
   // ---- Contact snapshot for AI (AC 7) ----
   const contactSnapshot = useMemo(() => {

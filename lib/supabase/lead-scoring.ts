@@ -40,7 +40,7 @@ export async function calculateLeadScore(
   contactId: string,
   orgId: string,
   client?: SupabaseClient
-): Promise<{ breakdown: ScoreBreakdown; error: Error | null }> {
+): Promise<{ breakdown: ScoreBreakdown; oldScore: number; error: Error | null }> {
   const breakdown: ScoreBreakdown = {
     recentInteraction: 0,
     ltv: 0,
@@ -55,21 +55,23 @@ export async function calculateLeadScore(
   try {
     const sb = client || globalClient;
     if (!sb) {
-      return { breakdown, error: new Error('Supabase nao configurado') };
+      return { breakdown, oldScore: 0, error: new Error('Supabase nao configurado') };
     }
 
-    // Fetch contact data
+    // Fetch contact data (includes lead_score for history tracking)
     const { data: contact, error: contactError } = await sb
       .from('contacts')
-      .select('id, last_interaction, total_value, temperature, updated_at, deleted_at')
+      .select('id, last_interaction, total_value, temperature, updated_at, deleted_at, lead_score')
       .eq('id', contactId)
       .eq('organization_id', orgId)
       .is('deleted_at', null)
       .single();
 
     if (contactError || !contact) {
-      return { breakdown, error: contactError || new Error('Contato nao encontrado') };
+      return { breakdown, oldScore: 0, error: contactError || new Error('Contato nao encontrado') };
     }
+
+    const previousScore = contact.lead_score ?? 0;
 
     const now = Date.now();
 
@@ -162,9 +164,9 @@ export async function calculateLeadScore(
       breakdown.temperature
     ));
 
-    return { breakdown, error: null };
+    return { breakdown, oldScore: previousScore, error: null };
   } catch (e) {
-    return { breakdown, error: e as Error };
+    return { breakdown, oldScore: 0, error: e as Error };
   }
 }
 
@@ -186,17 +188,33 @@ export async function recalculateScore(
       return { score: 0, error: new Error('Supabase nao configurado') };
     }
 
-    const { breakdown, error } = await calculateLeadScore(contactId, orgId, sb);
+    const { breakdown, oldScore, error } = await calculateLeadScore(contactId, orgId, sb);
     if (error) return { score: 0, error };
+
+    const newScore = breakdown.total;
 
     const { error: updateError } = await sb
       .from('contacts')
-      .update({ lead_score: breakdown.total })
+      .update({ lead_score: newScore })
       .eq('id', contactId);
 
     if (updateError) return { score: 0, error: updateError };
 
-    return { score: breakdown.total, error: null };
+    // Record history if score changed
+    if (oldScore !== newScore) {
+      const { error: historyError } = await sb.from('lead_score_history').insert({
+        contact_id: contactId,
+        organization_id: orgId,
+        old_score: oldScore,
+        new_score: newScore,
+        change: newScore - oldScore,
+      });
+      if (historyError) {
+        console.error('Failed to record score history:', historyError);
+      }
+    }
+
+    return { score: newScore, error: null };
   } catch (e) {
     return { score: 0, error: e as Error };
   }

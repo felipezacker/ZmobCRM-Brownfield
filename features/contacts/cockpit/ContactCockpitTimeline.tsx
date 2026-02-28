@@ -9,6 +9,8 @@ import {
   ArrowRight,
   Search,
   ClipboardList,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
 import { Chip } from '@/features/deals/cockpit/cockpit-ui';
 import { formatAtISO, uid } from '@/features/deals/cockpit/cockpit-utils';
@@ -22,12 +24,13 @@ import type { Activity, Deal } from '@/types';
 
 interface TimelineEntry {
   id: string;
-  type: Activity['type'];
+  type: Activity['type'] | 'SCORE_CHANGE';
   title: string;
   description?: string;
   date: string;
   dealTitle: string;
   dealId: string;
+  scoreChange?: number;
 }
 
 interface ContactCockpitTimelineProps {
@@ -44,7 +47,7 @@ interface ContactCockpitTimelineProps {
 // Icon helper
 // ---------------------------------------------------------------------------
 
-function typeIcon(type: string) {
+function typeIcon(type: string, scoreChange?: number) {
   switch (type) {
     case 'NOTE':
       return <FileText className="h-3.5 w-3.5 text-cyan-400" />;
@@ -58,6 +61,10 @@ function typeIcon(type: string) {
       return <ArrowRight className="h-3.5 w-3.5 text-slate-400" />;
     case 'TASK':
       return <ClipboardList className="h-3.5 w-3.5 text-blue-400" />;
+    case 'SCORE_CHANGE':
+      return (scoreChange ?? 0) > 0
+        ? <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
+        : <TrendingDown className="h-3.5 w-3.5 text-red-400" />;
     default:
       return <FileText className="h-3.5 w-3.5 text-slate-400" />;
   }
@@ -71,6 +78,7 @@ function typeLabel(type: string) {
     case 'MEETING': return 'Reuniao';
     case 'STATUS_CHANGE': return 'Mudanca';
     case 'TASK': return 'Tarefa';
+    case 'SCORE_CHANGE': return 'Score';
     default: return type;
   }
 }
@@ -178,10 +186,14 @@ export function ContactCockpitTimeline({
               <div key={a.id} className="px-4 py-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5 min-w-0">
-                    <div className="mt-0.5 shrink-0">{typeIcon(a.type)}</div>
+                    <div className="mt-0.5 shrink-0">{typeIcon(a.type, a.scoreChange)}</div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-slate-200">
+                        <span className={`text-xs font-semibold ${
+                          a.type === 'SCORE_CHANGE'
+                            ? (a.scoreChange ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'
+                            : 'text-slate-200'
+                        }`}>
                           {a.title || typeLabel(a.type)}
                         </span>
                         {a.dealTitle && (
