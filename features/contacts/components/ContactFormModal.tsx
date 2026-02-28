@@ -360,7 +360,6 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
             <div>
               <label className={LABEL_CLASS}>Email</label>
               <input
-                required
                 type="email"
                 className={INPUT_CLASS}
                 placeholder="ana@empresa.com"
