@@ -14,6 +14,13 @@ export async function createContact(
     const supabase = await createClient()
     const phoneE164 = normalizePhoneE164(contact.phone)
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, organization_id')
+      .single()
+
+    if (!profile) return { data: null, error: 'Usuário não autenticado ou sem organização' }
+
     const insertData = {
       name: contact.name,
       email: sanitizeText(contact.email),
@@ -36,6 +43,8 @@ export async function createContact(
       address_city: sanitizeText(contact.addressCity),
       address_state: sanitizeText(contact.addressState),
       profile_data: contact.profileData || null,
+      organization_id: profile.organization_id,
+      owner_id: profile.id,
     }
 
     const { data, error } = await supabase
