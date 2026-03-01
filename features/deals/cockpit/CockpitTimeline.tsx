@@ -97,8 +97,8 @@ export function CockpitTimeline({
     { key: 'all', label: 'Tudo' },
     { key: 'call', label: 'Ligações' },
     { key: 'note', label: 'Notas' },
-    { key: 'deal_note', label: 'D.Notes' },
-    { key: 'status', label: 'Movim.' },
+    { key: 'deal_note', label: 'Deal Notes' },
+    { key: 'status', label: 'Movimentações' },
   ];
 
   return (
@@ -112,8 +112,8 @@ export function CockpitTimeline({
               type="button"
               className={
                 (chip.key === 'all' ? kindFilter === 'all' : kindFilter === chip.key)
-                  ? 'rounded-full bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-100 ring-1 ring-cyan-500/20'
-                  : 'rounded-full bg-slate-50 dark:bg-white/3 px-2 py-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400 ring-1 ring-slate-300 dark:ring-white/10 hover:bg-slate-100 dark:hover:bg-white/5'
+                  ? 'rounded-full bg-cyan-500/15 px-3 py-1.5 text-xs font-semibold text-cyan-700 dark:text-cyan-100 ring-1 ring-cyan-500/20'
+                  : 'rounded-full bg-slate-50 dark:bg-white/3 px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 ring-1 ring-slate-300 dark:ring-white/10 hover:bg-slate-100 dark:hover:bg-white/5'
               }
               onClick={() => setKindFilter(chip.key === 'all' ? 'all' : chip.key)}
             >
@@ -124,8 +124,8 @@ export function CockpitTimeline({
             type="button"
             className={
               showSystemEvents
-                ? 'rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-semibold text-amber-700 dark:text-amber-100 ring-1 ring-amber-500/20'
-                : 'rounded-full bg-slate-50 dark:bg-white/3 px-2 py-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400 ring-1 ring-slate-300 dark:ring-white/10 hover:bg-slate-100 dark:hover:bg-white/5'
+                ? 'rounded-full bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-100 ring-1 ring-amber-500/20'
+                : 'rounded-full bg-slate-50 dark:bg-white/3 px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 ring-1 ring-slate-300 dark:ring-white/10 hover:bg-slate-100 dark:hover:bg-white/5'
             }
             onClick={() => setShowSystemEvents((v) => !v)}
             title="Eventos de sistema"
