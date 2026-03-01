@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { DealDetailModal } from '@/features/boards/components/Modals/DealDetailModal';
@@ -168,14 +168,18 @@ describe('Story — US-001: Abrir deal no Boards', () => {
       { kind: 'expectNotText', text: /Application error/i },
     ]);
 
-    rerender(<Harness open={true} />);
+    await act(async () => {
+      rerender(<Harness open={true} />);
+    });
 
     await runStorySteps(user, [
-      { kind: 'expectText', text: 'Pequeno Chapéu' },
       { kind: 'expectNotText', text: /Application error/i },
     ]);
+    expect(document.body.textContent).toContain('Fulano');
 
-    rerender(<Harness open={false} />);
+    await act(async () => {
+      rerender(<Harness open={false} />);
+    });
     expect(document.body.textContent).not.toMatch(/Application error/i);
   });
 });

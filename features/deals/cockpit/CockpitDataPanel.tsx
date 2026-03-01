@@ -83,12 +83,12 @@ function SectionHeader({
   onToggle: () => void;
 }) {
   return (
-    <button type="button" className="flex w-full items-center justify-between" onClick={onToggle}>
+    <Button variant="unstyled" size="unstyled" type="button" className="flex w-full items-center justify-between" onClick={onToggle}>
       <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
         <span className={iconColor}>{icon}</span> {label}
       </div>
       <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
-    </button>
+    </Button>
   );
 }
 
@@ -398,14 +398,16 @@ export function CockpitDataPanel({
                           {item.price != null ? formatCurrencyBRL(item.price) : ''}
                         </span>
                         {onRemoveItem && item.id ? (
-                          <button
+                          <Button
+                            variant="unstyled"
+                            size="unstyled"
                             type="button"
                             className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 transition-all"
                             title="Remover produto"
                             onClick={() => onRemoveItem(item.id)}
                           >
                             <Trash2 className="h-3 w-3" />
-                          </button>
+                          </Button>
                         ) : null}
                       </span>
                     </div>
@@ -431,7 +433,9 @@ export function CockpitDataPanel({
                     <div className="space-y-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2">
                       {/* Mode tabs */}
                       <div className="flex gap-1 mb-2">
-                        <button
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
                           type="button"
                           className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors ${
                             addMode === 'catalog'
@@ -441,8 +445,10 @@ export function CockpitDataPanel({
                           onClick={() => setAddMode('catalog')}
                         >
                           Catálogo
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
                           type="button"
                           className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors ${
                             addMode === 'custom'
@@ -452,7 +458,7 @@ export function CockpitDataPanel({
                           onClick={() => setAddMode('custom')}
                         >
                           Personalizado
-                        </button>
+                        </Button>
                       </div>
 
                       {addMode === 'catalog' ? (
@@ -460,7 +466,9 @@ export function CockpitDataPanel({
                           <>
                             {/* Searchable product picker */}
                             <div className="relative" ref={productPickerRef}>
-                              <button
+                              <Button
+                                variant="unstyled"
+                                size="unstyled"
                                 type="button"
                                 className={`${SELECT_CLASS} w-full flex items-center justify-between gap-1 text-slate-700 dark:text-slate-200`}
                                 onClick={() => setProductPickerOpen(!productPickerOpen)}
@@ -471,7 +479,7 @@ export function CockpitDataPanel({
                                 <span className="text-xs text-emerald-600 dark:text-emerald-400 shrink-0">
                                   {selectedProduct ? formatCurrencyBRL(selectedProduct.price) : ''}
                                 </span>
-                              </button>
+                              </Button>
 
                               {productPickerOpen && (
                                 <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950/95 backdrop-blur-xl shadow-xl shadow-slate-300/30 dark:shadow-black/40">
@@ -498,7 +506,9 @@ export function CockpitDataPanel({
                                       filteredProducts.map((p) => {
                                         const isCurrent = p.id === selectedProductId;
                                         return (
-                                          <button
+                                          <Button
+                                            variant="unstyled"
+                                            size="unstyled"
                                             key={p.id}
                                             type="button"
                                             className={`flex w-full items-center gap-1.5 px-2 py-1.5 text-left transition-colors ${
@@ -519,7 +529,7 @@ export function CockpitDataPanel({
                                             <span className="ml-auto shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400/70">
                                               {formatCurrencyBRL(p.price)}
                                             </span>
-                                          </button>
+                                          </Button>
                                         );
                                       })
                                     )}
@@ -563,9 +573,9 @@ export function CockpitDataPanel({
                         ) : (
                           <div className="text-xs text-slate-500">
                             Nenhum produto cadastrado.{' '}
-                            <button type="button" className="text-cyan-600 dark:text-cyan-300 hover:underline" onClick={() => setAddMode('custom')}>
+                            <Button variant="unstyled" size="unstyled" type="button" className="text-cyan-600 dark:text-cyan-300 hover:underline" onClick={() => setAddMode('custom')}>
                               Adicionar manualmente
-                            </button>
+                            </Button>
                           </div>
                         )
                       ) : (
@@ -615,13 +625,15 @@ export function CockpitDataPanel({
                       )}
                     </div>
                   ) : (
-                    <button
+                    <Button
+                      variant="unstyled"
+                      size="unstyled"
                       type="button"
                       className="flex items-center gap-1 text-xs text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors mt-1"
                       onClick={() => setShowAddItem(true)}
                     >
                       <Plus className="h-3 w-3" /> Produto
-                    </button>
+                    </Button>
                   )}
                 </div>
               ) : null}
@@ -663,7 +675,9 @@ export function CockpitDataPanel({
                       {PROPERTY_TYPES.map((pt) => {
                         const active = preferences.propertyTypes.includes(pt);
                         return (
-                          <button
+                          <Button
+                            variant="unstyled"
+                            size="unstyled"
                             key={pt}
                             type="button"
                             className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
@@ -679,7 +693,7 @@ export function CockpitDataPanel({
                             }}
                           >
                             {PROPERTY_TYPE_LABELS[pt] ?? pt}
-                          </button>
+                          </Button>
                         );
                       })}
                     </div>

@@ -1173,7 +1173,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     <div className="flex gap-3">
                       {/* Searchable product picker */}
                       <div className="flex-1 relative" ref={productPickerRef}>
-                        <button
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
                           type="button"
                           className="w-full flex items-center justify-between gap-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white text-left cursor-pointer hover:bg-slate-50 dark:hover:bg-white/8 transition-colors"
                           onClick={() => setProductPickerOpen(!productPickerOpen)}
@@ -1184,7 +1186,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           <span className="text-xs text-emerald-600 dark:text-emerald-400 shrink-0">
                             {selectedProduct ? BRL_CURRENCY.format(selectedProduct.price) : ''}
                           </span>
-                        </button>
+                        </Button>
 
                         {productPickerOpen && (
                           <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl shadow-slate-300/30 dark:shadow-black/40">
@@ -1214,7 +1216,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                                 filteredProducts.map((p) => {
                                   const isCurrent = p.id === selectedProductId;
                                   return (
-                                    <button
+                                    <Button
+                                      variant="unstyled"
+                                      size="unstyled"
                                       key={p.id}
                                       type="button"
                                       className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${
@@ -1235,7 +1239,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                                       <span className="ml-auto shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400/70">
                                         {BRL_CURRENCY.format(p.price)}
                                       </span>
-                                    </button>
+                                    </Button>
                                   );
                                 })
                               )}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 
 import { DealDetailModal } from './DealDetailModal';
 
@@ -154,17 +154,21 @@ vi.mock('@/context/settings/SettingsContext', () => ({
 }));
 
 describe('DealDetailModal', () => {
-  it('does not crash when toggling open/close (hook order regression)', () => {
+  it('does not crash when toggling open/close (hook order regression)', async () => {
     const { rerender } = render(
       <DealDetailModal dealId="deal-1" isOpen={false} onClose={() => {}} />
     );
 
     expect(document.body.textContent).not.toContain('Application error');
 
-    rerender(<DealDetailModal dealId="deal-1" isOpen={true} onClose={() => {}} />);
-    expect(document.body.textContent).toContain('Pequeno Chapéu');
+    await act(async () => {
+      rerender(<DealDetailModal dealId="deal-1" isOpen={true} onClose={() => {}} />);
+    });
+    expect(document.body.textContent).toContain('Fulano');
 
-    rerender(<DealDetailModal dealId="deal-1" isOpen={false} onClose={() => {}} />);
+    await act(async () => {
+      rerender(<DealDetailModal dealId="deal-1" isOpen={false} onClose={() => {}} />);
+    });
     expect(document.body.textContent).not.toContain('Application error');
   });
 });

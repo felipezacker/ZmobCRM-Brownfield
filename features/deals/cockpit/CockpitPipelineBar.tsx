@@ -142,7 +142,9 @@ export function CockpitPipelineBar({
                       const isCurrent = d.id === deal.id;
                       const label = humanizeTestLabel(d.title) || d.title;
                       return (
-                        <button
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
                           key={d.id}
                           type="button"
                           role="option"
@@ -165,7 +167,7 @@ export function CockpitPipelineBar({
                           <div className="shrink-0 text-[10px] font-medium text-emerald-600 dark:text-emerald-400/70">
                             {formatCurrencyBRL(d.value ?? 0)}
                           </div>
-                        </button>
+                        </Button>
                       );
                     })
                   )}
