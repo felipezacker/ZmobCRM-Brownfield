@@ -262,7 +262,7 @@ export function CockpitPipelineBar({
                 type="button"
                 className={`group relative flex-1 min-w-0 rounded-lg px-1.5 py-1.5 text-left transition-all duration-200 ${
                   isActive
-                    ? 'bg-slate-200/60 dark:bg-white/6 ring-1 ring-slate-300 dark:ring-white/10'
+                    ? 'bg-cyan-500/8 dark:bg-cyan-500/10 ring-1 ring-cyan-500/25 dark:ring-cyan-500/20'
                     : 'hover:bg-slate-100 dark:hover:bg-white/3'
                 }`}
                 onClick={() => onStageChange(s.id)}
@@ -271,7 +271,7 @@ export function CockpitPipelineBar({
               >
                 {/* Progress segment */}
                 <div
-                  className={`h-[3px] rounded-full transition-all duration-300 ${
+                  className={`h-[5px] rounded-full transition-all duration-300 ${
                     isActive
                       ? toneToBg(s.tone)
                       : isDone
@@ -293,7 +293,7 @@ export function CockpitPipelineBar({
                   <span
                     className={`truncate text-[10px] leading-tight transition-colors ${
                       isActive
-                        ? 'font-semibold text-slate-900 dark:text-slate-100'
+                        ? 'font-bold text-slate-900 dark:text-slate-100'
                         : isDone
                           ? 'text-slate-500 dark:text-slate-400'
                           : 'text-slate-400 dark:text-slate-600 group-hover:text-slate-600 dark:group-hover:text-slate-400'

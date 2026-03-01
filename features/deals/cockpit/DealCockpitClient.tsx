@@ -739,7 +739,6 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
               deal={deal}
               contact={contact}
               phoneE164={phoneE164}
-              activeStage={activeStage}
               onCopy={(label, text) => void copyToClipboard(label, text)}
               estimatedCommission={estimatedCommission}
               preferences={preferences}

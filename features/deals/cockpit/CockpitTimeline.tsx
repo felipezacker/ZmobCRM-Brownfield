@@ -95,10 +95,10 @@ export function CockpitTimeline({
 
   const filterChips: Array<{ key: 'all' | TimelineItem['kind']; label: string }> = [
     { key: 'all', label: 'Tudo' },
-    { key: 'call', label: 'Lig' },
+    { key: 'call', label: 'Ligações' },
     { key: 'note', label: 'Notas' },
-    { key: 'deal_note', label: 'DN' },
-    { key: 'status', label: 'Mov' },
+    { key: 'deal_note', label: 'D.Notes' },
+    { key: 'status', label: 'Movim.' },
   ];
 
   return (
@@ -130,7 +130,7 @@ export function CockpitTimeline({
             onClick={() => setShowSystemEvents((v) => !v)}
             title="Eventos de sistema"
           >
-            Sys
+            Sistema
           </Button>
         </div>
 

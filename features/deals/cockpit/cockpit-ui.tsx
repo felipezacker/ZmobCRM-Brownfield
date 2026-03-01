@@ -52,10 +52,12 @@ export function TabButton({
   active,
   onClick,
   children,
+  count,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  count?: number;
 }) {
   return (
     <Button
@@ -68,6 +70,15 @@ export function TabButton({
       onClick={onClick}
     >
       {children}
+      {count != null && count > 0 && (
+        <span className={`ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold ${
+          active
+            ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-200'
+            : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400'
+        }`}>
+          {count}
+        </span>
+      )}
     </Button>
   );
 }

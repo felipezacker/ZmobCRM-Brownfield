@@ -5,12 +5,12 @@ import {
   Copy,
   Download,
   FileText,
+  FolderOpen,
   Inbox,
   Sparkles,
   StickyNote,
   X,
 } from 'lucide-react';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { TabButton } from './cockpit-ui';
 import { UIChat } from '@/components/ai/UIChat';
 import type { Tab, CockpitSnapshot } from './cockpit-types';
@@ -97,9 +97,9 @@ export function CockpitRightRail({
 
         <div className="flex items-center gap-3 px-3 shrink-0">
           <TabButton active={tab === 'chat'} onClick={() => setTab('chat')}>Chat IA</TabButton>
-          <TabButton active={tab === 'notas'} onClick={() => setTab('notas')}>Notas</TabButton>
-          <TabButton active={tab === 'scripts'} onClick={() => setTab('scripts')}>Scripts</TabButton>
-          <TabButton active={tab === 'arquivos'} onClick={() => setTab('arquivos')}>Arquivos</TabButton>
+          <TabButton active={tab === 'notas'} onClick={() => setTab('notas')} count={notes.length}>Notas</TabButton>
+          <TabButton active={tab === 'scripts'} onClick={() => setTab('scripts')} count={scripts.length}>Scripts</TabButton>
+          <TabButton active={tab === 'arquivos'} onClick={() => setTab('arquivos')} count={files.length}>Arquivos</TabButton>
         </div>
 
         <div className="min-h-0 flex-1 overflow-hidden p-3">
@@ -172,7 +172,10 @@ export function CockpitRightRail({
                 {isNotesLoading ? (
                   <div className="text-xs text-slate-500">Carregando...</div>
                 ) : notes.length === 0 ? (
-                  <div className="text-xs text-slate-500">Sem notas.</div>
+                  <div className="flex flex-col items-center gap-2 py-4 text-center">
+                    <StickyNote className="h-5 w-5 text-slate-300 dark:text-slate-600" />
+                    <span className="text-xs text-slate-400 dark:text-slate-500">Nenhuma nota ainda. Registre informações importantes sobre este deal.</span>
+                  </div>
                 ) : (
                   notes.map((n) => (
                     <div key={n.id} className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2.5">
@@ -250,7 +253,10 @@ export function CockpitRightRail({
               </div>
               <div className="mt-2 space-y-1.5">
                 {files.length === 0 && !isFilesLoading ? (
-                  <EmptyState title="Nenhum arquivo." size="sm" />
+                  <div className="flex flex-col items-center gap-2 py-4 text-center">
+                    <FolderOpen className="h-5 w-5 text-slate-300 dark:text-slate-600" />
+                    <span className="text-xs text-slate-400 dark:text-slate-500">Nenhum arquivo. Envie documentos, propostas ou fotos do imóvel.</span>
+                  </div>
                 ) : (
                   files.map((f) => (
                     <div key={f.id} className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2.5">
