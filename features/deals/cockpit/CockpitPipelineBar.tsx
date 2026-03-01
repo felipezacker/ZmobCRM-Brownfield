@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { ArrowLeft, RotateCcw, Trophy, XCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { ArrowLeft, Check, ChevronDown, RotateCcw, Search, Trophy, XCircle } from 'lucide-react';
 import type { DealView } from '@/types';
 import type { Stage } from './cockpit-types';
 import { formatCurrencyBRL, humanizeTestLabel, toneToBg, toneToGlowColor, toneToText } from './cockpit-utils';
@@ -44,6 +44,43 @@ export function CockpitPipelineBar({
   onReopen,
   headerControls,
 }: CockpitPipelineBarProps) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const pickerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!pickerOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setPickerOpen(false);
+        setSearch('');
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [pickerOpen]);
+
+  // Focus search on open
+  useEffect(() => {
+    if (pickerOpen) searchRef.current?.focus();
+  }, [pickerOpen]);
+
+  const handlePickDeal = useCallback((id: string) => {
+    onDealChange(id);
+    setPickerOpen(false);
+    setSearch('');
+  }, [onDealChange]);
+
+  const filtered = sortedDeals.filter((d) => {
+    if (!search.trim()) return true;
+    const title = (humanizeTestLabel(d.title) || d.title).toLowerCase();
+    return title.includes(search.toLowerCase());
+  });
+
+  const dealLabel = humanizeTestLabel(deal.title) || deal.title;
+
   return (
     <div className="sticky top-0 z-40 border-b border-white/5 bg-black/60 backdrop-blur-xl">
       {/* Row 1: nav + deal info + value + actions */}
@@ -60,19 +97,88 @@ export function CockpitPipelineBar({
 
         <div className="h-4 w-px bg-white/8 shrink-0" />
 
+        {/* Deal picker — custom combobox */}
         <div className="flex items-center gap-3 min-w-0">
-          <select
-            className="max-w-80 truncate rounded-lg border border-white/8 bg-white/3 px-2.5 py-1.5 text-xs font-semibold text-slate-100 outline-none hover:bg-white/6 focus:ring-1 focus:ring-cyan-400/30 transition-colors"
-            value={deal.id}
-            onChange={(e) => onDealChange(e.target.value)}
-            aria-label="Selecionar deal"
-          >
-            {sortedDeals.map((d) => (
-              <option key={d.id} value={d.id} className="bg-slate-950">
-                {humanizeTestLabel(d.title) || d.title}
-              </option>
-            ))}
-          </select>
+          <div className="relative" ref={pickerRef}>
+            <Button
+              type="button"
+              className="flex items-center gap-1.5 max-w-80 rounded-lg border border-white/8 bg-white/3 px-2.5 py-1.5 text-xs font-semibold text-slate-100 outline-none hover:bg-white/6 transition-colors"
+              onClick={() => setPickerOpen(!pickerOpen)}
+              aria-label="Selecionar deal"
+              aria-expanded={pickerOpen}
+              aria-haspopup="listbox"
+            >
+              <span className="truncate">{dealLabel}</span>
+              <ChevronDown className={`h-3 w-3 shrink-0 text-slate-500 transition-transform duration-200 ${pickerOpen ? 'rotate-180' : ''}`} />
+            </Button>
+
+            {pickerOpen && (
+              <div className="absolute left-0 top-full z-50 mt-1 w-96 rounded-xl border border-white/10 bg-slate-950/95 backdrop-blur-xl shadow-2xl shadow-black/50">
+                {/* Search */}
+                <div className="flex items-center gap-2 border-b border-white/8 px-3 py-2">
+                  <Search className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') { setPickerOpen(false); setSearch(''); }
+                    }}
+                    placeholder="Buscar negocio..."
+                    className="flex-1 bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-600"
+                  />
+                  {search && (
+                    <span className="text-[10px] text-slate-600">{filtered.length}</span>
+                  )}
+                </div>
+
+                {/* List */}
+                <div className="max-h-72 overflow-auto py-1" role="listbox">
+                  {filtered.length === 0 ? (
+                    <div className="px-3 py-4 text-center text-xs text-slate-600">Nenhum negocio encontrado</div>
+                  ) : (
+                    filtered.map((d) => {
+                      const isCurrent = d.id === deal.id;
+                      const label = humanizeTestLabel(d.title) || d.title;
+                      return (
+                        <button
+                          key={d.id}
+                          type="button"
+                          role="option"
+                          aria-selected={isCurrent}
+                          className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${
+                            isCurrent
+                              ? 'bg-white/6'
+                              : 'hover:bg-white/4'
+                          }`}
+                          onClick={() => handlePickDeal(d.id)}
+                        >
+                          <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${isCurrent ? 'text-cyan-400' : 'text-transparent'}`}>
+                            <Check className="h-3 w-3" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className={`truncate text-xs ${isCurrent ? 'font-semibold text-slate-100' : 'text-slate-300'}`}>
+                              {label}
+                            </div>
+                          </div>
+                          <div className="shrink-0 text-[10px] font-medium text-emerald-400/70">
+                            {formatCurrencyBRL(d.value ?? 0)}
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="border-t border-white/8 px-3 py-1.5">
+                  <span className="text-[10px] text-slate-600">{sortedDeals.length} negocios no board</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           <span className="text-[10px] text-slate-600 shrink-0">
             {boardName}
             {crmLoading ? ' · Sync...' : ''}
