@@ -26,6 +26,7 @@ import {
   Mail,
   Phone,
   Check,
+  Search,
   X,
   Trash2,
   ThumbsUp,
@@ -124,11 +125,26 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const [isGeneratingObjections, setIsGeneratingObjections] = useState(false);
 
   const [selectedProductId, setSelectedProductId] = useState('');
+  const [productSearch, setProductSearch] = useState('');
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const productPickerRef = useRef<HTMLDivElement>(null);
+  const productSearchInputRef = useRef<HTMLInputElement>(null);
   const [productQuantity, setProductQuantity] = useState(1);
   const [showCustomItem, setShowCustomItem] = useState(false);
   const [customItemName, setCustomItemName] = useState('');
   const [customItemPrice, setCustomItemPrice] = useState<string>('0');
   const [customItemQuantity, setCustomItemQuantity] = useState(1);
+
+  const filteredProducts = useMemo(() => {
+    if (!productSearch.trim()) return products;
+    const q = productSearch.toLowerCase();
+    return products.filter((p) => p.name.toLowerCase().includes(q));
+  }, [products, productSearch]);
+
+  const selectedProduct = useMemo(() => {
+    if (!selectedProductId) return null;
+    return productsById.get(selectedProductId) ?? null;
+  }, [selectedProductId, productsById]);
 
   // Deal notes for timeline
   const [dealNotes, setDealNotes] = useState<DealNote[]>([]);
@@ -157,6 +173,24 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
   // Broker commission rate for estimated commission display
   const [brokerCommissionRate, setBrokerCommissionRate] = useState<number | null>(null);
+  // Product picker: click-outside
+  useEffect(() => {
+    if (!productPickerOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (productPickerRef.current && !productPickerRef.current.contains(e.target as Node)) {
+        setProductPickerOpen(false);
+        setProductSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [productPickerOpen]);
+
+  // Product picker: auto-focus search
+  useEffect(() => {
+    if (productPickerOpen) productSearchInputRef.current?.focus();
+  }, [productPickerOpen]);
+
   useEffect(() => {
     const ownerId = deal?.ownerId;
     if (!ownerId || !supabase) { setBrokerCommissionRate(null); return; }
@@ -349,10 +383,12 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
     addToast(`${product.name} adicionado`, 'success');
     setSelectedProductId('');
+    setProductSearch('');
+    setProductPickerOpen(false);
     setProductQuantity(1);
   };
 
-  const handleAddCustomItem = () => {
+  const handleAddCustomItem = async () => {
     const name = customItemName.trim();
     const price = Number(customItemPrice);
     const qty = Number(customItemQuantity);
@@ -370,13 +406,19 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
     }
 
     // "Produto depende do cliente": item livre, sem product_id.
-    addItemToDeal(deal.id, {
+    const result = await addItemToDeal(deal.id, {
       productId: '', // deal_items.product_id é opcional no schema; sanitizeUUID('') => null
       name,
       price,
       quantity: qty,
     });
 
+    if (!result) {
+      addToast('Erro ao adicionar item. Tente novamente.', 'warning');
+      return;
+    }
+
+    addToast(`${name} adicionado`, 'success');
     setCustomItemName('');
     setCustomItemPrice('0');
     setCustomItemQuantity(1);
@@ -1129,18 +1171,83 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       <Package size={16} /> Adicionar Produto/Serviço
                     </h3>
                     <div className="flex gap-3">
-                      <select
-                        className="flex-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
-                        value={selectedProductId}
-                        onChange={e => setSelectedProductId(e.target.value)}
-                      >
-                        <option value="">Selecione um item...</option>
-                        {products.map(p => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} - {BRL_CURRENCY.format(p.price)}
-                          </option>
-                        ))}
-                      </select>
+                      {/* Searchable product picker */}
+                      <div className="flex-1 relative" ref={productPickerRef}>
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between gap-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white text-left cursor-pointer hover:bg-slate-50 dark:hover:bg-white/8 transition-colors"
+                          onClick={() => setProductPickerOpen(!productPickerOpen)}
+                        >
+                          <span className={`truncate ${selectedProduct ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+                            {selectedProduct ? selectedProduct.name : 'Selecione um item...'}
+                          </span>
+                          <span className="text-xs text-emerald-600 dark:text-emerald-400 shrink-0">
+                            {selectedProduct ? BRL_CURRENCY.format(selectedProduct.price) : ''}
+                          </span>
+                        </button>
+
+                        {productPickerOpen && (
+                          <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl shadow-slate-300/30 dark:shadow-black/40">
+                            {/* Search */}
+                            <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/8 px-3 py-2">
+                              <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                              <input
+                                ref={productSearchInputRef}
+                                type="text"
+                                value={productSearch}
+                                onChange={(e) => setProductSearch(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Escape') { setProductPickerOpen(false); setProductSearch(''); }
+                                }}
+                                placeholder="Buscar produto..."
+                                className="flex-1 bg-transparent text-sm text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                              />
+                              {productSearch && (
+                                <span className="text-[10px] text-slate-400 dark:text-slate-600">{filteredProducts.length}</span>
+                              )}
+                            </div>
+                            {/* List */}
+                            <div className="max-h-52 overflow-auto py-1">
+                              {filteredProducts.length === 0 ? (
+                                <div className="px-3 py-4 text-center text-xs text-slate-400 dark:text-slate-600">Nenhum produto encontrado</div>
+                              ) : (
+                                filteredProducts.map((p) => {
+                                  const isCurrent = p.id === selectedProductId;
+                                  return (
+                                    <button
+                                      key={p.id}
+                                      type="button"
+                                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${
+                                        isCurrent ? 'bg-slate-100 dark:bg-white/6' : 'hover:bg-slate-50 dark:hover:bg-white/4'
+                                      }`}
+                                      onClick={() => {
+                                        setSelectedProductId(p.id);
+                                        setProductPickerOpen(false);
+                                        setProductSearch('');
+                                      }}
+                                    >
+                                      <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${isCurrent ? 'text-primary-600 dark:text-primary-400' : 'text-transparent'}`}>
+                                        <Check className="h-3 w-3" />
+                                      </div>
+                                      <span className={`truncate text-sm ${isCurrent ? 'font-semibold text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>
+                                        {p.name}
+                                      </span>
+                                      <span className="ml-auto shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400/70">
+                                        {BRL_CURRENCY.format(p.price)}
+                                      </span>
+                                    </button>
+                                  );
+                                })
+                              )}
+                            </div>
+                            {/* Footer */}
+                            <div className="border-t border-slate-200 dark:border-white/8 px-3 py-1.5">
+                              <span className="text-[10px] text-slate-400 dark:text-slate-600">{products.length} produtos no catálogo</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       <input
                         type="number"
                         min="1"
