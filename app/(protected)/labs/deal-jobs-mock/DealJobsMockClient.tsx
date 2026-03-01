@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { CheckCircle2, ChevronDown, ChevronRight, MessageSquareText, Phone, Sparkles, Target } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 type TimelineItem = {
   id: string;
@@ -153,7 +154,7 @@ export default function DealJobsMockClient() {
                 </div>
 
                 <div className="shrink-0">
-                  <button
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-600/25 hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
                     onClick={() => {
@@ -163,7 +164,7 @@ export default function DealJobsMockClient() {
                   >
                     <CheckCircle2 className="h-4 w-4" />
                     {mock.nextAction.cta}
-                  </button>
+                  </Button>
 
                   <div className="mt-2 text-right text-[11px] text-slate-500">
                     1 CTA primário. O resto é suporte.
@@ -182,14 +183,14 @@ export default function DealJobsMockClient() {
                   </p>
                 </div>
 
-                <button
+                <Button
                   type="button"
                   className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/3 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-white/5"
                   onClick={() => setShowSystemEvents((v) => !v)}
                 >
                   {showSystemEvents ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   {showSystemEvents ? 'Ocultar automações' : `Mostrar automações (${systemItems.length})`}
-                </button>
+                </Button>
               </div>
 
               <div className="mt-3">
@@ -235,7 +236,7 @@ export default function DealJobsMockClient() {
               <p className="mt-2 text-sm text-slate-200">{mock.copilot.suggestion}</p>
 
               <div className="mt-3 flex items-center gap-2">
-                <button
+                <Button
                   type="button"
                   className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
                   onClick={() => {
@@ -243,8 +244,8 @@ export default function DealJobsMockClient() {
                   }}
                 >
                   {mock.copilot.action}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   className="rounded-xl border border-white/10 bg-white/3 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-white/5"
                   onClick={() => {
@@ -252,7 +253,7 @@ export default function DealJobsMockClient() {
                   }}
                 >
                   Ver mais opções
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -264,7 +265,7 @@ export default function DealJobsMockClient() {
                   placeholder="Ex.: Gere uma mensagem de onboarding"
                   className="w-full bg-transparent px-2 py-2 text-sm text-slate-200 outline-none placeholder:text-slate-600"
                 />
-                <button
+                <Button
                   type="button"
                   className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
                   onClick={() => {
@@ -272,7 +273,7 @@ export default function DealJobsMockClient() {
                   }}
                 >
                   Enviar
-                </button>
+                </Button>
               </div>
               <p className="mt-2 text-[11px] text-slate-500">
                 Sem menu de features aqui — só conversa + uma recomendação ativa.

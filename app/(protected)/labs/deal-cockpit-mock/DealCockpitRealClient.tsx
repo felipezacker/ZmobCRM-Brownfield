@@ -30,6 +30,7 @@ import { useDealNotes } from '@/features/inbox/hooks/useDealNotes';
 import { useDealFiles } from '@/features/inbox/hooks/useDealFiles';
 import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts';
 
+import { Button } from '@/app/components/ui/Button';
 import { UIChat } from '@/components/ai/UIChat';
 import { CallModal, type CallLogData } from '@/features/inbox/components/CallModal';
 import { MessageComposerModal, type MessageChannel, type MessageExecutedEvent } from '@/features/inbox/components/MessageComposerModal';
@@ -195,14 +196,14 @@ function TemplatePickerModal({
             <div className="text-sm font-semibold text-slate-100 truncate">{title}</div>
             <div className="text-[11px] text-slate-500">Escolha um script persistido e eu preencho a mensagem com variáveis do deal/contato.</div>
           </div>
-          <button
+          <Button
             type="button"
             className="rounded-xl border border-white/10 bg-white/3 p-2 text-slate-300 hover:bg-white/5"
             aria-label="Fechar"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
 
         <div className="p-4">
@@ -220,7 +221,7 @@ function TemplatePickerModal({
 
               <div className="flex flex-wrap gap-2">
                 {categories.map((c) => (
-                  <button
+                  <Button
                     key={c.key}
                     type="button"
                     onClick={() => setCategory(c.key)}
@@ -231,7 +232,7 @@ function TemplatePickerModal({
                     }
                   >
                     {c.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -252,7 +253,7 @@ function TemplatePickerModal({
                     const info = getCategoryInfo(s.category);
                     const preview = applyVariables(s.template, variables);
                     return (
-                      <button
+                      <Button
                         key={s.id}
                         type="button"
                         className="w-full text-left p-4 hover:bg-white/5 transition-colors"
@@ -269,7 +270,7 @@ function TemplatePickerModal({
                           </div>
                           <div className="shrink-0 text-[11px] font-semibold text-cyan-200">Usar</div>
                         </div>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -405,7 +406,7 @@ function TabButton({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
       className={
@@ -415,7 +416,7 @@ function TabButton({
       }
     >
       <span className="px-2 py-2 text-xs font-semibold uppercase tracking-wide">{children}</span>
-    </button>
+    </Button>
   );
 }
 
@@ -1329,7 +1330,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
               const isActive = idx === stageIndex;
               const isDone = idx < stageIndex;
               return (
-                <button
+                <Button
                   key={s.id}
                   type="button"
                   className="min-w-0 text-left"
@@ -1341,7 +1342,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     <div className={`h-2 w-2 rounded-full ${isActive ? toneToBg(s.tone) : isDone ? 'bg-white/30' : 'bg-white/10'}`} />
                   </div>
                   <div className={`mt-1 text-[11px] ${isActive ? 'text-slate-200' : 'text-slate-500'}`}>{s.label}</div>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -1369,7 +1370,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
               </div>
               <div className="mt-2 flex items-center justify-between gap-2">
                 <div className="text-[11px] text-slate-500">IA + probabilidade do deal.</div>
-                <button
+                <Button
                   type="button"
                   className="rounded-xl border border-white/10 bg-white/3 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:bg-white/5"
                   onClick={() => void refetchAI()}
@@ -1379,7 +1380,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     <Sparkles className="h-3.5 w-3.5" />
                     {aiLoading ? 'Analisando…' : 'Reanalisar'}
                   </span>
-                </button>
+                </Button>
               </div>
             </Panel>
 
@@ -1391,17 +1392,17 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
-                <button
+                <Button
                   type="button"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-600/25 hover:bg-rose-500"
                   onClick={() => void handleExecuteNext()}
                 >
                   <ActivityIcon className="h-4 w-4" />
                   Executar agora
-                </button>
+                </Button>
 
                 <div className="grid w-full grid-cols-4 gap-2">
-                  <button
+                  <Button
                     type="button"
                     className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
                     title="Ligar (abre modal de ligação)"
@@ -1410,9 +1411,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   >
                     <Phone className="h-4 w-4 text-slate-200" />
                     <span className="text-[10px] font-semibold text-slate-300">Ligar</span>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
                     title="Preparar WhatsApp"
@@ -1431,9 +1432,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   >
                     <Sparkles className="h-4 w-4 text-slate-200" />
                     <span className="text-[10px] font-semibold text-slate-300">Gerar WA</span>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
                     title="Preparar e-mail"
@@ -1453,9 +1454,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   >
                     <Inbox className="h-4 w-4 text-slate-200" />
                     <span className="text-[10px] font-semibold text-slate-300">E-mail</span>
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
                     title="Agendar (cria uma tarefa simples)"
@@ -1464,11 +1465,11 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   >
                     <CalendarClock className="h-4 w-4 text-slate-200" />
                     <span className="text-[10px] font-semibold text-slate-300">Agendar</span>
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="grid w-full grid-cols-2 gap-2">
-                  <button
+                  <Button
                     type="button"
                     className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
                     title="Usar um template persistido (Quick Scripts)"
@@ -1477,9 +1478,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   >
                     <MessageCircle className="h-4 w-4" />
                     Template WhatsApp
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
                     title="Usar um template persistido (Quick Scripts)"
@@ -1488,7 +1489,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   >
                     <Inbox className="h-4 w-4" />
                     Template E-mail
-                  </button>
+                  </Button>
                 </div>
               </div>
             </Panel>
@@ -1507,7 +1508,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                       <span className="text-slate-500">Tel</span>
                       <span className="flex items-center gap-2">
                         <span className="font-mono text-slate-200">{phoneE164 ?? ''}</span>
-                        <button
+                        <Button
                           type="button"
                           className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
                           title="Copiar telefone"
@@ -1515,14 +1516,14 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                           disabled={!phoneE164}
                         >
                           <Copy className="h-3.5 w-3.5" />
-                        </button>
+                        </Button>
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-slate-500">Email</span>
                       <span className="flex items-center gap-2 min-w-0">
                         <span className="truncate text-slate-200">{contact?.email ?? ''}</span>
-                        <button
+                        <Button
                           type="button"
                           className="shrink-0 rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
                           title="Copiar email"
@@ -1530,7 +1531,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                           disabled={!contact?.email}
                         >
                           <Copy className="h-3.5 w-3.5" />
-                        </button>
+                        </Button>
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
@@ -1595,7 +1596,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
               <div>
                 <div className="text-sm font-semibold text-slate-100">Atividades</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <button
+                  <Button
                     type="button"
                     className={
                       kindFilter === 'all'
@@ -1605,9 +1606,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     onClick={() => setKindFilter('all')}
                   >
                     Tudo
-                  </button>
+                  </Button>
                   {(['call', 'note', 'status'] as const).map((k) => (
-                    <button
+                    <Button
                       key={k}
                       type="button"
                       className={
@@ -1618,10 +1619,10 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                       onClick={() => setKindFilter(k)}
                     >
                       {k === 'call' ? 'Ligações' : k === 'note' ? 'Notas' : 'Mudanças'}
-                    </button>
+                    </Button>
                   ))}
 
-                  <button
+                  <Button
                     type="button"
                     className={
                       showSystemEvents
@@ -1632,7 +1633,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     title="System events (hoje: quase tudo vem de Activity)"
                   >
                     Sistemas
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1646,14 +1647,14 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     className="w-44 bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-600"
                   />
                 </div>
-                <button
+                <Button
                   type="button"
                   className="rounded-xl border border-white/10 bg-white/3 p-2 hover:bg-white/5"
                   title="Filtros"
                   onClick={() => pushToast('Use os chips para filtrar', 'neutral')}
                 >
                   <Filter className="h-4 w-4 text-slate-200" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -1700,7 +1701,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     Registrar (fora do CRM):
                   </span>
 
-                  <button
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={async () => {
@@ -1723,9 +1724,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     }}
                   >
                     <MessageCircle className="h-4 w-4" /> WhatsApp
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={async () => {
@@ -1748,9 +1749,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     }}
                   >
                     <Inbox className="h-4 w-4" /> Email
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={async () => {
@@ -1768,9 +1769,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     }}
                   >
                     <Phone className="h-4 w-4" /> Ligação
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={async () => {
@@ -1788,9 +1789,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     }}
                   >
                     <CalendarClock className="h-4 w-4" /> Reunião
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={async () => {
@@ -1808,7 +1809,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     }}
                   >
                     <ActivityIcon className="h-4 w-4" /> Tarefa
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1825,7 +1826,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                 />
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <div className="text-[11px] text-slate-500">Isso vira uma Activity NOTE (log do deal).</div>
-                  <button
+                  <Button
                     type="button"
                     className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
                     onClick={async () => {
@@ -1851,7 +1852,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     }}
                   >
                     Salvar
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -1864,14 +1865,14 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-[11px] text-slate-500">Checklist persistido por deal (salvo em customFields).</div>
-                  <button
+                  <Button
                     type="button"
                     className="rounded-lg border border-white/10 bg-white/2 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 hover:bg-white/5"
                     onClick={loadChecklistFromDeal}
                     title="Recarregar do deal"
                   >
                     Recarregar
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="mt-3 space-y-2">
@@ -1880,7 +1881,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   ) : (
                     checklist.map((it) => (
                       <div key={it.id} className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/2 p-2.5">
-                        <button
+                        <Button
                           type="button"
                           className={
                             it.done
@@ -1894,11 +1895,11 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                           }}
                         >
                           {it.done ? <Check className="h-3.5 w-3.5" /> : null}
-                        </button>
+                        </Button>
                         <div className={it.done ? 'flex-1 text-sm text-slate-500 line-through' : 'flex-1 text-sm text-slate-200'}>
                           {it.text}
                         </div>
-                        <button
+                        <Button
                           type="button"
                           className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
                           title="Remover"
@@ -1908,7 +1909,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                           }}
                         >
                           <X className="h-3.5 w-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     ))
                   )}
@@ -1921,7 +1922,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     placeholder="Adicionar item…"
                     className="h-10 flex-1 rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-slate-200 outline-none placeholder:text-slate-600"
                   />
-                  <button
+                  <Button
                     type="button"
                     className="h-10 rounded-xl bg-white px-4 text-xs font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-50"
                     disabled={!checklistDraft.trim()}
@@ -1934,7 +1935,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     }}
                   >
                     Adicionar
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="mt-2 text-[11px] text-slate-600">Dica: isso fica no deal atual e aparece igual quando você trocar de deal.</div>
@@ -1994,7 +1995,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                       />
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <div className="text-[11px] text-slate-500">Salva em deal_notes.</div>
-                        <button
+                        <Button
                           type="button"
                           className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-50"
                           disabled={!dealNoteDraft.trim() || createNote.isPending}
@@ -2007,7 +2008,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                           }}
                         >
                           {createNote.isPending ? 'Salvando…' : 'Adicionar'}
-                        </button>
+                        </Button>
                       </div>
                     </div>
 
@@ -2024,22 +2025,22 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                               <div className="mt-2 flex items-center justify-between gap-2">
                                 <div className="text-[11px] text-slate-500">{formatAtISO(n.created_at)}</div>
                                 <div className="flex items-center gap-2">
-                                  <button
+                                  <Button
                                     type="button"
                                     className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
                                     title="Copiar nota"
                                     onClick={() => void copyToClipboard('Nota', n.content)}
                                   >
                                     <Copy className="h-3.5 w-3.5" />
-                                  </button>
-                                  <button
+                                  </Button>
+                                  <Button
                                     type="button"
                                     className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-1.5 text-rose-200 hover:bg-rose-500/15"
                                     title="Excluir"
                                     onClick={() => void deleteNote.mutate(n.id)}
                                   >
                                     <X className="h-3.5 w-3.5" />
-                                  </button>
+                                  </Button>
                                 </div>
                               </div>
                             </div>
@@ -2073,14 +2074,14 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                                 </div>
                                 <div className="mt-1 line-clamp-3 text-xs text-slate-400 whitespace-pre-wrap">{preview}</div>
                               </div>
-                              <button
+                              <Button
                                 type="button"
                                 className="shrink-0 rounded-lg border border-white/10 bg-white/2 p-2 text-slate-200 hover:bg-white/5"
                                 title="Copiar"
                                 onClick={() => void copyToClipboard('Script', preview)}
                               >
                                 <Copy className="h-4 w-4" />
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         );
@@ -2124,22 +2125,22 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                <button
+                                <Button
                                   type="button"
                                   className="rounded-lg border border-white/10 bg-white/2 p-2 text-slate-200 hover:bg-white/5"
                                   onClick={() => downloadFile(f)}
                                   title="Download"
                                 >
                                   <Inbox className="h-4 w-4" />
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                   type="button"
                                   className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-2 text-rose-200 hover:bg-rose-500/15"
                                   onClick={() => void deleteFile.mutate({ fileId: f.id, filePath: f.file_path })}
                                   title="Excluir"
                                 >
                                   <X className="h-4 w-4" />
-                                </button>
+                                </Button>
                               </div>
                             </div>
                           </div>

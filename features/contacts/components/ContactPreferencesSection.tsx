@@ -174,7 +174,7 @@ function PreferenceForm({
           {PROPERTY_TYPE_OPTIONS.map(opt => {
             const selected = form.propertyTypes.includes(opt.value);
             return (
-              <button
+              <Button
                 key={opt.value}
                 type="button"
                 onClick={() => togglePropertyType(opt.value)}
@@ -185,7 +185,7 @@ function PreferenceForm({
                 }`}
               >
                 {opt.label}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -339,14 +339,14 @@ function PreferenceForm({
                 className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-xs"
               >
                 {region}
-                <button
+                <Button
                   type="button"
                   onClick={() => removeRegion(region)}
                   className="hover:text-red-500 transition-colors"
                   aria-label={`Remover ${region}`}
                 >
                   <X size={10} />
-                </button>
+                </Button>
               </span>
             ))}
           </div>
@@ -612,13 +612,13 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
       {error && (
         <div className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
           {error}
-          <button
+          <Button
             type="button"
             className="ml-2 underline hover:no-underline"
             onClick={() => setError(null)}
           >
             Fechar
-          </button>
+          </Button>
         </div>
       )}
 
@@ -630,14 +630,14 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
         >
           {/* Header do card */}
           <div className="flex items-center gap-2 p-3">
-            <button
+            <Button
               type="button"
               onClick={() => startEditing(pref)}
               className="flex items-center gap-2 flex-1 min-w-0 text-left"
             >
               {expandedId === pref.id ? <ChevronUp size={14} className="text-slate-400 shrink-0" /> : <ChevronDown size={14} className="text-slate-400 shrink-0" />}
               <PreferenceSummary pref={pref} />
-            </button>
+            </Button>
             <Button
               type="button"
               onClick={() => handleDelete(pref.id)}

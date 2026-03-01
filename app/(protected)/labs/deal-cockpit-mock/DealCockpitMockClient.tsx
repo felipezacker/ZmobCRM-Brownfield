@@ -22,6 +22,7 @@ import {
   StickyNote,
   X,
 } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 
 type Stage = { id: string; label: string; tone: 'blue' | 'violet' | 'amber' | 'green' | 'slate' };
 
@@ -189,7 +190,7 @@ function Panel({
 
 function TabButton({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
       className={
@@ -199,7 +200,7 @@ function TabButton({ active, children, onClick }: { active: boolean; children: R
       }
     >
       <span className="px-2 py-2 text-xs font-semibold uppercase tracking-wide">{children}</span>
-    </button>
+    </Button>
   );
 }
 
@@ -452,7 +453,7 @@ export default function DealCockpitMockClient() {
               const isActive = idx === stageIndex;
               const isDone = idx < stageIndex;
               return (
-                <button
+                <Button
                   key={s.id}
                   type="button"
                   className="min-w-0 text-left"
@@ -466,7 +467,7 @@ export default function DealCockpitMockClient() {
                     <div className={`h-2 w-2 rounded-full ${isActive ? toneToBg(s.tone) : isDone ? 'bg-white/30' : 'bg-white/10'}`} />
                   </div>
                   <div className={`mt-1 text-[11px] ${isActive ? 'text-slate-200' : 'text-slate-500'}`}>{s.label}</div>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -500,7 +501,7 @@ export default function DealCockpitMockClient() {
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
-                <button
+                <Button
                   type="button"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-600/25 hover:bg-rose-500"
                   onClick={() => {
@@ -515,9 +516,9 @@ export default function DealCockpitMockClient() {
                 >
                   <Activity className="h-4 w-4" />
                   Executar agora
-                </button>
+                </Button>
                 <div className="grid w-full grid-cols-4 gap-2">
-                  <button
+                  <Button
                     type="button"
                     className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
                     title="Ligar (abre o discador)"
@@ -530,8 +531,8 @@ export default function DealCockpitMockClient() {
                   >
                     <Phone className="h-4 w-4 text-slate-200" />
                     <span className="text-[10px] font-semibold text-slate-300">Ligar</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
                     title="Gerar WhatsApp (IA) — cria rascunho no chat"
@@ -543,8 +544,8 @@ export default function DealCockpitMockClient() {
                   >
                     <Sparkles className="h-4 w-4 text-slate-200" />
                     <span className="text-[10px] font-semibold text-slate-300">Gerar WA</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
                     title="Rascunho e-mail (mock)"
@@ -556,8 +557,8 @@ export default function DealCockpitMockClient() {
                   >
                     <Inbox className="h-4 w-4 text-slate-200" />
                     <span className="text-[10px] font-semibold text-slate-300">E-mail</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/3 px-2 py-2 hover:bg-white/5"
                     title="Agendar (mock)"
@@ -569,7 +570,7 @@ export default function DealCockpitMockClient() {
                   >
                     <CalendarClock className="h-4 w-4 text-slate-200" />
                     <span className="text-[10px] font-semibold text-slate-300">Agendar</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
             </Panel>
@@ -579,7 +580,7 @@ export default function DealCockpitMockClient() {
               icon={<FileText className="h-4 w-4 text-slate-300" />}
               right={
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
                     className={
                       leftDataTab === 'contato'
@@ -589,8 +590,8 @@ export default function DealCockpitMockClient() {
                     onClick={() => setLeftDataTab('contato')}
                   >
                     Contato
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className={
                       leftDataTab === 'negocio'
@@ -600,7 +601,7 @@ export default function DealCockpitMockClient() {
                     onClick={() => setLeftDataTab('negocio')}
                   >
                     Negócio
-                  </button>
+                  </Button>
                 </div>
               }
               className="flex min-h-0 flex-1 flex-col"
@@ -616,28 +617,28 @@ export default function DealCockpitMockClient() {
                         <span className="text-slate-500">Tel</span>
                         <span className="flex items-center gap-2">
                           <span className="font-mono text-slate-200">{mock.contact.phoneE164}</span>
-                          <button
+                          <Button
                             type="button"
                             className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
                             title="Copiar telefone"
                             onClick={() => copyToClipboard('Telefone', mock.contact.phoneE164)}
                           >
                             <Copy className="h-3.5 w-3.5" />
-                          </button>
+                          </Button>
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-slate-500">Email</span>
                         <span className="flex items-center gap-2 min-w-0">
                           <span className="truncate text-slate-200">{mock.contact.email}</span>
-                          <button
+                          <Button
                             type="button"
                             className="shrink-0 rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
                             title="Copiar email"
                             onClick={() => copyToClipboard('Email', mock.contact.email)}
                           >
                             <Copy className="h-3.5 w-3.5" />
-                          </button>
+                          </Button>
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-2">
@@ -724,7 +725,7 @@ export default function DealCockpitMockClient() {
               <div>
                 <div className="text-sm font-semibold text-slate-100">Atividades</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <button
+                  <Button
                     type="button"
                     className={
                       kindFilter === 'all'
@@ -734,9 +735,9 @@ export default function DealCockpitMockClient() {
                     onClick={() => setKindFilter('all')}
                   >
                     Tudo
-                  </button>
+                  </Button>
                   {(['call', 'note', 'status'] as const).map((k) => (
-                    <button
+                    <Button
                       key={k}
                       type="button"
                       className={
@@ -748,10 +749,10 @@ export default function DealCockpitMockClient() {
                       title={`Filtrar por ${k}`}
                     >
                       {k === 'call' ? 'Ligações' : k === 'note' ? 'Notas' : 'Mudanças'}
-                    </button>
+                    </Button>
                   ))}
 
-                  <button
+                  <Button
                     type="button"
                     className={
                       showSystemEvents
@@ -762,7 +763,7 @@ export default function DealCockpitMockClient() {
                     title="Mostrar/ocultar automações"
                   >
                     Sistemas
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -776,7 +777,7 @@ export default function DealCockpitMockClient() {
                     className="w-44 bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-600"
                   />
                 </div>
-                <button
+                <Button
                   type="button"
                   className="rounded-xl border border-white/10 bg-white/3 p-2 hover:bg-white/5"
                   title="Filtros"
@@ -785,7 +786,7 @@ export default function DealCockpitMockClient() {
                   }}
                 >
                   <Filter className="h-4 w-4 text-slate-200" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -831,7 +832,7 @@ export default function DealCockpitMockClient() {
                   >
                     Registrar (fora do CRM):
                   </span>
-                  <button
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={() => {
@@ -840,8 +841,8 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     <MessageCircle className="h-4 w-4" /> WhatsApp
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={() => {
@@ -850,8 +851,8 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     <Inbox className="h-4 w-4" /> Email
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={() => {
@@ -860,8 +861,8 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     <Phone className="h-4 w-4" /> Ligação
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={() => {
@@ -870,8 +871,8 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     <CalendarClock className="h-4 w-4" /> Reunião
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className="inline-flex items-center gap-2 hover:text-slate-200"
                     onClick={() => {
@@ -880,7 +881,7 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     <Activity className="h-4 w-4" /> Tarefa
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -897,7 +898,7 @@ export default function DealCockpitMockClient() {
                 />
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <div className="text-[11px] text-slate-500">Dica: salve highlights curtos; a timeline vira seu log.</div>
-                  <button
+                  <Button
                     type="button"
                     className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
                     onClick={() => {
@@ -916,7 +917,7 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     Salvar
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -938,7 +939,7 @@ export default function DealCockpitMockClient() {
                   {executionChecklist.map((item) => {
                     const checked = Boolean(executionDone[item.id]);
                     return (
-                      <button
+                      <Button
                         key={item.id}
                         type="button"
                         className={
@@ -974,7 +975,7 @@ export default function DealCockpitMockClient() {
                             </span>
                           </div>
                         </div>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -1034,7 +1035,7 @@ export default function DealCockpitMockClient() {
 
                               {m.role === 'assistant' && m.text.startsWith('Mensagem WhatsApp (mock):') ? (
                                 <div className="mt-2 flex flex-wrap gap-2">
-                                  <button
+                                  <Button
                                     type="button"
                                     className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-slate-200 ring-1 ring-white/10 hover:bg-white/10"
                                     onClick={() => {
@@ -1045,9 +1046,9 @@ export default function DealCockpitMockClient() {
                                   >
                                     <Copy className="h-3.5 w-3.5" />
                                     Copiar
-                                  </button>
+                                  </Button>
 
-                                  <button
+                                  <Button
                                     type="button"
                                     className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1.5 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20"
                                     onClick={() => {
@@ -1060,7 +1061,7 @@ export default function DealCockpitMockClient() {
                                   >
                                     <MessageCircle className="h-3.5 w-3.5" />
                                     Abrir WhatsApp
-                                  </button>
+                                  </Button>
                                 </div>
                               ) : null}
                             </div>
@@ -1071,7 +1072,7 @@ export default function DealCockpitMockClient() {
 
                     <div className="shrink-0 flex flex-wrap gap-2">
                       {mock.quickActions.map((a) => (
-                        <button
+                        <Button
                           key={a.id}
                           type="button"
                           className={
@@ -1083,7 +1084,7 @@ export default function DealCockpitMockClient() {
                         >
                           {a.icon}
                           {a.label}
-                        </button>
+                        </Button>
                       ))}
                     </div>
 
@@ -1100,14 +1101,14 @@ export default function DealCockpitMockClient() {
                         className="w-full bg-transparent px-2 py-2 text-sm text-slate-200 outline-none placeholder:text-slate-600"
                         placeholder="Pergunte algo…"
                       />
-                      <button
+                      <Button
                         type="button"
                         className="rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
                         onClick={handleSendChat}
                         title="Enviar (Enter)"
                       >
                         <Send className="h-4 w-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : tab === 'notas' ? (
@@ -1128,14 +1129,14 @@ export default function DealCockpitMockClient() {
                                 <div className="mt-2 text-[11px] text-slate-500">{n.at}</div>
                               </div>
                               <div className="shrink-0">
-                                <button
+                                <Button
                                   type="button"
                                   className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
                                   title="Copiar nota"
                                   onClick={() => copyToClipboard('Nota', n.text)}
                                 >
                                   <Copy className="h-3.5 w-3.5" />
-                                </button>
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -1168,13 +1169,13 @@ export default function DealCockpitMockClient() {
                 <Settings className="h-4 w-4" />
                 Cockpit
               </div>
-              <button
+              <Button
                 type="button"
                 className="text-xs font-semibold text-slate-200 hover:text-slate-100"
                 onClick={() => pushToast('Personalização ainda é mock 😉', 'neutral')}
               >
                 Personalizar
-              </button>
+              </Button>
             </div>
           </div>
         </div>
