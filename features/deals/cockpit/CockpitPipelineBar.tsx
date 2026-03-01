@@ -32,7 +32,7 @@ export function CockpitPipelineBar({
   return (
     <div className="sticky top-0 z-40 h-16 border-b border-white/5 bg-black/40 backdrop-blur">
       <div className="flex h-16 w-full items-center px-6 2xl:px-10">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <select
@@ -61,7 +61,7 @@ export function CockpitPipelineBar({
         </div>
 
         <div
-          className="ml-8 grid flex-1 gap-3"
+          className="ml-6 grid min-w-0 flex-1 gap-1"
           style={{ gridTemplateColumns: `repeat(${Math.max(1, stages.length)}, minmax(0, 1fr))` }}
         >
           {stages.map((s, idx) => {
@@ -71,15 +71,15 @@ export function CockpitPipelineBar({
               <Button
                 key={s.id}
                 type="button"
-                className="min-w-0 text-left"
+                className="min-w-0 overflow-hidden text-left"
                 onClick={() => onStageChange(s.id)}
-                title={`Mover para ${s.label}`}
+                title={s.label}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <div className={`h-1.5 flex-1 rounded-full ${isDone || isActive ? toneToBg(s.tone) : 'bg-white/10'}`} />
-                  <div className={`h-2 w-2 rounded-full ${isActive ? toneToBg(s.tone) : isDone ? 'bg-white/30' : 'bg-white/10'}`} />
+                  <div className={`h-2 w-2 shrink-0 rounded-full ${isActive ? toneToBg(s.tone) : isDone ? 'bg-white/30' : 'bg-white/10'}`} />
                 </div>
-                <div className={`mt-1 text-[11px] ${isActive ? 'text-slate-200' : 'text-slate-500'}`}>{s.label}</div>
+                <div className={`mt-1 truncate text-[10px] leading-tight ${isActive ? 'font-medium text-slate-200' : 'text-slate-500'}`}>{s.label}</div>
               </Button>
             );
           })}

@@ -92,9 +92,9 @@ const ReportsPage: React.FC = () => {
   const formatGoalValue = useCallback((value: number) => {
     switch (goalType) {
       case 'currency':
-        if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-        if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
-        return `$${value.toLocaleString()}`;
+        if (value >= 1000000) return `R$${(value / 1000000).toFixed(1)}M`;
+        if (value >= 1000) return `R$${(value / 1000).toFixed(0)}k`;
+        return `R$${value.toLocaleString()}`;
       case 'number':
         return value.toFixed(0);
       case 'percentage':
@@ -106,7 +106,7 @@ const ReportsPage: React.FC = () => {
 
   // Calcular Performance por Corretor (Leaderboard)
   const leaderboard = React.useMemo(() => {
-    const repsMap: Record<string, { name: string; avatar: string; deals: number; revenue: number; winRate: number }> = {};
+    const repsMap: Record<string, { name: string; avatar: string; won: number; lost: number; revenue: number }> = {};
 
     wonDeals.forEach(deal => {
       const ownerKey = deal.owner?.name || 'unknown';
@@ -114,27 +114,44 @@ const ReportsPage: React.FC = () => {
       const ownerAvatar = deal.owner?.avatar || '';
 
       if (!repsMap[ownerKey]) {
-        repsMap[ownerKey] = { name: ownerName, avatar: ownerAvatar, deals: 0, revenue: 0, winRate: 0 };
+        repsMap[ownerKey] = { name: ownerName, avatar: ownerAvatar, won: 0, lost: 0, revenue: 0 };
       }
-      repsMap[ownerKey].deals += 1;
+      repsMap[ownerKey].won += 1;
       repsMap[ownerKey].revenue += deal.value;
     });
 
+    lostDeals.forEach(deal => {
+      const ownerKey = deal.owner?.name || 'unknown';
+      const ownerName = deal.owner?.name || 'Sem Dono';
+      const ownerAvatar = deal.owner?.avatar || '';
+
+      if (!repsMap[ownerKey]) {
+        repsMap[ownerKey] = { name: ownerName, avatar: ownerAvatar, won: 0, lost: 0, revenue: 0 };
+      }
+      repsMap[ownerKey].lost += 1;
+    });
+
     return Object.entries(repsMap)
-      .map(([id, data]) => ({
-        id,
-        ...data,
-        winRate: data.deals > 0 ? Math.round((data.deals / Math.max(data.deals, 1)) * 100) : 0
-      }))
+      .map(([id, data]) => {
+        const total = data.won + data.lost;
+        return {
+          id,
+          name: data.name,
+          avatar: data.avatar,
+          deals: data.won,
+          revenue: data.revenue,
+          winRate: total > 0 ? Math.round((data.won / total) * 100) : 0,
+        };
+      })
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
-  }, [wonDeals]);
+  }, [wonDeals, lostDeals]);
 
   // Formatador de moeda
   const formatCurrency = useCallback((value: number) => {
-    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
-    return `$${value.toLocaleString()}`;
+    if (value >= 1000000) return `R$${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `R$${(value / 1000).toFixed(0)}k`;
+    return `R$${value.toLocaleString()}`;
   }, []);
 
   const generatedBy = useMemo(() => {

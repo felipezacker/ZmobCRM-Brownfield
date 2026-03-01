@@ -12,7 +12,7 @@ import { queryKeys, DEALS_VIEW_KEY } from '../index';
 import { dealsService, contactsService, boardStagesService } from '@/lib/supabase';
 import { createDeal as createDealAction, updateDeal as updateDealAction, deleteDeal as deleteDealAction } from '@/app/actions/deals';
 import { useAuth } from '@/context/AuthContext';
-import type { Deal, DealView, DealItem } from '@/types';
+import type { Deal, DealView, DealItem, Contact } from '@/types';
 
 // ============ QUERY HOOKS ============
 
@@ -106,6 +106,7 @@ export const useDealsView = (filters?: DealsFilters) => {
           ...deal,
           contactName: contact?.name || 'Sem contato',
           contactEmail: contact?.email || '',
+          contactPhone: contact?.phone || '',
           contactTags: contact?.tags || [],
           contactCustomFields: contact?.customFields || {},
           stageLabel: stageMap.get(deal.status) || 'Estágio não identificado',
@@ -195,6 +196,7 @@ export const useDealsByBoard = (boardId: string) => {
           ...deal,
           contactName: contact?.name || 'Sem contato',
           contactEmail: contact?.email || '',
+          contactPhone: contact?.phone || '',
           contactTags: contact?.tags || [],
           contactCustomFields: contact?.customFields || {},
           stageLabel: stageMap.get(deal.status) || 'Estágio não identificado',
@@ -248,7 +250,15 @@ export const useCreateDeal = () => {
       // Usa DEALS_VIEW_KEY - a única fonte de verdade
       const previousDeals = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
 
-      // Optimistic update with temp ID - cria DealView parcial
+      // Busca dados do contato no cache para enrichment
+      const contacts = queryClient.getQueryData<Contact[]>(queryKeys.contacts.lists()) || [];
+      const contact = newDeal.contactId ? contacts.find(c => c.id === newDeal.contactId) : undefined;
+
+      const existingDeals = previousDeals || [];
+      // Tenta encontrar o stageLabel nos deals existentes do mesmo board
+      const siblingDeal = existingDeals.find(d => d.status === newDeal.status && d.stageLabel);
+
+      // Optimistic update with temp ID - cria DealView enriquecido
       const tempId = `temp-${Date.now()}`;
       const tempDealView: DealView = {
         ...newDeal,
@@ -257,52 +267,51 @@ export const useCreateDeal = () => {
         updatedAt: new Date().toISOString(),
         isWon: newDeal.isWon ?? false,
         isLost: newDeal.isLost ?? false,
-        // Campos enriquecidos ficam vazios até Realtime atualizar
-        contactName: '',
-        contactEmail: '',
-        contactPhone: '',
-        contactTags: [],
-        contactCustomFields: {},
-        stageLabel: '',
+        contactName: contact?.name || '',
+        contactEmail: contact?.email || '',
+        contactPhone: contact?.phone || '',
+        contactTags: contact?.tags || [],
+        contactCustomFields: contact?.customFields || {},
+        stageLabel: siblingDeal?.stageLabel || '',
       } as DealView;
 
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) => [tempDealView, ...old]);
 
-      return { previousDeals, tempId };
+      return { previousDeals, tempId, contact, stageLabel: siblingDeal?.stageLabel || '' };
     },
     onSuccess: (data, _variables, context) => {
       // Replace temp deal with real one from server
-      // This ensures immediate UI update while Realtime syncs in background
       const tempId = context?.tempId;
-      
-      // Usa DEALS_VIEW_KEY - a única fonte de verdade
-      // Converte Deal para DealView parcial (Realtime vai enriquecer depois)
+      const contact = context?.contact;
+      const stageLabel = context?.stageLabel || '';
+
+      // Enriquecer DealView com dados do contato do cache
       const dealAsView: DealView = {
         ...data,
-        contactName: '',
-        contactEmail: '',
-        contactPhone: '',
-        contactTags: [],
-        contactCustomFields: {},
-        stageLabel: '',
+        contactName: contact?.name || '',
+        contactEmail: contact?.email || '',
+        contactPhone: contact?.phone || '',
+        contactTags: contact?.tags || [],
+        contactCustomFields: contact?.customFields || {},
+        stageLabel,
       } as DealView;
-      
+
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) => {
         if (!old) return [dealAsView];
-        
+
         // Check if deal already exists (race condition: Realtime may have already added it)
         const existingIndex = old.findIndex(d => d.id === data.id);
         if (existingIndex !== -1) {
           // Deal already exists (Realtime beat us), keep the existing one (it has enriched data)
-          return old; // Não sobrescreve - Realtime já tem dados enriquecidos
+          return old;
         }
-        
+
         if (tempId) {
           // Remove temp deal, add real one
           const withoutTemp = old.filter(d => d.id !== tempId);
           return [dealAsView, ...withoutTemp];
         }
-        
+
         // If temp not found, just add the new one
         return [dealAsView, ...old];
       });
@@ -314,10 +323,12 @@ export const useCreateDeal = () => {
       }
     },
     onSettled: () => {
-      // NÃO fazer invalidateQueries para deals - Realtime gerencia a sincronização
-      // Isso evita race conditions onde o refetch sobrescreve o cache otimista
-      // Apenas atualiza stats do dashboard
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats });
+      // Fallback: invalidar deals após 3s para garantir consistência se Realtime falhar
+      // O delay evita sobrescrever o cache otimista imediato
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      }, 3000);
     },
   });
 };
@@ -360,9 +371,11 @@ export const useUpdateDeal = () => {
       }
     },
     onSettled: (_data, _error, { id }) => {
-      // NÃO fazer invalidateQueries para deals - Realtime gerencia a sincronização
-      // Apenas invalidar o detalhe específico se necessário
       queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(id) });
+      // Fallback: invalidar deals após 3s para garantir consistência se Realtime falhar
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      }, 3000);
     },
   });
 };
@@ -440,8 +453,10 @@ export const useUpdateDealStatus = () => {
       }
     },
     onSettled: () => {
-      // NÃO fazer invalidateQueries - Realtime gerencia a sincronização
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      }, 3000);
     },
   });
 };
@@ -477,9 +492,10 @@ export const useDeleteDeal = () => {
       }
     },
     onSettled: () => {
-      // NÃO fazer invalidateQueries para deals - Realtime gerencia a sincronização
-      // Apenas atualiza stats do dashboard
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      }, 3000);
     },
   });
 };

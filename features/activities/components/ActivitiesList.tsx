@@ -68,7 +68,7 @@ export const ActivitiesList: React.FC<ActivitiesListProps> = ({
     return (
         <div className="space-y-3">
             {onSelectActivity && (
-                <label className="flex items-center gap-3 px-4 py-2 text-sm text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
+                <label className="flex items-center gap-3 px-4 py-3 text-sm text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg transition-colors select-none w-full">
                     <input
                         type="checkbox"
                         checked={allSelected}

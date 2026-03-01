@@ -11,6 +11,7 @@ import {
   markAllNotificationsRead,
 } from '@/app/actions/notifications'
 import type { CrmNotification, NotificationType } from '@/types'
+import { Button } from '@/app/components/ui/Button'
 import {
   Bell,
   Cake,
@@ -111,7 +112,7 @@ function NotificationCard({
   }
 
   return (
-    <button
+    <Button
       onClick={handleClick}
       className={`w-full text-left flex gap-3 p-4 rounded-lg border transition-colors hover:bg-slate-50 dark:hover:bg-white/5 ${
         notification.isRead
@@ -146,7 +147,7 @@ function NotificationCard({
           </span>
         </div>
       </div>
-    </button>
+    </Button>
   )
 }
 
@@ -234,14 +235,14 @@ export function NotificationsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             onClick={handleGenerate}
             disabled={isPending}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50"
           >
             <RefreshCw size={16} className={isPending ? 'animate-spin' : ''} />
             Gerar alertas
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -250,7 +251,7 @@ export function NotificationsPage() {
         <div className="flex items-center gap-1.5">
           <Filter size={14} className="text-slate-400" />
           {TYPE_FILTERS.map(f => (
-            <button
+            <Button
               key={f.value}
               onClick={() => setTypeFilter(f.value)}
               className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
@@ -260,12 +261,12 @@ export function NotificationsPage() {
               }`}
             >
               {f.label}
-            </button>
+            </Button>
           ))}
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <button
+          <Button
             onClick={() => setReadFilter(readFilter === 'all' ? 'unread' : 'all')}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
               readFilter === 'unread'
@@ -275,17 +276,17 @@ export function NotificationsPage() {
           >
             <Eye size={14} />
             {readFilter === 'unread' ? 'Nao lidas' : 'Todas'}
-          </button>
+          </Button>
 
           {unreadCount > 0 && (
-            <button
+            <Button
               onClick={() => markAllMutation.mutate()}
               disabled={markAllMutation.isPending}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors"
             >
               <CheckCheck size={14} />
               Marcar todas como lidas
-            </button>
+            </Button>
           )}
         </div>
       </div>

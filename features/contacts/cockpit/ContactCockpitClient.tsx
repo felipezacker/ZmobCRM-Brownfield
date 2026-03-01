@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ArrowLeft, Pencil, User } from 'lucide-react';
 import { useContact } from '@/lib/query/hooks/useContactsQuery';
 import { supabase } from '@/lib/supabase/client';
@@ -481,9 +482,11 @@ export default function ContactCockpitClient({ contactId }: ContactCockpitClient
             {/* Avatar */}
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500/20 to-violet-500/20 ring-1 ring-white/10">
               {contact.avatar ? (
-                <img
+                <Image
                   src={contact.avatar}
                   alt={contact.name}
+                  width={40}
+                  height={40}
                   className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
