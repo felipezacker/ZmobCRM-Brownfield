@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useActivitiesController } from './hooks/useActivitiesController';
 import { ActivitiesHeader } from './components/ActivitiesHeader';
 import { ActivitiesFilters } from './components/ActivitiesFilters';
@@ -61,8 +62,20 @@ export const ActivitiesPage: React.FC = () => {
         handleSubmit
     } = useActivitiesController();
 
+    const searchParams = useSearchParams();
     const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
     const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+
+    // Open edit modal from URL param (e.g., from Inbox)
+    useEffect(() => {
+        const editId = searchParams.get('edit');
+        if (editId && filteredActivities.length > 0) {
+            const activity = filteredActivities.find(a => a.id === editId);
+            if (activity) {
+                handleEditActivity(activity);
+            }
+        }
+    }, [searchParams, filteredActivities, handleEditActivity]);
 
     const handleSelectActivity = useCallback((id: string, selected: boolean) => {
         setSelectedActivities(prev => {

@@ -308,6 +308,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         ...deal,
         contactName: deal.contactId ? (contactMap[deal.contactId]?.name || 'Sem Contato') : 'Sem Contato',
         contactEmail: deal.contactId ? (contactMap[deal.contactId]?.email || '') : '',
+        contactPhone: deal.contactId ? (contactMap[deal.contactId]?.phone || '') : '',
         contactTags: deal.contactId ? (contactMap[deal.contactId]?.tags || []) : [],
         contactCustomFields: deal.contactId ? (contactMap[deal.contactId]?.customFields || {}) : {},
         stageLabel: stage?.label || 'Desconhecido',
@@ -351,6 +352,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       activeBoard?.stages?.find((s) => s.id === optimisticStageId)?.label || 'Estágio não identificado';
     const optimisticContactName = (relatedData?.contact?.name || 'Sem contato').trim() || 'Sem contato';
     const optimisticContactEmail = (relatedData?.contact?.email || '').trim();
+    const optimisticContactPhone = (relatedData?.contact?.phone || '').trim();
 
     // #region agent log
     if (process.env.NODE_ENV !== 'production') {
@@ -370,6 +372,7 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           contactId: deal.contactId || '',
           contactName: optimisticContactName,
           contactEmail: optimisticContactEmail,
+          contactPhone: optimisticContactPhone,
           contactTags: [],
           contactCustomFields: {},
           stageLabel: optimisticStageLabel,
@@ -458,6 +461,9 @@ const CRMInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             ...(createdDeal as any),
             contactName: optimisticContactName,
             contactEmail: optimisticContactEmail,
+            contactPhone: optimisticContactPhone,
+            contactTags: [],
+            contactCustomFields: {},
             stageLabel: optimisticStageLabel,
           };
           

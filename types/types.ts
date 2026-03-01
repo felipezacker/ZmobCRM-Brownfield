@@ -284,6 +284,8 @@ export interface Deal {
 export interface DealView extends Deal {
   contactName: string;
   contactEmail: string;
+  /** Telefone do contato vinculado (read-only no deal). */
+  contactPhone: string;
   /** Tags do contato vinculado (read-only no deal). */
   contactTags: string[];
   /** Campos customizados do contato vinculado (read-only no deal). */

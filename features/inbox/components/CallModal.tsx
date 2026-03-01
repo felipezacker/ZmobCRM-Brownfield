@@ -141,18 +141,18 @@ export const CallModal: React.FC<CallModalProps> = ({
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleDiscard} />
 
             {/* Modal */}
-            <div className="relative bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-xl mx-4 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-xl mx-4 overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className="bg-linear-to-r from-yellow-500/10 to-orange-500/10 p-4 border-b border-slate-700/50 shrink-0">
+                <div className="bg-linear-to-r from-yellow-500/10 to-orange-500/10 p-4 border-b border-slate-200 dark:border-slate-700/50 shrink-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-yellow-500/20 rounded-xl">
                                 <Phone size={20} className="text-yellow-400" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-white">{contactName}</h3>
+                                <h3 className="font-semibold text-slate-900 dark:text-white">{contactName}</h3>
                                 <div className="mt-0.5 flex items-center gap-2">
-                                    <p className="text-xs text-slate-400">{phone || ''}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">{phone || ''}</p>
                                     {phone && (
                                         <>
                                             <Button
@@ -180,7 +180,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                         </div>
                         <Button
                             onClick={handleDiscard}
-                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white"
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-white"
                         >
                             <X size={18} />
                         </Button>
@@ -188,11 +188,11 @@ export const CallModal: React.FC<CallModalProps> = ({
                 </div>
 
                 {/* Timer */}
-                <div className="flex items-center justify-center py-6 bg-slate-800/50 shrink-0">
-                    <div className="flex flex-col items-center gap-2 px-6 py-3 bg-slate-900 rounded-xl border border-slate-700/50">
+                <div className="flex items-center justify-center py-6 bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                    <div className="flex flex-col items-center gap-2 px-6 py-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/50">
                         <div className="flex items-center gap-3">
                             <Clock size={18} className="text-yellow-400" />
-                            <span className="text-2xl font-mono font-bold text-white tracking-wider">
+                            <span className="text-2xl font-mono font-bold text-slate-900 dark:text-white tracking-wider">
                                 {formatTime(dialerOpenedAt ? elapsedTime : 0)}
                             </span>
                         </div>
@@ -212,7 +212,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                 <div className="p-4 space-y-4 overflow-y-auto">
                     {/* Outcome Selection */}
                     <div>
-                        <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 block">
+                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
                             Resultado da ligação
                         </label>
                         <div className="grid grid-cols-2 gap-2">
@@ -222,7 +222,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                     onClick={() => setOutcome(id)}
                                     className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-all text-sm font-medium ${outcome === id
                                             ? color + ' ring-2 ring-current'
-                                            : 'bg-slate-800/50 text-slate-400 border-slate-700/50 hover:border-slate-600'
+                                            : 'bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600'
                                         }`}
                                 >
                                     <Icon size={16} />
@@ -234,21 +234,21 @@ export const CallModal: React.FC<CallModalProps> = ({
 
                     {/* Title */}
                     <div>
-                        <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 block">
+                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
                             Título da atividade
                         </label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm"
+                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm"
                             placeholder="Ex: Ligação de follow-up"
                         />
                     </div>
 
                     {/* Notes */}
                     <div>
-                        <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                             <FileText size={12} />
                             Notas da ligação
                         </label>
@@ -256,17 +256,17 @@ export const CallModal: React.FC<CallModalProps> = ({
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="O que foi discutido? Próximos passos?"
-                            className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-40 max-h-[40vh]"
+                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-40 max-h-[40vh] break-words overflow-wrap-anywhere"
                             rows={6}
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-slate-700/50 flex flex-col sm:flex-row gap-2 shrink-0">
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700/50 flex flex-col sm:flex-row gap-2 shrink-0">
                     <Button
                         onClick={handleDiscard}
-                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                         Descartar
                     </Button>
@@ -274,7 +274,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                         type="button"
                         onClick={handleCopyPhone}
                         disabled={!phone}
-                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         title={copied ? 'Copiado' : 'Copiar número'}
                     >
                         <Copy size={16} />
@@ -293,7 +293,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                     <Button
                         onClick={handleSave}
                         disabled={!outcome}
-                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         <Check size={16} />
                         Salvar Log
