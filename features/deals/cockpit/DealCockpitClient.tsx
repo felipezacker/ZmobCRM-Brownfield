@@ -81,7 +81,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const crmError = dealsCtx.error || activitiesCtx.error;
   const refreshCRM = useCallback(async () => { await dealsCtx.refresh(); await activitiesCtx.refresh(); }, [dealsCtx, activitiesCtx]);
 
-  const { customFieldDefinitions } = useSettings();
+  const { customFieldDefinitions, products } = useSettings();
   const { darkMode, toggleDarkMode } = useTheme();
   const [debugEnabled, setDebugEnabled] = useState(() => isDebugMode());
 
@@ -575,9 +575,9 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     if (data) setPreferences(data);
   }, [selectedContact?.id, profile?.organization_id]);
 
-  const handleAddItem = useCallback(async (item: { name: string; price: number; quantity: number }) => {
+  const handleAddItem = useCallback(async (item: { productId?: string; name: string; price: number; quantity: number }) => {
     if (!selectedDeal?.id) return;
-    await addItemToDeal(selectedDeal.id, { productId: '', ...item });
+    await addItemToDeal(selectedDeal.id, { productId: item.productId ?? '', ...item });
   }, [selectedDeal?.id, addItemToDeal]);
 
   const handleRemoveItem = useCallback(async (itemId: string) => {
@@ -744,6 +744,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
               estimatedCommission={estimatedCommission}
               preferences={preferences}
               customFieldDefinitions={customFieldDefinitions}
+              products={products}
               onUpdateDeal={handleUpdateDeal}
               onUpdateContact={handleUpdateContact}
               onUpdatePreferences={handleUpdatePreferences}
@@ -795,6 +796,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             applyVariables={applyVariables}
             getCategoryInfo={getCategoryInfo}
             templateVariables={templateVariables}
+            contactNotes={contact?.notes ?? null}
+            onUpdateContactNotes={(notes) => { if (contact?.id) updateContact(contact.id, { notes } as any); }}
             crmLoading={crmLoading}
             onRefreshCRM={() => void refreshCRM()}
             onCopy={(label, text) => void copyToClipboard(label, text)}

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Copy, FileText, Home, Package, Plus, Settings, Trash2, User } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Check, Copy, FileText, Home, Package, Plus, Search, Settings, Tag, Trash2, User } from 'lucide-react';
 import { Panel } from './cockpit-ui';
-import type { DealView, Contact, ContactPreference, CustomFieldDefinition } from '@/types';
+import type { DealView, Contact, ContactPreference, CustomFieldDefinition, Product } from '@/types';
 import type { Stage } from './cockpit-types';
 import { formatAtISO, formatCurrencyBRL, humanizeTestLabel } from './cockpit-utils';
 import { Button } from '@/app/components/ui/Button';
@@ -82,7 +82,8 @@ interface CockpitDataPanelProps {
   onUpdateContact?: (updates: Partial<Contact>) => void;
   onUpdatePreferences?: (updates: Partial<ContactPreference>) => void;
   onCreatePreferences?: () => void;
-  onAddItem?: (item: { name: string; price: number; quantity: number }) => void;
+  products?: Product[];
+  onAddItem?: (item: { productId?: string; name: string; price: number; quantity: number }) => void;
   onRemoveItem?: (itemId: string) => void;
 }
 
@@ -99,6 +100,7 @@ export function CockpitDataPanel({
   onUpdateContact,
   onUpdatePreferences,
   onCreatePreferences,
+  products,
   onAddItem,
   onRemoveItem,
 }: CockpitDataPanelProps) {
@@ -113,26 +115,77 @@ export function CockpitDataPanel({
 
   // Local state for add-item form
   const [showAddItem, setShowAddItem] = useState(false);
-  const [newItemName, setNewItemName] = useState('');
-  const [newItemPrice, setNewItemPrice] = useState('');
-  const [newItemQty, setNewItemQty] = useState('1');
+  const [addMode, setAddMode] = useState<'catalog' | 'custom'>('catalog');
+  // Catalog mode
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [productSearch, setProductSearch] = useState('');
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const [productQty, setProductQty] = useState(1);
+  const productPickerRef = useRef<HTMLDivElement>(null);
+  const productSearchRef = useRef<HTMLInputElement>(null);
+  // Custom mode
+  const [customName, setCustomName] = useState('');
+  const [customPrice, setCustomPrice] = useState('');
+  const [customQty, setCustomQty] = useState('1');
+
+  // Click-outside to close product picker
+  useEffect(() => {
+    if (!productPickerOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (productPickerRef.current && !productPickerRef.current.contains(e.target as Node)) {
+        setProductPickerOpen(false);
+        setProductSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [productPickerOpen]);
+
+  // Auto-focus search when picker opens
+  useEffect(() => {
+    if (productPickerOpen) productSearchRef.current?.focus();
+  }, [productPickerOpen]);
+
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    if (!productSearch.trim()) return products;
+    const q = productSearch.toLowerCase();
+    return products.filter((p) => p.name.toLowerCase().includes(q));
+  }, [products, productSearch]);
+
+  const selectedProduct = useMemo(() => {
+    if (!selectedProductId || !products) return null;
+    return products.find((p) => p.id === selectedProductId) ?? null;
+  }, [selectedProductId, products]);
 
   // Filter custom field definitions to only those that have values
   const filledCustomFields = customFieldDefinitions.filter(
     (def) => customFields && customFields[def.key] !== undefined && customFields[def.key] !== null && customFields[def.key] !== ''
   );
 
-  const handleAddItemSubmit = () => {
-    if (!onAddItem || !newItemName.trim()) return;
-    onAddItem({
-      name: newItemName.trim(),
-      price: parseFloat(newItemPrice) || 0,
-      quantity: parseInt(newItemQty, 10) || 1,
-    });
-    setNewItemName('');
-    setNewItemPrice('');
-    setNewItemQty('1');
+  const resetAddItemForm = () => {
+    setSelectedProductId('');
+    setProductSearch('');
+    setProductPickerOpen(false);
+    setProductQty(1);
+    setCustomName('');
+    setCustomPrice('');
+    setCustomQty('1');
     setShowAddItem(false);
+  };
+
+  const handleAddCatalogItem = () => {
+    if (!onAddItem || !selectedProductId) return;
+    const product = products?.find((p) => p.id === selectedProductId);
+    if (!product) return;
+    onAddItem({ productId: product.id, name: product.name, price: product.price, quantity: productQty });
+    resetAddItemForm();
+  };
+
+  const handleAddCustomItem = () => {
+    if (!onAddItem || !customName.trim()) return;
+    onAddItem({ name: customName.trim(), price: parseFloat(customPrice) || 0, quantity: parseInt(customQty, 10) || 1 });
+    resetAddItemForm();
   };
 
   return (
@@ -144,7 +197,7 @@ export function CockpitDataPanel({
     >
       <div key={`${deal.id}-${contact?.id ?? ''}-${preferences?.id ?? ''}`} className="flex min-h-0 flex-col gap-4">
         {/* ── CONTATO ── */}
-        <div>
+        <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-3">
           <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">
             <User className="h-3.5 w-3.5" /> Contato
           </div>
@@ -277,30 +330,241 @@ export function CockpitDataPanel({
             </div>
           </div>
 
-          {/* Tags (read-only) */}
-          {tags && tags.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {tags.map((tag) => (
-                <span key={tag} className="rounded-full border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
-                  {tag}
-                </span>
+        </div>
+
+        {/* ── PRODUTOS ── */}
+        <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-3">
+          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">
+            <Package className="h-3.5 w-3.5" /> Produtos
+          </div>
+          {deal.items && deal.items.length > 0 ? (
+            <div className="space-y-1.5 text-xs">
+              {deal.items.map((item: any, idx: number) => (
+                <div key={item.id ?? idx} className="group flex items-center justify-between gap-2">
+                  <span className="text-slate-700 dark:text-slate-200 truncate">{item.name ?? 'Produto'}</span>
+                  <span className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-slate-600 dark:text-slate-300">
+                      {item.quantity && item.quantity > 1 ? `${item.quantity}x ` : ''}
+                      {item.price != null ? formatCurrencyBRL(item.price) : ''}
+                    </span>
+                    {onRemoveItem && item.id ? (
+                      <button
+                        type="button"
+                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 transition-all"
+                        title="Remover produto"
+                        onClick={() => onRemoveItem(item.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    ) : null}
+                  </span>
+                </div>
               ))}
             </div>
-          ) : null}
+          ) : (
+            <div className="text-xs text-slate-500">Sem produtos</div>
+          )}
+          {/* Add item form */}
+          {onAddItem ? (
+            <div className="mt-2">
+              {showAddItem ? (
+                <div className="space-y-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2">
+                  {/* Mode tabs */}
+                  <div className="flex gap-1 mb-2">
+                    <button
+                      type="button"
+                      className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-colors ${
+                        addMode === 'catalog'
+                          ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-200'
+                          : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                      }`}
+                      onClick={() => setAddMode('catalog')}
+                    >
+                      Catálogo
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-colors ${
+                        addMode === 'custom'
+                          ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-200'
+                          : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                      }`}
+                      onClick={() => setAddMode('custom')}
+                    >
+                      Personalizado
+                    </button>
+                  </div>
 
-          {/* Contact Notes — textarea editável */}
-          <div className="mt-2">
-            <textarea
-              className={`${INPUT_CLASS} w-full resize-none rounded-lg border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-200/90`}
-              rows={2}
-              defaultValue={contactNotes ?? ''}
-              placeholder="Notas do contato..."
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (v !== (contactNotes ?? '')) onUpdateContact?.({ notes: v || null } as any);
-              }}
-            />
-          </div>
+                  {addMode === 'catalog' ? (
+                    products && products.length > 0 ? (
+                      <>
+                        {/* Searchable product picker */}
+                        <div className="relative" ref={productPickerRef}>
+                          <button
+                            type="button"
+                            className={`${SELECT_CLASS} w-full flex items-center justify-between gap-1 text-slate-700 dark:text-slate-200`}
+                            onClick={() => setProductPickerOpen(!productPickerOpen)}
+                          >
+                            <span className="truncate">
+                              {selectedProduct ? selectedProduct.name : 'Selecionar produto...'}
+                            </span>
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 shrink-0">
+                              {selectedProduct ? formatCurrencyBRL(selectedProduct.price) : ''}
+                            </span>
+                          </button>
+
+                          {productPickerOpen && (
+                            <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950/95 backdrop-blur-xl shadow-xl shadow-slate-300/30 dark:shadow-black/40">
+                              {/* Search */}
+                              <div className="flex items-center gap-1.5 border-b border-slate-200 dark:border-white/8 px-2 py-1.5">
+                                <Search className="h-3 w-3 shrink-0 text-slate-400" />
+                                <input
+                                  ref={productSearchRef}
+                                  type="text"
+                                  value={productSearch}
+                                  onChange={(e) => setProductSearch(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Escape') { setProductPickerOpen(false); setProductSearch(''); }
+                                  }}
+                                  placeholder="Buscar produto..."
+                                  className="flex-1 bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                />
+                              </div>
+                              {/* List */}
+                              <div className="max-h-[150px] overflow-auto py-0.5">
+                                {filteredProducts.length === 0 ? (
+                                  <div className="px-2 py-3 text-center text-[10px] text-slate-400 dark:text-slate-600">Nenhum produto encontrado</div>
+                                ) : (
+                                  filteredProducts.map((p) => {
+                                    const isCurrent = p.id === selectedProductId;
+                                    return (
+                                      <button
+                                        key={p.id}
+                                        type="button"
+                                        className={`flex w-full items-center gap-1.5 px-2 py-1.5 text-left transition-colors ${
+                                          isCurrent ? 'bg-slate-100 dark:bg-white/6' : 'hover:bg-slate-50 dark:hover:bg-white/4'
+                                        }`}
+                                        onClick={() => {
+                                          setSelectedProductId(p.id);
+                                          setProductPickerOpen(false);
+                                          setProductSearch('');
+                                        }}
+                                      >
+                                        <div className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded ${isCurrent ? 'text-cyan-600 dark:text-cyan-400' : 'text-transparent'}`}>
+                                          <Check className="h-2.5 w-2.5" />
+                                        </div>
+                                        <span className={`truncate text-xs ${isCurrent ? 'font-semibold text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}>
+                                          {p.name}
+                                        </span>
+                                        <span className="ml-auto shrink-0 text-[10px] font-medium text-emerald-600 dark:text-emerald-400/70">
+                                          {formatCurrencyBRL(p.price)}
+                                        </span>
+                                      </button>
+                                    );
+                                  })
+                                )}
+                              </div>
+                              {/* Footer */}
+                              <div className="border-t border-slate-200 dark:border-white/8 px-2 py-1">
+                                <span className="text-[10px] text-slate-400 dark:text-slate-600">{products.length} produtos no catálogo</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-slate-500">Qtd</span>
+                          <input
+                            type="number"
+                            className={`${INPUT_CLASS} w-12 text-center text-slate-700 dark:text-slate-200`}
+                            value={productQty}
+                            onChange={(e) => setProductQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                            min={1}
+                          />
+                        </div>
+                        <div className="flex gap-1.5">
+                          <Button
+                            type="button"
+                            className="flex-1 rounded-lg bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
+                            onClick={handleAddCatalogItem}
+                            disabled={!selectedProductId}
+                          >
+                            Adicionar
+                          </Button>
+                          <Button
+                            type="button"
+                            className="rounded-lg px-2 py-1 text-[10px] text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                            onClick={resetAddItemForm}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-[10px] text-slate-500">
+                        Nenhum produto cadastrado.{' '}
+                        <button type="button" className="text-cyan-600 dark:text-cyan-300 hover:underline" onClick={() => setAddMode('custom')}>
+                          Adicionar manualmente
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        className={`${INPUT_CLASS} w-full text-slate-700 dark:text-slate-200`}
+                        placeholder="Nome do produto"
+                        value={customName}
+                        onChange={(e) => setCustomName(e.target.value)}
+                      />
+                      <div className="flex gap-1.5">
+                        <input
+                          type="number"
+                          className={`${INPUT_CLASS} flex-1 text-slate-700 dark:text-slate-200`}
+                          placeholder="Preço"
+                          value={customPrice}
+                          onChange={(e) => setCustomPrice(e.target.value)}
+                        />
+                        <input
+                          type="number"
+                          className={`${INPUT_CLASS} w-12 text-center text-slate-700 dark:text-slate-200`}
+                          placeholder="Qtd"
+                          value={customQty}
+                          onChange={(e) => setCustomQty(e.target.value)}
+                          min={1}
+                        />
+                      </div>
+                      <div className="flex gap-1.5">
+                        <Button
+                          type="button"
+                          className="flex-1 rounded-lg bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
+                          onClick={handleAddCustomItem}
+                          disabled={!customName.trim()}
+                        >
+                          Adicionar
+                        </Button>
+                        <Button
+                          type="button"
+                          className="rounded-lg px-2 py-1 text-[10px] text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                          onClick={resetAddItemForm}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors mt-1"
+                  onClick={() => setShowAddItem(true)}
+                >
+                  <Plus className="h-3 w-3" /> Produto
+                </button>
+              )}
+            </div>
+          ) : null}
         </div>
 
         {/* ── PREFERÊNCIAS ── */}
@@ -560,98 +824,6 @@ export function CockpitDataPanel({
           </div>
         </div>
 
-        {/* ── PRODUTOS ── */}
-        <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-3">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">
-            <Package className="h-3.5 w-3.5" /> Produtos
-          </div>
-          {deal.items && deal.items.length > 0 ? (
-            <div className="space-y-1.5 text-xs">
-              {deal.items.map((item: any, idx: number) => (
-                <div key={item.id ?? idx} className="group flex items-center justify-between gap-2">
-                  <span className="text-slate-700 dark:text-slate-200 truncate">{item.name ?? 'Produto'}</span>
-                  <span className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-slate-600 dark:text-slate-300">
-                      {item.quantity && item.quantity > 1 ? `${item.quantity}x ` : ''}
-                      {item.price != null ? formatCurrencyBRL(item.price) : ''}
-                    </span>
-                    {onRemoveItem && item.id ? (
-                      <button
-                        type="button"
-                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 transition-all"
-                        title="Remover produto"
-                        onClick={() => onRemoveItem(item.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    ) : null}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-xs text-slate-500">Sem produtos</div>
-          )}
-          {/* Add item form */}
-          {onAddItem ? (
-            <div className="mt-2">
-              {showAddItem ? (
-                <div className="space-y-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2">
-                  <input
-                    type="text"
-                    className={`${INPUT_CLASS} w-full text-slate-700 dark:text-slate-200`}
-                    placeholder="Nome do produto"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                  />
-                  <div className="flex gap-1.5">
-                    <input
-                      type="number"
-                      className={`${INPUT_CLASS} flex-1 text-slate-700 dark:text-slate-200`}
-                      placeholder="Preço"
-                      value={newItemPrice}
-                      onChange={(e) => setNewItemPrice(e.target.value)}
-                    />
-                    <input
-                      type="number"
-                      className={`${INPUT_CLASS} w-12 text-center text-slate-700 dark:text-slate-200`}
-                      placeholder="Qtd"
-                      value={newItemQty}
-                      onChange={(e) => setNewItemQty(e.target.value)}
-                      min={1}
-                    />
-                  </div>
-                  <div className="flex gap-1.5">
-                    <Button
-                      type="button"
-                      className="flex-1 rounded-lg bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
-                      onClick={handleAddItemSubmit}
-                      disabled={!newItemName.trim()}
-                    >
-                      Adicionar
-                    </Button>
-                    <Button
-                      type="button"
-                      className="rounded-lg px-2 py-1 text-[10px] text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
-                      onClick={() => { setShowAddItem(false); setNewItemName(''); setNewItemPrice(''); setNewItemQty('1'); }}
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors mt-1"
-                  onClick={() => setShowAddItem(true)}
-                >
-                  <Plus className="h-3 w-3" /> Produto
-                </button>
-              )}
-            </div>
-          ) : null}
-        </div>
-
         {/* ── CAMPOS CUSTOM (condicional, read-only) ── */}
         {filledCustomFields.length > 0 && customFields ? (
           <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-3">
@@ -664,6 +836,22 @@ export function CockpitDataPanel({
                   <span className="text-slate-500">{def.label}</span>
                   <span className="text-slate-700 dark:text-slate-200 text-right truncate max-w-[60%]">{String(customFields[def.key])}</span>
                 </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ── TAGS (read-only) ── */}
+        {tags && tags.length > 0 ? (
+          <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-3">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">
+              <Tag className="h-3.5 w-3.5" /> Tags
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {tags.map((tag) => (
+                <span key={tag} className="rounded-full border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
+                  {tag}
+                </span>
               ))}
             </div>
           </div>

@@ -39,6 +39,8 @@ interface CockpitRightRailProps {
   applyVariables: (template: string, vars: Record<string, string>) => string;
   getCategoryInfo: (category: ScriptCategory) => { label: string; color: string };
   templateVariables: Record<string, string>;
+  contactNotes?: string | null;
+  onUpdateContactNotes?: (notes: string | null) => void;
   crmLoading: boolean;
   onRefreshCRM: () => void;
   onCopy: (label: string, text: string) => void;
@@ -66,6 +68,8 @@ export function CockpitRightRail({
   applyVariables,
   getCategoryInfo,
   templateVariables,
+  contactNotes,
+  onUpdateContactNotes,
   crmLoading,
   onRefreshCRM,
   onCopy,
@@ -113,6 +117,25 @@ export function CockpitRightRail({
             </div>
           ) : tab === 'notas' ? (
             <div className="h-full min-h-0 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/2 p-3 overflow-auto">
+              {/* Notas do contato */}
+              <div className="mb-3">
+                <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                  <StickyNote className="h-3.5 w-3.5" />
+                  Notas do contato
+                </div>
+                <textarea
+                  className="w-full resize-none rounded-lg border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-200/90 outline-none focus:ring-1 focus:ring-amber-500/30 transition-colors"
+                  rows={2}
+                  defaultValue={contactNotes ?? ''}
+                  placeholder="Notas do contato..."
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v !== (contactNotes ?? '')) onUpdateContactNotes?.(v || null);
+                  }}
+                />
+              </div>
+
+              <div className="border-t border-slate-200 dark:border-white/10 pt-3">
               <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                 <StickyNote className="h-3.5 w-3.5" />
                 Notas do deal
@@ -168,6 +191,7 @@ export function CockpitRightRail({
                     </div>
                   ))
                 )}
+              </div>
               </div>
             </div>
           ) : tab === 'scripts' ? (
