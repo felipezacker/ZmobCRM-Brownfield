@@ -25,7 +25,7 @@ export function CockpitChecklist({ checklist, onPersistChecklist, onReload }: Co
       bodyClassName="min-h-0 flex-1 overflow-auto"
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[11px] text-slate-500">Checklist persistido por deal (salvo em customFields).</div>
+        <div className="text-[11px] text-slate-500">Checklist persistido por deal (salvo em metadata).</div>
         <Button
           type="button"
           className="rounded-lg border border-white/10 bg-white/2 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 hover:bg-white/5"

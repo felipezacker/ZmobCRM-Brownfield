@@ -177,9 +177,6 @@ export function CockpitTimeline({
                         )
                       ) : null}
                     </div>
-                    {t.title !== 'Moveu para' && t.subtitle ? (
-                      <div className="mt-0.5 text-[11px] text-slate-500">{t.subtitle}</div>
-                    ) : null}
                   </div>
                   <div className="shrink-0 text-[11px] text-slate-500">{t.at}</div>
                 </div>

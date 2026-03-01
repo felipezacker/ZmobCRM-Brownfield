@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Copy, FileText, Inbox, Sparkles, StickyNote, X } from 'lucide-react';
+import { Copy, Download, FileText, Inbox, Sparkles, StickyNote, X } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Chip, TabButton } from './cockpit-ui';
 import { UIChat } from '@/components/ai/UIChat';
@@ -124,9 +124,13 @@ export function CockpitRightRail({
                     onClick={async () => {
                       const content = dealNoteDraft.trim();
                       if (!content) return;
-                      await createNote.mutateAsync(content);
-                      setDealNoteDraft('');
-                      pushToast('Nota persistida salva', 'success');
+                      try {
+                        await createNote.mutateAsync(content);
+                        setDealNoteDraft('');
+                        pushToast('Nota persistida salva', 'success');
+                      } catch {
+                        pushToast('Não foi possível salvar a nota.', 'danger');
+                      }
                     }}
                   >
                     {createNote.isPending ? 'Salvando…' : 'Adicionar'}
@@ -249,7 +253,7 @@ export function CockpitRightRail({
                             onClick={() => downloadFile(f)}
                             title="Download"
                           >
-                            <Inbox className="h-4 w-4" />
+                            <Download className="h-4 w-4" />
                           </Button>
                           <Button
                             type="button"

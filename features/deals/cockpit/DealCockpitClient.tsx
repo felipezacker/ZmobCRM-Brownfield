@@ -75,7 +75,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const { activities, addActivity } = activitiesCtx;
   const crmLoading = dealsCtx.loading || activitiesCtx.loading;
   const crmError = dealsCtx.error || activitiesCtx.error;
-  const refreshCRM = async () => { await dealsCtx.refresh(); await activitiesCtx.refresh(); };
+  const refreshCRM = useCallback(async () => { await dealsCtx.refresh(); await activitiesCtx.refresh(); }, [dealsCtx, activitiesCtx]);
 
   const [toast, setToast] = useState<ToastState | null>(null);
 
@@ -488,7 +488,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             <div className="text-xs text-slate-300">/deals/[dealId]/cockpit</div>
           </div>
           <div className="mt-3 text-sm text-slate-100">Não foi possível carregar os dados do CRM.</div>
-          <div className="mt-2 text-xs text-rose-100/80 wrap-break-word">{crmError}</div>
+          <div className="mt-2 text-xs text-rose-100/80 break-words">{crmError}</div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100" onClick={() => void refreshCRM()}>Recarregar</Button>
             <Button type="button" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
