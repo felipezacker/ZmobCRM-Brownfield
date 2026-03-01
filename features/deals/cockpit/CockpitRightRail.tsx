@@ -76,14 +76,14 @@ export function CockpitRightRail({
 
   return (
     <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
-      <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-white/10 bg-white/3">
-        <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 shrink-0">
+      <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 px-3 py-2 shrink-0">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-500/10 ring-1 ring-cyan-500/20">
-              <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
+              <Sparkles className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-300" />
             </div>
             <div>
-              <div className="text-xs font-semibold text-slate-100">ZmobCRM Pilot</div>
+              <div className="text-xs font-semibold text-slate-900 dark:text-slate-100">ZmobCRM Pilot</div>
               <div className="text-[10px] text-slate-500 truncate max-w-[200px]">
                 {humanizeTestLabel(dealTitle) || dealTitle}
               </div>
@@ -100,7 +100,7 @@ export function CockpitRightRail({
 
         <div className="min-h-0 flex-1 overflow-hidden p-3">
           {tab === 'chat' ? (
-            <div className="h-full min-h-0 rounded-xl border border-white/10 bg-white/2 overflow-hidden">
+            <div className="h-full min-h-0 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/2 overflow-hidden">
               <UIChat
                 boardId={boardId}
                 dealId={dealId}
@@ -112,8 +112,8 @@ export function CockpitRightRail({
               />
             </div>
           ) : tab === 'notas' ? (
-            <div className="h-full min-h-0 rounded-xl border border-white/10 bg-white/2 p-3 overflow-auto">
-              <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400">
+            <div className="h-full min-h-0 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/2 p-3 overflow-auto">
+              <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                 <StickyNote className="h-3.5 w-3.5" />
                 Notas do deal
               </div>
@@ -121,7 +121,7 @@ export function CockpitRightRail({
                 <textarea
                   value={dealNoteDraft}
                   onChange={(e) => setDealNoteDraft(e.target.value)}
-                  className="w-full min-h-20 resize-none rounded-lg border border-white/10 bg-white/3 p-2.5 text-xs text-slate-200 outline-none placeholder:text-slate-600"
+                  className="w-full min-h-20 resize-none rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2.5 text-xs text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
                   placeholder="Escreva uma nota..."
                 />
                 <div className="mt-1.5 flex items-center justify-end">
@@ -152,12 +152,12 @@ export function CockpitRightRail({
                   <div className="text-xs text-slate-500">Sem notas.</div>
                 ) : (
                   notes.map((n) => (
-                    <div key={n.id} className="rounded-xl border border-white/10 bg-white/3 p-2.5">
-                      <div className="whitespace-pre-wrap text-xs text-slate-200 line-clamp-4">{n.content}</div>
+                    <div key={n.id} className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2.5">
+                      <div className="whitespace-pre-wrap text-xs text-slate-700 dark:text-slate-200 line-clamp-4">{n.content}</div>
                       <div className="mt-1.5 flex items-center justify-between gap-2">
-                        <div className="text-[10px] text-slate-600">{formatAtISO(n.created_at)}</div>
+                        <div className="text-[10px] text-slate-400 dark:text-slate-600">{formatAtISO(n.created_at)}</div>
                         <div className="flex items-center gap-1">
-                          <Button type="button" className="rounded p-1 text-slate-400 hover:bg-white/5 hover:text-slate-200" title="Copiar" onClick={() => onCopy('Nota', n.content)}>
+                          <Button type="button" className="rounded p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200" title="Copiar" onClick={() => onCopy('Nota', n.content)}>
                             <Copy className="h-3 w-3" />
                           </Button>
                           <Button type="button" className="rounded p-1 text-rose-400/60 hover:bg-rose-500/10 hover:text-rose-300" title="Excluir" onClick={() => deleteNote.mutate(n.id)}>
@@ -171,30 +171,30 @@ export function CockpitRightRail({
               </div>
             </div>
           ) : tab === 'scripts' ? (
-            <div className="h-full min-h-0 rounded-xl border border-white/10 bg-white/2 p-3 overflow-auto">
+            <div className="h-full min-h-0 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/2 p-3 overflow-auto">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400">
+                <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                   <FileText className="h-3.5 w-3.5" /> Scripts
                 </div>
-                <div className="text-[10px] text-slate-600">{isScriptsLoading ? 'Carregando...' : `${scripts.length}`}</div>
+                <div className="text-[10px] text-slate-400 dark:text-slate-600">{isScriptsLoading ? 'Carregando...' : `${scripts.length}`}</div>
               </div>
               <div className="mt-2 space-y-1.5">
                 {scripts.map((s) => {
                   const info = getCategoryInfo(s.category);
                   const preview = applyVariables(s.template, templateVariables);
                   return (
-                    <div key={s.id} className="rounded-xl border border-white/10 bg-white/3 p-2.5">
+                    <div key={s.id} className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>
                               {info.label}
                             </span>
-                            <div className="truncate text-xs font-semibold text-slate-200">{s.title}</div>
+                            <div className="truncate text-xs font-semibold text-slate-700 dark:text-slate-200">{s.title}</div>
                           </div>
                           <div className="mt-1 line-clamp-2 text-[11px] text-slate-500 whitespace-pre-wrap">{preview}</div>
                         </div>
-                        <Button type="button" className="shrink-0 rounded p-1.5 text-slate-400 hover:bg-white/5 hover:text-slate-200" title="Copiar" onClick={() => onCopy('Script', preview)}>
+                        <Button type="button" className="shrink-0 rounded p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200" title="Copiar" onClick={() => onCopy('Script', preview)}>
                           <Copy className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -204,12 +204,12 @@ export function CockpitRightRail({
               </div>
             </div>
           ) : (
-            <div className="h-full min-h-0 rounded-xl border border-white/10 bg-white/2 p-3 overflow-auto">
+            <div className="h-full min-h-0 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/2 p-3 overflow-auto">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400">
+                <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                   <Inbox className="h-3.5 w-3.5" /> Arquivos
                 </div>
-                <div className="text-[10px] text-slate-600">{isFilesLoading ? 'Carregando...' : `${files.length}`}</div>
+                <div className="text-[10px] text-slate-400 dark:text-slate-600">{isFilesLoading ? 'Carregando...' : `${files.length}`}</div>
               </div>
               <div className="mt-2">
                 <input
@@ -221,7 +221,7 @@ export function CockpitRightRail({
                     e.currentTarget.value = '';
                     pushToast('Arquivo enviado', 'success');
                   }}
-                  className="block w-full text-[11px] text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:bg-white/10 file:px-2.5 file:py-1.5 file:text-[11px] file:font-semibold file:text-slate-200 hover:file:bg-white/15"
+                  className="block w-full text-[11px] text-slate-500 dark:text-slate-400 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-100 dark:file:bg-white/10 file:px-2.5 file:py-1.5 file:text-[11px] file:font-semibold file:text-slate-700 dark:file:text-slate-200 hover:file:bg-slate-200 dark:hover:file:bg-white/15"
                 />
               </div>
               <div className="mt-2 space-y-1.5">
@@ -229,16 +229,16 @@ export function CockpitRightRail({
                   <EmptyState title="Nenhum arquivo." size="sm" />
                 ) : (
                   files.map((f) => (
-                    <div key={f.id} className="rounded-xl border border-white/10 bg-white/3 p-2.5">
+                    <div key={f.id} className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <div className="truncate text-xs font-semibold text-slate-200">{f.file_name}</div>
+                          <div className="truncate text-xs font-semibold text-slate-700 dark:text-slate-200">{f.file_name}</div>
                           <div className="mt-0.5 text-[10px] text-slate-500">
                             {formatFileSize(f.file_size ?? 0)} • {formatAtISO(f.created_at)}
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Button type="button" className="rounded p-1.5 text-slate-400 hover:bg-white/5 hover:text-slate-200" onClick={() => downloadFile(f)} title="Download">
+                          <Button type="button" className="rounded p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200" onClick={() => downloadFile(f)} title="Download">
                             <Download className="h-3.5 w-3.5" />
                           </Button>
                           <Button type="button" className="rounded p-1.5 text-rose-400/60 hover:bg-rose-500/10 hover:text-rose-300" onClick={() => deleteFile.mutate({ fileId: f.id, filePath: f.file_path })} title="Excluir">
@@ -255,11 +255,11 @@ export function CockpitRightRail({
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/3 px-3 py-2 shrink-0">
-        <span className="text-[10px] font-semibold text-slate-600">Contexto</span>
+      <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 px-3 py-2 shrink-0">
+        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-600">Contexto</span>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-slate-600">{crmLoading ? 'Sync...' : 'Pronto'}</span>
-          <Button type="button" className="rounded-lg border border-white/10 bg-white/2 px-2 py-1 text-[10px] font-semibold text-slate-300 hover:bg-white/5" onClick={onRefreshCRM}>
+          <span className="text-[10px] text-slate-400 dark:text-slate-600">{crmLoading ? 'Sync...' : 'Pronto'}</span>
+          <Button type="button" className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/2 px-2 py-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5" onClick={onRefreshCRM}>
             Recarregar
           </Button>
         </div>

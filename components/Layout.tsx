@@ -40,6 +40,7 @@ import {
   Sparkles,
   LogOut,
   User,
+  Bell,
   Bug,
   CheckSquare,
   PanelLeftClose,
@@ -59,7 +60,6 @@ import { BottomNav, MoreMenuSheet, NavigationRail } from '@/components/navigatio
 import { UIChat } from './ai/UIChat';
 
 import { NotificationPopover } from './notifications/NotificationPopover';
-import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { Button } from '@/app/components/ui/Button';
 
 /**
@@ -262,6 +262,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               { to: '/contacts', icon: Users, label: 'Contatos', prefetch: 'contacts' as const },
               { to: '/activities', icon: CheckSquare, label: 'Atividades', prefetch: 'activities' as const },
               { to: '/reports', icon: BarChart3, label: 'Relatórios', prefetch: 'reports' as const },
+              { to: '/notifications', icon: Bell, label: 'Notificações', prefetch: 'notifications' as const },
               { to: '/settings', icon: Settings, label: 'Configurações', prefetch: 'settings' as const },
             ].map((item) => {
               if (sidebarCollapsed) {
@@ -451,7 +452,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Bug size={20} aria-hidden="true" />
               </Button>
 
-              <NotificationBell />
               <NotificationPopover />
               <Button
                 type="button"

@@ -13,7 +13,6 @@ import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useSettings } from '@/context/settings/SettingsContext';
 import { useTheme } from '@/context/ThemeContext';
 import { isDebugMode, enableDebugMode, disableDebugMode } from '@/lib/debug';
-import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { NotificationPopover } from '@/components/notifications/NotificationPopover';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { normalizePhoneE164 } from '@/lib/phone';
@@ -550,17 +549,17 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   if (crmError) {
     return (
-      <div className="h-dvh bg-slate-950 text-slate-100 flex items-center justify-center p-8">
+      <div className="h-dvh bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-8">
         <div className="max-w-xl w-full rounded-2xl border border-rose-500/20 bg-rose-500/10 p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="text-lg font-semibold">Cockpit</div>
-            <div className="text-xs text-slate-300">/deals/[dealId]/cockpit</div>
+            <div className="text-xs text-slate-600 dark:text-slate-300">/deals/[dealId]/cockpit</div>
           </div>
-          <div className="mt-3 text-sm text-slate-100">Não foi possível carregar os dados do CRM.</div>
-          <div className="mt-2 text-xs text-rose-100/80 break-words">{crmError}</div>
+          <div className="mt-3 text-sm">Não foi possível carregar os dados do CRM.</div>
+          <div className="mt-2 text-xs text-rose-700 dark:text-rose-100/80 break-words">{crmError}</div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100" onClick={() => void refreshCRM()}>Recarregar</Button>
-            <Button type="button" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
+            <Button type="button" className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-4 py-2 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
           </div>
         </div>
       </div>
@@ -569,16 +568,16 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   if (crmLoading && (!deals || deals.length === 0)) {
     return (
-      <div className="h-dvh bg-slate-950 text-slate-100 flex items-center justify-center p-8">
-        <div className="max-w-xl w-full rounded-2xl border border-white/10 bg-white/3 p-6">
+      <div className="h-dvh bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-8">
+        <div className="max-w-xl w-full rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="text-lg font-semibold">Cockpit</div>
-            <div className="text-xs text-slate-400">Carregando…</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">Carregando…</div>
           </div>
           <div className="mt-4 space-y-3">
-            <div className="h-4 w-2/3 rounded bg-white/10 animate-pulse" />
-            <div className="h-4 w-full rounded bg-white/10 animate-pulse" />
-            <div className="h-4 w-5/6 rounded bg-white/10 animate-pulse" />
+            <div className="h-4 w-2/3 rounded bg-slate-200 dark:bg-white/10 animate-pulse" />
+            <div className="h-4 w-full rounded bg-slate-200 dark:bg-white/10 animate-pulse" />
+            <div className="h-4 w-5/6 rounded bg-slate-200 dark:bg-white/10 animate-pulse" />
           </div>
           <div className="mt-4 text-xs text-slate-500">Buscando deals, boards e atividades do seu workspace…</div>
         </div>
@@ -588,17 +587,17 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   if (!selectedDeal || !selectedBoard) {
     return (
-      <div className="h-dvh bg-slate-950 text-slate-100 flex items-center justify-center p-8">
-        <div className="max-w-xl w-full rounded-2xl border border-white/10 bg-white/3 p-6">
+      <div className="h-dvh bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-8">
+        <div className="max-w-xl w-full rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="text-lg font-semibold">Cockpit</div>
-            <div className="text-xs text-slate-400">/deals/[dealId]/cockpit</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">/deals/[dealId]/cockpit</div>
           </div>
-          <div className="mt-3 text-sm text-slate-300">Não encontrei nenhum deal carregado no contexto.</div>
+          <div className="mt-3 text-sm text-slate-600 dark:text-slate-300">Não encontrei nenhum deal carregado no contexto.</div>
           <div className="mt-2 text-xs text-slate-500">Dica: abra o app normal (Boards) para carregar dados.</div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100" onClick={() => void refreshCRM()}>Recarregar</Button>
-            <Button type="button" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
+            <Button type="button" className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-4 py-2 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
           </div>
         </div>
       </div>
@@ -611,16 +610,16 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const phoneE164 = normalizePhoneE164(contact?.phone);
 
   return (
-    <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex flex-col overflow-hidden bg-slate-950 text-slate-100">
+    <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       {toast ? (
         <div className="fixed right-6 top-6 z-50">
           <div
             className={
               toast.tone === 'success'
-                ? 'flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100 shadow-xl shadow-black/30'
+                ? 'flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-100 shadow-xl shadow-slate-300/30 dark:shadow-black/30'
                 : toast.tone === 'danger'
-                  ? 'flex items-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/15 px-4 py-3 text-sm text-rose-100 shadow-xl shadow-black/30'
-                  : 'flex items-center gap-2 rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm text-slate-100 shadow-xl shadow-black/30'
+                  ? 'flex items-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/15 px-4 py-3 text-sm text-rose-700 dark:text-rose-100 shadow-xl shadow-slate-300/30 dark:shadow-black/30'
+                  : 'flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/8 px-4 py-3 text-sm shadow-xl shadow-slate-300/30 dark:shadow-black/30'
             }
             role="status"
             aria-live="polite"
@@ -652,21 +651,18 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             <Button
               type="button"
               onClick={() => { if (debugEnabled) { disableDebugMode(); setDebugEnabled(false); } else { enableDebugMode(); setDebugEnabled(true); } }}
-              className={`p-1.5 rounded-lg transition-colors ${debugEnabled ? 'text-purple-400 bg-purple-500/15' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+              className={`p-1.5 rounded-lg transition-colors ${debugEnabled ? 'text-purple-500 dark:text-purple-400 bg-purple-500/15' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`}
               title="Debug mode"
             >
               <Bug className="h-3.5 w-3.5" />
             </Button>
-            <div className="flex items-center [&_a]:p-1.5 [&_a]:rounded-lg [&_a]:text-slate-500 [&_a]:hover:text-slate-300 [&_a]:hover:bg-white/5 [&_svg]:!w-3.5 [&_svg]:!h-3.5">
-              <NotificationBell />
-            </div>
             <div className="flex items-center [&_button]:p-1.5 [&_button]:rounded-lg [&_svg]:!w-3.5 [&_svg]:!h-3.5">
               <NotificationPopover />
             </div>
             <Button
               type="button"
               onClick={toggleDarkMode}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-colors"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
               title="Alternar tema"
             >
               {darkMode ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
