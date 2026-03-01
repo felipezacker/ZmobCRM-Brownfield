@@ -4,6 +4,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dealNotesService, DealNote } from '@/lib/supabase/dealNotes';
+import { useAuth } from '@/context/AuthContext';
 
 /**
  * Hook React `useDealNotes` que encapsula uma lógica reutilizável.
@@ -13,6 +14,7 @@ import { dealNotesService, DealNote } from '@/lib/supabase/dealNotes';
  */
 export function useDealNotes(dealId: string | undefined) {
     const queryClient = useQueryClient();
+    const { organizationId } = useAuth();
     const queryKey = ['deal-notes', dealId];
 
     // Fetch notes
@@ -31,7 +33,7 @@ export function useDealNotes(dealId: string | undefined) {
     const createNote = useMutation({
         mutationFn: async (content: string) => {
             if (!dealId) throw new Error('No deal ID');
-            const { data, error } = await dealNotesService.createNote(dealId, content);
+            const { data, error } = await dealNotesService.createNote(dealId, content, organizationId ?? undefined);
             if (error) throw error;
             return data;
         },

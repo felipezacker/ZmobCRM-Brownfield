@@ -39,6 +39,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 let queryBuilder = supabase
                     .from('deals')
                     .select('id, title, value, is_won, is_lost, stage:board_stages(name, label), contact:contacts(name)')
+                    .is('deleted_at', null)
                     .limit(limit);
 
                 const terms = effectiveQuery
@@ -164,6 +165,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     .select('id, title, value, updated_at, is_won, is_lost, contact:contacts(name)')
                     .eq('board_id', targetBoardId)
                     .eq('stage_id', finalStageId)
+                    .is('deleted_at', null)
                     .or(`organization_id.eq.${organizationId},organization_id.is.null`)
                     .order('value', { ascending: false })
                     .limit(Math.max(limit * 5, 50));
@@ -214,6 +216,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     .from('deals')
                     .select('id, title, value, updated_at, is_won, is_lost, contact:contacts(name)')
                     .eq('board_id', targetBoardId)
+                    .is('deleted_at', null)
                     .or(`organization_id.eq.${organizationId},organization_id.is.null`)
                     .lt('updated_at', cutoffDate.toISOString())
                     .order('updated_at', { ascending: true })
@@ -273,6 +276,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     .select('id, title, value, contact:contacts(name)')
                     .eq('organization_id', organizationId)
                     .eq('board_id', targetBoardId)
+                    .is('deleted_at', null)
                     .in('id', dealIds)
                     .limit(limit);
 
@@ -436,6 +440,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                         .from('contacts')
                         .select('id')
                         .eq('organization_id', organizationId)
+                        .is('deleted_at', null)
                         .ilike('name', contactName)
                         .limit(1);
 
@@ -545,7 +550,8 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                         .from('deals')
                         .select('id, title, value, is_won, is_lost, stage:board_stages(name)')
                         .eq('organization_id', organizationId)
-                        .eq('board_id', targetBoardId);
+                        .eq('board_id', targetBoardId)
+                        .is('deleted_at', null);
 
                     if (dealTitle) {
                         query = query.ilike('title', `%${dealTitle}%`);
@@ -745,6 +751,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     .select('id, title, board_id')
                     .eq('organization_id', organizationId)
                     .eq('board_id', targetBoardId)
+                    .is('deleted_at', null)
                     .in('id', unique);
 
                 if (dealsError) return { error: formatSupabaseFailure(dealsError) };

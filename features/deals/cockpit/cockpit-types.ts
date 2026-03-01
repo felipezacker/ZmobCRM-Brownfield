@@ -15,7 +15,9 @@ export type Stage = {
 export type TimelineItem = {
   id: string;
   at: string;
-  kind: 'status' | 'call' | 'note' | 'system';
+  /** Raw ISO date string for sorting (formatAtISO produces DD/MM which breaks localeCompare). */
+  sortKey: string;
+  kind: 'status' | 'call' | 'note' | 'deal_note' | 'system';
   title: string;
   subtitle?: string;
   tone?: 'success' | 'danger' | 'neutral';

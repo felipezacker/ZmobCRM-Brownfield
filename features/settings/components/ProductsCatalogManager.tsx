@@ -7,10 +7,31 @@ import type { Product } from '@/types';
 
 function formatBRL(v: number) {
   try {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
   } catch {
-    return `R$ ${v.toFixed(2)}`;
+    return `R$ ${Math.round(v)}`;
   }
+}
+
+const PRICE_FORMATTER = new Intl.NumberFormat('pt-BR');
+
+/** Formata número para exibição com pontos de milhar. */
+function toFormattedPrice(n: number): string {
+  return n > 0 ? PRICE_FORMATTER.format(n) : '';
+}
+
+/** Extrai número inteiro de string possivelmente formatada (ex: "550.000" → 550000). */
+function parsePriceValue(raw: string): number {
+  return parseInt(raw.replace(/\D/g, ''), 10) || 0;
+}
+
+/** Handler genérico para input de preço com máscara de milhar. */
+function handlePriceChange(value: string, setter: (v: string) => void) {
+  const digits = value.replace(/\D/g, '');
+  if (!digits) { setter(''); return; }
+  const num = parseInt(digits, 10);
+  if (isNaN(num)) { setter(''); return; }
+  setter(PRICE_FORMATTER.format(num));
 }
 
 /**
@@ -23,15 +44,15 @@ export const ProductsCatalogManager: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState('');
-  const [price, setPrice] = useState<string>('0');
+  const [price, setPrice] = useState<string>('');
   const [sku, setSku] = useState('');
   const [description, setDescription] = useState('');
 
-  const canCreate = name.trim().length > 1 && Number.isFinite(Number(price));
+  const canCreate = name.trim().length > 1 && parsePriceValue(price) >= 0;
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
-  const [editPrice, setEditPrice] = useState<string>('0');
+  const [editPrice, setEditPrice] = useState<string>('');
   const [editSku, setEditSku] = useState('');
   const [editDescription, setEditDescription] = useState('');
 
@@ -72,7 +93,7 @@ export const ProductsCatalogManager: React.FC = () => {
     setError(null);
     const res = await productsService.create({
       name: name.trim(),
-      price: Number(price),
+      price: parsePriceValue(price),
       sku: sku.trim() || undefined,
       description: description.trim() || undefined,
     });
@@ -82,7 +103,7 @@ export const ProductsCatalogManager: React.FC = () => {
       return;
     }
     setName('');
-    setPrice('0');
+    setPrice('');
     setSku('');
     setDescription('');
     await load();
@@ -106,7 +127,7 @@ export const ProductsCatalogManager: React.FC = () => {
   const startEdit = (p: Product) => {
     setEditingId(p.id);
     setEditName(p.name || '');
-    setEditPrice(String(p.price ?? 0));
+    setEditPrice(toFormattedPrice(Math.round(p.price ?? 0)));
     setEditSku(p.sku || '');
     setEditDescription(p.description || '');
   };
@@ -114,7 +135,7 @@ export const ProductsCatalogManager: React.FC = () => {
   const cancelEdit = () => {
     setEditingId(null);
     setEditName('');
-    setEditPrice('0');
+    setEditPrice('');
     setEditSku('');
     setEditDescription('');
   };
@@ -122,13 +143,13 @@ export const ProductsCatalogManager: React.FC = () => {
   const saveEdit = async () => {
     if (!editingId) return;
     const name = editName.trim();
-    const price = Number(editPrice);
+    const price = parsePriceValue(editPrice);
 
     if (name.length < 2) {
       setError('Nome inválido.');
       return;
     }
-    if (!Number.isFinite(price) || price < 0) {
+    if (price < 0) {
       setError('Preço inválido.');
       return;
     }
@@ -201,8 +222,9 @@ export const ProductsCatalogManager: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Preço padrão</label>
             <input
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              inputMode="decimal"
+              onChange={(e) => handlePriceChange(e.target.value, setPrice)}
+              inputMode="numeric"
+              placeholder="550.000"
               className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
             />
           </div>
@@ -267,8 +289,9 @@ export const ProductsCatalogManager: React.FC = () => {
                             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Preço</label>
                             <input
                               value={editPrice}
-                              onChange={(e) => setEditPrice(e.target.value)}
-                              inputMode="decimal"
+                              onChange={(e) => handlePriceChange(e.target.value, setEditPrice)}
+                              inputMode="numeric"
+                              placeholder="550.000"
                               className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
                             />
                           </div>

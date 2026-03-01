@@ -108,6 +108,58 @@ export type Company = Organization;
 // Contact (Person we talk to)
 // =============================================================================
 
+// Tipos de contato
+export type ContactType = 'PF' | 'PJ';
+
+// Classificação do contato no mercado imobiliário
+export type ContactClassification =
+  | 'COMPRADOR'
+  | 'VENDEDOR'
+  | 'LOCATARIO'
+  | 'LOCADOR'
+  | 'INVESTIDOR'
+  | 'PERMUTANTE';
+
+// Temperatura do lead
+export type ContactTemperature = 'HOT' | 'WARM' | 'COLD';
+
+// Tipo de telefone
+export type PhoneType = 'CELULAR' | 'COMERCIAL' | 'RESIDENCIAL';
+
+// =============================================================================
+// Contact Preferences (Story 3.2 — Perfil de Interesse do Contato)
+// =============================================================================
+
+/** Tipos de imovel disponiveis para preferencia. */
+export type PropertyType = 'APARTAMENTO' | 'CASA' | 'TERRENO' | 'COMERCIAL' | 'RURAL' | 'GALPAO';
+
+/** Finalidade da busca de imovel. */
+export type PreferencePurpose = 'MORADIA' | 'INVESTIMENTO' | 'VERANEIO';
+
+/** Urgencia na busca de imovel. */
+export type PreferenceUrgency = 'IMMEDIATE' | '3_MONTHS' | '6_MONTHS' | '1_YEAR';
+
+/** Perfil de interesse de imovel de um contato. */
+export interface ContactPreference {
+  id: string;
+  contactId: string;
+  propertyTypes: string[];
+  purpose: PreferencePurpose | null;
+  priceMin: number | null;
+  priceMax: number | null;
+  regions: string[];
+  bedroomsMin: number | null;
+  parkingMin: number | null;
+  areaMin: number | null;
+  acceptsFinancing: boolean | null;
+  acceptsFgts: boolean | null;
+  urgency: PreferenceUrgency | null;
+  notes: string | null;
+  organizationId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // A Pessoa (Com quem falamos)
 export interface Contact {
   id: string;
@@ -127,6 +179,36 @@ export interface Contact {
   createdAt: string;
   updatedAt?: string; // Última modificação do registro
   ownerId?: string; // ID do corretor responsável
+
+  // Story 3.1 — Modelo de Dados Contatos
+  cpf?: string; // CPF (somente PF)
+  contactType?: ContactType; // PF ou PJ (default PF)
+  classification?: ContactClassification; // Perfil no mercado imobiliário
+  temperature?: ContactTemperature; // Temperatura do lead (default WARM)
+  addressCep?: string; // CEP (formato 00000-000)
+  addressCity?: string; // Cidade
+  addressState?: string; // UF (2 caracteres)
+  profileData?: Record<string, unknown>; // Dados extras em JSONB
+
+  // Story 3.8 — Lead Scoring
+  leadScore?: number; // Score 0-100 calculado automaticamente
+
+  // Tags & Custom Fields (migrado de Deal para Contact)
+  tags?: string[];
+  customFields?: Record<string, any>;
+}
+
+// Telefone de contato (tabela contact_phones)
+export interface ContactPhone {
+  id: string;
+  contactId: string;
+  phoneNumber: string;
+  phoneType: PhoneType;
+  isWhatsapp: boolean;
+  isPrimary: boolean;
+  organizationId?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 // ITEM 3: Produtos e Serviços
@@ -188,17 +270,26 @@ export interface Deal {
     date: string;
     isOverdue?: boolean;
   };
-  tags: string[];
   aiSummary?: string;
-  customFields?: Record<string, any>; // Dynamic fields storage
+  /** Metadados internos do deal (checklist, rastreabilidade, etc.) — não é user-facing. */
+  metadata?: Record<string, unknown>;
   lastStageChangeDate?: string; // For stagnation tracking
   lossReason?: string; // For win/loss analysis
+  dealType?: 'VENDA' | 'LOCACAO' | 'PERMUTA'; // Tipo da transação imobiliária
+  expectedCloseDate?: string; // Data prevista de fechamento (ISO date)
+  commissionRate?: number | null; // Taxa de comissão override (0-100, nullable)
 }
 
 // Helper Type para Visualização (Desnormalizado)
 export interface DealView extends Deal {
   contactName: string;
   contactEmail: string;
+  /** Telefone do contato vinculado (read-only no deal). */
+  contactPhone: string;
+  /** Tags do contato vinculado (read-only no deal). */
+  contactTags: string[];
+  /** Campos customizados do contato vinculado (read-only no deal). */
+  contactCustomFields: Record<string, any>;
   /** Nome/label do estágio atual (resolvido a partir do status UUID) */
   stageLabel: string;
 }
@@ -430,7 +521,38 @@ export interface ContactsServerFilters {
   sortBy?: ContactSortableColumn;
   /** Direção da ordenação. */
   sortOrder?: 'asc' | 'desc';
+  /** Story 3.5 — Filtro por classificação (multi-select). */
+  classification?: string[];
+  /** Story 3.5 — Filtro por temperatura. */
+  temperature?: string;
+  /** Story 3.5 — Filtro por tipo de contato (PF/PJ). */
+  contactType?: string;
+  /** Story 3.5 — Filtro por responsável (owner_id). */
+  ownerId?: string;
+  /** Story 3.5 — Filtro por origem. */
+  source?: string;
 }
 
 /** Colunas ordenáveis na tabela de contatos. */
-export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage';
+export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source' | 'lead_score';
+
+// =============================================================================
+// Notifications (Story 3.9 — Notificacoes Inteligentes)
+// =============================================================================
+
+/** Tipos de notificacao CRM. */
+export type NotificationType = 'BIRTHDAY' | 'CHURN_ALERT' | 'DEAL_STAGNANT' | 'SCORE_DROP';
+
+/** Notificacao CRM persistida no banco. */
+export interface CrmNotification {
+  id: string;
+  organizationId: string;
+  type: NotificationType;
+  title: string;
+  description: string | null;
+  contactId: string | null;
+  dealId: string | null;
+  isRead: boolean;
+  createdAt: string;
+  ownerId: string | null;
+}

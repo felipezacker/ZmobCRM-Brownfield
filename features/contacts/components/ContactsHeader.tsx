@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, Filter, Plus, Download } from 'lucide-react';
+import { Search, Filter, Plus, Download, GitMerge, BarChart3 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/app/components/ui/Button';
 
 interface ContactsHeaderProps {
@@ -49,6 +50,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   openCreateModal,
   openImportExportModal,
 }) => {
+  const router = useRouter();
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
@@ -99,14 +101,34 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
           <Filter size={20} aria-hidden="true" />
         </Button>
         {viewMode === 'people' && (
-          <Button
-            type="button"
-            onClick={openImportExportModal}
-            aria-label="Importar/Exportar contatos"
-            className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-colors"
-          >
-            <Download size={20} aria-hidden="true" />
-          </Button>
+          <>
+            <Button
+              type="button"
+              onClick={() => router.push('/contacts/metrics')}
+              aria-label="Metricas de contatos"
+              title="Metricas de Contatos"
+              className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-colors"
+            >
+              <BarChart3 size={20} aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              onClick={() => router.push('/contacts/duplicates')}
+              aria-label="Verificar duplicatas"
+              title="Verificar Duplicatas"
+              className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-colors"
+            >
+              <GitMerge size={20} aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              onClick={openImportExportModal}
+              aria-label="Importar/Exportar contatos"
+              className="p-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-colors"
+            >
+              <Download size={20} aria-hidden="true" />
+            </Button>
+          </>
         )}
         <Button
           onClick={openCreateModal}

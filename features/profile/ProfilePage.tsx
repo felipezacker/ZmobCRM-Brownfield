@@ -44,6 +44,7 @@ export const ProfilePage: React.FC = () => {
     const [nickname, setNickname] = useState('');
     const [phone, setPhone] = useState('');
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+    const [commissionRate, setCommissionRate] = useState('');
 
     const [isChangingEmail, setIsChangingEmail] = useState(false);
     const [newEmail, setNewEmail] = useState('');
@@ -56,6 +57,7 @@ export const ProfilePage: React.FC = () => {
             setNickname(profile.nickname || '');
             setPhone(normalizePhoneE164(profile.phone || ''));
             setAvatarUrl(profile.avatar_url || null);
+            setCommissionRate(profile.commission_rate != null ? String(profile.commission_rate) : '');
         }
     }, [profile]);
 
@@ -219,14 +221,33 @@ export const ProfilePage: React.FC = () => {
                 return;
             }
 
+            // Valida commission_rate se preenchido
+            const isAdminOrDiretor = profile?.role === 'admin' || profile?.role === 'diretor';
+            let parsedCommissionRate: number | null = null;
+            if (isAdminOrDiretor && commissionRate.trim() !== '') {
+                parsedCommissionRate = parseFloat(commissionRate);
+                if (isNaN(parsedCommissionRate) || parsedCommissionRate < 0 || parsedCommissionRate > 100) {
+                    setMessage({
+                        type: 'error',
+                        text: 'Taxa de comissão deve ser um número entre 0 e 100.',
+                    });
+                    return;
+                }
+            }
+
+            const updatePayload: Record<string, any> = {
+                first_name: firstName.trim() || null,
+                last_name: lastName.trim() || null,
+                nickname: nickname.trim() || null,
+                phone: normalizedPhone || null,
+            };
+            if (isAdminOrDiretor) {
+                updatePayload.commission_rate = commissionRate.trim() !== '' ? parsedCommissionRate : null;
+            }
+
             const { error } = await sb
                 .from('profiles')
-                .update({
-                    first_name: firstName.trim() || null,
-                    last_name: lastName.trim() || null,
-                    nickname: nickname.trim() || null,
-                    phone: normalizedPhone || null,
-                })
+                .update(updatePayload)
                 .eq('id', profile?.id);
 
             if (error) throw error;
@@ -469,6 +490,29 @@ export const ProfilePage: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Taxa de Comissão (apenas admin/diretor) */}
+                        {(profile?.role === 'admin' || profile?.role === 'diretor') && (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                    Taxa de Comissão (%)
+                                    <span className="text-slate-400 font-medium ml-1">(padrão para novos deals)</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.1"
+                                    value={commissionRate}
+                                    onChange={(e) => setCommissionRate(e.target.value)}
+                                    className="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-500 transition-all"
+                                    placeholder="1.5"
+                                />
+                                <p className="mt-1 text-xs text-slate-400">
+                                    Valor entre 0 e 100. Usado como fallback quando o deal não possui taxa específica.
+                                </p>
+                            </div>
+                        )}
+
                         <div className="flex gap-3 pt-4">
                             <Button
                                 type="button"
@@ -479,6 +523,7 @@ export const ProfilePage: React.FC = () => {
                                     setLastName(profile?.last_name || '');
                                     setNickname(profile?.nickname || '');
                                     setPhone(normalizePhoneE164(profile?.phone || ''));
+                                    setCommissionRate(profile?.commission_rate != null ? String(profile.commission_rate) : '');
                                     setMessage(null);
                                 }}
                                 className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
@@ -567,6 +612,14 @@ export const ProfilePage: React.FC = () => {
                                 Membro desde {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : '-'}
                             </span>
                         </div>
+                        {profile?.commission_rate != null && (
+                            <div className="flex items-center gap-3 text-sm">
+                                <span className="w-4 h-4 text-slate-400 flex items-center justify-center text-xs font-bold">%</span>
+                                <span className="text-slate-600 dark:text-slate-300">
+                                    Comissão: {profile.commission_rate}%
+                                </span>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

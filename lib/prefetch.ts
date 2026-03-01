@@ -13,6 +13,7 @@ const routeImports = {
   settings: () => import('@/features/settings/SettingsPage'),
   activities: () => import('@/features/activities/ActivitiesPage'),
   reports: () => import('@/features/reports/ReportsPage'),
+  notifications: () => import('@/features/notifications/NotificationsPage'),
 } as const;
 
 export type RouteName = keyof typeof routeImports;

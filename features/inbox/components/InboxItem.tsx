@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Activity } from '@/types';
-import { CheckCircle2, Clock, Calendar, Phone, Mail, FileText, Building2, MoreHorizontal, X, SkipForward } from 'lucide-react';
+import { CheckCircle2, Clock, Calendar, Phone, Mail, FileText, Building2, MoreHorizontal, X, SkipForward, Edit2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 
 interface InboxItemProps {
@@ -22,8 +23,13 @@ const InboxItemComponent: React.FC<InboxItemProps> = ({
   onDiscard,
   onSelect
 }) => {
+  const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
   const isMeeting = activity.type === 'MEETING' || activity.type === 'CALL';
+
+  const handleEdit = () => {
+    router.push(`/activities?edit=${activity.id}`);
+  };
   const date = new Date(activity.date);
   const timeString = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
@@ -59,15 +65,12 @@ const InboxItemComponent: React.FC<InboxItemProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
-        <Button
-          onClick={() => onSelect?.(activity.id)}
-          className="text-left group/title"
-        >
+      <div className="flex-1 min-w-0 cursor-pointer" onClick={handleEdit}>
+        <div className="text-left group/title">
           <h3 className={`font-medium text-slate-900 dark:text-white group-hover/title:text-primary-500 transition-colors ${activity.completed ? 'line-through text-slate-400 dark:text-slate-500' : ''}`}>
             {activity.title}
           </h3>
-        </Button>
+        </div>
 
         {activity.description && (
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
@@ -83,10 +86,10 @@ const InboxItemComponent: React.FC<InboxItemProps> = ({
           </div>
         )}
 
-        {/* Helper text if no deal but onSelect exists (e.g. Contact task) */}
-        {!activity.dealTitle && onSelect && (
+        {/* Helper text to open edit */}
+        {!activity.dealTitle && (
           <Button
-            onClick={() => onSelect(activity.id)}
+            onClick={handleEdit}
             className="flex items-center gap-1 mt-2 text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline"
           >
             Ver detalhes
@@ -113,6 +116,13 @@ const InboxItemComponent: React.FC<InboxItemProps> = ({
               onClick={() => setShowMenu(false)}
             />
             <div className="absolute right-0 top-full mt-1 z-20 bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-lg shadow-lg py-1 min-w-[140px]">
+              <Button
+                onClick={() => { handleEdit(); setShowMenu(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
+              >
+                <Edit2 size={14} className="text-primary-500" />
+                Editar
+              </Button>
               {isMeeting && (
                 <Button
                   onClick={() => { onToggleComplete(activity.id); setShowMenu(false); }}

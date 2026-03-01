@@ -40,6 +40,7 @@ import {
   Sparkles,
   LogOut,
   User,
+  Bell,
   Bug,
   CheckSquare,
   PanelLeftClose,
@@ -261,6 +262,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               { to: '/contacts', icon: Users, label: 'Contatos', prefetch: 'contacts' as const },
               { to: '/activities', icon: CheckSquare, label: 'Atividades', prefetch: 'activities' as const },
               { to: '/reports', icon: BarChart3, label: 'Relatórios', prefetch: 'reports' as const },
+              { to: '/notifications', icon: Bell, label: 'Notificações', prefetch: 'notifications' as const },
               { to: '/settings', icon: Settings, label: 'Configurações', prefetch: 'settings' as const },
             ].map((item) => {
               if (sidebarCollapsed) {

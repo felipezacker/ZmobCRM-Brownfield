@@ -1,15 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useState, useCallback } from 'react';
 import { CustomFieldDefinition, CustomFieldType } from '@/types';
 import { useTags } from '@/hooks/useTags';
-import { useAuth } from '@/context/AuthContext';
+import { useSettings } from '@/context/settings/SettingsContext';
 
 export function useSettingsController() {
-  const supabase = createClient()!;
-  const { organizationId } = useAuth();
-
   // Default route
   const [defaultRoute, setDefaultRouteState] = useState('/dashboard');
 
@@ -20,12 +16,15 @@ export function useSettingsController() {
     }
   }, []);
 
-  useEffect(() => {
+  // Load saved default route on mount (useState initializer avoids useEffect)
+  const [defaultRouteLoaded] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('zmob_default_route');
       if (saved) setDefaultRouteState(saved);
     }
-  }, []);
+    return true;
+  });
+  void defaultRouteLoaded;
 
   // Tags (centralized via useTags hook — reads/writes Supabase `tags` table)
   const { tags: availableTags, addTag, removeTag } = useTags();
@@ -38,23 +37,18 @@ export function useSettingsController() {
     setNewTagName('');
   }, [newTagName, addTag]);
 
-  // Custom fields
-  const [customFieldDefinitions, setCustomFieldDefinitions] = useState<CustomFieldDefinition[]>([]);
+  // Custom fields — data from SettingsContext (single source of truth, no duplicate query)
+  const {
+    customFieldDefinitions,
+    addCustomField: ctxAddCustomField,
+    updateCustomField: ctxUpdateCustomField,
+    removeCustomField: ctxRemoveCustomField,
+  } = useSettings();
+
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldType, setNewFieldType] = useState<CustomFieldType>('text');
   const [newFieldOptions, setNewFieldOptions] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!organizationId) return;
-    supabase
-      .from('custom_field_definitions')
-      .select('*')
-      .eq('organization_id', organizationId)
-      .then(({ data }) => {
-        if (data) setCustomFieldDefinitions(data as CustomFieldDefinition[]);
-      });
-  }, [supabase, organizationId]);
 
   const startEditingField = useCallback((field: CustomFieldDefinition) => {
     setEditingId(field.id);
@@ -82,39 +76,19 @@ export function useSettingsController() {
         : undefined;
 
     if (editingId) {
-      const { error } = await supabase
-        .from('custom_field_definitions')
-        .update({ label, type: newFieldType, options })
-        .eq('id', editingId)
-        .eq('organization_id', organizationId);
-      if (!error) {
-        setCustomFieldDefinitions((prev) =>
-          prev.map((f) => (f.id === editingId ? { ...f, label, type: newFieldType, options } : f)),
-        );
-        cancelEditingField();
-      }
+      await ctxUpdateCustomField(editingId, { label, type: newFieldType, options });
     } else {
       const key = label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-      const { data, error } = await supabase
-        .from('custom_field_definitions')
-        .insert({ key, label, type: newFieldType, options, organization_id: organizationId })
-        .select()
-        .single();
-      if (!error && data) {
-        setCustomFieldDefinitions((prev) => [...prev, data as CustomFieldDefinition]);
-        cancelEditingField();
-      }
+      await ctxAddCustomField({ key, label, type: newFieldType, options });
     }
-  }, [newFieldLabel, newFieldType, newFieldOptions, editingId, supabase, cancelEditingField]);
+    cancelEditingField();
+  }, [newFieldLabel, newFieldType, newFieldOptions, editingId, ctxAddCustomField, ctxUpdateCustomField, cancelEditingField]);
 
   const removeCustomField = useCallback(
     async (id: string) => {
-      const { error } = await supabase.from('custom_field_definitions').delete().eq('id', id).eq('organization_id', organizationId);
-      if (!error) {
-        setCustomFieldDefinitions((prev) => prev.filter((f) => f.id !== id));
-      }
+      await ctxRemoveCustomField(id);
     },
-    [supabase],
+    [ctxRemoveCustomField],
   );
 
   return {

@@ -51,8 +51,6 @@ export async function createDeal(
       board_id: boardId,
       stage_id: sanitizeUUID(stageId),
       contact_id: sanitizeUUID(deal.contactId),
-      tags: deal.tags || [],
-      custom_fields: deal.customFields || {},
       owner_id: sanitizeUUID(deal.ownerId),
       is_won: deal.isWon ?? false,
       is_lost: deal.isLost ?? false,
@@ -135,10 +133,12 @@ export async function deleteDeal(
 ): Promise<{ error: string | null }> {
   try {
     const supabase = await createClient()
+    // Soft-delete: marca deleted_at em vez de remover fisicamente
     const { error } = await supabase
       .from('deals')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
+      .is('deleted_at', null)
 
     return { error: error?.message ?? null }
   } catch (e) {

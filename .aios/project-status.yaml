@@ -1,20 +1,21 @@
 status:
-  branch: main
+  branch: refactor-contatos
   modifiedFiles:
-    - .aios/
-    - Roadmap.md
-    - supabase/.branches/
-    - supabase/migrations/20260220100001_rls_protect_owner_id.sql
-  modifiedFilesTotalCount: 4
+    - .aios-core/development/agents/devops.md
+    - .aios/project-status.yaml
+    - .env.example
+    - docs/competitor-analysis-jetimob.md
+    - docs/competitor-analysis-mercado.md
+  modifiedFilesTotalCount: 30
   recentCommits:
+    - 'chore: add squads framework, labs, and project housekeeping'
     - >-
-      feat(contacts): expand contact form with birthDate, source, notes, cockpit
-      route [Story 1.5]
-    - Merge branch 'aios' into main
+      refactor(ui): tokenize AI sidebar — replace hardcoded colors with design
+      tokens
   currentEpic: null
   currentStory: null
-  lastUpdate: '2026-02-20T18:42:50.169Z'
+  lastUpdate: '2026-02-26T02:14:23.191Z'
   isGitRepo: true
-timestamp: 1771612970173
+timestamp: 1772072063199
 ttl: 60
-gitFingerprint: 1771601609663.9658:1771612653781.4768
+gitFingerprint: 1772071159248.2183:1772071159247.2444

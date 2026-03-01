@@ -207,7 +207,7 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
           createdAt: deal.createdAt,
           updatedAt: deal.updatedAt,
           activities: dealActivities.length,
-          tags: deal.tags,
+          tags: deal.contactTags,
         },
       };
     },
@@ -315,7 +315,6 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
         priority: 'medium',
         probability: 20,
         contactId,
-        tags: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         owner: { name: 'Eu', avatar: '' },

@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/context/ToastContext';
-import { Contact, ContactStage, PaginationState, ContactsServerFilters, DEFAULT_PAGE_SIZE, ContactSortableColumn } from '@/types';
+import { Contact, ContactStage, ContactPreference, PaginationState, ContactsServerFilters, DEFAULT_PAGE_SIZE, ContactSortableColumn } from '@/types';
 import {
   useContactsPaginated,
   useContactStageCounts,
@@ -15,9 +16,67 @@ import { useCreateDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useBoards } from '@/lib/query/hooks/useBoardsQuery';
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 import { normalizePhoneE164 } from '@/lib/phone';
+import { contactPhonesService } from '@/lib/supabase/contacts';
+import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
+import { supabase } from '@/lib/supabase/client';
 import { generateFakeContacts } from '@/lib/debug';
 import { useReassignContactWithDeals } from '@/hooks/useReassignContactWithDeals';
-import type { ContactFormData } from '@/features/contacts/components/ContactFormModal';
+import type { ContactFormData, PhoneFormEntry } from '@/features/contacts/components/ContactFormModal';
+import { unformatCPF, formatCPF, formatCEP } from '@/lib/validations/cpf-cep';
+
+/**
+ * Sincroniza telefones do formulário com a tabela contact_phones.
+ * Cria novos (temp-*), atualiza existentes, deleta removidos.
+ */
+async function syncPhones(contactId: string, phones: PhoneFormEntry[]) {
+  const { data: existingPhones } = await contactPhonesService.getByContactId(contactId);
+  const existing = existingPhones || [];
+
+  if (phones.length === 0 && existing.length === 0) return;
+
+  const formIds = new Set(phones.map(p => p.id));
+  const existingIds = new Set(existing.map(p => p.id));
+
+  // Delete phones removed from form
+  for (const ph of existing) {
+    if (!formIds.has(ph.id)) {
+      await contactPhonesService.delete(ph.id);
+    }
+  }
+
+  // Create new phones (temp-* ids)
+  for (const ph of phones) {
+    if (ph.id.startsWith('temp-')) {
+      await contactPhonesService.create({
+        contactId,
+        phoneNumber: ph.phoneNumber,
+        phoneType: ph.phoneType,
+        isWhatsapp: ph.isWhatsapp,
+        isPrimary: ph.isPrimary,
+      });
+    }
+  }
+
+  // Update existing phones that changed
+  for (const ph of phones) {
+    if (!ph.id.startsWith('temp-') && existingIds.has(ph.id)) {
+      const old = existing.find(p => p.id === ph.id);
+      if (old && (
+        old.phoneNumber !== ph.phoneNumber ||
+        old.phoneType !== ph.phoneType ||
+        old.isWhatsapp !== ph.isWhatsapp ||
+        old.isPrimary !== ph.isPrimary
+      )) {
+        await contactPhonesService.update(ph.id, {
+          phoneNumber: ph.phoneNumber,
+          phoneType: ph.phoneType,
+          isWhatsapp: ph.isWhatsapp,
+          isPrimary: ph.isPrimary,
+        });
+      }
+    }
+  }
+}
 
 /**
  * Hook React `useContactsController` que encapsula uma lógica reutilizável.
@@ -31,6 +90,7 @@ export const useContactsController = () => {
   });
 
   // TanStack Query hooks
+  const queryClient = useQueryClient();
   const { data: boards = [] } = useBoards();
   const createContactMutation = useCreateContact();
   const updateContactMutation = useUpdateContact();
@@ -45,6 +105,28 @@ export const useContactsController = () => {
 
   const { addToast, showToast } = useToast();
   const searchParams = useSearchParams();
+
+  // Detail modal state (query param ?cockpit=<id>)
+  const [detailContactId, setDetailContactId] = useState<string | null>(
+    () => searchParams?.get('cockpit') || null
+  );
+
+  const openDetailModal = useCallback((contactId: string) => {
+    setDetailContactId(contactId);
+    const params = new URLSearchParams(window.location.search);
+    params.set('cockpit', contactId);
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }, []);
+
+  const closeDetailModal = useCallback(() => {
+    setDetailContactId(null);
+    const params = new URLSearchParams(window.location.search);
+    params.delete('cockpit');
+    const newUrl = params.toString()
+      ? `${window.location.pathname}?${params.toString()}`
+      : window.location.pathname;
+    window.history.replaceState(null, '', newUrl);
+  }, []);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<
@@ -66,6 +148,62 @@ export const useContactsController = () => {
   // Sorting state
   const [sortBy, setSortBy] = useState<ContactSortableColumn>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Story 3.5 — Filter state
+  const [classificationFilter, setClassificationFilter] = useState<string[]>(() => {
+    const param = searchParams?.get('classification');
+    return param ? param.split(',').filter(Boolean) : [];
+  });
+  const [temperatureFilter, setTemperatureFilter] = useState<string>(() => {
+    return searchParams?.get('temperature') || 'ALL';
+  });
+  const [contactTypeFilter, setContactTypeFilter] = useState<string>(() => {
+    return searchParams?.get('contactType') || 'ALL';
+  });
+  const [ownerFilter, setOwnerFilter] = useState<string>(() => {
+    return searchParams?.get('ownerId') || '';
+  });
+  const [sourceFilter, setSourceFilter] = useState<string>(() => {
+    return searchParams?.get('source') || 'ALL';
+  });
+
+  // Story 3.5 — Sync filters to URL (AC8: write-back)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const set = (key: string, val: string, defaultVal: string) => {
+      if (val && val !== defaultVal) params.set(key, val);
+      else params.delete(key);
+    };
+    set('temperature', temperatureFilter, 'ALL');
+    set('contactType', contactTypeFilter, 'ALL');
+    set('ownerId', ownerFilter, '');
+    set('source', sourceFilter, 'ALL');
+    if (classificationFilter.length > 0) params.set('classification', classificationFilter.join(','));
+    else params.delete('classification');
+
+    const newUrl = params.toString()
+      ? `${window.location.pathname}?${params.toString()}`
+      : window.location.pathname;
+    window.history.replaceState(null, '', newUrl);
+  }, [classificationFilter, temperatureFilter, contactTypeFilter, ownerFilter, sourceFilter]);
+
+  // Story 3.5 — Fetch org profiles for owner filter/column
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      if (!supabase) return [];
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .order('full_name');
+      return (data || []).map(p => ({
+        id: p.id,
+        name: p.full_name || 'Sem nome',
+        avatar: p.avatar_url || undefined,
+      }));
+    },
+    staleTime: 5 * 60 * 1000, // 5 min
+  });
 
   // Toggle sort handler
   const handleSort = useCallback((column: ContactSortableColumn) => {
@@ -101,17 +239,24 @@ export const useContactsController = () => {
       filters.dateEnd = dateRange.end;
     }
 
+    // Story 3.5 filters
+    if (classificationFilter.length > 0) filters.classification = classificationFilter;
+    if (temperatureFilter !== 'ALL') filters.temperature = temperatureFilter;
+    if (contactTypeFilter !== 'ALL') filters.contactType = contactTypeFilter;
+    if (ownerFilter) filters.ownerId = ownerFilter;
+    if (sourceFilter !== 'ALL') filters.source = sourceFilter;
+
     // Always include sorting
     filters.sortBy = sortBy;
     filters.sortOrder = sortOrder;
 
     // Return filters (always has at least sorting)
     return filters;
-  }, [search, stageFilter, statusFilter, dateRange, sortBy, sortOrder]);
+  }, [search, stageFilter, statusFilter, dateRange, sortBy, sortOrder, classificationFilter, temperatureFilter, contactTypeFilter, ownerFilter, sourceFilter]);
 
   // T029: Track filter changes to reset pagination synchronously
   // This prevents 416 errors when filters change while on a high page number
-  const filterKey = `${search}-${stageFilter}-${statusFilter}-${dateRange.start}-${dateRange.end}`;
+  const filterKey = `${search}-${stageFilter}-${statusFilter}-${dateRange.start}-${dateRange.end}-${classificationFilter.join(',')}-${temperatureFilter}-${contactTypeFilter}-${ownerFilter}-${sourceFilter}`;
   const prevFilterKeyRef = React.useRef<string>(filterKey);
 
   // Reset to first page when filters change (safe: inside effect)
@@ -140,10 +285,12 @@ export const useContactsController = () => {
   // CRUD State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  // Buffered preferences ref — shared with ContactPreferencesSection during creation
+  const bufferedPrefsRef = useRef<ContactPreference[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteWithDeals, setDeleteWithDeals] = useState<{ id: string; dealCount: number; deals: Array<{ id: string; title: string }> } | null>(null);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
-  const [formData, setFormData] = useState<ContactFormData>({
+  const emptyFormData: ContactFormData = {
     name: '',
     email: '',
     phone: '',
@@ -152,7 +299,17 @@ export const useContactsController = () => {
     birthDate: '',
     source: '',
     notes: '',
-  });
+    // Story 3.1
+    cpf: '',
+    contactType: 'PF',
+    classification: '',
+    temperature: 'WARM',
+    addressCep: '',
+    addressCity: '',
+    addressState: '',
+    phones: [],
+  };
+  const [formData, setFormData] = useState<ContactFormData>(emptyFormData);
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
 
   // Create Deal State
@@ -163,7 +320,8 @@ export const useContactsController = () => {
 
   const openCreateModal = () => {
     setEditingContact(null);
-    setFormData({ name: '', email: '', phone: '', ownerId: undefined, cascadeDeals: false, birthDate: '', source: '', notes: '' });
+    setFormData(emptyFormData);
+    bufferedPrefsRef.current = [];
     setIsModalOpen(true);
   };
 
@@ -178,8 +336,33 @@ export const useContactsController = () => {
       birthDate: contact.birthDate || '',
       source: contact.source || '',
       notes: contact.notes || '',
+      // Story 3.1
+      cpf: contact.cpf ? formatCPF(contact.cpf) : '',
+      contactType: contact.contactType || 'PF',
+      classification: contact.classification || '',
+      temperature: contact.temperature || 'WARM',
+      addressCep: contact.addressCep ? formatCEP(contact.addressCep) : '',
+      addressCity: contact.addressCity || '',
+      addressState: contact.addressState || '',
+      phones: [],
     });
     setIsModalOpen(true);
+
+    // Load phones asynchronously from contact_phones table
+    contactPhonesService.getByContactId(contact.id).then(({ data }) => {
+      if (data && data.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          phones: data.map(p => ({
+            id: p.id,
+            phoneNumber: p.phoneNumber,
+            phoneType: p.phoneType as PhoneFormEntry['phoneType'],
+            isWhatsapp: p.isWhatsapp,
+            isPrimary: p.isPrimary,
+          })),
+        }));
+      }
+    });
   };
 
   const confirmDelete = async () => {
@@ -299,13 +482,10 @@ export const useContactsController = () => {
     const t0 = Date.now();
     setIsSubmittingContact(true);
     const normalizedPhone = normalizePhoneE164(formData.phone);
+    const phonesToSync = [...formData.phones];
 
-    // Close immediately to avoid "modal close lag" while we wait for Supabase.
-    // (TanStack Query does not support onMutate in mutate() call options.)
-    if (!editingContact) {
-      setIsModalOpen(false);
-      (addToast || showToast)('Criando contato...', 'info');
-    }
+    // For edit: close handled in onSuccess.
+    // For create: keep modal open — switches to edit mode in-place on success (preferences become available).
 
     if (editingContact) {
       const ownerChanged = formData.ownerId && formData.ownerId !== editingContact.ownerId;
@@ -324,20 +504,28 @@ export const useContactsController = () => {
           {
             onSuccess: async (result) => {
               // Update extra fields separately (RPC only handles name/email/phone)
-              if (formData.birthDate || formData.source || formData.notes) {
-                try {
-                  await updateContactMutation.mutateAsync({
-                    id: editingContact.id,
-                    updates: {
-                      birthDate: formData.birthDate || undefined,
-                      source: formData.source || undefined,
-                      notes: formData.notes || undefined,
-                    },
-                  });
-                } catch {
-                  (addToast || showToast)('Campos extras não salvos, edite o contato novamente', 'warning');
-                }
+              try {
+                await updateContactMutation.mutateAsync({
+                  id: editingContact.id,
+                  updates: {
+                    birthDate: formData.birthDate || undefined,
+                    source: formData.source || undefined,
+                    notes: formData.notes || undefined,
+                    // Story 3.1
+                    cpf: formData.cpf ? unformatCPF(formData.cpf) : undefined,
+                    contactType: formData.contactType || undefined,
+                    classification: formData.classification || undefined,
+                    temperature: formData.temperature || undefined,
+                    addressCep: formData.addressCep?.replace(/\D/g, '') || undefined,
+                    addressCity: formData.addressCity || undefined,
+                    addressState: formData.addressState || undefined,
+                  },
+                });
+              } catch {
+                (addToast || showToast)('Campos extras não salvos, edite o contato novamente', 'warning');
               }
+              // Sync phones
+              await syncPhones(editingContact.id, phonesToSync).catch(() => {});
               const msg = result?.deals_updated
                 ? `Contato e ${result.deals_updated} deals reatribuídos!`
                 : 'Contato reatribuído!';
@@ -362,10 +550,19 @@ export const useContactsController = () => {
               birthDate: formData.birthDate || undefined,
               source: formData.source || undefined,
               notes: formData.notes || undefined,
+              // Story 3.1
+              cpf: formData.cpf ? unformatCPF(formData.cpf) : undefined,
+              contactType: formData.contactType || undefined,
+              classification: formData.classification || undefined,
+              temperature: formData.temperature || undefined,
+              addressCep: formData.addressCep?.replace(/\D/g, '') || undefined,
+              addressCity: formData.addressCity || undefined,
+              addressState: formData.addressState || undefined,
             },
           },
           {
-            onSuccess: () => {
+            onSuccess: async () => {
+              await syncPhones(editingContact.id, phonesToSync).catch(() => {});
               (addToast || showToast)('Contato atualizado!', 'success');
               setIsModalOpen(false);
             },
@@ -385,15 +582,56 @@ export const useContactsController = () => {
           birthDate: formData.birthDate || undefined,
           source: formData.source || undefined,
           notes: formData.notes || undefined,
+          // Story 3.1
+          cpf: formData.cpf ? unformatCPF(formData.cpf) : undefined,
+          contactType: formData.contactType || 'PF',
+          classification: formData.classification || undefined,
+          temperature: formData.temperature || 'WARM',
+          addressCep: formData.addressCep?.replace(/\D/g, '') || undefined,
+          addressCity: formData.addressCity || undefined,
+          addressState: formData.addressState || undefined,
         },
         {
-          onSuccess: () => {
-            (addToast || showToast)('Contato criado!', 'success');
+          onSuccess: async (data) => {
+            if (phonesToSync.length > 0) {
+              await syncPhones(data.id, phonesToSync).catch(() => {});
+            }
+            // Flush buffered preferences
+            const prefsToSave = bufferedPrefsRef.current;
+            let prefsFailed = 0;
+            if (prefsToSave.length > 0) {
+              bufferedPrefsRef.current = [];
+              for (const pref of prefsToSave) {
+                try {
+                  const result = await contactPreferencesService.create({
+                    contactId: data.id,
+                    organizationId: data.organizationId || '',
+                    propertyTypes: pref.propertyTypes,
+                    purpose: pref.purpose,
+                    priceMin: pref.priceMin,
+                    priceMax: pref.priceMax,
+                    regions: pref.regions,
+                    bedroomsMin: pref.bedroomsMin,
+                    parkingMin: pref.parkingMin,
+                    areaMin: pref.areaMin,
+                    acceptsFinancing: pref.acceptsFinancing,
+                    acceptsFgts: pref.acceptsFgts,
+                    urgency: pref.urgency,
+                    notes: pref.notes,
+                  } as Omit<ContactPreference, 'id' | 'createdAt' | 'updatedAt'>);
+                  if (result.error) prefsFailed++;
+                } catch { prefsFailed++; }
+              }
+            }
+            if (prefsFailed > 0) {
+              (addToast || showToast)(`Contato criado, mas ${prefsFailed} preferencia(s) nao foram salvas.`, 'warning');
+            } else {
+              (addToast || showToast)('Contato criado!', 'success');
+            }
+            setIsModalOpen(false);
           },
           onError: (error: Error) => {
             (addToast || showToast)(`Erro ao criar contato: ${error.message}`, 'error');
-            // Re-open modal so user can adjust and retry
-            setIsModalOpen(true);
           },
           onSettled: () => setIsSubmittingContact(false),
         }
@@ -466,9 +704,7 @@ export const useContactsController = () => {
         value: 0,
         probability: 0,
         priority: 'medium',
-        tags: [],
         items: [],
-        customFields: {},
         owner: { name: 'Eu', avatar: '' },
         isWon: false,
         isLost: false,
@@ -513,6 +749,25 @@ export const useContactsController = () => {
     });
   };
 
+  // Story 3.5 — Bulk reassign owner
+  const bulkReassignOwner = useCallback(async (newOwnerId: string) => {
+    if (!supabase || selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase
+      .from('contacts')
+      .update({ owner_id: newOwnerId, updated_at: new Date().toISOString() })
+      .in('id', ids);
+
+    if (error) {
+      (addToast || showToast)(`Erro ao reatribuir: ${error.message}`, 'error');
+    } else {
+      (addToast || showToast)(`${ids.length} contato(s) reatribuido(s)`, 'success');
+      setSelectedIds(new Set());
+      // Invalidate contacts query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+    }
+  }, [selectedIds, addToast, showToast, queryClient]);
+
   // T030: Removed client-side filtering - now using server-side filters
   // contacts already comes filtered from the server
   const filteredContacts = contacts;
@@ -528,12 +783,17 @@ export const useContactsController = () => {
       MQL: serverStageCounts.MQL || 0,
       PROSPECT: serverStageCounts.PROSPECT || 0,
       CUSTOMER: serverStageCounts.CUSTOMER || 0,
-      OTHER: (serverStageCounts.CHURNED || 0) + (serverStageCounts.OTHER || 0),
+      OTHER: serverStageCounts.OTHER || 0,
     }),
     [serverStageCounts]
   );
 
   return {
+    // Detail modal
+    detailContactId,
+    openDetailModal,
+    closeDetailModal,
+
     // State
     search,
     setSearch,
@@ -580,6 +840,20 @@ export const useContactsController = () => {
     sortOrder,
     handleSort,
 
+    // Story 3.5 — Filters
+    classificationFilter,
+    setClassificationFilter,
+    temperatureFilter,
+    setTemperatureFilter,
+    contactTypeFilter,
+    setContactTypeFilter,
+    ownerFilter,
+    setOwnerFilter,
+    sourceFilter,
+    setSourceFilter,
+    profiles,
+    bulkReassignOwner,
+
     // Create Deal State
     createDealContactId,
     setCreateDealContactId,
@@ -602,5 +876,8 @@ export const useContactsController = () => {
     createDealForContact,
     confirmBulkDelete,
     addToast: addToast || showToast,
+
+    // Buffered preferences ref for creation mode
+    bufferedPrefsRef,
   };
 };

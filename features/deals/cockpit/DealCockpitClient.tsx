@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Check, X } from 'lucide-react';
+import { Bug, Check, Moon, Sun, X } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
 import { useCRMActions } from '@/hooks/useCRMActions';
@@ -10,8 +10,15 @@ import { useDeals } from '@/context/deals/DealsContext';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useSettings } from '@/context/settings/SettingsContext';
+import { useTheme } from '@/context/ThemeContext';
+import { isDebugMode, enableDebugMode, disableDebugMode } from '@/lib/debug';
+import { NotificationPopover } from '@/components/notifications/NotificationPopover';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { normalizePhoneE164 } from '@/lib/phone';
+import { supabase } from '@/lib/supabase/client';
+import { calculateEstimatedCommission } from '@/lib/supabase';
+import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
 
 import { useAIDealAnalysis, deriveHealthFromProbability } from '@/features/inbox/hooks/useAIDealAnalysis';
 import { useDealNotes } from '@/features/inbox/hooks/useDealNotes';
@@ -22,7 +29,7 @@ import { CallModal, type CallLogData } from '@/features/inbox/components/CallMod
 import { MessageComposerModal, type MessageChannel, type MessageExecutedEvent } from '@/features/inbox/components/MessageComposerModal';
 import { ScheduleModal, type ScheduleData, type ScheduleType } from '@/features/inbox/components/ScheduleModal';
 
-import type { Activity, Board, BoardStage } from '@/types';
+import type { Activity, Board, BoardStage, Contact, ContactPreference } from '@/types';
 import type {
   Actor,
   ChecklistItem,
@@ -48,8 +55,7 @@ import {
 } from './cockpit-utils';
 
 import { CockpitPipelineBar } from './CockpitPipelineBar';
-import { CockpitHealthPanel } from './CockpitHealthPanel';
-import { CockpitNextActionPanel } from './CockpitNextActionPanel';
+import { CockpitActionPanel } from './CockpitActionPanel';
 import { CockpitDataPanel } from './CockpitDataPanel';
 import { CockpitTimeline } from './CockpitTimeline';
 import { CockpitChecklist } from './CockpitChecklist';
@@ -66,14 +72,18 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   const { deals } = useCRMActions();
   const dealsCtx = useDeals();
-  const { updateDeal } = dealsCtx;
-  const { contacts } = useContacts();
+  const { updateDeal, addItemToDeal, removeItemFromDeal } = dealsCtx;
+  const { contacts, updateContact } = useContacts();
   const { boards } = useBoards();
   const activitiesCtx = useActivities();
   const { activities, addActivity } = activitiesCtx;
   const crmLoading = dealsCtx.loading || activitiesCtx.loading;
   const crmError = dealsCtx.error || activitiesCtx.error;
-  const refreshCRM = async () => { await dealsCtx.refresh(); await activitiesCtx.refresh(); };
+  const refreshCRM = useCallback(async () => { await dealsCtx.refresh(); await activitiesCtx.refresh(); }, [dealsCtx, activitiesCtx]);
+
+  const { customFieldDefinitions, products } = useSettings();
+  const { darkMode, toggleDarkMode } = useTheme();
+  const [debugEnabled, setDebugEnabled] = useState(() => isDebugMode());
 
   const [toast, setToast] = useState<ToastState | null>(null);
 
@@ -96,6 +106,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
   const [templatePickerMode, setTemplatePickerMode] = useState<TemplatePickerMode>('WHATSAPP');
 
+  const [preferences, setPreferences] = useState<ContactPreference | null>(null);
+
   const defaultChecklist: ChecklistItem[] = useMemo(
     () => [
       { id: 'qualify', text: 'Qualificar (dor, urgência, orçamento, decisor)', done: false },
@@ -107,6 +119,9 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   );
 
   const [checklist, setChecklist] = useState<ChecklistItem[]>(defaultChecklist);
+
+  // Broker commission rate (fetched from profiles for the deal owner)
+  const [brokerCommissionRate, setBrokerCommissionRate] = useState<number | null>(null);
 
   const actor: Actor = useMemo(() => {
     const name =
@@ -154,6 +169,51 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     if (!selectedDeal) return null;
     return boardsById.get(selectedDeal.boardId) ?? null;
   }, [boardsById, selectedDeal]);
+
+  // Fetch broker commission rate when deal owner changes
+  useEffect(() => {
+    const ownerId = selectedDeal?.ownerId;
+    if (!ownerId || !supabase) {
+      setBrokerCommissionRate(null);
+      return;
+    }
+    // If the owner is the current user, use profile from context
+    if (ownerId === user?.id) {
+      setBrokerCommissionRate(profile?.commission_rate ?? null);
+      return;
+    }
+    // Otherwise, fetch from Supabase
+    let cancelled = false;
+    supabase
+      .from('profiles')
+      .select('commission_rate')
+      .eq('id', ownerId)
+      .single()
+      .then(({ data }) => {
+        if (!cancelled) setBrokerCommissionRate(data?.commission_rate ?? null);
+      });
+    return () => { cancelled = true; };
+  }, [selectedDeal?.ownerId, user?.id, profile?.commission_rate]);
+
+  // Fetch contact preferences
+  useEffect(() => {
+    if (!selectedContact?.id) { setPreferences(null); return; }
+    let cancelled = false;
+    contactPreferencesService.getByContactId(selectedContact.id)
+      .then(({ data }) => { if (!cancelled) setPreferences(data?.[0] ?? null); })
+      .catch(err => console.error('[Cockpit] fetch preferences failed:', err));
+    return () => { cancelled = true; };
+  }, [selectedContact?.id]);
+
+  // Commission calculation
+  const estimatedCommission = useMemo(() => {
+    if (!selectedDeal) return null;
+    return calculateEstimatedCommission(
+      selectedDeal.value,
+      selectedDeal.commissionRate,
+      brokerCommissionRate,
+    );
+  }, [selectedDeal, brokerCommissionRate]);
 
   const templateVariables = useMemo(() => {
     const nome = selectedContact?.name?.split(' ')[0]?.trim() || 'Cliente';
@@ -249,8 +309,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
         id: selectedDeal.id, title: selectedDeal.title, value: selectedDeal.value, status: selectedDeal.status,
         isWon: selectedDeal.isWon, isLost: selectedDeal.isLost, probability: selectedDeal.probability,
         priority: selectedDeal.priority, owner: selectedDeal.owner, ownerId: selectedDeal.ownerId,
-        nextActivity: selectedDeal.nextActivity, tags: selectedDeal.tags, items: selectedDeal.items,
-        customFields: selectedDeal.customFields, lastStageChangeDate: selectedDeal.lastStageChangeDate,
+        nextActivity: selectedDeal.nextActivity, contactTags: selectedDeal.contactTags, items: selectedDeal.items,
+        contactCustomFields: selectedDeal.contactCustomFields, lastStageChangeDate: selectedDeal.lastStageChangeDate,
         lossReason: selectedDeal.lossReason, createdAt: selectedDeal.createdAt, updatedAt: selectedDeal.updatedAt,
         stageLabel: selectedDeal.stageLabel,
       },
@@ -275,14 +335,10 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             : `${a.title ?? ''} ${a.description ?? ''}`.toLowerCase().includes('perd') ? 'danger' : 'neutral'
           : undefined;
       const subtitle = a.description?.trim() ? a.description.trim() : undefined;
-      items.push({ id: a.id, at: formatAtISO(a.date), kind, title: a.title || a.type, subtitle, tone });
+      items.push({ id: a.id, at: formatAtISO(a.date), sortKey: a.date, kind, title: a.title || a.type, subtitle, tone });
     }
     return items;
   }, [dealActivities]);
-
-  const latestNonSystem = useMemo(() => timelineItems.find((t) => t.kind !== 'system') ?? null, [timelineItems]);
-  const latestCall = useMemo(() => timelineItems.find((t) => t.kind === 'call') ?? null, [timelineItems]);
-  const latestMove = useMemo(() => timelineItems.find((t) => t.kind === 'status') ?? null, [timelineItems]);
 
   // --- Callbacks ---
 
@@ -345,18 +401,18 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   }, []);
 
   const loadChecklistFromDeal = useCallback(() => {
-    const raw = (selectedDeal?.customFields as any)?.cockpitChecklist;
+    const raw = (selectedDeal?.metadata as any)?.cockpitChecklist;
     const parsed = normalizeChecklist(raw);
     setChecklist(parsed ?? defaultChecklist);
-  }, [defaultChecklist, normalizeChecklist, selectedDeal?.customFields]);
+  }, [defaultChecklist, normalizeChecklist, selectedDeal?.metadata]);
 
   useEffect(() => { loadChecklistFromDeal(); }, [loadChecklistFromDeal, selectedDeal?.id]);
 
   const persistChecklist = useCallback(async (next: ChecklistItem[]) => {
     if (!selectedDeal) return;
     setChecklist(next);
-    const nextCustomFields = { ...(selectedDeal.customFields ?? {}), cockpitChecklist: next };
-    try { await updateDeal(selectedDeal.id, { customFields: nextCustomFields }); }
+    const nextMetadata = { ...(selectedDeal.metadata ?? {}), cockpitChecklist: next };
+    try { await updateDeal(selectedDeal.id, { metadata: nextMetadata }); }
     catch (e) { pushToast(errorMessage(e, 'Não foi possível salvar o checklist.'), 'danger'); }
   }, [pushToast, selectedDeal, updateDeal]);
 
@@ -437,21 +493,113 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     } catch (e) { pushToast(errorMessage(e, 'Não foi possível mover etapa.'), 'danger'); }
   }, [addActivity, actor, moveDeal, pushToast, selectedBoard, selectedDeal]);
 
+  // GANHOU/PERDEU handlers
+  const handleWin = useCallback(async () => {
+    if (!selectedDeal || !selectedBoard?.wonStageId) {
+      pushToast('Board sem etapa "Ganho" configurada', 'danger');
+      return;
+    }
+    try {
+      await moveDeal(selectedDeal, selectedBoard.wonStageId);
+      pushToast('Deal marcado como GANHO!', 'success');
+      try {
+        await addActivity({
+          dealId: selectedDeal.id, dealTitle: selectedDeal.title, type: 'STATUS_CHANGE',
+          title: 'Ganhou', description: 'Deal marcado como ganho', date: new Date().toISOString(), completed: true, user: actor,
+        });
+      } catch { /* logged silently */ }
+    } catch (e) { pushToast(errorMessage(e, 'Não foi possível marcar como ganho.'), 'danger'); }
+  }, [addActivity, actor, moveDeal, pushToast, selectedBoard, selectedDeal]);
+
+  const handleLoss = useCallback(async () => {
+    if (!selectedDeal || !selectedBoard?.lostStageId) {
+      pushToast('Board sem etapa "Perdido" configurada', 'danger');
+      return;
+    }
+    try {
+      await moveDeal(selectedDeal, selectedBoard.lostStageId);
+      pushToast('Deal marcado como PERDIDO', 'danger');
+      try {
+        await addActivity({
+          dealId: selectedDeal.id, dealTitle: selectedDeal.title, type: 'STATUS_CHANGE',
+          title: 'Perdeu', description: 'Deal marcado como perdido', date: new Date().toISOString(), completed: true, user: actor,
+        });
+      } catch { /* logged silently */ }
+    } catch (e) { pushToast(errorMessage(e, 'Não foi possível marcar como perdido.'), 'danger'); }
+  }, [addActivity, actor, moveDeal, pushToast, selectedBoard, selectedDeal]);
+
+  const handleReopen = useCallback(async () => {
+    if (!selectedDeal || !selectedBoard || !stages.length) return;
+    // Reopen to first stage
+    const firstStage = stages[0];
+    if (!firstStage) return;
+    try {
+      await moveDeal(selectedDeal, firstStage.id);
+      pushToast(`Deal reaberto na etapa: ${firstStage.label}`, 'success');
+      try {
+        await addActivity({
+          dealId: selectedDeal.id, dealTitle: selectedDeal.title, type: 'STATUS_CHANGE',
+          title: 'Reabriu', description: `Reaberto para ${firstStage.label}`, date: new Date().toISOString(), completed: true, user: actor,
+        });
+      } catch { /* logged silently */ }
+    } catch (e) { pushToast(errorMessage(e, 'Não foi possível reabrir o deal.'), 'danger'); }
+  }, [addActivity, actor, moveDeal, pushToast, selectedBoard, selectedDeal, stages]);
+
+  // --- Inline edit handlers ---
+
+  const handleUpdateDeal = useCallback((updates: Record<string, any>) => {
+    if (!selectedDeal?.id) return;
+    updateDeal(selectedDeal.id, updates);
+  }, [selectedDeal?.id, updateDeal]);
+
+  const handleUpdateContact = useCallback(async (updates: Partial<Contact>) => {
+    if (!selectedContact?.id) return;
+    await updateContact(selectedContact.id, updates);
+  }, [selectedContact?.id, updateContact]);
+
+  const handleUpdatePreferences = useCallback(async (updates: Partial<ContactPreference>) => {
+    if (!preferences?.id) return;
+    await contactPreferencesService.update(preferences.id, updates);
+    setPreferences(p => p ? { ...p, ...updates } : p);
+  }, [preferences?.id]);
+
+  const handleCreatePreferences = useCallback(async () => {
+    if (!selectedContact?.id || !profile?.organization_id) return;
+    const { data } = await contactPreferencesService.create({
+      contactId: selectedContact.id,
+      organizationId: profile.organization_id,
+      propertyTypes: [], purpose: null, priceMin: null, priceMax: null,
+      regions: [], bedroomsMin: null, parkingMin: null, areaMin: null,
+      acceptsFinancing: null, acceptsFgts: null, urgency: null, notes: null,
+    });
+    if (data) setPreferences(data);
+  }, [selectedContact?.id, profile?.organization_id]);
+
+  const handleAddItem = useCallback(async (item: { productId?: string; name: string; price: number; quantity: number }) => {
+    if (!selectedDeal?.id) return;
+    await addItemToDeal(selectedDeal.id, { productId: item.productId ?? '', ...item });
+  }, [selectedDeal?.id, addItemToDeal]);
+
+  const handleRemoveItem = useCallback(async (itemId: string) => {
+    if (!selectedDeal?.id) return;
+    await removeItemFromDeal(selectedDeal.id, itemId);
+  }, [selectedDeal?.id, removeItemFromDeal]);
+
   // --- Render ---
 
   if (crmError) {
     return (
-      <div className="h-dvh bg-slate-950 text-slate-100 flex items-center justify-center p-8">
+      <div className="h-dvh bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-8">
         <div className="max-w-xl w-full rounded-2xl border border-rose-500/20 bg-rose-500/10 p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="text-lg font-semibold">Cockpit</div>
-            <div className="text-xs text-slate-300">/deals/[dealId]/cockpit</div>
+            <div className="text-xs text-slate-600 dark:text-slate-300">/deals/[dealId]/cockpit</div>
           </div>
-          <div className="mt-3 text-sm text-slate-100">Não foi possível carregar os dados do CRM.</div>
-          <div className="mt-2 text-xs text-rose-100/80 wrap-break-word">{crmError}</div>
+          <div className="mt-3 text-sm">Não foi possível carregar os dados do CRM.</div>
+          <div className="mt-2 text-xs text-rose-700 dark:text-rose-100/80 break-words">{crmError}</div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100" onClick={() => void refreshCRM()}>Recarregar</Button>
-            <Button type="button" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
+            <Button type="button" className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-4 py-2 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
           </div>
         </div>
       </div>
@@ -460,16 +608,16 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   if (crmLoading && (!deals || deals.length === 0)) {
     return (
-      <div className="h-dvh bg-slate-950 text-slate-100 flex items-center justify-center p-8">
-        <div className="max-w-xl w-full rounded-2xl border border-white/10 bg-white/3 p-6">
+      <div className="h-dvh bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-8">
+        <div className="max-w-xl w-full rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="text-lg font-semibold">Cockpit</div>
-            <div className="text-xs text-slate-400">Carregando…</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">Carregando…</div>
           </div>
           <div className="mt-4 space-y-3">
-            <div className="h-4 w-2/3 rounded bg-white/10 animate-pulse" />
-            <div className="h-4 w-full rounded bg-white/10 animate-pulse" />
-            <div className="h-4 w-5/6 rounded bg-white/10 animate-pulse" />
+            <div className="h-4 w-2/3 rounded bg-slate-200 dark:bg-white/10 animate-pulse" />
+            <div className="h-4 w-full rounded bg-slate-200 dark:bg-white/10 animate-pulse" />
+            <div className="h-4 w-5/6 rounded bg-slate-200 dark:bg-white/10 animate-pulse" />
           </div>
           <div className="mt-4 text-xs text-slate-500">Buscando deals, boards e atividades do seu workspace…</div>
         </div>
@@ -479,17 +627,17 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   if (!selectedDeal || !selectedBoard) {
     return (
-      <div className="h-dvh bg-slate-950 text-slate-100 flex items-center justify-center p-8">
-        <div className="max-w-xl w-full rounded-2xl border border-white/10 bg-white/3 p-6">
+      <div className="h-dvh bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-8">
+        <div className="max-w-xl w-full rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="text-lg font-semibold">Cockpit</div>
-            <div className="text-xs text-slate-400">/deals/[dealId]/cockpit</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">/deals/[dealId]/cockpit</div>
           </div>
-          <div className="mt-3 text-sm text-slate-300">Não encontrei nenhum deal carregado no contexto.</div>
+          <div className="mt-3 text-sm text-slate-600 dark:text-slate-300">Não encontrei nenhum deal carregado no contexto.</div>
           <div className="mt-2 text-xs text-slate-500">Dica: abra o app normal (Boards) para carregar dados.</div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button type="button" className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100" onClick={() => void refreshCRM()}>Recarregar</Button>
-            <Button type="button" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-100 hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
+            <Button type="button" className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-4 py-2 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-white/8" onClick={() => router.push('/boards')}>Ir para Boards</Button>
           </div>
         </div>
       </div>
@@ -502,16 +650,16 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const phoneE164 = normalizePhoneE164(contact?.phone);
 
   return (
-    <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex flex-col overflow-hidden bg-slate-950 text-slate-100">
+    <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       {toast ? (
         <div className="fixed right-6 top-6 z-50">
           <div
             className={
               toast.tone === 'success'
-                ? 'flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100 shadow-xl shadow-black/30'
+                ? 'flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-100 shadow-xl shadow-slate-300/30 dark:shadow-black/30'
                 : toast.tone === 'danger'
-                  ? 'flex items-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/15 px-4 py-3 text-sm text-rose-100 shadow-xl shadow-black/30'
-                  : 'flex items-center gap-2 rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm text-slate-100 shadow-xl shadow-black/30'
+                  ? 'flex items-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/15 px-4 py-3 text-sm text-rose-700 dark:text-rose-100 shadow-xl shadow-slate-300/30 dark:shadow-black/30'
+                  : 'flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/8 px-4 py-3 text-sm shadow-xl shadow-slate-300/30 dark:shadow-black/30'
             }
             role="status"
             aria-live="polite"
@@ -532,18 +680,46 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
         crmLoading={crmLoading}
         onDealChange={setDealInUrl}
         onStageChange={(id) => void handleStageChange(id)}
+        onBack={() => router.push('/boards')}
+        onWin={() => void handleWin()}
+        onLoss={() => void handleLoss()}
+        isWon={deal.isWon ?? false}
+        isLost={deal.isLost ?? false}
+        onReopen={() => void handleReopen()}
+        headerControls={
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              onClick={() => { if (debugEnabled) { disableDebugMode(); setDebugEnabled(false); } else { enableDebugMode(); setDebugEnabled(true); } }}
+              className={`p-1.5 rounded-lg transition-colors ${debugEnabled ? 'text-purple-500 dark:text-purple-400 bg-purple-500/15' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+              title="Debug mode"
+            >
+              <Bug className="h-3.5 w-3.5" />
+            </Button>
+            <div className="flex items-center [&_button]:p-1.5 [&_button]:rounded-lg [&_svg]:!w-3.5 [&_svg]:!h-3.5">
+              <NotificationPopover />
+            </div>
+            <Button
+              type="button"
+              onClick={toggleDarkMode}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+              title="Alternar tema"
+            >
+              {darkMode ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+            </Button>
+          </div>
+        }
       />
 
       <div className="flex-1 min-h-0 w-full overflow-hidden px-6 py-4 2xl:px-10">
-        <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[360px_1fr_420px] lg:items-stretch">
-          {/* Left rail */}
-          <div className="flex min-h-0 flex-col gap-4 overflow-auto pr-1">
-            <CockpitHealthPanel health={health} aiLoading={aiLoading} onRefetchAI={() => void refetchAI()} />
-
-            <CockpitNextActionPanel
+        <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[340px_1fr_400px] lg:items-stretch">
+          {/* Left rail — ações + dados */}
+          <div className="flex min-h-0 flex-col gap-3 overflow-auto pr-1">
+            <CockpitActionPanel
+              health={health}
+              aiLoading={aiLoading}
+              onRefetchAI={() => void refetchAI()}
               nextBestAction={nextBestAction}
-              isScriptsLoading={isScriptsLoading}
-              scriptsCount={scripts.length}
               onExecuteNext={() => void handleExecuteNext()}
               onCall={handleCall}
               onOpenMessageComposer={openMessageComposer}
@@ -556,17 +732,24 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
                 buildSuggestedEmailBody({ contact: contact ?? undefined, deal, actionType: nextBestAction.actionType, action: nextBestAction.action, reason: nextBestAction.reason })
               }
               dealTitle={deal.title}
+              isScriptsLoading={isScriptsLoading}
+              scriptsCount={scripts.length}
             />
-
             <CockpitDataPanel
               deal={deal}
               contact={contact}
               phoneE164={phoneE164}
-              activeStage={activeStage}
-              latestNonSystem={latestNonSystem}
-              latestCall={latestCall}
-              latestMove={latestMove}
               onCopy={(label, text) => void copyToClipboard(label, text)}
+              estimatedCommission={estimatedCommission}
+              preferences={preferences}
+              customFieldDefinitions={customFieldDefinitions}
+              products={products}
+              onUpdateDeal={handleUpdateDeal}
+              onUpdateContact={handleUpdateContact}
+              onUpdatePreferences={handleUpdatePreferences}
+              onCreatePreferences={handleCreatePreferences}
+              onAddItem={handleAddItem}
+              onRemoveItem={handleRemoveItem}
             />
           </div>
 
@@ -579,6 +762,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
               dealTitle={deal.title}
               addActivity={addActivity}
               pushToast={pushToast}
+              notes={notes}
+              isNotesLoading={isNotesLoading}
             />
 
             <CockpitChecklist
@@ -588,7 +773,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             />
           </div>
 
-          {/* Right rail */}
+          {/* Right rail — IA + ferramentas */}
           <CockpitRightRail
             dealId={deal.id}
             dealTitle={deal.title}
@@ -610,6 +795,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             applyVariables={applyVariables}
             getCategoryInfo={getCategoryInfo}
             templateVariables={templateVariables}
+            contactNotes={contact?.notes ?? null}
+            onUpdateContactNotes={(notes) => { if (contact?.id) updateContact(contact.id, { notes } as any); }}
             crmLoading={crmLoading}
             onRefreshCRM={() => void refreshCRM()}
             onCopy={(label, text) => void copyToClipboard(label, text)}

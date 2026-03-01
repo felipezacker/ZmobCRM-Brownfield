@@ -1,9 +1,11 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useActivitiesController } from './hooks/useActivitiesController';
 import { ActivitiesHeader } from './components/ActivitiesHeader';
 import { ActivitiesFilters } from './components/ActivitiesFilters';
 import { ActivitiesList } from './components/ActivitiesList';
 import { ActivitiesCalendar } from './components/ActivitiesCalendar';
+import { ActivitiesMonthlyCalendar } from './components/ActivitiesMonthlyCalendar';
 import { ActivityFormModal } from './components/ActivityFormModal';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -60,8 +62,24 @@ export const ActivitiesPage: React.FC = () => {
         handleSubmit
     } = useActivitiesController();
 
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const editProcessedRef = useRef<string | null>(null);
     const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
     const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+
+    // Open edit modal from URL param (e.g., from Inbox)
+    useEffect(() => {
+        const editId = searchParams.get('edit');
+        if (editId && editId !== editProcessedRef.current && filteredActivities.length > 0) {
+            const activity = filteredActivities.find(a => a.id === editId);
+            if (activity) {
+                editProcessedRef.current = editId;
+                handleEditActivity(activity);
+                router.replace('/activities', { scroll: false });
+            }
+        }
+    }, [searchParams, filteredActivities, handleEditActivity, router]);
 
     const handleSelectActivity = useCallback((id: string, selected: boolean) => {
         setSelectedActivities(prev => {
@@ -211,6 +229,15 @@ export const ActivitiesPage: React.FC = () => {
                         onNewActivity={activeTab === 'activities' ? handleNewActivity : undefined}
                     />
                 </>
+            ) : viewMode === 'month' ? (
+                <ActivitiesMonthlyCalendar
+                    activities={filteredActivities}
+                    deals={deals}
+                    currentDate={currentDate}
+                    setCurrentDate={setCurrentDate}
+                    onEdit={handleEditActivity}
+                    onCreateFromProjected={handleCreateFromProjected}
+                />
             ) : (
                 <ActivitiesCalendar
                     activities={filteredActivities}

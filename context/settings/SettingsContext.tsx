@@ -11,6 +11,7 @@ import React, {
 import { usePathname } from 'next/navigation';
 import { LifecycleStage, Product, CustomFieldDefinition, Lead } from '@/types';
 import { settingsService, lifecycleStagesService, productsService } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '../AuthContext';
 import { useUIStore } from '@/lib/stores';
 import { AI_DEFAULT_MODELS, AI_DEFAULT_PROVIDER } from '@/lib/ai/defaults';
@@ -49,16 +50,16 @@ interface SettingsContextType {
   /** Recarrega o catálogo de produtos (usado para manter o dropdown do deal atualizado). */
   refreshProducts: () => Promise<void>;
 
-  // Custom Fields (TODO: migrate to Supabase)
+  // Custom Fields (persisted to Supabase custom_field_definitions table)
   customFieldDefinitions: CustomFieldDefinition[];
-  addCustomField: (field: Omit<CustomFieldDefinition, 'id'>) => void;
-  updateCustomField: (id: string, updates: Partial<CustomFieldDefinition>) => void;
-  removeCustomField: (id: string) => void;
+  addCustomField: (field: Omit<CustomFieldDefinition, 'id'>) => Promise<void>;
+  updateCustomField: (id: string, updates: Partial<CustomFieldDefinition>) => Promise<void>;
+  removeCustomField: (id: string) => Promise<void>;
 
-  // Tags (TODO: migrate to Supabase)
+  // Tags (persisted to Supabase tags table)
   availableTags: string[];
-  addTag: (tag: string) => void;
-  removeTag: (tag: string) => void;
+  addTag: (tag: string) => Promise<void>;
+  removeTag: (tag: string) => Promise<void>;
 
   // AI Config
   aiProvider: AIConfig['provider'];
@@ -109,8 +110,9 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { profile } = useAuth();
+  const { profile, organizationId } = useAuth();
   const pathname = usePathname();
+  const supabase = createClient()!;
 
   // State
   const [loading, setLoading] = useState(true);
@@ -259,13 +261,30 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       // Fetch products catalog (active only)
       await refreshProducts();
+
+      // Fetch custom field definitions from Supabase
+      if (organizationId) {
+        const { data: cfData } = await supabase
+          .from('custom_field_definitions')
+          .select('*')
+          .eq('organization_id', organizationId)
+          .eq('entity_type', 'contact');
+        if (cfData) setCustomFieldDefinitions(cfData as CustomFieldDefinition[]);
+
+        // Fetch tags catalog from Supabase
+        const { data: tagsData } = await supabase
+          .from('tags')
+          .select('name')
+          .eq('organization_id', organizationId);
+        if (tagsData) setAvailableTags(tagsData.map((t) => t.name));
+      }
     } catch (e) {
       console.error('Error fetching settings:', e);
       setError(e instanceof Error ? e.message : 'Failed to fetch settings');
     }
 
     setLoading(false);
-  }, [profile]);
+  }, [profile, organizationId, supabase]);
 
   useEffect(() => {
     fetchSettings();
@@ -498,30 +517,82 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     [updateSettings]
   );
 
-  // Custom Fields (local state for now)
-  const addCustomField = useCallback((field: Omit<CustomFieldDefinition, 'id'>) => {
-    const newField = { ...field, id: crypto.randomUUID() };
-    setCustomFieldDefinitions(prev => [...prev, newField]);
-  }, []);
-
-  const updateCustomField = useCallback((id: string, updates: Partial<CustomFieldDefinition>) => {
-    setCustomFieldDefinitions(prev => prev.map(f => (f.id === id ? { ...f, ...updates } : f)));
-  }, []);
-
-  const removeCustomField = useCallback((id: string) => {
-    setCustomFieldDefinitions(prev => prev.filter(f => f.id !== id));
-  }, []);
-
-  // Tags (local state for now)
-  const addTag = useCallback((tag: string) => {
-    if (!availableTags.includes(tag)) {
-      setAvailableTags(prev => [...prev, tag]);
+  // Custom Fields (persisted to Supabase)
+  const addCustomField = useCallback(async (field: Omit<CustomFieldDefinition, 'id'>) => {
+    if (!organizationId) return;
+    const key = field.label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    const { data, error: insertError } = await supabase
+      .from('custom_field_definitions')
+      .insert({ key, label: field.label, type: field.type, options: field.options, organization_id: organizationId, entity_type: 'contact' })
+      .select()
+      .single();
+    if (insertError) {
+      setError(insertError.message);
+      return;
     }
-  }, [availableTags]);
+    if (data) {
+      setCustomFieldDefinitions(prev => [...prev, data as CustomFieldDefinition]);
+    }
+  }, [supabase, organizationId]);
 
-  const removeTag = useCallback((tag: string) => {
+  const updateCustomField = useCallback(async (id: string, updates: Partial<CustomFieldDefinition>) => {
+    if (!organizationId) return;
+    const { error: updateError } = await supabase
+      .from('custom_field_definitions')
+      .update(updates)
+      .eq('id', id)
+      .eq('organization_id', organizationId);
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    setCustomFieldDefinitions(prev => prev.map(f => (f.id === id ? { ...f, ...updates } : f)));
+  }, [supabase, organizationId]);
+
+  const removeCustomField = useCallback(async (id: string) => {
+    if (!organizationId) return;
+    const { error: deleteError } = await supabase
+      .from('custom_field_definitions')
+      .delete()
+      .eq('id', id)
+      .eq('organization_id', organizationId);
+    if (deleteError) {
+      setError(deleteError.message);
+      return;
+    }
+    setCustomFieldDefinitions(prev => prev.filter(f => f.id !== id));
+  }, [supabase, organizationId]);
+
+  // Tags (persisted to Supabase)
+  const tagsLowerSet = useMemo(() => new Set(availableTags.map(t => t.toLowerCase())), [availableTags]);
+
+  const addTag = useCallback(async (tag: string) => {
+    const trimmed = tag.trim();
+    if (!trimmed || !organizationId) return;
+    if (tagsLowerSet.has(trimmed.toLowerCase())) return;
+    const { error: insertError } = await supabase
+      .from('tags')
+      .insert({ name: trimmed, organization_id: organizationId });
+    if (insertError) {
+      setError(insertError.message);
+      return;
+    }
+    setAvailableTags(prev => [...prev, trimmed]);
+  }, [tagsLowerSet, supabase, organizationId]);
+
+  const removeTag = useCallback(async (tag: string) => {
+    if (!organizationId) return;
+    const { error: deleteError } = await supabase
+      .from('tags')
+      .delete()
+      .eq('name', tag)
+      .eq('organization_id', organizationId);
+    if (deleteError) {
+      setError(deleteError.message);
+      return;
+    }
     setAvailableTags(prev => prev.filter(t => t !== tag));
-  }, []);
+  }, [supabase, organizationId]);
 
   // Legacy Leads
   const addLead = useCallback((lead: Lead) => {

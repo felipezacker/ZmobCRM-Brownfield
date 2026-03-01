@@ -42,6 +42,9 @@ export function useCRMActions() {
       ...deal,
       contactName: deal.contactId ? (contactMap[deal.contactId]?.name || 'Sem Contato') : 'Sem Contato',
       contactEmail: deal.contactId ? (contactMap[deal.contactId]?.email || '') : '',
+      contactPhone: deal.contactId ? (contactMap[deal.contactId]?.phone || '') : '',
+      contactTags: deal.contactId ? (contactMap[deal.contactId]?.tags || []) : [],
+      contactCustomFields: deal.contactId ? (contactMap[deal.contactId]?.customFields || {}) : {},
       stageLabel: stage?.label || 'Desconhecido',
       owner: (deal.ownerId === profile?.id || deal.ownerId === user?.id) ? {
         name: ownerName,
@@ -62,6 +65,7 @@ export function useCRMActions() {
       activeBoard?.stages?.find((s) => s.id === optimisticStageId)?.label || 'Estágio não identificado';
     const optimisticContactName = (relatedData?.contact?.name || 'Sem contato').trim() || 'Sem contato';
     const optimisticContactEmail = (relatedData?.contact?.email || '').trim();
+    const optimisticContactPhone = (relatedData?.contact?.phone || '').trim();
 
     if (optimisticBoardId) {
       try {
@@ -73,6 +77,9 @@ export function useCRMActions() {
           contactId: deal.contactId || '',
           contactName: optimisticContactName,
           contactEmail: optimisticContactEmail,
+          contactPhone: optimisticContactPhone,
+          contactTags: [],
+          contactCustomFields: {},
           stageLabel: optimisticStageLabel,
         } as DealView;
         queryClient.setQueryData<DealView[]>(
@@ -123,6 +130,9 @@ export function useCRMActions() {
             ...createdDeal,
             contactName: optimisticContactName,
             contactEmail: optimisticContactEmail,
+            contactPhone: optimisticContactPhone,
+            contactTags: [],
+            contactCustomFields: {},
             stageLabel: optimisticStageLabel,
           };
           queryClient.setQueryData<DealView[]>(
@@ -172,8 +182,6 @@ export function useCRMActions() {
       probability: 20,
       priority: 'medium',
       owner: { name: ownerName, avatar: ownerAvatar },
-      tags: [],
-      customFields: {},
       isWon: false,
       isLost: false,
     };
@@ -205,6 +213,7 @@ export function useCRMActions() {
       stage: 'LEAD',
       lastPurchaseDate: '',
       totalValue: 0,
+      tags: lead.source ? ['Origem: ' + lead.source] : [],
     } as Omit<Contact, 'id' | 'createdAt'>);
     if (!newContact) return;
 
@@ -219,8 +228,6 @@ export function useCRMActions() {
       probability: 20,
       priority: 'medium',
       owner: { name: ownerName, avatar: ownerAvatar },
-      tags: ['Origem: ' + lead.source],
-      customFields: {},
       isWon: false,
       isLost: false,
     };

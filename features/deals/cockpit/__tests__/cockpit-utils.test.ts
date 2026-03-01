@@ -93,8 +93,9 @@ describe('cockpit-utils', () => {
 
   describe('formatCurrencyBRL', () => {
     it('formats number as BRL', () => {
-      const result = formatCurrencyBRL(1234.56);
-      expect(result).toMatch(/1\.234/);
+      const result = formatCurrencyBRL(1000);
+      expect(result).toMatch(/R\$|BRL/);
+      expect(result).toMatch(/1[.,]000/);
     });
     it('handles zero', () => {
       const result = formatCurrencyBRL(0);

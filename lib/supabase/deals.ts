@@ -17,6 +17,7 @@
 import { supabase } from './client';
 import { Deal, DealItem, OrganizationId } from '@/types';
 import { sanitizeUUID, requireUUID, isValidUUID } from './utils';
+import { recalculateScore } from './lead-scoring';
 
 // =============================================================================
 // Organization inference (client-side, RLS-safe)
@@ -44,6 +45,32 @@ async function getCurrentOrganizationId(): Promise<string | null> {
   cachedOrgUserId = user.id;
   cachedOrgId = orgId;
   return orgId;
+}
+
+// ============================================
+// COMMISSION UTILITY
+// ============================================
+
+/** Default commission rate when neither deal nor broker have one configured. */
+const DEFAULT_COMMISSION_RATE = 1.5;
+
+/**
+ * Calcula a comissão estimada de um deal usando a cadeia de fallback:
+ * deal.commissionRate → brokerCommissionRate → 1.5%
+ *
+ * @param dealValue - Valor monetário do deal.
+ * @param dealCommissionRate - Taxa de comissão override no deal (nullable).
+ * @param brokerCommissionRate - Taxa de comissão padrão do corretor (nullable).
+ * @returns {{ rate: number; estimated: number }} Taxa efetiva e valor estimado da comissão.
+ */
+export function calculateEstimatedCommission(
+  dealValue: number,
+  dealCommissionRate?: number | null,
+  brokerCommissionRate?: number | null,
+): { rate: number; estimated: number } {
+  const rate = dealCommissionRate ?? brokerCommissionRate ?? DEFAULT_COMMISSION_RATE;
+  const estimated = dealValue * (rate / 100);
+  return { rate, estimated };
 }
 
 // ============================================
@@ -80,12 +107,10 @@ export interface DbDeal {
   ai_summary: string | null;
   /** Motivo da perda, se aplicável. */
   loss_reason: string | null;
-  /** Tags associadas. */
-  tags: string[];
+  /** Metadados internos (checklist, rastreabilidade, etc.). */
+  metadata: Record<string, unknown>;
   /** Data da última mudança de estágio. */
   last_stage_change_date: string | null;
-  /** Campos customizados. */
-  custom_fields: Record<string, any>;
   /** Data de criação. */
   created_at: string;
   /** Data de atualização. */
@@ -98,6 +123,12 @@ export interface DbDeal {
   is_lost: boolean;
   /** Data de fechamento. */
   closed_at: string | null;
+  /** Tipo da transação (VENDA, LOCACAO, PERMUTA). */
+  deal_type: string;
+  /** Data prevista de fechamento. */
+  expected_close_date: string | null;
+  /** Taxa de comissão override (0-100, nullable). */
+  commission_rate: number | null;
 }
 
 /**
@@ -165,9 +196,8 @@ export const transformDeal = (db: DbDeal | DbDealWithItems, items?: DbDealItem[]
     contactId: db.contact_id || '',
     aiSummary: db.ai_summary || undefined,
     lossReason: db.loss_reason || undefined,
-    tags: db.tags || [],
+    metadata: db.metadata || {},
     lastStageChangeDate: db.last_stage_change_date || undefined,
-    customFields: db.custom_fields || {},
     createdAt: db.created_at,
     updatedAt: db.updated_at,
     items: filteredItems.map(i => ({
@@ -180,6 +210,9 @@ export const transformDeal = (db: DbDeal | DbDealWithItems, items?: DbDealItem[]
     })),
     owner: { name: 'Sem Dono', avatar: '' }, // Will be enriched later
     ownerId: db.owner_id || undefined,
+    dealType: (db.deal_type as Deal['dealType']) || 'VENDA',
+    expectedCloseDate: db.expected_close_date || undefined,
+    commissionRate: db.commission_rate ?? null,
   };
 };
 
@@ -211,10 +244,12 @@ export const transformDealToDb = (deal: Partial<Deal>): Partial<DbDeal> => {
   if (deal.contactId !== undefined) db.contact_id = sanitizeUUID(deal.contactId);
   if (deal.aiSummary !== undefined) db.ai_summary = deal.aiSummary || null;
   if (deal.lossReason !== undefined) db.loss_reason = deal.lossReason || null;
-  if (deal.tags !== undefined) db.tags = deal.tags;
+  if (deal.metadata !== undefined) db.metadata = deal.metadata;
   if (deal.lastStageChangeDate !== undefined) db.last_stage_change_date = deal.lastStageChangeDate || null;
-  if (deal.customFields !== undefined) db.custom_fields = deal.customFields;
   if (deal.ownerId !== undefined) db.owner_id = sanitizeUUID(deal.ownerId);
+  if (deal.dealType !== undefined) db.deal_type = deal.dealType || 'VENDA';
+  if (deal.expectedCloseDate !== undefined) db.expected_close_date = deal.expectedCloseDate || null;
+  if (deal.commissionRate !== undefined) db.commission_rate = deal.commissionRate ?? null;
 
   return db;
 };
@@ -257,6 +292,7 @@ export const dealsService = {
           *,
           deal_items (*)
         `)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) return { data: null, error };
@@ -374,8 +410,6 @@ export const dealsService = {
         board_id: boardId,
         stage_id: sanitizeUUID(stageId),
         contact_id: sanitizeUUID(deal.contactId),
-        tags: deal.tags || [],
-        custom_fields: deal.customFields || {},
         owner_id: sanitizeUUID(deal.ownerId),
         // Importante: deals legados podem ficar com is_won/is_lost = NULL se o schema
         // estiver permissivo ou se defaults não estiverem aplicados. Forçamos valores
@@ -383,6 +417,10 @@ export const dealsService = {
         is_won: deal.isWon ?? false,
         is_lost: deal.isLost ?? false,
         closed_at: deal.closedAt ?? null,
+        deal_type: deal.dealType || 'VENDA',
+        expected_close_date: deal.expectedCloseDate || null,
+        commission_rate: deal.commissionRate ?? null,
+        metadata: deal.metadata || {},
       };
 
       const { data, error } = await supabase
@@ -468,11 +506,12 @@ export const dealsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
-      // Items are deleted automatically via CASCADE
+      // Soft-delete: marca deleted_at em vez de remover fisicamente
       const { error } = await supabase
         .from('deals')
-        .delete()
-        .eq('id', id);
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', id)
+        .is('deleted_at', null);
 
       return { error };
     } catch (e) {
@@ -485,11 +524,12 @@ export const dealsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
-      // Items are deleted automatically via CASCADE
+      // Soft-delete: marca deleted_at em vez de remover fisicamente
       const { error } = await supabase
         .from('deals')
-        .delete()
-        .eq('board_id', boardId);
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('board_id', boardId)
+        .is('deleted_at', null);
 
       return { error };
     } catch (e) {
@@ -502,6 +542,7 @@ export const dealsService = {
       if (!supabase) {
         return { data: null, error: new Error('Supabase não configurado') };
       }
+      const orgId = await getCurrentOrganizationId();
       const { data, error } = await supabase
         .from('deal_items')
         .insert({
@@ -510,6 +551,7 @@ export const dealsService = {
           name: item.name,
           quantity: item.quantity,
           price: item.price,
+          organization_id: orgId,
         })
         .select()
         .single();
@@ -594,6 +636,28 @@ export const dealsService = {
         })
         .eq('id', dealId);
 
+      // Story 3.8: Fire-and-forget lead score recalculation
+      // Story 3.10: Increment contact LTV (total_value) with deal value
+      if (!error) {
+        const { data: deal } = await supabase
+          .from('deals')
+          .select('contact_id, organization_id, value')
+          .eq('id', dealId)
+          .single();
+        if (deal?.contact_id && deal?.organization_id) {
+          recalculateScore(deal.contact_id, deal.organization_id).catch(() => {});
+        }
+        // LTV increment: add deal value to contact's total_value (atomic RPC)
+        if (deal?.contact_id && deal?.value != null && deal.value !== 0) {
+          supabase.rpc('increment_contact_ltv', {
+            p_contact_id: deal.contact_id,
+            p_amount: deal.value,
+          }).then(() => undefined, (err) => {
+            console.error('[LTV] Failed to increment contact total_value:', err);
+          });
+        }
+      }
+
       return { error };
     } catch (e) {
       return { error: e as Error };
@@ -622,6 +686,18 @@ export const dealsService = {
         .update(updates)
         .eq('id', dealId);
 
+      // Story 3.8: Fire-and-forget lead score recalculation
+      if (!error) {
+        const { data: deal } = await supabase
+          .from('deals')
+          .select('contact_id, organization_id')
+          .eq('id', dealId)
+          .single();
+        if (deal?.contact_id && deal?.organization_id) {
+          recalculateScore(deal.contact_id, deal.organization_id).catch(() => {});
+        }
+      }
+
       return { error };
     } catch (e) {
       return { error: e as Error };
@@ -634,6 +710,14 @@ export const dealsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
+
+      // Story 3.10: Check if deal was won before reopening — need to decrement LTV
+      const { data: dealBefore } = await supabase
+        .from('deals')
+        .select('contact_id, value, is_won')
+        .eq('id', dealId)
+        .single();
+
       const { error } = await supabase
         .from('deals')
         .update({
@@ -643,6 +727,16 @@ export const dealsService = {
           updated_at: new Date().toISOString(),
         })
         .eq('id', dealId);
+
+      // Story 3.10: Decrement LTV if deal was previously won (atomic RPC)
+      if (!error && dealBefore?.is_won && dealBefore?.contact_id && dealBefore?.value != null && dealBefore.value !== 0) {
+        supabase.rpc('decrement_contact_ltv', {
+          p_contact_id: dealBefore.contact_id,
+          p_amount: dealBefore.value,
+        }).then(() => undefined, (err) => {
+          console.error('[LTV] Failed to decrement contact total_value:', err);
+        });
+      }
 
       return { error };
     } catch (e) {

@@ -68,6 +68,7 @@ export async function ensureDealBelongsToOrganization(
         .select('id, title, board_id, stage_id, contact_id')
         .eq('organization_id', organizationId)
         .eq('id', dealId)
+        .is('deleted_at', null)
         .maybeSingle();
 
     if (dealError) {

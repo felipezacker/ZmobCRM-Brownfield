@@ -16,6 +16,7 @@ import { supabase } from './client';
 import { Activity } from '@/types';
 import { sanitizeUUID } from './utils';
 import { sortActivitiesSmart } from '@/lib/utils/activitySort';
+import { recalculateScore } from './lead-scoring';
 
 // ============================================
 // HELPERS
@@ -211,9 +212,17 @@ export const activitiesService = {
           const retry = await sb.from('activities').insert(insertData).select().single();
           if (retry.error) return { data: null, error: retry.error as any };
           const result = transformActivity(retry.data as DbActivity);
+          // Story 3.8 — fire-and-forget lead score recalculation
+          if (insertData.contact_id && insertData.completed) {
+            recalculateScore(insertData.contact_id, orgId).catch(() => {});
+          }
           return { data: result, error: null };
         }
         return { data: null, error };
+      }
+      // Story 3.8 — fire-and-forget lead score recalculation
+      if (insertData.contact_id && insertData.completed) {
+        recalculateScore(insertData.contact_id, orgId).catch(() => {});
       }
       return { data: transformActivity(data as DbActivity), error: null };
     } catch (e) {
@@ -295,7 +304,7 @@ export const activitiesService = {
       // First get current state
       const { data: current, error: fetchError } = await sb
         .from('activities')
-        .select('completed')
+        .select('completed, contact_id')
         .eq('id', id)
         .single();
 
@@ -311,6 +320,15 @@ export const activitiesService = {
         .eq('id', id);
 
       if (error) return { data: null, error };
+
+      // Story 3.8 — fire-and-forget lead score recalculation when completing
+      if (newCompleted && current.contact_id) {
+        const orgId = await getOrganizationId();
+        if (orgId) {
+          recalculateScore(current.contact_id, orgId).catch(() => {});
+        }
+      }
+
       return { data: newCompleted, error: null };
     } catch (e) {
       return { data: null, error: e as Error };

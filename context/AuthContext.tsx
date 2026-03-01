@@ -58,6 +58,7 @@ interface Profile {
     phone?: string | null;
     avatar_url?: string | null;
     created_at?: string;
+    commission_rate?: number | null; // Taxa de comissão padrão do corretor (0-100)
 }
 
 /**

@@ -225,7 +225,6 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
       probability: 30,
       priority: 'medium' as const,
       owner: { name: 'Eu', avatar: '' },
-      tags: ['Resgate'],
       items: [],
     } : null;
 
