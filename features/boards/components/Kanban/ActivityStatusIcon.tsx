@@ -114,7 +114,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                 <div
                     role="menu"
                     aria-label="Agendar atividade rápida"
-                    className="fixed w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-white/10 z-[9999] overflow-hidden animate-in zoom-in-95 duration-100"
+                    className="fixed w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-white/10 z-50 overflow-hidden animate-in zoom-in-95 duration-100"
                     style={{ top: menuPos.top, left: menuPos.left, transform: 'translateY(-100%)' }}
                     onClick={(e) => e.stopPropagation()}
                 >

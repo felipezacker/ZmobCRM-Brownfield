@@ -55,8 +55,9 @@ interface DealDetailModalProps {
   onClose: () => void;
 }
 
-// Performance: reuse date formatter instance.
+// Performance: reuse formatter instances.
 const PT_BR_DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR');
+const BRL_CURRENCY = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 /**
  * Componente React `DealDetailModal`.
@@ -414,7 +415,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
               {isEditingValue ? (
                 <div className="flex gap-2 items-center">
-                  <span className="text-lg font-mono font-bold text-slate-500">$</span>
+                  <span className="text-lg font-mono font-bold text-slate-500">R$</span>
                   <input
                     autoFocus
                     type="number"
@@ -437,7 +438,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                   className="text-lg text-primary-600 dark:text-primary-400 font-mono font-bold cursor-pointer hover:underline decoration-dashed underline-offset-4"
                   title="Clique para editar valor"
                 >
-                  ${deal.value.toLocaleString()}
+                  {BRL_CURRENCY.format(deal.value)}
                 </p>
               )}
             </div>
@@ -838,7 +839,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         <option value="">Selecione um item...</option>
                         {products.map(p => (
                           <option key={p.id} value={p.id}>
-                            {p.name} - ${p.price}
+                            {p.name} - {BRL_CURRENCY.format(p.price)}
                           </option>
                         ))}
                       </select>
@@ -944,10 +945,10 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                                 {item.quantity}
                               </td>
                               <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-300">
-                                ${item.price.toLocaleString()}
+                                {BRL_CURRENCY.format(item.price)}
                               </td>
                               <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">
-                                ${(item.price * item.quantity).toLocaleString()}
+                                {BRL_CURRENCY.format(item.price * item.quantity)}
                               </td>
                               <td className="px-4 py-3 text-center">
                                 <Button
@@ -970,7 +971,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                             Total do Pedido
                           </td>
                           <td className="px-4 py-3 text-right font-bold text-primary-600 dark:text-primary-400 text-lg">
-                            ${deal.value.toLocaleString()}
+                            {BRL_CURRENCY.format(deal.value)}
                           </td>
                           <td></td>
                         </tr>
@@ -989,7 +990,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       </div>
                       <div>
                         <h3 className="font-bold text-slate-900 dark:text-white font-display text-lg">
-                          Insights Gemini
+                          IA Insights
                         </h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                           Inteligência Artificial aplicada ao negócio

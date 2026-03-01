@@ -55,6 +55,9 @@ const formatDate = (dateStr: string | undefined | null) => {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
+// Performance: reuse currency formatter instance.
+const BRL_CURRENCY = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
 const activityTypeLabels: Record<string, string> = { CALL: 'Ligação', MEETING: 'Reunião', EMAIL: 'E-mail', TASK: 'Tarefa' };
 
 const getActivityLabel = (nextActivity?: { type: string }) => {
@@ -158,7 +161,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
 
     // Main content
     parts.push(deal.title);
-    parts.push(`$${deal.value.toLocaleString()}`);
+    parts.push(BRL_CURRENCY.format(deal.value));
 
     // Additional context
     const priority = getPriorityLabel(deal.priority);
@@ -261,7 +264,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
       {/* Row 4: Value */}
       <div className="flex items-center gap-2 mb-1 ml-9">
         <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-          ${deal.value.toLocaleString()}
+          {BRL_CURRENCY.format(deal.value)}
         </span>
       </div>
 
