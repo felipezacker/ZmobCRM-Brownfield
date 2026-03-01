@@ -33,7 +33,7 @@ export const useActivitiesController = () => {
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'activities' | 'history'>('activities');
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'month'>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<Activity['type'] | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'pending' | 'completed' | 'overdue'>('ALL');

@@ -1,11 +1,11 @@
 import React from 'react';
-import { Plus, LayoutList, Calendar as CalendarIcon, ArrowDownUp } from 'lucide-react';
+import { Plus, LayoutList, Calendar as CalendarIcon, CalendarDays, ArrowDownUp } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 import type { SortOrder } from '@/features/activities/types';
 
 interface ActivitiesHeaderProps {
-  viewMode: 'list' | 'calendar';
-  setViewMode: (mode: 'list' | 'calendar') => void;
+  viewMode: 'list' | 'calendar' | 'month';
+  setViewMode: (mode: 'list' | 'calendar' | 'month') => void;
   onNewActivity?: () => void;
   dateFilter?: 'ALL' | 'overdue' | 'today' | 'upcoming';
   sortOrder: SortOrder;
@@ -82,8 +82,20 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
                 ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400'
                 : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
             }`}
+            title="Semanal"
           >
             <CalendarIcon size={20} />
+          </Button>
+          <Button
+            onClick={() => setViewMode('month')}
+            className={`p-2 rounded-md transition-all ${
+              viewMode === 'month'
+                ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400'
+                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+            }`}
+            title="Mensal"
+          >
+            <CalendarDays size={20} />
           </Button>
         </div>
         {onNewActivity && (

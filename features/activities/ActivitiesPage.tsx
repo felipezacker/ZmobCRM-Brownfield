@@ -4,6 +4,7 @@ import { ActivitiesHeader } from './components/ActivitiesHeader';
 import { ActivitiesFilters } from './components/ActivitiesFilters';
 import { ActivitiesList } from './components/ActivitiesList';
 import { ActivitiesCalendar } from './components/ActivitiesCalendar';
+import { ActivitiesMonthlyCalendar } from './components/ActivitiesMonthlyCalendar';
 import { ActivityFormModal } from './components/ActivityFormModal';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -211,6 +212,15 @@ export const ActivitiesPage: React.FC = () => {
                         onNewActivity={activeTab === 'activities' ? handleNewActivity : undefined}
                     />
                 </>
+            ) : viewMode === 'month' ? (
+                <ActivitiesMonthlyCalendar
+                    activities={filteredActivities}
+                    deals={deals}
+                    currentDate={currentDate}
+                    setCurrentDate={setCurrentDate}
+                    onEdit={handleEditActivity}
+                    onCreateFromProjected={handleCreateFromProjected}
+                />
             ) : (
                 <ActivitiesCalendar
                     activities={filteredActivities}

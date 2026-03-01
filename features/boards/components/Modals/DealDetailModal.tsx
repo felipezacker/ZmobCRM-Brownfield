@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { StageProgressBar } from '../StageProgressBar';
 import { ActivityRow } from '@/features/activities/components/ActivityRow';
+import { ActivityFormModal } from '@/features/activities/components/ActivityFormModal';
 import { formatPriorityPtBr } from '@/lib/utils/priority';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { Button } from '@/app/components/ui/Button';
@@ -123,6 +124,20 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const [customItemName, setCustomItemName] = useState('');
   const [customItemPrice, setCustomItemPrice] = useState<string>('0');
   const [customItemQuantity, setCustomItemQuantity] = useState(1);
+
+  // Activity editing state
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [isActivityFormOpen, setIsActivityFormOpen] = useState(false);
+  const [activityFormData, setActivityFormData] = useState({
+    title: '',
+    type: 'TASK' as Activity['type'],
+    date: '',
+    time: '',
+    description: '',
+    dealId: '',
+    recurrenceType: 'none' as 'none' | 'daily' | 'weekly' | 'monthly',
+    recurrenceEndDate: '',
+  });
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showLossReasonModal, setShowLossReasonModal] = useState(false);
@@ -786,7 +801,21 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           const act = activitiesById.get(id);
                           if (act) updateActivity(id, { completed: !act.completed });
                         }}
-                        onEdit={() => { }} // Edit not implemented in modal yet
+                        onEdit={(activity) => {
+                          const date = new Date(activity.date);
+                          setEditingActivity(activity);
+                          setActivityFormData({
+                            title: activity.title,
+                            type: activity.type,
+                            date: date.toISOString().split('T')[0],
+                            time: date.toTimeString().slice(0, 5),
+                            description: activity.description || '',
+                            dealId: activity.dealId,
+                            recurrenceType: activity.recurrenceType || 'none',
+                            recurrenceEndDate: activity.recurrenceEndDate || '',
+                          });
+                          setIsActivityFormOpen(true);
+                        }}
                         onDelete={id => deleteActivity(id)}
                       />
                     ))}
@@ -1100,6 +1129,34 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
           </div>
         </div>
       </div>
+
+      <ActivityFormModal
+        isOpen={isActivityFormOpen}
+        onClose={() => {
+          setIsActivityFormOpen(false);
+          setEditingActivity(null);
+        }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!editingActivity) return;
+          const dateTime = new Date(`${activityFormData.date}T${activityFormData.time}`);
+          updateActivity(editingActivity.id, {
+            title: activityFormData.title,
+            type: activityFormData.type,
+            date: dateTime.toISOString(),
+            description: activityFormData.description,
+            dealId: activityFormData.dealId,
+            recurrenceType: activityFormData.recurrenceType === 'none' ? undefined : activityFormData.recurrenceType,
+            recurrenceEndDate: activityFormData.recurrenceEndDate || undefined,
+          });
+          setIsActivityFormOpen(false);
+          setEditingActivity(null);
+        }}
+        formData={activityFormData}
+        setFormData={setActivityFormData}
+        editingActivity={editingActivity}
+        deals={deals}
+      />
 
       <ConfirmModal
         isOpen={Boolean(deleteId)}
