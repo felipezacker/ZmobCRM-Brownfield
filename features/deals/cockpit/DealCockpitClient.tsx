@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Check, X } from 'lucide-react';
+import { Bug, Check, Moon, Sun, X } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
 import { useCRMActions } from '@/hooks/useCRMActions';
@@ -11,6 +11,10 @@ import { useContacts } from '@/context/contacts/ContactsContext';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useSettings } from '@/context/settings/SettingsContext';
+import { useTheme } from '@/context/ThemeContext';
+import { isDebugMode, enableDebugMode, disableDebugMode } from '@/lib/debug';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
+import { NotificationPopover } from '@/components/notifications/NotificationPopover';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { supabase } from '@/lib/supabase/client';
@@ -52,6 +56,7 @@ import {
 } from './cockpit-utils';
 
 import { CockpitPipelineBar } from './CockpitPipelineBar';
+import { CockpitActionPanel } from './CockpitActionPanel';
 import { CockpitDataPanel } from './CockpitDataPanel';
 import { CockpitTimeline } from './CockpitTimeline';
 import { CockpitChecklist } from './CockpitChecklist';
@@ -78,6 +83,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const refreshCRM = useCallback(async () => { await dealsCtx.refresh(); await activitiesCtx.refresh(); }, [dealsCtx, activitiesCtx]);
 
   const { customFieldDefinitions } = useSettings();
+  const { darkMode, toggleDarkMode } = useTheme();
+  const [debugEnabled, setDebugEnabled] = useState(() => isDebugMode());
 
   const [toast, setToast] = useState<ToastState | null>(null);
 
@@ -640,12 +647,58 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
         isWon={deal.isWon ?? false}
         isLost={deal.isLost ?? false}
         onReopen={() => void handleReopen()}
+        headerControls={
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              onClick={() => { if (debugEnabled) { disableDebugMode(); setDebugEnabled(false); } else { enableDebugMode(); setDebugEnabled(true); } }}
+              className={`p-1.5 rounded-lg transition-colors ${debugEnabled ? 'text-purple-400 bg-purple-500/15' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+              title="Debug mode"
+            >
+              <Bug className="h-3.5 w-3.5" />
+            </Button>
+            <div className="flex items-center [&_a]:p-1.5 [&_a]:rounded-lg [&_a]:text-slate-500 [&_a]:hover:text-slate-300 [&_a]:hover:bg-white/5 [&_svg]:!w-3.5 [&_svg]:!h-3.5">
+              <NotificationBell />
+            </div>
+            <div className="flex items-center [&_button]:p-1.5 [&_button]:rounded-lg [&_svg]:!w-3.5 [&_svg]:!h-3.5">
+              <NotificationPopover />
+            </div>
+            <Button
+              type="button"
+              onClick={toggleDarkMode}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-colors"
+              title="Alternar tema"
+            >
+              {darkMode ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+            </Button>
+          </div>
+        }
       />
 
       <div className="flex-1 min-h-0 w-full overflow-hidden px-6 py-4 2xl:px-10">
-        <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[360px_1fr_420px] lg:items-stretch">
-          {/* Left rail — só dados */}
-          <div className="flex min-h-0 flex-col gap-4 overflow-auto pr-1">
+        <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[300px_1fr_360px] lg:items-stretch">
+          {/* Left rail — ações + dados */}
+          <div className="flex min-h-0 flex-col gap-3 overflow-auto pr-1">
+            <CockpitActionPanel
+              health={health}
+              aiLoading={aiLoading}
+              onRefetchAI={() => void refetchAI()}
+              nextBestAction={nextBestAction}
+              onExecuteNext={() => void handleExecuteNext()}
+              onCall={handleCall}
+              onOpenMessageComposer={openMessageComposer}
+              onOpenScheduleModal={openScheduleModal}
+              onOpenTemplatePicker={openTemplatePicker}
+              buildWhatsAppMessage={() =>
+                buildSuggestedWhatsAppMessage({ contact: contact ?? undefined, deal, actionType: nextBestAction.actionType, action: nextBestAction.action, reason: nextBestAction.reason })
+              }
+              buildEmailBody={() =>
+                buildSuggestedEmailBody({ contact: contact ?? undefined, deal, actionType: nextBestAction.actionType, action: nextBestAction.action, reason: nextBestAction.reason })
+              }
+              dealTitle={deal.title}
+              isScriptsLoading={isScriptsLoading}
+              scriptsCount={scripts.length}
+            />
             <CockpitDataPanel
               deal={deal}
               contact={contact}
@@ -704,22 +757,6 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             onRefreshCRM={() => void refreshCRM()}
             onCopy={(label, text) => void copyToClipboard(label, text)}
             pushToast={pushToast}
-            health={health}
-            aiLoading={aiLoading}
-            onRefetchAI={() => void refetchAI()}
-            nextBestAction={nextBestAction}
-            onExecuteNext={() => void handleExecuteNext()}
-            onCall={handleCall}
-            onOpenMessageComposer={openMessageComposer}
-            onOpenScheduleModal={openScheduleModal}
-            onOpenTemplatePicker={openTemplatePicker}
-            buildWhatsAppMessage={() =>
-              buildSuggestedWhatsAppMessage({ contact: contact ?? undefined, deal, actionType: nextBestAction.actionType, action: nextBestAction.action, reason: nextBestAction.reason })
-            }
-            buildEmailBody={() =>
-              buildSuggestedEmailBody({ contact: contact ?? undefined, deal, actionType: nextBestAction.actionType, action: nextBestAction.action, reason: nextBestAction.reason })
-            }
-            scriptsCount={scripts.length}
           />
         </div>
       </div>

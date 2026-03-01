@@ -106,6 +106,38 @@ export function toneToBg(tone: StageTone): string {
   }
 }
 
+export function toneToGlowColor(tone: StageTone): string {
+  switch (tone) {
+    case 'blue':
+      return 'rgba(59, 130, 246, 0.25)';
+    case 'violet':
+      return 'rgba(139, 92, 246, 0.25)';
+    case 'amber':
+      return 'rgba(245, 158, 11, 0.25)';
+    case 'green':
+      return 'rgba(16, 185, 129, 0.25)';
+    case 'slate':
+    default:
+      return 'rgba(148, 163, 184, 0.15)';
+  }
+}
+
+export function toneToText(tone: StageTone): string {
+  switch (tone) {
+    case 'blue':
+      return 'text-blue-400';
+    case 'violet':
+      return 'text-violet-400';
+    case 'amber':
+      return 'text-amber-400';
+    case 'green':
+      return 'text-emerald-400';
+    case 'slate':
+    default:
+      return 'text-slate-400';
+  }
+}
+
 export function scriptCategoryChipClass(color: string): string {
   switch (color) {
     case 'cyan':
