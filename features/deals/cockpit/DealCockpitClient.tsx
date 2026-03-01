@@ -10,10 +10,12 @@ import { useDeals } from '@/context/deals/DealsContext';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useSettings } from '@/context/settings/SettingsContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { supabase } from '@/lib/supabase/client';
 import { calculateEstimatedCommission } from '@/lib/supabase';
+import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
 
 import { useAIDealAnalysis, deriveHealthFromProbability } from '@/features/inbox/hooks/useAIDealAnalysis';
 import { useDealNotes } from '@/features/inbox/hooks/useDealNotes';
@@ -24,7 +26,7 @@ import { CallModal, type CallLogData } from '@/features/inbox/components/CallMod
 import { MessageComposerModal, type MessageChannel, type MessageExecutedEvent } from '@/features/inbox/components/MessageComposerModal';
 import { ScheduleModal, type ScheduleData, type ScheduleType } from '@/features/inbox/components/ScheduleModal';
 
-import type { Activity, Board, BoardStage } from '@/types';
+import type { Activity, Board, BoardStage, ContactPreference } from '@/types';
 import type {
   Actor,
   ChecklistItem,
@@ -50,8 +52,6 @@ import {
 } from './cockpit-utils';
 
 import { CockpitPipelineBar } from './CockpitPipelineBar';
-import { CockpitHealthPanel } from './CockpitHealthPanel';
-import { CockpitNextActionPanel } from './CockpitNextActionPanel';
 import { CockpitDataPanel } from './CockpitDataPanel';
 import { CockpitTimeline } from './CockpitTimeline';
 import { CockpitChecklist } from './CockpitChecklist';
@@ -77,6 +77,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const crmError = dealsCtx.error || activitiesCtx.error;
   const refreshCRM = useCallback(async () => { await dealsCtx.refresh(); await activitiesCtx.refresh(); }, [dealsCtx, activitiesCtx]);
 
+  const { customFieldDefinitions } = useSettings();
+
   const [toast, setToast] = useState<ToastState | null>(null);
 
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
@@ -97,6 +99,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
   const [templatePickerMode, setTemplatePickerMode] = useState<TemplatePickerMode>('WHATSAPP');
+
+  const [preferences, setPreferences] = useState<ContactPreference | null>(null);
 
   const defaultChecklist: ChecklistItem[] = useMemo(
     () => [
@@ -184,6 +188,16 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
       });
     return () => { cancelled = true; };
   }, [selectedDeal?.ownerId, user?.id, profile?.commission_rate]);
+
+  // Fetch contact preferences
+  useEffect(() => {
+    if (!selectedContact?.id) { setPreferences(null); return; }
+    let cancelled = false;
+    contactPreferencesService.getByContactId(selectedContact.id)
+      .then(({ data }) => { if (!cancelled) setPreferences(data?.[0] ?? null); })
+      .catch(err => console.error('[Cockpit] fetch preferences failed:', err));
+    return () => { cancelled = true; };
+  }, [selectedContact?.id]);
 
   // Commission calculation
   const estimatedCommission = useMemo(() => {
@@ -315,14 +329,10 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             : `${a.title ?? ''} ${a.description ?? ''}`.toLowerCase().includes('perd') ? 'danger' : 'neutral'
           : undefined;
       const subtitle = a.description?.trim() ? a.description.trim() : undefined;
-      items.push({ id: a.id, at: formatAtISO(a.date), kind, title: a.title || a.type, subtitle, tone });
+      items.push({ id: a.id, at: formatAtISO(a.date), sortKey: a.date, kind, title: a.title || a.type, subtitle, tone });
     }
     return items;
   }, [dealActivities]);
-
-  const latestNonSystem = useMemo(() => timelineItems.find((t) => t.kind !== 'system') ?? null, [timelineItems]);
-  const latestCall = useMemo(() => timelineItems.find((t) => t.kind === 'call') ?? null, [timelineItems]);
-  const latestMove = useMemo(() => timelineItems.find((t) => t.kind === 'status') ?? null, [timelineItems]);
 
   // --- Callbacks ---
 
@@ -477,6 +487,58 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     } catch (e) { pushToast(errorMessage(e, 'Não foi possível mover etapa.'), 'danger'); }
   }, [addActivity, actor, moveDeal, pushToast, selectedBoard, selectedDeal]);
 
+  // GANHOU/PERDEU handlers
+  const handleWin = useCallback(async () => {
+    if (!selectedDeal || !selectedBoard?.wonStageId) {
+      pushToast('Board sem etapa "Ganho" configurada', 'danger');
+      return;
+    }
+    try {
+      await moveDeal(selectedDeal, selectedBoard.wonStageId);
+      pushToast('Deal marcado como GANHO!', 'success');
+      try {
+        await addActivity({
+          dealId: selectedDeal.id, dealTitle: selectedDeal.title, type: 'STATUS_CHANGE',
+          title: 'Ganhou', description: 'Deal marcado como ganho', date: new Date().toISOString(), completed: true, user: actor,
+        });
+      } catch { /* logged silently */ }
+    } catch (e) { pushToast(errorMessage(e, 'Não foi possível marcar como ganho.'), 'danger'); }
+  }, [addActivity, actor, moveDeal, pushToast, selectedBoard, selectedDeal]);
+
+  const handleLoss = useCallback(async () => {
+    if (!selectedDeal || !selectedBoard?.lostStageId) {
+      pushToast('Board sem etapa "Perdido" configurada', 'danger');
+      return;
+    }
+    try {
+      await moveDeal(selectedDeal, selectedBoard.lostStageId);
+      pushToast('Deal marcado como PERDIDO', 'danger');
+      try {
+        await addActivity({
+          dealId: selectedDeal.id, dealTitle: selectedDeal.title, type: 'STATUS_CHANGE',
+          title: 'Perdeu', description: 'Deal marcado como perdido', date: new Date().toISOString(), completed: true, user: actor,
+        });
+      } catch { /* logged silently */ }
+    } catch (e) { pushToast(errorMessage(e, 'Não foi possível marcar como perdido.'), 'danger'); }
+  }, [addActivity, actor, moveDeal, pushToast, selectedBoard, selectedDeal]);
+
+  const handleReopen = useCallback(async () => {
+    if (!selectedDeal || !selectedBoard || !stages.length) return;
+    // Reopen to first stage
+    const firstStage = stages[0];
+    if (!firstStage) return;
+    try {
+      await moveDeal(selectedDeal, firstStage.id);
+      pushToast(`Deal reaberto na etapa: ${firstStage.label}`, 'success');
+      try {
+        await addActivity({
+          dealId: selectedDeal.id, dealTitle: selectedDeal.title, type: 'STATUS_CHANGE',
+          title: 'Reabriu', description: `Reaberto para ${firstStage.label}`, date: new Date().toISOString(), completed: true, user: actor,
+        });
+      } catch { /* logged silently */ }
+    } catch (e) { pushToast(errorMessage(e, 'Não foi possível reabrir o deal.'), 'danger'); }
+  }, [addActivity, actor, moveDeal, pushToast, selectedBoard, selectedDeal, stages]);
+
   // --- Render ---
 
   if (crmError) {
@@ -542,7 +604,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const phoneE164 = normalizePhoneE164(contact?.phone);
 
   return (
-    <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex flex-col overflow-hidden bg-slate-950 text-slate-100">
+    <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex flex-col overflow-hidden bg-slate-950 text-slate-100">
       {toast ? (
         <div className="fixed right-6 top-6 z-50">
           <div
@@ -572,42 +634,27 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
         crmLoading={crmLoading}
         onDealChange={setDealInUrl}
         onStageChange={(id) => void handleStageChange(id)}
+        onBack={() => router.push('/boards')}
+        onWin={() => void handleWin()}
+        onLoss={() => void handleLoss()}
+        isWon={deal.isWon ?? false}
+        isLost={deal.isLost ?? false}
+        onReopen={() => void handleReopen()}
       />
 
       <div className="flex-1 min-h-0 w-full overflow-hidden px-6 py-4 2xl:px-10">
         <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[360px_1fr_420px] lg:items-stretch">
-          {/* Left rail */}
+          {/* Left rail — só dados */}
           <div className="flex min-h-0 flex-col gap-4 overflow-auto pr-1">
-            <CockpitHealthPanel health={health} aiLoading={aiLoading} onRefetchAI={() => void refetchAI()} />
-
-            <CockpitNextActionPanel
-              nextBestAction={nextBestAction}
-              isScriptsLoading={isScriptsLoading}
-              scriptsCount={scripts.length}
-              onExecuteNext={() => void handleExecuteNext()}
-              onCall={handleCall}
-              onOpenMessageComposer={openMessageComposer}
-              onOpenScheduleModal={openScheduleModal}
-              onOpenTemplatePicker={openTemplatePicker}
-              buildWhatsAppMessage={() =>
-                buildSuggestedWhatsAppMessage({ contact: contact ?? undefined, deal, actionType: nextBestAction.actionType, action: nextBestAction.action, reason: nextBestAction.reason })
-              }
-              buildEmailBody={() =>
-                buildSuggestedEmailBody({ contact: contact ?? undefined, deal, actionType: nextBestAction.actionType, action: nextBestAction.action, reason: nextBestAction.reason })
-              }
-              dealTitle={deal.title}
-            />
-
             <CockpitDataPanel
               deal={deal}
               contact={contact}
               phoneE164={phoneE164}
               activeStage={activeStage}
-              latestNonSystem={latestNonSystem}
-              latestCall={latestCall}
-              latestMove={latestMove}
               onCopy={(label, text) => void copyToClipboard(label, text)}
               estimatedCommission={estimatedCommission}
+              preferences={preferences}
+              customFieldDefinitions={customFieldDefinitions}
             />
           </div>
 
@@ -620,6 +667,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
               dealTitle={deal.title}
               addActivity={addActivity}
               pushToast={pushToast}
+              notes={notes}
+              isNotesLoading={isNotesLoading}
             />
 
             <CockpitChecklist
@@ -629,7 +678,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             />
           </div>
 
-          {/* Right rail */}
+          {/* Right rail — IA + ferramentas */}
           <CockpitRightRail
             dealId={deal.id}
             dealTitle={deal.title}
@@ -655,6 +704,22 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             onRefreshCRM={() => void refreshCRM()}
             onCopy={(label, text) => void copyToClipboard(label, text)}
             pushToast={pushToast}
+            health={health}
+            aiLoading={aiLoading}
+            onRefetchAI={() => void refetchAI()}
+            nextBestAction={nextBestAction}
+            onExecuteNext={() => void handleExecuteNext()}
+            onCall={handleCall}
+            onOpenMessageComposer={openMessageComposer}
+            onOpenScheduleModal={openScheduleModal}
+            onOpenTemplatePicker={openTemplatePicker}
+            buildWhatsAppMessage={() =>
+              buildSuggestedWhatsAppMessage({ contact: contact ?? undefined, deal, actionType: nextBestAction.actionType, action: nextBestAction.action, reason: nextBestAction.reason })
+            }
+            buildEmailBody={() =>
+              buildSuggestedEmailBody({ contact: contact ?? undefined, deal, actionType: nextBestAction.actionType, action: nextBestAction.action, reason: nextBestAction.reason })
+            }
+            scriptsCount={scripts.length}
           />
         </div>
       </div>

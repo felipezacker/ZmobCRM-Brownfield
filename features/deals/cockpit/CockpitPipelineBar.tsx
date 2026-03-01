@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ArrowLeft, RotateCcw, Trophy, XCircle } from 'lucide-react';
 import type { DealView } from '@/types';
 import type { Stage } from './cockpit-types';
 import { formatCurrencyBRL, humanizeTestLabel, toneToBg } from './cockpit-utils';
@@ -16,6 +17,12 @@ interface CockpitPipelineBarProps {
   crmLoading: boolean;
   onDealChange: (dealId: string) => void;
   onStageChange: (stageId: string) => void;
+  onBack: () => void;
+  onWin: () => void;
+  onLoss: () => void;
+  isWon: boolean;
+  isLost: boolean;
+  onReopen?: () => void;
 }
 
 export function CockpitPipelineBar({
@@ -28,10 +35,26 @@ export function CockpitPipelineBar({
   crmLoading,
   onDealChange,
   onStageChange,
+  onBack,
+  onWin,
+  onLoss,
+  isWon,
+  isLost,
+  onReopen,
 }: CockpitPipelineBarProps) {
   return (
-    <div className="sticky top-0 z-40 h-16 border-b border-white/5 bg-black/40 backdrop-blur">
-      <div className="flex h-16 w-full items-center px-6 2xl:px-10">
+    <div className="sticky top-0 z-40 border-b border-white/5 bg-black/40 backdrop-blur">
+      <div className="flex w-full items-center px-6 py-3 2xl:px-10">
+        <Button
+          type="button"
+          className="mr-3 flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-white/8"
+          onClick={onBack}
+          title="Voltar ao Kanban"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Kanban
+        </Button>
+
         <div className="flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -60,6 +83,54 @@ export function CockpitPipelineBar({
           </div>
         </div>
 
+        {/* GANHOU/PERDEU or Status Badge */}
+        <div className="ml-4 flex shrink-0 items-center gap-2">
+          {isWon || isLost ? (
+            <>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${
+                  isWon
+                    ? 'bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-500/20'
+                    : 'bg-rose-500/15 text-rose-200 ring-1 ring-rose-500/20'
+                }`}
+              >
+                {isWon ? <Trophy className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                {isWon ? 'GANHO' : 'PERDIDO'}
+              </span>
+              {onReopen ? (
+                <Button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/8"
+                  onClick={onReopen}
+                  title="Reabrir deal"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Reabrir
+                </Button>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-500"
+                onClick={onWin}
+              >
+                <Trophy className="h-3.5 w-3.5" />
+                GANHOU
+              </Button>
+              <Button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-bold text-white shadow-lg shadow-rose-600/25 hover:bg-rose-500"
+                onClick={onLoss}
+              >
+                <XCircle className="h-3.5 w-3.5" />
+                PERDEU
+              </Button>
+            </>
+          )}
+        </div>
+
         <div
           className="ml-6 grid min-w-0 flex-1 gap-1"
           style={{ gridTemplateColumns: `repeat(${Math.max(1, stages.length)}, minmax(0, 1fr))` }}
@@ -84,8 +155,6 @@ export function CockpitPipelineBar({
             );
           })}
         </div>
-
-        <div className="ml-8 hidden text-[11px] text-slate-600 xl:block">Clique nas etapas para mover o deal (real)</div>
       </div>
     </div>
   );

@@ -9,11 +9,12 @@ import {
   MessageCircle,
   Phone,
   Search,
+  StickyNote,
 } from 'lucide-react';
 import { Chip } from './cockpit-ui';
 import type { TimelineItem, Actor } from './cockpit-types';
 import type { Activity } from '@/types';
-import { buildExecutionHeader, errorMessage } from './cockpit-utils';
+import { buildExecutionHeader, errorMessage, formatAtISO } from './cockpit-utils';
 import { Button } from '@/app/components/ui/Button';
 
 interface CockpitTimelineProps {
@@ -23,6 +24,8 @@ interface CockpitTimelineProps {
   dealTitle: string;
   addActivity: (activity: Omit<Activity, 'id' | 'createdAt'>) => Promise<Activity | null>;
   pushToast: (message: string, tone?: 'neutral' | 'success' | 'danger') => void;
+  notes: Array<{ id: string; content: string; created_at: string }>;
+  isNotesLoading: boolean;
 }
 
 export function CockpitTimeline({
@@ -32,21 +35,47 @@ export function CockpitTimeline({
   dealTitle,
   addActivity,
   pushToast,
+  notes,
+  isNotesLoading,
 }: CockpitTimelineProps) {
   const [query, setQuery] = useState('');
   const [kindFilter, setKindFilter] = useState<'all' | TimelineItem['kind']>('all');
   const [showSystemEvents, setShowSystemEvents] = useState(false);
   const [noteDraftTimeline, setNoteDraftTimeline] = useState('');
 
+  // Build unified timeline: activities + deal_notes
+  const unifiedItems: TimelineItem[] = React.useMemo(() => {
+    const items: TimelineItem[] = [...timelineItems];
+
+    // Merge deal_notes into timeline
+    if (!isNotesLoading && notes.length > 0) {
+      for (const n of notes) {
+        items.push({
+          id: `dn-${n.id}`,
+          at: formatAtISO(n.created_at),
+          sortKey: n.created_at,
+          kind: 'deal_note',
+          title: 'Nota',
+          subtitle: n.content,
+        });
+      }
+    }
+
+    // Sort by ISO date desc (sortKey is raw ISO, safe for comparison)
+    items.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+
+    return items;
+  }, [timelineItems, notes, isNotesLoading]);
+
   const filteredTimelineItems = React.useMemo(() => {
-    return timelineItems.filter((t) => {
+    return unifiedItems.filter((t) => {
       if (!showSystemEvents && t.kind === 'system') return false;
       if (kindFilter !== 'all' && t.kind !== kindFilter) return false;
       if (!query.trim()) return true;
       const q = query.toLowerCase();
       return `${t.title} ${t.subtitle ?? ''}`.toLowerCase().includes(q);
     });
-  }, [kindFilter, query, showSystemEvents, timelineItems]);
+  }, [kindFilter, query, showSystemEvents, unifiedItems]);
 
   const logOutsideCRM = async (type: Activity['type'], title: string, desc: string) => {
     try {
@@ -66,6 +95,13 @@ export function CockpitTimeline({
     }
   };
 
+  const filterChips: Array<{ key: TimelineItem['kind']; label: string }> = [
+    { key: 'call', label: 'Ligações' },
+    { key: 'note', label: 'Notas' },
+    { key: 'deal_note', label: 'Deal Notes' },
+    { key: 'status', label: 'Mudanças' },
+  ];
+
   return (
     <div className="flex min-h-0 flex-col gap-4">
       <div className="flex items-start justify-between gap-3">
@@ -83,18 +119,18 @@ export function CockpitTimeline({
             >
               Tudo
             </Button>
-            {(['call', 'note', 'status'] as const).map((k) => (
+            {filterChips.map((chip) => (
               <Button
-                key={k}
+                key={chip.key}
                 type="button"
                 className={
-                  kindFilter === k
+                  kindFilter === chip.key
                     ? 'rounded-full bg-cyan-500/15 px-3 py-1.5 text-[11px] font-semibold text-cyan-100 ring-1 ring-cyan-500/20'
                     : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-slate-300 ring-1 ring-white/10 hover:bg-white/5'
                 }
-                onClick={() => setKindFilter(k)}
+                onClick={() => setKindFilter(chip.key)}
               >
-                {k === 'call' ? 'Ligações' : k === 'note' ? 'Notas' : 'Mudanças'}
+                {chip.label}
               </Button>
             ))}
 
@@ -106,7 +142,7 @@ export function CockpitTimeline({
                   : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-slate-300 ring-1 ring-white/10 hover:bg-white/5'
               }
               onClick={() => setShowSystemEvents((v) => !v)}
-              title="System events (hoje: quase tudo vem de Activity)"
+              title="System events"
             >
               Sistemas
             </Button>
@@ -139,14 +175,14 @@ export function CockpitTimeline({
           {filteredTimelineItems.length === 0 ? (
             <div className="px-6 py-10 text-center">
               <div className="text-sm font-semibold text-slate-200">
-                {timelineItems.length === 0 ? 'Sem atividades ainda' : 'Sem resultados'}
+                {unifiedItems.length === 0 ? 'Sem atividades ainda' : 'Sem resultados'}
               </div>
               <div className="mt-2 text-xs text-slate-500">
-                {timelineItems.length === 0
+                {unifiedItems.length === 0
                   ? 'Quando você registrar uma nota, ligação ou mudança de etapa, ela aparece aqui.'
                   : 'Tente limpar busca e filtros para ver tudo novamente.'}
               </div>
-              {timelineItems.length !== 0 ? (
+              {unifiedItems.length !== 0 ? (
                 <div className="mt-4 flex items-center justify-center gap-2">
                   <Button
                     type="button"
@@ -168,15 +204,22 @@ export function CockpitTimeline({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
+                      {t.kind === 'deal_note' ? (
+                        <StickyNote className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+                      ) : null}
                       <span className="text-xs font-semibold text-slate-200">{t.title}</span>
                       {t.subtitle ? (
                         t.title === 'Moveu para' ? (
                           <Chip tone={t.tone === 'success' ? 'success' : t.tone === 'danger' ? 'danger' : 'neutral'}>{t.subtitle}</Chip>
-                        ) : (
+                        ) : t.kind === 'deal_note' ? null : (
                           <span className="truncate text-xs text-slate-400">{t.subtitle}</span>
                         )
                       ) : null}
                     </div>
+                    {/* Deal note content rendered below title */}
+                    {t.kind === 'deal_note' && t.subtitle ? (
+                      <div className="mt-1 text-xs text-slate-300 whitespace-pre-wrap line-clamp-3">{t.subtitle}</div>
+                    ) : null}
                   </div>
                   <div className="shrink-0 text-[11px] text-slate-500">{t.at}</div>
                 </div>
