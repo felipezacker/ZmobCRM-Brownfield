@@ -6,7 +6,8 @@ const PT_BR_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit',
 const BRL_CURRENCY_FORMATTER = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
   currency: 'BRL',
-  maximumFractionDigits: 2,
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
 });
 
 export function hashString(input: string): string {
