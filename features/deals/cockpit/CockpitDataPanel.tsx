@@ -65,7 +65,7 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
   GALPAO: 'Galpão',
 };
 
-const INPUT_CLASS = 'bg-transparent outline-none text-xs hover:bg-slate-100 dark:hover:bg-white/5 rounded px-1 py-0.5 focus:ring-1 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/5 transition-colors';
+const INPUT_CLASS = 'bg-transparent outline-none text-sm hover:bg-slate-100 dark:hover:bg-white/5 rounded px-1 py-0.5 focus:ring-1 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/5 transition-colors';
 const SELECT_CLASS = `${INPUT_CLASS} cursor-pointer`;
 
 /** Collapsible section header */
@@ -84,7 +84,7 @@ function SectionHeader({
 }) {
   return (
     <button type="button" className="flex w-full items-center justify-between" onClick={onToggle}>
-      <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
         <span className={iconColor}>{icon}</span> {label}
       </div>
       <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
@@ -247,7 +247,7 @@ export function CockpitDataPanel({
               {/* Nome editável */}
               <input
                 type="text"
-                className={`${INPUT_CLASS} w-full text-sm font-semibold text-slate-900 dark:text-slate-100`}
+                className={`${INPUT_CLASS} w-full text-base font-semibold text-slate-900 dark:text-slate-100`}
                 defaultValue={humanizeTestLabel(contact?.name) || contact?.name || ''}
                 onBlur={(e) => {
                   const v = e.target.value.trim();
@@ -262,7 +262,7 @@ export function CockpitDataPanel({
               {/* Temperature + Classification selects */}
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <select
-                  className={`${SELECT_CLASS} text-[10px] font-bold rounded-full px-2 py-0.5 ring-1 ${
+                  className={`${SELECT_CLASS} text-xs font-bold rounded-full px-2 py-0.5 ring-1 ${
                     temperature && TEMPERATURE_CONFIG[temperature]
                       ? TEMPERATURE_CONFIG[temperature].color
                       : 'bg-slate-100 dark:bg-white/5 text-slate-500 ring-slate-200 dark:ring-white/10'
@@ -276,7 +276,7 @@ export function CockpitDataPanel({
                   <option value="COLD">Frio</option>
                 </select>
                 <select
-                  className={`${SELECT_CLASS} text-[10px] font-bold rounded-full px-2 py-0.5 ring-1 ${
+                  className={`${SELECT_CLASS} text-xs font-bold rounded-full px-2 py-0.5 ring-1 ${
                     classification && CLASSIFICATION_CONFIG[classification]
                       ? CLASSIFICATION_CONFIG[classification].color
                       : 'bg-slate-100 dark:bg-white/5 text-slate-500 ring-slate-200 dark:ring-white/10'
@@ -413,7 +413,7 @@ export function CockpitDataPanel({
                   {/* Total */}
                   {productsTotal > 0 && (
                     <div className="flex items-center justify-between gap-2 border-t border-slate-200 dark:border-white/10 pt-1.5 mt-1.5">
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Total</span>
+                      <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Total</span>
                       <span className="text-sm font-bold text-emerald-600 dark:text-emerald-300">{formatCurrencyBRL(productsTotal)}</span>
                     </div>
                   )}
@@ -433,7 +433,7 @@ export function CockpitDataPanel({
                       <div className="flex gap-1 mb-2">
                         <button
                           type="button"
-                          className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-colors ${
+                          className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors ${
                             addMode === 'catalog'
                               ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-200'
                               : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
@@ -444,7 +444,7 @@ export function CockpitDataPanel({
                         </button>
                         <button
                           type="button"
-                          className={`px-2 py-0.5 text-[10px] font-semibold rounded-md transition-colors ${
+                          className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors ${
                             addMode === 'custom'
                               ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-200'
                               : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
@@ -468,7 +468,7 @@ export function CockpitDataPanel({
                                 <span className="truncate">
                                   {selectedProduct ? selectedProduct.name : 'Selecionar produto...'}
                                 </span>
-                                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 shrink-0">
+                                <span className="text-xs text-emerald-600 dark:text-emerald-400 shrink-0">
                                   {selectedProduct ? formatCurrencyBRL(selectedProduct.price) : ''}
                                 </span>
                               </button>
@@ -493,7 +493,7 @@ export function CockpitDataPanel({
                                   {/* List */}
                                   <div className="max-h-[150px] overflow-auto py-0.5">
                                     {filteredProducts.length === 0 ? (
-                                      <div className="px-2 py-3 text-center text-[10px] text-slate-400 dark:text-slate-600">Nenhum produto encontrado</div>
+                                      <div className="px-2 py-3 text-center text-xs text-slate-400 dark:text-slate-600">Nenhum produto encontrado</div>
                                     ) : (
                                       filteredProducts.map((p) => {
                                         const isCurrent = p.id === selectedProductId;
@@ -516,7 +516,7 @@ export function CockpitDataPanel({
                                             <span className={`truncate text-xs ${isCurrent ? 'font-semibold text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}>
                                               {p.name}
                                             </span>
-                                            <span className="ml-auto shrink-0 text-[10px] font-medium text-emerald-600 dark:text-emerald-400/70">
+                                            <span className="ml-auto shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400/70">
                                               {formatCurrencyBRL(p.price)}
                                             </span>
                                           </button>
@@ -526,14 +526,14 @@ export function CockpitDataPanel({
                                   </div>
                                   {/* Footer */}
                                   <div className="border-t border-slate-200 dark:border-white/8 px-2 py-1">
-                                    <span className="text-[10px] text-slate-400 dark:text-slate-600">{products.length} produtos no catálogo</span>
+                                    <span className="text-xs text-slate-400 dark:text-slate-600">{products.length} produtos no catálogo</span>
                                   </div>
                                 </div>
                               )}
                             </div>
 
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] text-slate-500">Qtd</span>
+                              <span className="text-xs text-slate-500">Qtd</span>
                               <input
                                 type="number"
                                 className={`${INPUT_CLASS} w-12 text-center text-slate-700 dark:text-slate-200`}
@@ -545,7 +545,7 @@ export function CockpitDataPanel({
                             <div className="flex gap-1.5">
                               <Button
                                 type="button"
-                                className="flex-1 rounded-lg bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
+                                className="flex-1 rounded-lg bg-cyan-500/15 px-2 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
                                 onClick={handleAddCatalogItem}
                                 disabled={!selectedProductId}
                               >
@@ -553,7 +553,7 @@ export function CockpitDataPanel({
                               </Button>
                               <Button
                                 type="button"
-                                className="rounded-lg px-2 py-1 text-[10px] text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                                className="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
                                 onClick={resetAddItemForm}
                               >
                                 Cancelar
@@ -561,7 +561,7 @@ export function CockpitDataPanel({
                             </div>
                           </>
                         ) : (
-                          <div className="text-[10px] text-slate-500">
+                          <div className="text-xs text-slate-500">
                             Nenhum produto cadastrado.{' '}
                             <button type="button" className="text-cyan-600 dark:text-cyan-300 hover:underline" onClick={() => setAddMode('custom')}>
                               Adicionar manualmente
@@ -597,7 +597,7 @@ export function CockpitDataPanel({
                           <div className="flex gap-1.5">
                             <Button
                               type="button"
-                              className="flex-1 rounded-lg bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
+                              className="flex-1 rounded-lg bg-cyan-500/15 px-2 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
                               onClick={handleAddCustomItem}
                               disabled={!customName.trim()}
                             >
@@ -605,7 +605,7 @@ export function CockpitDataPanel({
                             </Button>
                             <Button
                               type="button"
-                              className="rounded-lg px-2 py-1 text-[10px] text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                              className="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
                               onClick={resetAddItemForm}
                             >
                               Cancelar
@@ -617,7 +617,7 @@ export function CockpitDataPanel({
                   ) : (
                     <button
                       type="button"
-                      className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors mt-1"
+                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors mt-1"
                       onClick={() => setShowAddItem(true)}
                     >
                       <Plus className="h-3 w-3" /> Produto
@@ -666,7 +666,7 @@ export function CockpitDataPanel({
                           <button
                             key={pt}
                             type="button"
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                            className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
                               active
                                 ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-200 ring-1 ring-cyan-500/30'
                                 : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10'
@@ -761,7 +761,7 @@ export function CockpitDataPanel({
                   {onCreatePreferences ? (
                     <Button
                       type="button"
-                      className="rounded-lg bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
+                      className="rounded-lg bg-cyan-500/15 px-2 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
                       onClick={onCreatePreferences}
                     >
                       Cadastrar
@@ -789,7 +789,7 @@ export function CockpitDataPanel({
                 <span className="text-slate-500">Valor</span>
                 <input
                   type="number"
-                  className={`${INPUT_CLASS} text-base font-bold text-emerald-600 dark:text-emerald-300 text-right w-32`}
+                  className={`${INPUT_CLASS} text-lg font-bold text-emerald-600 dark:text-emerald-300 text-right w-32`}
                   defaultValue={deal.value ?? 0}
                   onBlur={(e) => {
                     const v = parseFloat(e.target.value);
@@ -841,7 +841,7 @@ export function CockpitDataPanel({
               <div className="flex items-center justify-between gap-2">
                 <span className="text-slate-500">Prioridade</span>
                 <select
-                  className={`${SELECT_CLASS} text-[10px] font-bold rounded-full px-2 py-0.5 ring-1 ${
+                  className={`${SELECT_CLASS} text-xs font-bold rounded-full px-2 py-0.5 ring-1 ${
                     priority && PRIORITY_CONFIG[priority]
                       ? PRIORITY_CONFIG[priority].color
                       : 'bg-slate-100 dark:bg-white/5 text-slate-500 ring-slate-200 dark:ring-white/10'
@@ -936,7 +936,7 @@ export function CockpitDataPanel({
             {!collapsed.tags && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {tags.map((tag) => (
-                  <span key={tag} className="rounded-full border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
+                  <span key={tag} className="rounded-full border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                     {tag}
                   </span>
                 ))}

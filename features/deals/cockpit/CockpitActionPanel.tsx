@@ -73,12 +73,12 @@ export function CockpitActionPanel({
           <div className="h-1.5 w-10 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
             <div className={`h-full rounded-full ${healthColor}`} style={{ width: `${health.score}%` }} />
           </div>
-          <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{health.score}%</span>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{health.score}%</span>
         </div>
       }
     >
       <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 line-clamp-2">{nextBestAction.action}</div>
-      <div className="mt-0.5 text-[10px] text-slate-500 line-clamp-1">{nextBestAction.reason}</div>
+      <div className="mt-0.5 text-xs text-slate-500 line-clamp-1">{nextBestAction.reason}</div>
 
       <div className="mt-2 flex items-center gap-1.5">
         <Button
@@ -103,27 +103,27 @@ export function CockpitActionPanel({
       <div className="mt-2 grid grid-cols-3 gap-1.5">
         <Button type="button" className="flex flex-col items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 px-1.5 py-2 hover:bg-cyan-500/10 hover:border-cyan-500/20 dark:hover:bg-cyan-500/10 transition-colors" title="Ligar" onClick={() => onCall('Ligacao')}>
           <Phone className="h-4 w-4 text-slate-500 dark:text-slate-300" />
-          <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">Ligar</span>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Ligar</span>
         </Button>
         <Button type="button" className="flex flex-col items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 px-1.5 py-2 hover:bg-cyan-500/10 hover:border-cyan-500/20 dark:hover:bg-cyan-500/10 transition-colors" title="WhatsApp" onClick={() => onOpenMessageComposer('WHATSAPP', { message: buildWhatsAppMessage() }, aiCtx)}>
           <MessageCircle className="h-4 w-4 text-slate-500 dark:text-slate-300" />
-          <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">WhatsApp</span>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">WhatsApp</span>
         </Button>
         <Button type="button" className="flex flex-col items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 px-1.5 py-2 hover:bg-cyan-500/10 hover:border-cyan-500/20 dark:hover:bg-cyan-500/10 transition-colors" title="E-mail" onClick={() => onOpenMessageComposer('EMAIL', { subject: `Sobre ${dealTitle}`, message: buildEmailBody() }, aiCtx)}>
           <Inbox className="h-4 w-4 text-slate-500 dark:text-slate-300" />
-          <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">Email</span>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Email</span>
         </Button>
         <Button type="button" className="flex flex-col items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 px-1.5 py-2 hover:bg-cyan-500/10 hover:border-cyan-500/20 dark:hover:bg-cyan-500/10 transition-colors" title="Agendar" onClick={() => onOpenScheduleModal({ type: 'TASK', title: 'Agendar proximo passo', description: 'Criado no cockpit.' })}>
           <CalendarClock className="h-4 w-4 text-slate-500 dark:text-slate-300" />
-          <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">Agendar</span>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Agendar</span>
         </Button>
         <Button type="button" className="flex flex-col items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 px-1.5 py-2 hover:bg-cyan-500/10 hover:border-cyan-500/20 dark:hover:bg-cyan-500/10 transition-colors disabled:opacity-40" title="Template WA" onClick={() => onOpenTemplatePicker('WHATSAPP')} disabled={isScriptsLoading || scriptsCount === 0}>
           <FileText className="h-4 w-4 text-slate-500 dark:text-slate-300" />
-          <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">T. WA</span>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">T. WA</span>
         </Button>
         <Button type="button" className="flex flex-col items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 px-1.5 py-2 hover:bg-cyan-500/10 hover:border-cyan-500/20 dark:hover:bg-cyan-500/10 transition-colors disabled:opacity-40" title="Template Email" onClick={() => onOpenTemplatePicker('EMAIL')} disabled={isScriptsLoading || scriptsCount === 0}>
           <FileText className="h-4 w-4 text-slate-500 dark:text-slate-300" />
-          <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400">T. Email</span>
+          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">T. Email</span>
         </Button>
       </div>
     </Panel>
