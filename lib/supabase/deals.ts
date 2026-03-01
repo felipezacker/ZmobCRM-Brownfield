@@ -542,6 +542,7 @@ export const dealsService = {
       if (!supabase) {
         return { data: null, error: new Error('Supabase não configurado') };
       }
+      const orgId = await getCurrentOrganizationId();
       const { data, error } = await supabase
         .from('deal_items')
         .insert({
@@ -550,6 +551,7 @@ export const dealsService = {
           name: item.name,
           quantity: item.quantity,
           price: item.price,
+          organization_id: orgId,
         })
         .select()
         .single();

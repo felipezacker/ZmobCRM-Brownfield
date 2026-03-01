@@ -7,7 +7,7 @@ import { useBoards } from '@/context/boards/BoardsContext';
 import { useSettings } from '@/context/settings/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { dealNotesService } from '@/lib/supabase/dealNotes';
+import { dealNotesService, type DealNote } from '@/lib/supabase/dealNotes';
 import ConfirmModal from '@/components/ConfirmModal';
 import { LossReasonModal } from '@/components/ui/LossReasonModal';
 import { useMoveDealSimple } from '@/lib/query/hooks';
@@ -25,20 +25,20 @@ import {
   BrainCircuit,
   Mail,
   Phone,
-  Calendar,
   Check,
   X,
   Trash2,
-  Pencil,
   ThumbsUp,
   ThumbsDown,
   User,
   Package,
   Sword,
-  CheckCircle2,
   Bot,
   Tag as TagIcon,
   Maximize2,
+  Copy,
+  MessageSquare,
+  StickyNote,
 } from 'lucide-react';
 import { StageProgressBar } from '../StageProgressBar';
 import { ActivityRow } from '@/features/activities/components/ActivityRow';
@@ -48,6 +48,12 @@ import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { Button } from '@/app/components/ui/Button';
 import { supabase } from '@/lib/supabase/client';
 import { calculateEstimatedCommission } from '@/lib/supabase';
+import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
+import type { ContactPreference, ContactTemperature, ContactClassification, PreferenceUrgency, PreferencePurpose, PropertyType } from '@/types';
+
+type TimelineItem =
+  | { kind: 'activity'; data: Activity; date: string }
+  | { kind: 'note'; data: DealNote; date: string };
 
 interface DealDetailModalProps {
   dealId: string | null;
@@ -76,7 +82,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const isMobile = mode === 'mobile';
 
   const { deals } = useCRMActions();
-  const { contacts } = useContacts();
+  const { contacts, updateContact } = useContacts();
   const { updateDeal, deleteDeal, addItemToDeal, removeItemFromDeal } = useDeals();
   const { activities, addActivity, updateActivity, deleteActivity } = useActivities();
   const { activeBoard, boards } = useBoards();
@@ -102,9 +108,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   // Use unified TanStack Query hook for moving deals
   const { moveDeal } = useMoveDealSimple(dealBoard, lifecycleStages);
 
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingValue, setIsEditingValue] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
   const [editValue, setEditValue] = useState('');
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -125,6 +129,12 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const [customItemName, setCustomItemName] = useState('');
   const [customItemPrice, setCustomItemPrice] = useState<string>('0');
   const [customItemQuantity, setCustomItemQuantity] = useState(1);
+
+  // Deal notes for timeline
+  const [dealNotes, setDealNotes] = useState<DealNote[]>([]);
+
+  // Contact preferences
+  const [preferences, setPreferences] = useState<ContactPreference | null>(null);
 
   // Activity editing state
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
@@ -161,26 +171,45 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
     return () => { cancelled = true; };
   }, [deal?.ownerId, profile?.id, profile?.commission_rate]);
 
+  // Fetch contact preferences
+  useEffect(() => {
+    if (!contact?.id) { setPreferences(null); return; }
+    let cancelled = false;
+    contactPreferencesService.getByContactId(contact.id).then(({ data }) => {
+      if (!cancelled) setPreferences(data?.[0] ?? null);
+    }).catch(err => console.error('[DealDetailModal] fetch preferences failed:', err));
+    return () => { cancelled = true; };
+  }, [contact?.id]);
+
+  // Fetch deal notes for timeline
+  const fetchDealNotes = useMemo(() => {
+    if (!deal?.id) return () => {};
+    return () => {
+      dealNotesService.getNotesForDeal(deal.id).then(({ data }) => {
+        setDealNotes(data ?? []);
+      }).catch(err => console.error('[DealDetailModal] fetch deal notes failed:', err));
+    };
+  }, [deal?.id]);
+
+  useEffect(() => {
+    if (!deal?.id) { setDealNotes([]); return; }
+    fetchDealNotes();
+  }, [deal?.id, fetchDealNotes]);
+
   const estimatedCommission = useMemo(() => {
     if (!deal) return null;
     return calculateEstimatedCommission(deal.value, deal.commissionRate, brokerCommissionRate);
   }, [deal, brokerCommissionRate]);
 
-  // Contact tags/customFields (read-only — migrated from deal to contact)
-
-  // Helper functions removed as they are now handled by ActivityRow component
-
   // Reset state when deal changes or modal opens
   useEffect(() => {
     if (isOpen && deal) {
-      setEditTitle(deal.title);
       setEditValue(deal.value.toString());
       setAiResult(null);
       setEmailDraft(null);
       setObjectionResponses([]);
       setObjection('');
       setActiveTab('timeline');
-      setIsEditingTitle(false);
       setIsEditingValue(false);
       setShowLossReasonModal(false);
       setPendingLostStageId(null);
@@ -214,6 +243,18 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
     if (!deal) return [] as Activity[];
     return activities.filter((a) => a.dealId === deal.id);
   }, [activities, deal]);
+
+  const timelineFeed = useMemo<TimelineItem[]>(() => {
+    const items: TimelineItem[] = [];
+    for (const a of dealActivities) {
+      items.push({ kind: 'activity', data: a, date: a.date });
+    }
+    for (const n of dealNotes) {
+      items.push({ kind: 'note', data: n, date: n.created_at });
+    }
+    items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return items;
+  }, [dealActivities, dealNotes]);
 
   if (!isOpen || !deal) return null;
 
@@ -285,22 +326,28 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
     }
 
     setNewNote('');
+    fetchDealNotes();
     addToast('Nota salva', 'success');
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     if (!selectedProductId) return;
-    // Performance: O(1) lookup instead of scanning all products.
     const product = productsById.get(selectedProductId);
     if (!product) return;
 
-    addItemToDeal(deal.id, {
+    const result = await addItemToDeal(deal.id, {
       productId: product.id,
       name: product.name,
       price: product.price,
       quantity: productQuantity,
     });
 
+    if (!result) {
+      addToast('Erro ao adicionar produto. Tente novamente.', 'warning');
+      return;
+    }
+
+    addToast(`${product.name} adicionado`, 'success');
     setSelectedProductId('');
     setProductQuantity(1);
   };
@@ -345,13 +392,6 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
     }
   };
 
-  const saveTitle = () => {
-    if (editTitle) {
-      updateDeal(deal.id, { title: editTitle });
-      setIsEditingTitle(false);
-    }
-  };
-
   const saveValue = () => {
     if (editValue) {
       updateDeal(deal.id, { value: Number(editValue) });
@@ -365,7 +405,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
   // Handle escape key to close modal
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape' && !isEditingTitle && !isEditingValue) {
+    if (e.key === 'Escape' && !isEditingValue) {
       onClose();
     }
   };
@@ -376,185 +416,149 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
         className={
           isMobile
             ? 'bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 w-full h-[100dvh] flex flex-col overflow-hidden pb-[var(--app-safe-area-bottom,0px)]'
-            : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200'
+            : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200'
         }
       >
-        {/* HEADER (Stage Bar + Won/Lost) */}
-        <div className="bg-slate-50 dark:bg-black/20 border-b border-slate-200 dark:border-white/10 p-6 shrink-0">
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex-1 mr-8">
-              {isEditingTitle ? (
-                <div className="flex gap-2 mb-1">
-                  <input
-                    autoFocus
-                    type="text"
-                    className="text-2xl font-bold text-slate-900 dark:text-white bg-white dark:bg-black/20 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 w-full outline-none focus:ring-2 focus:ring-primary-500"
-                    value={editTitle}
-                    onChange={e => setEditTitle(e.target.value)}
-                    onBlur={saveTitle}
-                    onKeyDown={e => e.key === 'Enter' && saveTitle()}
-                  />
-                  <Button onClick={saveTitle} className="text-green-500 hover:text-green-400">
-                    <Check size={24} />
-                  </Button>
-                </div>
-              ) : (
-                <h2
-                  id={headingId}
-                  onClick={() => {
-                    setEditTitle(deal.title);
-                    setIsEditingTitle(true);
-                  }}
-                  className="text-2xl font-bold text-slate-900 dark:text-white font-display leading-tight cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-2 group transition-colors"
-                  title="Clique para editar"
-                >
-                  {deal.title}
-                  <Pencil size={16} className="opacity-0 group-hover:opacity-50 text-slate-400" />
-                </h2>
+        {/* HEADER */}
+        <div className="bg-slate-50 dark:bg-[#0b1222] border-b border-slate-200 dark:border-white/[0.06] px-6 pt-5 pb-4 shrink-0">
+          {/* Row 1: Lead name + product + action icons */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-400/20 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300 shrink-0">
+              {(deal.contactName || '?').charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 id={headingId} className="text-base font-semibold text-slate-900 dark:text-white tracking-tight truncate leading-tight">
+                {deal.contactName || 'Sem contato'}
+              </h2>
+              {deal.items && deal.items.length > 0 && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" title={deal.items[0].name}>
+                  {deal.items[0].name}
+                  {deal.items.length > 1 && (
+                    <span className="text-slate-400 dark:text-slate-500 ml-1">+{deal.items.length - 1}</span>
+                  )}
+                </p>
               )}
+            </div>
+            <div className="flex gap-0.5 items-center shrink-0">
+              <Button
+                onClick={() => { onClose(); router.push(`/deals/${deal.id}/cockpit`); }}
+                className="text-slate-400 hover:text-primary-500 dark:text-slate-500 dark:hover:text-primary-400 transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                title="Abrir Cockpit"
+              >
+                <Maximize2 size={18} />
+              </Button>
+              <Button
+                onClick={() => setDeleteId(deal.id)}
+                className="text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                title="Excluir Negócio"
+              >
+                <Trash2 size={18} />
+              </Button>
+              <Button
+                onClick={onClose}
+                className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+              >
+                <X size={18} />
+              </Button>
+            </div>
+          </div>
 
+          {/* Row 2: Value + Corretor + Win/Loss */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Valor editavel */}
+            <div className="shrink-0">
               {isEditingValue ? (
                 <div className="flex gap-2 items-center">
                   <span className="text-lg font-mono font-bold text-slate-500">R$</span>
                   <input
                     autoFocus
                     type="number"
-                    className="text-lg font-mono font-bold text-primary-600 dark:text-primary-400 bg-white dark:bg-black/20 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 w-32 outline-none focus:ring-2 focus:ring-primary-500"
+                    className="text-lg font-mono font-bold text-primary-600 dark:text-primary-400 bg-white dark:bg-black/30 border border-slate-300 dark:border-primary-500/20 rounded-lg px-2.5 py-1 w-36 outline-none focus:ring-2 focus:ring-primary-500/40"
                     value={editValue}
                     onChange={e => setEditValue(e.target.value)}
                     onBlur={saveValue}
                     onKeyDown={e => e.key === 'Enter' && saveValue()}
                   />
                   <Button onClick={saveValue} className="text-green-500 hover:text-green-400">
-                    <Check size={20} />
+                    <Check size={18} />
                   </Button>
                 </div>
               ) : (
-                <p
-                  onClick={() => {
-                    setEditValue(deal.value.toString());
-                    setIsEditingValue(true);
-                  }}
-                  className="text-lg text-primary-600 dark:text-primary-400 font-mono font-bold cursor-pointer hover:underline decoration-dashed underline-offset-4"
+                <Button
+                  onClick={() => { setEditValue(deal.value.toString()); setIsEditingValue(true); }}
+                  className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                   title="Clique para editar valor"
                 >
                   {BRL_CURRENCY.format(deal.value)}
-                </p>
+                </Button>
               )}
             </div>
-            <div className="flex gap-3 items-center">
-              {/* Se fechado: mostra badge + botão Reabrir */}
+
+            <div className="h-6 w-px bg-slate-200 dark:bg-white/[0.06] shrink-0" />
+
+            {/* Corretor Select */}
+            <div className="w-44 shrink-0">
+              <CorretorSelect
+                value={deal.ownerId || profile?.id}
+                onChange={(newOwnerId) => updateDeal(deal.id, { ownerId: newOwnerId })}
+              />
+            </div>
+
+            <div className="flex-1" />
+
+            {/* GANHO / PERDIDO / Reabrir */}
+            <div className="flex gap-2 items-center shrink-0">
               {(deal.isWon || deal.isLost) ? (
                 <>
-                  <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${deal.isWon ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                  <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${
+                    deal.isWon
+                      ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 dark:shadow-[0_0_12px_rgba(34,197,94,0.15)]'
+                      : 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 dark:shadow-[0_0_12px_rgba(239,68,68,0.15)]'
+                  }`}>
                     {deal.isWon ? '✓ GANHO' : '✗ PERDIDO'}
                   </span>
                   <Button
                     onClick={() => {
-                      // Find first non-won/lost stage to reopen to
                       const firstRegularStage = dealBoard?.stages.find(
                         s => s.linkedLifecycleStage !== 'CUSTOMER' && s.linkedLifecycleStage !== 'OTHER'
                       );
-                      if (firstRegularStage) {
-                        moveDeal(deal, firstRegularStage.id);
-                      } else {
-                        // Fallback: just clear the won/lost flags
-                        updateDeal(deal.id, { isWon: false, isLost: false, closedAt: undefined });
-                      }
+                      if (firstRegularStage) { moveDeal(deal, firstRegularStage.id); }
+                      else { updateDeal(deal.id, { isWon: false, isLost: false, closedAt: undefined }); }
                     }}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm flex items-center gap-2 transition-all"
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all border border-transparent dark:border-white/[0.06]"
                   >
                     ↩ Reabrir
                   </Button>
                 </>
               ) : (
-                /* Se aberto: mostra botões Ganho e Perdido */
                 <>
                   <Button
                     onClick={() => {
-                      // Intelligent "Won" Logic:
-                      // 0. Check for "Stay in Stage" flag (Archive/Close in place)
-                      if (dealBoard?.wonStayInStage) {
-                        moveDeal(deal, deal.status, undefined, true, false);
-                        onClose();
-                        return;
-                      }
-
-                      // 1. Check if board has explicit Won Stage configured
-                      if (dealBoard?.wonStageId) {
-                        moveDeal(deal, dealBoard.wonStageId);
-                        onClose();
-                        return;
-                      }
-
-                      // 2. Find the appropriate "Success Stage" for this board based on lifecycle
-                      const successStage = dealBoard?.stages.find(
-                        s => s.linkedLifecycleStage === 'CUSTOMER'
-                      ) || dealBoard?.stages.find(
-                        s => s.linkedLifecycleStage === 'MQL'
-                      ) || dealBoard?.stages.find(
-                        s => s.linkedLifecycleStage === 'SALES_QUALIFIED'
-                      );
-
-                      if (successStage) {
-                        moveDeal(deal, successStage.id);
-                      } else {
-                        // Fallback: just mark as won without moving
-                        updateDeal(deal.id, { isWon: true, isLost: false, closedAt: new Date().toISOString() });
-                      }
+                      if (dealBoard?.wonStayInStage) { moveDeal(deal, deal.status, undefined, true, false); onClose(); return; }
+                      if (dealBoard?.wonStageId) { moveDeal(deal, dealBoard.wonStageId); onClose(); return; }
+                      const successStage = dealBoard?.stages.find(s => s.linkedLifecycleStage === 'CUSTOMER')
+                        || dealBoard?.stages.find(s => s.linkedLifecycleStage === 'MQL')
+                        || dealBoard?.stages.find(s => s.linkedLifecycleStage === 'SALES_QUALIFIED');
+                      if (successStage) { moveDeal(deal, successStage.id); }
+                      else { updateDeal(deal.id, { isWon: true, isLost: false, closedAt: new Date().toISOString() }); }
                       onClose();
                     }}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold text-sm shadow-sm flex items-center gap-2"
+                    className="px-4 py-1.5 bg-green-600 hover:bg-green-500 dark:bg-green-600/90 dark:hover:bg-green-500 text-white rounded-lg font-bold text-sm shadow-sm dark:shadow-[0_0_16px_rgba(34,197,94,0.2)] flex items-center gap-1.5 transition-all hover:scale-[1.02]"
                   >
-                    <ThumbsUp size={16} /> GANHO
+                    <ThumbsUp size={14} /> GANHO
                   </Button>
                   <Button
                     onClick={() => {
-                      // 0. Check for "Stay in Stage" flag
-                      if (dealBoard?.lostStayInStage) {
-                        // We don't set pendingLostStageId because we aren't moving to a new stage ID
-                        // But the modal logic relies on it? No, if pendingLostStageId is null, we might need another flag.
-                        // Actually, let's keep it clean.
-                        // setPendingLostStageId(deal.status); // Hack?
-                        // Better: Just open modal, and handle logic in confirm.
-                      }
-
-                      // If board has explicit Lost Stage, queue it
-                      if (dealBoard?.lostStageId) {
-                        setPendingLostStageId(dealBoard.lostStageId);
-                      }
+                      if (dealBoard?.lostStageId) { setPendingLostStageId(dealBoard.lostStageId); }
                       setLossReasonOrigin('button');
                       setShowLossReasonModal(true);
                     }}
-                    className="px-4 py-2 bg-transparent border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-bold text-sm shadow-sm flex items-center gap-2"
+                    className="px-4 py-1.5 bg-transparent border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg font-bold text-sm flex items-center gap-1.5 transition-all hover:scale-[1.02]"
                   >
-                    <ThumbsDown size={16} /> PERDIDO
+                    <ThumbsDown size={14} /> PERDIDO
                   </Button>
                 </>
               )}
-              <Button
-                onClick={() => {
-                  onClose();
-                  router.push(`/deals/${deal.id}/cockpit`);
-                }}
-                className="ml-2 text-slate-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-                title="Abrir Cockpit"
-              >
-                <Maximize2 size={22} />
-              </Button>
-              <Button
-                onClick={() => setDeleteId(deal.id)}
-                className="ml-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                title="Excluir Negócio"
-              >
-                <Trash2 size={24} />
-              </Button>
-              <Button
-                onClick={onClose}
-                className="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
-              >
-                <X size={24} />
-              </Button>
             </div>
           </div>
 
@@ -590,53 +594,306 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
         </div>
 
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-          {/* Left Sidebar (Static Info + Custom Fields) */}
-          <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 p-4 sm:p-6 overflow-y-auto bg-white dark:bg-dark-card max-h-[38vh] md:max-h-none">
-            <div className="space-y-6">
+          {/* Left Sidebar */}
+          <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 p-4 sm:p-5 overflow-y-auto bg-white dark:bg-dark-card max-h-[38vh] md:max-h-none">
+            <div className="space-y-4">
+              {/* CONTATO (editável) */}
               <div>
                 <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
-                  <User size={14} /> Contato Principal
+                  <User size={14} /> Contato
                 </h3>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">
                     {(deal.contactName || '?').charAt(0)}
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-slate-900 dark:text-white font-medium text-sm flex items-center gap-2">
                       {deal.contactName || 'Sem contato'}
                       {contact?.stage &&
                         (() => {
                           const stage = lifecycleStageById.get(contact.stage);
                           if (!stage) return null;
-
-                          // Extract base color name (e.g. 'blue' from 'bg-blue-500')
-                          const colorClass = stage.color; // e.g. bg-blue-500
-                          // We need to construct text and ring classes dynamically or just use inline styles/safe list
-                          // For now, let's just use the background color provided and white text
-
                           return (
-                            <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider flex items-center gap-1 text-white ${colorClass}`}
-                            >
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider text-white ${stage.color}`}>
                               {stage.name}
                             </span>
                           );
                         })()}
                     </p>
-                    <p className="text-slate-500 text-xs">{deal.contactEmail}</p>
+                    {/* Phone — editable inline */}
+                    <div className="flex items-center gap-1 mt-1">
+                      <Phone size={11} className="text-slate-400 shrink-0" />
+                      <input
+                        key={`phone-${contact?.id}`}
+                        type="tel"
+                        defaultValue={contact?.phone || ''}
+                        onBlur={e => contact && updateContact(contact.id, { phone: e.target.value })}
+                        placeholder="Telefone"
+                        className="text-xs text-slate-700 dark:text-slate-200 bg-transparent outline-none w-full placeholder:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5"
+                      />
+                      {contact?.phone && (
+                        <Button
+                          onClick={() => {
+                            navigator.clipboard.writeText(contact.phone || '').catch(() => {});
+                            addToast('Telefone copiado', 'success');
+                          }}
+                          className="text-slate-400 hover:text-primary-500 transition-colors shrink-0"
+                          title="Copiar telefone"
+                        >
+                          <Copy size={11} />
+                        </Button>
+                      )}
+                    </div>
+                    {/* Email — editable inline */}
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Mail size={11} className="text-slate-400 shrink-0" />
+                      <input
+                        key={`email-${contact?.id}`}
+                        type="email"
+                        defaultValue={contact?.email || ''}
+                        onBlur={e => contact && updateContact(contact.id, { email: e.target.value })}
+                        placeholder="Email"
+                        className="text-xs text-slate-700 dark:text-slate-200 bg-transparent outline-none w-full placeholder:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5 truncate"
+                      />
+                    </div>
                   </div>
                 </div>
+
+                {/* Temperature + Classification (editable selects) */}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <select
+                    value={contact?.temperature || ''}
+                    onChange={e => contact && updateContact(contact.id, { temperature: (e.target.value || undefined) as ContactTemperature | undefined })}
+                    className={`text-[11px] font-semibold bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer ${
+                      contact?.temperature === 'HOT' ? 'text-red-500' :
+                      contact?.temperature === 'WARM' ? 'text-amber-500' :
+                      contact?.temperature === 'COLD' ? 'text-blue-500' : 'text-slate-400'
+                    }`}
+                  >
+                    <option value="">Temperatura</option>
+                    <option value="HOT">🔥 Quente</option>
+                    <option value="WARM">🌡️ Morno</option>
+                    <option value="COLD">❄️ Frio</option>
+                  </select>
+                  <select
+                    value={contact?.classification || ''}
+                    onChange={e => contact && updateContact(contact.id, { classification: (e.target.value || undefined) as ContactClassification | undefined })}
+                    className="text-[11px] font-semibold bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer text-slate-700 dark:text-slate-200"
+                  >
+                    <option value="">Classificação</option>
+                    <option value="COMPRADOR">Comprador</option>
+                    <option value="VENDEDOR">Vendedor</option>
+                    <option value="LOCATARIO">Locatário</option>
+                    <option value="LOCADOR">Locador</option>
+                    <option value="INVESTIDOR">Investidor</option>
+                    <option value="PERMUTANTE">Permutante</option>
+                  </select>
+                </div>
+
+                {/* Lead Score bar (read-only — score é calculado) */}
+                {contact?.leadScore != null && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400">Score</span>
+                    <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          contact.leadScore <= 30 ? 'bg-red-500' :
+                          contact.leadScore <= 60 ? 'bg-amber-500' : 'bg-emerald-500'
+                        }`}
+                        style={{ width: `${Math.min(100, contact.leadScore)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                      {contact.leadScore}
+                      <span className="ml-1 text-[10px] font-normal text-slate-400">
+                        {contact.leadScore <= 30 ? 'Frio' : contact.leadScore <= 60 ? 'Morno' : 'Quente'}
+                      </span>
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+              {/* PREFERÊNCIAS (editável) */}
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5">
+                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+                  Preferências
+                  {!preferences && contact && (
+                    <Button
+                      onClick={async () => {
+                        const orgId = profile?.organization_id;
+                        if (!contact || !orgId) return;
+                        const { data } = await contactPreferencesService.create({
+                          contactId: contact.id,
+                          propertyTypes: [],
+                          purpose: null,
+                          priceMin: null,
+                          priceMax: null,
+                          regions: [],
+                          bedroomsMin: null,
+                          parkingMin: null,
+                          areaMin: null,
+                          acceptsFinancing: null,
+                          acceptsFgts: null,
+                          urgency: null,
+                          notes: null,
+                          organizationId: orgId,
+                        });
+                        if (data) setPreferences(data);
+                      }}
+                      className="text-[10px] text-primary-500 hover:text-primary-600 font-medium"
+                      title="Criar preferências"
+                    >
+                      + Adicionar
+                    </Button>
+                  )}
+                </h3>
+                {preferences ? (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-xs">Finalidade</span>
+                      <select
+                        value={preferences.purpose || ''}
+                        onChange={e => {
+                          const val = (e.target.value || null) as PreferencePurpose | null;
+                          contactPreferencesService.update(preferences.id, { purpose: val });
+                          setPreferences(p => p ? { ...p, purpose: val } : p);
+                        }}
+                        className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                      >
+                        <option value="">—</option>
+                        <option value="MORADIA">Moradia</option>
+                        <option value="INVESTIMENTO">Investimento</option>
+                        <option value="VERANEIO">Veraneio</option>
+                      </select>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-xs">Tipos</span>
+                      <div className="flex flex-wrap gap-1 justify-end">
+                        {(['APARTAMENTO', 'CASA', 'TERRENO', 'COMERCIAL', 'RURAL', 'GALPAO'] as PropertyType[]).map(pt => (
+                          <Button
+                            key={pt}
+                            onClick={() => {
+                              const current = preferences.propertyTypes;
+                              const next = current.includes(pt)
+                                ? current.filter(t => t !== pt)
+                                : [...current, pt];
+                              contactPreferencesService.update(preferences.id, { propertyTypes: next });
+                              setPreferences(p => p ? { ...p, propertyTypes: next } : p);
+                            }}
+                            className={`text-[9px] px-1.5 py-0.5 rounded-full border transition-colors ${
+                              preferences.propertyTypes.includes(pt)
+                                ? 'bg-primary-100 text-primary-700 border-primary-200 dark:bg-primary-500/10 dark:text-primary-400 dark:border-primary-500/20'
+                                : 'bg-slate-50 text-slate-400 border-slate-200 dark:bg-white/5 dark:border-white/10 hover:text-slate-600'
+                            }`}
+                          >
+                            {pt.charAt(0) + pt.slice(1).toLowerCase()}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-slate-500 text-xs">Faixa R$</span>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={preferences.priceMin ?? ''}
+                          onChange={e => {
+                            const val = e.target.value ? Number(e.target.value) : null;
+                            setPreferences(p => p ? { ...p, priceMin: val } : p);
+                          }}
+                          onBlur={e => {
+                            const val = e.target.value ? Number(e.target.value) : null;
+                            contactPreferencesService.update(preferences.id, { priceMin: val });
+                          }}
+                          placeholder="Mín"
+                          className="w-20 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white"
+                        />
+                        <span className="text-slate-400 text-xs">–</span>
+                        <input
+                          type="number"
+                          value={preferences.priceMax ?? ''}
+                          onChange={e => {
+                            const val = e.target.value ? Number(e.target.value) : null;
+                            setPreferences(p => p ? { ...p, priceMax: val } : p);
+                          }}
+                          onBlur={e => {
+                            const val = e.target.value ? Number(e.target.value) : null;
+                            contactPreferencesService.update(preferences.id, { priceMax: val });
+                          }}
+                          placeholder="Máx"
+                          className="w-20 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-xs">Regiões</span>
+                      <input
+                        type="text"
+                        value={preferences.regions.join(', ')}
+                        onChange={e => {
+                          const val = e.target.value.split(',').map(r => r.trim()).filter(Boolean);
+                          setPreferences(p => p ? { ...p, regions: val } : p);
+                        }}
+                        onBlur={e => {
+                          const val = e.target.value.split(',').map(r => r.trim()).filter(Boolean);
+                          contactPreferencesService.update(preferences.id, { regions: val });
+                        }}
+                        placeholder="Zona Sul, Centro..."
+                        className="w-32 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white text-right"
+                      />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-xs">Quartos mín</span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={preferences.bedroomsMin ?? ''}
+                        onChange={e => {
+                          const val = e.target.value ? Number(e.target.value) : null;
+                          setPreferences(p => p ? { ...p, bedroomsMin: val } : p);
+                        }}
+                        onBlur={e => {
+                          const val = e.target.value ? Number(e.target.value) : null;
+                          contactPreferencesService.update(preferences.id, { bedroomsMin: val });
+                        }}
+                        placeholder="—"
+                        className="w-14 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white text-right"
+                      />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 text-xs">Urgência</span>
+                      <select
+                        value={preferences.urgency || ''}
+                        onChange={e => {
+                          const val = (e.target.value || null) as PreferenceUrgency | null;
+                          contactPreferencesService.update(preferences.id, { urgency: val });
+                          setPreferences(p => p ? { ...p, urgency: val } : p);
+                        }}
+                        className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                      >
+                        <option value="">—</option>
+                        <option value="IMMEDIATE">Imediato</option>
+                        <option value="3_MONTHS">3 meses</option>
+                        <option value="6_MONTHS">6 meses</option>
+                        <option value="1_YEAR">1 ano</option>
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">Sem preferências cadastradas</p>
+                )}
+              </div>
+
+              {/* DETALHES */}
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5">
                 <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">Detalhes</h3>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500">Tipo</span>
+                    <span className="text-slate-500 text-xs">Tipo</span>
                     <select
                       value={deal.dealType || 'VENDA'}
                       onChange={e => updateDeal(deal.id, { dealType: e.target.value as 'VENDA' | 'LOCACAO' | 'PERMUTA' })}
-                      className="text-sm text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-1 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                      className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
                     >
                       <option value="VENDA">Venda</option>
                       <option value="LOCACAO">Locação</option>
@@ -644,97 +901,107 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     </select>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500">Previsão Fech.</span>
+                    <span className="text-slate-500 text-xs">Prev. Fech.</span>
                     <input
                       type="date"
                       value={deal.expectedCloseDate ? deal.expectedCloseDate.split('T')[0] : ''}
                       onChange={e => updateDeal(deal.id, { expectedCloseDate: e.target.value || undefined })}
-                      className="text-sm text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-1 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                      className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
                     />
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Prioridade</span>
-                    <span className="text-slate-900 dark:text-white">
+                  {/* Prioridade com badge colorido */}
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 text-xs">Prioridade</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      deal.priority === 'high' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' :
+                      deal.priority === 'medium' ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
+                      'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20'
+                    }`}>
                       {formatPriorityPtBr(deal.priority)}
                     </span>
                   </div>
+                  {/* Probabilidade com barra visual */}
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500 text-xs">Probabilidade</span>
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 w-12 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            (deal.probability ?? 0) <= 30 ? 'bg-red-500' :
+                            (deal.probability ?? 0) <= 60 ? 'bg-amber-500' : 'bg-emerald-500'
+                          }`}
+                          style={{ width: `${Math.min(100, deal.probability ?? 0)}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{deal.probability ?? 0}%</span>
+                    </div>
+                  </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Criado em</span>
-                    <span className="text-slate-900 dark:text-white">
+                    <span className="text-slate-500 text-xs">Criado em</span>
+                    <span className="text-slate-900 dark:text-white text-xs">
                       {PT_BR_DATE_FORMATTER.format(new Date(deal.createdAt))}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Probabilidade</span>
-                    <span className="text-slate-900 dark:text-white">{deal.probability}%</span>
-                  </div>
                   {estimatedCommission && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500">Comissão Est.</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-medium" title={`Taxa: ${estimatedCommission.rate}%`}>
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimatedCommission.estimated)}
-                        <span className="text-xs text-slate-400 ml-1">({estimatedCommission.rate}%)</span>
+                      <span className="text-slate-500 text-xs">Comissão Est.</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium text-xs" title={`Taxa: ${estimatedCommission.rate}%`}>
+                        {BRL_CURRENCY.format(estimatedCommission.estimated)}
+                        <span className="text-[10px] text-slate-400 ml-1">({estimatedCommission.rate}%)</span>
                       </span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* CORRETOR RESPONSÁVEL */}
-              <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">
-                  Corretor Responsável
-                </h3>
-                <CorretorSelect
-                  value={deal.ownerId || profile?.id}
-                  onChange={(newOwnerId) => updateDeal(deal.id, { ownerId: newOwnerId })}
-                />
-              </div>
-
               {/* TAGS (read-only from contact) */}
-              <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                <h3 className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
-                  <TagIcon size={14} /> Tags do Contato
+              <div className="pt-3 border-t border-slate-100 dark:border-white/5">
+                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+                  <TagIcon size={12} /> Tags
                 </h3>
-
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {(contact?.tags || []).length === 0 ? (
                     <p className="text-xs text-slate-500 italic">Sem tags.</p>
                   ) : (
                     (contact?.tags || []).map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center text-[11px] font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10"
+                        className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10"
                       >
                         {tag}
                       </span>
                     ))
                   )}
                 </div>
-                <p className="mt-2 text-[10px] text-slate-400 italic">Edite tags no cockpit do contato.</p>
               </div>
 
-              {/* CUSTOM FIELDS (read-only from contact) */}
-              {customFieldDefinitions.length > 0 && (
-                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase mb-3">
-                    Campos Personalizados do Contato
-                  </h3>
-                  <div className="space-y-3">
-                    {customFieldDefinitions.map(field => (
-                      <div key={field.id} className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                          {field.label}
-                        </span>
-                        <span className="text-xs text-slate-700 dark:text-slate-200 truncate text-right">
-                          {contact?.customFields?.[field.key] || '\u2014'}
-                        </span>
-                      </div>
-                    ))}
+              {/* CUSTOM FIELDS — only show fields that have values */}
+              {(() => {
+                const filledFields = customFieldDefinitions.filter(field => {
+                  const val = contact?.customFields?.[field.key];
+                  return val !== undefined && val !== null && val !== '';
+                });
+                if (filledFields.length === 0) return null;
+                return (
+                  <div className="pt-3 border-t border-slate-100 dark:border-white/5">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">
+                      Campos Personalizados
+                    </h3>
+                    <div className="space-y-1.5">
+                      {filledFields.map(field => (
+                        <div key={field.id} className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                            {field.label}
+                          </span>
+                          <span className="text-[11px] text-slate-700 dark:text-slate-200 truncate text-right">
+                            {contact?.customFields?.[field.key]}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <p className="mt-2 text-[10px] text-slate-400 italic">Edite campos no cockpit do contato.</p>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
 
@@ -786,40 +1053,71 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     </div>
                   </div>
 
+                  {/* Contact notes (pinned) */}
+                  {contact?.notes && (
+                    <div className="flex items-start gap-3 p-3 bg-amber-50/60 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-700/30 rounded-xl">
+                      <StickyNote size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">Nota do contato</p>
+                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{contact.notes}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Unified timeline: activities + deal notes */}
                   <div className="space-y-3 pl-4 border-l border-slate-200 dark:border-slate-800">
-                    {dealActivities.length === 0 && (
+                    {timelineFeed.length === 0 && !contact?.notes && (
                       <p className="text-sm text-slate-500 italic pl-4">
-                        Nenhuma atividade registrada.
+                        Nenhuma atividade ou nota registrada.
                       </p>
                     )}
-                    {dealActivities.map(activity => (
-                      <ActivityRow
-                        key={activity.id}
-                        activity={activity}
-                        deal={deal}
-                        onToggleComplete={id => {
-                          // Performance: O(1) lookup instead of scanning all activities.
-                          const act = activitiesById.get(id);
-                          if (act) updateActivity(id, { completed: !act.completed });
-                        }}
-                        onEdit={(activity) => {
-                          const date = new Date(activity.date);
-                          setEditingActivity(activity);
-                          setActivityFormData({
-                            title: activity.title,
-                            type: activity.type,
-                            date: date.toISOString().split('T')[0],
-                            time: date.toTimeString().slice(0, 5),
-                            description: activity.description || '',
-                            dealId: activity.dealId,
-                            recurrenceType: activity.recurrenceType || 'none',
-                            recurrenceEndDate: activity.recurrenceEndDate || '',
-                          });
-                          setIsActivityFormOpen(true);
-                        }}
-                        onDelete={id => deleteActivity(id)}
-                      />
-                    ))}
+                    {timelineFeed.map(item => {
+                      if (item.kind === 'activity') {
+                        const activity = item.data;
+                        return (
+                          <ActivityRow
+                            key={`act-${activity.id}`}
+                            activity={activity}
+                            deal={deal}
+                            onToggleComplete={id => {
+                              const act = activitiesById.get(id);
+                              if (act) updateActivity(id, { completed: !act.completed });
+                            }}
+                            onEdit={(activity) => {
+                              const date = new Date(activity.date);
+                              setEditingActivity(activity);
+                              setActivityFormData({
+                                title: activity.title,
+                                type: activity.type,
+                                date: date.toISOString().split('T')[0],
+                                time: date.toTimeString().slice(0, 5),
+                                description: activity.description || '',
+                                dealId: activity.dealId,
+                                recurrenceType: activity.recurrenceType || 'none',
+                                recurrenceEndDate: activity.recurrenceEndDate || '',
+                              });
+                              setIsActivityFormOpen(true);
+                            }}
+                            onDelete={id => deleteActivity(id)}
+                          />
+                        );
+                      }
+                      // kind === 'note' (deal note)
+                      const note = item.data;
+                      return (
+                        <div key={`note-${note.id}`} className="flex items-start gap-3 pl-4 py-2">
+                          <MessageSquare size={14} className="text-primary-500 mt-1 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{note.content}</p>
+                            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                              {new Date(note.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              {' '}
+                              {new Date(note.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1232,7 +1530,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
         // Backdrop + positioning wrapper. Clicking outside the panel should close the modal.
         // No desktop, este modal não deve cobrir a sidebar de navegação.
         // Em md+ deslocamos o overlay pela largura da sidebar via `--app-sidebar-width`.
-        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}
