@@ -106,6 +106,28 @@ export const useContactsController = () => {
   const { addToast, showToast } = useToast();
   const searchParams = useSearchParams();
 
+  // Detail modal state (query param ?cockpit=<id>)
+  const [detailContactId, setDetailContactId] = useState<string | null>(
+    () => searchParams?.get('cockpit') || null
+  );
+
+  const openDetailModal = useCallback((contactId: string) => {
+    setDetailContactId(contactId);
+    const params = new URLSearchParams(window.location.search);
+    params.set('cockpit', contactId);
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }, []);
+
+  const closeDetailModal = useCallback(() => {
+    setDetailContactId(null);
+    const params = new URLSearchParams(window.location.search);
+    params.delete('cockpit');
+    const newUrl = params.toString()
+      ? `${window.location.pathname}?${params.toString()}`
+      : window.location.pathname;
+    window.history.replaceState(null, '', newUrl);
+  }, []);
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<
     'ALL' | 'ACTIVE' | 'INACTIVE' | 'CHURNED' | 'RISK'
@@ -767,6 +789,11 @@ export const useContactsController = () => {
   );
 
   return {
+    // Detail modal
+    detailContactId,
+    openDetailModal,
+    closeDetailModal,
+
     // State
     search,
     setSearch,

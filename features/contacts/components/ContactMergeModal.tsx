@@ -98,7 +98,7 @@ export const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
 
     onMergeComplete?.();
     onClose();
-    router.push(`/contacts/${contactA.id}/cockpit`);
+    router.push(`/contacts?cockpit=${contactA.id}`);
   }, [contactA, contactB, selections, profile, onClose, onMergeComplete, router]);
 
   if (!isOpen) return null;

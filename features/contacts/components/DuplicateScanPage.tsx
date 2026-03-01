@@ -172,7 +172,7 @@ export const DuplicateScanPage: React.FC = () => {
                     </div>
                   </div>
                   <Button
-                    onClick={() => router.push(`/contacts/${contact.id}/cockpit`)}
+                    onClick={() => router.push(`/contacts?cockpit=${contact.id}`)}
                     className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
                     type="button"
                   >

@@ -56,6 +56,8 @@ interface ContactFormModalProps {
   isSubmitting?: boolean;
   /** Ref compartilhado para preferencias buffered durante criacao */
   bufferedPrefsRef?: React.MutableRefObject<ContactPreference[]>;
+  /** Callback to open contact detail modal instead of navigating */
+  onOpenDetail?: (contactId: string) => void;
 }
 
 import { INPUT_CLASS, LABEL_CLASS, LEGEND_CLASS, INPUT_ERROR_CLASS } from '@/features/contacts/constants';
@@ -73,6 +75,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   createFakeContactsBatch,
   isSubmitting = false,
   bufferedPrefsRef,
+  onOpenDetail,
 }) => {
   const headingId = useId();
   const router = useRouter();
@@ -93,8 +96,12 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   const handleOpenCockpit = useCallback(() => {
     if (!editingContact) return;
     onClose();
-    router.push(`/contacts/${editingContact.id}/cockpit`);
-  }, [editingContact, onClose, router]);
+    if (onOpenDetail) {
+      onOpenDetail(editingContact.id);
+    } else {
+      router.push(`/contacts?cockpit=${editingContact.id}`);
+    }
+  }, [editingContact, onClose, onOpenDetail, router]);
 
   React.useEffect(() => {
     if (isOpen && editingContact?.id) {
@@ -282,7 +289,11 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
     setDuplicateMatches([]);
     setPendingSubmitEvent(null);
     onClose();
-    router.push(`/contacts/${contactId}/cockpit`);
+    if (onOpenDetail) {
+      onOpenDetail(contactId);
+    } else {
+      router.push(`/contacts?cockpit=${contactId}`);
+    }
   };
 
   return (

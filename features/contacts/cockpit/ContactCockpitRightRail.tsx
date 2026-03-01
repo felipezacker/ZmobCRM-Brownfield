@@ -42,6 +42,8 @@ interface ContactCockpitRightRailProps {
   onNoteDeleted: (noteId: string) => void;
   /** Contact snapshot for AI context */
   contactSnapshot: Record<string, unknown> | undefined;
+  /** When provided, used instead of router.push for deal click */
+  onOpenDeal?: (dealId: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -79,6 +81,7 @@ export function ContactCockpitRightRail({
   onNoteCreated,
   onNoteDeleted,
   contactSnapshot,
+  onOpenDeal,
 }: ContactCockpitRightRailProps) {
   const router = useRouter();
   const [tab, setTab] = useState<RightTab>('deals');
@@ -244,7 +247,7 @@ export function ContactCockpitRightRail({
                     key={deal.id}
                     type="button"
                     className="w-full rounded-xl border border-white/10 bg-white/2 p-3 text-left hover:bg-white/5 transition-colors"
-                    onClick={() => router.push(`/deals/${deal.id}/cockpit`)}
+                    onClick={() => onOpenDeal ? onOpenDeal(deal.id) : router.push(`/deals/${deal.id}/cockpit`)}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">

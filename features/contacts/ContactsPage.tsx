@@ -8,6 +8,7 @@ import { ContactsTabs } from './components/ContactsTabs';
 import { ContactsStageTabs } from './components/ContactsStageTabs';
 import { ContactsList } from './components/ContactsList';
 import { ContactFormModal } from './components/ContactFormModal';
+import { ContactDetailModal } from './components/ContactDetailModal';
 import { SelectBoardModal } from './components/SelectBoardModal';
 import { PaginationControls } from './components/PaginationControls';
 import { ContactsImportExportModal } from './components/ContactsImportExportModal';
@@ -142,6 +143,7 @@ export const ContactsPage: React.FC = () => {
                 onSort={controller.handleSort}
                 profiles={controller.profiles}
                 totalCount={controller.totalCount}
+                openDetailModal={controller.openDetailModal}
             />
 
             {/* T021: Pagination Controls */}
@@ -155,6 +157,12 @@ export const ContactsPage: React.FC = () => {
                 />
             )}
 
+            <ContactDetailModal
+                contactId={controller.detailContactId}
+                isOpen={!!controller.detailContactId}
+                onClose={controller.closeDetailModal}
+            />
+
             <ContactFormModal
                 isOpen={controller.isModalOpen}
                 onClose={() => controller.setIsModalOpen(false)}
@@ -165,6 +173,7 @@ export const ContactsPage: React.FC = () => {
                 createFakeContactsBatch={controller.createFakeContactsBatch}
                 isSubmitting={controller.isSubmittingContact}
                 bufferedPrefsRef={controller.bufferedPrefsRef}
+                onOpenDetail={controller.openDetailModal}
             />
 
             <SelectBoardModal

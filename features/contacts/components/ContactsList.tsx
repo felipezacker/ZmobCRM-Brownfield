@@ -192,6 +192,8 @@ interface ContactsListProps {
     // Story 3.5 props
     profiles?: ProfileInfo[];
     totalCount?: number;
+    /** Opens the contact detail modal */
+    openDetailModal?: (contactId: string) => void;
 }
 
 /**
@@ -211,6 +213,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     onSort,
     profiles = [],
     totalCount,
+    openDetailModal,
 }) => {
     // Story 3.5 — Map profiles for quick lookup
     const profilesMap = React.useMemo(() => {
@@ -302,15 +305,21 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                         <div className="flex items-center gap-3">
                                             <Button
                                                 type="button"
-                                                onClick={() => openEditModal(contact)}
+                                                onClick={() => openDetailModal ? openDetailModal(contact.id) : openEditModal(contact)}
                                                 className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 text-primary-700 dark:text-primary-200 flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white dark:ring-white/5 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-dark-card"
-                                                aria-label={`Editar contato: ${contact.name || 'Sem nome'}`}
+                                                aria-label={`Ver detalhes: ${contact.name || 'Sem nome'}`}
                                                 title={contact.name || 'Sem nome'}
                                             >
                                                 {(contact.name || '?').charAt(0)}
                                             </Button>
                                             <div>
-                                                <span className="font-semibold text-slate-900 dark:text-white block">{contact.name}</span>
+                                                <Button
+                                                    type="button"
+                                                    onClick={() => openDetailModal ? openDetailModal(contact.id) : openEditModal(contact)}
+                                                    className="font-semibold text-slate-900 dark:text-white block hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left"
+                                                >
+                                                    {contact.name}
+                                                </Button>
                                             </div>
                                         </div>
                                     </td>

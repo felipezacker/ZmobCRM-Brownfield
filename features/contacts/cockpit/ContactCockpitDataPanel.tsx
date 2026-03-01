@@ -17,6 +17,8 @@ import {
   Plus,
   X,
   PenTool,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 import { Panel, Chip } from '@/features/deals/cockpit/cockpit-ui';
@@ -101,6 +103,49 @@ function TemperatureBadge({ temperature }: { temperature?: string }) {
 }
 
 // ---------------------------------------------------------------------------
+// Inline-editable input/select classes (mirrors DealDetailModal pattern)
+// ---------------------------------------------------------------------------
+const INPUT_CLASS =
+  'w-full bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-cyan-500 placeholder-slate-500';
+const SELECT_CLASS =
+  'w-full bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-cyan-500 appearance-none';
+
+// ---------------------------------------------------------------------------
+// Collapsible Section
+// ---------------------------------------------------------------------------
+function CollapsibleSection({
+  title,
+  icon,
+  children,
+  defaultOpen = true,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/3">
+      <Button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-2 px-4 py-2.5 text-left"
+      >
+        {icon}
+        <span className="flex-1 text-xs font-semibold text-slate-200">{title}</span>
+        {open ? (
+          <ChevronDown className="h-3.5 w-3.5 text-slate-500" />
+        ) : (
+          <ChevronRight className="h-3.5 w-3.5 text-slate-500" />
+        )}
+      </Button>
+      {open && <div className="px-4 pb-3">{children}</div>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
@@ -113,6 +158,8 @@ interface ContactCockpitDataPanelProps {
   onAddTag: (tag: string) => void;
   onRemoveTag: (tag: string) => void;
   onUpdateCustomField: (key: string, value: string) => void;
+  /** When provided, fields become inline-editable with onBlur save */
+  onUpdateContact?: (updates: Partial<Contact>) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,7 +175,9 @@ export function ContactCockpitDataPanel({
   onAddTag,
   onRemoveTag,
   onUpdateCustomField,
+  onUpdateContact,
 }: ContactCockpitDataPanelProps) {
+  const editable = !!onUpdateContact;
   const [tagQuery, setTagQuery] = React.useState('');
   const contactTags = contact.tags || [];
   const contactTagsLower = new Set(contactTags.map(t => t.toLowerCase()));
@@ -157,43 +206,44 @@ export function ContactCockpitDataPanel({
       <TemperatureBadge temperature={contact.temperature} />
 
       {/* Main Data */}
-      <Panel
+      <CollapsibleSection
         title="Dados"
         icon={<User className="h-4 w-4 text-slate-300" />}
       >
         <div className="space-y-2 text-xs">
-          {contact.cpf && (
-            <Row label="CPF" value={formatCPF(contact.cpf)} />
-          )}
-          <Row label="Email" value={contact.email || '\u2014'} />
-          <Row label="Telefone" value={contact.phone || '\u2014'} />
-          <Row
-            label="Classificacao"
-            value={CLASSIFICATION_LABELS[contact.classification || ''] || '\u2014'}
-          />
-          <Row
-            label="Tipo"
-            value={contact.contactType === 'PJ' ? 'Pessoa Juridica' : 'Pessoa Fisica'}
-          />
-          <Row
-            label="Origem"
-            value={SOURCE_LABELS[contact.source || ''] || '\u2014'}
-          />
-          <Row label="Status" value={contact.status || '\u2014'} />
-          {(contact.addressCep || contact.addressCity || contact.addressState) && (
-            <Row
-              label="Endereco"
-              value={[contact.addressCep, contact.addressCity, contact.addressState]
-                .filter(Boolean)
-                .join(' - ')}
-            />
+          {editable ? (
+            <>
+              <EditableRow label="Nome" value={contact.name || ''} onSave={(v) => onUpdateContact!({ name: v })} />
+              <EditableRow label="Email" value={contact.email || ''} onSave={(v) => onUpdateContact!({ email: v })} />
+              <EditableRow label="Telefone" value={contact.phone || ''} onSave={(v) => onUpdateContact!({ phone: v })} />
+              <EditableRow label="CPF" value={contact.cpf ? formatCPF(contact.cpf) : ''} onSave={(v) => onUpdateContact!({ cpf: v.replace(/\D/g, '') })} />
+              <SelectRow label="Classificacao" value={contact.classification || ''} options={Object.entries(CLASSIFICATION_LABELS).map(([k, v]) => ({ value: k, label: v }))} onSave={(v) => onUpdateContact!({ classification: v as Contact['classification'] })} />
+              <SelectRow label="Temperatura" value={contact.temperature || 'WARM'} options={[{ value: 'HOT', label: 'Quente' }, { value: 'WARM', label: 'Morno' }, { value: 'COLD', label: 'Frio' }]} onSave={(v) => onUpdateContact!({ temperature: v as Contact['temperature'] })} />
+              <SelectRow label="Tipo" value={contact.contactType || 'PF'} options={[{ value: 'PF', label: 'Pessoa Fisica' }, { value: 'PJ', label: 'Pessoa Juridica' }]} onSave={(v) => onUpdateContact!({ contactType: v as Contact['contactType'] })} />
+              <SelectRow label="Origem" value={contact.source || ''} options={Object.entries(SOURCE_LABELS).map(([k, v]) => ({ value: k, label: v }))} onSave={(v) => onUpdateContact!({ source: v as Contact['source'] })} />
+              <EditableRow label="Endereco" value={[contact.addressCep, contact.addressCity, contact.addressState].filter(Boolean).join(' - ')} />
+              <EditableTextarea label="Notas" value={contact.notes || ''} onSave={(v) => onUpdateContact!({ notes: v })} />
+            </>
+          ) : (
+            <>
+              {contact.cpf && <Row label="CPF" value={formatCPF(contact.cpf)} />}
+              <Row label="Email" value={contact.email || '\u2014'} />
+              <Row label="Telefone" value={contact.phone || '\u2014'} />
+              <Row label="Classificacao" value={CLASSIFICATION_LABELS[contact.classification || ''] || '\u2014'} />
+              <Row label="Tipo" value={contact.contactType === 'PJ' ? 'Pessoa Juridica' : 'Pessoa Fisica'} />
+              <Row label="Origem" value={SOURCE_LABELS[contact.source || ''] || '\u2014'} />
+              <Row label="Status" value={contact.status || '\u2014'} />
+              {(contact.addressCep || contact.addressCity || contact.addressState) && (
+                <Row label="Endereco" value={[contact.addressCep, contact.addressCity, contact.addressState].filter(Boolean).join(' - ')} />
+              )}
+            </>
           )}
         </div>
-      </Panel>
+      </CollapsibleSection>
 
       {/* Phones */}
       {phones.length > 0 && (
-        <Panel
+        <CollapsibleSection
           title="Telefones"
           icon={<PhoneIcon className="h-4 w-4 text-slate-300" />}
         >
@@ -220,11 +270,11 @@ export function ContactCockpitDataPanel({
               </div>
             ))}
           </div>
-        </Panel>
+        </CollapsibleSection>
       )}
 
       {/* Tags */}
-      <Panel
+      <CollapsibleSection
         title="Tags"
         icon={<TagIcon className="h-4 w-4 text-slate-300" />}
       >
@@ -293,11 +343,11 @@ export function ContactCockpitDataPanel({
             </div>
           )}
         </div>
-      </Panel>
+      </CollapsibleSection>
 
       {/* Custom Fields */}
       {customFieldDefinitions.length > 0 && (
-        <Panel
+        <CollapsibleSection
           title="Campos Personalizados"
           icon={<PenTool className="h-4 w-4 text-slate-300" />}
         >
@@ -331,14 +381,15 @@ export function ContactCockpitDataPanel({
               </div>
             ))}
           </div>
-        </Panel>
+        </CollapsibleSection>
       )}
 
       {/* Preferences */}
       {preferences && (
-        <Panel
+        <CollapsibleSection
           title="Preferencias"
           icon={<Search className="h-4 w-4 text-slate-300" />}
+          defaultOpen={false}
         >
           <div className="space-y-2 text-xs">
             {preferences.propertyTypes.length > 0 && (
@@ -392,14 +443,14 @@ export function ContactCockpitDataPanel({
               </div>
             )}
           </div>
-        </Panel>
+        </CollapsibleSection>
       )}
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Row helper
+// Row helpers
 // ---------------------------------------------------------------------------
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -407,6 +458,58 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between gap-2">
       <span className="text-slate-500 shrink-0">{label}</span>
       <span className="text-slate-200 truncate text-right">{value}</span>
+    </div>
+  );
+}
+
+function EditableRow({ label, value, onSave }: { label: string; value: string; onSave?: (v: string) => void }) {
+  const [draft, setDraft] = React.useState(value);
+  React.useEffect(() => { setDraft(value); }, [value]);
+  if (!onSave) return <Row label={label} value={value || '\u2014'} />;
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-slate-500 shrink-0">{label}</span>
+      <input
+        className={INPUT_CLASS + ' max-w-[180px] text-right'}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => { if (draft !== value) onSave(draft); }}
+        onKeyDown={(e) => { if (e.key === 'Enter') { e.currentTarget.blur(); } }}
+      />
+    </div>
+  );
+}
+
+function SelectRow({ label, value, options, onSave }: { label: string; value: string; options: { value: string; label: string }[]; onSave: (v: string) => void }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-slate-500 shrink-0">{label}</span>
+      <select
+        className={SELECT_CLASS + ' max-w-[180px] text-right'}
+        value={value}
+        onChange={(e) => onSave(e.target.value)}
+      >
+        <option value="">—</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function EditableTextarea({ label, value, onSave }: { label: string; value: string; onSave: (v: string) => void }) {
+  const [draft, setDraft] = React.useState(value);
+  React.useEffect(() => { setDraft(value); }, [value]);
+  return (
+    <div className="space-y-1">
+      <span className="text-slate-500 text-xs">{label}</span>
+      <textarea
+        className={INPUT_CLASS + ' min-h-[50px] resize-none'}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => { if (draft !== value) onSave(draft); }}
+      />
     </div>
   );
 }
