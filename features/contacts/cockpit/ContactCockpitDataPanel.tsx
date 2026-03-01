@@ -7,12 +7,8 @@ import {
   Thermometer,
   Phone as PhoneIcon,
   MessageCircle,
-  MapPin,
-  Mail,
   User,
   Tag as TagIcon,
-  Home,
-  DollarSign,
   Search,
   Plus,
   X,
@@ -21,8 +17,9 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
-import { Panel, Chip } from '@/features/deals/cockpit/cockpit-ui';
+import { Chip } from '@/features/deals/cockpit/cockpit-ui';
 import { formatCurrencyBRL } from '@/features/deals/cockpit/cockpit-utils';
+import { CLASSIFICATION_LABELS, SOURCE_LABELS } from '@/features/contacts/constants';
 import type { Contact, ContactPhone, ContactPreference, CustomFieldDefinition } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -34,22 +31,6 @@ function formatCPF(cpf: string): string {
   if (digits.length !== 11) return cpf;
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 }
-
-const CLASSIFICATION_LABELS: Record<string, string> = {
-  COMPRADOR: 'Comprador',
-  VENDEDOR: 'Vendedor',
-  LOCATARIO: 'Locatario',
-  LOCADOR: 'Locador',
-  INVESTIDOR: 'Investidor',
-  PERMUTANTE: 'Permutante',
-};
-
-const SOURCE_LABELS: Record<string, string> = {
-  WEBSITE: 'Website',
-  LINKEDIN: 'LinkedIn',
-  REFERRAL: 'Indicacao',
-  MANUAL: 'Manual',
-};
 
 const URGENCY_LABELS: Record<string, string> = {
   IMMEDIATE: 'Imediata',
@@ -72,10 +53,10 @@ function TemperatureBadge({ temperature }: { temperature?: string }) {
   if (temperature === 'HOT') {
     return (
       <div className="flex items-center gap-2 rounded-xl bg-red-500/15 px-3 py-2 ring-1 ring-red-500/20">
-        <Flame className="h-5 w-5 text-red-400" />
+        <Flame className="h-5 w-5 text-red-500 dark:text-red-400" />
         <div>
-          <div className="text-xs font-bold text-red-300">Quente</div>
-          <div className="text-[10px] text-red-400/70">Alta prioridade</div>
+          <div className="text-xs font-bold text-red-600 dark:text-red-300">Quente</div>
+          <div className="text-[10px] text-red-500/70 dark:text-red-400/70">Alta prioridade</div>
         </div>
       </div>
     );
@@ -83,20 +64,20 @@ function TemperatureBadge({ temperature }: { temperature?: string }) {
   if (temperature === 'COLD') {
     return (
       <div className="flex items-center gap-2 rounded-xl bg-blue-500/15 px-3 py-2 ring-1 ring-blue-500/20">
-        <Snowflake className="h-5 w-5 text-blue-400" />
+        <Snowflake className="h-5 w-5 text-blue-500 dark:text-blue-400" />
         <div>
-          <div className="text-xs font-bold text-blue-300">Frio</div>
-          <div className="text-[10px] text-blue-400/70">Baixa prioridade</div>
+          <div className="text-xs font-bold text-blue-600 dark:text-blue-300">Frio</div>
+          <div className="text-[10px] text-blue-500/70 dark:text-blue-400/70">Baixa prioridade</div>
         </div>
       </div>
     );
   }
   return (
     <div className="flex items-center gap-2 rounded-xl bg-amber-500/15 px-3 py-2 ring-1 ring-amber-500/20">
-      <Thermometer className="h-5 w-5 text-amber-400" />
+      <Thermometer className="h-5 w-5 text-amber-500 dark:text-amber-400" />
       <div>
-        <div className="text-xs font-bold text-amber-300">Morno</div>
-        <div className="text-[10px] text-amber-400/70">Prioridade media</div>
+        <div className="text-xs font-bold text-amber-600 dark:text-amber-300">Morno</div>
+        <div className="text-[10px] text-amber-500/70 dark:text-amber-400/70">Prioridade media</div>
       </div>
     </div>
   );
@@ -106,9 +87,9 @@ function TemperatureBadge({ temperature }: { temperature?: string }) {
 // Inline-editable input/select classes (mirrors DealDetailModal pattern)
 // ---------------------------------------------------------------------------
 const INPUT_CLASS =
-  'w-full bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-cyan-500 placeholder-slate-500';
+  'w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500 placeholder-slate-400 dark:placeholder-slate-500';
 const SELECT_CLASS =
-  'w-full bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:ring-1 focus:ring-cyan-500 appearance-none';
+  'w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500 appearance-none';
 
 // ---------------------------------------------------------------------------
 // Collapsible Section
@@ -126,14 +107,14 @@ function CollapsibleSection({
 }) {
   const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/3">
+    <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03]">
       <Button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center gap-2 px-4 py-2.5 text-left"
       >
         {icon}
-        <span className="flex-1 text-xs font-semibold text-slate-200">{title}</span>
+        <span className="flex-1 text-xs font-semibold text-slate-700 dark:text-slate-200">{title}</span>
         {open ? (
           <ChevronDown className="h-3.5 w-3.5 text-slate-500" />
         ) : (
@@ -208,7 +189,7 @@ export function ContactCockpitDataPanel({
       {/* Main Data */}
       <CollapsibleSection
         title="Dados"
-        icon={<User className="h-4 w-4 text-slate-300" />}
+        icon={<User className="h-4 w-4 text-slate-500 dark:text-slate-300" />}
       >
         <div className="space-y-2 text-xs">
           {editable ? (
@@ -221,7 +202,9 @@ export function ContactCockpitDataPanel({
               <SelectRow label="Temperatura" value={contact.temperature || 'WARM'} options={[{ value: 'HOT', label: 'Quente' }, { value: 'WARM', label: 'Morno' }, { value: 'COLD', label: 'Frio' }]} onSave={(v) => onUpdateContact!({ temperature: v as Contact['temperature'] })} />
               <SelectRow label="Tipo" value={contact.contactType || 'PF'} options={[{ value: 'PF', label: 'Pessoa Fisica' }, { value: 'PJ', label: 'Pessoa Juridica' }]} onSave={(v) => onUpdateContact!({ contactType: v as Contact['contactType'] })} />
               <SelectRow label="Origem" value={contact.source || ''} options={Object.entries(SOURCE_LABELS).map(([k, v]) => ({ value: k, label: v }))} onSave={(v) => onUpdateContact!({ source: v as Contact['source'] })} />
-              <EditableRow label="Endereco" value={[contact.addressCep, contact.addressCity, contact.addressState].filter(Boolean).join(' - ')} />
+              <EditableRow label="CEP" value={contact.addressCep || ''} onSave={(v) => onUpdateContact!({ addressCep: v })} />
+              <EditableRow label="Cidade" value={contact.addressCity || ''} onSave={(v) => onUpdateContact!({ addressCity: v })} />
+              <EditableRow label="UF" value={contact.addressState || ''} onSave={(v) => onUpdateContact!({ addressState: v })} />
               <EditableTextarea label="Notas" value={contact.notes || ''} onSave={(v) => onUpdateContact!({ notes: v })} />
             </>
           ) : (
@@ -245,7 +228,7 @@ export function ContactCockpitDataPanel({
       {phones.length > 0 && (
         <CollapsibleSection
           title="Telefones"
-          icon={<PhoneIcon className="h-4 w-4 text-slate-300" />}
+          icon={<PhoneIcon className="h-4 w-4 text-slate-500 dark:text-slate-300" />}
         >
           <div className="space-y-2">
             {phones.map((p) => (
@@ -257,7 +240,7 @@ export function ContactCockpitDataPanel({
                   {p.isWhatsapp && (
                     <MessageCircle className="h-3.5 w-3.5 shrink-0 text-green-400" />
                   )}
-                  <span className="font-mono text-slate-200 truncate">
+                  <span className="font-mono text-slate-800 dark:text-slate-200 truncate">
                     {p.phoneNumber}
                   </span>
                 </div>
@@ -276,7 +259,7 @@ export function ContactCockpitDataPanel({
       {/* Tags */}
       <CollapsibleSection
         title="Tags"
-        icon={<TagIcon className="h-4 w-4 text-slate-300" />}
+        icon={<TagIcon className="h-4 w-4 text-slate-500 dark:text-slate-300" />}
       >
         <div className="flex flex-wrap gap-2">
           {contactTags.length === 0 ? (
@@ -285,7 +268,7 @@ export function ContactCockpitDataPanel({
             contactTags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-white/5 text-slate-300 border border-white/10"
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10"
               >
                 {tag}
                 <Button
@@ -314,7 +297,7 @@ export function ContactCockpitDataPanel({
                 }
               }}
               placeholder="Adicionar tag..."
-              className="min-w-0 flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-cyan-500 text-white placeholder-slate-500"
+              className="min-w-0 flex-1 bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
               aria-label="Adicionar tag"
             />
             <Button
@@ -329,13 +312,13 @@ export function ContactCockpitDataPanel({
           </div>
 
           {normalizeTag(tagQuery) && tagSuggestions.length > 0 && (
-            <div className="mt-2 bg-black/20 border border-white/10 rounded-lg overflow-hidden">
+            <div className="mt-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg overflow-hidden shadow-sm">
               {tagSuggestions.map((t) => (
                 <Button
                   key={t}
                   type="button"
                   onClick={() => handleAddTag(t)}
-                  className="w-full text-left px-3 py-1.5 text-xs text-slate-200 hover:bg-white/5 transition-colors"
+                  className="w-full text-left px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
                 >
                   {t}
                 </Button>
@@ -349,7 +332,7 @@ export function ContactCockpitDataPanel({
       {customFieldDefinitions.length > 0 && (
         <CollapsibleSection
           title="Campos Personalizados"
-          icon={<PenTool className="h-4 w-4 text-slate-300" />}
+          icon={<PenTool className="h-4 w-4 text-slate-500 dark:text-slate-300" />}
         >
           <div className="space-y-3">
             {customFieldDefinitions.map((field) => (
@@ -361,7 +344,7 @@ export function ContactCockpitDataPanel({
                   <select
                     value={contact.customFields?.[field.key] || ''}
                     onChange={(e) => onUpdateCustomField(field.key, e.target.value)}
-                    className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:ring-1 focus:ring-cyan-500"
+                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500"
                   >
                     <option value="">Selecione...</option>
                     {field.options?.map((opt) => (
@@ -375,7 +358,7 @@ export function ContactCockpitDataPanel({
                     type={field.type}
                     value={contact.customFields?.[field.key] || ''}
                     onChange={(e) => onUpdateCustomField(field.key, e.target.value)}
-                    className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:ring-1 focus:ring-cyan-500"
+                    className="w-full bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500"
                   />
                 )}
               </div>
@@ -388,7 +371,7 @@ export function ContactCockpitDataPanel({
       {preferences && (
         <CollapsibleSection
           title="Preferencias"
-          icon={<Search className="h-4 w-4 text-slate-300" />}
+          icon={<Search className="h-4 w-4 text-slate-500 dark:text-slate-300" />}
           defaultOpen={false}
         >
           <div className="space-y-2 text-xs">
@@ -457,7 +440,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-2">
       <span className="text-slate-500 shrink-0">{label}</span>
-      <span className="text-slate-200 truncate text-right">{value}</span>
+      <span className="text-slate-800 dark:text-slate-200 truncate text-right">{value}</span>
     </div>
   );
 }

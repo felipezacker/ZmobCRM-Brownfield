@@ -20,32 +20,7 @@ import { ContactCockpitDataPanel } from '../cockpit/ContactCockpitDataPanel';
 import { ContactCockpitTimeline } from '../cockpit/ContactCockpitTimeline';
 import { ContactCockpitRightRail } from '../cockpit/ContactCockpitRightRail';
 import { ContactCockpitPipelineBar } from '../cockpit/ContactCockpitPipelineBar';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-const CLASSIFICATION_LABELS: Record<string, string> = {
-  COMPRADOR: 'Comprador',
-  VENDEDOR: 'Vendedor',
-  LOCATARIO: 'Locatario',
-  LOCADOR: 'Locador',
-  INVESTIDOR: 'Investidor',
-  PERMUTANTE: 'Permutante',
-};
-
-const TEMPERATURE_CONFIG: Record<string, { label: string; cls: string }> = {
-  HOT: { label: 'Quente', cls: 'bg-red-500/15 text-red-300 ring-1 ring-red-500/20' },
-  WARM: { label: 'Morno', cls: 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20' },
-  COLD: { label: 'Frio', cls: 'bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/20' },
-};
-
-const STAGE_LABELS: Record<string, string> = {
-  LEAD: 'Lead',
-  MQL: 'MQL',
-  PROSPECT: 'Prospect',
-  CUSTOMER: 'Cliente',
-};
+import { CLASSIFICATION_LABELS, TEMPERATURE_CONFIG, STAGE_LABELS } from '../constants';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -281,20 +256,20 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
   if (isLoading || !contact) {
     return (
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 dark:bg-black/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
         onClick={onClose}
       >
-        <div className="max-w-xl w-full rounded-2xl border border-white/10 bg-slate-900 p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="max-w-xl w-full rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between gap-3">
-            <div className="text-lg font-semibold text-slate-100">Carregando contato...</div>
-            <Button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:text-slate-200 hover:bg-white/5">
+            <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">Carregando contato...</div>
+            <Button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5">
               <X className="h-4 w-4" />
             </Button>
           </div>
           <div className="mt-4 space-y-3">
-            <div className="h-4 w-2/3 rounded bg-white/10 animate-pulse" />
-            <div className="h-4 w-full rounded bg-white/10 animate-pulse" />
-            <div className="h-4 w-5/6 rounded bg-white/10 animate-pulse" />
+            <div className="h-4 w-2/3 rounded bg-slate-200 dark:bg-white/10 animate-pulse" />
+            <div className="h-4 w-full rounded bg-slate-200 dark:bg-white/10 animate-pulse" />
+            <div className="h-4 w-5/6 rounded bg-slate-200 dark:bg-white/10 animate-pulse" />
           </div>
         </div>
       </div>
@@ -320,12 +295,12 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
     <FocusTrap active onEscape={onClose} clickOutsideDeactivates>
       {/* Overlay */}
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 dark:bg-black/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
         onClick={onClose}
       >
         {/* Panel */}
         <div
-          className={`flex flex-col overflow-hidden bg-slate-950 text-slate-100 border border-white/10 shadow-2xl ${
+          className={`flex flex-col overflow-hidden bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-white/10 shadow-2xl ${
             isMobile
               ? 'fixed inset-0 rounded-none'
               : 'relative max-w-7xl w-[95vw] h-[90vh] rounded-2xl'
@@ -336,35 +311,35 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
           aria-labelledby={headingId}
         >
           {/* ---- HEADER ---- */}
-          <div className="sticky top-0 z-40 border-b border-white/5 bg-black/40 backdrop-blur shrink-0">
+          <div className="sticky top-0 z-40 border-b border-slate-200 dark:border-white/5 bg-slate-50/80 dark:bg-black/40 backdrop-blur shrink-0">
             <div className="flex items-center justify-between px-6 py-3">
               <div className="flex items-center gap-4 min-w-0">
                 {/* Avatar */}
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500/20 to-violet-500/20 ring-1 ring-white/10">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-cyan-500/20 dark:to-violet-500/20 ring-1 ring-slate-200 dark:ring-white/10">
                   {contact.avatar ? (
                     <Image src={contact.avatar} alt={contact.name} width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
                   ) : (
-                    <span className="text-sm font-bold text-slate-300">{initials}</span>
+                    <span className="text-sm font-bold text-primary-700 dark:text-slate-300">{initials}</span>
                   )}
                 </div>
 
                 {/* Name + badges */}
                 <div className="min-w-0">
                   <div className="flex items-center gap-2" id={headingId}>
-                    <h1 className="text-sm font-semibold text-slate-100 truncate">{contact.name}</h1>
+                    <h1 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{contact.name}</h1>
                     {contact.classification && (
-                      <span className="inline-flex items-center rounded-full bg-white/8 px-2.5 py-0.5 text-[10px] font-semibold text-slate-300 ring-1 ring-white/10">
+                      <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-white/[0.08] px-2.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300 ring-1 ring-slate-200 dark:ring-white/10">
                         {CLASSIFICATION_LABELS[contact.classification] || contact.classification}
                       </span>
                     )}
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${tempConfig.cls}`}>
                       {tempConfig.label}
                     </span>
-                    <span className="inline-flex items-center rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-[10px] font-semibold text-cyan-300 ring-1 ring-cyan-500/20">
+                    <span className="inline-flex items-center rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-[10px] font-semibold text-cyan-700 dark:text-cyan-300 ring-1 ring-cyan-500/20">
                       {STAGE_LABELS[contact.stage] || contact.stage}
                     </span>
                   </div>
-                  <div className="mt-0.5 text-[11px] text-slate-500">
+                  <div className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-500">
                     {contact.email || 'Sem email'} | {contact.phone || 'Sem telefone'}
                   </div>
                 </div>
@@ -376,7 +351,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                 {phoneNumber && (
                   <a
                     href={`tel:${phoneNumber}`}
-                    className="rounded-lg border border-white/10 bg-white/3 p-2 hover:bg-white/5 transition-colors"
+                    className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/[0.03] p-2 hover:bg-slate-200 dark:hover:bg-white/5 transition-colors"
                     title={`Ligar: ${phoneNumber}`}
                   >
                     <PhoneIcon className="h-4 w-4 text-green-400" />
@@ -388,7 +363,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                     href={`https://wa.me/${waNumber.replace(/\D/g, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-lg border border-white/10 bg-white/3 p-2 hover:bg-white/5 transition-colors"
+                    className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/[0.03] p-2 hover:bg-slate-200 dark:hover:bg-white/5 transition-colors"
                     title={`WhatsApp: ${waNumber}`}
                   >
                     <MessageCircle className="h-4 w-4 text-green-400" />
@@ -398,7 +373,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                 {contact.email && (
                   <a
                     href={`mailto:${contact.email}`}
-                    className="rounded-lg border border-white/10 bg-white/3 p-2 hover:bg-white/5 transition-colors"
+                    className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/[0.03] p-2 hover:bg-slate-200 dark:hover:bg-white/5 transition-colors"
                     title={`Email: ${contact.email}`}
                   >
                     <Mail className="h-4 w-4 text-amber-400" />
@@ -408,10 +383,10 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                 <Button
                   type="button"
                   onClick={onClose}
-                  className="rounded-lg border border-white/10 bg-white/3 p-2 hover:bg-white/5"
+                  className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/[0.03] p-2 hover:bg-slate-200 dark:hover:bg-white/5"
                   title="Fechar"
                 >
-                  <X className="h-4 w-4 text-slate-300" />
+                  <X className="h-4 w-4 text-slate-500 dark:text-slate-300" />
                 </Button>
               </div>
             </div>

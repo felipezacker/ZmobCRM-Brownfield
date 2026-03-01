@@ -147,24 +147,24 @@ export function ContactCockpitTimeline({
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       {/* Header + search */}
       <div className="flex items-center justify-between gap-3">
-        <div className="text-sm font-semibold text-slate-100">Timeline Unificada</div>
-        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-3 py-2">
+        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">Timeline Unificada</div>
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] px-3 py-2">
           <Search className="h-4 w-4 text-slate-400" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar atividades..."
-            className="w-44 bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-600"
+            className="w-44 bg-transparent text-xs text-slate-800 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
           />
         </div>
       </div>
 
       {/* Timeline list */}
-      <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-white/10 bg-white/3">
-        <div className="flex-1 min-h-0 overflow-auto divide-y divide-white/10">
+      <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03]">
+        <div className="flex-1 min-h-0 overflow-auto divide-y divide-slate-200 dark:divide-white/10">
           {filtered.length === 0 ? (
             <div className="px-6 py-10 text-center">
-              <div className="text-sm font-semibold text-slate-200">
+              <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                 {activities.length === 0 ? 'Sem atividades ainda' : 'Sem resultados'}
               </div>
               <div className="mt-2 text-xs text-slate-500">
@@ -183,8 +183,8 @@ export function ContactCockpitTimeline({
                       <div className="flex items-center gap-2">
                         <span className={`text-xs font-semibold ${
                           a.type === 'SCORE_CHANGE'
-                            ? (a.scoreChange ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'
-                            : 'text-slate-200'
+                            ? (a.scoreChange ?? 0) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                            : 'text-slate-800 dark:text-slate-200'
                         }`}>
                           {a.title || typeLabel(a.type)}
                         </span>
@@ -210,14 +210,14 @@ export function ContactCockpitTimeline({
       </div>
 
       {/* Quick note input (AC 4) */}
-      <div className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/3 p-4">
-        <label className="block text-xs font-semibold text-slate-400">
+      <div className="flex min-h-0 flex-col rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] p-4">
+        <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400">
           Nota rapida
         </label>
         <textarea
           value={noteDraft}
           onChange={(e) => setNoteDraft(e.target.value)}
-          className="mt-2 min-h-[60px] w-full resize-none rounded-xl border border-white/10 bg-white/2 p-3 text-sm text-slate-200 outline-none placeholder:text-slate-600"
+          className="mt-2 min-h-[60px] w-full resize-none rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.02] p-3 text-sm text-slate-800 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
           placeholder="Escreva uma nota sobre este contato..."
         />
         {saveError && (
@@ -231,7 +231,7 @@ export function ContactCockpitTimeline({
           </div>
           <Button
             type="button"
-            className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-50"
+            className="rounded-xl bg-primary-600 dark:bg-white px-4 py-2 text-xs font-semibold text-white dark:text-slate-900 hover:bg-primary-500 dark:hover:bg-slate-100 disabled:opacity-50"
             onClick={handleSaveNote}
             disabled={saving || !noteDraft.trim()}
           >
