@@ -254,8 +254,6 @@ export const useCreateDeal = () => {
       const contacts = queryClient.getQueryData<Contact[]>(queryKeys.contacts.lists()) || [];
       const contact = newDeal.contactId ? contacts.find(c => c.id === newDeal.contactId) : undefined;
 
-      // Busca stage label do cache
-      const stages = queryClient.getQueryData<Array<{ id: string; label?: string; name?: string }>>(queryKeys.boards.all) || [];
       const existingDeals = previousDeals || [];
       // Tenta encontrar o stageLabel nos deals existentes do mesmo board
       const siblingDeal = existingDeals.find(d => d.status === newDeal.status && d.stageLabel);

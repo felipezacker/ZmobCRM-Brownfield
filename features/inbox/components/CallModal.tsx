@@ -256,7 +256,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="O que foi discutido? Próximos passos?"
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-40 max-h-[40vh] break-words overflow-wrap-anywhere"
+                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-40 max-h-[40vh] break-words [overflow-wrap:anywhere]"
                             rows={6}
                         />
                     </div>
