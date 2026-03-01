@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
-import { Copy, FileText, Home, Package, Settings, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Copy, FileText, Home, Package, Plus, Settings, Trash2, User } from 'lucide-react';
 import { Panel } from './cockpit-ui';
 import type { DealView, Contact, ContactPreference, CustomFieldDefinition } from '@/types';
 import type { Stage } from './cockpit-types';
 import { formatAtISO, formatCurrencyBRL, humanizeTestLabel } from './cockpit-utils';
 import { Button } from '@/app/components/ui/Button';
+import { CorretorSelect } from '@/components/ui/CorretorSelect';
 
 /** Labels legíveis para deal_type. */
 const DEAL_TYPE_LABELS: Record<string, string> = {
@@ -54,6 +55,20 @@ const PURPOSE_LABELS: Record<string, string> = {
   VERANEIO: 'Veraneio',
 };
 
+const PROPERTY_TYPES = ['APARTAMENTO', 'CASA', 'TERRENO', 'COMERCIAL', 'RURAL', 'GALPAO'] as const;
+
+const PROPERTY_TYPE_LABELS: Record<string, string> = {
+  APARTAMENTO: 'Apto',
+  CASA: 'Casa',
+  TERRENO: 'Terreno',
+  COMERCIAL: 'Comercial',
+  RURAL: 'Rural',
+  GALPAO: 'Galpão',
+};
+
+const INPUT_CLASS = 'bg-transparent outline-none text-xs hover:bg-slate-100 dark:hover:bg-white/5 rounded px-1 py-0.5 focus:ring-1 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/5 transition-colors';
+const SELECT_CLASS = `${INPUT_CLASS} cursor-pointer`;
+
 interface CockpitDataPanelProps {
   deal: DealView;
   contact: Contact | null;
@@ -63,6 +78,12 @@ interface CockpitDataPanelProps {
   estimatedCommission?: { rate: number; estimated: number } | null;
   preferences: ContactPreference | null;
   customFieldDefinitions: CustomFieldDefinition[];
+  onUpdateDeal?: (updates: Record<string, any>) => void;
+  onUpdateContact?: (updates: Partial<Contact>) => void;
+  onUpdatePreferences?: (updates: Partial<ContactPreference>) => void;
+  onCreatePreferences?: () => void;
+  onAddItem?: (item: { name: string; price: number; quantity: number }) => void;
+  onRemoveItem?: (itemId: string) => void;
 }
 
 export function CockpitDataPanel({
@@ -74,6 +95,12 @@ export function CockpitDataPanel({
   estimatedCommission,
   preferences,
   customFieldDefinitions,
+  onUpdateDeal,
+  onUpdateContact,
+  onUpdatePreferences,
+  onCreatePreferences,
+  onAddItem,
+  onRemoveItem,
 }: CockpitDataPanelProps) {
   const temperature = (contact as any)?.temperature as string | undefined;
   const classification = (contact as any)?.classification as string | undefined;
@@ -84,10 +111,29 @@ export function CockpitDataPanel({
   const probability = deal.probability ?? 50;
   const priority = deal.priority as string | undefined;
 
+  // Local state for add-item form
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemPrice, setNewItemPrice] = useState('');
+  const [newItemQty, setNewItemQty] = useState('1');
+
   // Filter custom field definitions to only those that have values
   const filledCustomFields = customFieldDefinitions.filter(
     (def) => customFields && customFields[def.key] !== undefined && customFields[def.key] !== null && customFields[def.key] !== ''
   );
+
+  const handleAddItemSubmit = () => {
+    if (!onAddItem || !newItemName.trim()) return;
+    onAddItem({
+      name: newItemName.trim(),
+      price: parseFloat(newItemPrice) || 0,
+      quantity: parseInt(newItemQty, 10) || 1,
+    });
+    setNewItemName('');
+    setNewItemPrice('');
+    setNewItemQty('1');
+    setShowAddItem(false);
+  };
 
   return (
     <Panel
@@ -96,31 +142,60 @@ export function CockpitDataPanel({
       className="flex min-h-0 flex-1 flex-col"
       bodyClassName="min-h-0 flex-1 overflow-auto"
     >
-      <div className="flex min-h-0 flex-col gap-4">
+      <div key={`${deal.id}-${contact?.id ?? ''}-${preferences?.id ?? ''}`} className="flex min-h-0 flex-col gap-4">
         {/* ── CONTATO ── */}
         <div>
           <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">
             <User className="h-3.5 w-3.5" /> Contato
           </div>
-          <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate" title={contact?.name ?? ''}>
-            {humanizeTestLabel(contact?.name) || contact?.name || '—'}
-          </div>
+          {/* Nome editável */}
+          <input
+            type="text"
+            className={`${INPUT_CLASS} w-full text-sm font-semibold text-slate-900 dark:text-slate-100`}
+            defaultValue={humanizeTestLabel(contact?.name) || contact?.name || ''}
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v && v !== contact?.name) {
+                onUpdateContact?.({ name: v });
+                onUpdateDeal?.({ title: v });
+              }
+            }}
+            title="Editar nome do contato"
+          />
 
-          {/* Temperature + Classification + Score inline */}
+          {/* Temperature + Classification selects */}
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            {temperature && TEMPERATURE_CONFIG[temperature] ? (
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ${TEMPERATURE_CONFIG[temperature].color}`}>
-                {TEMPERATURE_CONFIG[temperature].label}
-              </span>
-            ) : null}
-            {classification && CLASSIFICATION_CONFIG[classification] ? (
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ${CLASSIFICATION_CONFIG[classification].color}`}>
-                {CLASSIFICATION_CONFIG[classification].label}
-              </span>
-            ) : null}
+            <select
+              className={`${SELECT_CLASS} text-[10px] font-bold rounded-full px-2 py-0.5 ring-1 ${
+                temperature && TEMPERATURE_CONFIG[temperature]
+                  ? TEMPERATURE_CONFIG[temperature].color
+                  : 'bg-slate-100 dark:bg-white/5 text-slate-500 ring-slate-200 dark:ring-white/10'
+              }`}
+              value={temperature ?? ''}
+              onChange={(e) => onUpdateContact?.({ temperature: e.target.value || null } as any)}
+            >
+              <option value="">Temperatura</option>
+              <option value="HOT">Quente</option>
+              <option value="WARM">Morno</option>
+              <option value="COLD">Frio</option>
+            </select>
+            <select
+              className={`${SELECT_CLASS} text-[10px] font-bold rounded-full px-2 py-0.5 ring-1 ${
+                classification && CLASSIFICATION_CONFIG[classification]
+                  ? CLASSIFICATION_CONFIG[classification].color
+                  : 'bg-slate-100 dark:bg-white/5 text-slate-500 ring-slate-200 dark:ring-white/10'
+              }`}
+              value={classification ?? ''}
+              onChange={(e) => onUpdateContact?.({ classification: e.target.value || null } as any)}
+            >
+              <option value="">Classificação</option>
+              {Object.entries(CLASSIFICATION_CONFIG).map(([key, cfg]) => (
+                <option key={key} value={key}>{cfg.label}</option>
+              ))}
+            </select>
           </div>
 
-          {/* Lead Score */}
+          {/* Lead Score (read-only) */}
           <div className="mt-2 flex items-center gap-2">
             <span className="text-[11px] text-slate-500">Score</span>
             <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
@@ -140,12 +215,20 @@ export function CockpitDataPanel({
             </span>
           </div>
 
-          {/* Phone + Email + Source */}
+          {/* Phone + Email + Source — editáveis */}
           <div className="mt-3 space-y-2 text-xs">
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-500">Tel</span>
               <span className="flex items-center gap-2">
-                <span className="font-mono text-slate-700 dark:text-slate-200">{phoneE164 ?? ''}</span>
+                <input
+                  type="tel"
+                  className={`${INPUT_CLASS} font-mono text-slate-700 dark:text-slate-200 text-right w-32`}
+                  defaultValue={contact?.phone ?? ''}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v !== (contact?.phone ?? '')) onUpdateContact?.({ phone: v || null } as any);
+                  }}
+                />
                 <Button
                   type="button"
                   className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
@@ -160,7 +243,15 @@ export function CockpitDataPanel({
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-500">Email</span>
               <span className="flex items-center gap-2 min-w-0">
-                <span className="truncate text-slate-700 dark:text-slate-200">{contact?.email ?? ''}</span>
+                <input
+                  type="email"
+                  className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right min-w-0 flex-1`}
+                  defaultValue={contact?.email ?? ''}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v !== (contact?.email ?? '')) onUpdateContact?.({ email: v || null } as any);
+                  }}
+                />
                 <Button
                   type="button"
                   className="shrink-0 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
@@ -174,11 +265,19 @@ export function CockpitDataPanel({
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-500">Origem</span>
-              <span className="text-slate-700 dark:text-slate-200">{contact?.source ?? '—'}</span>
+              <input
+                type="text"
+                className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right w-28`}
+                defaultValue={contact?.source ?? ''}
+                onBlur={(e) => {
+                  const v = e.target.value.trim();
+                  if (v !== (contact?.source ?? '')) onUpdateContact?.({ source: v || null } as any);
+                }}
+              />
             </div>
           </div>
 
-          {/* Tags */}
+          {/* Tags (read-only) */}
           {tags && tags.length > 0 ? (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {tags.map((tag) => (
@@ -189,12 +288,19 @@ export function CockpitDataPanel({
             </div>
           ) : null}
 
-          {/* Contact Notes */}
-          {contactNotes ? (
-            <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-200/90 whitespace-pre-wrap">
-              {contactNotes}
-            </div>
-          ) : null}
+          {/* Contact Notes — textarea editável */}
+          <div className="mt-2">
+            <textarea
+              className={`${INPUT_CLASS} w-full resize-none rounded-lg border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-200/90`}
+              rows={2}
+              defaultValue={contactNotes ?? ''}
+              placeholder="Notas do contato..."
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v !== (contactNotes ?? '')) onUpdateContact?.({ notes: v || null } as any);
+              }}
+            />
+          </div>
         </div>
 
         {/* ── PREFERÊNCIAS ── */}
@@ -204,49 +310,132 @@ export function CockpitDataPanel({
           </div>
           {preferences ? (
             <div className="space-y-1.5 text-xs">
-              {preferences.purpose ? (
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-slate-500">Finalidade</span>
-                  <span className="text-slate-700 dark:text-slate-200">{PURPOSE_LABELS[preferences.purpose] ?? preferences.purpose}</span>
+              {/* Finalidade */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Finalidade</span>
+                <select
+                  className={`${SELECT_CLASS} text-slate-700 dark:text-slate-200`}
+                  value={preferences.purpose ?? ''}
+                  onChange={(e) => onUpdatePreferences?.({ purpose: e.target.value || null } as any)}
+                >
+                  <option value="">—</option>
+                  {Object.entries(PURPOSE_LABELS).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Tipos imóvel — chips toggle */}
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-slate-500 pt-0.5">Tipos</span>
+                <div className="flex flex-wrap justify-end gap-1">
+                  {PROPERTY_TYPES.map((pt) => {
+                    const active = preferences.propertyTypes.includes(pt);
+                    return (
+                      <button
+                        key={pt}
+                        type="button"
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                          active
+                            ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-200 ring-1 ring-cyan-500/30'
+                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10'
+                        }`}
+                        onClick={() => {
+                          const next = active
+                            ? preferences.propertyTypes.filter((t) => t !== pt)
+                            : [...preferences.propertyTypes, pt];
+                          onUpdatePreferences?.({ propertyTypes: next });
+                        }}
+                      >
+                        {PROPERTY_TYPE_LABELS[pt] ?? pt}
+                      </button>
+                    );
+                  })}
                 </div>
-              ) : null}
-              {preferences.propertyTypes.length > 0 ? (
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-slate-500">Tipos</span>
-                  <span className="text-slate-700 dark:text-slate-200">{preferences.propertyTypes.join(', ')}</span>
-                </div>
-              ) : null}
-              {(preferences.priceMin !== null || preferences.priceMax !== null) ? (
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-slate-500">Faixa preço</span>
-                  <span className="text-slate-700 dark:text-slate-200">
-                    {preferences.priceMin !== null ? formatCurrencyBRL(preferences.priceMin) : '—'}
-                    {' — '}
-                    {preferences.priceMax !== null ? formatCurrencyBRL(preferences.priceMax) : '—'}
-                  </span>
-                </div>
-              ) : null}
-              {preferences.regions.length > 0 ? (
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-slate-500">Regiões</span>
-                  <span className="text-slate-700 dark:text-slate-200 text-right">{preferences.regions.join(', ')}</span>
-                </div>
-              ) : null}
-              {preferences.bedroomsMin !== null ? (
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-slate-500">Quartos mín.</span>
-                  <span className="text-slate-700 dark:text-slate-200">{preferences.bedroomsMin}+</span>
-                </div>
-              ) : null}
-              {preferences.urgency ? (
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-slate-500">Urgência</span>
-                  <span className="text-slate-700 dark:text-slate-200">{URGENCY_LABELS[preferences.urgency] ?? preferences.urgency}</span>
-                </div>
-              ) : null}
+              </div>
+              {/* Faixa de preço */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Preço mín</span>
+                <input
+                  type="number"
+                  className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right w-24`}
+                  defaultValue={preferences.priceMin ?? ''}
+                  placeholder="—"
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    onUpdatePreferences?.({ priceMin: v ? parseFloat(v) : null });
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Preço máx</span>
+                <input
+                  type="number"
+                  className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right w-24`}
+                  defaultValue={preferences.priceMax ?? ''}
+                  placeholder="—"
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    onUpdatePreferences?.({ priceMax: v ? parseFloat(v) : null });
+                  }}
+                />
+              </div>
+              {/* Regiões */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Regiões</span>
+                <input
+                  type="text"
+                  className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right flex-1 min-w-0`}
+                  defaultValue={preferences.regions.join(', ')}
+                  placeholder="Centro, Zona Sul..."
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    const regions = v ? v.split(',').map((r) => r.trim()).filter(Boolean) : [];
+                    onUpdatePreferences?.({ regions });
+                  }}
+                />
+              </div>
+              {/* Quartos mín */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Quartos mín.</span>
+                <input
+                  type="number"
+                  className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right w-16`}
+                  defaultValue={preferences.bedroomsMin ?? ''}
+                  placeholder="—"
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    onUpdatePreferences?.({ bedroomsMin: v ? parseInt(v, 10) : null });
+                  }}
+                />
+              </div>
+              {/* Urgência */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Urgência</span>
+                <select
+                  className={`${SELECT_CLASS} text-slate-700 dark:text-slate-200`}
+                  value={preferences.urgency ?? ''}
+                  onChange={(e) => onUpdatePreferences?.({ urgency: e.target.value || null } as any)}
+                >
+                  <option value="">—</option>
+                  {Object.entries(URGENCY_LABELS).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           ) : (
-            <div className="text-xs text-slate-500">Sem preferências cadastradas</div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-500">Sem preferências cadastradas</span>
+              {onCreatePreferences ? (
+                <Button
+                  type="button"
+                  className="rounded-lg bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
+                  onClick={onCreatePreferences}
+                >
+                  Cadastrar
+                </Button>
+              ) : null}
+            </div>
           )}
         </div>
 
@@ -256,13 +445,31 @@ export function CockpitDataPanel({
             <FileText className="h-3.5 w-3.5" /> Deal
           </div>
           <div className="space-y-2 text-xs">
+            {/* Valor */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-500">Valor</span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">{formatCurrencyBRL(deal.value ?? 0)}</span>
+              <input
+                type="number"
+                className={`${INPUT_CLASS} font-semibold text-slate-900 dark:text-slate-100 text-right w-28`}
+                defaultValue={deal.value ?? 0}
+                onBlur={(e) => {
+                  const v = parseFloat(e.target.value);
+                  if (!isNaN(v) && v !== (deal.value ?? 0)) onUpdateDeal?.({ value: v });
+                }}
+              />
             </div>
+            {/* Tipo */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-500">Tipo</span>
-              <span className="text-slate-700 dark:text-slate-200">{DEAL_TYPE_LABELS[deal.dealType ?? 'VENDA'] ?? 'Venda'}</span>
+              <select
+                className={`${SELECT_CLASS} text-slate-700 dark:text-slate-200`}
+                value={deal.dealType ?? 'VENDA'}
+                onChange={(e) => onUpdateDeal?.({ dealType: e.target.value })}
+              >
+                {Object.entries(DEAL_TYPE_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
             </div>
             {/* Probabilidade com barra visual */}
             <div className="flex items-center justify-between gap-2">
@@ -277,31 +484,62 @@ export function CockpitDataPanel({
                     style={{ width: `${Math.min(100, probability)}%` }}
                   />
                 </div>
-                <span className="font-semibold text-slate-700 dark:text-slate-200">{probability}%</span>
+                <input
+                  type="number"
+                  className={`${INPUT_CLASS} font-semibold text-slate-700 dark:text-slate-200 text-right w-12`}
+                  defaultValue={probability}
+                  min={0}
+                  max={100}
+                  onBlur={(e) => {
+                    const v = Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0));
+                    if (v !== probability) onUpdateDeal?.({ probability: v });
+                  }}
+                />
+                <span className="text-slate-500">%</span>
               </div>
             </div>
-            {/* Prioridade com badge */}
-            {priority ? (
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Prioridade</span>
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ring-1 ${
-                  PRIORITY_CONFIG[priority]?.color ?? 'bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-300 ring-slate-300 dark:ring-white/10'
-                }`}>
-                  {PRIORITY_CONFIG[priority]?.label ?? priority}
-                </span>
-              </div>
-            ) : null}
+            {/* Prioridade */}
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-slate-500">Prioridade</span>
+              <select
+                className={`${SELECT_CLASS} text-[10px] font-bold rounded-full px-2 py-0.5 ring-1 ${
+                  priority && PRIORITY_CONFIG[priority]
+                    ? PRIORITY_CONFIG[priority].color
+                    : 'bg-slate-100 dark:bg-white/5 text-slate-500 ring-slate-200 dark:ring-white/10'
+                }`}
+                value={priority ?? ''}
+                onChange={(e) => onUpdateDeal?.({ priority: e.target.value || null })}
+              >
+                <option value="">—</option>
+                {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                  <option key={key} value={key}>{cfg.label}</option>
+                ))}
+              </select>
+            </div>
             {/* Data prevista */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-500">Prev. fechamento</span>
-              <span className="text-slate-700 dark:text-slate-200">
-                {deal.expectedCloseDate ? formatAtISO(deal.expectedCloseDate) : '—'}
-              </span>
+              <input
+                type="date"
+                className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200`}
+                defaultValue={deal.expectedCloseDate ? deal.expectedCloseDate.slice(0, 10) : ''}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  onUpdateDeal?.({ expectedCloseDate: v || null });
+                }}
+              />
             </div>
+            {/* Dono */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-500">Dono</span>
-              <span className="text-slate-700 dark:text-slate-200">{deal.owner?.name ?? '—'}</span>
+              <div className="max-w-[160px]">
+                <CorretorSelect
+                  value={deal.ownerId}
+                  onChange={(ownerId) => onUpdateDeal?.({ ownerId })}
+                />
+              </div>
             </div>
+            {/* Comissão (read-only) */}
             {estimatedCommission ? (
               <div className="flex items-center justify-between gap-2">
                 <span className="text-slate-500">Comissão</span>
@@ -310,6 +548,7 @@ export function CockpitDataPanel({
                 </span>
               </div>
             ) : null}
+            {/* Timestamps (read-only) */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-slate-500">Criado</span>
               <span className="text-slate-700 dark:text-slate-200">{formatAtISO(deal.createdAt)}</span>
@@ -329,11 +568,23 @@ export function CockpitDataPanel({
           {deal.items && deal.items.length > 0 ? (
             <div className="space-y-1.5 text-xs">
               {deal.items.map((item: any, idx: number) => (
-                <div key={item.id ?? idx} className="flex items-center justify-between gap-2">
+                <div key={item.id ?? idx} className="group flex items-center justify-between gap-2">
                   <span className="text-slate-700 dark:text-slate-200 truncate">{item.name ?? 'Produto'}</span>
-                  <span className="shrink-0 text-slate-600 dark:text-slate-300">
-                    {item.quantity && item.quantity > 1 ? `${item.quantity}x ` : ''}
-                    {item.price != null ? formatCurrencyBRL(item.price) : ''}
+                  <span className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-slate-600 dark:text-slate-300">
+                      {item.quantity && item.quantity > 1 ? `${item.quantity}x ` : ''}
+                      {item.price != null ? formatCurrencyBRL(item.price) : ''}
+                    </span>
+                    {onRemoveItem && item.id ? (
+                      <button
+                        type="button"
+                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 transition-all"
+                        title="Remover produto"
+                        onClick={() => onRemoveItem(item.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    ) : null}
                   </span>
                 </div>
               ))}
@@ -341,9 +592,67 @@ export function CockpitDataPanel({
           ) : (
             <div className="text-xs text-slate-500">Sem produtos</div>
           )}
+          {/* Add item form */}
+          {onAddItem ? (
+            <div className="mt-2">
+              {showAddItem ? (
+                <div className="space-y-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2">
+                  <input
+                    type="text"
+                    className={`${INPUT_CLASS} w-full text-slate-700 dark:text-slate-200`}
+                    placeholder="Nome do produto"
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                  />
+                  <div className="flex gap-1.5">
+                    <input
+                      type="number"
+                      className={`${INPUT_CLASS} flex-1 text-slate-700 dark:text-slate-200`}
+                      placeholder="Preço"
+                      value={newItemPrice}
+                      onChange={(e) => setNewItemPrice(e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      className={`${INPUT_CLASS} w-12 text-center text-slate-700 dark:text-slate-200`}
+                      placeholder="Qtd"
+                      value={newItemQty}
+                      onChange={(e) => setNewItemQty(e.target.value)}
+                      min={1}
+                    />
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Button
+                      type="button"
+                      className="flex-1 rounded-lg bg-cyan-500/15 px-2 py-1 text-[10px] font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
+                      onClick={handleAddItemSubmit}
+                      disabled={!newItemName.trim()}
+                    >
+                      Adicionar
+                    </Button>
+                    <Button
+                      type="button"
+                      className="rounded-lg px-2 py-1 text-[10px] text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                      onClick={() => { setShowAddItem(false); setNewItemName(''); setNewItemPrice(''); setNewItemQty('1'); }}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors mt-1"
+                  onClick={() => setShowAddItem(true)}
+                >
+                  <Plus className="h-3 w-3" /> Produto
+                </button>
+              )}
+            </div>
+          ) : null}
         </div>
 
-        {/* ── CAMPOS CUSTOM (condicional) ── */}
+        {/* ── CAMPOS CUSTOM (condicional, read-only) ── */}
         {filledCustomFields.length > 0 && customFields ? (
           <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-3">
             <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-2">

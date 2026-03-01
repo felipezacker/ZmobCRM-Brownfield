@@ -29,7 +29,7 @@ import { CallModal, type CallLogData } from '@/features/inbox/components/CallMod
 import { MessageComposerModal, type MessageChannel, type MessageExecutedEvent } from '@/features/inbox/components/MessageComposerModal';
 import { ScheduleModal, type ScheduleData, type ScheduleType } from '@/features/inbox/components/ScheduleModal';
 
-import type { Activity, Board, BoardStage, ContactPreference } from '@/types';
+import type { Activity, Board, BoardStage, Contact, ContactPreference } from '@/types';
 import type {
   Actor,
   ChecklistItem,
@@ -72,8 +72,8 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   const { deals } = useCRMActions();
   const dealsCtx = useDeals();
-  const { updateDeal } = dealsCtx;
-  const { contacts } = useContacts();
+  const { updateDeal, addItemToDeal, removeItemFromDeal } = dealsCtx;
+  const { contacts, updateContact } = useContacts();
   const { boards } = useBoards();
   const activitiesCtx = useActivities();
   const { activities, addActivity } = activitiesCtx;
@@ -545,6 +545,46 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     } catch (e) { pushToast(errorMessage(e, 'Não foi possível reabrir o deal.'), 'danger'); }
   }, [addActivity, actor, moveDeal, pushToast, selectedBoard, selectedDeal, stages]);
 
+  // --- Inline edit handlers ---
+
+  const handleUpdateDeal = useCallback((updates: Record<string, any>) => {
+    if (!selectedDeal?.id) return;
+    updateDeal(selectedDeal.id, updates);
+  }, [selectedDeal?.id, updateDeal]);
+
+  const handleUpdateContact = useCallback(async (updates: Partial<Contact>) => {
+    if (!selectedContact?.id) return;
+    await updateContact(selectedContact.id, updates);
+  }, [selectedContact?.id, updateContact]);
+
+  const handleUpdatePreferences = useCallback(async (updates: Partial<ContactPreference>) => {
+    if (!preferences?.id) return;
+    await contactPreferencesService.update(preferences.id, updates);
+    setPreferences(p => p ? { ...p, ...updates } : p);
+  }, [preferences?.id]);
+
+  const handleCreatePreferences = useCallback(async () => {
+    if (!selectedContact?.id || !profile?.organization_id) return;
+    const { data } = await contactPreferencesService.create({
+      contactId: selectedContact.id,
+      organizationId: profile.organization_id,
+      propertyTypes: [], purpose: null, priceMin: null, priceMax: null,
+      regions: [], bedroomsMin: null, parkingMin: null, areaMin: null,
+      acceptsFinancing: null, acceptsFgts: null, urgency: null, notes: null,
+    });
+    if (data) setPreferences(data);
+  }, [selectedContact?.id, profile?.organization_id]);
+
+  const handleAddItem = useCallback(async (item: { name: string; price: number; quantity: number }) => {
+    if (!selectedDeal?.id) return;
+    await addItemToDeal(selectedDeal.id, { productId: '', ...item });
+  }, [selectedDeal?.id, addItemToDeal]);
+
+  const handleRemoveItem = useCallback(async (itemId: string) => {
+    if (!selectedDeal?.id) return;
+    await removeItemFromDeal(selectedDeal.id, itemId);
+  }, [selectedDeal?.id, removeItemFromDeal]);
+
   // --- Render ---
 
   if (crmError) {
@@ -704,6 +744,12 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
               estimatedCommission={estimatedCommission}
               preferences={preferences}
               customFieldDefinitions={customFieldDefinitions}
+              onUpdateDeal={handleUpdateDeal}
+              onUpdateContact={handleUpdateContact}
+              onUpdatePreferences={handleUpdatePreferences}
+              onCreatePreferences={handleCreatePreferences}
+              onAddItem={handleAddItem}
+              onRemoveItem={handleRemoveItem}
             />
           </div>
 
