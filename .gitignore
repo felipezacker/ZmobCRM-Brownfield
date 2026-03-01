@@ -109,3 +109,4 @@ Thumbs.db
 .claude/settings.local.json
 .aios/install-log.txt
 supabase/.branches/
+supabase/backups/
