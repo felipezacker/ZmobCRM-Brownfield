@@ -1,5 +1,5 @@
-import React from 'react';
-import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Users } from 'lucide-react';
 import { Contact, ContactSortableColumn, ContactClassification, ContactTemperature } from '@/types';
 import { StageBadge } from './ContactsStageTabs';
 import { Button } from '@/app/components/ui/Button';
@@ -141,6 +141,82 @@ const LeadScoreBadge: React.FC<{ score?: number }> = ({ score }) => {
     );
 };
 
+// ============================================
+// Status Dropdown
+// ============================================
+const STATUS_OPTIONS = [
+    { value: 'ACTIVE' as const, label: 'ATIVO', color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' },
+    { value: 'INACTIVE' as const, label: 'INATIVO', color: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20' },
+    { value: 'CHURNED' as const, label: 'PERDIDO', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' },
+] as const;
+
+const StatusDropdown: React.FC<{
+    status: 'ACTIVE' | 'INACTIVE' | 'CHURNED';
+    contactName: string;
+    onChange: (status: 'ACTIVE' | 'INACTIVE' | 'CHURNED') => void;
+}> = ({ status, contactName, onChange }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handleClick = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        document.addEventListener('mousedown', handleClick);
+        document.addEventListener('keydown', handleKey);
+        return () => {
+            document.removeEventListener('mousedown', handleClick);
+            document.removeEventListener('keydown', handleKey);
+        };
+    }, [open]);
+
+    const current = STATUS_OPTIONS.find(o => o.value === status) || STATUS_OPTIONS[0];
+
+    return (
+        <div className="relative" ref={ref}>
+            <Button
+                onClick={() => setOpen(prev => !prev)}
+                aria-label={`Status de ${contactName}: ${current.label}. Clique para alterar.`}
+                aria-expanded={open}
+                aria-haspopup="listbox"
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all inline-flex items-center gap-1 ${current.color}`}
+            >
+                {current.label}
+                <ChevronDown size={10} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+            </Button>
+            {open && (
+                <div
+                    role="listbox"
+                    aria-label="Selecionar status"
+                    className="absolute z-50 mt-1 left-0 min-w-[100px] rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 shadow-lg py-1"
+                >
+                    {STATUS_OPTIONS.map(option => (
+                        <Button
+                            key={option.value}
+                            variant="ghost"
+                            role="option"
+                            aria-selected={option.value === status}
+                            onClick={() => {
+                                if (option.value !== status) onChange(option.value);
+                                setOpen(false);
+                            }}
+                            className={`w-full justify-start px-3 py-1.5 text-xs font-medium transition-colors hover:bg-slate-50 dark:hover:bg-white/5 h-auto rounded-none ${option.value === status ? 'font-bold' : ''}`}
+                        >
+                            <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${option.color}`}>
+                                {option.label}
+                            </span>
+                        </Button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 /** Props for sortable column header */
 interface SortableHeaderProps {
     label: string;
@@ -148,14 +224,15 @@ interface SortableHeaderProps {
     currentSort: ContactSortableColumn;
     sortOrder: 'asc' | 'desc';
     onSort: (column: ContactSortableColumn) => void;
+    className?: string;
 }
 
 /** Sortable column header component */
-const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentSort, sortOrder, onSort }) => {
+const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentSort, sortOrder, onSort, className }) => {
     const isActive = currentSort === column;
 
     return (
-        <th scope="col" className="px-6 py-4">
+        <th scope="col" className={`px-6 py-4 ${className || ''}`}>
             <Button
                 onClick={() => onSort(column)}
                 className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
@@ -175,6 +252,10 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentS
 };
 
 const HEADER_CLASS = 'px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider';
+const STICKY_Z = 'sticky z-20 left-0';
+const STICKY_HEADER_BG = 'bg-slate-50 dark:bg-slate-900';
+const STICKY_ROW_BG = 'bg-white dark:bg-slate-900';
+const STICKY_ROW_SELECTED_BG = 'bg-primary-50 dark:bg-slate-800';
 
 interface ContactsListProps {
     filteredContacts: Contact[];
@@ -231,9 +312,27 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     // Performance: avoid creating `new Date()` for each row in formatRelativeDate.
     const now = React.useMemo(() => new Date(), []);
 
+    if (filteredContacts.length === 0) {
+        return (
+            <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                        <Users size={24} className="text-slate-400" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Nenhum contato encontrado
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs">
+                        Tente ajustar os filtros ou crie um novo contato.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
-            {/* Story 3.5 — Result count */}
+        <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden w-full max-w-full">
+            {/* Story 3.5 — Result count (fixed, not scrollable) */}
             {totalCount !== undefined && (
                 <div className="px-6 py-2 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
@@ -241,30 +340,60 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                     </span>
                 </div>
             )}
-            <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+            <div className="w-full overflow-x-auto">
+                    <table className="min-w-full text-left text-sm">
                         <thead className="bg-slate-50/80 dark:bg-white/5 border-b border-slate-200 dark:border-white/5">
                             <tr>
-                                <th scope="col" className="w-12 px-6 py-4">
-                                    <input
-                                        type="checkbox"
-                                        checked={allSelected}
-                                        ref={(el) => { if (el) el.indeterminate = someSelected; }}
-                                        onChange={toggleSelectAll}
-                                        aria-label={allSelected ? 'Desmarcar todos os contatos' : 'Selecionar todos os contatos'}
-                                        className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
-                                    />
+                                <th scope="col" className={`${STICKY_Z} ${STICKY_HEADER_BG} min-w-[250px] px-4 py-4`}>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={allSelected}
+                                            ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                                            onChange={toggleSelectAll}
+                                            aria-label={allSelected ? 'Desmarcar todos os contatos' : 'Selecionar todos os contatos'}
+                                            className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
+                                        />
+                                        {onSort ? (
+                                            <Button
+                                                onClick={() => onSort('name')}
+                                                className="group inline-flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                                            >
+                                                Nome
+                                                <span className={`transition-opacity ${sortBy === 'name' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
+                                                    {sortBy === 'name' ? (
+                                                        sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                                                    ) : (
+                                                        <ArrowUpDown size={14} />
+                                                    )}
+                                                </span>
+                                            </Button>
+                                        ) : (
+                                            <span className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider">Nome</span>
+                                        )}
+                                    </div>
                                 </th>
                                 {onSort ? (
-                                    <SortableHeader label="Nome" column="name" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                    <SortableHeader label="Classificacao" column="classification" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
                                 ) : (
-                                    <th scope="col" className={HEADER_CLASS}>Nome</th>
+                                    <th scope="col" className={HEADER_CLASS}>Classificacao</th>
                                 )}
-                                <th scope="col" className={HEADER_CLASS}>Classificacao</th>
-                                <th scope="col" className={HEADER_CLASS}>Temp.</th>
-                                <th scope="col" className={HEADER_CLASS}>Estagio</th>
+                                {onSort ? (
+                                    <SortableHeader label="Temp." column="temperature" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Temp.</th>
+                                )}
+                                {onSort ? (
+                                    <SortableHeader label="Estagio" column="stage" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Estagio</th>
+                                )}
                                 <th scope="col" className={HEADER_CLASS}>Contato</th>
-                                <th scope="col" className={HEADER_CLASS}>Status</th>
+                                {onSort ? (
+                                    <SortableHeader label="Status" column="status" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Status</th>
+                                )}
                                 {onSort ? (
                                     <SortableHeader label="Responsavel" column="owner_id" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
                                 ) : (
@@ -290,37 +419,44 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                            {filteredContacts.map((contact) => (
-                                <tr key={contact.id} className={`hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group ${selectedIds.has(contact.id) ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}>
-                                    <td className="px-6 py-4">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedIds.has(contact.id)}
-                                            onChange={() => toggleSelect(contact.id)}
-                                            aria-label={`Selecionar ${contact.name}`}
-                                            className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
-                                        />
-                                    </td>
-                                    <td className="px-6 py-4">
+                            {filteredContacts.map((contact) => {
+                                const isSelected = selectedIds.has(contact.id);
+                                const stickyBg = isSelected ? STICKY_ROW_SELECTED_BG : STICKY_ROW_BG;
+                                return (
+                                <tr
+                                    key={contact.id}
+                                    onClick={(e) => {
+                                        const target = e.target as HTMLElement;
+                                        if (target.closest('input, button, select, a, [role="listbox"]')) return;
+                                        openDetailModal ? openDetailModal(contact.id) : openEditModal(contact);
+                                    }}
+                                    className={`transition-colors group cursor-pointer ${isSelected ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-white dark:bg-slate-900'} hover:bg-slate-50 dark:hover:bg-white/5`}
+                                >
+                                    <td className={`${STICKY_Z} ${stickyBg} min-w-[250px] px-4 py-4`}>
                                         <div className="flex items-center gap-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={isSelected}
+                                                onChange={() => toggleSelect(contact.id)}
+                                                aria-label={`Selecionar ${contact.name}`}
+                                                className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10 flex-shrink-0"
+                                            />
                                             <Button
                                                 type="button"
                                                 onClick={() => openDetailModal ? openDetailModal(contact.id) : openEditModal(contact)}
-                                                className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 text-primary-700 dark:text-primary-200 flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white dark:ring-white/5 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-dark-card"
+                                                className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 text-primary-700 dark:text-primary-200 flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white dark:ring-white/5 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-dark-card flex-shrink-0"
                                                 aria-label={`Ver detalhes: ${contact.name || 'Sem nome'}`}
                                                 title={contact.name || 'Sem nome'}
                                             >
                                                 {(contact.name || '?').charAt(0)}
                                             </Button>
-                                            <div>
-                                                <Button
-                                                    type="button"
-                                                    onClick={() => openDetailModal ? openDetailModal(contact.id) : openEditModal(contact)}
-                                                    className="font-semibold text-slate-900 dark:text-white block hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left"
-                                                >
-                                                    {contact.name}
-                                                </Button>
-                                            </div>
+                                            <Button
+                                                type="button"
+                                                onClick={() => openDetailModal ? openDetailModal(contact.id) : openEditModal(contact)}
+                                                className="font-semibold text-slate-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left truncate"
+                                            >
+                                                {contact.name}
+                                            </Button>
                                         </div>
                                     </td>
                                     {/* Story 3.1 — Classificacao */}
@@ -346,19 +482,11 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <Button
-                                                onClick={() => {
-                                                    const nextStatus = contact.status === 'ACTIVE' ? 'INACTIVE' : contact.status === 'INACTIVE' ? 'CHURNED' : 'ACTIVE';
-                                                    updateContact(contact.id, { status: nextStatus });
-                                                }}
-                                                aria-label={`Alterar status de ${contact.name} de ${contact.status === 'ACTIVE' ? 'ativo' : contact.status === 'INACTIVE' ? 'inativo' : 'perdido'}`}
-                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${contact.status === 'ACTIVE' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' :
-                                                    contact.status === 'INACTIVE' ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20' :
-                                                        'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
-                                                    }`}
-                                            >
-                                                {contact.status === 'ACTIVE' ? 'ATIVO' : contact.status === 'INACTIVE' ? 'INATIVO' : 'PERDIDO'}
-                                            </Button>
+                                            <StatusDropdown
+                                                status={contact.status}
+                                                contactName={contact.name}
+                                                onChange={(newStatus) => updateContact(contact.id, { status: newStatus })}
+                                            />
                                             <Button
                                                 onClick={() => convertContactToDeal(contact.id)}
                                                 className="p-1 text-slate-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
@@ -419,7 +547,8 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
             </div>

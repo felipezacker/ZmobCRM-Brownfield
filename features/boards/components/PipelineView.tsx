@@ -9,11 +9,13 @@ import { KanbanBoard } from './Kanban/KanbanBoard';
 import { KanbanList } from './Kanban/KanbanList';
 import { DeleteBoardModal } from './Modals/DeleteBoardModal';
 import { LossReasonModal } from '@/components/ui/LossReasonModal';
-import { DealView, CustomFieldDefinition, Board, BoardStage } from '@/types';
+import { DealView, CustomFieldDefinition, Board, BoardStage, DealSortableColumn } from '@/types';
 import { ExportTemplateModal } from './Modals/ExportTemplateModal';
+import ConfirmModal from '@/components/ConfirmModal';
 import { useAuth } from '@/context/AuthContext';
 import PageLoader from '@/components/PageLoader';
 import { Button } from '@/app/components/ui/Button';
+import { Trash2, ArrowRightCircle, ChevronDown, X } from 'lucide-react';
 
 interface PipelineViewProps {
   // Boards
@@ -68,6 +70,21 @@ interface PipelineViewProps {
     dealTitle: string
   ) => void;
   setLastMouseDownDealId: (id: string | null) => void;
+  // Quick Actions
+  handleWinDeal: (dealId: string) => void;
+  handleLoseDeal: (dealId: string, dealTitle: string) => void;
+  handleDeleteDeal: (dealId: string) => void;
+  // Deal Selection & Sort (list view)
+  selectedDealIds: Set<string>;
+  toggleDealSelect: (dealId: string) => void;
+  toggleDealSelectAll: (allIds: string[]) => void;
+  clearDealSelection: () => void;
+  dealSortBy: DealSortableColumn;
+  dealSortOrder: 'asc' | 'desc';
+  handleDealSort: (column: DealSortableColumn) => void;
+  sortedDeals: DealView[];
+  handleBulkMoveDealToStage: (targetStageId: string) => void;
+  handleBulkDeleteDeals: () => void;
   // Loss Reason Modal
   lossReasonModal: {
     isOpen: boolean;
@@ -238,6 +255,21 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
   handleMoveDealToStage,
   handleQuickAddActivity,
   setLastMouseDownDealId,
+  // Quick Actions
+  handleWinDeal,
+  handleLoseDeal,
+  handleDeleteDeal,
+  // Deal Selection & Sort (list view)
+  selectedDealIds,
+  toggleDealSelect,
+  toggleDealSelectAll,
+  clearDealSelection,
+  dealSortBy,
+  dealSortOrder,
+  handleDealSort,
+  sortedDeals,
+  handleBulkMoveDealToStage,
+  handleBulkDeleteDeals,
   // Loss Reason Modal
   lossReasonModal,
   handleLossReasonConfirm,
@@ -247,6 +279,21 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
   const [isExportModalOpen, setIsExportModalOpen] = React.useState(false);
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = React.useState(false);
+  const [isBulkMoveOpen, setIsBulkMoveOpen] = React.useState(false);
+  const bulkMoveRef = React.useRef<HTMLDivElement>(null);
+
+  // Close bulk move dropdown on outside click
+  React.useEffect(() => {
+    if (!isBulkMoveOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (bulkMoveRef.current && !bulkMoveRef.current.contains(e.target as Node)) {
+        setIsBulkMoveOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isBulkMoveOpen]);
 
   const handleUpdateStage = (updatedStage: BoardStage) => {
     if (!activeBoard) return;
@@ -346,17 +393,28 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
                 handleQuickAddActivity={handleQuickAddActivity}
                 setLastMouseDownDealId={setLastMouseDownDealId}
                 onMoveDealToStage={handleMoveDealToStage}
+                onWinDeal={handleWinDeal}
+                onLoseDeal={handleLoseDeal}
+                onDeleteDeal={handleDeleteDeal}
               />
             ) : (
               <KanbanList
                 stages={activeBoard.stages}
-                filteredDeals={filteredDeals}
+                filteredDeals={sortedDeals}
                 customFieldDefinitions={customFieldDefinitions}
                 setSelectedDealId={setSelectedDealId}
                 openActivityMenuId={openActivityMenuId}
                 setOpenActivityMenuId={setOpenActivityMenuId}
                 handleQuickAddActivity={handleQuickAddActivity}
                 onMoveDealToStage={handleMoveDealToStage}
+                selectedDealIds={selectedDealIds}
+                toggleDealSelect={toggleDealSelect}
+                toggleDealSelectAll={toggleDealSelectAll}
+                sortBy={dealSortBy}
+                sortOrder={dealSortOrder}
+                onSort={handleDealSort}
+                totalCount={sortedDeals.length}
+                onDeleteDeal={handleDeleteDeal}
               />
             )}
           </div>
@@ -423,6 +481,86 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
           activeBoard={activeBoard}
           onCreateBoardAsync={createBoardAsync}
         />
+      )}
+
+      {/* Bulk Actions Bar (list view only) */}
+      {viewMode === 'list' && selectedDealIds.size > 0 && (
+        <>
+          {/* Spacer to prevent content from being hidden behind fixed bar */}
+          <div className="h-16" />
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/10 shadow-lg px-6 py-3">
+            <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  {selectedDealIds.size} negocio{selectedDealIds.size !== 1 ? 's' : ''} selecionado{selectedDealIds.size !== 1 ? 's' : ''}
+                </span>
+                <Button
+                  onClick={clearDealSelection}
+                  className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1"
+                >
+                  <X size={14} /> Limpar
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Move to stage dropdown */}
+                <div className="relative" ref={bulkMoveRef}>
+                  <Button
+                    onClick={() => setIsBulkMoveOpen(!isBulkMoveOpen)}
+                    className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-2 transition-colors"
+                  >
+                    <ArrowRightCircle size={16} />
+                    Mover para Estagio
+                    <ChevronDown size={14} className={`transition-transform ${isBulkMoveOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                  {isBulkMoveOpen && activeBoard && (
+                    <div className="absolute bottom-full mb-1 right-0 min-w-[200px] rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 shadow-lg py-1 z-50">
+                      {activeBoard.stages.map(stage => (
+                        <Button
+                          key={stage.id}
+                          variant="ghost"
+                          onClick={() => {
+                            handleBulkMoveDealToStage(stage.id);
+                            setIsBulkMoveOpen(false);
+                          }}
+                          className="w-full justify-start px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 transition-colors h-auto rounded-none"
+                        >
+                          <span
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: stage.color || '#94a3b8' }}
+                          />
+                          <span className="text-slate-700 dark:text-slate-200">{stage.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Delete button */}
+                <Button
+                  onClick={() => setIsBulkDeleteOpen(true)}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 transition-colors"
+                >
+                  <Trash2 size={16} />
+                  Excluir
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bulk Delete Confirm */}
+          <ConfirmModal
+            isOpen={isBulkDeleteOpen}
+            onClose={() => setIsBulkDeleteOpen(false)}
+            onConfirm={() => {
+              handleBulkDeleteDeals();
+              setIsBulkDeleteOpen(false);
+            }}
+            title="Excluir negocios"
+            message={`Tem certeza que deseja excluir ${selectedDealIds.size} negocio${selectedDealIds.size !== 1 ? 's' : ''}? Esta acao nao pode ser desfeita.`}
+            confirmText="Excluir"
+            variant="danger"
+          />
+        </>
       )}
     </div>
   );

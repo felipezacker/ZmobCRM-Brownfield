@@ -34,6 +34,9 @@ interface DealCardProps {
   onKeyboardMove?: (e: React.KeyboardEvent) => void;
   products: Product[];
   onProductChange: (dealId: string, product: Product | null) => void;
+  onWinDeal?: (dealId: string) => void;
+  onLoseDeal?: (dealId: string, dealTitle: string) => void;
+  onDeleteDeal?: (dealId: string) => void;
 }
 
 // Check if deal is closed (won or lost)
@@ -79,6 +82,9 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   onKeyboardMove,
   products,
   onProductChange,
+  onWinDeal,
+  onLoseDeal,
+  onDeleteDeal,
 }) => {
   const [localDragging, setLocalDragging] = useState(false);
   const [productSearch, setProductSearch] = useState('');
@@ -350,6 +356,10 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             onQuickAdd={handleQuickAdd}
             onRequestClose={() => setOpenMenuId(null)}
             onMoveToStage={onMoveToStage ? () => onMoveToStage(deal.id) : undefined}
+            onWinDeal={onWinDeal ? () => onWinDeal(deal.id) : undefined}
+            onLoseDeal={onLoseDeal ? () => onLoseDeal(deal.id, deal.title) : undefined}
+            onDeleteDeal={onDeleteDeal ? () => onDeleteDeal(deal.id) : undefined}
+            isClosed={isClosed}
           />
         </div>
       </div>

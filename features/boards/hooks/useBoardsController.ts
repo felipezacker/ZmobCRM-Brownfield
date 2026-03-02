@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { DealView, Board, CustomFieldDefinition } from '@/types';
+import { DealView, Board, CustomFieldDefinition, DealSortableColumn } from '@/types';
 import {
   useBoards,
   useDefaultBoard,
@@ -12,6 +12,7 @@ import {
 } from '@/lib/query/hooks/useBoardsQuery';
 import {
   useDealsByBoard,
+  useDeleteDeal,
 } from '@/lib/query/hooks/useDealsQuery';
 import { useMoveDeal } from '@/lib/query/hooks/useMoveDeal';
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery';
@@ -21,6 +22,7 @@ import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/settings/SettingsContext';
 import { useAI } from '@/context/AIContext';
+import { useOrganizationMembers } from '@/hooks/useOrganizationMembers';
 
 /**
  * Função pública `isDealRotting` do projeto.
@@ -121,6 +123,7 @@ export const useBoardsController = () => {
   const dealsBoardId = activeBoardId || '';
   const { data: deals = [], isLoading: dealsLoading } = useDealsByBoard(dealsBoardId);
   const moveDealMutation = useMoveDeal();
+  const deleteDealMutation = useDeleteDeal();
   const createActivityMutation = useCreateActivity();
 
   // Filter State (declared before AI context useEffect that uses them)
@@ -305,6 +308,55 @@ export const useBoardsController = () => {
     stageId: string;
   } | null>(null);
 
+  // Deal Selection State (list view)
+  const [selectedDealIds, setSelectedDealIds] = useState<Set<string>>(new Set());
+
+  const toggleDealSelect = useCallback((dealId: string) => {
+    setSelectedDealIds(prev => {
+      const next = new Set(prev);
+      if (next.has(dealId)) next.delete(dealId);
+      else next.add(dealId);
+      return next;
+    });
+  }, []);
+
+  const toggleDealSelectAll = useCallback((allIds: string[]) => {
+    setSelectedDealIds(prev => {
+      if (prev.size === allIds.length) return new Set();
+      return new Set(allIds);
+    });
+  }, []);
+
+  const clearDealSelection = useCallback(() => {
+    setSelectedDealIds(new Set());
+  }, []);
+
+  // Deal Sort State (list view)
+  const [dealSortBy, setDealSortBy] = useState<DealSortableColumn>('createdAt');
+  const [dealSortOrder, setDealSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const handleDealSort = useCallback((column: DealSortableColumn) => {
+    setDealSortBy(prev => {
+      if (prev === column) {
+        setDealSortOrder(o => (o === 'asc' ? 'desc' : 'asc'));
+        return prev;
+      }
+      setDealSortOrder('desc');
+      return column;
+    });
+  }, []);
+
+  // Clear selection when switching boards
+  const handleSelectBoardWithClear = useCallback((boardId: string) => {
+    clearDealSelection();
+    setActiveBoardId(boardId);
+  }, [clearDealSelection, setActiveBoardId]);
+
+  // Clear selection when switching view modes
+  useEffect(() => {
+    clearDealSelection();
+  }, [viewMode, clearDealSelection]);
+
   // Open deal from URL param (e.g., /boards?deal=xxx)
   useEffect(() => {
     if (!searchParams) return;
@@ -425,6 +477,74 @@ export const useBoardsController = () => {
     profile?.first_name,
     profile?.avatar_url,
   ]);
+
+  // Organization members for corretor name resolution (sort & display)
+  const { members: orgMembers } = useOrganizationMembers();
+  const orgMembersById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const m of orgMembers) map.set(m.id, m.name);
+    return map;
+  }, [orgMembers]);
+
+  // Sorted deals (only when list view — avoids sorting overhead for kanban)
+  const sortedDeals = useMemo(() => {
+    if (viewMode !== 'list') return filteredDeals;
+
+    const sorted = [...filteredDeals];
+    const dir = dealSortOrder === 'asc' ? 1 : -1;
+    const collator = new Intl.Collator('pt-BR', { sensitivity: 'base' });
+
+    sorted.sort((a, b) => {
+      switch (dealSortBy) {
+        case 'title':
+          return dir * collator.compare(a.title || '', b.title || '');
+        case 'stageLabel':
+          return dir * collator.compare(a.stageLabel || '', b.stageLabel || '');
+        case 'value':
+          return dir * ((a.value ?? 0) - (b.value ?? 0));
+        case 'owner': {
+          const aName = (a.ownerId ? orgMembersById.get(a.ownerId) : undefined) || '';
+          const bName = (b.ownerId ? orgMembersById.get(b.ownerId) : undefined) || '';
+          return dir * collator.compare(aName, bName);
+        }
+        case 'nextActivity': {
+          const aDate = a.nextActivity?.date ? new Date(a.nextActivity.date).getTime() : 0;
+          const bDate = b.nextActivity?.date ? new Date(b.nextActivity.date).getTime() : 0;
+          return dir * (aDate - bDate);
+        }
+        case 'createdAt':
+        default:
+          return dir * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      }
+    });
+
+    return sorted;
+  }, [filteredDeals, viewMode, dealSortBy, dealSortOrder, orgMembersById]);
+
+  // Bulk action handlers (list view)
+  const handleBulkMoveDealToStage = useCallback((targetStageId: string) => {
+    if (!activeBoard) return;
+    const dealsToMove = deals.filter(d => selectedDealIds.has(d.id) && !d.id.startsWith('temp-'));
+    for (const deal of dealsToMove) {
+      moveDealMutation.mutate({
+        dealId: deal.id,
+        targetStageId,
+        deal,
+        board: activeBoard,
+        lifecycleStages,
+      });
+    }
+    clearDealSelection();
+  }, [activeBoard, deals, selectedDealIds, moveDealMutation, lifecycleStages, clearDealSelection]);
+
+  const handleBulkDeleteDeals = useCallback(() => {
+    for (const dealId of selectedDealIds) {
+      if (!dealId.startsWith('temp-')) {
+        deleteDealMutation.mutate(dealId);
+      }
+    }
+    clearDealSelection();
+  }, [selectedDealIds, deleteDealMutation, clearDealSelection]);
 
   // Drag & Drop Handlers
   const handleDragStart = (e: React.DragEvent, id: string, title: string) => {
@@ -589,6 +709,48 @@ export const useBoardsController = () => {
       {}
     );
     setOpenActivityMenuId(null);
+  };
+
+  // Quick Actions: Win / Lose / Delete
+  const handleWinDeal = (dealId: string) => {
+    if (!activeBoard?.wonStageId) {
+      addToast('Este board não tem estágio de ganho configurado', 'info');
+      return;
+    }
+    const deal = deals.find(d => d.id === dealId);
+    if (!deal) return;
+    moveDealMutation.mutate({
+      dealId,
+      targetStageId: activeBoard.wonStageId,
+      deal,
+      board: activeBoard,
+      lifecycleStages,
+    });
+  };
+
+  const handleLoseDeal = (dealId: string, dealTitle: string) => {
+    if (!activeBoard?.lostStageId) {
+      addToast('Este board não tem estágio de perda configurado', 'info');
+      return;
+    }
+    setLossReasonModal({
+      isOpen: true,
+      dealId,
+      dealTitle,
+      stageId: activeBoard.lostStageId,
+    });
+  };
+
+  const handleDeleteDeal = (dealId: string) => {
+    deleteDealMutation.mutate(dealId, {
+      onSuccess: () => {
+        addToast('Negócio excluído', 'success');
+        if (selectedDealId === dealId) setSelectedDealId(null);
+      },
+      onError: (error: Error) => {
+        addToast(error.message || 'Erro ao excluir negócio', 'error');
+      },
+    });
   };
 
   // Board Management Handlers
@@ -824,7 +986,7 @@ export const useBoardsController = () => {
     activeBoard,
     activeBoardId, // Persisted selection (best for perf-first refresh)
     effectiveActiveBoardId, // Actually resolved board id (null until boards arrive)
-    handleSelectBoard,
+    handleSelectBoard: handleSelectBoardWithClear,
     handleCreateBoard,
     createBoardAsync,
     updateBoardAsync,
@@ -862,6 +1024,17 @@ export const useBoardsController = () => {
     openActivityMenuId,
     setOpenActivityMenuId,
     filteredDeals,
+    sortedDeals,
+    // Deal Selection & Sort (list view)
+    selectedDealIds,
+    toggleDealSelect,
+    toggleDealSelectAll,
+    clearDealSelection,
+    dealSortBy,
+    dealSortOrder,
+    handleDealSort,
+    handleBulkMoveDealToStage,
+    handleBulkDeleteDeals,
     customFieldDefinitions,
     isLoading,
     handleDragStart,
@@ -870,6 +1043,10 @@ export const useBoardsController = () => {
     handleMoveDealToStage,
     handleQuickAddActivity,
     setLastMouseDownDealId,
+    // Quick Actions
+    handleWinDeal,
+    handleLoseDeal,
+    handleDeleteDeal,
     // Loss Reason Modal
     lossReasonModal,
     handleLossReasonConfirm,

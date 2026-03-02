@@ -534,7 +534,10 @@ export interface ContactsServerFilters {
 }
 
 /** Colunas ordenáveis na tabela de contatos. */
-export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source' | 'lead_score';
+export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source' | 'lead_score' | 'classification' | 'temperature' | 'status';
+
+/** Colunas ordenáveis na tabela de lista de deals (board list view). */
+export type DealSortableColumn = 'title' | 'stageLabel' | 'value' | 'owner' | 'nextActivity' | 'createdAt';
 
 // =============================================================================
 // Notifications (Story 3.9 — Notificacoes Inteligentes)

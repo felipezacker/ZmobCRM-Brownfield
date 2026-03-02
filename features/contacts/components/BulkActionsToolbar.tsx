@@ -37,34 +37,21 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
 
     return (
         <>
-            <div className="flex items-center justify-between bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg px-4 py-3">
-                <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
-                        {selectedCount} contato{selectedCount !== 1 ? 's' : ''} selecionado{selectedCount !== 1 ? 's' : ''}
-                    </span>
-                    <Button
-                        onClick={onClearSelection}
-                        className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
-                    >
-                        Limpar selecao
-                    </Button>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        onClick={() => setShowReassignModal(true)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                        <UserCheck size={14} />
-                        Reatribuir
-                    </Button>
-                    <Button
-                        onClick={onExportCsv}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                        <Download size={14} />
-                        Exportar CSV
-                    </Button>
-                </div>
+            <div className="flex items-center gap-2">
+                <Button
+                    onClick={() => setShowReassignModal(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                    <UserCheck size={14} />
+                    Reatribuir
+                </Button>
+                <Button
+                    onClick={onExportCsv}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                    <Download size={14} />
+                    Exportar CSV
+                </Button>
             </div>
 
             {/* Reassign Modal */}

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft } from 'lucide-react';
+import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft, Trophy, XCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 
 interface ActivityStatusIconProps {
@@ -15,6 +15,14 @@ interface ActivityStatusIconProps {
     onRequestClose?: () => void;
     /** Callback for keyboard-accessible move to stage action */
     onMoveToStage?: () => void;
+    /** Quick action: mark deal as won */
+    onWinDeal?: () => void;
+    /** Quick action: mark deal as lost */
+    onLoseDeal?: () => void;
+    /** Quick action: delete deal */
+    onDeleteDeal?: () => void;
+    /** Whether the deal is already closed (won or lost) */
+    isClosed?: boolean;
 }
 
 /**
@@ -34,7 +42,11 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
     onToggle,
     onQuickAdd,
     onRequestClose,
-    onMoveToStage
+    onMoveToStage,
+    onWinDeal,
+    onLoseDeal,
+    onDeleteDeal,
+    isClosed = false,
 }) => {
     const Icon = type === 'CALL' ? Phone : type === 'EMAIL' ? Mail : type === 'MEETING' ? Calendar : ChevronRight;
 
@@ -118,62 +130,95 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                     style={{ top: menuPos.top, left: menuPos.left, transform: 'translateY(-100%)' }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className="p-2 border-b border-slate-100 dark:border-white/5">
-                        <p className="text-xs font-bold text-slate-500 uppercase px-2" id={`quick-add-heading-${dealId}`}>Ações Rápidas</p>
-                    </div>
-                    
-                    {/* Keyboard-accessible move to stage option */}
-                    {onMoveToStage && (
-                        <div className="p-1 border-b border-slate-100 dark:border-white/5">
-                            <Button 
-                                type="button"
-                                role="menuitem"
-                                onClick={() => {
-                                    onMoveToStage();
-                                    onRequestClose?.();
-                                }}
-                                className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
-                            >
-                                <ArrowRightLeft size={14} className="text-green-500" aria-hidden="true" /> Mover para estágio...
-                            </Button>
+                    {/* Resultado — top section, only for open deals */}
+                    {!isClosed && (onWinDeal || onLoseDeal) && (
+                        <div className="p-1 border-b border-slate-100 dark:border-white/5" role="group">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Resultado</p>
+                            {onWinDeal && (
+                                <Button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                        onWinDeal();
+                                        onRequestClose?.();
+                                    }}
+                                    className="w-full justify-start px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded flex items-center gap-2 focus-visible-ring"
+                                >
+                                    <Trophy size={14} aria-hidden="true" /> Ganhar negócio
+                                </Button>
+                            )}
+                            {onLoseDeal && (
+                                <Button
+                                    type="button"
+                                    role="menuitem"
+                                    onClick={() => {
+                                        onLoseDeal();
+                                        onRequestClose?.();
+                                    }}
+                                    className="w-full justify-start px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center gap-2 focus-visible-ring"
+                                >
+                                    <XCircle size={14} aria-hidden="true" /> Perder negócio
+                                </Button>
+                            )}
                         </div>
                     )}
-                    
-                    <div className="p-1" role="group" aria-labelledby={`quick-add-heading-${dealId}`}>
+
+                    {/* Agendar */}
+                    <div className="p-1 border-b border-slate-100 dark:border-white/5" role="group">
                         <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Agendar</p>
-                        <Button 
+                        <Button
                             type="button"
                             role="menuitem"
                             onClick={() => {
                                 onQuickAdd('CALL');
                                 onRequestClose?.();
                             }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                            className="w-full justify-start px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Phone size={14} className="text-blue-500" aria-hidden="true" /> Ligar amanhã
                         </Button>
-                        <Button 
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                                onQuickAdd('EMAIL');
-                                onRequestClose?.();
-                            }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
-                        >
-                            <Mail size={14} className="text-purple-500" aria-hidden="true" /> Email amanhã
-                        </Button>
-                        <Button 
+                        <Button
                             type="button"
                             role="menuitem"
                             onClick={() => {
                                 onQuickAdd('MEETING');
                                 onRequestClose?.();
                             }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                            className="w-full justify-start px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Calendar size={14} className="text-orange-500" aria-hidden="true" /> Reunião amanhã
                         </Button>
+                    </div>
+
+                    {/* Ações Rápidas — bottom section */}
+                    <div className="p-1" role="group">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Ações Rápidas</p>
+                        {onMoveToStage && (
+                            <Button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                    onMoveToStage();
+                                    onRequestClose?.();
+                                }}
+                                className="w-full justify-start px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                            >
+                                <ArrowRightLeft size={14} className="text-green-500" aria-hidden="true" /> Mover para estágio...
+                            </Button>
+                        )}
+                        {onDeleteDeal && (
+                            <Button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                    onDeleteDeal();
+                                    onRequestClose?.();
+                                }}
+                                className="w-full justify-start px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center gap-2 focus-visible-ring"
+                            >
+                                <Trash2 size={14} aria-hidden="true" /> Excluir negócio
+                            </Button>
+                        )}
                     </div>
                 </div>,
                 document.body
