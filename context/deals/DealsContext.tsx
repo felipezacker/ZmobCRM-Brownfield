@@ -89,6 +89,10 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 
   const updateDeal = useCallback(async (id: string, updates: Partial<Deal>) => {
+    // Snapshot para rollback limpo
+    const prevView = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+    const prevRaw = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
+
     const applyUpdates = (deal: Deal | DealView) =>
       deal.id === id ? { ...deal, ...updates, updatedAt: new Date().toISOString() } : deal;
 
@@ -104,8 +108,9 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (updateError) {
       console.error('Erro ao atualizar deal:', updateError.message);
-      // Rollback: invalida para refetch em caso de erro
-      await queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      // Rollback: restaura snapshot
+      if (prevView) queryClient.setQueryData(DEALS_VIEW_KEY, prevView);
+      if (prevRaw) queryClient.setQueryData(queryKeys.deals.lists(), prevRaw);
       return;
     }
 
@@ -155,10 +160,12 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       const tempItem: DealItem = { ...item, id: tempId };
 
       // Optimistic update — adiciona item temporário em ambos os caches
-      const applyAdd = (deal: Deal | DealView) =>
-        deal.id === dealId
-          ? { ...deal, items: [...(deal.items || []), tempItem], updatedAt: new Date().toISOString() }
-          : deal;
+      const applyAdd = (deal: Deal | DealView) => {
+        if (deal.id !== dealId) return deal;
+        const items = [...(deal.items || []), tempItem];
+        const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+        return { ...deal, items, value, updatedAt: new Date().toISOString() };
+      };
 
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
         old.map(deal => applyAdd(deal) as DealView)
@@ -171,11 +178,13 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
       if (addError) {
         console.error('Erro ao adicionar item:', addError.message);
-        // Rollback: remove o item temporário
-        const removeTemp = (deal: Deal | DealView) =>
-          deal.id === dealId
-            ? { ...deal, items: (deal.items || []).filter(i => i.id !== tempId) }
-            : deal;
+        // Rollback: remove o item temporário e restaura value
+        const removeTemp = (deal: Deal | DealView) => {
+          if (deal.id !== dealId) return deal;
+          const items = (deal.items || []).filter(i => i.id !== tempId);
+          const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+          return { ...deal, items, value };
+        };
         queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
           old.map(deal => removeTemp(deal) as DealView)
         );
@@ -185,12 +194,14 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return null;
       }
 
-      // Substitui item temporário pelo real
+      // Substitui item temporário pelo real e recalcula value
       if (data) {
-        const replaceTemp = (deal: Deal | DealView) =>
-          deal.id === dealId
-            ? { ...deal, items: (deal.items || []).map(i => i.id === tempId ? data : i) }
-            : deal;
+        const replaceTemp = (deal: Deal | DealView) => {
+          if (deal.id !== dealId) return deal;
+          const items = (deal.items || []).map(i => i.id === tempId ? data : i);
+          const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+          return { ...deal, items, value };
+        };
         queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
           old.map(deal => replaceTemp(deal) as DealView)
         );
@@ -209,11 +220,13 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const prevView = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
     const prevRaw = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
 
-    // Optimistic update — remove de ambos os caches imediatamente
-    const applyRemove = (deal: Deal | DealView) =>
-      deal.id === dealId
-        ? { ...deal, items: (deal.items || []).filter(i => i.id !== itemId), updatedAt: new Date().toISOString() }
-        : deal;
+    // Optimistic update — remove de ambos os caches e recalcula value
+    const applyRemove = (deal: Deal | DealView) => {
+      if (deal.id !== dealId) return deal;
+      const items = (deal.items || []).filter(i => i.id !== itemId);
+      const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+      return { ...deal, items, value, updatedAt: new Date().toISOString() };
+    };
 
     queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
       old.map(deal => applyRemove(deal) as DealView)
