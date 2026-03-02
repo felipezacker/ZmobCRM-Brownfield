@@ -196,6 +196,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                             variant="unstyled"
                             size="unstyled"
                             type="button"
+                            aria-label="Fechar modal"
                             onClick={handleDiscard}
                             className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-white"
                         >

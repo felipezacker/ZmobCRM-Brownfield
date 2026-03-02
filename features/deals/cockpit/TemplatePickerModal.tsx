@@ -66,6 +66,7 @@ export function TemplatePickerModal({
             variant="unstyled"
             size="unstyled"
             type="button"
+            aria-label="Fechar modal"
             className="rounded-lg border border-white/10 bg-white/3 p-2 text-slate-300 hover:bg-white/5 transition-colors"
             onClick={onClose}
           >

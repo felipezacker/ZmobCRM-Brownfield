@@ -212,10 +212,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       const deal = dealsById.get(dealId);
       if (!deal) return;
 
-      // Remove existing item if any
-      const existingItem = deal.items?.[0];
-      if (existingItem) {
-        await removeItem.mutateAsync({ dealId, itemId: existingItem.id });
+      // Remove all existing items
+      if (deal.items?.length) {
+        for (const item of deal.items) {
+          await removeItem.mutateAsync({ dealId, itemId: item.id });
+        }
       }
 
       // Add new product if selected

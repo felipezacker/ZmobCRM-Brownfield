@@ -82,6 +82,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
 }) => {
   const [localDragging, setLocalDragging] = useState(false);
   const [productSearch, setProductSearch] = useState('');
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
   const isClosed = isDealClosed(deal);
 
   const handleToggleMenu = (e: React.MouseEvent) => {
@@ -253,7 +254,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
 
       {/* Row 2: Product · Owner */}
       <div className="flex items-center gap-1 mt-1 ml-8 text-xs truncate">
-        <Popover onOpenChange={(open) => { if (!open) setProductSearch(''); }}>
+        <Popover open={productPickerOpen} onOpenChange={(open) => { setProductPickerOpen(open); if (!open) setProductSearch(''); }}>
           <PopoverTrigger asChild>
             <Button
               variant="unstyled"
@@ -277,6 +278,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 placeholder="Buscar produto..."
+                aria-label="Buscar produto"
                 className="flex-1 bg-transparent text-xs text-slate-900 dark:text-slate-200 outline-none placeholder:text-slate-400"
                 autoFocus
               />
@@ -286,7 +288,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                 variant="unstyled"
                 size="unstyled"
                 type="button"
-                onClick={(e) => { e.stopPropagation(); onProductChange(deal.id, null); }}
+                onClick={(e) => { e.stopPropagation(); onProductChange(deal.id, null); setProductPickerOpen(false); }}
                 className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors ${!productName ? 'text-amber-500 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}
               >
                 Sem produto
@@ -297,7 +299,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                   size="unstyled"
                   key={p.id}
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); onProductChange(deal.id, p); }}
+                  onClick={(e) => { e.stopPropagation(); onProductChange(deal.id, p); setProductPickerOpen(false); }}
                   className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-2 ${deal.items?.[0]?.productId === p.id ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}
                 >
                   <span className="truncate">{p.name}</span>
