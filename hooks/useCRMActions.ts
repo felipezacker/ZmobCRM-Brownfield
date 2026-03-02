@@ -91,7 +91,10 @@ export function useCRMActions() {
 
     let finalContactId = deal.contactId;
 
-    if (relatedData?.contact && relatedData.contact.name) {
+    // Se deal.contactId já está preenchido (contato existente selecionado), pula a
+    // resolução de contato. Sem essa guarda, contatos sem email geravam um duplicado
+    // com ID diferente, e o card aparecia sem dados após a criação.
+    if (!finalContactId && relatedData?.contact && relatedData.contact.name) {
       const existingContact = relatedData.contact.email
         ? contacts.find(c => (c.email || '').toLowerCase() === relatedData.contact!.email!.toLowerCase())
         : undefined;
