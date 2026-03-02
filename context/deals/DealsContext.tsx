@@ -10,7 +10,11 @@ import { Deal, DealView, DealItem, Contact, Board } from '@/types';
 import { dealsService } from '@/lib/supabase';
 import { useAuth } from '../AuthContext';
 import { queryKeys, DEALS_VIEW_KEY } from '@/lib/query';
-import { useDeals as useTanStackDealsQuery } from '@/lib/query/hooks/useDealsQuery';
+import {
+  useDeals as useTanStackDealsQuery,
+  useAddDealItem,
+  useRemoveDealItem,
+} from '@/lib/query/hooks/useDealsQuery';
 
 interface DealsContextType {
   // Raw data (agora vem direto do TanStack Query)
@@ -43,6 +47,8 @@ const DealsContext = createContext<DealsContextType | undefined>(undefined);
 export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
+  const addItemMutation = useAddDealItem();
+  const removeItemMutation = useRemoveDealItem();
 
   // ============================================
   // TanStack Query como fonte única de verdade
@@ -156,94 +162,23 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // ============================================
   const addItemToDeal = useCallback(
     async (dealId: string, item: Omit<DealItem, 'id'>): Promise<DealItem | null> => {
-      const tempId = `temp-item-${Date.now()}`;
-      const tempItem: DealItem = { ...item, id: tempId };
-
-      // Optimistic update — adiciona item temporário em ambos os caches
-      const applyAdd = (deal: Deal | DealView) => {
-        if (deal.id !== dealId) return deal;
-        const items = [...(deal.items || []), tempItem];
-        const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
-        return { ...deal, items, value, updatedAt: new Date().toISOString() };
-      };
-
-      queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-        old.map(deal => applyAdd(deal) as DealView)
-      );
-      queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
-        old.map(deal => applyAdd(deal) as Deal)
-      );
-
-      const { data, error: addError } = await dealsService.addItem(dealId, item);
-
-      if (addError) {
-        console.error('Erro ao adicionar item:', addError.message);
-        // Rollback: remove o item temporário e restaura value
-        const removeTemp = (deal: Deal | DealView) => {
-          if (deal.id !== dealId) return deal;
-          const items = (deal.items || []).filter(i => i.id !== tempId);
-          const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
-          return { ...deal, items, value };
-        };
-        queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-          old.map(deal => removeTemp(deal) as DealView)
-        );
-        queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
-          old.map(deal => removeTemp(deal) as Deal)
-        );
+      try {
+        const result = await addItemMutation.mutateAsync({ dealId, item });
+        return result.item;
+      } catch {
         return null;
       }
-
-      // Substitui item temporário pelo real e recalcula value
-      if (data) {
-        const replaceTemp = (deal: Deal | DealView) => {
-          if (deal.id !== dealId) return deal;
-          const items = (deal.items || []).map(i => i.id === tempId ? data : i);
-          const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
-          return { ...deal, items, value };
-        };
-        queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-          old.map(deal => replaceTemp(deal) as DealView)
-        );
-        queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
-          old.map(deal => replaceTemp(deal) as Deal)
-        );
-      }
-
-      return data;
     },
-    [queryClient]
+    [addItemMutation]
   );
 
   const removeItemFromDeal = useCallback(async (dealId: string, itemId: string) => {
-    // Snapshot para rollback
-    const prevView = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
-    const prevRaw = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
-
-    // Optimistic update — remove de ambos os caches e recalcula value
-    const applyRemove = (deal: Deal | DealView) => {
-      if (deal.id !== dealId) return deal;
-      const items = (deal.items || []).filter(i => i.id !== itemId);
-      const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
-      return { ...deal, items, value, updatedAt: new Date().toISOString() };
-    };
-
-    queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-      old.map(deal => applyRemove(deal) as DealView)
-    );
-    queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
-      old.map(deal => applyRemove(deal) as Deal)
-    );
-
-    const { error: removeError } = await dealsService.removeItem(dealId, itemId);
-
-    if (removeError) {
-      console.error('Erro ao remover item:', removeError.message);
-      // Rollback
-      if (prevView) queryClient.setQueryData(DEALS_VIEW_KEY, prevView);
-      if (prevRaw) queryClient.setQueryData(queryKeys.deals.lists(), prevRaw);
+    try {
+      await removeItemMutation.mutateAsync({ dealId, itemId });
+    } catch {
+      // onError da mutation já faz rollback do cache
     }
-  }, [queryClient]);
+  }, [removeItemMutation]);
 
   const value = useMemo(
     () => ({
