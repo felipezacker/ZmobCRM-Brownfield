@@ -260,11 +260,27 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                 ) : (
                                     <th scope="col" className={HEADER_CLASS}>Nome</th>
                                 )}
-                                <th scope="col" className={HEADER_CLASS}>Classificacao</th>
-                                <th scope="col" className={HEADER_CLASS}>Temp.</th>
-                                <th scope="col" className={HEADER_CLASS}>Estagio</th>
+                                {onSort ? (
+                                    <SortableHeader label="Classificacao" column="classification" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Classificacao</th>
+                                )}
+                                {onSort ? (
+                                    <SortableHeader label="Temp." column="temperature" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Temp.</th>
+                                )}
+                                {onSort ? (
+                                    <SortableHeader label="Estagio" column="stage" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Estagio</th>
+                                )}
                                 <th scope="col" className={HEADER_CLASS}>Contato</th>
-                                <th scope="col" className={HEADER_CLASS}>Status</th>
+                                {onSort ? (
+                                    <SortableHeader label="Status" column="status" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
+                                ) : (
+                                    <th scope="col" className={HEADER_CLASS}>Status</th>
+                                )}
                                 {onSort ? (
                                     <SortableHeader label="Responsavel" column="owner_id" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
                                 ) : (

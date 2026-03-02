@@ -534,7 +534,7 @@ export interface ContactsServerFilters {
 }
 
 /** Colunas ordenáveis na tabela de contatos. */
-export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source' | 'lead_score';
+export type ContactSortableColumn = 'name' | 'created_at' | 'updated_at' | 'stage' | 'owner_id' | 'source' | 'lead_score' | 'classification' | 'temperature' | 'status';
 
 // =============================================================================
 // Notifications (Story 3.9 — Notificacoes Inteligentes)
