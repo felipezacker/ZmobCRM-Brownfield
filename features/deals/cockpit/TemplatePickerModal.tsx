@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import type { QuickScript, ScriptCategory } from '@/lib/supabase/quickScripts';
 import type { TemplatePickerMode } from './cockpit-types';
@@ -33,6 +33,16 @@ export function TemplatePickerModal({
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<'all' | ScriptCategory>('all');
 
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const base = category === 'all' ? scripts : scripts.filter((s) => s.category === category);
@@ -46,15 +56,17 @@ export function TemplatePickerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60">
-      <div className="relative w-full max-w-2xl max-h-[80dvh] flex flex-col rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60" onClick={onClose}>
+      <div className="relative w-full max-w-2xl max-h-[80dvh] flex flex-col rounded-2xl border border-white/10 bg-slate-950 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
           <div className="text-sm font-semibold text-slate-100">
             {mode === 'WHATSAPP' ? 'Template WhatsApp' : 'Template E-mail'}
           </div>
           <Button
+            variant="unstyled"
+            size="unstyled"
             type="button"
-            className="rounded-lg border border-white/10 bg-white/3 p-2 text-slate-300 hover:bg-white/5"
+            className="rounded-lg border border-white/10 bg-white/3 p-2 text-slate-300 hover:bg-white/5 transition-colors"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
@@ -91,24 +103,26 @@ export function TemplatePickerModal({
           ) : filtered.length === 0 ? (
             <div className="text-sm text-slate-400">Nenhum template encontrado.</div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {filtered.map((s) => {
                 const info = getCategoryInfo(s.category);
                 const preview = applyVariables(s.template, variables);
                 return (
                   <Button
+                    variant="unstyled"
+                    size="unstyled"
                     key={s.id}
                     type="button"
-                    className="w-full text-left rounded-2xl border border-white/10 bg-white/3 p-4 hover:bg-white/5 transition-colors"
+                    className="block w-full text-left rounded-xl border border-white/10 bg-white/3 p-3 hover:bg-white/5 transition-colors"
                     onClick={() => onPick(s)}
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>
+                      <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>
                         {info.label}
                       </span>
-                      <div className="truncate text-sm font-semibold text-slate-100">{s.title}</div>
+                      <span className="truncate text-sm font-semibold text-slate-100">{s.title}</span>
                     </div>
-                    <div className="mt-2 line-clamp-4 text-xs text-slate-400 whitespace-pre-wrap">{preview}</div>
+                    <div className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-400 whitespace-pre-wrap">{preview}</div>
                   </Button>
                 );
               })}
