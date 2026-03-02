@@ -103,7 +103,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
             const rect = triggerRef.current.getBoundingClientRect();
             setMenuPos({
                 top: rect.top - 8, // 8px gap above the button
-                left: rect.left, // align left edge with trigger
+                left: rect.right - 192, // 192px = w-48, align right edge
             });
         }
     }, [isOpen, dealId]);
@@ -142,7 +142,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                         onWinDeal();
                                         onRequestClose?.();
                                     }}
-                                    className="w-full text-left px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded flex items-center gap-2 focus-visible-ring"
+                                    className="w-full justify-start px-3 py-2 text-sm text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded flex items-center gap-2 focus-visible-ring"
                                 >
                                     <Trophy size={14} aria-hidden="true" /> Ganhar negócio
                                 </Button>
@@ -155,7 +155,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                         onLoseDeal();
                                         onRequestClose?.();
                                     }}
-                                    className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center gap-2 focus-visible-ring"
+                                    className="w-full justify-start px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center gap-2 focus-visible-ring"
                                 >
                                     <XCircle size={14} aria-hidden="true" /> Perder negócio
                                 </Button>
@@ -173,7 +173,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                 onQuickAdd('CALL');
                                 onRequestClose?.();
                             }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                            className="w-full justify-start px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Phone size={14} className="text-blue-500" aria-hidden="true" /> Ligar amanhã
                         </Button>
@@ -184,7 +184,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                 onQuickAdd('MEETING');
                                 onRequestClose?.();
                             }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                            className="w-full justify-start px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Calendar size={14} className="text-orange-500" aria-hidden="true" /> Reunião amanhã
                         </Button>
@@ -201,7 +201,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                     onMoveToStage();
                                     onRequestClose?.();
                                 }}
-                                className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                                className="w-full justify-start px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                             >
                                 <ArrowRightLeft size={14} className="text-green-500" aria-hidden="true" /> Mover para estágio...
                             </Button>
@@ -214,7 +214,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                     onDeleteDeal();
                                     onRequestClose?.();
                                 }}
-                                className="w-full text-left px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center gap-2 focus-visible-ring"
+                                className="w-full justify-start px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center gap-2 focus-visible-ring"
                             >
                                 <Trash2 size={14} aria-hidden="true" /> Excluir negócio
                             </Button>
