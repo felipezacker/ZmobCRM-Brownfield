@@ -4,9 +4,9 @@
  * (ex: org recém-criada antes do primeiro save).
  */
 export const AI_DEFAULT_MODELS = {
-  google: 'gemini-3-flash-preview',
+  google: 'gemini-2.5-flash',
   openai: 'gpt-4o',
-  anthropic: 'claude-sonnet-4-5',
+  anthropic: 'claude-sonnet-4-6',
 } as const;
 
 export const AI_DEFAULT_PROVIDER = 'google' as const;

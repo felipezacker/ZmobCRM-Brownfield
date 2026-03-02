@@ -1,16 +1,12 @@
 /**
- * Next.js 16+ Proxy (ex-"middleware")
+ * Next.js 15 Middleware
  *
  * Convenção oficial:
- * - Este arquivo precisa se chamar `proxy.ts|js` e ficar na raiz (ou em `src/`).
- * - Deve exportar APENAS uma função (default export ou named `proxy`).
+ * - Este arquivo precisa se chamar `middleware.ts|js` e ficar na raiz (ou em `src/`).
+ * - Deve exportar uma função named `middleware`.
  * - Pode exportar `config.matcher` para limitar onde roda.
  *
- * Referências oficiais:
- * - https://nextjs.org/docs/app/api-reference/file-conventions/proxy
- * - https://nextjs.org/docs/app/api-reference/file-conventions/proxy#migration-to-proxy
- *
- * Neste projeto, o Proxy é usado só para:
+ * Neste projeto, o Middleware é usado só para:
  * - refresh de sessão do Supabase SSR
  * - redirects de páginas protegidas para `/login`
  *
@@ -23,12 +19,12 @@ import { type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 /**
- * Função pública `proxy` do projeto.
+ * Middleware de autenticação Supabase.
  *
- * @param {NextRequest} request - Objeto da requisição.
- * @returns {Promise<NextResponse<unknown>>} Retorna um valor do tipo `Promise<NextResponse<unknown>>`.
+ * @param request - Objeto da requisição.
+ * @returns Response com sessão atualizada.
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     return await updateSession(request)
 }
 
@@ -38,7 +34,7 @@ export const config = {
          * Match all request paths exceto:
          * - api (Route Handlers)
          * - _next/static, _next/image
-         * - _next/data (mesmo excluindo, o Next pode ainda invocar o Proxy para /_next/data por segurança)
+         * - _next/data
          * - arquivos de metadata (manifest, sitemap, robots)
          * - assets (imagens)
          */

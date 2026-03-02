@@ -8,11 +8,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  * @returns {Promise<NextResponse<unknown>>} Retorna um valor do tipo `Promise<NextResponse<unknown>>`.
  */
 export async function updateSession(request: NextRequest) {
-    // NOTE: Apesar do nome do arquivo, esta função é consumida pelo `proxy.ts` (Next 16+).
-    // O Next renomeou a convenção de `middleware.ts` -> `proxy.ts`.
-    // Doc: https://nextjs.org/docs/app/api-reference/file-conventions/proxy
-    //
-    // Importante: o Proxy NÃO deve interferir em `/api/*`.
+    // Importante: o Middleware NÃO deve interferir em `/api/*`.
     // Route Handlers devem responder com 401/403 quando necessário.
     // Se redirecionarmos `/api/*` para `/login`, quebramos `fetch`/SDKs.
     if (request.nextUrl.pathname.startsWith('/api')) {
@@ -32,7 +28,7 @@ export async function updateSession(request: NextRequest) {
         supabaseUrl.startsWith('http')
 
     if (!isConfigured) {
-        console.warn('[proxy] Supabase not configured - skipping auth check')
+        console.warn('[middleware] Supabase not configured - skipping auth check')
         return NextResponse.next({ request })
     }
 

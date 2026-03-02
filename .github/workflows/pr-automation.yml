@@ -1,63 +1,71 @@
 name: PR Quality Summary
 
 on:
-  pull_request:
-    branches: [main, develop]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
 
 permissions:
   pull-requests: write
   contents: read
+  actions: read
 
 jobs:
   quality-summary:
     name: Quality Summary
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event.workflow_run.event == 'pull_request'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-
-      - name: Run Lint
-        id: lint
-        run: |
-          if npm run lint 2>&1; then
-            echo "status=pass" >> $GITHUB_OUTPUT
-          else
-            echo "status=fail" >> $GITHUB_OUTPUT
-          fi
-        continue-on-error: true
-
-      - name: Run TypeCheck
-        id: typecheck
-        run: |
-          if npm run typecheck 2>&1; then
-            echo "status=pass" >> $GITHUB_OUTPUT
-          else
-            echo "status=fail" >> $GITHUB_OUTPUT
-          fi
-        continue-on-error: true
-
-      - name: Run Tests
-        id: test
-        run: |
-          if npm run test:run 2>&1; then
-            echo "status=pass" >> $GITHUB_OUTPUT
-          else
-            echo "status=fail" >> $GITHUB_OUTPUT
-          fi
-        continue-on-error: true
-
-      - name: Post Quality Comment
+      - name: Get PR number
+        id: pr
         uses: actions/github-script@v7
         with:
           script: |
-            const lint = '${{ steps.lint.outputs.status }}' === 'pass' ? '✅' : '❌';
-            const typecheck = '${{ steps.typecheck.outputs.status }}' === 'pass' ? '✅' : '❌';
-            const test = '${{ steps.test.outputs.status }}' === 'pass' ? '✅' : '❌';
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${context.payload.workflow_run.head_branch}`,
+              state: 'open',
+            });
+            if (prs.length === 0) {
+              core.setOutput('found', 'false');
+              return;
+            }
+            core.setOutput('found', 'true');
+            core.setOutput('number', prs[0].number);
+
+      - name: Get CI job results
+        if: steps.pr.outputs.found == 'true'
+        id: ci
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+
+            const getStatus = (name) => {
+              const job = jobs.jobs.find(j => j.name === name);
+              return job?.conclusion === 'success' ? 'pass' : 'fail';
+            };
+
+            core.setOutput('lint', getStatus('Lint'));
+            core.setOutput('typecheck', getStatus('TypeCheck'));
+            core.setOutput('test', getStatus('Test'));
+            core.setOutput('build', getStatus('Build'));
+
+      - name: Post Quality Comment
+        if: steps.pr.outputs.found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const icon = (s) => s === 'pass' ? '✅' : '❌';
+            const lint = icon('${{ steps.ci.outputs.lint }}');
+            const typecheck = icon('${{ steps.ci.outputs.typecheck }}');
+            const test = icon('${{ steps.ci.outputs.test }}');
+            const build = icon('${{ steps.ci.outputs.build }}');
 
             const body = `## Quality Gate Summary
 
@@ -66,14 +74,16 @@ jobs:
             | Lint | ${lint} |
             | TypeCheck | ${typecheck} |
             | Tests | ${test} |
+            | Build | ${build} |
 
             ---
             _Automated by AIOS DevOps_`;
 
+            const prNumber = ${{ steps.pr.outputs.number }};
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
+              issue_number: prNumber,
             });
 
             const existing = comments.find(c => c.body.includes('Quality Gate Summary'));
@@ -88,7 +98,7 @@ jobs:
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.issue.number,
+                issue_number: prNumber,
                 body,
               });
             }

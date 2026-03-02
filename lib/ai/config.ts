@@ -24,9 +24,9 @@ export type AIProvider = 'google' | 'openai' | 'anthropic';
  * Cria e retorna uma instância do modelo de IA configurada.
  * 
  * Suporta múltiplos provedores com modelos padrão:
- * - Google: gemini-3-flash-preview
+ * - Google: gemini-2.5-flash
  * - OpenAI: gpt-4o
- * - Anthropic: claude-3-5-sonnet-20240620
+ * - Anthropic: claude-sonnet-4-6
  * 
  * @param provider - Provedor de IA a ser utilizado.
  * @param apiKey - Chave de API do provedor.
@@ -37,7 +37,7 @@ export type AIProvider = 'google' | 'openai' | 'anthropic';
  * @example
  * ```typescript
  * // Usando Google Gemini
- * const model = getModel('google', 'sua-api-key', 'gemini-3-pro-preview');
+ * const model = getModel('google', 'sua-api-key', 'gemini-2.5-pro');
  * 
  * // Usando OpenAI com modelo padrão
  * const model = getModel('openai', 'sua-api-key', '');

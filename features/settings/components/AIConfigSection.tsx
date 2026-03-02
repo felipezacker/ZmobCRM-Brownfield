@@ -11,17 +11,17 @@ const AI_PROVIDERS = [
         id: 'google',
         name: 'Google Gemini',
         models: [
-            { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', description: 'Recomendado - Best value', price: '$0.15 / $0.60' },
-            { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', description: 'Most intelligent', price: '$1.25 / $10' },
+            { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Recomendado - Best value', price: '$0.15 / $0.60' },
+            { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', description: 'Most intelligent', price: '$1.25 / $10' },
         ]
     },
     {
         id: 'anthropic',
         name: 'Anthropic Claude',
         models: [
-            { id: 'claude-sonnet-4-5', name: 'Claude Sonnet 4.5', description: 'Recomendado - Best balance', price: '$3 / $15' },
+            { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', description: 'Recomendado - Best balance', price: '$3 / $15' },
             { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', description: 'Fastest', price: '$1 / $5' },
-            { id: 'claude-opus-4-5', name: 'Claude Opus 4.5', description: 'Premium intelligence', price: '$5 / $25' },
+            { id: 'claude-opus-4-6', name: 'Claude Opus 4.6', description: 'Premium intelligence', price: '$5 / $25' },
         ]
     },
     {
@@ -391,7 +391,7 @@ export const AIConfigSection: React.FC = () => {
                                         setCustomModelDraft(e.target.value);
                                         setCustomModelDirty(true);
                                     }}
-                                    placeholder="Digite o ID do modelo (ex: gemini-3-pro-preview)"
+                                    placeholder="Digite o ID do modelo (ex: gemini-2.5-pro)"
                                     className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
                                 />
                                 <p className="text-xs text-slate-500 mt-1">

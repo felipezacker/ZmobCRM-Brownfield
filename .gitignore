@@ -110,3 +110,6 @@ Thumbs.db
 .aios/install-log.txt
 supabase/.branches/
 supabase/backups/
+
+# SYNAPSE runtime data
+.synapse/
