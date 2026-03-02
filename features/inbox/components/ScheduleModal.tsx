@@ -76,6 +76,16 @@ export function ScheduleModal({
     const [titleTouched, setTitleTouched] = useState(false);
 
     // Reset form when modal opens
+    // Close on Escape key
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+
     useEffect(() => {
         if (!isOpen) return;
 

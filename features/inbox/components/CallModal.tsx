@@ -57,6 +57,16 @@ export const CallModal: React.FC<CallModalProps> = ({
 
     const phone = normalizePhoneE164(contactPhone);
 
+    // Close on Escape key
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+
     // Reset state when opening the modal (so it behaves like a fresh log each time).
     useEffect(() => {
         if (!isOpen) return;
@@ -156,6 +166,8 @@ export const CallModal: React.FC<CallModalProps> = ({
                                     {phone && (
                                         <>
                                             <Button
+                                                variant="unstyled"
+                                                size="unstyled"
                                                 type="button"
                                                 onClick={handleCopyPhone}
                                                 className="p-1 rounded-md hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
@@ -165,6 +177,8 @@ export const CallModal: React.FC<CallModalProps> = ({
                                                 <Copy size={12} />
                                             </Button>
                                             <Button
+                                                variant="unstyled"
+                                                size="unstyled"
                                                 type="button"
                                                 onClick={handleOpenPhoneApp}
                                                 className="p-1 rounded-md hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
@@ -179,6 +193,10 @@ export const CallModal: React.FC<CallModalProps> = ({
                             </div>
                         </div>
                         <Button
+                            variant="unstyled"
+                            size="unstyled"
+                            type="button"
+                            aria-label="Fechar modal"
                             onClick={handleDiscard}
                             className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-white"
                         >
@@ -218,6 +236,8 @@ export const CallModal: React.FC<CallModalProps> = ({
                         <div className="grid grid-cols-2 gap-2">
                             {outcomeOptions.map(({ id, label, icon: Icon, color }) => (
                                 <Button
+                                    variant="unstyled"
+                                    size="unstyled"
                                     key={id}
                                     onClick={() => setOutcome(id)}
                                     className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-all text-sm font-medium ${outcome === id
@@ -256,46 +276,54 @@ export const CallModal: React.FC<CallModalProps> = ({
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="O que foi discutido? Próximos passos?"
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-40 max-h-[40vh] break-words [overflow-wrap:anywhere]"
-                            rows={6}
+                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-24 max-h-[30vh] break-words [overflow-wrap:anywhere]"
+                            rows={3}
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-slate-200 dark:border-slate-700/50 flex flex-col sm:flex-row gap-2 shrink-0">
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700/50 grid grid-cols-2 gap-2 shrink-0">
                     <Button
+                        variant="unstyled"
+                        size="unstyled"
                         onClick={handleDiscard}
-                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="py-2.5 px-3 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-center"
                     >
                         Descartar
                     </Button>
                     <Button
+                        variant="unstyled"
+                        size="unstyled"
                         type="button"
                         onClick={handleCopyPhone}
                         disabled={!phone}
-                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="py-2.5 px-3 rounded-lg text-sm font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         title={copied ? 'Copiado' : 'Copiar número'}
                     >
-                        <Copy size={16} />
+                        <Copy size={14} />
                         {copied ? 'Copiado' : 'Copiar número'}
                     </Button>
                     <Button
+                        variant="unstyled"
+                        size="unstyled"
                         type="button"
                         onClick={handleOpenPhoneApp}
                         disabled={!phone}
-                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold bg-yellow-500 hover:bg-yellow-600 text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="py-2.5 px-3 rounded-lg text-sm font-semibold bg-yellow-500 hover:bg-yellow-600 text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         title="Abrir no discador"
                     >
-                        <ExternalLink size={16} />
+                        <ExternalLink size={14} />
                         Abrir no discador
                     </Button>
                     <Button
+                        variant="unstyled"
+                        size="unstyled"
                         onClick={handleSave}
                         disabled={!outcome}
-                        className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="py-2.5 px-3 rounded-lg text-sm font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        <Check size={16} />
+                        <Check size={14} />
                         Salvar Log
                     </Button>
                 </div>
