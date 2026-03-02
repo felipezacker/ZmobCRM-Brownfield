@@ -46,6 +46,7 @@ import { ActivityRow } from '@/features/activities/components/ActivityRow';
 import { ActivityFormModal } from '@/features/activities/components/ActivityFormModal';
 import { formatPriorityPtBr } from '@/lib/utils/priority';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
+import { useOrganizationMembers } from '@/hooks/useOrganizationMembers';
 import { Button } from '@/app/components/ui/Button';
 import { supabase } from '@/lib/supabase/client';
 import { calculateEstimatedCommission } from '@/lib/supabase';
@@ -89,6 +90,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const { activeBoard, boards } = useBoards();
   const { products, customFieldDefinitions, lifecycleStages } = useSettings();
   const { profile } = useAuth();
+  const { members: orgMembers } = useOrganizationMembers();
   const { addToast } = useToast();
   const router = useRouter();
 
@@ -542,7 +544,15 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
             <div className="w-44 shrink-0">
               <CorretorSelect
                 value={deal.ownerId || profile?.id}
-                onChange={(newOwnerId) => updateDeal(deal.id, { ownerId: newOwnerId })}
+                onChange={(newOwnerId) => {
+                  const member = orgMembers.find(m => m.id === newOwnerId);
+                  updateDeal(deal.id, {
+                    ownerId: newOwnerId,
+                    owner: member
+                      ? { name: member.name, avatar: member.avatar_url || '' }
+                      : { name: 'Sem Dono', avatar: '' },
+                  });
+                }}
               />
             </div>
 
