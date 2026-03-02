@@ -1,5 +1,5 @@
-import React from 'react';
-import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown } from 'lucide-react';
 import { Contact, ContactSortableColumn, ContactClassification, ContactTemperature } from '@/types';
 import { StageBadge } from './ContactsStageTabs';
 import { Button } from '@/app/components/ui/Button';
@@ -138,6 +138,81 @@ const LeadScoreBadge: React.FC<{ score?: number }> = ({ score }) => {
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
             {score}
         </span>
+    );
+};
+
+// ============================================
+// Status Dropdown
+// ============================================
+const STATUS_OPTIONS = [
+    { value: 'ACTIVE' as const, label: 'ATIVO', color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' },
+    { value: 'INACTIVE' as const, label: 'INATIVO', color: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20' },
+    { value: 'CHURNED' as const, label: 'PERDIDO', color: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' },
+] as const;
+
+const StatusDropdown: React.FC<{
+    status: 'ACTIVE' | 'INACTIVE' | 'CHURNED';
+    contactName: string;
+    onChange: (status: 'ACTIVE' | 'INACTIVE' | 'CHURNED') => void;
+}> = ({ status, contactName, onChange }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handleClick = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        document.addEventListener('mousedown', handleClick);
+        document.addEventListener('keydown', handleKey);
+        return () => {
+            document.removeEventListener('mousedown', handleClick);
+            document.removeEventListener('keydown', handleKey);
+        };
+    }, [open]);
+
+    const current = STATUS_OPTIONS.find(o => o.value === status) || STATUS_OPTIONS[0];
+
+    return (
+        <div className="relative" ref={ref}>
+            <Button
+                onClick={() => setOpen(prev => !prev)}
+                aria-label={`Status de ${contactName}: ${current.label}. Clique para alterar.`}
+                aria-expanded={open}
+                aria-haspopup="listbox"
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all inline-flex items-center gap-1 ${current.color}`}
+            >
+                {current.label}
+                <ChevronDown size={10} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+            </Button>
+            {open && (
+                <div
+                    role="listbox"
+                    aria-label="Selecionar status"
+                    className="absolute z-50 mt-1 left-0 min-w-[100px] rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 shadow-lg py-1"
+                >
+                    {STATUS_OPTIONS.map(option => (
+                        <button
+                            key={option.value}
+                            role="option"
+                            aria-selected={option.value === status}
+                            onClick={() => {
+                                if (option.value !== status) onChange(option.value);
+                                setOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors hover:bg-slate-50 dark:hover:bg-white/5 ${option.value === status ? 'font-bold' : ''}`}
+                        >
+                            <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${option.color}`}>
+                                {option.label}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
     );
 };
 
@@ -362,19 +437,11 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            <Button
-                                                onClick={() => {
-                                                    const nextStatus = contact.status === 'ACTIVE' ? 'INACTIVE' : contact.status === 'INACTIVE' ? 'CHURNED' : 'ACTIVE';
-                                                    updateContact(contact.id, { status: nextStatus });
-                                                }}
-                                                aria-label={`Alterar status de ${contact.name} de ${contact.status === 'ACTIVE' ? 'ativo' : contact.status === 'INACTIVE' ? 'inativo' : 'perdido'}`}
-                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${contact.status === 'ACTIVE' ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' :
-                                                    contact.status === 'INACTIVE' ? 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20' :
-                                                        'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
-                                                    }`}
-                                            >
-                                                {contact.status === 'ACTIVE' ? 'ATIVO' : contact.status === 'INACTIVE' ? 'INATIVO' : 'PERDIDO'}
-                                            </Button>
+                                            <StatusDropdown
+                                                status={contact.status}
+                                                contactName={contact.name}
+                                                onChange={(newStatus) => updateContact(contact.id, { status: newStatus })}
+                                            />
                                             <Button
                                                 onClick={() => convertContactToDeal(contact.id)}
                                                 className="p-1 text-slate-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
