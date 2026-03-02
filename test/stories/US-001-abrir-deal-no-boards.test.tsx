@@ -62,6 +62,10 @@ vi.mock('@/lib/ai/tasksClient', () => ({
   generateObjectionResponse: vi.fn(),
 }));
 
+vi.mock('@/hooks/useOrganizationMembers', () => ({
+  useOrganizationMembers: () => ({ members: [], loading: false }),
+}));
+
 const mockBoard = {
   id: 'board-1',
   name: 'Pipeline de Vendas',

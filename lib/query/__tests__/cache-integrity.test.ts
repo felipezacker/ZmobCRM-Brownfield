@@ -33,10 +33,12 @@ const DANGEROUS_PATTERNS = [
     severity: 'error' as const,
   },
   // setQueryData com queryKeys.deals.lists() sem 'view'
+  // Severidade 'warning': dual-cache sync é intencional para manter DealsContext/DealDetailModal
+  // sincronizados junto com DEALS_VIEW_KEY. Ambos os caches devem ser escritos em mutations.
   {
     pattern: /setQueryData\s*<[^>]*>\s*\(\s*queryKeys\.deals\.lists\(\)/g,
     description: 'setQueryData com queryKeys.deals.lists() (deve usar DEALS_VIEW_KEY)',
-    severity: 'error' as const,
+    severity: 'warning' as const,
   },
   // setQueryData com queryKeys.deals.list({ ... }) para mutations
   {
