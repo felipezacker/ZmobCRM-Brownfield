@@ -538,6 +538,7 @@ export const useDeleteDeal = () => {
 
 /**
  * Hook to add an item to a deal
+ * Usa DEALS_VIEW_KEY para optimistic update no Kanban
  */
 export const useAddDealItem = () => {
   const queryClient = useQueryClient();
@@ -548,15 +549,39 @@ export const useAddDealItem = () => {
       if (error) throw error;
       return { dealId, item: data! };
     },
+    onMutate: async ({ dealId, item }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.deals.all });
+      const previousDeals = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+
+      const tempItem: DealItem = { id: `temp-item-${Date.now()}`, ...item };
+
+      queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
+        old.map(deal =>
+          deal.id === dealId
+            ? { ...deal, items: [...(deal.items || []), tempItem], updatedAt: new Date().toISOString() }
+            : deal
+        )
+      );
+
+      return { previousDeals };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousDeals) {
+        queryClient.setQueryData(DEALS_VIEW_KEY, context.previousDeals);
+      }
+    },
     onSettled: (_data, _error, { dealId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(dealId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.deals.lists() });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      }, 3000);
     },
   });
 };
 
 /**
  * Hook to remove an item from a deal
+ * Usa DEALS_VIEW_KEY para optimistic update no Kanban
  */
 export const useRemoveDealItem = () => {
   const queryClient = useQueryClient();
@@ -567,9 +592,30 @@ export const useRemoveDealItem = () => {
       if (error) throw error;
       return { dealId, itemId };
     },
+    onMutate: async ({ dealId, itemId }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.deals.all });
+      const previousDeals = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+
+      queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
+        old.map(deal =>
+          deal.id === dealId
+            ? { ...deal, items: (deal.items || []).filter(i => i.id !== itemId), updatedAt: new Date().toISOString() }
+            : deal
+        )
+      );
+
+      return { previousDeals };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousDeals) {
+        queryClient.setQueryData(DEALS_VIEW_KEY, context.previousDeals);
+      }
+    },
     onSettled: (_data, _error, { dealId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(dealId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.deals.lists() });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      }, 3000);
     },
   });
 };
