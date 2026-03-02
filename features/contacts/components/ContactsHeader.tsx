@@ -13,6 +13,7 @@ interface ContactsHeaderProps {
   setIsFilterOpen: (value: boolean) => void;
   openCreateModal: () => void;
   openImportExportModal?: () => void;
+  activeFilterCount?: number;
 }
 
 /**
@@ -49,6 +50,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
   setIsFilterOpen,
   openCreateModal,
   openImportExportModal,
+  activeFilterCount = 0,
 }) => {
   const router = useRouter();
   return (
@@ -94,11 +96,16 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
         </div>
         <Button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
-          aria-label={isFilterOpen ? 'Fechar filtros avançados' : 'Abrir filtros avançados'}
+          aria-label={isFilterOpen ? 'Fechar filtros avançados' : `Abrir filtros avançados${activeFilterCount > 0 ? ` (${activeFilterCount} ativo${activeFilterCount > 1 ? 's' : ''})` : ''}`}
           aria-expanded={isFilterOpen}
-          className={`p-2 border rounded-lg transition-colors ${isFilterOpen ? 'bg-primary-50 border-primary-200 text-primary-600' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/10'}`}
+          className={`relative p-2 border rounded-lg transition-colors ${isFilterOpen ? 'bg-primary-50 border-primary-200 text-primary-600' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/10'}`}
         >
           <Filter size={20} aria-hidden="true" />
+          {activeFilterCount > 0 && !isFilterOpen && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-primary-600 text-white text-[10px] font-bold rounded-full px-1">
+              {activeFilterCount}
+            </span>
+          )}
         </Button>
         {viewMode === 'people' && (
           <>

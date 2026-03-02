@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown } from 'lucide-react';
+import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Users } from 'lucide-react';
 import { Contact, ContactSortableColumn, ContactClassification, ContactTemperature } from '@/types';
 import { StageBadge } from './ContactsStageTabs';
 import { Button } from '@/app/components/ui/Button';
@@ -223,14 +223,15 @@ interface SortableHeaderProps {
     currentSort: ContactSortableColumn;
     sortOrder: 'asc' | 'desc';
     onSort: (column: ContactSortableColumn) => void;
+    className?: string;
 }
 
 /** Sortable column header component */
-const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentSort, sortOrder, onSort }) => {
+const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentSort, sortOrder, onSort, className }) => {
     const isActive = currentSort === column;
 
     return (
-        <th scope="col" className="px-6 py-4">
+        <th scope="col" className={`px-6 py-4 ${className || ''}`}>
             <Button
                 onClick={() => onSort(column)}
                 className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
@@ -250,6 +251,10 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentS
 };
 
 const HEADER_CLASS = 'px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider';
+const STICKY_Z = 'sticky z-20 left-0';
+const STICKY_HEADER_BG = 'bg-slate-50 dark:bg-slate-900';
+const STICKY_ROW_BG = 'bg-white dark:bg-slate-900';
+const STICKY_ROW_SELECTED_BG = 'bg-primary-50 dark:bg-slate-800';
 
 interface ContactsListProps {
     filteredContacts: Contact[];
@@ -306,9 +311,27 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     // Performance: avoid creating `new Date()` for each row in formatRelativeDate.
     const now = React.useMemo(() => new Date(), []);
 
+    if (filteredContacts.length === 0) {
+        return (
+            <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                        <Users size={24} className="text-slate-400" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Nenhum contato encontrado
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs">
+                        Tente ajustar os filtros ou crie um novo contato.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
-            {/* Story 3.5 — Result count */}
+        <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden w-full max-w-full">
+            {/* Story 3.5 — Result count (fixed, not scrollable) */}
             {totalCount !== undefined && (
                 <div className="px-6 py-2 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
@@ -316,25 +339,39 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                     </span>
                 </div>
             )}
-            <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+            <div className="w-full overflow-x-auto">
+                    <table className="min-w-full text-left text-sm">
                         <thead className="bg-slate-50/80 dark:bg-white/5 border-b border-slate-200 dark:border-white/5">
                             <tr>
-                                <th scope="col" className="w-12 px-6 py-4">
-                                    <input
-                                        type="checkbox"
-                                        checked={allSelected}
-                                        ref={(el) => { if (el) el.indeterminate = someSelected; }}
-                                        onChange={toggleSelectAll}
-                                        aria-label={allSelected ? 'Desmarcar todos os contatos' : 'Selecionar todos os contatos'}
-                                        className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
-                                    />
+                                <th scope="col" className={`${STICKY_Z} ${STICKY_HEADER_BG} min-w-[250px] px-4 py-4`}>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={allSelected}
+                                            ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                                            onChange={toggleSelectAll}
+                                            aria-label={allSelected ? 'Desmarcar todos os contatos' : 'Selecionar todos os contatos'}
+                                            className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
+                                        />
+                                        {onSort ? (
+                                            <Button
+                                                onClick={() => onSort('name')}
+                                                className="group inline-flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                                            >
+                                                Nome
+                                                <span className={`transition-opacity ${sortBy === 'name' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
+                                                    {sortBy === 'name' ? (
+                                                        sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                                                    ) : (
+                                                        <ArrowUpDown size={14} />
+                                                    )}
+                                                </span>
+                                            </Button>
+                                        ) : (
+                                            <span className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider">Nome</span>
+                                        )}
+                                    </div>
                                 </th>
-                                {onSort ? (
-                                    <SortableHeader label="Nome" column="name" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
-                                ) : (
-                                    <th scope="col" className={HEADER_CLASS}>Nome</th>
-                                )}
                                 {onSort ? (
                                     <SortableHeader label="Classificacao" column="classification" currentSort={sortBy} sortOrder={sortOrder} onSort={onSort} />
                                 ) : (
@@ -381,37 +418,36 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                            {filteredContacts.map((contact) => (
-                                <tr key={contact.id} className={`hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group ${selectedIds.has(contact.id) ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''}`}>
-                                    <td className="px-6 py-4">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedIds.has(contact.id)}
-                                            onChange={() => toggleSelect(contact.id)}
-                                            aria-label={`Selecionar ${contact.name}`}
-                                            className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
-                                        />
-                                    </td>
-                                    <td className="px-6 py-4">
+                            {filteredContacts.map((contact) => {
+                                const isSelected = selectedIds.has(contact.id);
+                                const stickyBg = isSelected ? STICKY_ROW_SELECTED_BG : STICKY_ROW_BG;
+                                return (
+                                <tr key={contact.id} className={`transition-colors group ${isSelected ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-white dark:bg-slate-900'} hover:bg-slate-50 dark:hover:bg-white/5`}>
+                                    <td className={`${STICKY_Z} ${stickyBg} min-w-[250px] px-4 py-4`}>
                                         <div className="flex items-center gap-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={isSelected}
+                                                onChange={() => toggleSelect(contact.id)}
+                                                aria-label={`Selecionar ${contact.name}`}
+                                                className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10 flex-shrink-0"
+                                            />
                                             <Button
                                                 type="button"
                                                 onClick={() => openDetailModal ? openDetailModal(contact.id) : openEditModal(contact)}
-                                                className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 text-primary-700 dark:text-primary-200 flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white dark:ring-white/5 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-dark-card"
+                                                className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 text-primary-700 dark:text-primary-200 flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white dark:ring-white/5 hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-dark-card flex-shrink-0"
                                                 aria-label={`Ver detalhes: ${contact.name || 'Sem nome'}`}
                                                 title={contact.name || 'Sem nome'}
                                             >
                                                 {(contact.name || '?').charAt(0)}
                                             </Button>
-                                            <div>
-                                                <Button
-                                                    type="button"
-                                                    onClick={() => openDetailModal ? openDetailModal(contact.id) : openEditModal(contact)}
-                                                    className="font-semibold text-slate-900 dark:text-white block hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left"
-                                                >
-                                                    {contact.name}
-                                                </Button>
-                                            </div>
+                                            <Button
+                                                type="button"
+                                                onClick={() => openDetailModal ? openDetailModal(contact.id) : openEditModal(contact)}
+                                                className="font-semibold text-slate-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left truncate"
+                                            >
+                                                {contact.name}
+                                            </Button>
                                         </div>
                                     </td>
                                     {/* Story 3.1 — Classificacao */}
@@ -502,7 +538,8 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
             </div>

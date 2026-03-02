@@ -474,7 +474,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <main
             id="main-content"
-            className="flex-1 overflow-auto p-6 pb-[calc(1.5rem+var(--app-bottom-nav-height,0px)+var(--app-safe-area-bottom,0px))] relative scroll-smooth"
+            className="flex-1 overflow-y-auto overflow-x-hidden p-6 pb-[calc(1.5rem+var(--app-bottom-nav-height,0px)+var(--app-safe-area-bottom,0px))] relative scroll-smooth"
             tabIndex={-1}
           >
             {children}
