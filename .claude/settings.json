@@ -1,3 +1,16 @@
 {
-  "language": "portuguese"
+  "language": "portuguese",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/synapse-engine.cjs",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
 }

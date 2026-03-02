@@ -1,0 +1,59 @@
+schema: 1
+story: '3.12'
+story_title: 'Config Cleanup & Hardening'
+gate: PASS
+status_reason: 'All 12 ACs met. Lint, typecheck, and 352 tests pass. No CRITICAL or HIGH issues. Documentation inconsistencies (proxy.ts refs in docs) noted as future work.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-03-02T11:25:00-03:00'
+
+top_issues: []
+waiver: { active: false }
+
+quality_score: 90
+expires: '2026-03-16T11:25:00-03:00'
+
+evidence:
+  tests_reviewed:
+    count: 352
+    passed: 352
+    skipped: 2
+    failed: 0
+  lint_result: '0 warnings, 0 errors'
+  typecheck_result: 'passes'
+  build_result: 'confirmed by dev (DoD checked)'
+  risks_identified:
+    count: 1
+    details:
+      - id: R3
+        description: 'Provider enum change gemini->google may affect saved DB values'
+        severity: MEDIUM
+        mitigation: 'Documented in Dev Notes; verify ai_configs table before production deploy'
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'Middleware properly protects routes. Sensitive env vars not exposed to client. Setup guard fails open to prevent lockout.'
+  performance:
+    status: PASS
+    notes: 'Config-only changes. No performance impact. ES2022 target may slightly reduce bundle size.'
+  reliability:
+    status: PASS
+    notes: '352 tests pass, 0 failures, 0 regressions. All quality gates green.'
+  maintainability:
+    status: PASS
+    notes: 'Config files cleaner and more consistent. Provider enum unified. ESLint decisions documented.'
+
+recommendations:
+  immediate: []
+  future:
+    - action: 'Update docs/architecture/system-architecture.md to replace proxy.ts refs with middleware.ts'
+      refs: ['docs/architecture/system-architecture.md']
+    - action: 'Update README.md to say Next.js 15 instead of 16'
+      refs: ['README.md']
+    - action: 'Rename crmia-next-mcp to zmob-crm-mcp in MCP route'
+      refs: ['app/api/mcp/route.ts']
+    - action: 'Verify ai_configs table for gemini provider values before production deploy'
+      refs: ['lib/validations/schemas.ts', 'lib/ai/config.ts']

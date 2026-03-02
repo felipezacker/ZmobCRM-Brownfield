@@ -189,7 +189,7 @@ export type LifecycleStageFormData = z.infer<typeof lifecycleStageSchema>;
 // ============ AI CONFIG SCHEMAS ============
 
 export const aiConfigSchema = z.object({
-  provider: z.enum(['gemini', 'openai', 'anthropic'], {
+  provider: z.enum(['google', 'openai', 'anthropic'], {
     message: msg('SELECTION_INVALID'),
   }),
   apiKey: z.string().max(200, 'API Key inválida').optional(),

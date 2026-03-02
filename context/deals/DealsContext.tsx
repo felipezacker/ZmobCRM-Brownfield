@@ -10,7 +10,11 @@ import { Deal, DealView, DealItem, Contact, Board } from '@/types';
 import { dealsService } from '@/lib/supabase';
 import { useAuth } from '../AuthContext';
 import { queryKeys, DEALS_VIEW_KEY } from '@/lib/query';
-import { useDeals as useTanStackDealsQuery } from '@/lib/query/hooks/useDealsQuery';
+import {
+  useDeals as useTanStackDealsQuery,
+  useAddDealItem,
+  useRemoveDealItem,
+} from '@/lib/query/hooks/useDealsQuery';
 
 interface DealsContextType {
   // Raw data (agora vem direto do TanStack Query)
@@ -43,6 +47,8 @@ const DealsContext = createContext<DealsContextType | undefined>(undefined);
 export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
+  const addItemMutation = useAddDealItem();
+  const removeItemMutation = useRemoveDealItem();
 
   // ============================================
   // TanStack Query como fonte única de verdade
@@ -89,19 +95,28 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 
   const updateDeal = useCallback(async (id: string, updates: Partial<Deal>) => {
-    // Optimistic update - atualiza a UI imediatamente
+    // Snapshot para rollback limpo
+    const prevView = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+    const prevRaw = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
+
+    const applyUpdates = (deal: Deal | DealView) =>
+      deal.id === id ? { ...deal, ...updates, updatedAt: new Date().toISOString() } : deal;
+
+    // Optimistic update - atualiza ambos os caches imediatamente
     queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-      old.map(deal =>
-        deal.id === id ? { ...deal, ...updates, updatedAt: new Date().toISOString() } : deal
-      )
+      old.map(deal => applyUpdates(deal) as DealView)
+    );
+    queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
+      old.map(deal => applyUpdates(deal) as Deal)
     );
 
     const { error: updateError } = await dealsService.update(id, updates);
 
     if (updateError) {
       console.error('Erro ao atualizar deal:', updateError.message);
-      // Rollback: invalida para refetch em caso de erro
-      await queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+      // Rollback: restaura snapshot
+      if (prevView) queryClient.setQueryData(DEALS_VIEW_KEY, prevView);
+      if (prevRaw) queryClient.setQueryData(queryKeys.deals.lists(), prevRaw);
       return;
     }
 
@@ -147,32 +162,23 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // ============================================
   const addItemToDeal = useCallback(
     async (dealId: string, item: Omit<DealItem, 'id'>): Promise<DealItem | null> => {
-      const { data, error: addError } = await dealsService.addItem(dealId, item);
-
-      if (addError) {
-        console.error('Erro ao adicionar item:', addError.message);
+      try {
+        const result = await addItemMutation.mutateAsync({ dealId, item });
+        return result.item;
+      } catch {
         return null;
       }
-
-      // Invalida cache para TanStack Query atualizar
-      await queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-
-      return data;
     },
-    [queryClient]
+    [addItemMutation.mutateAsync]
   );
 
   const removeItemFromDeal = useCallback(async (dealId: string, itemId: string) => {
-    const { error: removeError } = await dealsService.removeItem(dealId, itemId);
-
-    if (removeError) {
-      console.error('Erro ao remover item:', removeError.message);
-      return;
+    try {
+      await removeItemMutation.mutateAsync({ dealId, itemId });
+    } catch {
+      // onError da mutation já faz rollback do cache
     }
-
-    // Invalida cache para TanStack Query atualizar
-    await queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-  }, [queryClient]);
+  }, [removeItemMutation.mutateAsync]);
 
   const value = useMemo(
     () => ({

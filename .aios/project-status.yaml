@@ -1,21 +1,19 @@
 status:
-  branch: refactor-contatos
+  branch: develop
   modifiedFiles:
-    - .aios-core/development/agents/devops.md
-    - .aios/project-status.yaml
-    - .env.example
-    - docs/competitor-analysis-jetimob.md
-    - docs/competitor-analysis-mercado.md
-  modifiedFilesTotalCount: 30
+    - '".aios-core/cli 2/commands 2/generate/index.js"'
+    - '".aios-core/cli 2/commands 2/manifest/index.js"'
+    - '".aios-core/cli 2/commands 2/manifest/regenerate.js"'
+    - '".aios-core/cli 2/commands 2/manifest/validate.js"'
+    - '".aios-core/cli 2/commands 2/mcp/add.js"'
+  modifiedFilesTotalCount: 444
   recentCommits:
-    - 'chore: add squads framework, labs, and project housekeeping'
-    - >-
-      refactor(ui): tokenize AI sidebar — replace hardcoded colors with design
-      tokens
+    - 'feat(config): cleanup and harden project configuration [Story 3.12]'
+    - Merge remote-tracking branch 'origin/main' into develop
   currentEpic: null
   currentStory: null
-  lastUpdate: '2026-02-26T02:14:23.191Z'
+  lastUpdate: '2026-03-02T17:01:46.190Z'
   isGitRepo: true
-timestamp: 1772072063199
+timestamp: 1772470906197
 ttl: 60
-gitFingerprint: 1772071159248.2183:1772071159247.2444
+gitFingerprint: 1772336289450.2964:1772470883781.4497

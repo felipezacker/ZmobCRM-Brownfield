@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZmobCRM — Nocturne Cian vs Obsidian Gold</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui; background: #000; color: #fff; }
+
+  .compare-header {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; justify-content: center; align-items: center; gap: 32px;
+    padding: 16px 24px;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .compare-header h1 { font-size: 14px; font-weight: 600; color: #888; letter-spacing: 0.08em; text-transform: uppercase; }
+  .compare-header .badge { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+  .badge-cian { background: rgba(125,232,235,0.15); color: #7DE8EB; border: 1px solid rgba(125,232,235,0.25); }
+  .badge-gold { background: rgba(212,168,83,0.15); color: #E4BC6A; border: 1px solid rgba(212,168,83,0.25); }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+  .divider { position: fixed; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.06); z-index: 50; }
+
+  /* ===== NOCTURNE CIAN ===== */
+  .nocturne-cian {
+    --bg-1: #071111; --bg-2: #0A1A1A; --bg-3: #0D2222;
+    --accent: #7DE8EB; --accent-2: #5DD8DB; --accent-h: #A0F0F2;
+    --text: #E8F4F4; --text-2: #8BAAAA; --text-m: #4A6A6A;
+    --glow: rgba(125, 232, 235, 0.3);
+    --glass-bg: rgba(125, 232, 235, 0.04); --glass-border: rgba(125, 232, 235, 0.1); --glass-blur: 16px;
+    --grad-hero: radial-gradient(ellipse at 50% 0%, rgba(125,232,235,0.12) 0%, transparent 70%);
+    background: var(--bg-1); color: var(--text); padding: 24px; font-family: 'Space Grotesk', 'Inter', system-ui;
+  }
+
+  /* ===== OBSIDIAN GOLD ===== */
+  .obsidian-gold {
+    --bg-1: #0A0A0A; --bg-2: #111111; --bg-3: #1A1A1A;
+    --accent: #D4A853; --accent-2: #C49B45; --accent-h: #E4BC6A;
+    --text: #FAF5EB; --text-2: #C4B99A; --text-m: #7A7260;
+    --glow: rgba(212, 168, 83, 0.35);
+    --glass-bg: rgba(212, 168, 83, 0.05); --glass-border: rgba(212, 168, 83, 0.12); --glass-blur: 14px;
+    --grad-hero: radial-gradient(ellipse at 50% 0%, rgba(212,168,83,0.12) 0%, transparent 70%);
+    background: var(--bg-1); color: var(--text); padding: 24px; font-family: 'Playfair Display', 'Georgia', serif;
+  }
+  .obsidian-gold .panel-body, .obsidian-gold .data-label, .obsidian-gold .action-btn,
+  .obsidian-gold .timeline-sub, .obsidian-gold .check-text, .obsidian-gold .stage-label,
+  .obsidian-gold .dc-meta, .obsidian-gold .kanban-col-header {
+    font-family: 'Inter', system-ui;
+  }
+
+  /* ===== SHARED COMPONENTS ===== */
+  .template-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 24px; padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .pipeline-bar {
+    background: var(--bg-2); border: 1px solid var(--glass-border);
+    border-radius: 16px; padding: 16px 20px; margin-bottom: 16px;
+    backdrop-filter: blur(var(--glass-blur));
+  }
+  .pipeline-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .pipeline-top .deal-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .pipeline-top .deal-value { font-size: 16px; font-weight: 800; color: var(--accent); }
+  .pipeline-stages { display: flex; gap: 4px; }
+  .stage { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); transition: all 0.3s ease; }
+  .stage.done { background: var(--accent); opacity: 0.5; }
+  .stage.active { background: var(--accent); box-shadow: 0 0 12px var(--glow); }
+  .stage-labels { display: flex; gap: 4px; margin-top: 6px; }
+  .stage-label { flex: 1; font-size: 9px; color: var(--text-m); text-align: center; }
+  .stage-label.active { color: var(--text); font-weight: 600; }
+  .cockpit-grid { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 12px; }
+  @media (max-width: 1400px) { .cockpit-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--bg-2); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; backdrop-filter: blur(var(--glass-blur)); }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .panel-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-m); }
+  .panel-body { padding: 16px; }
+  .health-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); margin-top: 8px; }
+  .health-fill { height: 100%; border-radius: 3px; background: #10B981; width: 72%; }
+  .next-action { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; margin-top: 8px; }
+  .next-action .action-text { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4; }
+  .next-action .action-reason { font-size: 11px; color: var(--text-m); margin-top: 4px; }
+  .btn-execute {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; margin-top: 10px; padding: 10px;
+    background: var(--accent); color: #000; font-size: 12px; font-weight: 700;
+    border: none; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 0 20px var(--glow); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .btn-execute:hover { box-shadow: 0 0 40px var(--glow); transform: translateY(-1px); }
+  .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+  .action-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px 8px; border-radius: 10px;
+    background: var(--bg-3); border: 1px solid rgba(255,255,255,0.04);
+    color: var(--text-2); font-size: 10px; font-weight: 500;
+    cursor: pointer; transition: all 0.3s ease;
+  }
+  .action-btn:hover { background: var(--glass-bg); border-color: var(--glass-border); }
+  .action-btn .icon { font-size: 18px; }
+  .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .data-row:last-child { border-bottom: none; }
+  .data-label { font-size: 11px; color: var(--text-m); }
+  .data-value { font-size: 12px; font-weight: 600; color: var(--text); }
+  .kanban-section { margin-top: 20px; }
+  .kanban-header { font-size: 11px; font-weight: 700; color: var(--text-m); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .kanban-cols { display: flex; gap: 8px; }
+  .kanban-col { flex: 1; }
+  .kanban-col-header {
+    font-size: 10px; font-weight: 700; color: var(--text-m);
+    padding: 6px 10px; margin-bottom: 6px;
+    background: var(--bg-3); border-radius: 8px;
+    display: flex; justify-content: space-between;
+  }
+  .kanban-col-header .count { color: var(--accent); }
+  .deal-card {
+    background: var(--bg-2); border: 1px solid var(--glass-border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 10px 12px; margin-bottom: 6px;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .deal-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+  .deal-card .dc-top { display: flex; align-items: center; gap: 8px; }
+  .deal-card .dc-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: var(--accent);
+  }
+  .deal-card .dc-name { font-size: 12px; font-weight: 600; color: var(--text); flex: 1; }
+  .deal-card .dc-value { font-size: 11px; font-weight: 700; color: var(--accent); }
+  .deal-card .dc-meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; margin-left: 32px; }
+  .deal-card .dc-product { font-size: 10px; color: #10B981; }
+  .deal-card .dc-owner { font-size: 10px; color: var(--text-m); }
+  .deal-card .dc-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-m); }
+  .timeline-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .timeline-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .timeline-dot.call { background: var(--accent); box-shadow: 0 0 8px var(--glow); }
+  .timeline-dot.note { background: #F59E0B; }
+  .timeline-dot.status { background: #10B981; }
+  .timeline-title { font-size: 11px; font-weight: 600; color: var(--text); }
+  .timeline-sub { font-size: 10px; color: var(--text-m); margin-top: 2px; }
+  .timeline-time { font-size: 9px; color: var(--text-m); margin-left: auto; flex-shrink: 0; }
+  .chip { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+  .chip-success { background: rgba(16,185,129,0.12); color: #34D399; border: 1px solid rgba(16,185,129,0.2); }
+  .chip-danger { background: rgba(239,68,68,0.12); color: #F87171; border: 1px solid rgba(239,68,68,0.2); }
+  .chip-accent { background: rgba(125,232,235,0.12); color: var(--accent-h); border: 1px solid rgba(125,232,235,0.2); }
+  .tab-bar { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .tab { padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--text-m); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s ease; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab .tab-count { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; margin-left: 6px; padding: 0 4px; border-radius: 8px; font-size: 9px; font-weight: 700; background: var(--glass-bg); color: var(--accent); }
+  .btn-row { display: flex; gap: 6px; margin-top: 8px; }
+  .btn-win { flex: 1; padding: 8px; border-radius: 10px; border: none; cursor: pointer; font-size: 11px; font-weight: 700; color: #fff; background: rgba(16,185,129,0.8); transition: all 0.2s ease; }
+  .btn-loss { flex: 1; padding: 8px; border-radius: 10px; border: none; cursor: pointer; font-size: 11px; font-weight: 700; color: #fff; background: rgba(239,68,68,0.8); transition: all 0.2s ease; }
+  .btn-win:hover { background: #10B981; box-shadow: 0 0 16px rgba(16,185,129,0.4); }
+  .btn-loss:hover { background: #EF4444; box-shadow: 0 0 16px rgba(239,68,68,0.4); }
+  .check-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+  .check-box { width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; }
+  .check-box.done { background: #10B981; border-color: #10B981; }
+  .check-box.done::after { content: '\2713'; font-size: 11px; color: #000; font-weight: 700; }
+  .check-text { font-size: 12px; color: var(--text-2); }
+  .check-text.done { text-decoration: line-through; color: var(--text-m); }
+  .hero-glow { position: absolute; top: 0; left: 0; right: 0; height: 200px; background: var(--grad-hero); pointer-events: none; z-index: 0; }
+  .nocturne-cian, .obsidian-gold { position: relative; }
+  .content-inner { position: relative; z-index: 1; }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="compare-header">
+  <span class="badge badge-cian">1 — NOCTURNE CIAN</span>
+  <h1>ZmobCRM Preview</h1>
+  <span class="badge badge-gold">2 — OBSIDIAN GOLD</span>
+</div>
+
+<div class="divider"></div>
+
+<div class="compare-grid">
+
+  <!-- ==================== NOCTURNE CIAN ==================== -->
+  <div class="nocturne-cian">
+    <div class="hero-glow"></div>
+    <div class="content-inner">
+      <div class="template-label">01 — Nocturne Cian — Bloomberg meets Apple</div>
+
+      <div class="pipeline-bar">
+        <div class="pipeline-top">
+          <span class="deal-name">Apto 3 Quartos — Leblon</span>
+          <span class="deal-value">R$ 1.250.000</span>
+        </div>
+        <div class="pipeline-stages">
+          <div class="stage done"></div><div class="stage done"></div><div class="stage active"></div><div class="stage"></div><div class="stage"></div>
+        </div>
+        <div class="stage-labels">
+          <span class="stage-label">Contato</span><span class="stage-label">Visita</span><span class="stage-label active">Proposta</span><span class="stage-label">Negociacao</span><span class="stage-label">Fechamento</span>
+        </div>
+        <div class="btn-row"><button class="btn-win">GANHOU</button><button class="btn-loss">PERDEU</button></div>
+      </div>
+
+      <div class="cockpit-grid">
+        <div>
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Proxima Acao</span><span class="chip chip-success">72%</span></div>
+            <div class="panel-body">
+              <div class="health-bar"><div class="health-fill"></div></div>
+              <div class="next-action">
+                <div class="action-text">Enviar proposta comercial com valores atualizados</div>
+                <div class="action-reason">Cliente mostrou interesse apos visita ontem</div>
+              </div>
+              <button class="btn-execute">Executar</button>
+              <div class="action-grid">
+                <div class="action-btn"><span class="icon">📞</span>Ligar</div>
+                <div class="action-btn"><span class="icon">💬</span>WhatsApp</div>
+                <div class="action-btn"><span class="icon">📧</span>Email</div>
+                <div class="action-btn"><span class="icon">📅</span>Agendar</div>
+                <div class="action-btn"><span class="icon">📋</span>Template</div>
+                <div class="action-btn"><span class="icon">📄</span>Proposta</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel" style="margin-top: 12px">
+            <div class="panel-header"><span class="panel-title">Dados do Deal</span></div>
+            <div class="panel-body">
+              <div class="data-row"><span class="data-label">Contato</span><span class="data-value">Maria Silva</span></div>
+              <div class="data-row"><span class="data-label">Telefone</span><span class="data-value">(21) 99887-6655</span></div>
+              <div class="data-row"><span class="data-label">Email</span><span class="data-value">maria@email.com</span></div>
+              <div class="data-row"><span class="data-label">Corretor</span><span class="data-value">Felipe Zacker</span></div>
+              <div class="data-row"><span class="data-label">Prioridade</span><span class="chip chip-danger" style="font-size:9px">Alta</span></div>
+              <div class="data-row"><span class="data-label">Temperatura</span><span class="chip chip-success" style="font-size:9px">Quente</span></div>
+              <div class="data-row"><span class="data-label">Comissao</span><span class="data-value" style="color: #10B981">R$ 37.500</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel" style="height: 100%">
+            <div class="panel-header"><span class="panel-title">Timeline</span></div>
+            <div class="panel-body">
+              <div class="timeline-item"><div class="timeline-dot call"></div><div><div class="timeline-title">Ligacao — Proposta</div><div class="timeline-sub">Atendeu — 12min. Gostou do apto, pediu proposta formal.</div></div><span class="timeline-time">Hoje 14:30</span></div>
+              <div class="timeline-item"><div class="timeline-dot status"></div><div><div class="timeline-title">Moveu para</div><div class="timeline-sub"><span class="chip chip-accent" style="font-size:9px">Proposta</span></div></div><span class="timeline-time">Hoje 14:35</span></div>
+              <div class="timeline-item"><div class="timeline-dot note"></div><div><div class="timeline-title">Nota</div><div class="timeline-sub">Prefere financiamento. Banco pre-aprovado. Entrada 20%.</div></div><span class="timeline-time">Ontem 16:00</span></div>
+              <div class="timeline-item"><div class="timeline-dot call"></div><div><div class="timeline-title">Ligacao — Primeiro contato</div><div class="timeline-sub">Agendou visita para sabado.</div></div><span class="timeline-time">28/02 10:15</span></div>
+              <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06)">
+                <div class="section-title"><span class="dot"></span>Checklist</div>
+                <div class="check-item"><div class="check-box done"></div><span class="check-text done">Qualificar (dor, urgencia, orcamento)</span></div>
+                <div class="check-item"><div class="check-box done"></div><span class="check-text done">Definir proximo passo</span></div>
+                <div class="check-item"><div class="check-box"></div><span class="check-text">Enviar material / proposta</span></div>
+                <div class="check-item"><div class="check-box"></div><span class="check-text">Mapear decisores e objecoes</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel" style="height: 100%">
+            <div class="panel-header"><span class="panel-title">ZmobCRM Pilot</span></div>
+            <div class="tab-bar">
+              <div class="tab active">Chat IA</div>
+              <div class="tab">Notas <span class="tab-count">3</span></div>
+              <div class="tab">Scripts <span class="tab-count">5</span></div>
+              <div class="tab">Arquivos</div>
+            </div>
+            <div class="panel-body">
+              <div style="background: var(--bg-3); border-radius: 10px; padding: 12px; margin-bottom: 8px;">
+                <div style="font-size: 10px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">IA Pilot</div>
+                <div style="font-size: 12px; color: var(--text-2); line-height: 1.6;">A Maria demonstrou forte interesse apos a visita. Recomendo enviar a proposta hoje com destaque para o financiamento pre-aprovado.</div>
+              </div>
+              <div style="background: var(--bg-3); border-radius: 10px; padding: 12px; margin-left: 20px;">
+                <div style="font-size: 10px; font-weight: 600; color: var(--text-m); margin-bottom: 4px;">Voce</div>
+                <div style="font-size: 12px; color: var(--text-2); line-height: 1.6;">Gera um email de proposta com os dados desse deal</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kanban-section">
+        <div class="kanban-header">Kanban — Board Vendas</div>
+        <div class="kanban-cols">
+          <div class="kanban-col">
+            <div class="kanban-col-header">Contato <span class="count">3</span></div>
+            <div class="deal-card"><div class="dc-top"><div class="dc-avatar">JS</div><span class="dc-name">Joao Santos</span><span class="dc-value">R$ 450k</span></div><div class="dc-meta"><span class="dc-product">Casa 2Q</span><span class="dc-dot"></span><span class="dc-owner">Felipe</span></div></div>
+            <div class="deal-card"><div class="dc-top"><div class="dc-avatar">AL</div><span class="dc-name">Ana Lima</span><span class="dc-value">R$ 320k</span></div><div class="dc-meta"><span class="dc-product">Apto 1Q</span><span class="dc-dot"></span><span class="dc-owner">Carlos</span></div></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header">Proposta <span class="count">2</span></div>
+            <div class="deal-card" style="border-left-color: #EF4444;"><div class="dc-top"><div class="dc-avatar">MS</div><span class="dc-name">Maria Silva</span><span class="dc-value">R$ 1.25M</span></div><div class="dc-meta"><span class="dc-product">Apto 3Q Leblon</span><span class="dc-dot"></span><span class="dc-owner">Felipe</span></div></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header">Fechamento <span class="count">1</span></div>
+            <div class="deal-card" style="border-left-color: #10B981;"><div class="dc-top"><div class="dc-avatar">PR</div><span class="dc-name">Pedro Rocha</span><span class="dc-value">R$ 890k</span></div><div class="dc-meta"><span class="dc-product">Casa 3Q</span><span class="dc-dot"></span><span class="dc-owner">Felipe</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== OBSIDIAN GOLD ==================== -->
+  <div class="obsidian-gold">
+    <div class="hero-glow"></div>
+    <div class="content-inner">
+      <div class="template-label">02 — Obsidian Gold — Rolex meets Amex Black</div>
+
+      <div class="pipeline-bar">
+        <div class="pipeline-top">
+          <span class="deal-name">Apto 3 Quartos — Leblon</span>
+          <span class="deal-value">R$ 1.250.000</span>
+        </div>
+        <div class="pipeline-stages">
+          <div class="stage done"></div><div class="stage done"></div><div class="stage active"></div><div class="stage"></div><div class="stage"></div>
+        </div>
+        <div class="stage-labels">
+          <span class="stage-label">Contato</span><span class="stage-label">Visita</span><span class="stage-label active">Proposta</span><span class="stage-label">Negociacao</span><span class="stage-label">Fechamento</span>
+        </div>
+        <div class="btn-row"><button class="btn-win">GANHOU</button><button class="btn-loss">PERDEU</button></div>
+      </div>
+
+      <div class="cockpit-grid">
+        <div>
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Proxima Acao</span><span class="chip chip-success">72%</span></div>
+            <div class="panel-body">
+              <div class="health-bar"><div class="health-fill"></div></div>
+              <div class="next-action">
+                <div class="action-text">Enviar proposta comercial com valores atualizados</div>
+                <div class="action-reason">Cliente mostrou interesse apos visita ontem</div>
+              </div>
+              <button class="btn-execute">Executar</button>
+              <div class="action-grid">
+                <div class="action-btn"><span class="icon">📞</span>Ligar</div>
+                <div class="action-btn"><span class="icon">💬</span>WhatsApp</div>
+                <div class="action-btn"><span class="icon">📧</span>Email</div>
+                <div class="action-btn"><span class="icon">📅</span>Agendar</div>
+                <div class="action-btn"><span class="icon">📋</span>Template</div>
+                <div class="action-btn"><span class="icon">📄</span>Proposta</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel" style="margin-top: 12px">
+            <div class="panel-header"><span class="panel-title">Dados do Deal</span></div>
+            <div class="panel-body">
+              <div class="data-row"><span class="data-label">Contato</span><span class="data-value">Maria Silva</span></div>
+              <div class="data-row"><span class="data-label">Telefone</span><span class="data-value">(21) 99887-6655</span></div>
+              <div class="data-row"><span class="data-label">Email</span><span class="data-value">maria@email.com</span></div>
+              <div class="data-row"><span class="data-label">Corretor</span><span class="data-value">Felipe Zacker</span></div>
+              <div class="data-row"><span class="data-label">Prioridade</span><span class="chip chip-danger" style="font-size:9px">Alta</span></div>
+              <div class="data-row"><span class="data-label">Temperatura</span><span class="chip chip-success" style="font-size:9px">Quente</span></div>
+              <div class="data-row"><span class="data-label">Comissao</span><span class="data-value" style="color: #10B981">R$ 37.500</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel" style="height: 100%">
+            <div class="panel-header"><span class="panel-title">Timeline</span></div>
+            <div class="panel-body">
+              <div class="timeline-item"><div class="timeline-dot call"></div><div><div class="timeline-title">Ligacao — Proposta</div><div class="timeline-sub">Atendeu — 12min. Gostou do apto, pediu proposta formal.</div></div><span class="timeline-time">Hoje 14:30</span></div>
+              <div class="timeline-item"><div class="timeline-dot status"></div><div><div class="timeline-title">Moveu para</div><div class="timeline-sub"><span class="chip chip-accent" style="font-size:9px">Proposta</span></div></div><span class="timeline-time">Hoje 14:35</span></div>
+              <div class="timeline-item"><div class="timeline-dot note"></div><div><div class="timeline-title">Nota</div><div class="timeline-sub">Prefere financiamento. Banco pre-aprovado. Entrada 20%.</div></div><span class="timeline-time">Ontem 16:00</span></div>
+              <div class="timeline-item"><div class="timeline-dot call"></div><div><div class="timeline-title">Ligacao — Primeiro contato</div><div class="timeline-sub">Agendou visita para sabado.</div></div><span class="timeline-time">28/02 10:15</span></div>
+              <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06)">
+                <div class="section-title"><span class="dot"></span>Checklist</div>
+                <div class="check-item"><div class="check-box done"></div><span class="check-text done">Qualificar (dor, urgencia, orcamento)</span></div>
+                <div class="check-item"><div class="check-box done"></div><span class="check-text done">Definir proximo passo</span></div>
+                <div class="check-item"><div class="check-box"></div><span class="check-text">Enviar material / proposta</span></div>
+                <div class="check-item"><div class="check-box"></div><span class="check-text">Mapear decisores e objecoes</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel" style="height: 100%">
+            <div class="panel-header"><span class="panel-title">ZmobCRM Pilot</span></div>
+            <div class="tab-bar">
+              <div class="tab active">Chat IA</div>
+              <div class="tab">Notas <span class="tab-count">3</span></div>
+              <div class="tab">Scripts <span class="tab-count">5</span></div>
+              <div class="tab">Arquivos</div>
+            </div>
+            <div class="panel-body">
+              <div style="background: var(--bg-3); border-radius: 10px; padding: 12px; margin-bottom: 8px;">
+                <div style="font-size: 10px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">IA Pilot</div>
+                <div style="font-size: 12px; color: var(--text-2); line-height: 1.6;">A Maria demonstrou forte interesse apos a visita. Recomendo enviar a proposta hoje com destaque para o financiamento pre-aprovado.</div>
+              </div>
+              <div style="background: var(--bg-3); border-radius: 10px; padding: 12px; margin-left: 20px;">
+                <div style="font-size: 10px; font-weight: 600; color: var(--text-m); margin-bottom: 4px;">Voce</div>
+                <div style="font-size: 12px; color: var(--text-2); line-height: 1.6;">Gera um email de proposta com os dados desse deal</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kanban-section">
+        <div class="kanban-header">Kanban — Board Vendas</div>
+        <div class="kanban-cols">
+          <div class="kanban-col">
+            <div class="kanban-col-header">Contato <span class="count">3</span></div>
+            <div class="deal-card"><div class="dc-top"><div class="dc-avatar">JS</div><span class="dc-name">Joao Santos</span><span class="dc-value">R$ 450k</span></div><div class="dc-meta"><span class="dc-product">Casa 2Q</span><span class="dc-dot"></span><span class="dc-owner">Felipe</span></div></div>
+            <div class="deal-card"><div class="dc-top"><div class="dc-avatar">AL</div><span class="dc-name">Ana Lima</span><span class="dc-value">R$ 320k</span></div><div class="dc-meta"><span class="dc-product">Apto 1Q</span><span class="dc-dot"></span><span class="dc-owner">Carlos</span></div></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header">Proposta <span class="count">2</span></div>
+            <div class="deal-card" style="border-left-color: #EF4444;"><div class="dc-top"><div class="dc-avatar">MS</div><span class="dc-name">Maria Silva</span><span class="dc-value">R$ 1.25M</span></div><div class="dc-meta"><span class="dc-product">Apto 3Q Leblon</span><span class="dc-dot"></span><span class="dc-owner">Felipe</span></div></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header">Fechamento <span class="count">1</span></div>
+            <div class="deal-card" style="border-left-color: #10B981;"><div class="dc-top"><div class="dc-avatar">PR</div><span class="dc-name">Pedro Rocha</span><span class="dc-value">R$ 890k</span></div><div class="dc-meta"><span class="dc-product">Casa 3Q</span><span class="dc-dot"></span><span class="dc-owner">Felipe</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

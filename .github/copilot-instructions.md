@@ -1,15 +1,15 @@
 # Copilot instructions — NossoCRM (crmia-next)
 
 ## Visão geral (arquitetura real)
-- **Next.js 16 (App Router)**: rotas e layouts em `app/` (ex.: `app/(protected)/*`, `app/api/*`).
+- **Next.js 15 (App Router)**: rotas e layouts em `app/` (ex.: `app/(protected)/*`, `app/api/*`).
 - UI/DOMínio: componentes compartilhados em `components/`, páginas/fluxos maiores em `features/`.
 - Estado/dados: contexts em `context/` (muitos são “fachadas” por cima de TanStack Query) e queries em `lib/query/`.
 - Backend principal: **Supabase** (browser SSR client + server SSR client + service role em casos específicos).
 
 ## Convenções importantes do projeto
-- **Proxy do Next 16+**: a autenticação/refresh/redirects rodam via `proxy.ts` (não `middleware.ts`).
-  - Veja `proxy.ts` + `lib/supabase/middleware.ts` (`updateSession`).
-  - O proxy **não intercepta `/api/*`** (Route Handlers devem responder 401/403; evitar redirect 307 quebrando `fetch`).
+- **Middleware do Next 15**: a autenticação/refresh/redirects rodam via `middleware.ts`.
+  - Veja `middleware.ts` + `lib/supabase/middleware.ts` (`updateSession`).
+  - O middleware **não intercepta `/api/*`** (Route Handlers devem responder 401/403; evitar redirect 307 quebrando `fetch`).
 - **Supabase client boundary**:
   - Client: `lib/supabase/client.ts` pode retornar `null` quando `.env` não está configurado (log: `[supabase] Not configured`).
   - Server: `lib/supabase/server.ts` usa `server-only` e `createServerClient` (envs com `!`).
@@ -47,7 +47,7 @@
 - DOM setup: `test/setup.dom.ts` (matchers do jest-dom e polyfills básicos de `window/navigator`).
 
 ## Como contribuir sem quebrar padrões
-- Ao mexer em auth/redirects: ajuste `proxy.ts` + `lib/supabase/middleware.ts` e **não** inclua `/api/*` no proxy.
+- Ao mexer em auth/redirects: ajuste `middleware.ts` + `lib/supabase/middleware.ts` e **não** inclua `/api/*` no middleware.
 - Ao mexer na IA:
   - mantenha o fluxo principal em `/api/ai/chat` + `lib/ai/*`.
   - se tocar em queries com service role, garanta filtro por `organization_id` (exemplos em `lib/ai/tools.ts`).

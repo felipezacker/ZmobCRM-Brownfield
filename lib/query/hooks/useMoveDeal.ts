@@ -41,6 +41,7 @@ interface MoveDealResult {
 // Context type for optimistic updates
 interface MoveDealContext {
   previousDeals: DealView[] | undefined;
+  previousRawDeals: Deal[] | undefined;
 }
 
 /**
@@ -209,8 +210,9 @@ export const useMoveDeal = () => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.deals.all });
 
-      // Snapshot previous state - usa DEALS_VIEW_KEY (única fonte de verdade)
+      // Snapshot both caches for rollback
       const previousDeals = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+      const previousRawDeals = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
 
       // Determine new status
       const targetStage = board.stages.find(s => s.id === targetStageId);
@@ -225,48 +227,46 @@ export const useMoveDeal = () => {
         explicitLost
         || (board.lostStageId ? targetStageId === board.lostStageId : targetStage?.linkedLifecycleStage === 'OTHER');
 
-      // Optimistically update APENAS DEALS_VIEW_KEY (única fonte de verdade)
-      queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old) => {
-        if (!old) return old;
-        
-        const dealInCache = old.find(d => d.id === dealId);
-        
-        return old.map(d => {
-          if (d.id === dealId) {
-            const newDeal = {
-              ...d,
-              status: targetStageId,
-              lastStageChangeDate: new Date().toISOString(),
-              isWon: isWon ?? d.isWon,
-              isLost: isLost ?? d.isLost,
-              updatedAt: new Date().toISOString(),
-            };
-            return newDeal;
-          }
-          return d;
-        });
-      });
-
-      // Também atualizar o detail cache se existir
-      queryClient.setQueryData<Deal>(queryKeys.deals.detail(dealId), (old) => {
-        if (!old) return old;
+      const applyMove = (d: Deal | DealView) => {
+        if (d.id !== dealId) return d;
         return {
-          ...old,
+          ...d,
           status: targetStageId,
           lastStageChangeDate: new Date().toISOString(),
-          isWon: isWon ?? old.isWon,
-          isLost: isLost ?? old.isLost,
+          isWon: isWon ?? d.isWon,
+          isLost: isLost ?? d.isLost,
           updatedAt: new Date().toISOString(),
         };
+      };
+
+      // Update enriched cache (Kanban/DealCard)
+      queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old) => {
+        if (!old) return old;
+        return old.map(d => applyMove(d) as DealView);
       });
 
-      return { previousDeals };
+      // Update raw cache (DealsContext → DealDetailModal)
+      queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old) => {
+        if (!old) return old;
+        return old.map(d => applyMove(d) as Deal);
+      });
+
+      // Update detail cache
+      queryClient.setQueryData<Deal>(queryKeys.deals.detail(dealId), (old) => {
+        if (!old) return old;
+        return applyMove(old) as Deal;
+      });
+
+      return { previousDeals, previousRawDeals };
     },
 
     // Rollback on error
     onError: (_err, _variables, context) => {
       if (context?.previousDeals) {
         queryClient.setQueryData(DEALS_VIEW_KEY, context.previousDeals);
+      }
+      if (context?.previousRawDeals) {
+        queryClient.setQueryData(queryKeys.deals.lists(), context.previousRawDeals);
       }
     },
 

@@ -165,6 +165,10 @@ commands:
   - name: release
     visibility: [full, quick]
     description: 'Create versioned release with changelog'
+  - name: notify
+    visibility: [full, quick, key]
+    args: '[version]'
+    description: 'Send release notification to WhatsApp group via Evolution API'
   - name: cleanup
     visibility: [full, quick]
     description: 'Identify and remove stale branches/files'
@@ -259,6 +263,7 @@ dependencies:
     - ci-cd-configuration.md
     - github-devops-repository-cleanup.md
     - release-management.md
+    - release-notification.md
     # MCP Management Tasks [Story 6.14]
     - search-mcp.md
     - add-mcp.md
