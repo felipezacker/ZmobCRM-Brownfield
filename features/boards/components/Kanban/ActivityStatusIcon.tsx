@@ -130,56 +130,9 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                     style={{ top: menuPos.top, left: menuPos.left, transform: 'translateY(-100%)' }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className="p-2 border-b border-slate-100 dark:border-white/5">
-                        <p className="text-xs font-bold text-slate-500 uppercase px-2" id={`quick-add-heading-${dealId}`}>Ações Rápidas</p>
-                    </div>
-                    
-                    {/* Keyboard-accessible move to stage option */}
-                    {onMoveToStage && (
-                        <div className="p-1 border-b border-slate-100 dark:border-white/5">
-                            <Button 
-                                type="button"
-                                role="menuitem"
-                                onClick={() => {
-                                    onMoveToStage();
-                                    onRequestClose?.();
-                                }}
-                                className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
-                            >
-                                <ArrowRightLeft size={14} className="text-green-500" aria-hidden="true" /> Mover para estágio...
-                            </Button>
-                        </div>
-                    )}
-                    
-                    <div className="p-1" role="group" aria-labelledby={`quick-add-heading-${dealId}`}>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Agendar</p>
-                        <Button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                                onQuickAdd('CALL');
-                                onRequestClose?.();
-                            }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
-                        >
-                            <Phone size={14} className="text-blue-500" aria-hidden="true" /> Ligar amanhã
-                        </Button>
-                        <Button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                                onQuickAdd('MEETING');
-                                onRequestClose?.();
-                            }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
-                        >
-                            <Calendar size={14} className="text-orange-500" aria-hidden="true" /> Reunião amanhã
-                        </Button>
-                    </div>
-
-                    {/* Win/Lose actions - only for open deals */}
+                    {/* Resultado — top section, only for open deals */}
                     {!isClosed && (onWinDeal || onLoseDeal) && (
-                        <div className="p-1 border-t border-slate-100 dark:border-white/5" role="group">
+                        <div className="p-1 border-b border-slate-100 dark:border-white/5" role="group">
                             <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Resultado</p>
                             {onWinDeal && (
                                 <Button
@@ -210,9 +163,50 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                         </div>
                     )}
 
-                    {/* Delete action */}
-                    {onDeleteDeal && (
-                        <div className="p-1 border-t border-slate-100 dark:border-white/5" role="group">
+                    {/* Agendar */}
+                    <div className="p-1 border-b border-slate-100 dark:border-white/5" role="group">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Agendar</p>
+                        <Button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                                onQuickAdd('CALL');
+                                onRequestClose?.();
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                        >
+                            <Phone size={14} className="text-blue-500" aria-hidden="true" /> Ligar amanhã
+                        </Button>
+                        <Button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                                onQuickAdd('MEETING');
+                                onRequestClose?.();
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                        >
+                            <Calendar size={14} className="text-orange-500" aria-hidden="true" /> Reunião amanhã
+                        </Button>
+                    </div>
+
+                    {/* Ações Rápidas — bottom section */}
+                    <div className="p-1" role="group">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Ações Rápidas</p>
+                        {onMoveToStage && (
+                            <Button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                    onMoveToStage();
+                                    onRequestClose?.();
+                                }}
+                                className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                            >
+                                <ArrowRightLeft size={14} className="text-green-500" aria-hidden="true" /> Mover para estágio...
+                            </Button>
+                        )}
+                        {onDeleteDeal && (
                             <Button
                                 type="button"
                                 role="menuitem"
@@ -224,8 +218,8 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                             >
                                 <Trash2 size={14} aria-hidden="true" /> Excluir negócio
                             </Button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>,
                 document.body
             )}
