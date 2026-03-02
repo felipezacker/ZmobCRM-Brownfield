@@ -358,11 +358,6 @@ export const useCreateDeal = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats });
-      // Fallback: invalidar deals após 3s para garantir consistência se Realtime falhar
-      // O delay evita sobrescrever o cache otimista imediato
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-      }, 3000);
     },
   });
 };
@@ -406,10 +401,6 @@ export const useUpdateDeal = () => {
     },
     onSettled: (_data, _error, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(id) });
-      // Fallback: invalidar deals após 3s para garantir consistência se Realtime falhar
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-      }, 3000);
     },
   });
 };
@@ -488,9 +479,6 @@ export const useUpdateDealStatus = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-      }, 3000);
     },
   });
 };
@@ -527,9 +515,6 @@ export const useDeleteDeal = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-      }, 3000);
     },
   });
 };
@@ -570,11 +555,22 @@ export const useAddDealItem = () => {
         queryClient.setQueryData(DEALS_VIEW_KEY, context.previousDeals);
       }
     },
+    onSuccess: ({ dealId, item }, _variables) => {
+      // Substituir item temporário pelo item real retornado do servidor
+      queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
+        old.map(deal => {
+          if (deal.id !== dealId) return deal;
+          const items = (deal.items || []).map(i =>
+            i.id.startsWith('temp-item-') ? item : i
+          );
+          // Recalcular valor do deal baseado nos items
+          const newValue = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+          return { ...deal, items, value: newValue };
+        })
+      );
+    },
     onSettled: (_data, _error, { dealId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(dealId) });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-      }, 3000);
     },
   });
 };
@@ -611,11 +607,18 @@ export const useRemoveDealItem = () => {
         queryClient.setQueryData(DEALS_VIEW_KEY, context.previousDeals);
       }
     },
+    onSuccess: ({ dealId }, _variables) => {
+      // Recalcular valor do deal após remoção de item
+      queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
+        old.map(deal => {
+          if (deal.id !== dealId) return deal;
+          const newValue = (deal.items || []).reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+          return { ...deal, value: newValue };
+        })
+      );
+    },
     onSettled: (_data, _error, { dealId }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(dealId) });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-      }, 3000);
     },
   });
 };
