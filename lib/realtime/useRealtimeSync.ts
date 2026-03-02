@@ -323,10 +323,20 @@ export function useRealtimeSync(
                     return [...old, newData as any];
                   }
                   
-                  // Guard: Skip update if incoming status matches current status (no-op)
-                  // This prevents Realtime from overwriting newer data with stale payloads
+                  // Guard: When status hasn't changed, still merge non-status fields
+                  // (owner_id, value, title, etc.) if the incoming timestamp is newer.
+                  // This enables cross-tab sync for changes that don't affect stage.
                   if (currentStatus && incomingStatus && currentStatus === incomingStatus) {
-                    return old; // No change needed
+                    const incomingTs = (newData.updated_at || newData.updatedAt) as string | undefined;
+                    const currentTs = currentDeal.updatedAt || (currentDeal as any).updated_at;
+                    const incomingMs = typeof incomingTs === 'string' ? new Date(incomingTs).getTime() : 0;
+                    const currentMs = typeof currentTs === 'string' ? new Date(currentTs).getTime() : 0;
+
+                    // Only skip if incoming is significantly older (stale payload)
+                    if (incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - 100) {
+                      return old; // Stale update, skip
+                    }
+                    // Otherwise fall through to merge non-status fields below
                   }
                   
                   // Guard: If current status is different from incoming, check if this is a stale update
@@ -423,6 +433,20 @@ export function useRealtimeSync(
                         delete normalizedData.is_lost;
                       }
                       
+                      // Normalize ID reference fields
+                      if (newData.owner_id !== undefined && newData.ownerId === undefined) {
+                        normalizedData.ownerId = newData.owner_id;
+                        delete normalizedData.owner_id;
+                      }
+                      if (newData.contact_id !== undefined && newData.contactId === undefined) {
+                        normalizedData.contactId = newData.contact_id;
+                        delete normalizedData.contact_id;
+                      }
+                      if (newData.board_id !== undefined && newData.boardId === undefined) {
+                        normalizedData.boardId = newData.board_id;
+                        delete normalizedData.board_id;
+                      }
+
                       // Normalize date fields
                       if (newData.closed_at !== undefined && newData.closedAt === undefined) {
                         normalizedData.closedAt = newData.closed_at;
