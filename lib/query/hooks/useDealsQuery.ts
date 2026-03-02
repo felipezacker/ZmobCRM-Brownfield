@@ -552,10 +552,12 @@ export const useAddDealItem = () => {
 
       const tempItem: DealItem = { id: `temp-item-${Date.now()}`, ...item };
 
-      const addItem = (deal: Deal | DealView) =>
-        deal.id === dealId
-          ? { ...deal, items: [...(deal.items || []), tempItem], updatedAt: new Date().toISOString() }
-          : deal;
+      const addItem = (deal: Deal | DealView) => {
+        if (deal.id !== dealId) return deal;
+        const items = [...(deal.items || []), tempItem];
+        const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+        return { ...deal, items, value, updatedAt: new Date().toISOString() };
+      };
 
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
         old.map(deal => addItem(deal) as DealView)
@@ -615,10 +617,12 @@ export const useRemoveDealItem = () => {
       const previousDeals = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
       const previousRawDeals = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
 
-      const removeItem = (deal: Deal | DealView) =>
-        deal.id === dealId
-          ? { ...deal, items: (deal.items || []).filter(i => i.id !== itemId), updatedAt: new Date().toISOString() }
-          : deal;
+      const removeItem = (deal: Deal | DealView) => {
+        if (deal.id !== dealId) return deal;
+        const items = (deal.items || []).filter(i => i.id !== itemId);
+        const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+        return { ...deal, items, value, updatedAt: new Date().toISOString() };
+      };
 
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
         old.map(deal => removeItem(deal) as DealView)
