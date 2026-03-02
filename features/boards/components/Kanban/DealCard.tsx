@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { DealView, Product } from '@/types';
 import type { OrgMember } from '@/hooks/useOrganizationMembers';
-import { Hourglass, Search, Trophy, XCircle } from 'lucide-react';
+import { Check, Hourglass, Search, Trophy, XCircle } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
@@ -341,19 +341,28 @@ const DealCardComponent: React.FC<DealCardProps> = ({
               size="unstyled"
               type="button"
               onClick={(e) => e.stopPropagation()}
-              className={`truncate hover:underline cursor-pointer ${
-                deal.owner?.name && deal.owner.name !== 'Sem Dono'
-                  ? 'text-slate-500 dark:text-slate-400'
-                  : 'text-amber-500 dark:text-amber-400'
-              }`}
+              className="flex items-center gap-1 truncate cursor-pointer group/owner"
             >
-              {deal.owner?.name && deal.owner.name !== 'Sem Dono' ? deal.owner.name : 'Sem dono'}
+              {deal.owner?.name && deal.owner.name !== 'Sem Dono' ? (
+                <>
+                  <span className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 flex items-center justify-center text-[8px] font-bold shrink-0 ring-1 ring-blue-200/50 dark:ring-blue-700/30">
+                    {getInitials(deal.owner.name)}
+                  </span>
+                  <span className="truncate text-slate-600 dark:text-slate-400 group-hover/owner:text-slate-900 dark:group-hover/owner:text-slate-200 transition-colors">
+                    {deal.owner.name}
+                  </span>
+                </>
+              ) : (
+                <span className="text-amber-500 dark:text-amber-400 group-hover/owner:text-amber-600 dark:group-hover/owner:text-amber-300 transition-colors">
+                  Sem dono
+                </span>
+              )}
             </Button>
           </PopoverTrigger>
           <PopoverContent
             align="start"
             sideOffset={6}
-            className="w-56 p-0 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 rounded-lg shadow-xl"
+            className="w-60 p-0 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 rounded-lg shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-2 px-2.5 py-2 border-b border-slate-100 dark:border-white/10">
@@ -367,30 +376,56 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                 autoFocus
               />
             </div>
-            <div className="max-h-48 overflow-auto py-1">
+            <div className="max-h-52 overflow-auto py-1">
               <Button
                 variant="unstyled"
                 size="unstyled"
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onOwnerChange(deal.id, null); setOwnerPickerOpen(false); }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors ${!deal.ownerId ? 'text-amber-500 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}
+                className={`w-full text-left px-2.5 py-1.5 text-xs hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2 ${!deal.ownerId ? 'bg-slate-50 dark:bg-white/5' : ''}`}
               >
-                Sem dono
+                <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-400 flex items-center justify-center text-[9px] shrink-0">
+                  —
+                </span>
+                <span className={`flex-1 ${!deal.ownerId ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                  Sem dono
+                </span>
+                {!deal.ownerId && <Check className="h-3 w-3 text-amber-500 shrink-0" />}
               </Button>
-              {filteredMembers.map((m) => (
-                <Button
-                  variant="unstyled"
-                  size="unstyled"
-                  key={m.id}
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); onOwnerChange(deal.id, m); setOwnerPickerOpen(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors ${deal.ownerId === m.id ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}
-                >
-                  {m.name}
-                </Button>
-              ))}
+              {filteredMembers.map((m) => {
+                const isSelected = deal.ownerId === m.id;
+                return (
+                  <Button
+                    variant="unstyled"
+                    size="unstyled"
+                    key={m.id}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onOwnerChange(deal.id, m); setOwnerPickerOpen(false); }}
+                    className={`w-full text-left px-2.5 py-1.5 text-xs hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2 ${isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                  >
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                      isSelected
+                        ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 ring-1 ring-blue-300/50 dark:ring-blue-600/30'
+                        : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'
+                    }`}>
+                      {getInitials(m.name)}
+                    </span>
+                    <span className={`flex-1 truncate ${isSelected ? 'text-blue-700 dark:text-blue-300 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>
+                      {m.name}
+                    </span>
+                    <span className={`text-[9px] px-1 py-0.5 rounded ${
+                      m.role === 'admin' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-500 dark:text-purple-400' :
+                      m.role === 'diretor' ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-500 dark:text-sky-400' :
+                      'bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-slate-500'
+                    }`}>
+                      {m.role}
+                    </span>
+                    {isSelected && <Check className="h-3 w-3 text-blue-500 dark:text-blue-400 shrink-0" />}
+                  </Button>
+                );
+              })}
               {filteredMembers.length === 0 && (
-                <div className="px-3 py-2 text-xs text-slate-400">Nenhum corretor encontrado</div>
+                <div className="px-3 py-3 text-xs text-slate-400 text-center">Nenhum corretor encontrado</div>
               )}
             </div>
           </PopoverContent>
