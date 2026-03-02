@@ -195,20 +195,21 @@ const StatusDropdown: React.FC<{
                     className="absolute z-50 mt-1 left-0 min-w-[100px] rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 shadow-lg py-1"
                 >
                     {STATUS_OPTIONS.map(option => (
-                        <button
+                        <Button
                             key={option.value}
+                            variant="ghost"
                             role="option"
                             aria-selected={option.value === status}
                             onClick={() => {
                                 if (option.value !== status) onChange(option.value);
                                 setOpen(false);
                             }}
-                            className={`w-full text-left px-3 py-1.5 text-xs font-medium transition-colors hover:bg-slate-50 dark:hover:bg-white/5 ${option.value === status ? 'font-bold' : ''}`}
+                            className={`w-full justify-start px-3 py-1.5 text-xs font-medium transition-colors hover:bg-slate-50 dark:hover:bg-white/5 h-auto rounded-none ${option.value === status ? 'font-bold' : ''}`}
                         >
                             <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${option.color}`}>
                                 {option.label}
                             </span>
-                        </button>
+                        </Button>
                     ))}
                 </div>
             )}

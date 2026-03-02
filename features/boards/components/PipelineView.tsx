@@ -515,20 +515,21 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
                   {isBulkMoveOpen && activeBoard && (
                     <div className="absolute bottom-full mb-1 right-0 min-w-[200px] rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 shadow-lg py-1 z-50">
                       {activeBoard.stages.map(stage => (
-                        <button
+                        <Button
                           key={stage.id}
+                          variant="ghost"
                           onClick={() => {
                             handleBulkMoveDealToStage(stage.id);
                             setIsBulkMoveOpen(false);
                           }}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 transition-colors"
+                          className="w-full justify-start px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 transition-colors h-auto rounded-none"
                         >
                           <span
                             className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                             style={{ backgroundColor: stage.color || '#94a3b8' }}
                           />
                           <span className="text-slate-700 dark:text-slate-200">{stage.label}</span>
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   )}
