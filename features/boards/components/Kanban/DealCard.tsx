@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { DealView, Product } from '@/types';
+import type { OrgMember } from '@/hooks/useOrganizationMembers';
 import { Hourglass, Search, Trophy, XCircle } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -34,6 +35,8 @@ interface DealCardProps {
   onKeyboardMove?: (e: React.KeyboardEvent) => void;
   products: Product[];
   onProductChange: (dealId: string, product: Product | null) => void;
+  members: OrgMember[];
+  onOwnerChange: (dealId: string, member: OrgMember | null) => void;
   onWinDeal?: (dealId: string) => void;
   onLoseDeal?: (dealId: string, dealTitle: string) => void;
   onDeleteDeal?: (dealId: string) => void;
@@ -82,6 +85,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   onKeyboardMove,
   products,
   onProductChange,
+  members,
+  onOwnerChange,
   onWinDeal,
   onLoseDeal,
   onDeleteDeal,
@@ -89,6 +94,8 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   const [localDragging, setLocalDragging] = useState(false);
   const [productSearch, setProductSearch] = useState('');
   const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const [ownerPickerOpen, setOwnerPickerOpen] = useState(false);
+  const [ownerSearch, setOwnerSearch] = useState('');
   const isClosed = isDealClosed(deal);
 
   const handleToggleMenu = (e: React.MouseEvent) => {
@@ -188,6 +195,12 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     if (!q) return products;
     return products.filter((p) => p.name.toLowerCase().includes(q));
   }, [products, productSearch]);
+
+  const filteredMembers = useMemo(() => {
+    const q = ownerSearch.trim().toLowerCase();
+    if (!q) return members;
+    return members.filter((m) => m.name.toLowerCase().includes(q));
+  }, [members, ownerSearch]);
 
   const contactTags = deal.contactTags || [];
   const maxVisibleTags = 2;
@@ -320,12 +333,68 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             </div>
           </PopoverContent>
         </Popover>
-        {deal.owner && deal.owner.name !== 'Sem Dono' && (
-          <>
-            <span className="text-slate-300 dark:text-slate-600">·</span>
-            <span className="text-slate-500 dark:text-slate-400 truncate">{deal.owner.name}</span>
-          </>
-        )}
+        <span className="text-slate-300 dark:text-slate-600">·</span>
+        <Popover open={ownerPickerOpen} onOpenChange={(open) => { setOwnerPickerOpen(open); if (!open) setOwnerSearch(''); }}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              className={`truncate hover:underline cursor-pointer ${
+                deal.owner?.name && deal.owner.name !== 'Sem Dono'
+                  ? 'text-slate-500 dark:text-slate-400'
+                  : 'text-amber-500 dark:text-amber-400'
+              }`}
+            >
+              {deal.owner?.name && deal.owner.name !== 'Sem Dono' ? deal.owner.name : 'Sem dono'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            sideOffset={6}
+            className="w-56 p-0 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 rounded-lg shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 px-2.5 py-2 border-b border-slate-100 dark:border-white/10">
+              <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <input
+                value={ownerSearch}
+                onChange={(e) => setOwnerSearch(e.target.value)}
+                placeholder="Buscar corretor..."
+                aria-label="Buscar corretor"
+                className="flex-1 bg-transparent text-xs text-slate-900 dark:text-slate-200 outline-none placeholder:text-slate-400"
+                autoFocus
+              />
+            </div>
+            <div className="max-h-48 overflow-auto py-1">
+              <Button
+                variant="unstyled"
+                size="unstyled"
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onOwnerChange(deal.id, null); setOwnerPickerOpen(false); }}
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors ${!deal.ownerId ? 'text-amber-500 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}
+              >
+                Sem dono
+              </Button>
+              {filteredMembers.map((m) => (
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
+                  key={m.id}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onOwnerChange(deal.id, m); setOwnerPickerOpen(false); }}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors ${deal.ownerId === m.id ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}
+                >
+                  {m.name}
+                </Button>
+              ))}
+              {filteredMembers.length === 0 && (
+                <div className="px-3 py-2 text-xs text-slate-400">Nenhum corretor encontrado</div>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Row 3: Tags + Date + Activity Icon */}

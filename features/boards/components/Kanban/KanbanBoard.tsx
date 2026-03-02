@@ -7,7 +7,8 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { useKanbanKeyboard } from '@/features/boards/hooks/useKanbanKeyboard';
 
 import { useSettings } from '@/context/settings/SettingsContext';
-import { useAddDealItem, useRemoveDealItem } from '@/lib/query/hooks/useDealsQuery';
+import { useAddDealItem, useRemoveDealItem, useUpdateDeal } from '@/lib/query/hooks/useDealsQuery';
+import { useOrganizationMembers, type OrgMember } from '@/hooks/useOrganizationMembers';
 import type { Product } from '@/types';
 
 /**
@@ -98,6 +99,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const { lifecycleStages, products } = useSettings();
   const addItem = useAddDealItem();
   const removeItem = useRemoveDealItem();
+  const updateDeal = useUpdateDeal();
+  const { members } = useOrganizationMembers();
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
   const instructionsId = useId();
 
@@ -210,6 +213,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
     },
     [dealsById, addItem, removeItem]
+  );
+
+  const handleOwnerChange = useCallback(
+    (dealId: string, member: OrgMember | null) => {
+      updateDeal.mutate({
+        id: dealId,
+        updates: {
+          ownerId: member?.id ?? '',
+          owner: member
+            ? { name: member.name, avatar: member.avatar_url || '' }
+            : { name: 'Sem Dono', avatar: '' },
+        },
+      });
+    },
+    [updateDeal]
   );
 
   // Wrapper: open confirm modal before deleting
@@ -345,6 +363,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onKeyboardMove={keyboardHandlers.get(deal.id)}
                   products={products}
                   onProductChange={handleProductChange}
+                  members={members}
+                  onOwnerChange={handleOwnerChange}
                   onWinDeal={onWinDeal}
                   onLoseDeal={onLoseDeal}
                   onDeleteDeal={onDeleteDeal ? handleDeleteWithConfirm : undefined}

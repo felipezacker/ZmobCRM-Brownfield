@@ -9,7 +9,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys, DEALS_VIEW_KEY } from '../index';
-import { dealsService, contactsService, boardStagesService } from '@/lib/supabase';
+import { dealsService, contactsService, boardStagesService, supabase } from '@/lib/supabase';
 import { createDeal as createDealAction, updateDeal as updateDealAction, deleteDeal as deleteDealAction } from '@/app/actions/deals';
 import { useAuth } from '@/context/AuthContext';
 import type { Deal, DealView, DealItem, Contact } from '@/types';
@@ -89,9 +89,15 @@ export const useDealsView = (filters?: DealsFilters) => {
 
       // Step 2: Extract unique IDs referenced by deals (avoid fetching unused data)
       const contactIds = deals.map(d => d.contactId).filter(Boolean);
+      const ownerIds = [...new Set(deals.map(d => d.ownerId).filter(Boolean))] as string[];
 
-      // Step 3: Fetch only referenced contacts in parallel
-      const contactsResult = await contactsService.getByIds(contactIds);
+      // Step 3: Fetch only referenced contacts and owner profiles in parallel
+      const [contactsResult, ownersResult] = await Promise.all([
+        contactsService.getByIds(contactIds),
+        ownerIds.length > 0 && supabase
+          ? supabase.from('profiles').select('id, first_name, last_name, email, avatar_url').in('id', ownerIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
 
       const contacts = contactsResult.data || [];
 
@@ -99,11 +105,22 @@ export const useDealsView = (filters?: DealsFilters) => {
       const contactMap = new Map(contacts.map(c => [c.id, c]));
       const stageMap = new Map(stages.map(s => [s.id, s.label || s.name]));
 
-      // Enrich deals with contact names and stageLabel
+      // Owner profile map
+      const ownerMap = new Map<string, { name: string; avatar: string }>();
+      for (const o of (ownersResult.data || [])) {
+        ownerMap.set(o.id, {
+          name: [o.first_name, o.last_name].filter(Boolean).join(' ') || o.email?.split('@')[0] || 'Sem nome',
+          avatar: o.avatar_url || '',
+        });
+      }
+
+      // Enrich deals with contact names, owner profiles, and stageLabel
       let enrichedDeals: DealView[] = deals.map(deal => {
         const contact = contactMap.get(deal.contactId);
+        const ownerData = deal.ownerId ? ownerMap.get(deal.ownerId) : undefined;
         return {
           ...deal,
+          owner: ownerData || deal.owner,
           contactName: contact?.name || 'Sem contato',
           contactEmail: contact?.email || '',
           contactPhone: contact?.phone || '',
@@ -179,9 +196,15 @@ export const useDealsByBoard = (boardId: string) => {
 
       // Step 2: Extract unique IDs referenced by deals
       const contactIds = deals.map(d => d.contactId).filter(Boolean);
+      const ownerIds = [...new Set(deals.map(d => d.ownerId).filter(Boolean))] as string[];
 
-      // Step 3: Fetch only referenced contacts
-      const contactsResult = await contactsService.getByIds(contactIds);
+      // Step 3: Fetch only referenced contacts and owner profiles in parallel
+      const [contactsResult, ownersResult] = await Promise.all([
+        contactsService.getByIds(contactIds),
+        ownerIds.length > 0 && supabase
+          ? supabase.from('profiles').select('id, first_name, last_name, email, avatar_url').in('id', ownerIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
 
       const contacts = contactsResult.data || [];
 
@@ -189,11 +212,22 @@ export const useDealsByBoard = (boardId: string) => {
       const contactMap = new Map(contacts.map(c => [c.id, c]));
       const stageMap = new Map(stages.map(s => [s.id, s.label || s.name]));
 
+      // Owner profile map
+      const ownerMap = new Map<string, { name: string; avatar: string }>();
+      for (const o of (ownersResult.data || [])) {
+        ownerMap.set(o.id, {
+          name: [o.first_name, o.last_name].filter(Boolean).join(' ') || o.email?.split('@')[0] || 'Sem nome',
+          avatar: o.avatar_url || '',
+        });
+      }
+
       // Enrich ALL deals (filtering happens in select)
       const enrichedDeals: DealView[] = deals.map(deal => {
         const contact = contactMap.get(deal.contactId);
+        const ownerData = deal.ownerId ? ownerMap.get(deal.ownerId) : undefined;
         return {
           ...deal,
+          owner: ownerData || deal.owner,
           contactName: contact?.name || 'Sem contato',
           contactEmail: contact?.email || '',
           contactPhone: contact?.phone || '',
