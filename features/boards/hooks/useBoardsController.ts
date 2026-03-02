@@ -12,6 +12,7 @@ import {
 } from '@/lib/query/hooks/useBoardsQuery';
 import {
   useDealsByBoard,
+  useDeleteDeal,
 } from '@/lib/query/hooks/useDealsQuery';
 import { useMoveDeal } from '@/lib/query/hooks/useMoveDeal';
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery';
@@ -121,6 +122,7 @@ export const useBoardsController = () => {
   const dealsBoardId = activeBoardId || '';
   const { data: deals = [], isLoading: dealsLoading } = useDealsByBoard(dealsBoardId);
   const moveDealMutation = useMoveDeal();
+  const deleteDealMutation = useDeleteDeal();
   const createActivityMutation = useCreateActivity();
 
   // Filter State (declared before AI context useEffect that uses them)
@@ -591,6 +593,48 @@ export const useBoardsController = () => {
     setOpenActivityMenuId(null);
   };
 
+  // Quick Actions: Win / Lose / Delete
+  const handleWinDeal = (dealId: string) => {
+    if (!activeBoard?.wonStageId) {
+      addToast('Este board não tem estágio de ganho configurado', 'info');
+      return;
+    }
+    const deal = deals.find(d => d.id === dealId);
+    if (!deal) return;
+    moveDealMutation.mutate({
+      dealId,
+      targetStageId: activeBoard.wonStageId,
+      deal,
+      board: activeBoard,
+      lifecycleStages,
+    });
+  };
+
+  const handleLoseDeal = (dealId: string, dealTitle: string) => {
+    if (!activeBoard?.lostStageId) {
+      addToast('Este board não tem estágio de perda configurado', 'info');
+      return;
+    }
+    setLossReasonModal({
+      isOpen: true,
+      dealId,
+      dealTitle,
+      stageId: activeBoard.lostStageId,
+    });
+  };
+
+  const handleDeleteDeal = (dealId: string) => {
+    deleteDealMutation.mutate(dealId, {
+      onSuccess: () => {
+        addToast('Negócio excluído', 'success');
+        if (selectedDealId === dealId) setSelectedDealId(null);
+      },
+      onError: (error: Error) => {
+        addToast(error.message || 'Erro ao excluir negócio', 'error');
+      },
+    });
+  };
+
   // Board Management Handlers
   const handleSelectBoard = (boardId: string) => {
     setActiveBoardId(boardId);
@@ -870,6 +914,10 @@ export const useBoardsController = () => {
     handleMoveDealToStage,
     handleQuickAddActivity,
     setLastMouseDownDealId,
+    // Quick Actions
+    handleWinDeal,
+    handleLoseDeal,
+    handleDeleteDeal,
     // Loss Reason Modal
     lossReasonModal,
     handleLossReasonConfirm,

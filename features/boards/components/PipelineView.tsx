@@ -68,6 +68,10 @@ interface PipelineViewProps {
     dealTitle: string
   ) => void;
   setLastMouseDownDealId: (id: string | null) => void;
+  // Quick Actions
+  handleWinDeal: (dealId: string) => void;
+  handleLoseDeal: (dealId: string, dealTitle: string) => void;
+  handleDeleteDeal: (dealId: string) => void;
   // Loss Reason Modal
   lossReasonModal: {
     isOpen: boolean;
@@ -238,6 +242,10 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
   handleMoveDealToStage,
   handleQuickAddActivity,
   setLastMouseDownDealId,
+  // Quick Actions
+  handleWinDeal,
+  handleLoseDeal,
+  handleDeleteDeal,
   // Loss Reason Modal
   lossReasonModal,
   handleLossReasonConfirm,
@@ -346,6 +354,9 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
                 handleQuickAddActivity={handleQuickAddActivity}
                 setLastMouseDownDealId={setLastMouseDownDealId}
                 onMoveDealToStage={handleMoveDealToStage}
+                onWinDeal={handleWinDeal}
+                onLoseDeal={handleLoseDeal}
+                onDeleteDeal={handleDeleteDeal}
               />
             ) : (
               <KanbanList

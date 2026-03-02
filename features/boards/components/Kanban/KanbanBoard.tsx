@@ -3,6 +3,7 @@ import { DealView, BoardStage } from '@/types';
 import { DealCard } from './DealCard';
 import { isDealRotting, getActivityStatus } from '@/features/boards/hooks/useBoardsController';
 import { MoveToStageModal } from '../Modals/MoveToStageModal';
+import ConfirmModal from '@/components/ConfirmModal';
 import { useKanbanKeyboard } from '@/features/boards/hooks/useKanbanKeyboard';
 
 import { useSettings } from '@/context/settings/SettingsContext';
@@ -69,39 +70,14 @@ interface KanbanBoardProps {
   setLastMouseDownDealId: (id: string | null) => void;
   /** Callback to move a deal to a new stage (for keyboard accessibility) */
   onMoveDealToStage?: (dealId: string, newStageId: string) => void;
+  /** Quick action: mark deal as won */
+  onWinDeal?: (dealId: string) => void;
+  /** Quick action: mark deal as lost (opens loss reason modal) */
+  onLoseDeal?: (dealId: string, dealTitle: string) => void;
+  /** Quick action: delete deal */
+  onDeleteDeal?: (dealId: string) => void;
 }
-/**
- * Componente React `KanbanBoard`.
- *
- * @param {KanbanBoardProps} {
-  stages,
-  filteredDeals,
-  draggingId,
-  handleDragStart,
-  handleDragOver,
-  handleDrop,
-  setSelectedDealId,
-  openActivityMenuId,
-  setOpenActivityMenuId,
-  handleQuickAddActivity,
-  setLastMouseDownDealId,
-  onMoveDealToStage,
-} - Parâmetro `{
-  stages,
-  filteredDeals,
-  draggingId,
-  handleDragStart,
-  handleDragOver,
-  handleDrop,
-  setSelectedDealId,
-  openActivityMenuId,
-  setOpenActivityMenuId,
-  handleQuickAddActivity,
-  setLastMouseDownDealId,
-  onMoveDealToStage,
-}`.
- * @returns {Element} Retorna um valor do tipo `Element`.
- */
+/** Kanban board with drag-and-drop, quick actions (win/lose/delete), and keyboard accessibility. */
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   stages,
   filteredDeals,
@@ -115,6 +91,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   handleQuickAddActivity,
   setLastMouseDownDealId,
   onMoveDealToStage,
+  onWinDeal,
+  onLoseDeal,
+  onDeleteDeal,
 }) => {
   const { lifecycleStages, products } = useSettings();
   const addItem = useAddDealItem();
@@ -131,6 +110,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     deal: DealView;
     currentStageId: string;
   } | null>(null);
+
+  // State for delete confirmation modal
+  const [deleteConfirm, setDeleteConfirm] = useState<{ dealId: string; dealTitle: string } | null>(null);
 
   /**
    * Performance: o Kanban renderiza listas grandes. Evitamos padrões O(S*N) no render:
@@ -228,6 +210,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
     },
     [dealsById, addItem, removeItem]
+  );
+
+  // Wrapper: open confirm modal before deleting
+  const handleDeleteWithConfirm = useCallback(
+    (dealId: string) => {
+      const deal = dealsById.get(dealId);
+      setDeleteConfirm({ dealId, dealTitle: deal?.title || deal?.contactName || 'este negócio' });
+    },
+    [dealsById]
   );
 
   return (
@@ -354,6 +345,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onKeyboardMove={keyboardHandlers.get(deal.id)}
                   products={products}
                   onProductChange={handleProductChange}
+                  onWinDeal={onWinDeal}
+                  onLoseDeal={onLoseDeal}
+                  onDeleteDeal={onDeleteDeal ? handleDeleteWithConfirm : undefined}
                 />
               ))}
             </div>
@@ -372,6 +366,22 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           currentStageId={moveToStageModal.currentStageId}
         />
       )}
+
+      {/* Confirm delete modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => {
+          if (deleteConfirm && onDeleteDeal) {
+            onDeleteDeal(deleteConfirm.dealId);
+          }
+        }}
+        title="Excluir negócio"
+        message={<>Tem certeza que deseja excluir <strong>{deleteConfirm?.dealTitle}</strong>? Esta ação não pode ser desfeita.</>}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        variant="danger"
+      />
     </div>
   );
 };
