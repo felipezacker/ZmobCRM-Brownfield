@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Target,
   Bell,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 
@@ -219,30 +220,46 @@ const sections: Section[] = [
           e ferramentas para conduzir aquele deal.
         </p>
 
-        <p className="font-medium text-slate-800 dark:text-slate-200">O que você encontra no cockpit:</p>
+        <p className="font-medium text-slate-800 dark:text-slate-200">Estrutura do cockpit:</p>
         <ul className="list-disc list-inside space-y-1 ml-1">
-          <li><strong>Barra de pipeline</strong> — Visualize em qual estágio está e quanto tempo em cada etapa</li>
-          <li><strong>Dados do negócio</strong> — Valor, contato, produtos associados, campos customizados</li>
+          <li><strong>Barra de pipeline</strong> — Visualize em qual estágio está e tempo em cada etapa</li>
+          <li><strong>Dados do negócio</strong> — Valor, contato, produtos, campos customizados</li>
           <li><strong>Timeline</strong> — Histórico completo de interações e movimentações</li>
           <li><strong>Checklist</strong> — Tarefas necessárias para avançar o negócio</li>
-          <li><strong>Saúde do deal</strong> — Indicador de risco e próxima ação recomendada</li>
+          <li><strong>Saúde do deal</strong> — Barra colorida (verde/amarelo/vermelho) com indicador de risco</li>
           <li><strong>Notas</strong> — Anotações livres sobre o negócio</li>
-          <li><strong>Assistente de IA</strong> — Sugestões, scripts de venda e templates de mensagem</li>
         </ul>
 
-        <p className="font-medium text-slate-800 dark:text-slate-200">Ações disponíveis:</p>
-        <ul className="list-disc list-inside space-y-1 ml-1">
-          <li>Mover para outro estágio do pipeline</li>
-          <li>Agendar atividades (ligação, visita, follow-up)</li>
-          <li>Marcar como ganho ou perdido</li>
-          <li>Adicionar ou remover produtos</li>
-          <li>Usar templates de mensagem prontos</li>
-        </ul>
+        <p className="font-medium text-slate-800 dark:text-slate-200">Botões de ação rápida:</p>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-2 text-center border border-blue-200 dark:border-blue-800">
+            <span className="font-semibold text-blue-700 dark:text-blue-300">Ligar</span>
+          </div>
+          <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-2 text-center border border-green-200 dark:border-green-800">
+            <span className="font-semibold text-green-700 dark:text-green-300">WhatsApp</span>
+          </div>
+          <div className="rounded-lg bg-violet-50 dark:bg-violet-900/20 p-2 text-center border border-violet-200 dark:border-violet-800">
+            <span className="font-semibold text-violet-700 dark:text-violet-300">Email</span>
+          </div>
+          <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-2 text-center border border-amber-200 dark:border-amber-800">
+            <span className="font-semibold text-amber-700 dark:text-amber-300">Agendar</span>
+          </div>
+          <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-2 text-center border border-green-200 dark:border-green-800">
+            <span className="font-semibold text-green-700 dark:text-green-300">Template WA</span>
+          </div>
+          <div className="rounded-lg bg-violet-50 dark:bg-violet-900/20 p-2 text-center border border-violet-200 dark:border-violet-800">
+            <span className="font-semibold text-violet-700 dark:text-violet-300">Template Email</span>
+          </div>
+        </div>
 
-        <p className="text-xs text-slate-500 dark:text-slate-500 italic">
-          Dica: O assistente de IA no cockpit pode sugerir a próxima melhor ação com
-          base no histórico do negócio e no perfil do cliente.
-        </p>
+        <div className="rounded-lg bg-rose-50 dark:bg-rose-900/20 p-3 space-y-1.5">
+          <p className="font-medium text-rose-800 dark:text-rose-300">Próxima Melhor Ação (IA):</p>
+          <p className="text-rose-700 dark:text-rose-400 text-xs">
+            A IA analisa o histórico do deal e sugere a próxima ação ideal. O botão
+            &quot;Executar&quot; aparece no topo do cockpit com a recomendação e o motivo.
+            Você pode aceitar ou atualizar a sugestão.
+          </p>
+        </div>
       </>
     ),
   },
@@ -257,23 +274,39 @@ const sections: Section[] = [
           A <strong>Inbox</strong> é seu centro de comando diário. Ela prioriza automaticamente
           os leads que precisam da sua atenção, mostrando primeiro os mais urgentes.
         </p>
-        <p className="font-medium text-slate-800 dark:text-slate-200">Como funciona a priorização:</p>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">3 modos de visualização:</p>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-2.5 border border-blue-200 dark:border-blue-800">
+            <span className="font-semibold text-blue-700 dark:text-blue-300">Overview</span>
+            <p className="text-blue-600 dark:text-blue-400 mt-0.5">Painel com seções: atrasados, reuniões de hoje, tarefas, sugestões da IA</p>
+          </div>
+          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-2.5 border border-blue-200 dark:border-blue-800">
+            <span className="font-semibold text-blue-700 dark:text-blue-300">Lista</span>
+            <p className="text-blue-600 dark:text-blue-400 mt-0.5">Todas as atividades em lista com ações rápidas por item</p>
+          </div>
+          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-2.5 border border-blue-200 dark:border-blue-800">
+            <span className="font-semibold text-blue-700 dark:text-blue-300">Foco</span>
+            <p className="text-blue-600 dark:text-blue-400 mt-0.5">Um item por vez em tela cheia. Concluir, adiar ou pular</p>
+          </div>
+        </div>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">Ações rápidas por item:</p>
         <ul className="list-disc list-inside space-y-1 ml-1">
-          <li>Leads com atividades vencidas aparecem no topo</li>
-          <li>Leads quentes (score alto) têm prioridade</li>
-          <li>Leads sem contato recente sobem na fila</li>
-          <li>Novos leads são destacados para primeiro contato</li>
+          <li><strong>Concluir</strong> — Marca atividade como feita</li>
+          <li><strong>Adiar</strong> — Reagenda para amanhã</li>
+          <li><strong>Descartar</strong> — Remove sugestão da IA</li>
         </ul>
-        <p className="font-medium text-slate-800 dark:text-slate-200 mt-2">Ações rápidas disponíveis:</p>
-        <ul className="list-disc list-inside space-y-1 ml-1">
-          <li>Registrar ligação ou mensagem</li>
-          <li>Agendar atividade de follow-up</li>
-          <li>Mover lead para outro estágio</li>
-          <li>Adicionar nota rápida</li>
-        </ul>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">Sugestões da IA:</p>
+        <p>
+          A IA analisa seus contatos e sugere ações prioritárias (ligações, follow-ups).
+          Sugestões críticas aparecem destacadas. Você pode aceitar, adiar ou dispensar cada uma.
+        </p>
+
         <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-3 text-green-700 dark:text-green-400 text-xs">
-          <strong>Rotina recomendada:</strong> Comece o dia pela Inbox. Resolva os itens
-          de cima para baixo — o sistema já ordenou por urgência para você.
+          <strong>Rotina recomendada:</strong> Comece o dia pelo modo Overview para ter visão geral.
+          Use o modo Foco para resolver itens um a um sem distrações.
         </div>
       </>
     ),
@@ -298,15 +331,32 @@ const sections: Section[] = [
           <li><strong>Negociação</strong> — Em negociação de valores/condições</li>
           <li><strong>Fechado</strong> — Negócio concluído (ganho ou perdido)</li>
         </ul>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200 mt-2">O que cada card mostra:</p>
+        <ul className="list-disc list-inside space-y-1 ml-1">
+          <li>Avatar e nome do contato</li>
+          <li>Valor do negócio</li>
+          <li>Produtos associados (com picker para adicionar)</li>
+          <li>Tags do negócio</li>
+          <li>Corretor responsável</li>
+          <li>Badges de status (GANHO/PERDIDO) quando aplicável</li>
+        </ul>
+
         <p className="font-medium text-slate-800 dark:text-slate-200 mt-2">Interações com os cards:</p>
         <ul className="list-disc list-inside space-y-1 ml-1">
-          <li><strong>Arrastar</strong> — Mova cards entre colunas para atualizar o estágio</li>
+          <li><strong>Arrastar</strong> — Mova cards entre colunas para mudar de estágio</li>
           <li><strong>Clicar</strong> — Abra o cockpit completo do negócio</li>
-          <li><strong>Produtos</strong> — Adicione produtos diretamente no card</li>
+          <li><strong>Produto</strong> — Adicione produtos direto no card (busca inline)</li>
         </ul>
-        <p className="text-xs text-slate-500 dark:text-slate-500 italic">
-          Cada card exibe: nome do contato, valor do negócio, produtos e lead score.
-        </p>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200 mt-2">Menu de ações rápidas (no card):</p>
+        <ul className="list-disc list-inside space-y-1 ml-1">
+          <li><strong>Ganhar negócio</strong> — Marca como venda fechada</li>
+          <li><strong>Perder negócio</strong> — Marca como perdido</li>
+          <li><strong>Agendar Call / Email / Meeting</strong> — Cria atividade rápida</li>
+          <li><strong>Mover para etapa</strong> — Seleciona novo estágio</li>
+          <li><strong>Excluir negócio</strong> — Remove o deal</li>
+        </ul>
       </>
     ),
   },
@@ -318,31 +368,45 @@ const sections: Section[] = [
     content: (
       <>
         <p>
-          A tela de <strong>Contatos</strong> centraliza todos os seus leads e clientes.
-          Use os filtros para encontrar rapidamente quem você procura.
+          A tela de <strong>Contatos</strong> centraliza todos os seus leads e clientes
+          em uma tabela com colunas ordenáveis e coluna de nome fixa para fácil navegação.
         </p>
-        <p className="font-medium text-slate-800 dark:text-slate-200">Filtros disponíveis:</p>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">Tabela de contatos:</p>
         <ul className="list-disc list-inside space-y-1 ml-1">
-          <li>Por estágio (novo, em contato, visitou, etc.)</li>
-          <li>Por temperatura (frio, morno, quente)</li>
-          <li>Por corretor responsável</li>
-          <li>Por data de criação</li>
-          <li>Ordenação por lead score</li>
+          <li><strong>Colunas ordenáveis</strong> — Clique no cabeçalho para ordenar por qualquer coluna</li>
+          <li><strong>Coluna fixa</strong> — Nome do contato fica fixo ao rolar horizontalmente</li>
+          <li><strong>Clique na linha</strong> — Abre o modal de detalhe completo do contato</li>
+          <li><strong>Seleção múltipla</strong> — Marque checkbox para ações em massa</li>
         </ul>
-        <p className="font-medium text-slate-800 dark:text-slate-200 mt-2">Gestão de contatos:</p>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200 mt-2">Filtros avançados:</p>
         <ul className="list-disc list-inside space-y-1 ml-1">
-          <li>Clique em um contato para ver todos os detalhes</li>
-          <li>Veja histórico completo de interações</li>
-          <li>Adicione notas e atividades diretamente</li>
-          <li>Acompanhe negócios vinculados ao contato</li>
-          <li>Detecção automática de duplicatas</li>
+          <li>Classificação (cliente, prospect, parceiro)</li>
+          <li>Temperatura (frio, morno, quente)</li>
+          <li>Tipo de contato, corretor responsável, fonte</li>
+          <li>Período de cadastro</li>
+          <li>Busca por nome, email ou telefone</li>
         </ul>
-        <p className="font-medium text-slate-800 dark:text-slate-200 mt-2">Informações do contato:</p>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200 mt-2">Modal de detalhe do contato:</p>
         <ul className="list-disc list-inside space-y-1 ml-1">
-          <li>Dados pessoais (nome, telefone, email)</li>
-          <li>Preferências (tipo de imóvel, faixa de preço, região)</li>
-          <li>Lead score com badge de temperatura</li>
-          <li>Campos customizados definidos pelo admin</li>
+          <li><strong>Dados pessoais</strong> — Nome, email, telefone, CPF, endereço</li>
+          <li><strong>Preferências</strong> — Tipo de imóvel, faixa de preço, urgência, regiões</li>
+          <li><strong>Campos customizados</strong> — Editáveis inline</li>
+          <li><strong>Tags</strong> — Adicionar e remover tags</li>
+          <li><strong>Timeline</strong> — Histórico de atividades e alterações de score</li>
+          <li><strong>Negócios</strong> — Lista de deals vinculados com valor e estágio</li>
+          <li><strong>Barra de pipeline</strong> — Progresso do contato nos estágios</li>
+          <li>Botões de ação: Ligar, WhatsApp, Email</li>
+        </ul>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200 mt-2">Importar e exportar:</p>
+        <ul className="list-disc list-inside space-y-1 ml-1">
+          <li><strong>Exportar CSV</strong> — Baixe seus contatos filtrados em planilha</li>
+          <li><strong>Importar CSV</strong> — Assistente de 4 etapas: upload, mapeamento de
+            colunas, criação de negócios opcional, confirmação</li>
+          <li>Suporte a delimitadores automáticos e compatibilidade com Excel</li>
         </ul>
       </>
     ),
@@ -358,15 +422,43 @@ const sections: Section[] = [
           <strong>Atividades</strong> são tarefas que você agenda para seus leads:
           ligações, visitas, follow-ups, envio de documentos, etc.
         </p>
-        <p className="font-medium text-slate-800 dark:text-slate-200">Tipos de atividade:</p>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">3 modos de visualização:</p>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-2.5 border border-amber-200 dark:border-amber-800">
+            <span className="font-semibold text-amber-700 dark:text-amber-300">Lista</span>
+            <p className="text-amber-600 dark:text-amber-400 mt-0.5">Tabela com filtros, busca e ordenação</p>
+          </div>
+          <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-2.5 border border-amber-200 dark:border-amber-800">
+            <span className="font-semibold text-amber-700 dark:text-amber-300">Semana</span>
+            <p className="text-amber-600 dark:text-amber-400 mt-0.5">Calendário semanal dia a dia</p>
+          </div>
+          <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-2.5 border border-amber-200 dark:border-amber-800">
+            <span className="font-semibold text-amber-700 dark:text-amber-300">Mês</span>
+            <p className="text-amber-600 dark:text-amber-400 mt-0.5">Calendário mensal completo</p>
+          </div>
+        </div>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">Abas:</p>
         <ul className="list-disc list-inside space-y-1 ml-1">
-          <li>Ligação telefônica</li>
-          <li>Envio de mensagem (WhatsApp, email)</li>
-          <li>Visita ao imóvel</li>
-          <li>Reunião presencial ou online</li>
-          <li>Envio de proposta/documentos</li>
-          <li>Follow-up geral</li>
+          <li><strong>Atividades</strong> — Pendentes (a fazer, atrasadas, adiadas)</li>
+          <li><strong>Histórico</strong> — Atividades já concluídas</li>
         </ul>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">Tipos: </p>
+        <p>Call, Email, Meeting, Task, Note</p>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">Ações por atividade:</p>
+        <ul className="list-disc list-inside space-y-1 ml-1">
+          <li>Concluir / desfazer conclusão</li>
+          <li>Editar detalhes</li>
+          <li>Duplicar atividade</li>
+          <li>Adiar para amanhã (snooze)</li>
+          <li>Excluir</li>
+        </ul>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">Ações em massa:</p>
+        <p>Selecione múltiplas atividades para concluir, adiar ou excluir todas de uma vez.</p>
 
         <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 space-y-1.5">
           <p className="font-medium text-amber-800 dark:text-amber-300">Impacto no Lead Score:</p>
@@ -451,6 +543,50 @@ const sections: Section[] = [
           <li>Marcar como lido individualmente ou todas de uma vez</li>
           <li>Agrupamento por período (hoje, ontem, esta semana)</li>
         </ul>
+      </>
+    ),
+  },
+  {
+    id: 'ai-assistant',
+    title: 'Assistente de IA',
+    icon: Sparkles,
+    color: 'bg-violet-500',
+    content: (
+      <>
+        <p>
+          O <strong>Assistente de IA</strong> está disponível em diversas partes do CRM
+          para ajudar você a tomar decisões e ser mais produtivo.
+        </p>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">Onde encontrar a IA:</p>
+        <ul className="list-disc list-inside space-y-1 ml-1">
+          <li><strong>Painel lateral</strong> — Clique no ícone de estrela no header para abrir o chat</li>
+          <li><strong>Cockpit do negócio</strong> — IA contextual com dados do deal aberto</li>
+          <li><strong>Inbox</strong> — Sugestões automáticas de próximas ações</li>
+          <li><strong>Hub de IA</strong> — Chat dedicado para perguntas sobre sua carteira</li>
+        </ul>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">O que você pode perguntar:</p>
+        <ul className="list-disc list-inside space-y-1 ml-1">
+          <li>&quot;O que tenho pra fazer hoje?&quot;</li>
+          <li>&quot;Mostre meu pipeline&quot;</li>
+          <li>&quot;Quais deals estão parados?&quot;</li>
+          <li>&quot;Explique o score do contato X&quot;</li>
+          <li>&quot;Crie uma reunião com [Nome] amanhã às 14h&quot;</li>
+        </ul>
+
+        <p className="font-medium text-slate-800 dark:text-slate-200">No cockpit do negócio:</p>
+        <ul className="list-disc list-inside space-y-1 ml-1">
+          <li>Próxima melhor ação recomendada com motivo</li>
+          <li>Scripts de venda personalizados</li>
+          <li>Templates de mensagem (WhatsApp e Email)</li>
+          <li>Indicador de saúde do deal</li>
+        </ul>
+
+        <div className="rounded-lg bg-violet-50 dark:bg-violet-900/20 p-3 text-violet-700 dark:text-violet-400 text-xs">
+          <strong>Configuração:</strong> A IA precisa ser configurada pelo admin em
+          Configurações → Centro de IA, com a chave de API do provedor (Google Gemini, OpenAI ou Anthropic).
+        </div>
       </>
     ),
   },
