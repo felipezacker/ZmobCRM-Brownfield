@@ -9,6 +9,7 @@ import {
   BarChart3,
   Settings,
   User,
+  BookOpen,
 } from 'lucide-react';
 
 export type PrimaryNavId = 'inbox' | 'boards' | 'contacts' | 'activities' | 'more';
@@ -29,7 +30,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
   { id: 'more', label: 'Mais', icon: MoreHorizontal },
 ];
 
-export type SecondaryNavId = 'dashboard' | 'reports' | 'settings' | 'profile';
+export type SecondaryNavId = 'dashboard' | 'reports' | 'settings' | 'profile' | 'instructions';
 
 export interface SecondaryNavItem {
   id: SecondaryNavId;
@@ -44,4 +45,5 @@ export const SECONDARY_NAV: SecondaryNavItem[] = [
   { id: 'reports', label: 'Relatórios', href: '/reports', icon: BarChart3 },
   { id: 'settings', label: 'Configurações', href: '/settings', icon: Settings },
   { id: 'profile', label: 'Perfil', href: '/profile', icon: User },
+  { id: 'instructions', label: 'Instruções', href: '/instructions', icon: BookOpen },
 ];

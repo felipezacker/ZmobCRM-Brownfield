@@ -44,7 +44,8 @@ import {
   Bug,
   CheckSquare,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  BookOpen
 } from 'lucide-react';
 import { useUIStore } from '@/lib/stores';
 import { useAuth } from '../context/AuthContext';
@@ -398,6 +399,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       >
                         <User className="w-4 h-4 text-slate-400" />
                         Editar Perfil
+                      </Link>
+                      <Link
+                        href="/instructions"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg transition-colors focus-visible-ring"
+                      >
+                        <BookOpen className="w-4 h-4 text-slate-400" />
+                        Instruções
                       </Link>
                       <Button
                         onClick={() => {
