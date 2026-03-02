@@ -103,7 +103,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
             const rect = triggerRef.current.getBoundingClientRect();
             setMenuPos({
                 top: rect.top - 8, // 8px gap above the button
-                left: rect.right - 192, // 192px = w-48, align right edge
+                left: rect.left, // align left edge with trigger
             });
         }
     }, [isOpen, dealId]);
