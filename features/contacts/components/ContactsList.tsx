@@ -422,7 +422,15 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                 const isSelected = selectedIds.has(contact.id);
                                 const stickyBg = isSelected ? STICKY_ROW_SELECTED_BG : STICKY_ROW_BG;
                                 return (
-                                <tr key={contact.id} className={`transition-colors group ${isSelected ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-white dark:bg-slate-900'} hover:bg-slate-50 dark:hover:bg-white/5`}>
+                                <tr
+                                    key={contact.id}
+                                    onClick={(e) => {
+                                        const target = e.target as HTMLElement;
+                                        if (target.closest('input, button, select, a, [role="listbox"]')) return;
+                                        openDetailModal ? openDetailModal(contact.id) : openEditModal(contact);
+                                    }}
+                                    className={`transition-colors group cursor-pointer ${isSelected ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-white dark:bg-slate-900'} hover:bg-slate-50 dark:hover:bg-white/5`}
+                                >
                                     <td className={`${STICKY_Z} ${stickyBg} min-w-[250px] px-4 py-4`}>
                                         <div className="flex items-center gap-3">
                                             <input
