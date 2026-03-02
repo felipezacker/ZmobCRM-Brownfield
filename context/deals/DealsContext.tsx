@@ -89,11 +89,15 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 
   const updateDeal = useCallback(async (id: string, updates: Partial<Deal>) => {
-    // Optimistic update - atualiza a UI imediatamente
+    const applyUpdates = (deal: Deal | DealView) =>
+      deal.id === id ? { ...deal, ...updates, updatedAt: new Date().toISOString() } : deal;
+
+    // Optimistic update - atualiza ambos os caches imediatamente
     queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-      old.map(deal =>
-        deal.id === id ? { ...deal, ...updates, updatedAt: new Date().toISOString() } : deal
-      )
+      old.map(deal => applyUpdates(deal) as DealView)
+    );
+    queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
+      old.map(deal => applyUpdates(deal) as Deal)
     );
 
     const { error: updateError } = await dealsService.update(id, updates);
