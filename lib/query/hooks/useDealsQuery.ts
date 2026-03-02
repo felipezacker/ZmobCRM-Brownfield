@@ -378,25 +378,36 @@ export const useUpdateDeal = () => {
     onMutate: async ({ id, updates }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.deals.all });
 
-      // Usa DEALS_VIEW_KEY - a única fonte de verdade
+      // Snapshot both caches for rollback
       const previousDeals = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+      const previousRawDeals = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
 
+      const applyUpdates = (deal: Deal | DealView) =>
+        deal.id === id ? { ...deal, ...updates, updatedAt: new Date().toISOString() } : deal;
+
+      // Update enriched cache (Kanban/DealCard)
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-        old.map(deal =>
-          deal.id === id ? { ...deal, ...updates, updatedAt: new Date().toISOString() } : deal
-        )
+        old.map(deal => applyUpdates(deal) as DealView)
       );
 
-      // Also update detail cache
+      // Update raw cache (DealsContext → DealDetailModal)
+      queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
+        old.map(deal => applyUpdates(deal) as Deal)
+      );
+
+      // Update detail cache
       queryClient.setQueryData<Deal>(queryKeys.deals.detail(id), old =>
-        old ? { ...old, ...updates, updatedAt: new Date().toISOString() } : old
+        old ? (applyUpdates(old) as Deal) : old
       );
 
-      return { previousDeals };
+      return { previousDeals, previousRawDeals };
     },
     onError: (_error, _variables, context) => {
       if (context?.previousDeals) {
         queryClient.setQueryData(DEALS_VIEW_KEY, context.previousDeals);
+      }
+      if (context?.previousRawDeals) {
+        queryClient.setQueryData(queryKeys.deals.lists(), context.previousRawDeals);
       }
     },
     onSettled: (_data, _error, { id }) => {
@@ -537,36 +548,47 @@ export const useAddDealItem = () => {
     onMutate: async ({ dealId, item }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.deals.all });
       const previousDeals = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+      const previousRawDeals = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
 
       const tempItem: DealItem = { id: `temp-item-${Date.now()}`, ...item };
 
+      const addItem = (deal: Deal | DealView) =>
+        deal.id === dealId
+          ? { ...deal, items: [...(deal.items || []), tempItem], updatedAt: new Date().toISOString() }
+          : deal;
+
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-        old.map(deal =>
-          deal.id === dealId
-            ? { ...deal, items: [...(deal.items || []), tempItem], updatedAt: new Date().toISOString() }
-            : deal
-        )
+        old.map(deal => addItem(deal) as DealView)
+      );
+      queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
+        old.map(deal => addItem(deal) as Deal)
       );
 
-      return { previousDeals };
+      return { previousDeals, previousRawDeals };
     },
     onError: (_error, _variables, context) => {
       if (context?.previousDeals) {
         queryClient.setQueryData(DEALS_VIEW_KEY, context.previousDeals);
       }
+      if (context?.previousRawDeals) {
+        queryClient.setQueryData(queryKeys.deals.lists(), context.previousRawDeals);
+      }
     },
     onSuccess: ({ dealId, item }, _variables) => {
-      // Substituir item temporário pelo item real retornado do servidor
+      // Substituir item temporário pelo item real retornado do servidor e recalcular valor
+      const replaceTemp = (deal: Deal | DealView) => {
+        if (deal.id !== dealId) return deal;
+        const items = (deal.items || []).map(i =>
+          i.id.startsWith('temp-item-') ? item : i
+        );
+        const newValue = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+        return { ...deal, items, value: newValue };
+      };
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-        old.map(deal => {
-          if (deal.id !== dealId) return deal;
-          const items = (deal.items || []).map(i =>
-            i.id.startsWith('temp-item-') ? item : i
-          );
-          // Recalcular valor do deal baseado nos items
-          const newValue = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
-          return { ...deal, items, value: newValue };
-        })
+        old.map(deal => replaceTemp(deal) as DealView)
+      );
+      queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
+        old.map(deal => replaceTemp(deal) as Deal)
       );
     },
     onSettled: (_data, _error, { dealId }) => {
@@ -591,30 +613,42 @@ export const useRemoveDealItem = () => {
     onMutate: async ({ dealId, itemId }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.deals.all });
       const previousDeals = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+      const previousRawDeals = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
+
+      const removeItem = (deal: Deal | DealView) =>
+        deal.id === dealId
+          ? { ...deal, items: (deal.items || []).filter(i => i.id !== itemId), updatedAt: new Date().toISOString() }
+          : deal;
 
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-        old.map(deal =>
-          deal.id === dealId
-            ? { ...deal, items: (deal.items || []).filter(i => i.id !== itemId), updatedAt: new Date().toISOString() }
-            : deal
-        )
+        old.map(deal => removeItem(deal) as DealView)
+      );
+      queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
+        old.map(deal => removeItem(deal) as Deal)
       );
 
-      return { previousDeals };
+      return { previousDeals, previousRawDeals };
     },
     onError: (_error, _variables, context) => {
       if (context?.previousDeals) {
         queryClient.setQueryData(DEALS_VIEW_KEY, context.previousDeals);
       }
+      if (context?.previousRawDeals) {
+        queryClient.setQueryData(queryKeys.deals.lists(), context.previousRawDeals);
+      }
     },
     onSuccess: ({ dealId }, _variables) => {
-      // Recalcular valor do deal após remoção de item
+      // Recalcular valor do deal após remoção de item em ambos os caches
+      const recalcValue = (deal: Deal | DealView) => {
+        if (deal.id !== dealId) return deal;
+        const newValue = (deal.items || []).reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+        return { ...deal, value: newValue };
+      };
       queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
-        old.map(deal => {
-          if (deal.id !== dealId) return deal;
-          const newValue = (deal.items || []).reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
-          return { ...deal, value: newValue };
-        })
+        old.map(deal => recalcValue(deal) as DealView)
+      );
+      queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
+        old.map(deal => recalcValue(deal) as Deal)
       );
     },
     onSettled: (_data, _error, { dealId }) => {
