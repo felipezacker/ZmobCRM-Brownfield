@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { DealView } from '@/types';
-import { Hourglass, Trophy, XCircle } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { DealView, Product } from '@/types';
+import { Hourglass, Search, Trophy, XCircle } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
 import { priorityAriaLabelPtBr } from '@/lib/utils/priority';
 
@@ -30,6 +32,8 @@ interface DealCardProps {
   isGrabbed?: boolean;
   /** Keyboard handler for Arrow-key movement (provided by useKanbanKeyboard) */
   onKeyboardMove?: (e: React.KeyboardEvent) => void;
+  products: Product[];
+  onProductChange: (dealId: string, product: Product | null) => void;
 }
 
 // Check if deal is closed (won or lost)
@@ -73,8 +77,11 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   onMoveToStage,
   isGrabbed = false,
   onKeyboardMove,
+  products,
+  onProductChange,
 }) => {
   const [localDragging, setLocalDragging] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
   const isClosed = isDealClosed(deal);
 
   const handleToggleMenu = (e: React.MouseEvent) => {
@@ -168,6 +175,13 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   };
 
   const productName = deal.items && deal.items.length > 0 ? deal.items[0].name : null;
+
+  const filteredProducts = useMemo(() => {
+    const q = productSearch.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) => p.name.toLowerCase().includes(q));
+  }, [products, productSearch]);
+
   const contactTags = deal.contactTags || [];
   const maxVisibleTags = 2;
   const visibleTags = contactTags.slice(0, maxVisibleTags);
@@ -239,7 +253,65 @@ const DealCardComponent: React.FC<DealCardProps> = ({
 
       {/* Row 2: Product · Owner */}
       <div className="flex items-center gap-1 mt-1 ml-8 text-xs truncate">
-        <span className="text-green-600 dark:text-green-400 truncate">{productName || 'Sem produto'}</span>
+        <Popover onOpenChange={(open) => { if (!open) setProductSearch(''); }}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              className={`truncate hover:underline cursor-pointer ${productName ? 'text-green-600 dark:text-green-400' : 'text-amber-500 dark:text-amber-400'}`}
+            >
+              {productName || 'Sem produto'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            sideOffset={6}
+            className="w-56 p-0 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 rounded-lg shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 px-2.5 py-2 border-b border-slate-100 dark:border-white/10">
+              <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <input
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                placeholder="Buscar produto..."
+                className="flex-1 bg-transparent text-xs text-slate-900 dark:text-slate-200 outline-none placeholder:text-slate-400"
+                autoFocus
+              />
+            </div>
+            <div className="max-h-48 overflow-auto py-1">
+              <Button
+                variant="unstyled"
+                size="unstyled"
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onProductChange(deal.id, null); }}
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors ${!productName ? 'text-amber-500 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}
+              >
+                Sem produto
+              </Button>
+              {filteredProducts.map((p) => (
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
+                  key={p.id}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onProductChange(deal.id, p); }}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-2 ${deal.items?.[0]?.productId === p.id ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}
+                >
+                  <span className="truncate">{p.name}</span>
+                  <span className="text-[10px] text-slate-400 shrink-0 tabular-nums">
+                    {BRL_CURRENCY.format(p.price)}
+                  </span>
+                </Button>
+              ))}
+              {filteredProducts.length === 0 && (
+                <div className="px-3 py-2 text-xs text-slate-400">Nenhum produto encontrado</div>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
         {deal.owner && deal.owner.name !== 'Sem Dono' && (
           <>
             <span className="text-slate-300 dark:text-slate-600">·</span>

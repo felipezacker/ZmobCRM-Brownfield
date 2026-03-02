@@ -6,6 +6,8 @@ import { MoveToStageModal } from '../Modals/MoveToStageModal';
 import { useKanbanKeyboard } from '@/features/boards/hooks/useKanbanKeyboard';
 
 import { useSettings } from '@/context/settings/SettingsContext';
+import { useAddDealItem, useRemoveDealItem } from '@/lib/query/hooks/useDealsQuery';
+import type { Product } from '@/types';
 
 /**
  * UI: Drop highlight should follow the stage color.
@@ -114,7 +116,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   setLastMouseDownDealId,
   onMoveDealToStage,
 }) => {
-  const { lifecycleStages } = useSettings();
+  const { lifecycleStages, products } = useSettings();
+  const addItem = useAddDealItem();
+  const removeItem = useRemoveDealItem();
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
   const instructionsId = useId();
 
@@ -202,6 +206,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
     setMoveToStageModal(null);
   };
+
+  const handleProductChange = useCallback(
+    async (dealId: string, product: Product | null) => {
+      const deal = dealsById.get(dealId);
+      if (!deal) return;
+
+      // Remove existing item if any
+      const existingItem = deal.items?.[0];
+      if (existingItem) {
+        await removeItem.mutateAsync({ dealId, itemId: existingItem.id });
+      }
+
+      // Add new product if selected
+      if (product) {
+        await addItem.mutateAsync({
+          dealId,
+          item: { productId: product.id, name: product.name, quantity: 1, price: product.price },
+        });
+      }
+    },
+    [dealsById, addItem, removeItem]
+  );
 
   return (
     <div className="flex gap-4 h-full overflow-x-auto pb-2 w-full">
@@ -325,6 +351,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onMoveToStage={onMoveDealToStage ? handleOpenMoveToStage : undefined}
                   isGrabbed={grabbedDealId === deal.id}
                   onKeyboardMove={keyboardHandlers.get(deal.id)}
+                  products={products}
+                  onProductChange={handleProductChange}
                 />
               ))}
             </div>
