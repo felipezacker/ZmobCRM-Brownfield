@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZmobCRM — Design System v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   RESET
+   ================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 14px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body {
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  background: var(--bg-0);
+  color: var(--text-1);
+  min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+button { font-family: inherit; cursor: pointer; }
+input { font-family: inherit; }
+
+/* ================================================================
+   DESIGN TOKENS — DARK
+   ================================================================ */
+[data-theme="zinc"] {
+  --bg-0: #09090B; --bg-1: #0F0F12; --bg-2: #18181B; --bg-3: #27272A; --bg-4: #3F3F46;
+  --text-1: #FAFAFA; --text-2: #A1A1AA; --text-3: #71717A; --text-4: #52525B;
+  --border-1: rgba(255,255,255,0.06); --border-2: rgba(255,255,255,0.1); --border-3: rgba(255,255,255,0.16);
+  --accent: #3B82F6; --accent-hover: #2563EB; --accent-muted: rgba(59,130,246,0.12); --accent-text: #60A5FA;
+  --green: #22C55E; --green-muted: rgba(34,197,94,0.12); --green-text: #4ADE80;
+  --red: #EF4444; --red-muted: rgba(239,68,68,0.12); --red-text: #F87171;
+  --yellow: #EAB308; --yellow-muted: rgba(234,179,8,0.12); --yellow-text: #FACC15;
+  --orange: #F97316; --orange-muted: rgba(249,115,22,0.12); --orange-text: #FB923C;
+  --purple: #A855F7; --purple-muted: rgba(168,85,247,0.12); --purple-text: #C084FC;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --font-mono: 'JetBrains Mono', monospace;
+}
+[data-theme="slate"] {
+  --bg-0: #0B1120; --bg-1: #0F172A; --bg-2: #1E293B; --bg-3: #334155; --bg-4: #475569;
+  --text-1: #F8FAFC; --text-2: #94A3B8; --text-3: #64748B; --text-4: #475569;
+  --border-1: rgba(148,163,184,0.06); --border-2: rgba(148,163,184,0.1); --border-3: rgba(148,163,184,0.16);
+  --accent: #3B82F6; --accent-hover: #2563EB; --accent-muted: rgba(59,130,246,0.12); --accent-text: #60A5FA;
+  --green: #22C55E; --green-muted: rgba(34,197,94,0.12); --green-text: #4ADE80;
+  --red: #EF4444; --red-muted: rgba(239,68,68,0.12); --red-text: #F87171;
+  --yellow: #EAB308; --yellow-muted: rgba(234,179,8,0.12); --yellow-text: #FACC15;
+  --orange: #F97316; --orange-muted: rgba(249,115,22,0.12); --orange-text: #FB923C;
+  --purple: #A855F7; --purple-muted: rgba(168,85,247,0.12); --purple-text: #C084FC;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --font-mono: 'JetBrains Mono', monospace;
+}
+[data-theme="neutral"] {
+  --bg-0: #0A0A0A; --bg-1: #0F0F0F; --bg-2: #171717; --bg-3: #262626; --bg-4: #404040;
+  --text-1: #FAFAFA; --text-2: #A3A3A3; --text-3: #737373; --text-4: #525252;
+  --border-1: rgba(255,255,255,0.05); --border-2: rgba(255,255,255,0.08); --border-3: rgba(255,255,255,0.14);
+  --accent: #3B82F6; --accent-hover: #2563EB; --accent-muted: rgba(59,130,246,0.12); --accent-text: #60A5FA;
+  --green: #22C55E; --green-muted: rgba(34,197,94,0.12); --green-text: #4ADE80;
+  --red: #EF4444; --red-muted: rgba(239,68,68,0.12); --red-text: #F87171;
+  --yellow: #EAB308; --yellow-muted: rgba(234,179,8,0.12); --yellow-text: #FACC15;
+  --orange: #F97316; --orange-muted: rgba(249,115,22,0.12); --orange-text: #FB923C;
+  --purple: #A855F7; --purple-muted: rgba(168,85,247,0.12); --purple-text: #C084FC;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4); --shadow-md: 0 2px 8px rgba(0,0,0,0.5);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.6);
+  --font-mono: 'JetBrains Mono', monospace;
+}
+[data-theme="warm"] {
+  --bg-0: #0C0A09; --bg-1: #1C1917; --bg-2: #292524; --bg-3: #44403C; --bg-4: #57534E;
+  --text-1: #FAFAF9; --text-2: #A8A29E; --text-3: #78716C; --text-4: #57534E;
+  --border-1: rgba(168,162,158,0.06); --border-2: rgba(168,162,158,0.1); --border-3: rgba(168,162,158,0.16);
+  --accent: #F59E0B; --accent-hover: #D97706; --accent-muted: rgba(245,158,11,0.12); --accent-text: #FBBF24;
+  --green: #22C55E; --green-muted: rgba(34,197,94,0.12); --green-text: #4ADE80;
+  --red: #EF4444; --red-muted: rgba(239,68,68,0.12); --red-text: #F87171;
+  --yellow: #EAB308; --yellow-muted: rgba(234,179,8,0.12); --yellow-text: #FACC15;
+  --orange: #F97316; --orange-muted: rgba(249,115,22,0.12); --orange-text: #FB923C;
+  --purple: #A855F7; --purple-muted: rgba(168,85,247,0.12); --purple-text: #C084FC;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ================================================================
+   LIGHT MODE
+   ================================================================ */
+[data-theme="zinc"][data-mode="light"] {
+  --bg-0: #FAFAFA; --bg-1: #F4F4F5; --bg-2: #FFFFFF; --bg-3: #E4E4E7; --bg-4: #D4D4D8;
+  --text-1: #09090B; --text-2: #71717A; --text-3: #A1A1AA; --text-4: #D4D4D8;
+  --border-1: rgba(0,0,0,0.06); --border-2: rgba(0,0,0,0.1); --border-3: rgba(0,0,0,0.16);
+  --accent: #2563EB; --accent-hover: #1D4ED8; --accent-muted: rgba(37,99,235,0.08); --accent-text: #2563EB;
+  --green: #16A34A; --green-muted: rgba(22,163,74,0.08); --green-text: #16A34A;
+  --red: #DC2626; --red-muted: rgba(220,38,38,0.08); --red-text: #DC2626;
+  --yellow: #CA8A04; --yellow-muted: rgba(202,138,4,0.08); --yellow-text: #CA8A04;
+  --orange: #EA580C; --orange-muted: rgba(234,88,12,0.08); --orange-text: #EA580C;
+  --purple: #9333EA; --purple-muted: rgba(147,51,234,0.08); --purple-text: #9333EA;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04); --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+}
+[data-theme="slate"][data-mode="light"] {
+  --bg-0: #F8FAFC; --bg-1: #F1F5F9; --bg-2: #FFFFFF; --bg-3: #E2E8F0; --bg-4: #CBD5E1;
+  --text-1: #0F172A; --text-2: #64748B; --text-3: #94A3B8; --text-4: #CBD5E1;
+  --border-1: rgba(0,0,0,0.06); --border-2: rgba(0,0,0,0.1); --border-3: rgba(0,0,0,0.16);
+  --accent: #2563EB; --accent-hover: #1D4ED8; --accent-muted: rgba(37,99,235,0.08); --accent-text: #2563EB;
+  --green: #16A34A; --green-muted: rgba(22,163,74,0.08); --green-text: #16A34A;
+  --red: #DC2626; --red-muted: rgba(220,38,38,0.08); --red-text: #DC2626;
+  --yellow: #CA8A04; --yellow-muted: rgba(202,138,4,0.08); --yellow-text: #CA8A04;
+  --orange: #EA580C; --orange-muted: rgba(234,88,12,0.08); --orange-text: #EA580C;
+  --purple: #9333EA; --purple-muted: rgba(147,51,234,0.08); --purple-text: #9333EA;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04); --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+}
+[data-theme="neutral"][data-mode="light"] {
+  --bg-0: #FAFAFA; --bg-1: #F5F5F5; --bg-2: #FFFFFF; --bg-3: #E5E5E5; --bg-4: #D4D4D4;
+  --text-1: #0A0A0A; --text-2: #737373; --text-3: #A3A3A3; --text-4: #D4D4D4;
+  --border-1: rgba(0,0,0,0.05); --border-2: rgba(0,0,0,0.08); --border-3: rgba(0,0,0,0.14);
+  --accent: #2563EB; --accent-hover: #1D4ED8; --accent-muted: rgba(37,99,235,0.08); --accent-text: #2563EB;
+  --green: #16A34A; --green-muted: rgba(22,163,74,0.08); --green-text: #16A34A;
+  --red: #DC2626; --red-muted: rgba(220,38,38,0.08); --red-text: #DC2626;
+  --yellow: #CA8A04; --yellow-muted: rgba(202,138,4,0.08); --yellow-text: #CA8A04;
+  --orange: #EA580C; --orange-muted: rgba(234,88,12,0.08); --orange-text: #EA580C;
+  --purple: #9333EA; --purple-muted: rgba(147,51,234,0.08); --purple-text: #9333EA;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04); --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+}
+[data-theme="warm"][data-mode="light"] {
+  --bg-0: #FAFAF9; --bg-1: #F5F5F4; --bg-2: #FFFFFF; --bg-3: #E7E5E4; --bg-4: #D6D3D1;
+  --text-1: #1C1917; --text-2: #78716C; --text-3: #A8A29E; --text-4: #D6D3D1;
+  --border-1: rgba(0,0,0,0.05); --border-2: rgba(0,0,0,0.08); --border-3: rgba(0,0,0,0.14);
+  --accent: #D97706; --accent-hover: #B45309; --accent-muted: rgba(217,119,6,0.08); --accent-text: #B45309;
+  --green: #16A34A; --green-muted: rgba(22,163,74,0.08); --green-text: #16A34A;
+  --red: #DC2626; --red-muted: rgba(220,38,38,0.08); --red-text: #DC2626;
+  --yellow: #CA8A04; --yellow-muted: rgba(202,138,4,0.08); --yellow-text: #CA8A04;
+  --orange: #EA580C; --orange-muted: rgba(234,88,12,0.08); --orange-text: #EA580C;
+  --purple: #9333EA; --purple-muted: rgba(147,51,234,0.08); --purple-text: #9333EA;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04); --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* ================================================================
+   LAYOUT SHELL
+   ================================================================ */
+.shell { display: flex; height: 100vh; overflow: hidden; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--bg-1);
+  border-right: 1px solid var(--border-1);
+  display: flex; flex-direction: column;
+  padding: 16px 0;
+  transition: background 0.3s, border-color 0.3s;
+}
+.sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px 20px;
+  border-bottom: 1px solid var(--border-1);
+  margin-bottom: 8px;
+}
+.sidebar-logo {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.8rem; color: #fff;
+}
+.sidebar-name { font-weight: 600; font-size: 0.9rem; color: var(--text-1); }
+.sidebar-nav { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 1px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 6px;
+  font-size: 0.82rem; font-weight: 500; color: var(--text-3);
+  border: none; background: none; text-align: left; width: 100%;
+  transition: all 0.15s;
+}
+.nav-item:hover { background: var(--bg-2); color: var(--text-2); }
+.nav-item.active { background: var(--accent-muted); color: var(--accent-text); }
+.nav-item svg { width: 16px; height: 16px; opacity: 0.7; flex-shrink: 0; }
+.nav-item.active svg { opacity: 1; }
+.nav-section {
+  font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-4);
+  padding: 16px 10px 4px;
+}
+.nav-badge {
+  margin-left: auto; font-size: 0.65rem; font-weight: 600;
+  padding: 1px 6px; border-radius: 4px;
+  background: var(--accent-muted); color: var(--accent-text);
+  font-family: var(--font-mono);
+}
+
+/* Sidebar footer — theme switcher */
+.sidebar-footer {
+  padding: 12px 12px 0;
+  border-top: 1px solid var(--border-1);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.theme-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 5px;
+  border: 1px solid transparent; background: none;
+  font-size: 0.75rem; font-weight: 500; color: var(--text-3);
+  transition: all 0.15s;
+}
+.theme-btn:hover { background: var(--bg-2); color: var(--text-2); }
+.theme-btn.active { border-color: var(--border-3); background: var(--bg-2); color: var(--text-1); }
+.theme-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.mode-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 5px 8px; border-radius: 5px; margin-top: 4px;
+  border: 1px solid var(--border-2); background: var(--bg-2);
+  font-size: 0.7rem; font-weight: 500; color: var(--text-2);
+  transition: all 0.15s;
+}
+.mode-btn:hover { border-color: var(--border-3); color: var(--text-1); }
+.mode-btn svg { width: 12px; height: 12px; }
+
+/* ================================================================
+   MAIN CONTENT
+   ================================================================ */
+.main {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden;
+  transition: background 0.3s;
+}
+
+/* TOOLBAR */
+.toolbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-1);
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+.toolbar-breadcrumb {
+  font-size: 0.78rem; color: var(--text-3);
+  display: flex; align-items: center; gap: 6px;
+}
+.toolbar-breadcrumb span { color: var(--text-1); font-weight: 500; }
+.toolbar-sep { color: var(--text-4); }
+.toolbar-spacer { flex: 1; }
+.toolbar-search {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 6px;
+  border: 1px solid var(--border-2); background: var(--bg-2);
+  font-size: 0.78rem; color: var(--text-3);
+  min-width: 200px;
+  transition: all 0.15s;
+}
+.toolbar-search:focus-within { border-color: var(--accent); }
+.toolbar-search input {
+  border: none; background: none; outline: none;
+  color: var(--text-1); font-size: 0.78rem; width: 100%;
+}
+.toolbar-search input::placeholder { color: var(--text-4); }
+.toolbar-search svg { width: 14px; height: 14px; opacity: 0.5; flex-shrink: 0; }
+.toolbar-kbd {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  padding: 1px 5px; border-radius: 3px;
+  background: var(--bg-3); color: var(--text-3);
+  border: 1px solid var(--border-2);
+}
+.toolbar-actions { display: flex; gap: 6px; }
+.btn {
+  padding: 5px 12px; border-radius: 6px;
+  font-size: 0.78rem; font-weight: 500;
+  border: 1px solid var(--border-2); background: var(--bg-2); color: var(--text-2);
+  transition: all 0.15s;
+}
+.btn:hover { border-color: var(--border-3); color: var(--text-1); }
+.btn-primary {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+/* PIPELINE TABS */
+.pipeline-tabs {
+  display: flex; gap: 0; padding: 0 24px;
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-1);
+  flex-shrink: 0;
+  overflow-x: auto;
+  transition: all 0.3s;
+}
+.pipe-tab {
+  padding: 10px 16px;
+  font-size: 0.78rem; font-weight: 500; color: var(--text-3);
+  border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+}
+.pipe-tab:hover { color: var(--text-2); }
+.pipe-tab.active { color: var(--text-1); border-bottom-color: var(--accent); }
+.pipe-count {
+  font-family: var(--font-mono); font-size: 0.65rem;
+  padding: 1px 6px; border-radius: 4px;
+  background: var(--bg-3); color: var(--text-3);
+}
+.pipe-tab.active .pipe-count { background: var(--accent-muted); color: var(--accent-text); }
+.pipe-value {
+  font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-4);
+}
+
+/* ================================================================
+   SPLIT VIEW — TABLE + DETAIL
+   ================================================================ */
+.content-split {
+  display: flex; flex: 1; overflow: hidden;
+}
+
+/* TABLE */
+.table-area {
+  flex: 1; overflow-y: auto;
+  background: var(--bg-0);
+  transition: background 0.3s;
+}
+.table-toolbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border-1);
+  position: sticky; top: 0; z-index: 2;
+  background: var(--bg-0);
+}
+.filter-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 5px;
+  border: 1px solid var(--border-2); background: var(--bg-2);
+  font-size: 0.72rem; font-weight: 500; color: var(--text-3);
+  transition: all 0.15s;
+}
+.filter-chip:hover { border-color: var(--border-3); color: var(--text-2); }
+.filter-chip.active { border-color: var(--accent); color: var(--accent-text); background: var(--accent-muted); }
+.filter-chip svg { width: 12px; height: 12px; }
+.table-spacer { flex: 1; }
+.view-toggle { display: flex; border: 1px solid var(--border-2); border-radius: 5px; overflow: hidden; }
+.view-btn {
+  padding: 4px 8px; border: none; background: none;
+  color: var(--text-4); font-size: 0.7rem;
+  transition: all 0.15s;
+}
+.view-btn:hover { color: var(--text-2); }
+.view-btn.active { background: var(--bg-3); color: var(--text-1); }
+.view-btn svg { width: 14px; height: 14px; }
+
+/* TABLE PROPER */
+table { width: 100%; border-collapse: collapse; }
+thead { position: sticky; top: 41px; z-index: 1; }
+th {
+  padding: 8px 16px; text-align: left;
+  font-size: 0.68rem; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--text-4); background: var(--bg-1);
+  border-bottom: 1px solid var(--border-1);
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+th:first-child { padding-left: 24px; }
+td {
+  padding: 10px 16px;
+  font-size: 0.82rem; color: var(--text-2);
+  border-bottom: 1px solid var(--border-1);
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+td:first-child { padding-left: 24px; }
+tr { transition: background 0.1s; }
+tr:hover { background: var(--bg-1); }
+tr.selected { background: var(--accent-muted); }
+.deal-name-cell {
+  color: var(--text-1); font-weight: 500;
+  max-width: 200px; overflow: hidden; text-overflow: ellipsis;
+}
+.company-cell { color: var(--text-2); }
+.value-cell { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-1); font-weight: 500; }
+.badge {
+  display: inline-flex; padding: 2px 8px;
+  border-radius: 4px; font-size: 0.68rem; font-weight: 500;
+}
+.badge-green { background: var(--green-muted); color: var(--green-text); }
+.badge-yellow { background: var(--yellow-muted); color: var(--yellow-text); }
+.badge-red { background: var(--red-muted); color: var(--red-text); }
+.badge-blue { background: var(--accent-muted); color: var(--accent-text); }
+.badge-orange { background: var(--orange-muted); color: var(--orange-text); }
+.badge-purple { background: var(--purple-muted); color: var(--purple-text); }
+.badge-neutral { background: var(--bg-3); color: var(--text-3); }
+.owner-cell { display: flex; align-items: center; gap: 6px; }
+.avatar-sm {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--bg-4); display: flex; align-items: center; justify-content: center;
+  font-size: 0.55rem; font-weight: 600; color: var(--text-1);
+}
+.date-cell { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-3); }
+.score-cell { display: flex; align-items: center; gap: 6px; }
+.score-bar { width: 48px; height: 4px; border-radius: 2px; background: var(--bg-3); overflow: hidden; }
+.score-fill { height: 100%; border-radius: 2px; }
+.score-fill.high { background: var(--green); }
+.score-fill.mid { background: var(--yellow); }
+.score-fill.low { background: var(--red); }
+.score-num { font-family: var(--font-mono); font-size: 0.68rem; }
+
+/* ================================================================
+   DETAIL PANEL
+   ================================================================ */
+.detail {
+  width: 380px; flex-shrink: 0;
+  border-left: 1px solid var(--border-1);
+  background: var(--bg-1);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+  transition: all 0.3s;
+}
+.detail-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-1);
+  display: flex; align-items: center; gap: 12px;
+}
+.detail-avatar {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--accent-muted);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.82rem; color: var(--accent-text);
+}
+.detail-title { flex: 1; }
+.detail-name { font-weight: 600; font-size: 0.9rem; color: var(--text-1); }
+.detail-company { font-size: 0.75rem; color: var(--text-3); }
+.detail-value {
+  font-family: var(--font-mono); font-size: 1rem; font-weight: 600;
+  color: var(--text-1); text-align: right;
+}
+.detail-stage {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  color: var(--text-3); text-align: right; margin-top: 1px;
+}
+
+/* Detail tabs */
+.detail-tabs {
+  display: flex; gap: 0; padding: 0 20px;
+  border-bottom: 1px solid var(--border-1);
+}
+.dtab {
+  padding: 8px 12px; font-size: 0.75rem; font-weight: 500;
+  color: var(--text-3); border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.dtab:hover { color: var(--text-2); }
+.dtab.active { color: var(--text-1); border-bottom-color: var(--accent); }
+
+/* Detail sections */
+.detail-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 20px; }
+.section-title {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-4); margin-bottom: 8px;
+}
+
+/* Health */
+.health-row { display: flex; align-items: center; gap: 10px; }
+.health-track { flex: 1; height: 6px; border-radius: 3px; background: var(--bg-3); overflow: hidden; }
+.health-fill { height: 100%; border-radius: 3px; background: var(--green); }
+.health-fill.mid { background: var(--yellow); }
+.health-fill.low { background: var(--red); }
+.health-num { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--text-1); min-width: 28px; text-align: right; }
+
+/* Key-value rows */
+.kv-list { display: flex; flex-direction: column; gap: 0; }
+.kv-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0; border-bottom: 1px solid var(--border-1);
+}
+.kv-row:last-child { border-bottom: none; }
+.kv-label { font-size: 0.75rem; color: var(--text-3); }
+.kv-value { font-size: 0.78rem; color: var(--text-1); font-weight: 500; }
+.kv-value.mono { font-family: var(--font-mono); font-size: 0.72rem; }
+
+/* Actions grid */
+.actions-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.action-btn {
+  padding: 6px 12px; border-radius: 6px;
+  border: 1px solid var(--border-2); background: var(--bg-2);
+  font-size: 0.75rem; font-weight: 500; color: var(--text-2);
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.15s;
+}
+.action-btn:hover { border-color: var(--border-3); color: var(--text-1); }
+.action-btn svg { width: 13px; height: 13px; opacity: 0.6; }
+
+/* Timeline */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: flex; gap: 10px; padding: 8px 0; position: relative; }
+.tl-track { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; }
+.tl-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  border: 1.5px solid var(--text-4); background: var(--bg-1);
+  flex-shrink: 0;
+}
+.tl-dot.accent { border-color: var(--accent); }
+.tl-dot.green { border-color: var(--green); }
+.tl-line { width: 1px; flex: 1; background: var(--border-1); }
+.tl-content { flex: 1; padding-bottom: 4px; }
+.tl-text { font-size: 0.78rem; color: var(--text-2); line-height: 1.4; }
+.tl-text strong { color: var(--text-1); font-weight: 500; }
+.tl-time { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-4); margin-top: 2px; }
+
+/* Checklist */
+.checklist { display: flex; flex-direction: column; gap: 4px; }
+.chk-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 0; font-size: 0.78rem; color: var(--text-2);
+}
+.chk-box {
+  width: 14px; height: 14px; border-radius: 3px;
+  border: 1.5px solid var(--text-4); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.chk-box.done { background: var(--green); border-color: var(--green); }
+.chk-box.done::after {
+  content: ''; width: 5px; height: 3px;
+  border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff;
+  transform: rotate(-45deg) translateY(-0.5px);
+}
+.chk-text.done { color: var(--text-4); text-decoration: line-through; }
+
+/* ================================================================
+   KANBAN BOARD
+   ================================================================ */
+.kanban { display: none; flex: 1; overflow-x: auto; overflow-y: hidden; padding: 12px; gap: 12px; }
+.kanban.active { display: flex; }
+.kanban-col {
+  min-width: 260px; width: 260px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--bg-1); border-radius: 10px;
+  padding: 10px; border: 1px solid var(--border-1);
+  max-height: 100%; overflow-y: auto;
+}
+.kanban-col-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 4px 8px; border-bottom: 1px solid var(--border-1);
+  margin-bottom: 4px;
+}
+.kanban-col-title {
+  font-size: 0.75rem; font-weight: 600; color: var(--text-2);
+  display: flex; align-items: center; gap: 6px;
+}
+.kanban-col-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.kanban-col-count {
+  font-size: 0.65rem; font-weight: 500; color: var(--text-4);
+  background: var(--bg-3); padding: 1px 6px; border-radius: 4px;
+}
+.kanban-col-total {
+  font-size: 0.65rem; font-family: var(--font-mono); color: var(--text-4);
+}
+.kanban-card {
+  background: var(--bg-2); border: 1px solid var(--border-1);
+  border-radius: 8px; padding: 10px 12px; cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.kanban-card:hover {
+  border-color: var(--border-3);
+  box-shadow: var(--shadow-sm);
+}
+.kc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+.kc-name { font-size: 0.8rem; font-weight: 500; color: var(--text-1); line-height: 1.3; }
+.kc-value { font-size: 0.75rem; font-weight: 600; font-family: var(--font-mono); color: var(--text-1); white-space: nowrap; }
+.kc-company { font-size: 0.7rem; color: var(--text-3); margin-bottom: 8px; }
+.kc-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.kc-footer-left { display: flex; align-items: center; gap: 6px; }
+.kc-score {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.65rem; font-weight: 600; font-family: var(--font-mono);
+}
+.kc-score-dot { width: 6px; height: 6px; border-radius: 50%; }
+.kc-priority { font-size: 0.6rem; padding: 1px 5px; border-radius: 3px; font-weight: 500; }
+.kc-owner { font-size: 0.65rem; color: var(--text-4); display: flex; align-items: center; gap: 4px; }
+.kc-date { font-size: 0.6rem; color: var(--text-4); }
+
+/* Kanban mobile — full width columns, horizontal snap scroll */
+.kanban-mobile { display: none; flex: 1; overflow-x: auto; overflow-y: hidden; padding: 0; gap: 0; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+.kanban-mobile.active { display: flex; }
+.kanban-mobile .kanban-col {
+  min-width: 100vw; width: 100vw; border-radius: 0; border: none;
+  background: transparent; padding: 8px 16px; scroll-snap-align: start;
+  overflow-y: auto; padding-bottom: 80px;
+}
+.kanban-mobile .kanban-col-header {
+  position: sticky; top: 0; background: var(--bg-0); z-index: 2;
+  padding: 8px 0 10px; margin-bottom: 8px;
+}
+.kanban-mobile .kanban-card { margin-bottom: 8px; }
+
+/* Kanban column indicator (mobile) */
+.kanban-mobile-indicator {
+  display: none; justify-content: center; gap: 6px;
+  padding: 8px 0 4px; flex-shrink: 0;
+}
+.kmi-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--bg-4); transition: background 0.2s, width 0.2s;
+}
+.kmi-dot.active { background: var(--accent); width: 18px; border-radius: 3px; }
+
+/* ================================================================
+   BOTTOM NAV (MOBILE)
+   ================================================================ */
+.bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  background: var(--bg-1);
+  border-top: 1px solid var(--border-1);
+  padding: 6px 0 env(safe-area-inset-bottom, 8px);
+  transition: all 0.3s;
+}
+.bottom-nav-items {
+  display: flex; justify-content: space-around; align-items: center;
+}
+.bnav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 12px; border: none; background: none;
+  color: var(--text-4); font-size: 0.6rem; font-weight: 500;
+  transition: color 0.15s; position: relative;
+}
+.bnav-item svg { width: 20px; height: 20px; }
+.bnav-item.active { color: var(--accent-text); }
+.bnav-badge {
+  position: absolute; top: 2px; right: 6px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 0.5rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ================================================================
+   MOBILE HEADER
+   ================================================================ */
+.mobile-header {
+  display: none;
+  align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border-1);
+  position: sticky; top: 0; z-index: 40;
+}
+.mobile-header .sidebar-logo { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; color: #fff; flex-shrink: 0; }
+.mobile-header-title { font-weight: 600; font-size: 0.95rem; color: var(--text-1); flex: 1; }
+.mobile-header-actions { display: flex; gap: 8px; }
+.mobile-icon-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--border-2); background: var(--bg-2);
+  color: var(--text-3); display: flex; align-items: center; justify-content: center;
+}
+.mobile-icon-btn svg { width: 16px; height: 16px; }
+
+/* ================================================================
+   MOBILE DEAL CARDS (replaces table)
+   ================================================================ */
+.deal-cards-mobile {
+  display: none;
+  flex-direction: column; gap: 8px;
+  padding: 12px 16px;
+  overflow-y: auto;
+}
+.deal-card-m {
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: 10px;
+  transition: all 0.15s;
+}
+.deal-card-m:active { background: var(--bg-3); }
+.dcm-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.dcm-name { font-weight: 600; font-size: 0.88rem; color: var(--text-1); line-height: 1.3; }
+.dcm-company { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; }
+.dcm-value { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 600; color: var(--text-1); white-space: nowrap; }
+.dcm-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dcm-score {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-size: 0.68rem;
+}
+.dcm-score-bar { width: 40px; height: 3px; border-radius: 2px; background: var(--bg-4); overflow: hidden; }
+.dcm-score-fill { height: 100%; border-radius: 2px; }
+.dcm-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-1); }
+.dcm-owner { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-3); }
+.dcm-date { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-4); }
+
+/* ================================================================
+   MOBILE DETAIL (slide-up sheet)
+   ================================================================ */
+.detail-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0,0,0,0.5);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.detail-overlay.open { opacity: 1; pointer-events: auto; }
+.detail-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 61;
+  max-height: 90vh;
+  background: var(--bg-1);
+  border-top-left-radius: 16px; border-top-right-radius: 16px;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.detail-sheet.open { transform: translateY(0); }
+.detail-sheet-handle {
+  display: flex; justify-content: center; padding: 10px 0 4px;
+  position: sticky; top: 0; background: var(--bg-1); z-index: 1;
+  border-top-left-radius: 16px; border-top-right-radius: 16px;
+}
+.detail-sheet-handle::after {
+  content: ''; width: 36px; height: 4px; border-radius: 2px;
+  background: var(--bg-4);
+}
+
+/* ================================================================
+   MOBILE SETTINGS SHEET
+   ================================================================ */
+.settings-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 62;
+  background: var(--bg-1);
+  border-top-left-radius: 16px; border-top-right-radius: 16px;
+  padding: 20px 20px env(safe-area-inset-bottom, 20px);
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.settings-sheet.open { transform: translateY(0); }
+.settings-sheet-title {
+  font-weight: 600; font-size: 0.9rem; color: var(--text-1); margin-bottom: 16px;
+}
+.settings-row {
+  display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
+}
+
+/* ================================================================
+   RESPONSIVE — TABLET
+   ================================================================ */
+@media (max-width: 1024px) {
+  .sidebar { width: 180px; }
+  .detail { width: 320px; }
+  .sidebar-footer .theme-btn { font-size: 0.7rem; padding: 4px 6px; }
+}
+
+/* ================================================================
+   RESPONSIVE — MOBILE
+   ================================================================ */
+@media (max-width: 768px) {
+  .shell { flex-direction: column; }
+  .sidebar { display: none; }
+  .detail { display: none; }
+  .toolbar { display: none; }
+  .table-area { display: none; }
+  .kanban { display: none !important; }
+  .kanban-mobile.active { display: flex; flex: 1; padding-bottom: 72px; }
+  .kanban-mobile-indicator { display: flex; }
+  .mobile-header { display: flex; }
+  .bottom-nav { display: block; }
+  .deal-cards-mobile { display: flex; flex: 1; padding-bottom: 72px; }
+  .content-split { flex-direction: column; overflow-y: auto; }
+  .pipeline-tabs { padding: 0 16px; overflow-x: auto; flex-shrink: 0; }
+  .pipe-tab { padding: 8px 12px; font-size: 0.72rem; white-space: nowrap; }
+  .pipe-value { display: none; }
+  .main { overflow-y: auto; flex: 1; display: flex; flex-direction: column; }
+}
+</style>
+</head>
+<body data-theme="zinc" data-mode="dark">
+
+<!-- MOBILE HEADER -->
+<div class="mobile-header">
+  <div class="sidebar-logo">Z</div>
+  <div class="mobile-header-title">Pipeline</div>
+  <div class="mobile-header-actions">
+    <button class="mobile-icon-btn" id="mobileViewToggle" onclick="toggleMobileView()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="3" height="12" rx="0.5"/><rect x="6.5" y="2" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="10" rx="0.5"/></svg>
+    </button>
+    <button class="mobile-icon-btn" onclick="openSearch()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+    </button>
+    <button class="mobile-icon-btn" onclick="toggleSettings()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M13.5 8a5.5 5.5 0 01-11 0 5.5 5.5 0 0111 0z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">Z</div>
+      <div class="sidebar-name">ZmobCRM</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <button class="nav-item active">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        Pipeline
+        <span class="nav-badge">30</span>
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/></svg>
+        Contatos
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 7h12"/></svg>
+        Atividades
+        <span class="nav-badge">4</span>
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12V4l4 4 3-3 5 5V12H2z"/></svg>
+        Relatorios
+      </button>
+      <div class="nav-section">Configuracao</div>
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M13.5 8a5.5 5.5 0 01-11 0 5.5 5.5 0 0111 0z"/></svg>
+        Configuracoes
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="theme-btn active" data-theme="zinc" onclick="setTheme('zinc',this)">
+        <span class="theme-dot" style="background:#52525B"></span>Zinc
+      </button>
+      <button class="theme-btn" data-theme="slate" onclick="setTheme('slate',this)">
+        <span class="theme-dot" style="background:#475569"></span>Slate
+      </button>
+      <button class="theme-btn" data-theme="neutral" onclick="setTheme('neutral',this)">
+        <span class="theme-dot" style="background:#404040"></span>Neutral
+      </button>
+      <button class="theme-btn" data-theme="warm" onclick="setTheme('warm',this)">
+        <span class="theme-dot" style="background:#78716C"></span>Warm
+      </button>
+      <button class="mode-btn" id="modeBtn" onclick="toggleMode()">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6 .278a.77.77 0 01.08.858 7.2 7.2 0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 01.81.316.73.73 0 01-.031.893A8.35 8.35 0 018.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 016 .278"/></svg>
+        Dark
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-breadcrumb">
+        Pipeline <span class="toolbar-sep">/</span> <span>Todos os Deals</span>
+      </div>
+      <div class="toolbar-spacer"></div>
+      <div class="toolbar-search">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+        <input type="text" placeholder="Buscar deals...">
+        <span class="toolbar-kbd">/</span>
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn">Importar</button>
+        <button class="btn btn-primary">+ Novo Deal</button>
+      </div>
+    </div>
+
+    <!-- Pipeline Tabs -->
+    <div class="pipeline-tabs">
+      <button class="pipe-tab">Todos <span class="pipe-count">30</span> <span class="pipe-value">R$ 2.1M</span></button>
+      <button class="pipe-tab">Prospeccao <span class="pipe-count">12</span></button>
+      <button class="pipe-tab">Qualificacao <span class="pipe-count">8</span></button>
+      <button class="pipe-tab active">Proposta <span class="pipe-count">5</span></button>
+      <button class="pipe-tab">Negociacao <span class="pipe-count">3</span></button>
+      <button class="pipe-tab">Fechamento <span class="pipe-count">2</span></button>
+    </div>
+
+    <!-- Content Split -->
+    <div class="content-split">
+
+      <!-- Table -->
+      <div class="table-area">
+        <div class="table-toolbar">
+          <button class="filter-chip active">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12L9 8.5V13l-2-1V8.5L2 3z"/></svg>
+            Proposta
+          </button>
+          <button class="filter-chip">Responsavel</button>
+          <button class="filter-chip">Valor > 50k</button>
+          <button class="filter-chip">+ Filtro</button>
+          <div class="table-spacer"></div>
+          <div class="view-toggle">
+            <button class="view-btn active" title="Tabela">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+            </button>
+            <button class="view-btn" title="Kanban">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="3" height="12" rx="0.5"/><rect x="6.5" y="2" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="10" rx="0.5"/></svg>
+            </button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Deal</th>
+              <th>Empresa</th>
+              <th>Valor</th>
+              <th>Estagio</th>
+              <th>Score</th>
+              <th>Responsavel</th>
+              <th>Prioridade</th>
+              <th>Atualizado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="selected">
+              <td class="deal-name-cell">Expansao TechVentures</td>
+              <td class="company-cell">TechVentures Corp.</td>
+              <td class="value-cell">R$ 185.000</td>
+              <td><span class="badge badge-blue">Proposta</span></td>
+              <td class="score-cell">
+                <div class="score-bar"><div class="score-fill high" style="width:72%"></div></div>
+                <span class="score-num" style="color:var(--green-text)">72</span>
+              </td>
+              <td class="owner-cell"><span class="avatar-sm">FZ</span> Felipe Z.</td>
+              <td><span class="badge badge-red">Alta</span></td>
+              <td class="date-cell">2h atras</td>
+            </tr>
+            <tr>
+              <td class="deal-name-cell">Migracao Cloud Meridian</td>
+              <td class="company-cell">Meridian Group</td>
+              <td class="value-cell">R$ 92.400</td>
+              <td><span class="badge badge-blue">Proposta</span></td>
+              <td class="score-cell">
+                <div class="score-bar"><div class="score-fill mid" style="width:55%"></div></div>
+                <span class="score-num" style="color:var(--yellow-text)">55</span>
+              </td>
+              <td class="owner-cell"><span class="avatar-sm">RM</span> Rafael M.</td>
+              <td><span class="badge badge-orange">Media</span></td>
+              <td class="date-cell">5h atras</td>
+            </tr>
+            <tr>
+              <td class="deal-name-cell">Consultoria Digital Apex</td>
+              <td class="company-cell">Apex Digital</td>
+              <td class="value-cell">R$ 47.800</td>
+              <td><span class="badge badge-blue">Proposta</span></td>
+              <td class="score-cell">
+                <div class="score-bar"><div class="score-fill low" style="width:32%"></div></div>
+                <span class="score-num" style="color:var(--red-text)">32</span>
+              </td>
+              <td class="owner-cell"><span class="avatar-sm">FZ</span> Felipe Z.</td>
+              <td><span class="badge badge-neutral">Baixa</span></td>
+              <td class="date-cell">1d atras</td>
+            </tr>
+            <tr>
+              <td class="deal-name-cell">Plataforma E-commerce</td>
+              <td class="company-cell">Nova Retail S.A.</td>
+              <td class="value-cell">R$ 320.000</td>
+              <td><span class="badge badge-blue">Proposta</span></td>
+              <td class="score-cell">
+                <div class="score-bar"><div class="score-fill high" style="width:88%"></div></div>
+                <span class="score-num" style="color:var(--green-text)">88</span>
+              </td>
+              <td class="owner-cell"><span class="avatar-sm">AM</span> Ana M.</td>
+              <td><span class="badge badge-red">Alta</span></td>
+              <td class="date-cell">3h atras</td>
+            </tr>
+            <tr>
+              <td class="deal-name-cell">Integracao ERP Legacy</td>
+              <td class="company-cell">Construtora Horizonte</td>
+              <td class="value-cell">R$ 68.500</td>
+              <td><span class="badge badge-blue">Proposta</span></td>
+              <td class="score-cell">
+                <div class="score-bar"><div class="score-fill mid" style="width:48%"></div></div>
+                <span class="score-num" style="color:var(--yellow-text)">48</span>
+              </td>
+              <td class="owner-cell"><span class="avatar-sm">RM</span> Rafael M.</td>
+              <td><span class="badge badge-orange">Media</span></td>
+              <td class="date-cell">6h atras</td>
+            </tr>
+            <tr>
+              <td class="deal-name-cell">Automacao Marketing</td>
+              <td class="company-cell">GreenLeaf Foods</td>
+              <td class="value-cell">R$ 54.200</td>
+              <td><span class="badge badge-purple">Qualificacao</span></td>
+              <td class="score-cell">
+                <div class="score-bar"><div class="score-fill mid" style="width:60%"></div></div>
+                <span class="score-num" style="color:var(--yellow-text)">60</span>
+              </td>
+              <td class="owner-cell"><span class="avatar-sm">FZ</span> Felipe Z.</td>
+              <td><span class="badge badge-neutral">Baixa</span></td>
+              <td class="date-cell">2d atras</td>
+            </tr>
+            <tr>
+              <td class="deal-name-cell">App Mobile B2B</td>
+              <td class="company-cell">LogiTech Express</td>
+              <td class="value-cell">R$ 210.000</td>
+              <td><span class="badge badge-green">Negociacao</span></td>
+              <td class="score-cell">
+                <div class="score-bar"><div class="score-fill high" style="width:82%"></div></div>
+                <span class="score-num" style="color:var(--green-text)">82</span>
+              </td>
+              <td class="owner-cell"><span class="avatar-sm">AM</span> Ana M.</td>
+              <td><span class="badge badge-red">Alta</span></td>
+              <td class="date-cell">4h atras</td>
+            </tr>
+            <tr>
+              <td class="deal-name-cell">Redesign Portal Cliente</td>
+              <td class="company-cell">Banco Futuro</td>
+              <td class="value-cell">R$ 145.000</td>
+              <td><span class="badge badge-green">Negociacao</span></td>
+              <td class="score-cell">
+                <div class="score-bar"><div class="score-fill high" style="width:75%"></div></div>
+                <span class="score-num" style="color:var(--green-text)">75</span>
+              </td>
+              <td class="owner-cell"><span class="avatar-sm">FZ</span> Felipe Z.</td>
+              <td><span class="badge badge-orange">Media</span></td>
+              <td class="date-cell">1d atras</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- KANBAN BOARD (DESKTOP) -->
+      <div class="kanban" id="kanbanDesktop">
+        <!-- Qualificacao -->
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--purple)"></div>Qualificacao <span class="kanban-col-count">3</span></div>
+            <div class="kanban-col-total">R$ 245k</div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Consultoria RH Digital</div><div class="kc-value">R$ 45k</div></div>
+            <div class="kc-company">RH Solutions Ltda</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">48</span></div>
+                <span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Automacao Marketing</div><div class="kc-value">R$ 120k</div></div>
+            <div class="kc-company">MarketPro Inc.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">65</span></div>
+                <span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">CRM Imobiliario</div><div class="kc-value">R$ 80k</div></div>
+            <div class="kc-company">ImoTech S.A.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">52</span></div>
+                <span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">RC</span> Rafael C.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prospeccao -->
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--accent)"></div>Prospeccao <span class="kanban-col-count">4</span></div>
+            <div class="kanban-col-total">R$ 397k</div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">ERP Cloud Migration</div><div class="kc-value">R$ 210k</div></div>
+            <div class="kc-company">Global Systems Corp.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">71</span></div>
+                <span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Plataforma LMS</div><div class="kc-value">R$ 75k</div></div>
+            <div class="kc-company">EduTech Brasil</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">58</span></div>
+                <span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">App Delivery</div><div class="kc-value">R$ 62k</div></div>
+            <div class="kc-company">FastFood Co.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">44</span></div>
+                <span class="kc-priority" style="background:var(--green-muted);color:var(--green-text)">Baixa</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">RC</span> Rafael C.</div>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Portal Parceiros</div><div class="kc-value">R$ 50k</div></div>
+            <div class="kc-company">PartnerNet Ltd.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">55</span></div>
+                <span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Proposta -->
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--orange)"></div>Proposta <span class="kanban-col-count">3</span></div>
+            <div class="kanban-col-total">R$ 597k</div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Expansao TechVentures</div><div class="kc-value">R$ 185k</div></div>
+            <div class="kc-company">TechVentures Corp.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">72</span></div>
+                <span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Plataforma E-commerce</div><div class="kc-value">R$ 320k</div></div>
+            <div class="kc-company">Nova Retail S.A.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">88</span></div>
+                <span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Migracao Cloud Meridian</div><div class="kc-value">R$ 92.4k</div></div>
+            <div class="kc-company">Meridian Group</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">55</span></div>
+                <span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Negociacao -->
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--yellow)"></div>Negociacao <span class="kanban-col-count">2</span></div>
+            <div class="kanban-col-total">R$ 630k</div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Sistema Logistica</div><div class="kc-value">R$ 450k</div></div>
+            <div class="kc-company">LogiTrans Ltda</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">82</span></div>
+                <span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Dashboard BI</div><div class="kc-value">R$ 180k</div></div>
+            <div class="kc-company">DataViz Corp.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">76</span></div>
+                <span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">RC</span> Rafael C.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fechamento -->
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--green)"></div>Fechamento <span class="kanban-col-count">2</span></div>
+            <div class="kanban-col-total">R$ 195k</div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Redesign Portal</div><div class="kc-value">R$ 95k</div></div>
+            <div class="kc-company">PortalTech Inc.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">94</span></div>
+                <span class="kc-priority" style="background:var(--green-muted);color:var(--green-text)">Baixa</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kc-top"><div class="kc-name">Integracao API</div><div class="kc-value">R$ 100k</div></div>
+            <div class="kc-company">ConnectHub S.A.</div>
+            <div class="kc-footer">
+              <div class="kc-footer-left">
+                <div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">91</span></div>
+                <span class="kc-priority" style="background:var(--green-muted);color:var(--green-text)">Baixa</span>
+              </div>
+              <div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KANBAN BOARD (MOBILE) -->
+      <div class="kanban-mobile" id="kanbanMobile">
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--purple)"></div>Qualificacao <span class="kanban-col-count">3</span></div>
+            <div class="kanban-col-total">R$ 245k</div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Consultoria RH Digital</div><div class="kc-value">R$ 45k</div></div>
+            <div class="kc-company">RH Solutions Ltda</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">48</span></div><span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span></div><div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div></div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Automacao Marketing</div><div class="kc-value">R$ 120k</div></div>
+            <div class="kc-company">MarketPro Inc.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">65</span></div><span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span></div><div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div></div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">CRM Imobiliario</div><div class="kc-value">R$ 80k</div></div>
+            <div class="kc-company">ImoTech S.A.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">52</span></div><span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span></div><div class="kc-owner"><span class="avatar-sm">RC</span> Rafael C.</div></div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--accent)"></div>Prospeccao <span class="kanban-col-count">4</span></div>
+            <div class="kanban-col-total">R$ 397k</div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">ERP Cloud Migration</div><div class="kc-value">R$ 210k</div></div>
+            <div class="kc-company">Global Systems Corp.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">71</span></div><span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span></div><div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div></div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Plataforma LMS</div><div class="kc-value">R$ 75k</div></div>
+            <div class="kc-company">EduTech Brasil</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">58</span></div><span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span></div><div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div></div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">App Delivery</div><div class="kc-value">R$ 62k</div></div>
+            <div class="kc-company">FastFood Co.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">44</span></div><span class="kc-priority" style="background:var(--green-muted);color:var(--green-text)">Baixa</span></div><div class="kc-owner"><span class="avatar-sm">RC</span> Rafael C.</div></div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Portal Parceiros</div><div class="kc-value">R$ 50k</div></div>
+            <div class="kc-company">PartnerNet Ltd.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">55</span></div><span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span></div><div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div></div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--orange)"></div>Proposta <span class="kanban-col-count">3</span></div>
+            <div class="kanban-col-total">R$ 597k</div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Expansao TechVentures</div><div class="kc-value">R$ 185k</div></div>
+            <div class="kc-company">TechVentures Corp.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">72</span></div><span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span></div><div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div></div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Plataforma E-commerce</div><div class="kc-value">R$ 320k</div></div>
+            <div class="kc-company">Nova Retail S.A.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">88</span></div><span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span></div><div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div></div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Migracao Cloud Meridian</div><div class="kc-value">R$ 92.4k</div></div>
+            <div class="kc-company">Meridian Group</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--yellow)"></div><span style="color:var(--yellow-text)">55</span></div><span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span></div><div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div></div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--yellow)"></div>Negociacao <span class="kanban-col-count">2</span></div>
+            <div class="kanban-col-total">R$ 630k</div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Sistema Logistica</div><div class="kc-value">R$ 450k</div></div>
+            <div class="kc-company">LogiTrans Ltda</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">82</span></div><span class="kc-priority" style="background:var(--red-muted);color:var(--red-text)">Alta</span></div><div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div></div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Dashboard BI</div><div class="kc-value">R$ 180k</div></div>
+            <div class="kc-company">DataViz Corp.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">76</span></div><span class="kc-priority" style="background:var(--yellow-muted);color:var(--yellow-text)">Media</span></div><div class="kc-owner"><span class="avatar-sm">RC</span> Rafael C.</div></div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title"><div class="kanban-col-dot" style="background:var(--green)"></div>Fechamento <span class="kanban-col-count">2</span></div>
+            <div class="kanban-col-total">R$ 195k</div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Redesign Portal</div><div class="kc-value">R$ 95k</div></div>
+            <div class="kc-company">PortalTech Inc.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">94</span></div><span class="kc-priority" style="background:var(--green-muted);color:var(--green-text)">Baixa</span></div><div class="kc-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div></div>
+          </div>
+          <div class="kanban-card" onclick="openDetail()">
+            <div class="kc-top"><div class="kc-name">Integracao API</div><div class="kc-value">R$ 100k</div></div>
+            <div class="kc-company">ConnectHub S.A.</div>
+            <div class="kc-footer"><div class="kc-footer-left"><div class="kc-score"><div class="kc-score-dot" style="background:var(--green)"></div><span style="color:var(--green-text)">91</span></div><span class="kc-priority" style="background:var(--green-muted);color:var(--green-text)">Baixa</span></div><div class="kc-owner"><span class="avatar-sm">AM</span> Ana M.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kanban mobile indicator dots -->
+      <div class="kanban-mobile-indicator" id="kanbanIndicator">
+        <div class="kmi-dot active"></div><div class="kmi-dot"></div><div class="kmi-dot"></div><div class="kmi-dot"></div><div class="kmi-dot"></div>
+      </div>
+
+      <!-- MOBILE DEAL CARDS -->
+      <div class="deal-cards-mobile">
+        <div class="deal-card-m" onclick="openDetail()">
+          <div class="dcm-top">
+            <div><div class="dcm-name">Expansao TechVentures</div><div class="dcm-company">TechVentures Corp.</div></div>
+            <div class="dcm-value">R$ 185k</div>
+          </div>
+          <div class="dcm-row">
+            <span class="badge badge-blue">Proposta</span>
+            <span class="badge badge-red">Alta</span>
+            <div class="dcm-score">
+              <div class="dcm-score-bar"><div class="dcm-score-fill" style="width:72%;background:var(--green)"></div></div>
+              <span style="color:var(--green-text)">72</span>
+            </div>
+          </div>
+          <div class="dcm-bottom">
+            <div class="dcm-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div>
+            <div class="dcm-date">2h atras</div>
+          </div>
+        </div>
+        <div class="deal-card-m" onclick="openDetail()">
+          <div class="dcm-top">
+            <div><div class="dcm-name">Plataforma E-commerce</div><div class="dcm-company">Nova Retail S.A.</div></div>
+            <div class="dcm-value">R$ 320k</div>
+          </div>
+          <div class="dcm-row">
+            <span class="badge badge-blue">Proposta</span>
+            <span class="badge badge-red">Alta</span>
+            <div class="dcm-score">
+              <div class="dcm-score-bar"><div class="dcm-score-fill" style="width:88%;background:var(--green)"></div></div>
+              <span style="color:var(--green-text)">88</span>
+            </div>
+          </div>
+          <div class="dcm-bottom">
+            <div class="dcm-owner"><span class="avatar-sm">AM</span> Ana M.</div>
+            <div class="dcm-date">3h atras</div>
+          </div>
+        </div>
+        <div class="deal-card-m" onclick="openDetail()">
+          <div class="dcm-top">
+            <div><div class="dcm-name">Migracao Cloud Meridian</div><div class="dcm-company">Meridian Group</div></div>
+            <div class="dcm-value">R$ 92.4k</div>
+          </div>
+          <div class="dcm-row">
+            <span class="badge badge-blue">Proposta</span>
+            <span class="badge badge-orange">Media</span>
+            <div class="dcm-score">
+              <div class="dcm-score-bar"><div class="dcm-score-fill" style="width:55%;background:var(--yellow)"></div></div>
+              <span style="color:var(--yellow-text)">55</span>
+            </div>
+          </div>
+          <div class="dcm-bottom">
+            <div class="dcm-owner"><span class="avatar-sm">RM</span> Rafael M.</div>
+            <div class="dcm-date">5h atras</div>
+          </div>
+        </div>
+        <div class="deal-card-m" onclick="openDetail()">
+          <div class="dcm-top">
+            <div><div class="dcm-name">Integracao ERP Legacy</div><div class="dcm-company">Construtora Horizonte</div></div>
+            <div class="dcm-value">R$ 68.5k</div>
+          </div>
+          <div class="dcm-row">
+            <span class="badge badge-blue">Proposta</span>
+            <span class="badge badge-orange">Media</span>
+            <div class="dcm-score">
+              <div class="dcm-score-bar"><div class="dcm-score-fill" style="width:48%;background:var(--yellow)"></div></div>
+              <span style="color:var(--yellow-text)">48</span>
+            </div>
+          </div>
+          <div class="dcm-bottom">
+            <div class="dcm-owner"><span class="avatar-sm">RM</span> Rafael M.</div>
+            <div class="dcm-date">6h atras</div>
+          </div>
+        </div>
+        <div class="deal-card-m" onclick="openDetail()">
+          <div class="dcm-top">
+            <div><div class="dcm-name">Consultoria Digital Apex</div><div class="dcm-company">Apex Digital</div></div>
+            <div class="dcm-value">R$ 47.8k</div>
+          </div>
+          <div class="dcm-row">
+            <span class="badge badge-blue">Proposta</span>
+            <span class="badge badge-neutral">Baixa</span>
+            <div class="dcm-score">
+              <div class="dcm-score-bar"><div class="dcm-score-fill" style="width:32%;background:var(--red)"></div></div>
+              <span style="color:var(--red-text)">32</span>
+            </div>
+          </div>
+          <div class="dcm-bottom">
+            <div class="dcm-owner"><span class="avatar-sm">FZ</span> Felipe Z.</div>
+            <div class="dcm-date">1d atras</div>
+          </div>
+        </div>
+        <div class="deal-card-m" onclick="openDetail()">
+          <div class="dcm-top">
+            <div><div class="dcm-name">App Mobile B2B</div><div class="dcm-company">LogiTech Express</div></div>
+            <div class="dcm-value">R$ 210k</div>
+          </div>
+          <div class="dcm-row">
+            <span class="badge badge-green">Negociacao</span>
+            <span class="badge badge-red">Alta</span>
+            <div class="dcm-score">
+              <div class="dcm-score-bar"><div class="dcm-score-fill" style="width:82%;background:var(--green)"></div></div>
+              <span style="color:var(--green-text)">82</span>
+            </div>
+          </div>
+          <div class="dcm-bottom">
+            <div class="dcm-owner"><span class="avatar-sm">AM</span> Ana M.</div>
+            <div class="dcm-date">4h atras</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Panel -->
+      <div class="detail">
+        <div class="detail-header">
+          <div class="detail-avatar">TV</div>
+          <div class="detail-title">
+            <div class="detail-name">Expansao TechVentures</div>
+            <div class="detail-company">TechVentures Corp.</div>
+          </div>
+          <div>
+            <div class="detail-value">R$ 185.000</div>
+            <div class="detail-stage">Proposta</div>
+          </div>
+        </div>
+        <div class="detail-tabs">
+          <button class="dtab active">Resumo</button>
+          <button class="dtab">Atividades</button>
+          <button class="dtab">Emails</button>
+          <button class="dtab">Arquivos</button>
+        </div>
+        <div class="detail-body">
+          <!-- Health -->
+          <div>
+            <div class="section-title">Saude do Deal</div>
+            <div class="health-row">
+              <div class="health-track"><div class="health-fill" style="width:72%"></div></div>
+              <div class="health-num">72</div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div>
+            <div class="section-title">Acoes Rapidas</div>
+            <div class="actions-row">
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3-1 8-8-2-2-8 8-1 3z"/></svg>
+                Agendar Call
+              </button>
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l6 4 6-4M2 4v8h12V4"/></svg>
+                Enviar Email
+              </button>
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+                Criar Tarefa
+              </button>
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2v12l4-3 4 3V2z"/></svg>
+                Nova Proposta
+              </button>
+            </div>
+          </div>
+
+          <!-- Data -->
+          <div>
+            <div class="section-title">Detalhes</div>
+            <div class="kv-list">
+              <div class="kv-row">
+                <span class="kv-label">Responsavel</span>
+                <span class="kv-value">Felipe Zacker</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-label">Probabilidade</span>
+                <span class="kv-value mono" style="color:var(--green-text)">72%</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-label">Previsao fechamento</span>
+                <span class="kv-value mono">Mar 2026</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-label">Origem</span>
+                <span class="kv-value">Indicacao</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-label">Contato</span>
+                <span class="kv-value">Carlos Silva (CTO)</span>
+              </div>
+              <div class="kv-row">
+                <span class="kv-label">Criado em</span>
+                <span class="kv-value mono">20 Fev 2026</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div>
+            <div class="section-title">Timeline</div>
+            <div class="timeline">
+              <div class="tl-item">
+                <div class="tl-track">
+                  <div class="tl-dot accent"></div>
+                  <div class="tl-line"></div>
+                </div>
+                <div class="tl-content">
+                  <div class="tl-text"><strong>Proposta enviada</strong> — R$ 185k via email para Carlos Silva</div>
+                  <div class="tl-time">Hoje, 14:30</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-track">
+                  <div class="tl-dot green"></div>
+                  <div class="tl-line"></div>
+                </div>
+                <div class="tl-content">
+                  <div class="tl-text"><strong>Reuniao</strong> — Apresentacao tecnica com CTO, 45min</div>
+                  <div class="tl-time">Ontem, 10:00</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-track">
+                  <div class="tl-dot"></div>
+                  <div class="tl-line"></div>
+                </div>
+                <div class="tl-content">
+                  <div class="tl-text">Deal movido para <strong>Proposta</strong></div>
+                  <div class="tl-time">28 Fev, 16:45</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-track">
+                  <div class="tl-dot"></div>
+                </div>
+                <div class="tl-content">
+                  <div class="tl-text">Primeiro contato via <strong>indicacao</strong> de João Mendes</div>
+                  <div class="tl-time">20 Fev, 09:15</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Checklist -->
+          <div>
+            <div class="section-title">Checklist</div>
+            <div class="checklist">
+              <div class="chk-item">
+                <div class="chk-box done"></div>
+                <span class="chk-text done">Qualificacao BANT completa</span>
+              </div>
+              <div class="chk-item">
+                <div class="chk-box done"></div>
+                <span class="chk-text done">Apresentacao tecnica realizada</span>
+              </div>
+              <div class="chk-item">
+                <div class="chk-box done"></div>
+                <span class="chk-text done">Proposta comercial enviada</span>
+              </div>
+              <div class="chk-item">
+                <div class="chk-box"></div>
+                <span class="chk-text">Follow-up pos-proposta</span>
+              </div>
+              <div class="chk-item">
+                <div class="chk-box"></div>
+                <span class="chk-text">Negociacao de termos</span>
+              </div>
+              <div class="chk-item">
+                <div class="chk-box"></div>
+                <span class="chk-text">Assinatura do contrato</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- BOTTOM NAV (MOBILE) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-items">
+    <button class="bnav-item active">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      Pipeline
+      <span class="bnav-badge">30</span>
+    </button>
+    <button class="bnav-item">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-5 6-5s6 1.7 6 5"/></svg>
+      Contatos
+    </button>
+    <button class="bnav-item">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 7h12"/></svg>
+      Atividades
+      <span class="bnav-badge">4</span>
+    </button>
+    <button class="bnav-item">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12V4l4 4 3-3 5 5V12H2z"/></svg>
+      Relatorios
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE DETAIL SHEET -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+<div class="detail-sheet" id="detailSheet">
+  <div class="detail-sheet-handle" onclick="closeDetail()"></div>
+  <div class="detail-header">
+    <div class="detail-avatar">TV</div>
+    <div class="detail-title">
+      <div class="detail-name">Expansao TechVentures</div>
+      <div class="detail-company">TechVentures Corp.</div>
+    </div>
+    <div>
+      <div class="detail-value">R$ 185k</div>
+      <div class="detail-stage">Proposta</div>
+    </div>
+  </div>
+  <div class="detail-tabs">
+    <button class="dtab active">Resumo</button>
+    <button class="dtab">Atividades</button>
+    <button class="dtab">Emails</button>
+  </div>
+  <div class="detail-body">
+    <div>
+      <div class="section-title">Saude do Deal</div>
+      <div class="health-row">
+        <div class="health-track"><div class="health-fill" style="width:72%"></div></div>
+        <div class="health-num">72</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">Acoes Rapidas</div>
+      <div class="actions-row">
+        <button class="action-btn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14l3-1 8-8-2-2-8 8-1 3z"/></svg>
+          Call
+        </button>
+        <button class="action-btn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l6 4 6-4M2 4v8h12V4"/></svg>
+          Email
+        </button>
+        <button class="action-btn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+          Tarefa
+        </button>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">Detalhes</div>
+      <div class="kv-list">
+        <div class="kv-row"><span class="kv-label">Responsavel</span><span class="kv-value">Felipe Zacker</span></div>
+        <div class="kv-row"><span class="kv-label">Probabilidade</span><span class="kv-value mono" style="color:var(--green-text)">72%</span></div>
+        <div class="kv-row"><span class="kv-label">Previsao</span><span class="kv-value mono">Mar 2026</span></div>
+        <div class="kv-row"><span class="kv-label">Origem</span><span class="kv-value">Indicacao</span></div>
+        <div class="kv-row"><span class="kv-label">Contato</span><span class="kv-value">Carlos Silva</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">Timeline</div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-track"><div class="tl-dot accent"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-text"><strong>Proposta enviada</strong> — R$ 185k</div>
+            <div class="tl-time">Hoje, 14:30</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-track"><div class="tl-dot green"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-text"><strong>Reuniao</strong> — CTO, 45min</div>
+            <div class="tl-time">Ontem, 10:00</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-track"><div class="tl-dot"></div></div>
+          <div class="tl-content">
+            <div class="tl-text">Primeiro contato via <strong>indicacao</strong></div>
+            <div class="tl-time">20 Fev, 09:15</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE SETTINGS SHEET -->
+<div class="detail-overlay" id="settingsOverlay" onclick="toggleSettings()"></div>
+<div class="settings-sheet" id="settingsSheet">
+  <div class="settings-sheet-title">Aparencia</div>
+  <div class="section-title">Tema</div>
+  <div class="settings-row">
+    <button class="theme-btn active" data-theme="zinc" onclick="setTheme('zinc',this)"><span class="theme-dot" style="background:#52525B"></span>Zinc</button>
+    <button class="theme-btn" data-theme="slate" onclick="setTheme('slate',this)"><span class="theme-dot" style="background:#475569"></span>Slate</button>
+    <button class="theme-btn" data-theme="neutral" onclick="setTheme('neutral',this)"><span class="theme-dot" style="background:#404040"></span>Neutral</button>
+    <button class="theme-btn" data-theme="warm" onclick="setTheme('warm',this)"><span class="theme-dot" style="background:#78716C"></span>Warm</button>
+  </div>
+  <div class="section-title" style="margin-top:12px">Modo</div>
+  <div class="settings-row">
+    <button class="mode-btn" onclick="toggleMode()" style="flex:1">
+      <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M6 .278a.77.77 0 01.08.858 7.2 7.2 0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 01.81.316.73.73 0 01-.031.893A8.35 8.35 0 018.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 016 .278"/></svg>
+      Alternar Dark / Light
+    </button>
+  </div>
+</div>
+
+<script>
+function setTheme(theme, btn) {
+  document.body.setAttribute('data-theme', theme);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function toggleMode() {
+  const body = document.body;
+  const mode = body.getAttribute('data-mode') === 'dark' ? 'light' : 'dark';
+  body.setAttribute('data-mode', mode);
+  const btn = document.getElementById('modeBtn');
+  if (mode === 'light') {
+    btn.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M8 12a4 4 0 100-8 4 4 0 000 8M8 0a.5.5 0 01.5.5v2a.5.5 0 01-1 0v-2A.5.5 0 018 0m0 13a.5.5 0 01.5.5v2a.5.5 0 01-1 0v-2A.5.5 0 018 13m8-5a.5.5 0 01-.5.5h-2a.5.5 0 010-1h2a.5.5 0 01.5.5M3 8a.5.5 0 01-.5.5h-2a.5.5 0 010-1h2A.5.5 0 013 8m10.657-5.657a.5.5 0 010 .707l-1.414 1.415a.5.5 0 11-.707-.708l1.414-1.414a.5.5 0 01.707 0m-9.193 9.193a.5.5 0 010 .707L3.05 13.657a.5.5 0 01-.707-.707l1.414-1.414a.5.5 0 01.707 0m9.193 2.121a.5.5 0 01-.707 0l-1.414-1.414a.5.5 0 01.707-.707l1.414 1.414a.5.5 0 010 .707M3.757 4.464a.5.5 0 01-.707 0L1.636 3.05a.5.5 0 01.707-.707l1.414 1.414a.5.5 0 010 .707"/></svg> Light';
+  } else {
+    btn.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M6 .278a.77.77 0 01.08.858 7.2 7.2 0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 01.81.316.73.73 0 01-.031.893A8.35 8.35 0 018.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 016 .278"/></svg> Dark';
+  }
+}
+
+/* === MOBILE INTERACTIONS === */
+function openDetail() {
+  document.getElementById('detailOverlay').classList.add('open');
+  document.getElementById('detailSheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('open');
+  document.getElementById('detailSheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function toggleSettings() {
+  const sheet = document.getElementById('settingsSheet');
+  const overlay = document.getElementById('settingsOverlay');
+  const isOpen = sheet.classList.contains('open');
+  if (isOpen) {
+    sheet.classList.remove('open');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  } else {
+    sheet.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+}
+function openSearch() {
+  const searchInput = document.querySelector('.search-box input');
+  if (searchInput && window.innerWidth > 768) {
+    searchInput.focus();
+  } else {
+    const term = prompt('Buscar deal...');
+    if (term) {
+      const cards = document.querySelectorAll('.deal-card');
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(term.toLowerCase()) ? '' : 'none';
+      });
+    }
+  }
+}
+
+/* === SWIPE TO CLOSE (touch) === */
+(function() {
+  let startY = 0;
+  const sheet = document.getElementById('detailSheet');
+  if (!sheet) return;
+  sheet.addEventListener('touchstart', function(e) {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  sheet.addEventListener('touchmove', function(e) {
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 80) closeDetail();
+  }, { passive: true });
+})();
+
+/* === ACTIVE NAV ITEM === */
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+/* === VIEW TOGGLE: TABLE <-> KANBAN === */
+let currentView = 'table';
+document.querySelectorAll('.view-btn').forEach((btn, i) => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+
+    const tableArea = document.querySelector('.table-area');
+    const kanbanDesktop = document.getElementById('kanbanDesktop');
+    const dealCardsMobile = document.querySelector('.deal-cards-mobile');
+    const kanbanMobile = document.getElementById('kanbanMobile');
+    const kanbanIndicator = document.getElementById('kanbanIndicator');
+    const detail = document.querySelector('.detail');
+    const isMobile = window.innerWidth <= 768;
+
+    if (i === 0) {
+      /* Table view */
+      currentView = 'table';
+      if (!isMobile) {
+        tableArea.style.display = '';
+        kanbanDesktop.classList.remove('active');
+        detail.style.display = '';
+      } else {
+        dealCardsMobile.style.display = '';
+        kanbanMobile.classList.remove('active');
+        kanbanIndicator.style.display = 'none';
+      }
+    } else {
+      /* Kanban view */
+      currentView = 'kanban';
+      if (!isMobile) {
+        tableArea.style.display = 'none';
+        kanbanDesktop.classList.add('active');
+        detail.style.display = 'none';
+      } else {
+        dealCardsMobile.style.display = 'none';
+        kanbanMobile.classList.add('active');
+        kanbanIndicator.style.display = '';
+      }
+    }
+  });
+});
+
+/* === MOBILE VIEW TOGGLE === */
+function toggleMobileView() {
+  const title = document.querySelector('.mobile-header-title');
+  const toggleBtn = document.getElementById('mobileViewToggle');
+  const dealCards = document.querySelector('.deal-cards-mobile');
+  const kanbanMobile = document.getElementById('kanbanMobile');
+  const kanbanIndicator = document.getElementById('kanbanIndicator');
+  const pipelineTabs = document.querySelector('.pipeline-tabs');
+
+  if (currentView === 'table') {
+    currentView = 'kanban';
+    dealCards.style.display = 'none';
+    kanbanMobile.classList.add('active');
+    kanbanIndicator.style.display = '';
+    if (pipelineTabs) pipelineTabs.style.display = 'none';
+    title.textContent = 'Pipeline — Kanban';
+    toggleBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h12"/></svg>';
+  } else {
+    currentView = 'table';
+    dealCards.style.display = '';
+    kanbanMobile.classList.remove('active');
+    kanbanIndicator.style.display = 'none';
+    if (pipelineTabs) pipelineTabs.style.display = '';
+    title.textContent = 'Pipeline';
+    toggleBtn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="3" height="12" rx="0.5"/><rect x="6.5" y="2" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="10" rx="0.5"/></svg>';
+  }
+}
+
+/* === KANBAN MOBILE SCROLL INDICATOR === */
+(function() {
+  const kanban = document.getElementById('kanbanMobile');
+  const indicator = document.getElementById('kanbanIndicator');
+  if (!kanban || !indicator) return;
+  const dots = indicator.querySelectorAll('.kmi-dot');
+  kanban.addEventListener('scroll', function() {
+    const colWidth = kanban.firstElementChild ? kanban.firstElementChild.offsetWidth : window.innerWidth;
+    const idx = Math.round(kanban.scrollLeft / colWidth);
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
