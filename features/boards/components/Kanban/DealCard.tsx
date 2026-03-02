@@ -271,7 +271,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         </span>
       </div>
 
-      {/* Row 2: Product · Owner */}
+      {/* Row 2: Product */}
       <div className="flex items-center gap-1 mt-1 ml-8 text-xs truncate">
         <Popover open={productPickerOpen} onOpenChange={(open) => { setProductPickerOpen(open); if (!open) setProductSearch(''); }}>
           <PopoverTrigger asChild>
@@ -333,7 +333,10 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             </div>
           </PopoverContent>
         </Popover>
-        <span className="text-slate-300 dark:text-slate-600">·</span>
+      </div>
+
+      {/* Row 3: Owner */}
+      <div className="flex items-center mt-1 ml-1 text-xs">
         <Popover open={ownerPickerOpen} onOpenChange={(open) => { setOwnerPickerOpen(open); if (!open) setOwnerSearch(''); }}>
           <PopoverTrigger asChild>
             <Button
@@ -341,21 +344,26 @@ const DealCardComponent: React.FC<DealCardProps> = ({
               size="unstyled"
               type="button"
               onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1 truncate cursor-pointer group/owner"
+              className="flex items-center gap-1.5 truncate cursor-pointer group/owner"
             >
               {deal.owner?.name && deal.owner.name !== 'Sem Dono' ? (
                 <>
                   <span className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 flex items-center justify-center text-[8px] font-bold shrink-0 ring-1 ring-blue-200/50 dark:ring-blue-700/30">
                     {getInitials(deal.owner.name)}
                   </span>
-                  <span className="truncate text-slate-600 dark:text-slate-400 group-hover/owner:text-slate-900 dark:group-hover/owner:text-slate-200 transition-colors">
+                  <span className="truncate text-slate-500 dark:text-slate-400 group-hover/owner:text-slate-800 dark:group-hover/owner:text-slate-200 transition-colors">
                     {deal.owner.name}
                   </span>
                 </>
               ) : (
-                <span className="text-amber-500 dark:text-amber-400 group-hover/owner:text-amber-600 dark:group-hover/owner:text-amber-300 transition-colors">
-                  Sem dono
-                </span>
+                <>
+                  <span className="w-4 h-4 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-500 flex items-center justify-center text-[8px] shrink-0">
+                    ?
+                  </span>
+                  <span className="text-amber-500 dark:text-amber-400 group-hover/owner:text-amber-600 dark:group-hover/owner:text-amber-300 transition-colors">
+                    Sem dono
+                  </span>
+                </>
               )}
             </Button>
           </PopoverTrigger>
@@ -432,7 +440,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         </Popover>
       </div>
 
-      {/* Row 3: Tags + Date + Activity Icon */}
+      {/* Row 4: Tags + Date + Activity Icon */}
       <div className="flex items-center gap-1.5 mt-1.5">
         <div className="flex gap-1 flex-1 min-w-0 items-center overflow-hidden">
           {deal.isWon && (
