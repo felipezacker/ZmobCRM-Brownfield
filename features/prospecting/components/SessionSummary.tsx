@@ -1,5 +1,5 @@
 import React from 'react'
-import { CheckCircle, XCircle, SkipForward, Phone, Clock, BarChart3 } from 'lucide-react'
+import { CheckCircle, XCircle, SkipForward, Phone, Clock, BarChart3, Voicemail, PhoneOff } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import type { SessionStats } from '../ProspectingPage'
 
@@ -40,6 +40,16 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
       icon: <XCircle size={16} className="text-red-500" />,
       label: 'Não atendeu',
       value: stats.noAnswer,
+    },
+    {
+      icon: <Voicemail size={16} className="text-purple-500" />,
+      label: 'Correio de voz',
+      value: stats.voicemail,
+    },
+    {
+      icon: <PhoneOff size={16} className="text-orange-500" />,
+      label: 'Ocupado',
+      value: stats.busy,
     },
     {
       icon: <SkipForward size={16} className="text-yellow-500" />,

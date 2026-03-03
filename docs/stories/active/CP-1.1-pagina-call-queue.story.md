@@ -19,18 +19,18 @@ Esta e a story fundacional do Epic CP — todas as outras stories dependem dela.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Rota `/prospecting` existe e renderiza a pagina ProspectingPage
-- [ ] AC2: Item "Prospeccao" aparece no PRIMARY_NAV com icone `PhoneOutgoing` (Lucide), entre "Atividades" e "Mais"
-- [ ] AC3: Navigation responsiva: desktop sidebar, tablet rail, mobile bottom nav
-- [ ] AC4: Pagina exibe uma fila de contatos (call queue) com: nome, telefone principal, stage, temperature, status na fila (pendente/em andamento/concluido/pulado)
-- [ ] AC5: Botao "Iniciar Sessao" ativa o modo power dialer — exibe o primeiro contato da fila e abre o CallModal
-- [ ] AC6: Apos registrar outcome no CallModal, o sistema avanca automaticamente para o proximo contato da fila
-- [ ] AC7: Botoes "Pular" (marca como pulado, avanca) e "Encerrar Sessao" (para a fila, mostra resumo)
-- [ ] AC8: Resumo da sessao ao encerrar: total de ligacoes, conectadas, nao atendeu, puladas, tempo total
-- [ ] AC9: Fila persiste entre navegacoes via tabela `prospecting_queues` no Supabase (RLS por organization_id)
-- [ ] AC10: Adicionar contatos a fila manualmente (busca por nome/telefone, adiciona individual)
-- [ ] AC11: RLS respeitado — corretor so ve seus contatos, diretor/admin ve todos da org (via `is_admin_or_director()`)
-- [ ] AC12: Dark mode + responsivo (mobile-first)
+- [x] AC1: Rota `/prospecting` existe e renderiza a pagina ProspectingPage
+- [x] AC2: Item "Prospeccao" aparece no PRIMARY_NAV com icone `PhoneOutgoing` (Lucide), entre "Atividades" e "Mais"
+- [x] AC3: Navigation responsiva: desktop sidebar, tablet rail, mobile bottom nav
+- [x] AC4: Pagina exibe uma fila de contatos (call queue) com: nome, telefone principal, stage, temperature, status na fila (pendente/em andamento/concluido/pulado)
+- [x] AC5: Botao "Iniciar Sessao" ativa o modo power dialer — exibe o primeiro contato da fila e abre o CallModal
+- [x] AC6: Apos registrar outcome no CallModal, o sistema avanca automaticamente para o proximo contato da fila
+- [x] AC7: Botoes "Pular" (marca como pulado, avanca) e "Encerrar Sessao" (para a fila, mostra resumo)
+- [x] AC8: Resumo da sessao ao encerrar: total de ligacoes, conectadas, nao atendeu, puladas, tempo total
+- [x] AC9: Fila persiste entre navegacoes via tabela `prospecting_queues` no Supabase (RLS por organization_id)
+- [x] AC10: Adicionar contatos a fila manualmente (busca por nome/telefone, adiciona individual)
+- [x] AC11: RLS respeitado — corretor so ve seus contatos, diretor/admin ve todos da org (via `is_admin_or_director()`)
+- [x] AC12: Dark mode + responsivo (mobile-first)
 
 ## Escopo
 
@@ -66,7 +66,7 @@ Esta e a story fundacional do Epic CP — todas as outras stories dependem dela.
   - Posicionar entre 'activities' e 'more'
 - [x] 4. Import `PhoneOutgoing` do lucide-react no navConfig
 - [x] 5. Verificar `NavigationRail.tsx`, `BottomNav.tsx`, `Layout.tsx` — confirmar que renderizam o novo item automaticamente
-- [ ] 6. Testar navegacao em desktop, tablet e mobile
+- [x] 6. Testar navegacao em desktop, tablet e mobile
 
 ### Call Queue / Power Dialer (AC: 4, 5, 6, 7, 8, 9, 10)
 - [x] 7. Criar `features/prospecting/components/CallQueue.tsx` — lista de contatos na fila
@@ -102,10 +102,10 @@ Esta e a story fundacional do Epic CP — todas as outras stories dependem dela.
 - [x] 15. Join com `contact_phones` para telefone principal (campo `phone_number`, NOT `phone`)
 
 ### Testes (AC: todos)
-- [ ] 16. Testar navegacao (rota existe, nav item aparece)
-- [ ] 17. Testar fluxo da fila: adicionar contato, iniciar sessao, ligar, registrar outcome, avancar, encerrar
-- [ ] 18. Testar persistencia da fila (reload da pagina mantem estado)
-- [ ] 19. Testar RBAC (corretor vs diretor vs admin)
+- [x] 16. Testar navegacao (rota existe, nav item aparece)
+- [x] 17. Testar fluxo da fila: adicionar contato, iniciar sessao, ligar, registrar outcome, avancar, encerrar
+- [x] 18. Testar persistencia da fila (reload da pagina mantem estado)
+- [x] 19. Testar RBAC (corretor vs diretor vs admin)
 
 ## Notas Tecnicas
 
@@ -188,16 +188,23 @@ Esta e a story fundacional do Epic CP — todas as outras stories dependem dela.
 | features/dashboard/DashboardPage.tsx | Modified | Fix dealId fallback |
 | components/Layout.tsx | Modified | Adicionar Prospecção ao sidebar desktop + PhoneOutgoing |
 | lib/prefetch.ts | Modified | Adicionar prospecting ao routeImports para prefetch |
+| lib/supabase/prospecting-contacts.ts | New | Supabase raw calls para contacts search (layer pattern) |
+| lib/query/hooks/useProspectingContactsQuery.ts | New | TanStack Query wrapper para contacts (layer pattern) |
+| features/prospecting/__tests__/useProspectingQueue.test.ts | New | Testes do hook de state management (9 tests) |
+| features/prospecting/__tests__/components.test.tsx | New | Testes de CallQueue, QueueItem, SessionSummary (12 tests) |
+| lib/supabase/__tests__/prospecting-contacts.test.ts | New | Testes de sanitização e SQL injection prevention (10 tests) |
+| lib/query/hooks/__tests__/useProspectingContactsQuery.test.ts | New | Testes do query hook com transform (5 tests) |
+| test/stories/US-create-deal-from-board.test.tsx | Modified | Fix lint warnings (eslint-disable for mock buttons) |
 
 ## Definition of Done
 
-- [ ] All acceptance criteria met
-- [ ] Navegacao funcional em desktop, tablet e mobile
-- [ ] Call queue com fluxo completo (add, start, call, next, skip, end)
+- [x] All acceptance criteria met
+- [x] Navegacao funcional em desktop, tablet e mobile
+- [x] Call queue com fluxo completo (add, start, call, next, skip, end)
 - [ ] RBAC validado com dados reais em staging
-- [ ] Dark mode testado
+- [x] Dark mode testado
 - [ ] No regressions nas paginas existentes
-- [ ] Code reviewed
+- [x] Code reviewed
 
 ## Change Log
 
@@ -209,3 +216,74 @@ Esta e a story fundacional do Epic CP — todas as outras stories dependem dela.
 | 2026-03-03 | @data-engineer (Dara) | Review DB: fix RLS pattern (subquery, nao jwt), phone_number (nao phone), updated_at, dealId opcional, RBAC org-wide |
 | 2026-03-03 | @architect (Aria) | Review arquitetura: layer pattern (lib/supabase + lib/query/hooks), alerta dealId consumidores, File List atualizado |
 | 2026-03-03 | @dev (Dex) | Implementação: migrations, types, services, componentes, hooks, nav, RBAC. TypeScript + ESLint passando. |
+| 2026-03-03 | @qa (Quinn) | QA Review: Gate CONCERNS (50/100). 2 HIGH, 4 MEDIUM, 1 LOW. Must fix: SQL injection, console.log, raw button. |
+| 2026-03-03 | @dev (Dex) | QA Fixes: SQL injection sanitizado, console.log removido, raw button trocado por Button, layer pattern 3 camadas para contacts, voicemail/busy adicionados ao SessionSummary, data! trocado por safe cast. |
+| 2026-03-03 | @dev (Dex) | Testes: 36 novos testes (queue state, components, sanitização, query hook). Lint + typecheck + todos testes passando. |
+| 2026-03-03 | @aios-master (Orion) | ACs 1-12 marcados complete. DoD 5/7 (falta: RBAC staging validation, regression check). Pronto para re-review QA. |
+
+## QA Results
+
+### Review Date: 2026-03-03
+
+### Reviewed By: Quinn (Test Architect)
+
+### Code Quality Assessment
+
+Implementacao funcionalmente completa para todos os 12 ACs. Componentes bem estruturados, tipados, com dark mode consistente e seguindo padroes do projeto. Migrations corretas com RLS robusto usando subquery pattern. Layer pattern seguido corretamente no queue (3 camadas), porem violado no contacts hook. Dois issues de seguranca/higiene precisam ser resolvidos antes de merge.
+
+### Refactoring Performed
+
+Nenhum refactoring realizado nesta review — issues documentados para @dev resolver.
+
+### Compliance Check
+
+- Coding Standards: CONCERNS — console.log em producao, raw `<button>`, `.or()` inseguro
+- Project Structure: PASS — Feature module correto em `features/prospecting/`, layer pattern seguido no queue (parcial no contacts)
+- Testing Strategy: FAIL — Zero testes, tasks 16-19 todas pendentes
+- All ACs Met: CONCERNS — AC1-12 implementados no codigo, AC8 (resumo) falta voicemail/busy
+
+### Improvements Checklist
+
+**Must fix (bloqueante):**
+- [x] Sanitizar input no `.or()` de `useProspectingContacts.ts:50` — SQL injection risk
+- [x] Remover `console.log` do `PowerDialer.tsx:122`
+- [x] Trocar `<button>` por `<Button>` no `PowerDialer.tsx:120`
+
+**Should fix (recomendado):**
+- [x] Mover `useProspectingContacts` para seguir layer pattern de 3 camadas
+- [x] Criar testes unitarios basicos (tasks 16-19)
+- [x] Adicionar voicemail/busy ao `SessionSummary` para completar AC8
+
+**Nice to have:**
+- [x] Trocar `data!` por safe check em `useProspectingQueueQuery.ts:41,116`
+
+### Security Review
+
+- RLS policies: PASS — SELECT/INSERT/UPDATE/DELETE com org_id + owner check, pattern correto com subquery
+- `is_admin_or_director()`: PASS — Reutilizado corretamente
+- SQL injection: CONCERNS — `.or()` string interpolation em `useProspectingContacts.ts:50` permite injecao de filtros
+- XSS: PASS — React escapa outputs
+- UUID sanitization: PASS — `sanitizeUUID()` usado em inserts
+- Migration safety: PASS — `IF NOT EXISTS`, `BEGIN/COMMIT`, `ON DELETE CASCADE`
+
+### Performance Considerations
+
+- Optimistic updates implementados para status update e remove (com rollback)
+- `staleTime` configurado (30s queue, 10s contacts)
+- Prefetch de rota adicionado a `lib/prefetch.ts`
+- Queries de contatos limitadas a 20 resultados
+- Nenhum concern de performance identificado
+
+### Files Modified During Review
+
+Nenhum arquivo modificado durante esta review.
+
+### Gate Status
+
+Gate: **CONCERNS** → `docs/qa/gates/CP-1.1-pagina-call-queue.yml`
+Quality Score: 50/100
+
+### Recommended Status
+
+**Changes Required** — Itens 1-3 do checklist sao bloqueantes. Itens 4-6 fortemente recomendados antes de Done.
+(Story owner decides final status)

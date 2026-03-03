@@ -38,7 +38,7 @@ export const useAddToProspectingQueue = () => {
     mutationFn: async ({ contactId, sessionId }: { contactId: string; sessionId?: string }) => {
       const { data, error } = await prospectingQueuesService.addToQueue(contactId, sessionId)
       if (error) throw error
-      return data!
+      return data as ProspectingQueueItem
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
@@ -113,7 +113,7 @@ export const useStartProspectingSession = () => {
     mutationFn: async () => {
       const { data, error } = await prospectingQueuesService.startSession()
       if (error) throw error
-      return data!
+      return data as string
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })

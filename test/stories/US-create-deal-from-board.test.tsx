@@ -43,6 +43,7 @@ vi.mock('@/hooks/useOrganizationMembers', () => ({
 vi.mock('@/components/ui/ContactSearchCombobox', () => ({
   ContactSearchCombobox: ({ onCreateNew }: { onCreateNew: (term: string) => void }) => (
     <div data-testid="contact-search">
+      {/* eslint-disable-next-line no-restricted-syntax -- mock component */}
       <button data-testid="trigger-create-new" onClick={() => onCreateNew('João Silva')}>
         Criar novo
       </button>
@@ -61,6 +62,7 @@ vi.mock('@/lib/debug', () => ({
 
 vi.mock('@/app/components/ui/Button', () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
+    // eslint-disable-next-line no-restricted-syntax -- mock component
     <button {...props}>{children}</button>
   ),
 }));
