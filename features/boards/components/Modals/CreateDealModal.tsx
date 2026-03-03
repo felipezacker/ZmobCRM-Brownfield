@@ -187,7 +187,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
             }}
         >
             <div
-                className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+                className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl dark:shadow-primary-900/20 w-full max-w-md animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -320,11 +320,11 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                         onClick={() => setSelectedStageId(stage.id)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
                                             isSelected
-                                                ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-400 text-primary-700 dark:text-primary-300 shadow-sm'
-                                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                                                ? 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-500 text-slate-900 dark:text-white shadow-sm scale-105'
+                                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                     >
-                                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stage.color}`} />
+                                        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all ${stage.color} ${isSelected ? 'scale-110' : ''}`} />
                                         {stage.label}
                                     </Button>
                                 );
@@ -365,7 +365,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                     <Button
                         type="submit"
                         disabled={!hasContact || isSubmitting}
-                        className="w-full bg-primary-600 hover:bg-primary-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg mt-2 shadow-lg shadow-primary-600/20 transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-primary-600 hover:bg-primary-500 hover:scale-[1.01] active:scale-[0.99] disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed disabled:scale-100 text-white font-bold py-3 rounded-lg mt-2 shadow-lg shadow-primary-600/20 transition-all flex items-center justify-center gap-2"
                     >
                         {isSubmitting ? (
                             <>

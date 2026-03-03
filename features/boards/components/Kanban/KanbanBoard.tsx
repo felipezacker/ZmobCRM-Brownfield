@@ -313,7 +313,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       type="button"
                       onClick={() => onAddDealToStage(stage.id)}
                       title={`Novo negócio em ${stage.label}`}
-                      className="opacity-0 group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                      className="opacity-60 md:opacity-0 md:group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                     >
                       <Plus size={14} />
                     </Button>
