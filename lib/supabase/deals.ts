@@ -424,7 +424,7 @@ export const dealsService = {
         deal_type: deal.dealType || 'VENDA',
         expected_close_date: deal.expectedCloseDate || null,
         commission_rate: deal.commissionRate ?? null,
-        property_ref: deal.propertyRef || null,
+        ...(deal.propertyRef !== undefined ? { property_ref: deal.propertyRef || null } : {}),
         metadata: deal.metadata || {},
       };
 
