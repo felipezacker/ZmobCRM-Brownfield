@@ -4,6 +4,7 @@ import {
   KanbanSquare,
   Users,
   CheckSquare,
+  PhoneOutgoing,
   MoreHorizontal,
   LayoutDashboard,
   BarChart3,
@@ -12,7 +13,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 
-export type PrimaryNavId = 'inbox' | 'boards' | 'contacts' | 'activities' | 'more';
+export type PrimaryNavId = 'inbox' | 'boards' | 'contacts' | 'activities' | 'prospecting' | 'more';
 
 export interface PrimaryNavItem {
   id: PrimaryNavId;
@@ -27,6 +28,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
   { id: 'boards', label: 'Boards', href: '/boards', icon: KanbanSquare },
   { id: 'contacts', label: 'Contatos', href: '/contacts', icon: Users },
   { id: 'activities', label: 'Atividades', href: '/activities', icon: CheckSquare },
+  { id: 'prospecting', label: 'Prospecção', href: '/prospecting', icon: PhoneOutgoing },
   { id: 'more', label: 'Mais', icon: MoreHorizontal },
 ];
 

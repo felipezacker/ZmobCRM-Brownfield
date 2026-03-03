@@ -36,6 +36,9 @@ export const queryKeys = {
         byDeal: (dealId: string) => [...base.all, 'deal', dealId] as const,
     })),
 
+    // Prospecting queue (CP-1.1)
+    prospectingQueue: createQueryKeys('prospectingQueue'),
+
     // Dashboard (non-standard structure)
     dashboard: {
         stats: ['dashboard', 'stats'] as const,

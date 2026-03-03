@@ -85,6 +85,8 @@ export interface DbActivity {
   recurrence_type?: string | null;
   /** Data limite da recorrência. */
   recurrence_end_date?: string | null;
+  /** Structured metadata (call outcome, duration, etc.). CP-1.1 */
+  metadata?: Record<string, unknown> | null;
 }
 
 // Interface auxiliar para o retorno do Supabase com o join
@@ -106,13 +108,14 @@ const transformActivity = (db: DbActivityWithDeal): Activity => ({
   type: db.type as Activity['type'],
   date: db.date,
   completed: db.completed,
-  dealId: db.deal_id || '',
+  dealId: db.deal_id || undefined,
   contactId: db.contact_id || undefined,
   participantContactIds: (db as any).participant_contact_ids || [],
   dealTitle: db.deals?.title || '',
   user: { name: 'Você', avatar: '' }, // Will be enriched later
   recurrenceType: (db.recurrence_type as Activity['recurrenceType']) || null,
   recurrenceEndDate: db.recurrence_end_date || null,
+  metadata: db.metadata || undefined,
 });
 
 /**
@@ -134,6 +137,7 @@ const transformActivityToDb = (activity: Partial<Activity>): Partial<DbActivity>
   if (activity.participantContactIds !== undefined) (db as any).participant_contact_ids = activity.participantContactIds || [];
   if (activity.recurrenceType !== undefined) db.recurrence_type = activity.recurrenceType || null;
   if (activity.recurrenceEndDate !== undefined) db.recurrence_end_date = activity.recurrenceEndDate || null;
+  if (activity.metadata !== undefined) (db as any).metadata = activity.metadata || null;
 
   return db;
 };
@@ -196,6 +200,7 @@ export const activitiesService = {
         owner_id: user?.id || null,
         recurrence_type: activity.recurrenceType || null,
         recurrence_end_date: activity.recurrenceEndDate || null,
+        metadata: activity.metadata || null,
       };
 
       const { data, error } = await sb.from('activities').insert(insertData).select().single();
@@ -209,6 +214,7 @@ export const activitiesService = {
           if (msg.includes('participant_contact_ids')) delete insertData.participant_contact_ids;
           if (msg.includes('recurrence_type')) delete insertData.recurrence_type;
           if (msg.includes('recurrence_end_date')) delete insertData.recurrence_end_date;
+          if (msg.includes('metadata')) delete insertData.metadata;
           const retry = await sb.from('activities').insert(insertData).select().single();
           if (retry.error) return { data: null, error: retry.error as any };
           const result = transformActivity(retry.data as DbActivity);

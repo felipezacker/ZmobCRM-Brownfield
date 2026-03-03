@@ -334,7 +334,7 @@ const DashboardPage: React.FC = () => {
         isOpen={showPipelineAlerts}
         onClose={() => setShowPipelineAlerts(false)}
         deals={activeSnapshotDeals}
-        activities={activities.map(a => ({ dealId: a.dealId, date: a.date, completed: a.completed }))}
+        activities={activities.map(a => ({ dealId: a.dealId || '', date: a.date, completed: a.completed }))}
         onNavigateToDeal={(dealId) => {
           setShowPipelineAlerts(false);
           router.push(`/pipeline?deal=${dealId}`);

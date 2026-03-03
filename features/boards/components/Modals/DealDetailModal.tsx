@@ -1164,7 +1164,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                                 date: date.toISOString().split('T')[0],
                                 time: date.toTimeString().slice(0, 5),
                                 description: activity.description || '',
-                                dealId: activity.dealId,
+                                dealId: activity.dealId || '',
                                 recurrenceType: activity.recurrenceType || 'none',
                                 recurrenceEndDate: activity.recurrenceEndDate || '',
                               });
