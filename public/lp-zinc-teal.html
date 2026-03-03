@@ -376,9 +376,34 @@
       align-items: stretch;
       margin-bottom: 24px;
     }
+    .hero-link {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+      padding: 14px 0;
+      text-align: center;
+    }
+    .hero-link:hover {
+      color: var(--accent);
+    }
     .hero-proof {
-      font-size: 0.8125rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .hero-proof-badge {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
       color: var(--text-muted);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: 20px;
     }
 
     /* ============================================ */
@@ -665,15 +690,88 @@
     }
 
     /* === PRICING CARDS === */
+    .pricing-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .pricing-toggle span {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+    .pricing-toggle span.active {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .pricing-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      background: var(--bg-tertiary);
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .pricing-switch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      transition: transform 0.3s ease;
+    }
+    .pricing-switch.annual::after {
+      transform: translateX(22px);
+    }
+    .pricing-save {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
     .pricing-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 16px;
-      max-width: 700px;
-      margin: 36px auto 0;
+      max-width: 960px;
+      margin: 0 auto;
     }
     .pricing-card {
       text-align: left;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .pricing-card.popular {
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 40px var(--glow-color), 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .pricing-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--bg-primary);
+      background: var(--accent);
+      padding: 4px 16px;
+      border-radius: 20px;
+      white-space: nowrap;
     }
     .pricing-card h3 {
       font-size: 1.25rem;
@@ -684,28 +782,69 @@
       color: var(--text-muted);
       margin-bottom: 20px;
     }
+    .pricing-price {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .pricing-price .currency {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .pricing-price .amount {
+      font-size: 2.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--text);
+    }
+    .pricing-price .period {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    .pricing-price-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .pricing-enterprise-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .pricing-divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 20px 0;
+    }
     .pricing-list {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       margin-bottom: 24px;
+      flex-grow: 1;
     }
     .pricing-list li {
-      font-size: 0.875rem;
+      font-size: 0.8125rem;
       color: var(--text-secondary);
       display: flex;
       gap: 10px;
       align-items: flex-start;
     }
-    .pricing-list li::before {
-      content: '';
+    .pricing-list li .check {
       flex-shrink: 0;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--accent-soft);
-      margin-top: 8px;
+      width: 16px;
+      height: 16px;
+      color: #22c55e;
+      margin-top: 1px;
+    }
+    .pricing-list li::before {
+      display: none;
     }
 
     /* ============================================ */
@@ -827,10 +966,60 @@
     /* Mobile-specific refinements (<640px) */
     @media (max-width: 639px) {
       .grain { opacity: 0.015; animation-duration: 1s; }
-      .hero h1 { font-size: 1.875rem; line-height: 1.08; }
-      .hero-body { font-size: 0.875rem; line-height: 1.6; }
-      .hero-actions { gap: 10px; }
-      .hero-actions .btn { padding: 16px 24px; font-size: 0.9375rem; }
+
+      /* Hero mobile overhaul */
+      .hero {
+        min-height: 100dvh;
+        min-height: 100vh;
+        padding: 80px 0 32px;
+        align-items: center;
+        justify-content: center;
+      }
+      .hero-pre {
+        font-size: 0.625rem;
+        letter-spacing: 0.05em;
+        margin-bottom: 16px;
+      }
+      .hero h1 {
+        font-size: 1.75rem;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        margin-bottom: 16px;
+      }
+      .hero-sub {
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 8px;
+      }
+      .hero-body {
+        display: none;
+      }
+      .hero-actions {
+        gap: 10px;
+        margin-top: 24px;
+      }
+      .hero-actions .btn {
+        padding: 16px 24px;
+        font-size: 0.9375rem;
+      }
+      .hero-proof {
+        justify-content: center;
+      }
+      .hero-proof-badge {
+        font-size: 0.625rem;
+        padding: 3px 8px;
+      }
+      .hero-link {
+        font-size: 0.875rem;
+        padding: 12px 0;
+      }
+      .hero-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
       .problem-item { padding: 20px 16px; gap: 16px; }
       .problems-transition { padding: 24px 20px; }
       .credibility-card { padding: 24px 20px; }
@@ -863,6 +1052,177 @@
     .mobile-menu-links a { min-height: 48px; display: flex; align-items: center; }
 
     /* ============================================ */
+    /* SIGNUP MODAL                                 */
+    /* ============================================ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 440px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px 24px;
+      position: relative;
+      transform: translateY(20px) scale(0.97);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-overlay.open .modal {
+      transform: translateY(0) scale(1);
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    .modal-close:hover {
+      background: var(--bg-tertiary);
+      color: var(--text);
+    }
+    .modal-header {
+      margin-bottom: 24px;
+    }
+    .modal-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--bg-primary);
+      background: var(--accent);
+      padding: 3px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .modal-title {
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .modal-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      color: var(--text);
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: var(--transition);
+      -webkit-appearance: none;
+    }
+    .form-group input::placeholder {
+      color: var(--text-muted);
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--accent-soft);
+      box-shadow: 0 0 0 3px var(--glow-color);
+    }
+    .form-group select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2371717a' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .modal-submit {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .modal-legal {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+    .modal-legal a {
+      color: var(--text-secondary);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .modal-success {
+      text-align: center;
+      padding: 24px 0;
+    }
+    .modal-success-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      color: #22c55e;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .modal-success h3 {
+      font-size: 1.25rem;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .modal-success p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ============================================ */
     /* RESPONSIVE — MOBILE FIRST (min-width)        */
     /* ============================================ */
 
@@ -885,6 +1245,7 @@
       .hero-actions { flex-direction: row; align-items: center; gap: 16px; }
       .cta-actions { flex-direction: row; gap: 16px; }
       .pricing-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .pricing-card.popular { grid-column: span 2; max-width: 420px; justify-self: center; width: 100%; }
       .credibility-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
       .objection-q { font-size: 0.9375rem; padding: 24px 0; }
       .footer .container { flex-direction: row; justify-content: space-between; text-align: left; }
@@ -908,6 +1269,8 @@
       .features-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
       .feature-card.featured { grid-row: span 2; }
       .cta-section { padding: 100px 0; }
+      .pricing-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .pricing-card.popular { grid-column: auto; max-width: none; }
       .objection-q { font-size: 1rem; }
 
       /* Show desktop nav, hide hamburger & sticky CTA */
@@ -967,15 +1330,20 @@
   <section class="hero" id="hero">
     <div class="container">
       <div class="hero-content">
-        <p class="hero-pre reveal">Para imobiliarias e corretores que estao cansados de CRMs que apenas organizam dados</p>
-        <h1 class="reveal reveal-d1">O Primeiro CRM Imobiliario Que <span class="gradient-text">Pensa Junto Com Voce</span></h1>
-        <p class="hero-sub reveal reveal-d2">Enquanto outros CRMs organizam planilhas bonitas, o ZmobCRM analisa seus negocios com inteligencia artificial, sugere as melhores acoes e automatiza as decisoes que fazem voce fechar mais vendas.</p>
+        <p class="hero-pre reveal">CRM Imobiliario com IA</p>
+        <h1 class="reveal reveal-d1">O CRM Que <span class="gradient-text">Pensa Junto</span><br>Com Voce</h1>
+        <p class="hero-sub reveal reveal-d2">IA analisa seu pipeline, sugere a proxima acao e automatiza o que rouba seu tempo. Enquanto outros CRMs organizam planilhas, o ZmobCRM fecha vendas.</p>
         <p class="hero-body reveal reveal-d2">Voce ja tem um CRM. Ele guarda dados, mostra um kanban e manda lembretes. Mas no final do dia, quem analisa cada negocio, decide o proximo passo e cobra follow-up ainda e voce. O ZmobCRM e diferente. Ele usa inteligencia artificial de verdade para entender cada deal do seu pipeline, identificar quais leads tem maior chance de fechar e dizer exatamente o que fazer agora.</p>
         <div class="hero-actions reveal reveal-d3">
           <a href="#cta" class="btn btn-primary">Testar Gratis por 14 Dias</a>
-          <a href="#demo" class="btn btn-secondary">Agendar uma Demonstracao</a>
+          <a href="#demo" class="hero-link">Agendar Demonstracao &rarr;</a>
         </div>
-        <p class="hero-proof reveal reveal-d3">Construido com a mesma tecnologia usada por empresas como Stripe e Vercel</p>
+        <div class="hero-proof reveal reveal-d3">
+          <span class="hero-proof-badge">Next.js</span>
+          <span class="hero-proof-badge">Supabase</span>
+          <span class="hero-proof-badge">OpenAI</span>
+          <span class="hero-proof-badge">Vercel</span>
+        </div>
       </div>
     </div>
   </section>
@@ -1260,37 +1628,84 @@
 
       <p class="cta-body reveal reveal-d2">Enquanto voce le isso, concorrentes estao perdendo leads por falta de follow-up e tomando decisoes no achismo. Teste o ZmobCRM e veja em 14 dias o que acontece quando IA de verdade entra no seu pipeline.</p>
 
+      <!-- Pricing Toggle -->
+      <div class="pricing-toggle reveal reveal-d2">
+        <span class="active" id="toggleMonthly">Mensal</span>
+        <div class="pricing-switch" id="pricingSwitch" onclick="togglePricing()"></div>
+        <span id="toggleAnnual">Anual</span>
+        <span class="pricing-save">-20%</span>
+      </div>
+
       <div class="pricing-grid" id="pricing">
+        <!-- Plano 1: Corretor -->
         <div class="card pricing-card reveal">
           <h3>Corretor</h3>
-          <p class="pricing-desc">Para autonomos e pequenos times</p>
+          <p class="pricing-desc">Para corretores autonomos</p>
+          <div class="pricing-price">
+            <span class="currency">R$</span>
+            <span class="amount" data-monthly="197" data-annual="157">197</span>
+            <span class="period">/mes</span>
+          </div>
+          <p class="pricing-price-note">ate 2 usuarios</p>
+          <div class="pricing-divider"></div>
           <ul class="pricing-list">
-            <li>Pipeline visual</li>
-            <li>Contatos e deals</li>
-            <li>IA integrada</li>
-            <li>API completa</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Pipeline visual com IA</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Contatos ilimitados</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Briefing diario com IA</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>500 imoveis ativos</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>API completa + Webhooks</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Suporte por email</li>
           </ul>
-          <a href="#" class="btn btn-primary" style="width:100%">Comecar Gratis</a>
+          <button type="button" class="btn btn-secondary" style="width:100%" onclick="openModal('corretor')">Comecar Gratis</button>
         </div>
-        <div class="card pricing-card reveal reveal-d1">
+
+        <!-- Plano 2: Imobiliaria (Popular) -->
+        <div class="card pricing-card popular reveal reveal-d1">
+          <span class="pricing-badge">Recomendado</span>
           <h3>Imobiliaria</h3>
-          <p class="pricing-desc">Para times de 5+ corretores</p>
+          <p class="pricing-desc">Para times que querem escalar</p>
+          <div class="pricing-price">
+            <span class="currency">R$</span>
+            <span class="amount" data-monthly="397" data-annual="317">397</span>
+            <span class="period">/mes</span>
+          </div>
+          <p class="pricing-price-note">ate 10 usuarios</p>
+          <div class="pricing-divider"></div>
           <ul class="pricing-list">
-            <li>Tudo do Corretor</li>
-            <li>Multi-boards</li>
-            <li>RBAC (3 niveis)</li>
-            <li>Distribuicao de leads</li>
-            <li>Relatorios avancados</li>
-            <li>Onboarding dedicado</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Tudo do Corretor</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Imoveis ilimitados</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Multi-boards (vendas, locacao)</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>RBAC com 3 niveis de acesso</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Distribuicao inteligente de leads</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Relatorios avancados</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Onboarding dedicado</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Suporte prioritario</li>
           </ul>
-          <a href="#" class="btn btn-secondary" style="width:100%">Falar com Vendas</a>
+          <button type="button" class="btn btn-primary" style="width:100%" onclick="openModal('imobiliaria')">Comecar Gratis</button>
+        </div>
+
+        <!-- Plano 3: Enterprise -->
+        <div class="card pricing-card reveal reveal-d2">
+          <h3>Enterprise</h3>
+          <p class="pricing-desc">Para operacoes de grande porte</p>
+          <p class="pricing-enterprise-price">Sob consulta</p>
+          <p class="pricing-price-note">usuarios ilimitados</p>
+          <div class="pricing-divider"></div>
+          <ul class="pricing-list">
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Tudo do Imobiliaria</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Usuarios ilimitados</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>SSO / SAML</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>SLA dedicado</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Account manager</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Migracao assistida gratuita</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Treinamento para equipe</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Integracoes customizadas</li>
+          </ul>
+          <button type="button" class="btn btn-secondary" style="width:100%" onclick="openModal('enterprise')">Falar com Vendas</button>
         </div>
       </div>
 
-      <div style="margin-top:40px;" class="reveal">
-        <a href="#" class="btn btn-primary">Testar Gratis por 14 Dias &mdash; Sem Cartao de Credito</a>
-        <p class="cta-micro" style="margin-top:12px;">Cancele quando quiser. Seus dados sao seus. Sem pegadinhas.</p>
-      </div>
+      <p class="cta-micro reveal" style="margin-top:24px; text-align:center;">14 dias gratis. Sem cartao de credito. Cancele quando quiser.</p>
     </div>
   </section>
 
@@ -1375,6 +1790,54 @@
     <a href="#cta" class="btn btn-primary">Testar Gratis por 14 Dias</a>
   </div>
 
+  <!-- Signup Modal -->
+  <div class="modal-overlay" id="signupModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()" aria-label="Fechar">&times;</button>
+      <div class="modal-header">
+        <span class="modal-badge" id="modalBadge">Corretor</span>
+        <h3 class="modal-title" id="modalTitle">Comece seu teste gratis</h3>
+        <p class="modal-desc" id="modalDesc">14 dias gratis. Sem cartao de credito.</p>
+      </div>
+      <form class="modal-form" id="signupForm" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label for="formName">Nome completo</label>
+          <input type="text" id="formName" name="name" required placeholder="Seu nome">
+        </div>
+        <div class="form-group">
+          <label for="formEmail">Email profissional</label>
+          <input type="email" id="formEmail" name="email" required placeholder="voce@empresa.com">
+        </div>
+        <div class="form-group">
+          <label for="formPhone">WhatsApp</label>
+          <input type="tel" id="formPhone" name="phone" required placeholder="(11) 99999-9999">
+        </div>
+        <div class="form-group" id="formCompanyGroup">
+          <label for="formCompany">Imobiliaria / Empresa</label>
+          <input type="text" id="formCompany" name="company" placeholder="Nome da empresa">
+        </div>
+        <div class="form-group" id="formTeamGroup" style="display:none;">
+          <label for="formTeam">Tamanho do time</label>
+          <select id="formTeam" name="team_size">
+            <option value="">Selecione</option>
+            <option value="10-25">10 a 25 usuarios</option>
+            <option value="25-50">25 a 50 usuarios</option>
+            <option value="50-100">50 a 100 usuarios</option>
+            <option value="100+">100+ usuarios</option>
+          </select>
+        </div>
+        <input type="hidden" id="formPlan" name="plan" value="">
+        <button type="submit" class="btn btn-primary modal-submit" id="modalSubmit">Comecar Teste Gratis</button>
+        <p class="modal-legal">Ao continuar, voce concorda com nossos <a href="#">Termos de Uso</a> e <a href="#">Politica de Privacidade</a>.</p>
+      </form>
+      <div class="modal-success" id="modalSuccess" style="display:none;">
+        <div class="modal-success-icon">&#10003;</div>
+        <h3>Cadastro recebido!</h3>
+        <p id="successMsg">Voce recebera um email com as instrucoes de acesso em instantes.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ============================== -->
   <!-- SCRIPTS (Enhanced tier)        -->
   <!-- ============================== -->
@@ -1403,6 +1866,92 @@
         });
       }, { threshold: 0 });
       if (heroEl) stickyObs.observe(heroEl);
+    }
+
+    // Signup Modal
+    const modalConfig = {
+      corretor: {
+        badge: 'Corretor',
+        title: 'Comece seu teste gratis',
+        desc: '14 dias gratis. Sem cartao de credito.',
+        submit: 'Comecar Teste Gratis',
+        success: 'Voce recebera um email com as instrucoes de acesso em instantes.',
+        showTeam: false
+      },
+      imobiliaria: {
+        badge: 'Imobiliaria',
+        title: 'Comece seu teste gratis',
+        desc: '14 dias gratis para ate 10 usuarios.',
+        submit: 'Comecar Teste Gratis',
+        success: 'Voce recebera um email com as instrucoes de acesso em instantes.',
+        showTeam: false
+      },
+      enterprise: {
+        badge: 'Enterprise',
+        title: 'Fale com nosso time',
+        desc: 'Um especialista vai entrar em contato em ate 24h.',
+        submit: 'Solicitar Contato',
+        success: 'Recebemos sua solicitacao. Um especialista entrara em contato em ate 24 horas.',
+        showTeam: true
+      }
+    };
+
+    function openModal(plan) {
+      const cfg = modalConfig[plan];
+      if (!cfg) return;
+      document.getElementById('modalBadge').textContent = cfg.badge;
+      document.getElementById('modalTitle').textContent = cfg.title;
+      document.getElementById('modalDesc').textContent = cfg.desc;
+      document.getElementById('modalSubmit').textContent = cfg.submit;
+      document.getElementById('successMsg').textContent = cfg.success;
+      document.getElementById('formPlan').value = plan;
+      document.getElementById('formTeamGroup').style.display = cfg.showTeam ? 'block' : 'none';
+      document.getElementById('formCompanyGroup').style.display = 'block';
+      document.getElementById('signupForm').style.display = 'block';
+      document.getElementById('modalSuccess').style.display = 'none';
+      document.getElementById('signupForm').reset();
+      document.getElementById('signupModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => document.getElementById('formName').focus(), 300);
+    }
+
+    function closeModal() {
+      document.getElementById('signupModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const form = document.getElementById('signupForm');
+      const data = Object.fromEntries(new FormData(form));
+      console.log('Signup:', data);
+      // TODO: enviar para API/Supabase
+      form.style.display = 'none';
+      document.getElementById('modalSuccess').style.display = 'block';
+      setTimeout(closeModal, 3000);
+    }
+
+    // Close on overlay click
+    document.getElementById('signupModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // Close on ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Pricing Toggle (monthly/annual)
+    function togglePricing() {
+      const sw = document.getElementById('pricingSwitch');
+      const monthly = document.getElementById('toggleMonthly');
+      const annual = document.getElementById('toggleAnnual');
+      const isAnnual = sw.classList.toggle('annual');
+      monthly.classList.toggle('active', !isAnnual);
+      annual.classList.toggle('active', isAnnual);
+      document.querySelectorAll('.pricing-price .amount').forEach(el => {
+        el.textContent = isAnnual ? el.dataset.annual : el.dataset.monthly;
+      });
     }
 
     // Close mobile menu on scroll
