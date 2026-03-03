@@ -358,17 +358,18 @@ export const useBoardsController = () => {
   }, [viewMode, clearDealSelection]);
 
   // Open deal from URL param (e.g., /boards?deal=xxx)
+  // Sem guard em selectedDealId: se um deal já está aberto, substitui pelo da URL
   useEffect(() => {
     if (!searchParams) return;
     const dealIdFromUrl = searchParams.get('deal');
-    if (dealIdFromUrl && !selectedDealId) {
+    if (dealIdFromUrl) {
       setSelectedDealId(dealIdFromUrl);
       // Clear the param from URL using router
       const params = new URLSearchParams(searchParams.toString());
       params.delete('deal');
       router.replace(`?${params.toString()}`, { scroll: false });
     }
-  }, [searchParams, selectedDealId, router]);
+  }, [searchParams, router]);
 
   // Fallback for drag issues
   const lastMouseDownDealId = React.useRef<string | null>(null);
