@@ -458,6 +458,30 @@ export const contactsService = {
       if (!supabase) {
         return { data: null, error: new Error('Supabase não configurado') };
       }
+
+      // organization_id e owner_id são obrigatórios para RLS.
+      // Se não vierem no objeto, inferimos do usuário autenticado.
+      let organizationId = sanitizeUUID((contact as any).organizationId);
+      let ownerId = sanitizeUUID(contact.ownerId);
+
+      if (!organizationId || !ownerId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          return { data: null, error: new Error('Usuário não autenticado') };
+        }
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, organization_id')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile?.organization_id) {
+          return { data: null, error: new Error('Perfil sem organização') };
+        }
+        if (!organizationId) organizationId = profile.organization_id;
+        if (!ownerId) ownerId = profile.id;
+      }
+
       const phoneE164 = normalizePhoneE164(contact.phone);
       const insertData = {
         name: contact.name,
@@ -483,6 +507,8 @@ export const contactsService = {
         profile_data: contact.profileData || null,
         tags: contact.tags || [],
         custom_fields: contact.customFields || {},
+        organization_id: organizationId,
+        owner_id: ownerId,
       };
 
       const { data, error } = await supabase

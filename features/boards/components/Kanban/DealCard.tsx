@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { DealView, Product } from '@/types';
 import type { OrgMember } from '@/hooks/useOrganizationMembers';
-import { Check, Hourglass, Loader2, Search, Trophy, XCircle } from 'lucide-react';
+import { Check, Hourglass, Loader2, Plus, Search, Trophy, XCircle } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { productsService } from '@/lib/supabase/products';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
 import { priorityAriaLabelPtBr } from '@/lib/utils/priority';
 
@@ -96,7 +97,29 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [ownerPickerOpen, setOwnerPickerOpen] = useState(false);
   const [ownerSearch, setOwnerSearch] = useState('');
+  const [creatingProduct, setCreatingProduct] = useState(false);
   const isClosed = isDealClosed(deal);
+
+  const handleCreateProduct = async () => {
+    if (!productSearch.trim() || creatingProduct) return;
+    setCreatingProduct(true);
+    try {
+      const { data: newProduct, error } = await productsService.create({
+        name: productSearch.trim(),
+        price: 0,
+      });
+      if (error || !newProduct) {
+        console.error('Falha ao criar produto:', error);
+        return;
+      }
+      window.dispatchEvent(new CustomEvent('crm:products-updated'));
+      onProductChange(deal.id, newProduct);
+      setProductPickerOpen(false);
+      setProductSearch('');
+    } finally {
+      setCreatingProduct(false);
+    }
+  };
 
   const handleToggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -344,7 +367,21 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                 </Button>
               ))}
               {filteredProducts.length === 0 && (
-                <div className="px-3 py-2 text-xs text-slate-400">Nenhum produto encontrado</div>
+                productSearch.trim() ? (
+                  <Button
+                    variant="unstyled"
+                    size="unstyled"
+                    type="button"
+                    disabled={creatingProduct}
+                    onClick={(e) => { e.stopPropagation(); handleCreateProduct(); }}
+                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-primary-500 dark:text-primary-400 flex items-center gap-1.5"
+                  >
+                    {creatingProduct ? <Loader2 className="h-3 w-3 animate-spin shrink-0" /> : <Plus className="h-3 w-3 shrink-0" />}
+                    <span className="truncate">Criar &quot;{productSearch.trim()}&quot;</span>
+                  </Button>
+                ) : (
+                  <div className="px-3 py-2 text-xs text-slate-400">Nenhum produto encontrado</div>
+                )
               )}
             </div>
           </PopoverContent>
