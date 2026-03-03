@@ -1,4 +1,5 @@
 import React from 'react';
+import { Info } from 'lucide-react';
 import { DealDetailModal } from './Modals/DealDetailModal';
 import { CreateDealModal } from './Modals/CreateDealModal';
 import { CreateBoardModal } from './Modals/CreateBoardModal';
@@ -83,6 +84,7 @@ interface PipelineViewProps {
   dealSortOrder: 'asc' | 'desc';
   handleDealSort: (column: DealSortableColumn) => void;
   sortedDeals: DealView[];
+  hiddenByRecentCount?: number;
   handleBulkMoveDealToStage: (targetStageId: string) => void;
   handleBulkDeleteDeals: () => void;
   // Loss Reason Modal
@@ -268,6 +270,7 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
   dealSortOrder,
   handleDealSort,
   sortedDeals,
+  hiddenByRecentCount = 0,
   handleBulkMoveDealToStage,
   handleBulkDeleteDeals,
   // Loss Reason Modal
@@ -378,6 +381,16 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
 
           <BoardStrategyHeader board={activeBoard} />
 
+          {hiddenByRecentCount > 0 && (
+            <div className="mx-4 mt-2 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-xs text-amber-700 dark:text-amber-300 flex items-center gap-2">
+              <Info size={14} className="shrink-0" />
+              <span>
+                {hiddenByRecentCount} negócio{hiddenByRecentCount > 1 ? 's' : ''} ganho{hiddenByRecentCount > 1 ? 's' : ''}/perdido{hiddenByRecentCount > 1 ? 's' : ''} há mais de 30 dias {hiddenByRecentCount > 1 ? 'estão ocultos' : 'está oculto'}.{' '}
+                Use o filtro <strong>Ganhos</strong> ou <strong>Perdidos</strong> para visualizá-{hiddenByRecentCount > 1 ? 'los' : 'lo'}.
+              </span>
+            </div>
+          )}
+
           <div className="flex-1 overflow-hidden">
             {viewMode === 'kanban' ? (
               <KanbanBoard
@@ -393,8 +406,8 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
                 handleQuickAddActivity={handleQuickAddActivity}
                 setLastMouseDownDealId={setLastMouseDownDealId}
                 onMoveDealToStage={handleMoveDealToStage}
-                onWinDeal={handleWinDeal}
-                onLoseDeal={handleLoseDeal}
+                onWinDeal={activeBoard?.wonStageId ? handleWinDeal : undefined}
+                onLoseDeal={activeBoard?.lostStageId ? handleLoseDeal : undefined}
                 onDeleteDeal={handleDeleteDeal}
               />
             ) : (

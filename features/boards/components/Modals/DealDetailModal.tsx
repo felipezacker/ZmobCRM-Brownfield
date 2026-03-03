@@ -39,6 +39,7 @@ import {
   Maximize2,
   Copy,
   MessageSquare,
+  AlertTriangle,
   StickyNote,
 } from 'lucide-react';
 import { StageProgressBar } from '../StageProgressBar';
@@ -654,6 +655,12 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                 <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
                   <User size={14} /> Contato
                 </h3>
+                {deal.contactId && !contact && (
+                  <div className="flex items-start gap-2 mb-2 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+                    <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                    <span>O contato vinculado foi removido. Edite o negócio para associar um novo contato.</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">
                     {(deal.contactName || '?').charAt(0)}

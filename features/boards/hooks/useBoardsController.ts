@@ -478,6 +478,18 @@ export const useBoardsController = () => {
     profile?.avatar_url,
   ]);
 
+  // Conta deals ganhos/perdidos ocultos pelo recent filter (> 30 dias)
+  // Só aplica quando statusFilter é 'open' ou 'all' — os únicos modos com recent filter ativo
+  const hiddenByRecentCount = useMemo(() => {
+    if (statusFilter !== 'open' && statusFilter !== 'all') return 0;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+    const cutoffTime = cutoffDate.getTime();
+    return deals.filter(
+      d => (d.isWon || d.isLost) && new Date(d.updatedAt).getTime() < cutoffTime
+    ).length;
+  }, [deals, statusFilter]);
+
   // Organization members for corretor name resolution (sort & display)
   const { members: orgMembers } = useOrganizationMembers();
   const orgMembersById = useMemo(() => {
@@ -1024,6 +1036,7 @@ export const useBoardsController = () => {
     openActivityMenuId,
     setOpenActivityMenuId,
     filteredDeals,
+    hiddenByRecentCount,
     sortedDeals,
     // Deal Selection & Sort (list view)
     selectedDealIds,

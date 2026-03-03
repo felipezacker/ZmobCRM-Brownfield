@@ -513,7 +513,12 @@ export const dealsService = {
         .eq('id', id)
         .is('deleted_at', null);
 
-      return { error };
+      if (error) return { error };
+
+      // Limpa deal_items vinculados — não têm deleted_at próprio e ficariam órfãos
+      await supabase.from('deal_items').delete().eq('deal_id', id);
+
+      return { error: null };
     } catch (e) {
       return { error: e as Error };
     }
