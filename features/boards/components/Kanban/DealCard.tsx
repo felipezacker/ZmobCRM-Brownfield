@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { DealView, Product } from '@/types';
 import type { OrgMember } from '@/hooks/useOrganizationMembers';
-import { Check, Hourglass, Search, Trophy, XCircle } from 'lucide-react';
+import { Check, Hourglass, Loader2, Search, Trophy, XCircle } from 'lucide-react';
 import { Button } from '@/app/components/ui/Button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
@@ -143,6 +143,15 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         ${localDragging || isDragging ? 'opacity-50 rotate-2 scale-95' : 'opacity-70'}`;
     }
 
+    // Cards com ID temporário (ainda salvando) ficam levemente opacos e sem cursor de drag
+    if (deal.id.startsWith('temp-')) {
+      return `${baseClasses}
+        border-slate-200 dark:border-white/5
+        bg-white dark:bg-slate-800/80
+        opacity-60 cursor-default pointer-events-none
+      `;
+    }
+
     return `${baseClasses}
       border-slate-200 dark:border-white/5
       ${localDragging || isDragging ? 'bg-green-100 dark:bg-green-900 opacity-50 rotate-2 scale-95' : 'bg-white dark:bg-slate-800/80'}
@@ -237,6 +246,13 @@ const DealCardComponent: React.FC<DealCardProps> = ({
       aria-label={getAriaLabel()}
       className={`${getCardClasses()} ${getBorderLeftClass()}`}
     >
+      {/* Saving Badge — card ainda com ID temporário */}
+      {deal.id.startsWith('temp-') && (
+        <div className="absolute -top-2 -right-2 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 p-1 rounded-full shadow-sm z-10" aria-label="Salvando...">
+          <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+        </div>
+      )}
+
       {/* Won Badge */}
       {deal.isWon && (
         <div className="absolute -top-2 -right-2 bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200 p-1 rounded-full shadow-sm z-10" aria-label="Negócio ganho">

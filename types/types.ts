@@ -278,6 +278,7 @@ export interface Deal {
   dealType?: 'VENDA' | 'LOCACAO' | 'PERMUTA'; // Tipo da transação imobiliária
   expectedCloseDate?: string; // Data prevista de fechamento (ISO date)
   commissionRate?: number | null; // Taxa de comissão override (0-100, nullable)
+  propertyRef?: string; // Referência do imóvel (código, endereço, descrição livre)
 }
 
 // Helper Type para Visualização (Desnormalizado)

@@ -129,6 +129,8 @@ export interface DbDeal {
   expected_close_date: string | null;
   /** Taxa de comissão override (0-100, nullable). */
   commission_rate: number | null;
+  /** Referência livre do imóvel. */
+  property_ref?: string | null;
 }
 
 /**
@@ -213,6 +215,7 @@ export const transformDeal = (db: DbDeal | DbDealWithItems, items?: DbDealItem[]
     dealType: (db.deal_type as Deal['dealType']) || 'VENDA',
     expectedCloseDate: db.expected_close_date || undefined,
     commissionRate: db.commission_rate ?? null,
+    propertyRef: db.property_ref || undefined,
   };
 };
 
@@ -250,6 +253,7 @@ export const transformDealToDb = (deal: Partial<Deal>): Partial<DbDeal> => {
   if (deal.dealType !== undefined) db.deal_type = deal.dealType || 'VENDA';
   if (deal.expectedCloseDate !== undefined) db.expected_close_date = deal.expectedCloseDate || null;
   if (deal.commissionRate !== undefined) db.commission_rate = deal.commissionRate ?? null;
+  if (deal.propertyRef !== undefined) db.property_ref = deal.propertyRef || null;
 
   return db;
 };
@@ -420,6 +424,7 @@ export const dealsService = {
         deal_type: deal.dealType || 'VENDA',
         expected_close_date: deal.expectedCloseDate || null,
         commission_rate: deal.commissionRate ?? null,
+        ...(deal.propertyRef !== undefined ? { property_ref: deal.propertyRef || null } : {}),
         metadata: deal.metadata || {},
       };
 
@@ -444,6 +449,7 @@ export const dealsService = {
       if (deal.items && deal.items.length > 0) {
         const itemsToInsert = deal.items.map(item => ({
           deal_id: data.id,
+          organization_id: organizationId,
           product_id: item.productId || null,
           name: item.name,
           quantity: item.quantity,
@@ -513,7 +519,12 @@ export const dealsService = {
         .eq('id', id)
         .is('deleted_at', null);
 
-      return { error };
+      if (error) return { error };
+
+      // Limpa deal_items vinculados — não têm deleted_at próprio e ficariam órfãos
+      await supabase.from('deal_items').delete().eq('deal_id', id);
+
+      return { error: null };
     } catch (e) {
       return { error: e as Error };
     }

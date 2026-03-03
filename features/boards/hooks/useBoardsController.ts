@@ -358,17 +358,18 @@ export const useBoardsController = () => {
   }, [viewMode, clearDealSelection]);
 
   // Open deal from URL param (e.g., /boards?deal=xxx)
+  // Sem guard em selectedDealId: se um deal já está aberto, substitui pelo da URL
   useEffect(() => {
     if (!searchParams) return;
     const dealIdFromUrl = searchParams.get('deal');
-    if (dealIdFromUrl && !selectedDealId) {
+    if (dealIdFromUrl) {
       setSelectedDealId(dealIdFromUrl);
       // Clear the param from URL using router
       const params = new URLSearchParams(searchParams.toString());
       params.delete('deal');
       router.replace(`?${params.toString()}`, { scroll: false });
     }
-  }, [searchParams, selectedDealId, router]);
+  }, [searchParams, router]);
 
   // Fallback for drag issues
   const lastMouseDownDealId = React.useRef<string | null>(null);
@@ -392,6 +393,14 @@ export const useBoardsController = () => {
     }
     return () => document.removeEventListener('click', handleClickOutside);
   }, [openActivityMenuId]);
+
+  // Organization members — usado tanto para enriquecimento de owner quanto para sort/display
+  const { members: orgMembers } = useOrganizationMembers();
+  const orgMembersById = useMemo(() => {
+    const map = new Map<string, { name: string; avatar: string }>();
+    for (const m of orgMembers) map.set(m.id, { name: m.name, avatar: m.avatar_url || '' });
+    return map;
+  }, [orgMembers]);
 
   // Filtering Logic
   const filteredDeals = useMemo(() => {
@@ -451,8 +460,10 @@ export const useBoardsController = () => {
 
       return matchesSearch && matchesOwner && matchesDate && matchesStatus && matchesRecent;
     }).map(deal => {
-      // Enrich owner info if it matches current user
-      if (deal.ownerId === profile?.id || deal.ownerId === (profile as any)?.user_id) { // Fallback for some profile types
+      // Enrich owner info: prioriza dados ao vivo do orgMembersById sobre o JSON armazenado no deal.
+      // Isso garante que mudanças de nome/avatar de membros (ou remoção da org) sejam refletidas
+      // sem depender do campo owner JSON que pode ficar desatualizado.
+      if (deal.ownerId === profile?.id || deal.ownerId === (profile as any)?.user_id) {
         return {
           ...deal,
           owner: {
@@ -460,6 +471,10 @@ export const useBoardsController = () => {
             avatar: profile?.avatar_url || ''
           }
         };
+      }
+      const liveMember = deal.ownerId ? orgMembersById.get(deal.ownerId) : undefined;
+      if (liveMember) {
+        return { ...deal, owner: { name: liveMember.name, avatar: liveMember.avatar } };
       }
       return deal;
     });
@@ -469,22 +484,27 @@ export const useBoardsController = () => {
     deals,
     searchTerm,
     ownerFilter,
-    dateRange.start,      // Apenas as propriedades usadas do dateRange
+    dateRange.start,
     dateRange.end,
     statusFilter,
-    profile?.id,          // Apenas as propriedades usadas do profile
+    profile?.id,
     profile?.nickname,
     profile?.first_name,
     profile?.avatar_url,
+    orgMembersById,
   ]);
 
-  // Organization members for corretor name resolution (sort & display)
-  const { members: orgMembers } = useOrganizationMembers();
-  const orgMembersById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const m of orgMembers) map.set(m.id, m.name);
-    return map;
-  }, [orgMembers]);
+  // Conta deals ganhos/perdidos ocultos pelo recent filter (> 30 dias)
+  // Só aplica quando statusFilter é 'open' ou 'all' — os únicos modos com recent filter ativo
+  const hiddenByRecentCount = useMemo(() => {
+    if (statusFilter !== 'open' && statusFilter !== 'all') return 0;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+    const cutoffTime = cutoffDate.getTime();
+    return deals.filter(
+      d => (d.isWon || d.isLost) && new Date(d.closedAt || d.updatedAt).getTime() < cutoffTime
+    ).length;
+  }, [deals, statusFilter]);
 
   // Sorted deals (only when list view — avoids sorting overhead for kanban)
   const sortedDeals = useMemo(() => {
@@ -503,8 +523,8 @@ export const useBoardsController = () => {
         case 'value':
           return dir * ((a.value ?? 0) - (b.value ?? 0));
         case 'owner': {
-          const aName = (a.ownerId ? orgMembersById.get(a.ownerId) : undefined) || '';
-          const bName = (b.ownerId ? orgMembersById.get(b.ownerId) : undefined) || '';
+          const aName = (a.ownerId ? orgMembersById.get(a.ownerId)?.name : undefined) || a.owner?.name || '';
+          const bName = (b.ownerId ? orgMembersById.get(b.ownerId)?.name : undefined) || b.owner?.name || '';
           return dir * collator.compare(aName, bName);
         }
         case 'nextActivity': {
@@ -1024,6 +1044,7 @@ export const useBoardsController = () => {
     openActivityMenuId,
     setOpenActivityMenuId,
     filteredDeals,
+    hiddenByRecentCount,
     sortedDeals,
     // Deal Selection & Sort (list view)
     selectedDealIds,
