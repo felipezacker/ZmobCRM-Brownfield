@@ -121,6 +121,38 @@ export const useStartProspectingSession = () => {
   })
 }
 
+// CP-1.3: Batch add contacts to queue
+export const useAddBatchToProspectingQueue = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ contactIds, targetOwnerId }: { contactIds: string[]; targetOwnerId?: string }) => {
+      const { data, error } = await prospectingQueuesService.addBatchToQueue(contactIds, targetOwnerId)
+      if (error) throw error
+      return data!
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
+    },
+  })
+}
+
+// CP-1.3: Get contact IDs currently in queue
+export const useQueueContactIds = (targetOwnerId?: string) => {
+  const { user, loading: authLoading } = useAuth()
+
+  return useQuery({
+    queryKey: [...queryKeys.prospectingQueue.all, 'contactIds', targetOwnerId],
+    queryFn: async () => {
+      const { data, error } = await prospectingQueuesService.getQueueContactIds(targetOwnerId)
+      if (error) throw error
+      return data || []
+    },
+    enabled: !authLoading && !!user,
+    staleTime: 10 * 1000,
+  })
+}
+
 export const useClearCompletedQueue = () => {
   const queryClient = useQueryClient()
 

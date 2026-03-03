@@ -265,4 +265,104 @@ export const prospectingQueuesService = {
       return { data: null, error: e as Error };
     }
   },
+
+  /**
+   * Add multiple contacts to queue in batch (CP-1.3).
+   * Skips duplicates (contacts already in queue for the target owner).
+   * Supports director assigning queue to a specific corretor.
+   */
+  async addBatchToQueue(
+    contactIds: string[],
+    targetOwnerId?: string
+  ): Promise<{ data: { added: number; skipped: number } | null; error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { data: null, error: new Error('Supabase não configurado') };
+
+      const orgId = await getOrganizationId();
+      if (!orgId) return { data: null, error: new Error('Organização não encontrada') };
+
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return { data: null, error: new Error('Usuário não autenticado') };
+
+      const ownerId = targetOwnerId || user.id;
+      const assignedBy = targetOwnerId && targetOwnerId !== user.id ? user.id : null;
+
+      // Get existing queue contact_ids for this owner to skip duplicates
+      const { data: existing } = await sb
+        .from('prospecting_queues')
+        .select('contact_id')
+        .eq('owner_id', ownerId)
+        .in('status', ['pending', 'in_progress']);
+
+      const existingSet = new Set((existing || []).map(e => (e as any).contact_id as string));
+
+      // Filter out duplicates
+      const newContactIds = contactIds.filter(id => !existingSet.has(id));
+
+      if (newContactIds.length === 0) {
+        return { data: { added: 0, skipped: contactIds.length }, error: null };
+      }
+
+      // Get max position for this owner
+      const { data: maxPos } = await sb
+        .from('prospecting_queues')
+        .select('position')
+        .eq('owner_id', ownerId)
+        .order('position', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      let nextPosition = maxPos ? (maxPos as any).position + 1 : 0;
+
+      // Build batch insert rows
+      const rows = newContactIds.map(contactId => ({
+        contact_id: sanitizeUUID(contactId),
+        owner_id: ownerId,
+        organization_id: orgId,
+        status: 'pending' as const,
+        position: nextPosition++,
+        session_id: null,
+        assigned_by: assignedBy,
+      }));
+
+      const { error } = await sb.from('prospecting_queues').insert(rows);
+
+      if (error) return { data: null, error };
+
+      return {
+        data: { added: newContactIds.length, skipped: contactIds.length - newContactIds.length },
+        error: null,
+      };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Get contact_ids currently in queue for a given owner (CP-1.3).
+   * Used to show "Na fila" badge and prevent duplicates.
+   */
+  async getQueueContactIds(ownerId?: string): Promise<{ data: string[] | null; error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { data: null, error: new Error('Supabase não configurado') };
+
+      let query = sb
+        .from('prospecting_queues')
+        .select('contact_id')
+        .in('status', ['pending', 'in_progress']);
+
+      if (ownerId) {
+        query = query.eq('owner_id', ownerId);
+      }
+
+      const { data, error } = await query;
+      if (error) return { data: null, error };
+
+      return { data: (data || []).map(d => (d as any).contact_id as string), error: null };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
 };
