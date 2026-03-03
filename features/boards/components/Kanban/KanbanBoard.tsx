@@ -1,4 +1,6 @@
 import React, { useCallback, useId, useMemo, useState } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from '@/app/components/ui/Button';
 import { DealView, BoardStage } from '@/types';
 import { DealCard } from './DealCard';
 import { isDealRotting, getActivityStatus } from '@/features/boards/hooks/useBoardsController';
@@ -77,6 +79,12 @@ interface KanbanBoardProps {
   onLoseDeal?: (dealId: string, dealTitle: string) => void;
   /** Quick action: delete deal */
   onDeleteDeal?: (dealId: string) => void;
+  /** ID do estágio de ganho (para ocultar botão +) */
+  wonStageId?: string;
+  /** ID do estágio de perda (para ocultar botão +) */
+  lostStageId?: string;
+  /** Callback para criar negócio nesta coluna específica */
+  onAddDealToStage?: (stageId: string) => void;
 }
 /** Kanban board with drag-and-drop, quick actions (win/lose/delete), and keyboard accessibility. */
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -95,6 +103,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onWinDeal,
   onLoseDeal,
   onDeleteDeal,
+  wonStageId,
+  lostStageId,
+  onAddDealToStage,
 }) => {
   const { lifecycleStages, products } = useSettings();
   const addItem = useAddDealItem();
@@ -280,7 +291,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             }}
             onDragEnter={() => setDragOverStage(stage.id)}
             onDragLeave={() => setDragOverStage(null)}
-            className={`min-w-[20rem] flex-1 flex flex-col rounded-xl border-2 overflow-visible h-full max-h-full transition-all duration-200
+            className={`group/col min-w-[20rem] flex-1 flex flex-col rounded-xl border-2 overflow-visible h-full max-h-full transition-all duration-200
                             ${isOver
                 ? `${dropHighlightClasses(stage.color)} scale-[1.02]`
                 : 'border-slate-200/50 dark:border-white/10 glass'
@@ -296,9 +307,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <span className="font-bold text-slate-700 dark:text-slate-200 font-display text-sm tracking-wide uppercase">
                   {stage.label}
                 </span>
-                <span className="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">
-                  {stageDeals.length}
-                </span>
+                <div className="flex items-center gap-1">
+                  {onAddDealToStage && stage.id !== wonStageId && stage.id !== lostStageId && (
+                    <Button
+                      type="button"
+                      onClick={() => onAddDealToStage(stage.id)}
+                      title={`Novo negócio em ${stage.label}`}
+                      className="opacity-0 group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                    >
+                      <Plus size={14} />
+                    </Button>
+                  )}
+                  <span className="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">
+                    {stageDeals.length}
+                  </span>
+                </div>
               </div>
 
               {/* Automation Indicator - Always rendered for consistent height */}

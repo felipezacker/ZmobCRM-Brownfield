@@ -114,6 +114,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
   const [isEditingValue, setIsEditingValue] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const [propertyRef, setPropertyRef] = useState('');
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isDrafting, setIsDrafting] = useState(false);
@@ -242,6 +243,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   useEffect(() => {
     if (isOpen && deal) {
       setEditValue(deal.value.toString());
+      setPropertyRef(deal.propertyRef || '');
       setAiResult(null);
       setEmailDraft(null);
       setObjectionResponses([]);
@@ -966,6 +968,17 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       value={deal.expectedCloseDate ? deal.expectedCloseDate.split('T')[0] : ''}
                       onChange={e => updateDeal(deal.id, { expectedCloseDate: e.target.value || undefined })}
                       className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex justify-between items-start text-sm gap-2">
+                    <span className="text-slate-500 text-xs shrink-0 pt-1.5">Imóvel</span>
+                    <input
+                      type="text"
+                      value={propertyRef}
+                      onChange={e => setPropertyRef(e.target.value)}
+                      onBlur={() => updateDeal(deal.id, { propertyRef: propertyRef || undefined })}
+                      placeholder="Ref. do imóvel..."
+                      className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-right w-full max-w-[160px]"
                     />
                   </div>
                   {/* Prioridade com badge colorido */}

@@ -286,6 +286,20 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
   const [isBulkMoveOpen, setIsBulkMoveOpen] = React.useState(false);
   const bulkMoveRef = React.useRef<HTMLDivElement>(null);
 
+  // State para quick-add por coluna
+  const [createModalStageId, setCreateModalStageId] = React.useState<string | undefined>(undefined);
+
+  const handleDealCreated = React.useCallback((dealId: string) => {
+    setIsCreateModalOpen(false);
+    setCreateModalStageId(undefined);
+    setSelectedDealId(dealId);
+  }, [setIsCreateModalOpen, setSelectedDealId]);
+
+  const handleAddDealToStage = React.useCallback((stageId: string) => {
+    setCreateModalStageId(stageId);
+    setIsCreateModalOpen(true);
+  }, [setIsCreateModalOpen]);
+
   // Close bulk move dropdown on outside click
   React.useEffect(() => {
     if (!isBulkMoveOpen) return;
@@ -409,6 +423,9 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
                 onWinDeal={activeBoard?.wonStageId ? handleWinDeal : undefined}
                 onLoseDeal={activeBoard?.lostStageId ? handleLoseDeal : undefined}
                 onDeleteDeal={handleDeleteDeal}
+                wonStageId={activeBoard.wonStageId}
+                lostStageId={activeBoard.lostStageId}
+                onAddDealToStage={handleAddDealToStage}
               />
             ) : (
               <KanbanList
@@ -436,9 +453,11 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
 
       <CreateDealModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => { setIsCreateModalOpen(false); setCreateModalStageId(undefined); }}
         activeBoard={activeBoard}
         activeBoardId={activeBoardId ?? undefined}
+        initialStageId={createModalStageId}
+        onCreated={handleDealCreated}
       />
 
       <DealDetailModal

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useAuth } from '@/context/AuthContext';
+import { useOrganizationMembers } from '@/hooks/useOrganizationMembers';
 import { Deal, Board, Contact } from '@/types';
 import { X, User, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react';
 import { DebugFillButton } from '@/components/debug/DebugFillButton';
@@ -16,76 +17,78 @@ interface CreateDealModalProps {
     activeBoard?: Board | null;
     /** O ID do board ativo - passado pelo controller do Kanban */
     activeBoardId?: string;
+    /** Estágio pré-selecionado (quando criado pelo botão + de uma coluna específica) */
+    initialStageId?: string;
+    /** Callback chamado após criação bem-sucedida do deal — abre DealDetailModal */
+    onCreated?: (dealId: string) => void;
 }
 
 /**
- * Modal para criação de um novo negócio (Deal).
- * Permite buscar contatos existentes ou criar novos.
+ * Modal compacto de criação rápida de deal.
+ * Contém apenas os 3 campos obrigatórios: Contato, Estágio, Responsável.
+ * Após criação, chama onCreated(dealId) para abrir o DealDetailModal com os detalhes.
  */
 export const CreateDealModal: React.FC<CreateDealModalProps> = ({
     isOpen,
     onClose,
     activeBoard: propActiveBoard,
-    activeBoardId: propActiveBoardId
+    activeBoardId: propActiveBoardId,
+    initialStageId,
+    onCreated,
 }) => {
     const { addDeal } = useCRMActions();
     const { activeBoard: contextActiveBoard, activeBoardId: contextActiveBoardId } = useBoards();
     const { profile, user } = useAuth();
+    const { members } = useOrganizationMembers();
 
-    // Prioriza props sobre contexto (permite que o Kanban passe o board correto)
+    // Prioriza props sobre contexto
     const activeBoard = propActiveBoard || contextActiveBoard;
     const activeBoardId = propActiveBoardId || contextActiveBoardId;
 
-    // Estado para contato/empresa selecionados
-    const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-    
-    // Estado para criação de novo contato
-    const [isCreatingNew, setIsCreatingNew] = useState(false);
-    const [newContactData, setNewContactData] = useState({
-        name: '',
-        email: '',
-        phone: '',
-    });
+    // Estágios disponíveis (exclui won e lost)
+    const availableStages = useMemo(() => {
+        if (!activeBoard?.stages) return [];
+        return activeBoard.stages.filter(
+            s => s.id !== activeBoard.wonStageId && s.id !== activeBoard.lostStageId
+        );
+    }, [activeBoard]);
 
-    // Estado do deal
-    const [dealData, setDealData] = useState({
-        value: '',
-        dealType: 'VENDA' as 'VENDA' | 'LOCACAO' | 'PERMUTA',
-    });
+    // Estado do contato
+    const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+    const [isCreatingNew, setIsCreatingNew] = useState(false);
+    const [newContactData, setNewContactData] = useState({ name: '', email: '', phone: '' });
+
+    // Estado do estágio selecionado
+    const [selectedStageId, setSelectedStageId] = useState<string>('');
+
+    // Estado do responsável
+    const [selectedOwnerId, setSelectedOwnerId] = useState<string>(profile?.id || user?.id || '');
 
     // Estado de UI
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Estágio efetivo: initialStageId → stages[0]
+    const effectiveStageId = selectedStageId || initialStageId || availableStages[0]?.id || '';
+
     const resetForm = () => {
         setSelectedContact(null);
         setIsCreatingNew(false);
         setNewContactData({ name: '', email: '', phone: '' });
-        setDealData({ value: '', dealType: 'VENDA' });
+        setSelectedStageId('');
+        setSelectedOwnerId(profile?.id || user?.id || '');
         setError(null);
         setIsSubmitting(false);
     };
 
     const fillWithFakeData = () => {
-        const deal = fakeDeal();
         const contact = fakeContact();
-
-        setDealData({
-            value: String(deal.value),
-            dealType: 'VENDA',
-        });
-
         setIsCreatingNew(true);
-        setNewContactData({
-            name: contact.name,
-            email: contact.email,
-            phone: contact.phone,
-        });
+        setNewContactData({ name: contact.name, email: contact.email, phone: contact.phone });
     };
 
     const handleCreateNew = (searchTerm: string) => {
         setIsCreatingNew(true);
-        // Se o termo parece ser email, telefone ou nome
         if (searchTerm.includes('@')) {
             setNewContactData(prev => ({ ...prev, email: searchTerm }));
         } else if (/^\d+$/.test(searchTerm.replace(/\D/g, '')) && searchTerm.length >= 8) {
@@ -97,7 +100,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
 
     if (!isOpen) return null;
 
-    // Guard: não permite criar deal sem board ativo
     if (!activeBoard || !activeBoard.stages?.length) {
         return (
             <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
@@ -122,67 +124,51 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
         setIsSubmitting(true);
 
         try {
-            // Usa o primeiro estágio do board ativo
-            const firstStage = activeBoard.stages[0];
-
-            const ownerName = profile?.nickname ||
-                profile?.first_name ||
-                (profile?.email || user?.email || '').split('@')[0] ||
-                'Eu';
+            const selectedMember = members.find(m => m.id === selectedOwnerId);
+            const ownerName = selectedMember?.name
+                || profile?.nickname
+                || profile?.first_name
+                || (profile?.email || user?.email || '').split('@')[0]
+                || 'Eu';
 
             const contactName = selectedContact?.name || newContactData.name;
 
-            const deal: Deal = {
-                id: crypto.randomUUID(),
+            const deal: Omit<Deal, 'id' | 'createdAt'> = {
                 title: contactName,
                 contactId: selectedContact?.id || '',
                 boardId: activeBoardId || activeBoard.id,
-                ownerId: user?.id || '',
-                value: Number(dealData.value) || 0,
+                ownerId: selectedOwnerId || user?.id || '',
+                value: 0,
                 items: [],
-                status: firstStage.id,
-                createdAt: new Date().toISOString(),
+                status: effectiveStageId,
                 updatedAt: new Date().toISOString(),
                 probability: 10,
                 priority: 'medium',
                 owner: {
                     name: ownerName,
-                    avatar: profile?.avatar_url || ''
+                    avatar: selectedMember?.avatar_url || profile?.avatar_url || '',
                 },
                 isWon: false,
                 isLost: false,
-                dealType: dealData.dealType,
+                dealType: 'VENDA',
             };
 
-            let result;
-            
-            // Se selecionou contato existente
-            if (selectedContact) {
-                result = await addDeal(deal, {
-                    contact: {
-                        name: selectedContact.name,
-                        email: selectedContact.email,
-                        phone: selectedContact.phone
-                    }
-                });
-            } else {
-                // Criando novo contato
-                result = await addDeal(deal, {
-                    contact: {
-                        name: newContactData.name,
-                        email: newContactData.email,
-                        phone: newContactData.phone
-                    }
-                });
-            }
-            
-            // Se retornou null, houve erro (já logado no console)
-            if (result === null) {
-                setError('Já existe um negócio com este título para este contato. Altere o título ou selecione outro contato.');
+            const contactInfo = selectedContact
+                ? { name: selectedContact.name, email: selectedContact.email, phone: selectedContact.phone }
+                : { name: newContactData.name, email: newContactData.email, phone: newContactData.phone };
+
+            const result = await addDeal(deal, { contact: contactInfo });
+
+            if (result === null || result === undefined) {
+                setError('Não foi possível criar o negócio. Tente novamente.');
                 return;
             }
 
-            onClose();
+            if (onCreated) {
+                onCreated(result.id);
+            } else {
+                onClose();
+            }
             resetForm();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erro ao criar negócio. Tente novamente.');
@@ -197,13 +183,14 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
         <div
             className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
             onClick={(e) => {
-                if (e.target === e.currentTarget) onClose();
+                if (e.target === e.currentTarget) { onClose(); resetForm(); }
             }}
         >
             <div
                 className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
+                {/* Header */}
                 <div className="p-5 border-b border-slate-200 dark:border-white/10 flex justify-between items-center sticky top-0 bg-white dark:bg-dark-card z-10">
                     <div className="flex items-center gap-2">
                         <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">Novo Negócio</h2>
@@ -213,22 +200,20 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                         <X size={20} />
                     </Button>
                 </div>
-                
+
                 <form onSubmit={handleCreateDeal} className="p-5 space-y-5">
-                    {/* Contato - Tabs para escolher modo */}
+                    {/* CONTATO */}
                     <div>
                         <div className="flex items-center gap-2 mb-3">
-                            <label className="text-xs font-bold text-slate-500 uppercase">
-                                Contato
-                            </label>
+                            <label className="text-xs font-bold text-slate-500 uppercase">Contato</label>
                             {!selectedContact && (
                                 <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5 ml-auto">
                                     <Button
                                         type="button"
                                         onClick={() => setIsCreatingNew(false)}
                                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                                            !isCreatingNew 
-                                                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' 
+                                            !isCreatingNew
+                                                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                                                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                     >
@@ -238,8 +223,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                         type="button"
                                         onClick={() => setIsCreatingNew(true)}
                                         className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                                            isCreatingNew 
-                                                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' 
+                                            isCreatingNew
+                                                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                                                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                     >
@@ -248,54 +233,42 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                 </div>
                             )}
                         </div>
-                        
-                        {/* Modo: Contato Selecionado */}
+
                         {selectedContact ? (
-                            <div className="relative">
-                                <div className="flex items-center gap-3 p-3 bg-primary-500/10 border border-primary-500/30 rounded-lg">
-                                    <div className="w-10 h-10 bg-primary-500/20 rounded-full flex items-center justify-center">
-                                        <User size={20} className="text-primary-400" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-slate-900 dark:text-white truncate">
-                                            {selectedContact.name}
-                                        </p>
-                                        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                                            {selectedContact.email && (
-                                                <span className="flex items-center gap-1 truncate">
-                                                    <Mail size={12} />
-                                                    {selectedContact.email}
-                                                </span>
-                                            )}
-                                            {selectedContact.phone && (
-                                                <span className="flex items-center gap-1">
-                                                    <Phone size={12} />
-                                                    {selectedContact.phone}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <Button
-                                        type="button"
-                                        onClick={() => {
-                                            setSelectedContact(null);
-                                        }}
-                                        className="text-slate-400 hover:text-red-500 transition-colors"
-                                    >
-                                        ✕
-                                    </Button>
+                            <div className="flex items-center gap-3 p-3 bg-primary-500/10 border border-primary-500/30 rounded-lg">
+                                <div className="w-10 h-10 bg-primary-500/20 rounded-full flex items-center justify-center">
+                                    <User size={20} className="text-primary-400" />
                                 </div>
-                                
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-slate-900 dark:text-white truncate">{selectedContact.name}</p>
+                                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                                        {selectedContact.email && (
+                                            <span className="flex items-center gap-1 truncate">
+                                                <Mail size={12} />{selectedContact.email}
+                                            </span>
+                                        )}
+                                        {selectedContact.phone && (
+                                            <span className="flex items-center gap-1">
+                                                <Phone size={12} />{selectedContact.phone}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <Button
+                                    type="button"
+                                    onClick={() => setSelectedContact(null)}
+                                    className="text-slate-400 hover:text-red-500 transition-colors"
+                                >
+                                    ✕
+                                </Button>
                             </div>
                         ) : !isCreatingNew ? (
-                            /* Modo: Buscar Existente */
                             <ContactSearchCombobox
                                 selectedContact={selectedContact}
                                 onSelectContact={setSelectedContact}
                                 onCreateNew={handleCreateNew}
                             />
                         ) : (
-                            /* Modo: Criar Novo */
                             <div className="space-y-3 p-4 bg-slate-50 dark:bg-black/20 rounded-lg border border-slate-200 dark:border-slate-700">
                                 <div className="relative">
                                     <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -308,7 +281,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                         className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
                                     />
                                 </div>
-                                
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="relative">
                                         <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -320,7 +292,6 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                             className="w-full pl-10 pr-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
                                         />
                                     </div>
-                                    
                                     <div className="relative">
                                         <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                         <input
@@ -332,44 +303,58 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                                         />
                                     </div>
                                 </div>
-                                
                             </div>
                         )}
                     </div>
 
-                    {/* Dados do Negócio */}
+                    {/* ESTÁGIO */}
                     <div className="pt-3 border-t border-slate-100 dark:border-white/5">
-                        <h3 className="text-xs font-bold text-slate-400 uppercase mb-3">Dados do Negócio</h3>
-                        
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Valor Estimado (R$)</label>
-                                    <input
-                                        type="number"
-                                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
-                                        placeholder="0.00"
-                                        value={dealData.value}
-                                        onChange={e => setDealData(prev => ({ ...prev, value: e.target.value }))}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-slate-500 mb-1">Tipo de Negócio</label>
-                                    <select
-                                        value={dealData.dealType}
-                                        onChange={e => setDealData(prev => ({ ...prev, dealType: e.target.value as 'VENDA' | 'LOCACAO' | 'PERMUTA' }))}
-                                        className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                        <label className="text-xs font-bold text-slate-500 uppercase mb-3 block">Estágio</label>
+                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                            {availableStages.map(stage => {
+                                const isSelected = effectiveStageId === stage.id;
+                                return (
+                                    <Button
+                                        key={stage.id}
+                                        type="button"
+                                        onClick={() => setSelectedStageId(stage.id)}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
+                                            isSelected
+                                                ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-400 text-primary-700 dark:text-primary-300 shadow-sm'
+                                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                                        }`}
                                     >
-                                        <option value="VENDA">Venda</option>
-                                        <option value="LOCACAO">Locação</option>
-                                        <option value="PERMUTA">Permuta</option>
-                                    </select>
-                                </div>
-                            </div>
+                                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${stage.color}`} />
+                                        {stage.label}
+                                    </Button>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    {/* Mensagem de erro */}
+                    {/* RESPONSÁVEL */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-white/5">
+                        <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Responsável</label>
+                        <select
+                            value={selectedOwnerId}
+                            onChange={e => setSelectedOwnerId(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                            {members.map(m => (
+                                <option key={m.id} value={m.id}>
+                                    {m.name}{m.id === (profile?.id || user?.id) ? ' (você)' : ''}
+                                </option>
+                            ))}
+                            {/* Fallback se members ainda não carregou */}
+                            {members.length === 0 && (
+                                <option value={profile?.id || user?.id || ''}>
+                                    {profile?.nickname || profile?.first_name || (profile?.email || '').split('@')[0] || 'Eu'} (você)
+                                </option>
+                            )}
+                        </select>
+                    </div>
+
+                    {/* Erro */}
                     {error && (
                         <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
                             <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
@@ -377,8 +362,8 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                         </div>
                     )}
 
-                    <Button 
-                        type="submit" 
+                    <Button
+                        type="submit"
                         disabled={!hasContact || isSubmitting}
                         className="w-full bg-primary-600 hover:bg-primary-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg mt-2 shadow-lg shadow-primary-600/20 transition-all flex items-center justify-center gap-2"
                     >
