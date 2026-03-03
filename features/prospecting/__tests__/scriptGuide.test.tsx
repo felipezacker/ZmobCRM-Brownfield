@@ -2,7 +2,7 @@ import React from 'react'
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { ProspectingScriptGuide } from '../components/ProspectingScriptGuide'
+import { ProspectingScriptGuide, ALL_OBJECTIONS } from '../components/ProspectingScriptGuide'
 import { ScriptSelector } from '../components/ScriptSelector'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
 import type { ProspectingQueueItem, ProspectingQueueStatus } from '@/types'
@@ -14,6 +14,16 @@ vi.mock('@/app/components/ui/Button', () => ({
     // eslint-disable-next-line no-restricted-syntax -- mock component
     <button {...props}>{children}</button>
   ),
+}))
+
+// ── Mock Toast ──────────────────────────────────────────────
+
+const mockToast = vi.fn()
+vi.mock('@/context/ToastContext', () => ({
+  useToast: () => ({
+    addToast: mockToast,
+    showToast: mockToast,
+  }),
 }))
 
 // ── Mock Sheet ──────────────────────────────────────────────
@@ -171,6 +181,40 @@ describe('ProspectingScriptGuide', () => {
     expect(screen.getByText(/Olá Maria Silva, como está/)).toBeInTheDocument()
     expect(screen.queryByText('Próximo')).not.toBeInTheDocument()
     expect(screen.queryByText('Anterior')).not.toBeInTheDocument()
+  })
+
+  it('shows category-relevant objections first for closing script', () => {
+    render(
+      <ProspectingScriptGuide
+        script={{ ...mockScripts[0], category: 'closing' }}
+        contact={makeContact()}
+        markedObjections={[]}
+        onObjectionsChange={vi.fn()}
+      />
+    )
+    const objectionButtons = screen.getAllByRole('button').filter(b =>
+      ALL_OBJECTIONS.some(o => b.textContent?.includes(o))
+    )
+    // Closing category prioritizes: Preço alto, Sem orçamento, Precisa pensar, Precisa falar com cônjuge
+    expect(objectionButtons[0].textContent).toContain('Preço alto')
+    expect(objectionButtons[1].textContent).toContain('Sem orçamento')
+  })
+
+  it('cleans unresolved variables from rendered script', () => {
+    const scriptWithUnresolved = {
+      ...mockScripts[1],
+      template: 'Olá {nome}, da {empresa}! Valor: {valor}',
+    }
+    render(
+      <ProspectingScriptGuide
+        script={scriptWithUnresolved}
+        contact={makeContact()}
+      />
+    )
+    // {empresa} and {valor} should be cleaned (empty), {nome} was substituted
+    expect(screen.getByText(/Olá Maria Silva, da/)).toBeInTheDocument()
+    expect(screen.queryByText('{empresa}')).not.toBeInTheDocument()
+    expect(screen.queryByText('{valor}')).not.toBeInTheDocument()
   })
 })
 

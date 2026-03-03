@@ -70,6 +70,14 @@ export function substituteVariables(
 }
 
 /**
+ * Remove unresolved template variables (e.g. {empresa} → "").
+ * Run AFTER substituteVariables to clean up leftovers.
+ */
+export function cleanUnresolvedVariables(text: string): string {
+  return text.replace(/\{[a-zA-Z_]+\}/g, '')
+}
+
+/**
  * Build variables map from a prospecting contact.
  */
 export function buildContactVariables(contact: {

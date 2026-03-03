@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseScriptSections, substituteVariables, buildContactVariables } from '../utils/scriptParser'
+import { parseScriptSections, substituteVariables, buildContactVariables, cleanUnresolvedVariables } from '../utils/scriptParser'
 
 describe('parseScriptSections', () => {
   it('returns empty array for empty template', () => {
@@ -81,6 +81,20 @@ describe('substituteVariables', () => {
   it('handles empty variables map', () => {
     const template = 'Olá {nome}!'
     expect(substituteVariables(template, {})).toBe(template)
+  })
+})
+
+describe('cleanUnresolvedVariables', () => {
+  it('removes unresolved variables', () => {
+    expect(cleanUnresolvedVariables('Olá Maria, da {empresa}!')).toBe('Olá Maria, da !')
+  })
+
+  it('leaves text without variables unchanged', () => {
+    expect(cleanUnresolvedVariables('Texto normal sem variáveis')).toBe('Texto normal sem variáveis')
+  })
+
+  it('removes multiple unresolved variables', () => {
+    expect(cleanUnresolvedVariables('{a} e {b} e {c}')).toBe(' e  e ')
   })
 })
 

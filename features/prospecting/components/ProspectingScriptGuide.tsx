@@ -1,13 +1,22 @@
 import React, { useState, useMemo, useCallback } from 'react'
 import { Copy, Check, ChevronLeft, ChevronRight, AlertTriangle, FileText } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
-import { parseScriptSections, substituteVariables, buildContactVariables } from '@/features/prospecting/utils/scriptParser'
+import { useToast } from '@/context/ToastContext'
+import { parseScriptSections, substituteVariables, cleanUnresolvedVariables, buildContactVariables } from '@/features/prospecting/utils/scriptParser'
 import type { ScriptSection } from '@/features/prospecting/utils/scriptParser'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
 import type { ProspectingQueueItem } from '@/types'
 
-// Common objections for call scripts
-const COMMON_OBJECTIONS = [
+const OBJECTIONS_BY_CATEGORY: Record<string, string[]> = {
+  intro: ['Sem interesse', 'Já tem corretor', 'Não é o momento', 'Ligar depois'],
+  followup: ['Sem interesse', 'Precisa pensar', 'Ligar depois', 'Precisa falar com cônjuge'],
+  closing: ['Preço alto', 'Sem orçamento', 'Precisa pensar', 'Precisa falar com cônjuge'],
+  objection: ['Preço alto', 'Já tem corretor', 'Sem orçamento', 'Não é o momento'],
+  rescue: ['Sem interesse', 'Não é o momento', 'Ligar depois', 'Já tem corretor'],
+  other: ['Sem interesse', 'Não é o momento', 'Precisa pensar', 'Ligar depois'],
+}
+
+export const ALL_OBJECTIONS = [
   'Sem interesse',
   'Já tem corretor',
   'Preço alto',
@@ -33,13 +42,21 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
 }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
   const [copiedSection, setCopiedSection] = useState<string | null>(null)
+  const { addToast, showToast } = useToast()
+  const toast = addToast || showToast
 
   const variables = useMemo(() => buildContactVariables(contact), [contact])
 
   const sections: ScriptSection[] = useMemo(() => {
-    const processed = substituteVariables(script.template, variables)
+    const processed = cleanUnresolvedVariables(substituteVariables(script.template, variables))
     return parseScriptSections(processed)
   }, [script.template, variables])
+
+  const objections = useMemo(() => {
+    const prioritized = OBJECTIONS_BY_CATEGORY[script.category] || []
+    const remaining = ALL_OBJECTIONS.filter(o => !prioritized.includes(o))
+    return [...prioritized, ...remaining]
+  }, [script.category])
 
   const currentSection = sections[currentSectionIndex]
 
@@ -49,9 +66,9 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
       setCopiedSection(section.id)
       setTimeout(() => setCopiedSection(null), 1500)
     } catch {
-      // Clipboard API may fail in some contexts
+      toast('Não foi possível copiar o texto', 'error')
     }
-  }, [])
+  }, [toast])
 
   const handleToggleObjection = useCallback((objection: string) => {
     const updated = markedObjections.includes(objection)
@@ -152,8 +169,9 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
             </h4>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {COMMON_OBJECTIONS.map((objection) => {
+            {objections.map((objection, idx) => {
               const isMarked = markedObjections.includes(objection)
+              const isPrioritized = idx < (OBJECTIONS_BY_CATEGORY[script.category]?.length || 0)
               return (
                 <Button
                   key={objection}
@@ -163,7 +181,9 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
                   className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
                     isMarked
                       ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                      : isPrioritized
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
                   {isMarked && <Check size={10} className="inline mr-1" />}
