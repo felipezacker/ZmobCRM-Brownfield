@@ -155,6 +155,17 @@ export function useCRMActions() {
               return [createdDealView, ...withoutTemp];
             }
           );
+          // Atualiza cache raw também para que DealDetailModal encontre o deal
+          // imediatamente sem precisar esperar o Supabase Realtime.
+          // Sem isso, selectedDealId fica setado mas o modal retorna null,
+          // e clicar no card novamente não dispara re-render (mesmo valor de estado).
+          queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) => {
+            const withoutTemp = old.filter((d) => d.id !== optimisticTempId);
+            if (withoutTemp.findIndex(d => d.id === createdDeal.id) === -1) {
+              return [createdDeal, ...withoutTemp];
+            }
+            return withoutTemp;
+          });
         } else {
           queryClient.setQueryData<DealView[]>(
             [...queryKeys.deals.lists(), 'view'],
