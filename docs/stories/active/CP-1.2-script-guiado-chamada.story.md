@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-1.2
 - **Epic:** CP (Central de Prospeccao)
-- **Status:** InProgress
+- **Status:** Done
 - **Owner:** (unassigned)
 - **Executor:** @dev
 - **Quality Gate:** @architect
@@ -17,17 +17,17 @@ Evoluir o sistema de scripts (ScriptEditorModal) para exibir um guia interativo 
 
 ## Acceptance Criteria
 
-- [ ] AC1: Antes de iniciar a sessao de prospeccao, o corretor seleciona um script da lista de scripts existentes
-- [ ] AC2: Durante a chamada (CallModal aberto), um painel lateral exibe o script selecionado
-- [ ] AC3: Variaveis do script ({nome}, {empresa}, {valor}, {produto}) sao substituidas pelos dados reais do contato atual
-- [ ] AC4: O script e dividido em secoes navegaveis: intro, qualificacao, objecoes, fechamento (ou secoes customizaveis)
-- [ ] AC5: O corretor pode navegar entre secoes (anterior/proximo) sem perder o estado da chamada
-- [ ] AC6: Quick-action "Copiar trecho" — copia o texto da secao atual para clipboard
-- [ ] AC7: Quick-action "Marcar objecao" — registra qual objecao foi ouvida (salva junto com o log da ligacao)
-- [ ] AC8: O script guiado so aparece no fluxo de prospeccao, nao no CallModal avulso de outras paginas
-- [ ] AC9: Se nenhum script selecionado, o painel mostra sugestao para criar/selecionar um
-- [ ] AC10: Responsivo — em mobile, o script aparece como aba/drawer, nao painel lateral
-- [ ] AC11: Dark mode
+- [x] AC1: Antes de iniciar a sessao de prospeccao, o corretor seleciona um script da lista de scripts existentes
+- [x] AC2: Durante a chamada (CallModal aberto), um painel lateral exibe o script selecionado
+- [x] AC3: Variaveis do script ({nome}, {empresa}, {valor}, {produto}) sao substituidas pelos dados reais do contato atual
+- [x] AC4: O script e dividido em secoes navegaveis: intro, qualificacao, objecoes, fechamento (ou secoes customizaveis)
+- [x] AC5: O corretor pode navegar entre secoes (anterior/proximo) sem perder o estado da chamada
+- [x] AC6: Quick-action "Copiar trecho" — copia o texto da secao atual para clipboard
+- [x] AC7: Quick-action "Marcar objecao" — registra qual objecao foi ouvida (salva junto com o log da ligacao)
+- [x] AC8: O script guiado so aparece no fluxo de prospeccao, nao no CallModal avulso de outras paginas
+- [x] AC9: Se nenhum script selecionado, o painel mostra sugestao para criar/selecionar um
+- [x] AC10: Responsivo — em mobile, o script aparece como aba/drawer, nao painel lateral
+- [x] AC11: Dark mode
 
 ## Escopo
 
@@ -119,21 +119,22 @@ Evoluir o sistema de scripts (ScriptEditorModal) para exibir um guia interativo 
 |------|--------|-------|
 | features/prospecting/components/ScriptSelector.tsx | New | Seletor pre-sessao com useQuickScripts |
 | features/prospecting/components/ProspectingScriptGuide.tsx | New | Painel de script guiado com secoes, copiar, objecoes |
-| features/prospecting/utils/scriptParser.ts | New | parseScriptSections + substituteVariables + buildContactVariables |
+| features/prospecting/utils/scriptParser.ts | New | parseScriptSections + substituteVariables + cleanUnresolvedVariables + buildContactVariables |
 | features/prospecting/components/PowerDialer.tsx | Modified | Integrar ScriptGuide (desktop side panel + mobile Sheet) |
 | features/prospecting/ProspectingPage.tsx | Modified | Adicionar ScriptSelector pre-sessao + estado selectedScript |
-| features/prospecting/__tests__/scriptParser.test.ts | New | 11 testes para parser e variaveis |
-| features/prospecting/__tests__/scriptGuide.test.tsx | New | 13 testes para ScriptGuide e ScriptSelector |
+| features/prospecting/__tests__/scriptParser.test.ts | New | 14 testes para parser, variaveis e cleanUnresolved |
+| features/prospecting/__tests__/scriptGuide.test.tsx | New | 15 testes para ScriptGuide, ScriptSelector, objecoes por categoria |
+| docs/qa/QA_FIX_REQUEST_CP-1.2.md | New | QA fix request com 3 issues LOW resolvidas |
 
 ## Definition of Done
 
-- [ ] All acceptance criteria met
-- [ ] Script guiado funcional durante chamada com variaveis substituidas
-- [ ] Quick-actions funcionais (copiar, marcar objecao)
-- [ ] Responsivo (desktop side panel, mobile drawer)
-- [ ] Dark mode testado
-- [ ] No regressions no CallModal existente
-- [ ] Code reviewed
+- [x] All acceptance criteria met
+- [x] Script guiado funcional durante chamada com variaveis substituidas
+- [x] Quick-actions funcionais (copiar, marcar objecao)
+- [x] Responsivo (desktop side panel, mobile drawer)
+- [x] Dark mode testado
+- [x] No regressions no CallModal existente
+- [x] Code reviewed — QA gate PASS (score 10/10, 0 issues abertas)
 
 ## Change Log
 
@@ -141,3 +142,7 @@ Evoluir o sistema de scripts (ScriptEditorModal) para exibir um guia interativo 
 |------|-------|---------|
 | 2026-03-03 | @sm (River) | Story criada a partir do Epic CP |
 | 2026-03-03 | @dev (Dex) | Implementacao: ScriptSelector, ProspectingScriptGuide, scriptParser, integracao PowerDialer/ProspectingPage. 24 novos testes. Lint + typecheck + testes passando. |
+| 2026-03-03 | @qa (Quinn) | Review PASS 9/10. 3 issues LOW: variaveis nao-resolvidas, objecoes hardcoded, clipboard silencioso. Fix request gerado. |
+| 2026-03-03 | @dev (Dex) | QA fixes aplicados: cleanUnresolvedVariables, objecoes por categoria, toast no clipboard. +5 testes (50 total). Commit b01e3c7. |
+| 2026-03-03 | @qa (Quinn) | Re-review PASS 10/10. Zero issues. 50/50 testes, typecheck + lint limpos. |
+| 2026-03-03 | @po (Pax) | ACs 1-11 marcados, DoD completo, status Done. Story pronta para push. |

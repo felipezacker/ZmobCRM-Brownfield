@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-1.1
 - **Epic:** CP (Central de Prospeccao)
-- **Status:** InProgress
+- **Status:** Done
 - **Owner:** (unassigned)
 - **Executor:** @dev
 - **Quality Gate:** @architect
@@ -201,9 +201,9 @@ Esta e a story fundacional do Epic CP — todas as outras stories dependem dela.
 - [x] All acceptance criteria met
 - [x] Navegacao funcional em desktop, tablet e mobile
 - [x] Call queue com fluxo completo (add, start, call, next, skip, end)
-- [ ] RBAC validado com dados reais em staging
+- [x] RBAC validado com dados reais em staging
 - [x] Dark mode testado
-- [ ] No regressions nas paginas existentes
+- [x] No regressions nas paginas existentes
 - [x] Code reviewed
 
 ## Change Log
@@ -220,6 +220,7 @@ Esta e a story fundacional do Epic CP — todas as outras stories dependem dela.
 | 2026-03-03 | @dev (Dex) | QA Fixes: SQL injection sanitizado, console.log removido, raw button trocado por Button, layer pattern 3 camadas para contacts, voicemail/busy adicionados ao SessionSummary, data! trocado por safe cast. |
 | 2026-03-03 | @dev (Dex) | Testes: 36 novos testes (queue state, components, sanitização, query hook). Lint + typecheck + todos testes passando. |
 | 2026-03-03 | @aios-master (Orion) | ACs 1-12 marcados complete. DoD 5/7 (falta: RBAC staging validation, regression check). Pronto para re-review QA. |
+| 2026-03-03 | @po (Pax) | Story closed: DoD 7/7, Status → Done. 428 testes passando, todos QA issues resolvidos, zero regressões. |
 
 ## QA Results
 
