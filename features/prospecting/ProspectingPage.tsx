@@ -7,7 +7,9 @@ import { CallQueue } from './components/CallQueue'
 import { PowerDialer } from './components/PowerDialer'
 import { SessionSummary } from './components/SessionSummary'
 import { AddToQueueSearch } from './components/AddToQueueSearch'
+import { ScriptSelector } from './components/ScriptSelector'
 import { useProspectingQueue } from './hooks/useProspectingQueue'
+import type { QuickScript } from '@/lib/supabase/quickScripts'
 
 export type SessionStats = {
   total: number
@@ -15,6 +17,8 @@ export type SessionStats = {
   skipped: number
   connected: number
   noAnswer: number
+  voicemail: number
+  busy: number
 }
 
 export const ProspectingPage: React.FC = () => {
@@ -34,12 +38,15 @@ export const ProspectingPage: React.FC = () => {
   } = useProspectingQueue()
 
   const [showSummary, setShowSummary] = useState(false)
+  const [selectedScript, setSelectedScript] = useState<QuickScript | null>(null)
   const [sessionStats, setSessionStats] = useState<SessionStats>({
     total: 0,
     completed: 0,
     skipped: 0,
     connected: 0,
     noAnswer: 0,
+    voicemail: 0,
+    busy: 0,
   })
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
 
@@ -53,6 +60,8 @@ export const ProspectingPage: React.FC = () => {
       skipped: 0,
       connected: 0,
       noAnswer: 0,
+      voicemail: 0,
+      busy: 0,
     })
   }, [startSession, queue.length])
 
@@ -75,6 +84,8 @@ export const ProspectingPage: React.FC = () => {
       completed: prev.completed + 1,
       connected: outcome === 'connected' ? prev.connected + 1 : prev.connected,
       noAnswer: outcome === 'no_answer' ? prev.noAnswer + 1 : prev.noAnswer,
+      voicemail: outcome === 'voicemail' ? prev.voicemail + 1 : prev.voicemail,
+      busy: outcome === 'busy' ? prev.busy + 1 : prev.busy,
     }))
     markCompleted(outcome)
   }, [markCompleted])
@@ -142,9 +153,14 @@ export const ProspectingPage: React.FC = () => {
             onCallComplete={handleCallComplete}
             onSkip={skip}
             onEnd={handleEndSession}
+            selectedScript={selectedScript}
           />
         ) : (
           <div className="space-y-4">
+            <ScriptSelector
+              selectedScript={selectedScript}
+              onSelect={setSelectedScript}
+            />
             <AddToQueueSearch onAdd={addToQueue} />
             <CallQueue
               items={queue}
