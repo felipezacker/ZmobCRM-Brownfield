@@ -60,7 +60,7 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove }) => {
       </span>
 
       {/* Remove button */}
-      {onRemove && item.status === 'pending' && (
+      {onRemove && (
         <Button
           variant="unstyled"
           size="unstyled"

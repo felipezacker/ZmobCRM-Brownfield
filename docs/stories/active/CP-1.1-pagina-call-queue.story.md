@@ -186,6 +186,8 @@ Esta e a story fundacional do Epic CP — todas as outras stories dependem dela.
 | features/boards/components/Modals/DealDetailModal.tsx | Modified | Fix dealId fallback |
 | features/contacts/components/ContactDetailModal.tsx | Modified | Fix dealId fallback |
 | features/dashboard/DashboardPage.tsx | Modified | Fix dealId fallback |
+| components/Layout.tsx | Modified | Adicionar Prospecção ao sidebar desktop + PhoneOutgoing |
+| lib/prefetch.ts | Modified | Adicionar prospecting ao routeImports para prefetch |
 
 ## Definition of Done
 

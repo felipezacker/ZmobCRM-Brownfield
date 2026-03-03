@@ -145,7 +145,7 @@ export const prospectingQueuesService = {
         .eq('owner_id', user.id)
         .order('position', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       const nextPosition = maxPos ? (maxPos as any).position + 1 : 0;
 

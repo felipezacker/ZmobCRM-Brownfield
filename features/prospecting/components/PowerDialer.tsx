@@ -117,16 +117,14 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
 
         {/* Action buttons */}
         <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-200 dark:border-slate-700/50">
-          <Button
-            variant="unstyled"
-            size="unstyled"
-            onClick={() => setShowCallModal(true)}
-            disabled={!contact.contactPhone}
-            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          <button
+            type="button"
+            onClick={() => { console.log('[PowerDialer] Ligar clicked, opening CallModal'); setShowCallModal(true); }}
+            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors"
           >
             <Phone size={20} />
             <span className="text-xs font-medium">Ligar</span>
-          </Button>
+          </button>
 
           <Button
             variant="unstyled"
