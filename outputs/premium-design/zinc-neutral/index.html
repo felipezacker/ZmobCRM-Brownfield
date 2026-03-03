@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZmobCRM — O CRM Imobiliario com Inteligencia Artificial</title>
+  <meta name="description" content="O primeiro CRM imobiliario que pensa junto com voce. IA multi-provider integrada ao seu pipeline de vendas.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    /* === PREMIUM THEME: Zinc Neutral === */
+    :root {
+      --bg-primary: #09090b;
+      --bg-secondary: #18181b;
+      --bg-tertiary: #27272a;
+      --bg-elevated: #303033;
+      --accent: #fafafa;
+      --accent-secondary: #d4d4d8;
+      --accent-soft: #a1a1aa;
+      --accent-hover: #ffffff;
+      --text: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --border: #27272a;
+      --border-subtle: #1e1e21;
+      --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --glow-color: rgba(244, 244, 245, 0.08);
+      --glow-spread: 0 0 40px;
+      --glass-bg: rgba(244, 244, 245, 0.03);
+      --glass-border: rgba(244, 244, 245, 0.06);
+      --glass-blur: 16px;
+      --gradient-hero: radial-gradient(ellipse at 50% 0%, rgba(244, 244, 245, 0.04) 0%, transparent 70%);
+      --gradient-section: linear-gradient(180deg, #09090b 0%, #18181b 100%);
+      --section-padding: 80px;
+      --hero-padding: 120px;
+      --card-padding: 32px;
+      --gap: 24px;
+      --radius: 16px;
+      --radius-sm: 8px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* === RESET === */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* === SCROLL PROGRESS BAR (Enhanced) === */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9998;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    }
+
+    /* === GRAIN (Enhanced) === */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 9990;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+      animation: grain-shift 0.5s steps(4) infinite;
+    }
+    @keyframes grain-shift {
+      0% { background-position: 0 0; }
+      25% { background-position: -80px 40px; }
+      50% { background-position: 40px -60px; }
+      75% { background-position: -40px 80px; }
+    }
+
+    /* === SCROLL REVEALS (Enhanced) === */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+      filter: blur(4px);
+      transition: opacity 0.7s ease, transform 0.7s ease, filter 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+    .reveal-d1 { transition-delay: 0.1s; }
+    .reveal-d2 { transition-delay: 0.2s; }
+    .reveal-d3 { transition-delay: 0.3s; }
+    .reveal-d4 { transition-delay: 0.4s; }
+
+    /* === TYPOGRAPHY === */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.045em;
+      line-height: 1.1;
+    }
+    h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
+    h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); }
+    h3 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
+    p { max-width: 640px; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* === EYEBROW (Enhanced) === */
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .eyebrow-number {
+      color: var(--accent-soft);
+      margin-right: 12px;
+    }
+
+    /* === LAYOUT === */
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: var(--section-padding) 0;
+      position: relative;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    /* === NAV === */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 0;
+      background: rgba(9, 9, 11, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: var(--transition);
+    }
+    .nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.03em;
+    }
+    .nav-logo span { color: var(--text-muted); font-weight: 400; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: var(--transition);
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* === BUTTONS === */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 28px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg-primary);
+      box-shadow: var(--glow-spread) var(--glow-color);
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 60px var(--glow-color);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      color: var(--text);
+      border-color: var(--accent-soft);
+    }
+    .btn-sm {
+      padding: 10px 20px;
+      font-size: 0.8125rem;
+    }
+
+    /* === CARDS (Glassmorphism) === */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: var(--card-padding);
+      transition: var(--transition);
+    }
+    .card:hover {
+      border-color: rgba(244, 244, 245, 0.1);
+      transform: translateY(-2px);
+    }
+
+    /* ============================================ */
+    /* HERO SECTION                                 */
+    /* ============================================ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: var(--hero-padding) 0 var(--section-padding);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gradient-hero);
+      pointer-events: none;
+    }
+    .hero-content {
+      max-width: 720px;
+    }
+    .hero-pre {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin-bottom: 24px;
+    }
+    .hero-sub {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 16px;
+      max-width: 600px;
+    }
+    .hero-body {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      max-width: 580px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .hero-proof {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    /* ============================================ */
+    /* PROBLEMS SECTION                             */
+    /* ============================================ */
+    .problems { background: var(--bg-secondary); }
+    .problems-grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .problem-item {
+      display: flex;
+      gap: 20px;
+      padding: 24px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-subtle);
+      transition: var(--transition);
+    }
+    .problem-item:hover {
+      border-color: var(--border);
+      background: rgba(244, 244, 245, 0.01);
+    }
+    .problem-icon {
+      flex-shrink: 0;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      margin-top: 8px;
+    }
+    .problem-item strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .problem-text {
+      font-size: 0.9375rem;
+      line-height: 1.65;
+    }
+    .problems-transition {
+      margin-top: 48px;
+      padding: 32px;
+      border-left: 2px solid var(--accent-soft);
+      max-width: 560px;
+    }
+    .problems-transition p {
+      font-size: 1.0625rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .problems-transition p + p {
+      margin-top: 12px;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    /* ============================================ */
+    /* SOLUTION SECTION                             */
+    /* ============================================ */
+    .solution {
+      position: relative;
+    }
+    .solution::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(244, 244, 245, 0.02) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .solution-content {
+      max-width: 640px;
+    }
+    .solution-content p {
+      margin-bottom: 16px;
+    }
+    .solution-steps {
+      margin-top: 40px;
+      display: grid;
+      gap: 20px;
+    }
+    .solution-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .step-number {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--accent-soft);
+    }
+    .step-content h3 {
+      font-size: 1.0625rem;
+      margin-bottom: 6px;
+    }
+    .step-content p {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+    }
+    .solution-cta {
+      margin-top: 40px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ============================================ */
+    /* FEATURES SECTION                             */
+    /* ============================================ */
+    .features { background: var(--bg-secondary); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 48px;
+    }
+    .feature-card {
+      padding: var(--card-padding);
+    }
+    .feature-card.featured {
+      grid-row: span 2;
+    }
+    .feature-label {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .feature-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+    .feature-card p {
+      font-size: 0.9375rem;
+      margin-bottom: 20px;
+    }
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .feature-list li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .feature-list li::before {
+      content: '';
+      flex-shrink: 0;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      margin-top: 8px;
+    }
+
+    /* ============================================ */
+    /* CREDIBILITY SECTION                          */
+    /* ============================================ */
+    .credibility-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 48px;
+    }
+    .credibility-card {
+      padding: 28px;
+    }
+    .credibility-card h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    .credibility-card p {
+      font-size: 0.875rem;
+      line-height: 1.65;
+    }
+
+    /* ============================================ */
+    /* OBJECTIONS SECTION                           */
+    /* ============================================ */
+    .objections { background: var(--bg-secondary); }
+    .objections-list {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .objection-item {
+      border-bottom: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+    .objection-q {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      text-align: left;
+      transition: var(--transition);
+    }
+    .objection-q:hover { color: var(--accent-secondary); }
+    .objection-q .chevron {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+    }
+    .objection-item.open .chevron { transform: rotate(180deg); }
+    .objection-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+    .objection-item.open .objection-a {
+      max-height: 300px;
+      padding-bottom: 24px;
+    }
+    .objection-a p {
+      font-size: 0.9375rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ============================================ */
+    /* CTA SECTION                                  */
+    /* ============================================ */
+    .cta-section {
+      text-align: center;
+      padding: 100px 0;
+      position: relative;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(244, 244, 245, 0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .cta-section h2 {
+      margin-bottom: 24px;
+    }
+    .cta-section .cta-body {
+      max-width: 560px;
+      margin: 0 auto 40px;
+      font-size: 1.0625rem;
+      color: var(--text-secondary);
+    }
+    .cta-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .cta-micro {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    /* === PRICING CARDS === */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      max-width: 700px;
+      margin: 48px auto 0;
+    }
+    .pricing-card {
+      text-align: left;
+    }
+    .pricing-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 4px;
+    }
+    .pricing-card .pricing-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .pricing-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .pricing-list li {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .pricing-list li::before {
+      content: '';
+      flex-shrink: 0;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      margin-top: 8px;
+    }
+
+    /* ============================================ */
+    /* FAQ SECTION                                  */
+    /* ============================================ */
+    .faq { background: var(--bg-secondary); }
+    .faq-list {
+      margin-top: 48px;
+      max-width: 700px;
+    }
+    .faq-item {
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .faq-q {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text);
+      text-align: left;
+      transition: var(--transition);
+    }
+    .faq-q:hover { color: var(--accent-secondary); }
+    .faq-q .chevron {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+    }
+    .faq-item.open .chevron { transform: rotate(180deg); }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+    .faq-item.open .faq-a {
+      max-height: 300px;
+      padding-bottom: 20px;
+    }
+    .faq-a p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ============================================ */
+    /* FOOTER                                       */
+    /* ============================================ */
+    .footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .footer .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-copy {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .footer-links a {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .footer-links a:hover { color: var(--text); }
+
+    /* ============================================ */
+    /* RESPONSIVE                                   */
+    /* ============================================ */
+    @media (max-width: 768px) {
+      :root {
+        --section-padding: 56px;
+        --hero-padding: 96px;
+        --card-padding: 24px;
+      }
+      .nav-links { display: none; }
+      .hero h1 { font-size: 2rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .feature-card.featured { grid-row: span 1; }
+      .credibility-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; align-items: flex-start; }
+      .cta-actions { flex-direction: column; align-items: center; }
+      .footer .container { flex-direction: column; gap: 16px; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.75rem; }
+      h2 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll Progress (Enhanced) -->
+  <div class="scroll-progress"></div>
+
+  <!-- Grain Texture (Enhanced) -->
+  <div class="grain"></div>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="container">
+      <a href="#" class="nav-logo">ZmobCRM</a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Planos</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#cta" class="btn btn-primary btn-sm">Testar Gratis</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============================== -->
+  <!-- BLOCO 1: HERO                  -->
+  <!-- ============================== -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <div class="hero-content">
+        <p class="hero-pre reveal">Para imobiliarias e corretores que estao cansados de CRMs que apenas organizam dados</p>
+        <h1 class="reveal reveal-d1">O Primeiro CRM Imobiliario Que <span class="gradient-text">Pensa Junto Com Voce</span></h1>
+        <p class="hero-sub reveal reveal-d2">Enquanto outros CRMs organizam planilhas bonitas, o ZmobCRM analisa seus negocios com inteligencia artificial, sugere as melhores acoes e automatiza as decisoes que fazem voce fechar mais vendas.</p>
+        <p class="hero-body reveal reveal-d2">Voce ja tem um CRM. Ele guarda dados, mostra um kanban e manda lembretes. Mas no final do dia, quem analisa cada negocio, decide o proximo passo e cobra follow-up ainda e voce. O ZmobCRM e diferente. Ele usa inteligencia artificial de verdade para entender cada deal do seu pipeline, identificar quais leads tem maior chance de fechar e dizer exatamente o que fazer agora.</p>
+        <div class="hero-actions reveal reveal-d3">
+          <a href="#cta" class="btn btn-primary">Testar Gratis por 14 Dias</a>
+          <a href="#demo" class="btn btn-secondary">Agendar uma Demonstracao</a>
+        </div>
+        <p class="hero-proof reveal reveal-d3">Construido com a mesma tecnologia usada por empresas como Stripe e Vercel</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 2: PROBLEMAS             -->
+  <!-- ============================== -->
+  <section class="problems" id="problems">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">01</span>O Problema</span>
+      <h2 class="reveal reveal-d1">Voce Reconhece Alguma<br>Dessas Situacoes?</h2>
+
+      <div class="problems-grid">
+        <div class="problem-item reveal">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Leads perdidos por falta de follow-up.</strong>
+            <p class="problem-text">A maioria das imobiliarias perde mais de 50% dos leads antes do primeiro contato. Cada lead perdido e dinheiro que foi para o concorrente.</p>
+          </div>
+        </div>
+        <div class="problem-item reveal reveal-d1">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Seu CRM virou um cemiterio de dados.</strong>
+            <p class="problem-text">Voce paga todo mes por um sistema que guarda informacoes, mas nao faz nada com elas. Os dados estao la. As decisoes continuam na sua cabeca.</p>
+          </div>
+        </div>
+        <div class="problem-item reveal reveal-d2">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Sem saber quais negocios priorizar.</strong>
+            <p class="problem-text">Com 30, 50, 100 deals abertos, como decidir onde investir energia? Sem inteligencia, voce aposta no feeling e perde vendas.</p>
+          </div>
+        </div>
+        <div class="problem-item reveal reveal-d3">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Seu time nao segue o processo.</strong>
+            <p class="problem-text">Corretores esquecem de registrar atividades, nao atualizam o pipeline e voce fica no escuro sobre o que esta acontecendo de verdade.</p>
+          </div>
+        </div>
+        <div class="problem-item reveal reveal-d4">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Horas gastas em trabalho operacional.</strong>
+            <p class="problem-text">Analisar pipeline, distribuir leads, escrever emails de follow-up, preparar briefings. Tempo que voce deveria usar para fechar negocios.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="problems-transition reveal">
+        <p>Se voce se identificou com pelo menos uma dessas situacoes, nao e culpa sua. E culpa do seu CRM.</p>
+        <p>Os CRMs tradicionais foram projetados para armazenar dados. O ZmobCRM foi projetado para gerar vendas.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 3: SOLUCAO               -->
+  <!-- ============================== -->
+  <section class="solution" id="solution">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">02</span>A Solucao</span>
+      <h2 class="reveal reveal-d1">Inteligencia Artificial<br>Que <span class="gradient-text">Realmente Vende</span></h2>
+
+      <div class="solution-content">
+        <p class="reveal reveal-d2">A maioria dos CRMs imobiliarios no Brasil tem zero inteligencia artificial. Os poucos que dizem ter IA oferecem um chatbot basico que gera descricoes de imoveis.</p>
+        <p class="reveal reveal-d2">O ZmobCRM opera em outro nivel. Integramos multiplos modelos de IA &mdash; incluindo a mesma tecnologia por tras do ChatGPT, Gemini e Claude &mdash; diretamente dentro do seu pipeline de vendas. Nao como um add-on. Como o cerebro do sistema.</p>
+      </div>
+
+      <div class="solution-steps">
+        <div class="solution-step reveal">
+          <div class="step-number">01</div>
+          <div class="step-content">
+            <h3>Analisa</h3>
+            <p>Cada deal automaticamente. Calcula probabilidade de fechamento baseado em dados reais, nao em achismo.</p>
+          </div>
+        </div>
+        <div class="solution-step reveal reveal-d1">
+          <div class="step-number">02</div>
+          <div class="step-content">
+            <h3>Sugere</h3>
+            <p>A proxima melhor acao para cada negocio: ligar agora, enviar proposta, esperar, descartar. Com justificativa.</p>
+          </div>
+        </div>
+        <div class="solution-step reveal reveal-d2">
+          <div class="step-number">03</div>
+          <div class="step-content">
+            <h3>Automatiza</h3>
+            <p>Tarefas que roubam seu tempo: emails de follow-up, scripts de venda, briefings diarios e transcricao de chamadas.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="solution-cta reveal">Nenhum outro CRM imobiliario no Brasil faz isso.</p>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 4: FEATURES              -->
+  <!-- ============================== -->
+  <section class="features" id="features">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">03</span>Features</span>
+      <h2 class="reveal reveal-d1">Tudo Que Voce Precisa.<br>Mais a Inteligencia Que <span class="gradient-text">Ninguem Oferece.</span></h2>
+
+      <div class="features-grid">
+        <!-- Featured Card -->
+        <div class="card feature-card featured reveal">
+          <span class="feature-label">Pipeline</span>
+          <h3>Pipeline Visual com IA Integrada</h3>
+          <p>Kanban board multi-pipeline com drag-and-drop. Cada card carrega analise de IA embutida: score de probabilidade, riscos e proxima acao recomendada.</p>
+          <ul class="feature-list">
+            <li>Multiplos boards para vendas, locacao, lancamentos</li>
+            <li>Arraste deals entre etapas em tempo real</li>
+            <li>Veja quais negocios precisam de atencao agora</li>
+            <li>Campos personalizados ilimitados por deal</li>
+          </ul>
+        </div>
+
+        <div class="card feature-card reveal reveal-d1">
+          <span class="feature-label">Briefing</span>
+          <h3>Briefing Diario Inteligente</h3>
+          <p>Todo dia a IA analisa seu pipeline e entrega um resumo executivo.</p>
+          <ul class="feature-list">
+            <li>Deals que avancaram ou travaram</li>
+            <li>Leads frios que precisam de resgate</li>
+            <li>Acoes prioritarias ordenadas por impacto</li>
+            <li>Alertas de negocios em risco</li>
+          </ul>
+        </div>
+
+        <div class="card feature-card reveal reveal-d2">
+          <span class="feature-label">Contatos</span>
+          <h3>Contatos e Historico Completo</h3>
+          <p>Cada cliente, cada interacao, tudo conectado em segundos.</p>
+          <ul class="feature-list">
+            <li>Lifecycle stages automaticos</li>
+            <li>Timeline unificada da jornada</li>
+            <li>Tags e campos personalizados sem limite</li>
+            <li>Vinculacao entre contatos e organizacoes</li>
+          </ul>
+        </div>
+
+        <div class="card feature-card reveal reveal-d1">
+          <span class="feature-label">Automacao</span>
+          <h3>Automacoes com IA</h3>
+          <p>A IA assume o trabalho operacional para voce focar em fechamento.</p>
+          <ul class="feature-list">
+            <li>Emails de follow-up personalizados pela IA</li>
+            <li>Scripts de venda sob medida</li>
+            <li>Transcricao de chamadas com sentimento</li>
+            <li>Fila de decisoes inteligente</li>
+          </ul>
+        </div>
+
+        <div class="card feature-card reveal reveal-d2">
+          <span class="feature-label">Seguranca</span>
+          <h3>Seguranca de Nivel Bancario</h3>
+          <p>Protecao completa para o ativo mais valioso da sua imobiliaria.</p>
+          <ul class="feature-list">
+            <li>RBAC com 3 niveis de acesso</li>
+            <li>Row Level Security no banco</li>
+            <li>Audit logs completos</li>
+            <li>API publica com 65+ endpoints</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 5: CREDIBILIDADE         -->
+  <!-- ============================== -->
+  <section class="credibility" id="credibility">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">04</span>Credibilidade</span>
+      <h2 class="reveal reveal-d1">Por Que Confiar<br>no ZmobCRM?</h2>
+
+      <div class="credibility-grid">
+        <div class="card credibility-card reveal">
+          <h3>Tecnologia de Ponta, Feita no Brasil</h3>
+          <p>Construido com React, Next.js, Supabase e Vercel. A mesma pilha tecnologica usada por Netflix, Uber e Nike. IA multi-provider: OpenAI, Google, Anthropic.</p>
+        </div>
+        <div class="card credibility-card reveal reveal-d1">
+          <h3>Seguranca Que os Grandes Confiam</h3>
+          <p>Row Level Security no banco. Audit logs imutaveis. RBAC com segregacao de funcoes. LGPD nativo. O mesmo nivel de seguranca que bancos e fintechs utilizam.</p>
+        </div>
+        <div class="card credibility-card reveal reveal-d2">
+          <h3>API Aberta Desde o Plano Basico</h3>
+          <p>Enquanto concorrentes cobram R$749/mes para liberar API, o ZmobCRM oferece 65+ endpoints REST e webhooks completos em todos os planos.</p>
+        </div>
+        <div class="card credibility-card reveal reveal-d3">
+          <h3>Construido Por Quem Entende o Mercado</h3>
+          <p>Desenvolvido por profissionais com experiencia em tecnologia e no mercado imobiliario brasileiro. Cada funcionalidade resolve problemas reais.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 6: OBJECOES              -->
+  <!-- ============================== -->
+  <section class="objections" id="objections">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">05</span>Duvidas</span>
+      <h2 class="reveal reveal-d1">Respostas Honestas<br>Para Suas Duvidas</h2>
+
+      <div class="objections-list">
+        <div class="objection-item reveal">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "Ja uso outro CRM e da muito trabalho migrar."
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>Entendemos. Por isso oferecemos migracao assistida gratuita. Nossa equipe importa seus contatos, deals e historico sem que voce precise mover um dedo. E se nao gostar, seus dados continuam sendo seus &mdash; exportaveis a qualquer momento.</p>
+          </div>
+        </div>
+
+        <div class="objection-item reveal reveal-d1">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "IA parece coisa de filme. Funciona de verdade?"
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>Funciona. E funciona porque nao e IA generica &mdash; e IA treinada para vendas imobiliarias. Ela analisa seu pipeline, seus leads, suas interacoes e entrega sugestoes baseadas em fatos. Sem misticismo, sem promessas vazias.</p>
+          </div>
+        </div>
+
+        <div class="objection-item reveal reveal-d2">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "Meus corretores nao sao bons com tecnologia."
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>Se seu corretor sabe usar WhatsApp, sabe usar o Zmob. Interface limpa, arrastar e soltar, e a IA cuida do resto. Oferecemos onboarding guiado para todo o time.</p>
+          </div>
+        </div>
+
+        <div class="objection-item reveal reveal-d3">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "E muito caro ter IA no CRM?"
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>Enquanto concorrentes cobram R$300-700/mes por CRMs sem IA, o ZmobCRM inclui inteligencia artificial em todos os planos. Voce paga menos e recebe mais.</p>
+          </div>
+        </div>
+
+        <div class="objection-item reveal reveal-d4">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "E se precisar de algo que voces nao tem?"
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>API publica com 65+ endpoints e webhooks. Conecte o ZmobCRM com WhatsApp, RD Station, Google Sheets ou qualquer ferramenta. Nosso roadmap e construido com feedback dos clientes.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 7: CTA + PRICING         -->
+  <!-- ============================== -->
+  <section class="cta-section" id="cta">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">06</span>Comece Agora</span>
+      <h2 class="reveal reveal-d1">Pronto Para Ter Um CRM Que<br><span class="gradient-text">Trabalha Por Voce?</span></h2>
+
+      <p class="cta-body reveal reveal-d2">Enquanto voce le isso, concorrentes estao perdendo leads por falta de follow-up e tomando decisoes no achismo. Teste o ZmobCRM e veja em 14 dias o que acontece quando IA de verdade entra no seu pipeline.</p>
+
+      <div class="pricing-grid" id="pricing">
+        <div class="card pricing-card reveal">
+          <h3>Corretor</h3>
+          <p class="pricing-desc">Para autonomos e pequenos times</p>
+          <ul class="pricing-list">
+            <li>Pipeline visual</li>
+            <li>Contatos e deals</li>
+            <li>IA integrada</li>
+            <li>API completa</li>
+          </ul>
+          <a href="#" class="btn btn-primary" style="width:100%">Comecar Gratis</a>
+        </div>
+        <div class="card pricing-card reveal reveal-d1">
+          <h3>Imobiliaria</h3>
+          <p class="pricing-desc">Para times de 5+ corretores</p>
+          <ul class="pricing-list">
+            <li>Tudo do Corretor</li>
+            <li>Multi-boards</li>
+            <li>RBAC (3 niveis)</li>
+            <li>Distribuicao de leads</li>
+            <li>Relatorios avancados</li>
+            <li>Onboarding dedicado</li>
+          </ul>
+          <a href="#" class="btn btn-secondary" style="width:100%">Falar com Vendas</a>
+        </div>
+      </div>
+
+      <div style="margin-top:40px;" class="reveal">
+        <a href="#" class="btn btn-primary">Testar Gratis por 14 Dias &mdash; Sem Cartao de Credito</a>
+        <p class="cta-micro" style="margin-top:12px;">Cancele quando quiser. Seus dados sao seus. Sem pegadinhas.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 8: FAQ                   -->
+  <!-- ============================== -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">07</span>FAQ</span>
+      <h2 class="reveal reveal-d1">Perguntas Frequentes</h2>
+
+      <div class="faq-list">
+        <div class="faq-item reveal">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            Funciona para corretores autonomos ou so para imobiliarias?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>Funciona para ambos. Corretores autonomos usam o plano individual com pipeline, IA e gestao de contatos. Imobiliarias usam planos com multi-usuarios, RBAC e distribuicao de leads. A IA funciona igual em todos os planos.</p>
+          </div>
+        </div>
+
+        <div class="faq-item reveal reveal-d1">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            Preciso instalar alguma coisa no computador?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>Nao. O ZmobCRM funciona 100% no navegador. Acesse de qualquer lugar, em qualquer dispositivo. Nao precisa instalar nada.</p>
+          </div>
+        </div>
+
+        <div class="faq-item reveal reveal-d2">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            A IA e segura? Meus dados ficam expostos?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>Seus dados ficam protegidos com criptografia e Row Level Security. A IA processa dados dentro do ambiente seguro e nao compartilha informacoes entre contas. 100% compliance com a LGPD.</p>
+          </div>
+        </div>
+
+        <div class="faq-item reveal reveal-d3">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            Consigo integrar com WhatsApp e portais imobiliarios?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>O ZmobCRM tem API publica com 65+ endpoints e webhooks bidirecionais. Integracoes nativas com portais e WhatsApp estao no roadmap e serao lancadas em breve.</p>
+          </div>
+        </div>
+
+        <div class="faq-item reveal reveal-d4">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            Tem contrato de fidelidade?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>Nao. Cancele a qualquer momento, sem multa. Exporte todos os seus dados com um clique. Voce fica porque quer, nao porque esta preso.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <span class="footer-copy">&copy; 2026 ZmobCRM. Todos os direitos reservados.</span>
+      <ul class="footer-links">
+        <li><a href="#">Termos de Uso</a></li>
+        <li><a href="#">Politica de Privacidade</a></li>
+        <li><a href="#">Contato</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- ============================== -->
+  <!-- SCRIPTS (Enhanced tier)        -->
+  <!-- ============================== -->
+  <script>
+    // Scroll Progress Bar
+    window.addEventListener('scroll', () => {
+      const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+      document.querySelector('.scroll-progress').style.width = pct + '%';
+    });
+
+    // Cinematic Scroll Reveals
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+  </script>
+
+</body>
+</html>
