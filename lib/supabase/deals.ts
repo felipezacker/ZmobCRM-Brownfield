@@ -444,6 +444,7 @@ export const dealsService = {
       if (deal.items && deal.items.length > 0) {
         const itemsToInsert = deal.items.map(item => ({
           deal_id: data.id,
+          organization_id: organizationId,
           product_id: item.productId || null,
           name: item.name,
           quantity: item.quantity,

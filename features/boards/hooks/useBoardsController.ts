@@ -502,7 +502,7 @@ export const useBoardsController = () => {
     cutoffDate.setDate(cutoffDate.getDate() - 30);
     const cutoffTime = cutoffDate.getTime();
     return deals.filter(
-      d => (d.isWon || d.isLost) && new Date(d.updatedAt).getTime() < cutoffTime
+      d => (d.isWon || d.isLost) && new Date(d.closedAt || d.updatedAt).getTime() < cutoffTime
     ).length;
   }, [deals, statusFilter]);
 
