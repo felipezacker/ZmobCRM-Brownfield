@@ -235,15 +235,34 @@ export function useRealtimeSync(
                     return old.map((d, i) => i === existingIndex ? { ...d, ...normalizedDeal } as DealView : d);
                   }
                   
+                  // Capture temp deal before removing to preserve enriched fields
+                  // (e.g. contactName) that aren't in the raw DB Realtime payload
+                  const tempDeal = old.find((d) => {
+                    const isTemp = typeof d.id === 'string' && d.id.startsWith('temp-');
+                    const sameTitle = d.title === newData.title;
+                    return isTemp && sameTitle;
+                  });
+
                   // Remove any temp deals with same title (they are placeholders for this deal)
                   const tempDealsRemoved = old.filter((d) => {
                     const isTemp = typeof d.id === 'string' && d.id.startsWith('temp-');
                     const sameTitle = d.title === newData.title;
                     return !(isTemp && sameTitle);
                   });
-                  
+
+                  // Enrich raw deal with fields preserved from temp (contactName, etc.)
+                  // useCRMActions will also enrich later, but this covers the race window
+                  const enrichedDeal = tempDeal
+                    ? {
+                        contactName: tempDeal.contactName,
+                        contactEmail: tempDeal.contactEmail,
+                        contactPhone: tempDeal.contactPhone,
+                        ...normalizedDeal,
+                      }
+                    : normalizedDeal;
+
                   // Add new deal at the beginning
-                  return [normalizedDeal as unknown as DealView, ...tempDealsRemoved];
+                  return [enrichedDeal as unknown as DealView, ...tempDealsRemoved];
                 }
               );
               

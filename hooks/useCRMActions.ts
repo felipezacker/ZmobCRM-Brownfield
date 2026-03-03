@@ -142,8 +142,17 @@ export function useCRMActions() {
             [...queryKeys.deals.lists(), 'view'],
             (old = []) => {
               const withoutTemp = old.filter((d) => d.id !== optimisticTempId);
-              const already = withoutTemp.some((d) => d.id === createdDeal.id);
-              return already ? withoutTemp : [createdDealView, ...withoutTemp];
+              const alreadyIndex = withoutTemp.findIndex((d) => d.id === createdDeal.id);
+              if (alreadyIndex !== -1) {
+                // Realtime já adicionou o deal cru (sem contactName).
+                // Enriquece com dados otimistas para evitar "Sem Nome" no card.
+                return withoutTemp.map((d, i) =>
+                  i === alreadyIndex
+                    ? { ...d, contactName: optimisticContactName, contactEmail: optimisticContactEmail, contactPhone: optimisticContactPhone, stageLabel: optimisticStageLabel }
+                    : d
+                );
+              }
+              return [createdDealView, ...withoutTemp];
             }
           );
         } else {
