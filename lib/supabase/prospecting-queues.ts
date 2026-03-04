@@ -54,6 +54,7 @@ interface DbQueueItem {
   updated_at: string;
   contacts?: {
     name: string;
+    phone: string | null;
     stage: string | null;
     temperature: string | null;
     email: string | null;
@@ -79,7 +80,9 @@ const transformQueueItem = (db: DbQueueItem): ProspectingQueueItem => ({
   updatedAt: db.updated_at,
   contactName: db.contacts?.name,
   contactPhone: db.contacts?.contact_phones?.find(p => p.is_primary)?.phone_number
-    || db.contacts?.contact_phones?.[0]?.phone_number,
+    || db.contacts?.contact_phones?.[0]?.phone_number
+    || db.contacts?.phone
+    || undefined,
   contactStage: db.contacts?.stage || undefined,
   contactTemperature: db.contacts?.temperature || undefined,
   contactEmail: db.contacts?.email || undefined,
@@ -104,6 +107,7 @@ export const prospectingQueuesService = {
           *,
           contacts!inner (
             name,
+            phone,
             stage,
             temperature,
             email,
@@ -172,6 +176,7 @@ export const prospectingQueuesService = {
           *,
           contacts!inner (
             name,
+            phone,
             stage,
             temperature,
             email,
