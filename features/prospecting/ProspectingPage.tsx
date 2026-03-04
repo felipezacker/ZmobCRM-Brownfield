@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, Eye } from 'lucide-react'
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, ChevronDown, X as XIcon } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/app/components/ui/Button'
 import { CallQueue } from './components/CallQueue'
@@ -194,6 +194,21 @@ export const ProspectingPage: React.FC = () => {
   const currentContact = sessionActive && queue[currentIndex] ? queue[currentIndex] : null
   const pendingCount = queue.filter(q => q.status === 'pending').length
 
+  // Owner dropdown state
+  const [ownerDropdownOpen, setOwnerDropdownOpen] = useState(false)
+  const ownerDropdownRef = useRef<HTMLDivElement>(null)
+  const viewingOwnerProfile = viewQueueOwnerId ? profiles.find(p => p.id === viewQueueOwnerId) : null
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ownerDropdownRef.current && !ownerDropdownRef.current.contains(e.target as Node)) {
+        setOwnerDropdownOpen(false)
+      }
+    }
+    if (ownerDropdownOpen) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [ownerDropdownOpen])
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -204,10 +219,113 @@ export const ProspectingPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Prospecção</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {queue.length} contato{queue.length !== 1 ? 's' : ''} na fila
-              {sessionActive && ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''}`}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {queue.length} contato{queue.length !== 1 ? 's' : ''} na fila
+                {sessionActive && ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''}`}
+              </p>
+
+              {/* Owner selector - integrated into header */}
+              {isAdminOrDirector && !sessionActive && (
+                <div className="relative" ref={ownerDropdownRef}>
+                  <Button
+                    variant="unstyled"
+                    size="unstyled"
+                    type="button"
+                    onClick={() => setOwnerDropdownOpen(prev => !prev)}
+                    className={`flex items-center gap-1.5 ml-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all ${
+                      viewingOwnerProfile
+                        ? 'bg-teal-500/15 text-teal-600 dark:text-teal-400 ring-1 ring-teal-500/30'
+                        : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
+                    }`}
+                  >
+                    {viewingOwnerProfile ? (
+                      <>
+                        <span className="w-4 h-4 rounded-full bg-teal-500 text-white text-[8px] font-bold flex items-center justify-center shrink-0">
+                          {viewingOwnerProfile.name.charAt(0).toUpperCase()}
+                        </span>
+                        {viewingOwnerProfile.name.split(' ')[0]}
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setViewQueueOwnerId('')
+                            setOwnerDropdownOpen(false)
+                          }}
+                          className="ml-0.5 p-0.5 rounded-full hover:bg-teal-500/20 transition-colors"
+                        >
+                          <XIcon size={10} />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Users size={11} />
+                        Ver fila
+                        <ChevronDown size={10} className={`transition-transform ${ownerDropdownOpen ? 'rotate-180' : ''}`} />
+                      </>
+                    )}
+                  </Button>
+
+                  {ownerDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1.5 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg shadow-black/10 dark:shadow-black/30 z-50 overflow-hidden">
+                      <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                          Filas dos corretores
+                        </p>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto py-1">
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
+                          type="button"
+                          onClick={() => { setViewQueueOwnerId(''); setOwnerDropdownOpen(false) }}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                            !viewQueueOwnerId
+                              ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                          }`}
+                        >
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                            !viewQueueOwnerId
+                              ? 'bg-teal-500 text-white'
+                              : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                          }`}>
+                            {profile?.first_name?.charAt(0)?.toUpperCase() || 'E'}
+                          </span>
+                          <span className="truncate">Minha fila</span>
+                        </Button>
+                        {profiles.map(p => (
+                          <Button
+                            key={p.id}
+                            variant="unstyled"
+                            size="unstyled"
+                            type="button"
+                            onClick={() => { setViewQueueOwnerId(p.id); setOwnerDropdownOpen(false) }}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                              viewQueueOwnerId === p.id
+                                ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400'
+                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                            }`}
+                          >
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                              viewQueueOwnerId === p.id
+                                ? 'bg-teal-500 text-white'
+                                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                            }`}>
+                              {p.name.charAt(0).toUpperCase()}
+                            </span>
+                            <span className="truncate">{p.name}</span>
+                            <span className="ml-auto text-[10px] text-slate-400 capitalize">{p.role}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -453,26 +571,6 @@ export const ProspectingPage: React.FC = () => {
                     onSelectAllFiltered={filteredContacts.getAllFilteredIds}
                   />
                 )}
-              </div>
-            )}
-
-            {/* Admin/Director: view queue by owner */}
-            {isAdminOrDirector && (
-              <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-700/50 rounded-xl">
-                <Eye size={16} className="text-slate-400 shrink-0" />
-                <span className="text-sm text-slate-600 dark:text-slate-300 font-medium">
-                  Ver fila de:
-                </span>
-                <select
-                  className="bg-white dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-teal-500 dark:text-white"
-                  value={viewQueueOwnerId}
-                  onChange={(e) => setViewQueueOwnerId(e.target.value)}
-                >
-                  <option value="">Minha fila</option>
-                  {profiles.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
               </div>
             )}
 
