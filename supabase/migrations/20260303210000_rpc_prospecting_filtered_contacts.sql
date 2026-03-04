@@ -8,6 +8,7 @@ CREATE OR REPLACE FUNCTION public.get_prospecting_filtered_contacts(
   p_source TEXT DEFAULT NULL,
   p_owner_id UUID DEFAULT NULL,
   p_inactive_days INT DEFAULT NULL,
+  p_only_with_phone BOOLEAN DEFAULT FALSE,
   p_page INT DEFAULT 0,
   p_page_size INT DEFAULT 50
 )
@@ -88,9 +89,10 @@ BEGIN
   with_inactive_filter AS (
     SELECT f.*
     FROM filtered f
-    WHERE p_inactive_days IS NULL
+    WHERE (p_inactive_days IS NULL
       OR f.days_since_last_activity IS NULL
-      OR f.days_since_last_activity >= p_inactive_days
+      OR f.days_since_last_activity >= p_inactive_days)
+      AND (NOT p_only_with_phone OR f.has_phone)
   ),
   counted AS (
     SELECT w.*, COUNT(*) OVER() AS total_count
@@ -111,7 +113,7 @@ BEGIN
     counted.days_since_last_activity,
     counted.total_count
   FROM counted
-  ORDER BY counted.name ASC
+  ORDER BY counted.has_phone DESC, counted.name ASC
   LIMIT p_page_size
   OFFSET p_page * p_page_size;
 END;
@@ -119,3 +121,53 @@ $$;
 
 -- Grant execute to authenticated users
 GRANT EXECUTE ON FUNCTION public.get_prospecting_filtered_contacts TO authenticated;
+
+-- CP-1.3: Light RPC returning only IDs for "select all" cross-page
+CREATE OR REPLACE FUNCTION public.get_prospecting_filtered_contact_ids(
+  p_stages TEXT[] DEFAULT NULL,
+  p_temperatures TEXT[] DEFAULT NULL,
+  p_classifications TEXT[] DEFAULT NULL,
+  p_source TEXT DEFAULT NULL,
+  p_owner_id UUID DEFAULT NULL,
+  p_inactive_days INT DEFAULT NULL,
+  p_only_with_phone BOOLEAN DEFAULT FALSE
+)
+RETURNS TABLE (id UUID)
+LANGUAGE plpgsql
+STABLE
+SECURITY INVOKER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID;
+  v_user_id UUID;
+  v_is_admin BOOLEAN;
+BEGIN
+  v_user_id := auth.uid();
+  SELECT p.organization_id INTO v_org_id FROM profiles p WHERE p.id = v_user_id;
+  v_is_admin := is_admin_or_director(v_org_id);
+
+  RETURN QUERY
+  SELECT c.id
+  FROM contacts c
+  WHERE c.organization_id = v_org_id
+    AND c.status = 'ACTIVE'
+    AND (v_is_admin OR c.owner_id = v_user_id)
+    AND (p_stages IS NULL OR c.stage = ANY(p_stages))
+    AND (p_temperatures IS NULL OR c.temperature = ANY(p_temperatures))
+    AND (p_classifications IS NULL OR c.classification = ANY(p_classifications))
+    AND (p_source IS NULL OR c.source = p_source)
+    AND (p_owner_id IS NULL OR c.owner_id = p_owner_id)
+    AND (NOT p_only_with_phone OR (
+      EXISTS (SELECT 1 FROM contact_phones cp WHERE cp.contact_id = c.id)
+      OR c.phone IS NOT NULL AND c.phone <> ''
+    ))
+    AND (p_inactive_days IS NULL OR NOT EXISTS (
+      SELECT 1 FROM activities a
+      WHERE a.contact_id = c.id AND a.deleted_at IS NULL
+        AND a.date > now() - (p_inactive_days || ' days')::INTERVAL
+    ));
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_prospecting_filtered_contact_ids TO authenticated;

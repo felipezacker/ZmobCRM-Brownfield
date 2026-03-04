@@ -19,6 +19,7 @@ interface FilteredContactsListProps {
   existingQueueContactIds: Set<string>
   currentQueueSize: number
   onAddToQueue: (contactIds: string[]) => Promise<void>
+  onSelectAllFiltered?: () => Promise<string[]>
 }
 
 export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
@@ -32,9 +33,12 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
   existingQueueContactIds,
   currentQueueSize,
   onAddToQueue,
+  onSelectAllFiltered,
 }) => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isAdding, setIsAdding] = useState(false)
+  const [isLoadingAllIds, setIsLoadingAllIds] = useState(false)
+  const [allFilteredSelected, setAllFilteredSelected] = useState(false)
 
   // Only selectable contacts (have phone and not already in queue)
   const selectableContacts = useMemo(
@@ -57,10 +61,24 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
   const toggleSelectAll = useCallback(() => {
     if (allSelectableSelected) {
       setSelectedIds(new Set())
+      setAllFilteredSelected(false)
     } else {
       setSelectedIds(new Set(selectableContacts.map(c => c.id)))
     }
   }, [allSelectableSelected, selectableContacts])
+
+  const handleSelectAllFiltered = useCallback(async () => {
+    if (!onSelectAllFiltered) return
+    setIsLoadingAllIds(true)
+    try {
+      const allIds = await onSelectAllFiltered()
+      const filtered = allIds.filter(id => !existingQueueContactIds.has(id))
+      setSelectedIds(new Set(filtered))
+      setAllFilteredSelected(true)
+    } finally {
+      setIsLoadingAllIds(false)
+    }
+  }, [onSelectAllFiltered, existingQueueContactIds])
 
   const selectedCount = selectedIds.size
   const wouldExceedLimit = currentQueueSize + selectedCount > QUEUE_LIMIT
@@ -83,10 +101,12 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
     }
   }, [selectedIds, selectedCount, wouldExceedLimit, maxAddable, onAddToQueue])
 
-  // Reset selection on page change
+  // Reset selection on page change (but not if all filtered are selected)
   React.useEffect(() => {
-    setSelectedIds(new Set())
-  }, [page])
+    if (!allFilteredSelected) {
+      setSelectedIds(new Set())
+    }
+  }, [page, allFilteredSelected])
 
   if (isLoading) {
     return (
@@ -123,6 +143,22 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
           <span className="text-xs text-slate-500 dark:text-slate-400">
             {selectedCount} selecionado{selectedCount !== 1 ? 's' : ''} de {totalCount} contato{totalCount !== 1 ? 's' : ''}
           </span>
+          {onSelectAllFiltered && totalCount > contacts.length && allSelectableSelected && !allFilteredSelected && (
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              onClick={handleSelectAllFiltered}
+              disabled={isLoadingAllIds}
+              className="text-xs font-medium text-teal-600 dark:text-teal-400 hover:underline disabled:opacity-50"
+            >
+              {isLoadingAllIds ? 'Carregando...' : `Selecionar todos os ${totalCount} contatos`}
+            </Button>
+          )}
+          {allFilteredSelected && (
+            <span className="text-xs font-medium text-teal-600 dark:text-teal-400">
+              Todos os {selectedCount} contatos selecionados
+            </span>
+          )}
         </div>
 
         {selectedCount > 0 && (

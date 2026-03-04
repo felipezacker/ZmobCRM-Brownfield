@@ -143,10 +143,37 @@ describe('useProspectingFilteredContacts', () => {
         source: '',
         ownerId: '',
         inactiveDays: null,
+        onlyWithPhone: false,
       })
     })
 
     // Should still trigger results but with minimal params
     expect(result.current.hasResults).toBe(true)
+  })
+
+  it('passes onlyWithPhone filter when enabled', () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts())
+
+    act(() => {
+      result.current.applyFilters({
+        ...INITIAL_FILTERS,
+        onlyWithPhone: true,
+      })
+    })
+
+    expect(result.current.hasResults).toBe(true)
+  })
+
+  it('exposes getAllFilteredIds method', () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts())
+
+    expect(typeof result.current.getAllFilteredIds).toBe('function')
+  })
+
+  it('getAllFilteredIds returns empty array when no filters applied', async () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts())
+
+    const ids = await result.current.getAllFilteredIds()
+    expect(ids).toEqual([])
   })
 })

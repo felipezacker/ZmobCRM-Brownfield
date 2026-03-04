@@ -30,6 +30,7 @@ export const useProspectingFilteredContacts = () => {
       source: filters.source || undefined,
       ownerId: filters.ownerId || undefined,
       inactiveDays: filters.inactiveDays ?? undefined,
+      onlyWithPhone: filters.onlyWithPhone || undefined,
       page: 0,
       pageSize: 50,
     }
@@ -72,6 +73,13 @@ export const useProspectingFilteredContacts = () => {
     setPage(p)
   }, [])
 
+  const getAllFilteredIds = useCallback(async (): Promise<string[]> => {
+    if (!appliedFilters) return []
+    const { data, error } = await prospectingFilteredContactsService.getAllFilteredIds(appliedFilters)
+    if (error || !data) return []
+    return data
+  }, [appliedFilters])
+
   return {
     contacts,
     totalCount,
@@ -84,5 +92,6 @@ export const useProspectingFilteredContacts = () => {
     hasResults,
     applyFilters,
     clearFilters,
+    getAllFilteredIds,
   }
 }

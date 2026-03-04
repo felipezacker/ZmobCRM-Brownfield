@@ -299,6 +299,7 @@ export const ProspectingPage: React.FC = () => {
                     existingQueueContactIds={queueContactIdsSet}
                     currentQueueSize={queue.length}
                     onAddToQueue={handleAddBatchToQueue}
+                    onSelectAllFiltered={filteredContacts.getAllFilteredIds}
                   />
                 )}
               </div>

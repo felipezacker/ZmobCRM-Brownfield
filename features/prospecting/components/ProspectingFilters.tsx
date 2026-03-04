@@ -23,6 +23,7 @@ export interface ProspectingFiltersState {
   source: string
   ownerId: string
   inactiveDays: number | null
+  onlyWithPhone: boolean
 }
 
 export const INITIAL_FILTERS: ProspectingFiltersState = {
@@ -32,6 +33,7 @@ export const INITIAL_FILTERS: ProspectingFiltersState = {
   source: '',
   ownerId: '',
   inactiveDays: null,
+  onlyWithPhone: false,
 }
 
 interface ProspectingFiltersProps {
@@ -55,7 +57,8 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
     filters.classifications.length > 0 ||
     filters.source !== '' ||
     filters.ownerId !== '' ||
-    filters.inactiveDays !== null
+    filters.inactiveDays !== null ||
+    filters.onlyWithPhone
 
   const handleClear = () => {
     onFiltersChange(INITIAL_FILTERS)
@@ -220,6 +223,16 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
             }}
           />
         </div>
+
+        <label className="flex items-center gap-2 cursor-pointer self-center pt-4">
+          <input
+            type="checkbox"
+            checked={filters.onlyWithPhone}
+            onChange={(e) => onFiltersChange({ ...filters, onlyWithPhone: e.target.checked })}
+            className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
+          />
+          <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Só com telefone</span>
+        </label>
       </div>
     </div>
   )
