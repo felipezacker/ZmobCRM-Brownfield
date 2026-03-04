@@ -147,3 +147,7 @@ Evoluir o sistema de scripts (ScriptEditorModal) para exibir um guia interativo 
 | 2026-03-03 | @dev (Dex) | QA fixes aplicados: cleanUnresolvedVariables, objecoes por categoria, toast no clipboard. +5 testes (50 total). Commit b01e3c7. |
 | 2026-03-03 | @qa (Quinn) | Re-review PASS 10/10. Zero issues. 50/50 testes, typecheck + lint limpos. |
 | 2026-03-03 | @po (Pax) | ACs 1-11 marcados, DoD completo, status Done. Story pronta para push. |
+| 2026-03-03 | @dev (Dex) | UX improvements: keyboard shortcuts (L/P/E/S), inline script dropdown, session stats chips, script preview. Commits a9af69d, 8c03fe6. |
+| 2026-03-03 | @qa (Quinn) | Review UX: CONCERNS — 4 issues (1 MEDIUM, 3 LOW). QA_FIX_REQUEST_CP-1.2-UX.md gerado. |
+| 2026-03-03 | @dev (Dex) | QA UX fixes: 21 testes PowerDialer, ScriptSelector removido (dead code), Escape fecha dropdown, CSS limpo. Commit 5643fb1. |
+| 2026-03-03 | @qa (Quinn) | Re-review UX: PASS 95/100. 138 testes, 4/4 issues resolvidas. Gate file criado. |

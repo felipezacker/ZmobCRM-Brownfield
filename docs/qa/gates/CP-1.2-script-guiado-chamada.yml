@@ -1,0 +1,81 @@
+schema: 1
+story: 'CP-1.2'
+story_title: 'Script Guiado Interativo Durante Chamada'
+gate: PASS
+status_reason: >
+  Re-review apos UX fixes (commit 5643fb1). Todas as 4 issues do
+  QA_FIX_REQUEST_CP-1.2-UX.md resolvidas: 21 testes PowerDialer adicionados
+  (keyboard shortcuts, dropdown, stats chips, script preview, purple dot),
+  dead code ScriptSelector removido, Escape fecha dropdown, classes CSS limpas.
+  138 testes passando (9 arquivos), typecheck e lint limpos.
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-03-03T23:32:00Z'
+
+quality_score: 95
+expires: '2026-03-17T23:32:00Z'
+
+top_issues: []
+
+observations:
+  - severity: info
+    category: tests
+    description: >
+      Import `beforeEach` nao utilizado em powerDialer.test.tsx (linha 3).
+      Nao afeta funcionalidade.
+  - severity: info
+    category: docs
+    description: >
+      File List na story ainda lista ScriptSelector.tsx como "New" mas o
+      componente foi removido. @dev deve atualizar.
+
+waiver:
+  active: false
+
+evidence:
+  tests_reviewed:
+    count: 138
+    files:
+      - 'features/prospecting/__tests__/powerDialer.test.tsx (21 tests — NEW)'
+      - 'features/prospecting/__tests__/scriptGuide.test.tsx (9 tests — ScriptSelector tests removed)'
+      - 'features/prospecting/__tests__/components.test.tsx (12 tests)'
+      - 'features/prospecting/__tests__/scriptParser.test.ts (14 tests)'
+      - 'features/prospecting/__tests__/prospectingFilters.test.tsx (32 tests)'
+      - 'features/prospecting/__tests__/filteredContactsList.test.tsx (22 tests)'
+      - 'features/prospecting/__tests__/useProspectingFilteredContacts.test.ts (14 tests)'
+      - 'features/prospecting/__tests__/useProspectingQueue.test.ts (9 tests)'
+      - 'features/prospecting/__tests__/directorAssignment.test.tsx (5 tests)'
+  risks_identified:
+    - risk: 'Nenhum risco identificado'
+      probability: negligible
+      impact: negligible
+  verification:
+    typecheck: PASS
+    lint: PASS
+    tests: PASS
+    dead_code: PASS
+
+fix_request_review:
+  source: 'docs/qa/QA_FIX_REQUEST_CP-1.2-UX.md'
+  issues_total: 4
+  issues_fixed: 4
+  details:
+    - id: 'Issue 1'
+      severity: MEDIUM
+      description: 'Sem testes para PowerDialer UX'
+      status: FIXED
+      verification: '21 testes cobrindo shortcuts, dropdown, stats, preview, dot'
+    - id: 'Issue 2'
+      severity: LOW
+      description: 'ScriptSelector.tsx dead code'
+      status: FIXED
+      verification: 'Arquivo deletado, import removido, grep confirma zero referencias'
+    - id: 'Issue 3'
+      severity: LOW
+      description: 'Dropdown nao fecha com Escape'
+      status: FIXED
+      verification: 'useEffect reestruturado, teste Escape confirma comportamento'
+    - id: 'Issue 4'
+      severity: LOW
+      description: 'Classe relative desnecessaria em botoes'
+      status: FIXED
+      verification: 'relative removido de Pular e Encerrar, mantido em Ligar'
