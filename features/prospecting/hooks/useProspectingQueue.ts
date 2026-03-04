@@ -25,7 +25,9 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [sessionId, setSessionId] = useState<string | undefined>()
 
-  const { data: rawQueue = [], isLoading, refetch } = useProspectingQueueItems(undefined, options?.viewOwnerId)
+  // '__all__' means no filter (admin sees all via RLS)
+  const effectiveOwnerId = options?.viewOwnerId === '__all__' ? undefined : options?.viewOwnerId
+  const { data: rawQueue = [], isLoading, refetch } = useProspectingQueueItems(undefined, effectiveOwnerId)
   const addMutation = useAddToProspectingQueue()
   const updateStatusMutation = useUpdateQueueItemStatus()
   const removeMutation = useRemoveFromQueue()

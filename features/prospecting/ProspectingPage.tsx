@@ -73,6 +73,16 @@ export const ProspectingPage: React.FC = () => {
 
   // Queue owner view: admin/director can see other corretors' queues
   const [viewQueueOwnerId, setViewQueueOwnerId] = useState<string>('')
+  const isViewingAll = viewQueueOwnerId === '__all__'
+
+  // For admin/director: default "Minha fila" explicitly filters by own ID
+  // (RLS shows all for admin, so we need explicit filter)
+  const resolvedViewOwnerId = useMemo(() => {
+    if (isViewingAll) return '__all__'
+    if (viewQueueOwnerId) return viewQueueOwnerId
+    if (isAdminOrDirector && profile?.id) return profile.id
+    return undefined
+  }, [viewQueueOwnerId, isViewingAll, isAdminOrDirector, profile?.id])
 
   const {
     queue,
@@ -89,7 +99,7 @@ export const ProspectingPage: React.FC = () => {
     removeFromQueue,
     clearQueue,
     refetch,
-  } = useProspectingQueue({ viewOwnerId: viewQueueOwnerId || undefined })
+  } = useProspectingQueue({ viewOwnerId: resolvedViewOwnerId })
 
   // CP-1.3: Filtered contacts
   const filteredContacts = useProspectingFilteredContacts()
@@ -197,7 +207,7 @@ export const ProspectingPage: React.FC = () => {
   // Owner dropdown state
   const [ownerDropdownOpen, setOwnerDropdownOpen] = useState(false)
   const ownerDropdownRef = useRef<HTMLDivElement>(null)
-  const viewingOwnerProfile = viewQueueOwnerId ? profiles.find(p => p.id === viewQueueOwnerId) : null
+  const viewingOwnerProfile = viewQueueOwnerId && !isViewingAll ? profiles.find(p => p.id === viewQueueOwnerId) : null
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -234,12 +244,30 @@ export const ProspectingPage: React.FC = () => {
                     type="button"
                     onClick={() => setOwnerDropdownOpen(prev => !prev)}
                     className={`flex items-center gap-1.5 ml-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all ${
-                      viewingOwnerProfile
+                      viewingOwnerProfile || isViewingAll
                         ? 'bg-teal-500/15 text-teal-600 dark:text-teal-400 ring-1 ring-teal-500/30'
                         : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
                     }`}
                   >
-                    {viewingOwnerProfile ? (
+                    {isViewingAll ? (
+                      <>
+                        <Users size={11} />
+                        Todos
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setViewQueueOwnerId('')
+                            setOwnerDropdownOpen(false)
+                          }}
+                          className="ml-0.5 p-0.5 rounded-full hover:bg-teal-500/20 transition-colors"
+                        >
+                          <XIcon size={10} />
+                        </Button>
+                      </>
+                    ) : viewingOwnerProfile ? (
                       <>
                         <span className="w-4 h-4 rounded-full bg-teal-500 text-white text-[8px] font-bold flex items-center justify-center shrink-0">
                           {viewingOwnerProfile.name.charAt(0).toUpperCase()}
@@ -296,6 +324,27 @@ export const ProspectingPage: React.FC = () => {
                           </span>
                           <span className="truncate">Minha fila</span>
                         </Button>
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
+                          type="button"
+                          onClick={() => { setViewQueueOwnerId('__all__'); setOwnerDropdownOpen(false) }}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                            isViewingAll
+                              ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5'
+                          }`}
+                        >
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                            isViewingAll
+                              ? 'bg-teal-500 text-white'
+                              : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                          }`}>
+                            <Users size={12} />
+                          </span>
+                          <span className="truncate">Todos</span>
+                        </Button>
+                        <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
                         {profiles.map(p => (
                           <Button
                             key={p.id}
@@ -579,9 +628,9 @@ export const ProspectingPage: React.FC = () => {
               items={queue}
               isLoading={isLoading}
               onRemove={removeFromQueue}
-              onClearAll={clearQueue}
+              onClearAll={isViewingAll ? undefined : clearQueue}
               isClearing={isClearingQueue}
-              ownerName={viewQueueOwnerId ? profiles.find(p => p.id === viewQueueOwnerId)?.name : undefined}
+              ownerName={isViewingAll ? 'Todos' : viewingOwnerProfile?.name}
             />
           </div>
         )}
