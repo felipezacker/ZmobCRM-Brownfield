@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { useDarkMode } from '../hooks/useDarkMode'
 
 describe('useDarkMode', () => {
@@ -26,9 +26,9 @@ describe('useDarkMode', () => {
       document.documentElement.classList.add('dark')
     })
 
-    // MutationObserver fires asynchronously
-    await new Promise(r => setTimeout(r, 50))
-    expect(result.current).toBe(true)
+    await waitFor(() => {
+      expect(result.current).toBe(true)
+    })
   })
 
   it('reacts to dark class being removed', async () => {
@@ -40,7 +40,8 @@ describe('useDarkMode', () => {
       document.documentElement.classList.remove('dark')
     })
 
-    await new Promise(r => setTimeout(r, 50))
-    expect(result.current).toBe(false)
+    await waitFor(() => {
+      expect(result.current).toBe(false)
+    })
   })
 })
