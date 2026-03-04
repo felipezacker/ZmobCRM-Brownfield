@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Filter, X } from 'lucide-react'
+import { Filter, Phone, X } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import {
   CLASSIFICATION_LABELS,
@@ -224,14 +224,23 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
           />
         </div>
 
-        <label className="flex items-center gap-2 cursor-pointer self-center pt-4">
+        <label
+          className={`flex items-center gap-2 cursor-pointer self-center px-3 py-2 rounded-lg border transition-colors ${
+            filters.onlyWithPhone
+              ? 'bg-teal-50 border-teal-300 dark:bg-teal-500/15 dark:border-teal-500/30'
+              : 'bg-white border-slate-200 hover:border-slate-300 dark:bg-black/20 dark:border-white/10 dark:hover:border-white/20'
+          }`}
+        >
           <input
             type="checkbox"
             checked={filters.onlyWithPhone}
             onChange={(e) => onFiltersChange({ ...filters, onlyWithPhone: e.target.checked })}
             className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
           />
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Só com telefone</span>
+          <Phone size={13} className={filters.onlyWithPhone ? 'text-teal-500' : 'text-slate-400'} />
+          <span className={`text-sm font-medium ${filters.onlyWithPhone ? 'text-teal-700 dark:text-teal-300' : 'text-slate-600 dark:text-slate-400'}`}>
+            Só com telefone
+          </span>
         </label>
       </div>
     </div>
