@@ -5,6 +5,7 @@ CREATE OR REPLACE FUNCTION public.get_prospecting_filtered_contacts(
   p_stages TEXT[] DEFAULT NULL,
   p_temperatures TEXT[] DEFAULT NULL,
   p_classifications TEXT[] DEFAULT NULL,
+  p_tags TEXT[] DEFAULT NULL,
   p_source TEXT DEFAULT NULL,
   p_owner_id UUID DEFAULT NULL,
   p_inactive_days INT DEFAULT NULL,
@@ -83,6 +84,7 @@ BEGIN
       AND (p_stages IS NULL OR c.stage = ANY(p_stages))
       AND (p_temperatures IS NULL OR c.temperature = ANY(p_temperatures))
       AND (p_classifications IS NULL OR c.classification = ANY(p_classifications))
+      AND (p_tags IS NULL OR c.tags && p_tags)
       AND (p_source IS NULL OR c.source = p_source)
       AND (p_owner_id IS NULL OR c.owner_id = p_owner_id)
   ),
@@ -127,6 +129,7 @@ CREATE OR REPLACE FUNCTION public.get_prospecting_filtered_contact_ids(
   p_stages TEXT[] DEFAULT NULL,
   p_temperatures TEXT[] DEFAULT NULL,
   p_classifications TEXT[] DEFAULT NULL,
+  p_tags TEXT[] DEFAULT NULL,
   p_source TEXT DEFAULT NULL,
   p_owner_id UUID DEFAULT NULL,
   p_inactive_days INT DEFAULT NULL,
@@ -156,6 +159,7 @@ BEGIN
     AND (p_stages IS NULL OR c.stage = ANY(p_stages))
     AND (p_temperatures IS NULL OR c.temperature = ANY(p_temperatures))
     AND (p_classifications IS NULL OR c.classification = ANY(p_classifications))
+    AND (p_tags IS NULL OR c.tags && p_tags)
     AND (p_source IS NULL OR c.source = p_source)
     AND (p_owner_id IS NULL OR c.owner_id = p_owner_id)
     AND (NOT p_only_with_phone OR (
@@ -165,8 +169,9 @@ BEGIN
     AND (p_inactive_days IS NULL OR NOT EXISTS (
       SELECT 1 FROM activities a
       WHERE a.contact_id = c.id AND a.deleted_at IS NULL
-        AND a.date > now() - (p_inactive_days || ' days')::INTERVAL
-    ));
+        AND a.date > now() - (p_inactive_days * INTERVAL '1 day')
+    ))
+  LIMIT 5000;
 END;
 $$;
 

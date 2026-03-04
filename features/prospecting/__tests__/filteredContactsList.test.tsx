@@ -322,4 +322,95 @@ describe('FilteredContactsList', () => {
       expect(screen.getByText(/0 selecionado/)).toBeTruthy()
     })
   })
+
+  it('disables add button when queue is exactly at limit (100)', () => {
+    const contacts = [
+      makeContact({ id: 'c-1' }),
+    ]
+    render(
+      <FilteredContactsList
+        {...defaultProps}
+        contacts={contacts}
+        totalCount={1}
+        currentQueueSize={100}
+      />
+    )
+
+    // Select the contact
+    fireEvent.click(screen.getAllByRole('checkbox')[1])
+
+    // Button should exist but be disabled (maxAddable = 0)
+    const addButton = screen.getByText(/Adicionar à Fila/)
+    expect(addButton.closest('button')).toBeDisabled()
+  })
+
+  it('shows limit warning with maxAddable = 0 when queue is full', () => {
+    const contacts = [
+      makeContact({ id: 'c-1' }),
+    ]
+    render(
+      <FilteredContactsList
+        {...defaultProps}
+        contacts={contacts}
+        totalCount={1}
+        currentQueueSize={100}
+      />
+    )
+
+    fireEvent.click(screen.getAllByRole('checkbox')[1])
+
+    expect(screen.getByText(/Limite de 100/)).toBeTruthy()
+    expect(screen.getByText(/Apenas 0 serão adicionados/)).toBeTruthy()
+  })
+
+  it('renders cross-page select all button when totalCount > page contacts', () => {
+    const contacts = [
+      makeContact({ id: 'c-1' }),
+      makeContact({ id: 'c-2', name: 'Maria' }),
+    ]
+    const onSelectAllFiltered = vi.fn().mockResolvedValue(['c-1', 'c-2', 'c-3', 'c-4'])
+    render(
+      <FilteredContactsList
+        {...defaultProps}
+        contacts={contacts}
+        totalCount={50}
+        totalPages={2}
+        onSelectAllFiltered={onSelectAllFiltered}
+      />
+    )
+
+    // Select all on page first
+    fireEvent.click(screen.getByText('Selecionar todos'))
+
+    // Cross-page select all button should appear
+    expect(screen.getByText(/Selecionar todos os 50 contatos/)).toBeTruthy()
+  })
+
+  it('calls onSelectAllFiltered and updates selection set', async () => {
+    const allIds = ['c-1', 'c-2', 'c-3', 'c-4']
+    const onSelectAllFiltered = vi.fn().mockResolvedValue(allIds)
+    const contacts = [
+      makeContact({ id: 'c-1' }),
+      makeContact({ id: 'c-2', name: 'Maria' }),
+    ]
+    render(
+      <FilteredContactsList
+        {...defaultProps}
+        contacts={contacts}
+        totalCount={50}
+        totalPages={2}
+        onSelectAllFiltered={onSelectAllFiltered}
+      />
+    )
+
+    // Select all on page
+    fireEvent.click(screen.getByText('Selecionar todos'))
+    // Click cross-page select all
+    fireEvent.click(screen.getByText(/Selecionar todos os 50 contatos/))
+
+    await waitFor(() => {
+      expect(onSelectAllFiltered).toHaveBeenCalledTimes(1)
+      expect(screen.getByText(/Todos os 4 contatos selecionados/)).toBeTruthy()
+    })
+  })
 })

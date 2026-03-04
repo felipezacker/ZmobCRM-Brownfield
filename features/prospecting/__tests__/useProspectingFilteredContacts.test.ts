@@ -1,15 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
+import React from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useProspectingFilteredContacts } from '../hooks/useProspectingFilteredContacts'
 import { INITIAL_FILTERS, type ProspectingFiltersState } from '../components/ProspectingFilters'
 
 // ── Mocks ──────────────────────────────────────────────
 
 const mockGetFilteredContacts = vi.fn()
+const mockGetAllFilteredIds = vi.fn()
 
 vi.mock('@/lib/supabase/prospecting-filtered-contacts', () => ({
   prospectingFilteredContactsService: {
     getFilteredContacts: (...args: unknown[]) => mockGetFilteredContacts(...args),
+    getAllFilteredIds: (...args: unknown[]) => mockGetAllFilteredIds(...args),
   },
 }))
 
@@ -21,62 +25,134 @@ vi.mock('@/context/AuthContext', () => ({
   }),
 }))
 
-// Mock TanStack Query to make it synchronous
-vi.mock('@tanstack/react-query', async () => {
-  const actual = await vi.importActual('@tanstack/react-query')
-  return {
-    ...actual,
-    useQuery: vi.fn(({ queryFn, enabled }: any) => {
-      if (!enabled) return { data: undefined, isLoading: false, isFetching: false, error: null }
-      // We don't actually call queryFn in unit tests
-      return { data: undefined, isLoading: false, isFetching: false, error: null }
-    }),
-  }
-})
+// ── Wrapper ──────────────────────────────────────────────
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  })
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children)
+  Wrapper.displayName = 'TestQueryWrapper'
+  return Wrapper
+}
+
+// ── Test data ──────────────────────────────────────────────
+
+const mockContactsData = {
+  data: [
+    { id: 'c-1', name: 'João', email: null, stage: 'LEAD', temperature: 'HOT', classification: null, source: null, ownerId: 'u-1', createdAt: '2026-01-01', primaryPhone: '119', hasPhone: true, daysSinceLastActivity: 5 },
+    { id: 'c-2', name: 'Maria', email: null, stage: 'MQL', temperature: 'WARM', classification: null, source: null, ownerId: 'u-1', createdAt: '2026-01-01', primaryPhone: '118', hasPhone: true, daysSinceLastActivity: 10 },
+  ],
+  totalCount: 2,
+}
 
 // ── Tests ──────────────────────────────────────────────
 
 describe('useProspectingFilteredContacts', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockGetFilteredContacts.mockResolvedValue({ data: mockContactsData, error: null })
+    mockGetAllFilteredIds.mockResolvedValue({ data: ['c-1', 'c-2'], error: null })
   })
 
   it('starts with no results (hasResults = false)', () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
 
     expect(result.current.hasResults).toBe(false)
     expect(result.current.contacts).toEqual([])
     expect(result.current.totalCount).toBe(0)
   })
 
-  it('sets hasResults after applying filters', () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
+  it('does not call service before applyFilters', () => {
+    renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
+
+    expect(mockGetFilteredContacts).not.toHaveBeenCalled()
+  })
+
+  it('calls service with correct params after applyFilters', async () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
 
     act(() => {
       result.current.applyFilters({
-        ...INITIAL_FILTERS,
-        stages: ['LEAD'],
+        stages: ['LEAD', 'MQL'],
+        temperatures: ['HOT'],
+        classifications: [],
+        tags: ['VIP'],
+        source: 'WEBSITE',
+        ownerId: 'u-2',
+        inactiveDays: 30,
+        onlyWithPhone: true,
       })
+    })
+
+    await waitFor(() => {
+      expect(mockGetFilteredContacts).toHaveBeenCalledWith({
+        stages: ['LEAD', 'MQL'],
+        temperatures: ['HOT'],
+        classifications: undefined,
+        tags: ['VIP'],
+        source: 'WEBSITE',
+        ownerId: 'u-2',
+        inactiveDays: 30,
+        onlyWithPhone: true,
+        page: 0,
+        pageSize: 50,
+      })
+    })
+  })
+
+  it('returns contacts and totalCount from service response', async () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
+
+    act(() => {
+      result.current.applyFilters({ ...INITIAL_FILTERS, stages: ['LEAD'] })
+    })
+
+    await waitFor(() => {
+      expect(result.current.contacts).toHaveLength(2)
+      expect(result.current.contacts[0].name).toBe('João')
+      expect(result.current.totalCount).toBe(2)
+      expect(result.current.totalPages).toBe(1)
+    })
+  })
+
+  it('sets hasResults after applying filters', () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
+
+    act(() => {
+      result.current.applyFilters({ ...INITIAL_FILTERS, stages: ['LEAD'] })
     })
 
     expect(result.current.hasResults).toBe(true)
   })
 
-  it('resets page to 0 on new filter application', () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
+  it('resets page to 0 on new filter application', async () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
 
-    // Apply filters
     act(() => {
       result.current.applyFilters({ ...INITIAL_FILTERS, stages: ['LEAD'] })
     })
 
-    // Go to page 2
     act(() => {
       result.current.goToPage(2)
     })
     expect(result.current.page).toBe(2)
 
-    // Apply new filters - should reset page
     act(() => {
       result.current.applyFilters({ ...INITIAL_FILTERS, stages: ['MQL'] })
     })
@@ -84,7 +160,9 @@ describe('useProspectingFilteredContacts', () => {
   })
 
   it('clears filters and resets state', () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
 
     act(() => {
       result.current.applyFilters({ ...INITIAL_FILTERS, stages: ['LEAD'] })
@@ -99,7 +177,9 @@ describe('useProspectingFilteredContacts', () => {
   })
 
   it('goToPage updates page state', () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
 
     act(() => {
       result.current.applyFilters({ ...INITIAL_FILTERS, stages: ['LEAD'] })
@@ -112,34 +192,17 @@ describe('useProspectingFilteredContacts', () => {
     expect(result.current.page).toBe(3)
   })
 
-  it('converts filter state to query params correctly', () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
-
-    const filters: ProspectingFiltersState = {
-      stages: ['LEAD', 'MQL'],
-      temperatures: ['HOT'],
-      classifications: ['COMPRADOR'],
-      source: 'WEBSITE',
-      ownerId: 'u-2',
-      inactiveDays: 30,
-    }
-
-    act(() => {
-      result.current.applyFilters(filters)
+  it('omits empty arrays from query params', async () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
     })
-
-    // hasResults should be true - the query will fire with these params
-    expect(result.current.hasResults).toBe(true)
-  })
-
-  it('omits empty arrays from query params', () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
 
     act(() => {
       result.current.applyFilters({
         stages: [],
         temperatures: [],
         classifications: [],
+        tags: [],
         source: '',
         ownerId: '',
         inactiveDays: null,
@@ -147,33 +210,96 @@ describe('useProspectingFilteredContacts', () => {
       })
     })
 
-    // Should still trigger results but with minimal params
-    expect(result.current.hasResults).toBe(true)
+    await waitFor(() => {
+      expect(mockGetFilteredContacts).toHaveBeenCalledWith(
+        expect.objectContaining({
+          stages: undefined,
+          temperatures: undefined,
+          classifications: undefined,
+          tags: undefined,
+          source: undefined,
+          ownerId: undefined,
+          inactiveDays: undefined,
+          onlyWithPhone: undefined,
+        })
+      )
+    })
   })
 
-  it('passes onlyWithPhone filter when enabled', () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
-
-    act(() => {
-      result.current.applyFilters({
-        ...INITIAL_FILTERS,
-        onlyWithPhone: true,
-      })
+  it('propagates service error via useQuery error state', async () => {
+    mockGetFilteredContacts.mockResolvedValue({
+      data: null,
+      error: new Error('DB connection failed'),
     })
 
-    expect(result.current.hasResults).toBe(true)
-  })
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
 
-  it('exposes getAllFilteredIds method', () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
+    act(() => {
+      result.current.applyFilters({ ...INITIAL_FILTERS, stages: ['LEAD'] })
+    })
 
-    expect(typeof result.current.getAllFilteredIds).toBe('function')
+    await waitFor(() => {
+      expect(result.current.error).toBeTruthy()
+    })
   })
 
   it('getAllFilteredIds returns empty array when no filters applied', async () => {
-    const { result } = renderHook(() => useProspectingFilteredContacts())
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
 
     const ids = await result.current.getAllFilteredIds()
     expect(ids).toEqual([])
+    expect(mockGetAllFilteredIds).not.toHaveBeenCalled()
+  })
+
+  it('getAllFilteredIds calls service with applied filters', async () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
+
+    act(() => {
+      result.current.applyFilters({ ...INITIAL_FILTERS, stages: ['LEAD'] })
+    })
+
+    const ids = await result.current.getAllFilteredIds()
+
+    expect(mockGetAllFilteredIds).toHaveBeenCalledWith(
+      expect.objectContaining({ stages: ['LEAD'] })
+    )
+    expect(ids).toEqual(['c-1', 'c-2'])
+  })
+
+  it('getAllFilteredIds returns empty array on service error', async () => {
+    mockGetAllFilteredIds.mockResolvedValue({ data: null, error: new Error('fail') })
+
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
+
+    act(() => {
+      result.current.applyFilters({ ...INITIAL_FILTERS, stages: ['LEAD'] })
+    })
+
+    const ids = await result.current.getAllFilteredIds()
+    expect(ids).toEqual([])
+  })
+
+  it('passes onlyWithPhone filter when enabled', async () => {
+    const { result } = renderHook(() => useProspectingFilteredContacts(), {
+      wrapper: createWrapper(),
+    })
+
+    act(() => {
+      result.current.applyFilters({ ...INITIAL_FILTERS, onlyWithPhone: true })
+    })
+
+    await waitFor(() => {
+      expect(mockGetFilteredContacts).toHaveBeenCalledWith(
+        expect.objectContaining({ onlyWithPhone: true })
+      )
+    })
   })
 })

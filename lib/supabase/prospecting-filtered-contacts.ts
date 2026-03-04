@@ -31,6 +31,7 @@ export interface FilteredContactsParams {
   stages?: string[]
   temperatures?: string[]
   classifications?: string[]
+  tags?: string[]
   source?: string
   ownerId?: string
   inactiveDays?: number
@@ -51,6 +52,7 @@ export const prospectingFilteredContactsService = {
         p_stages: params.stages?.length ? params.stages : null,
         p_temperatures: params.temperatures?.length ? params.temperatures : null,
         p_classifications: params.classifications?.length ? params.classifications : null,
+        p_tags: params.tags?.length ? params.tags : null,
         p_source: params.source || null,
         p_owner_id: params.ownerId || null,
         p_inactive_days: params.inactiveDays ?? null,
@@ -115,6 +117,7 @@ export const prospectingFilteredContactsService = {
         p_stages: params.stages?.length ? params.stages : null,
         p_temperatures: params.temperatures?.length ? params.temperatures : null,
         p_classifications: params.classifications?.length ? params.classifications : null,
+        p_tags: params.tags?.length ? params.tags : null,
         p_source: params.source || null,
         p_owner_id: params.ownerId || null,
         p_inactive_days: params.inactiveDays ?? null,

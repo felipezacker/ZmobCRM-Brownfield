@@ -14,10 +14,13 @@ const mockProfiles = [
   { id: 'u-2', name: 'Maria' },
 ]
 
+const mockTags = ['VIP', 'Urgente', 'Follow-up']
+
 const renderFilters = (
   overrides: Partial<{
     filters: ProspectingFiltersState
     onFiltersChange: (f: ProspectingFiltersState) => void
+    availableTags: string[]
     showOwnerFilter: boolean
     onApply: () => void
   }> = {}
@@ -26,6 +29,7 @@ const renderFilters = (
     filters: INITIAL_FILTERS,
     onFiltersChange: vi.fn(),
     profiles: mockProfiles,
+    availableTags: mockTags,
     showOwnerFilter: false,
     onApply: vi.fn(),
   }
@@ -189,9 +193,11 @@ describe('ProspectingFilters', () => {
         stages: ['LEAD'],
         temperatures: ['HOT'],
         classifications: ['COMPRADOR'],
+        tags: ['VIP'],
         source: 'WEBSITE',
         ownerId: 'u-1',
         inactiveDays: 30,
+        onlyWithPhone: false,
       },
       onFiltersChange,
     })
@@ -222,5 +228,132 @@ describe('ProspectingFilters', () => {
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ stages: ['LEAD', 'MQL'] })
     )
+  })
+
+  it('renders tags autocomplete input', () => {
+    renderFilters()
+    expect(screen.getByPlaceholderText('Buscar tags...')).toBeTruthy()
+  })
+
+  it('shows tag suggestions on focus', () => {
+    renderFilters()
+    fireEvent.focus(screen.getByPlaceholderText('Buscar tags...'))
+    expect(screen.getByText('VIP')).toBeTruthy()
+    expect(screen.getByText('Urgente')).toBeTruthy()
+    expect(screen.getByText('Follow-up')).toBeTruthy()
+  })
+
+  it('filters tag suggestions by query', () => {
+    renderFilters()
+    const input = screen.getByPlaceholderText('Buscar tags...')
+    fireEvent.focus(input)
+    fireEvent.change(input, { target: { value: 'vi' } })
+    expect(screen.getByText('VIP')).toBeTruthy()
+    expect(screen.queryByText('Urgente')).toBeNull()
+  })
+
+  it('adds tag from dropdown', () => {
+    const onFiltersChange = vi.fn()
+    renderFilters({ onFiltersChange })
+    fireEvent.focus(screen.getByPlaceholderText('Buscar tags...'))
+    fireEvent.click(screen.getByText('VIP'))
+    expect(onFiltersChange).toHaveBeenCalledWith(
+      expect.objectContaining({ tags: ['VIP'] })
+    )
+  })
+
+  it('shows selected tags as removable chips', () => {
+    renderFilters({
+      filters: { ...INITIAL_FILTERS, tags: ['VIP', 'Urgente'] },
+    })
+    // Selected tags rendered as chips (not in dropdown)
+    expect(screen.getByText('VIP')).toBeTruthy()
+    expect(screen.getByText('Urgente')).toBeTruthy()
+  })
+
+  it('removes selected tag via X button', () => {
+    const onFiltersChange = vi.fn()
+    renderFilters({
+      filters: { ...INITIAL_FILTERS, tags: ['VIP'] },
+      onFiltersChange,
+    })
+    // The X button is inside the chip
+    const chip = screen.getByText('VIP').closest('span')!
+    const removeBtn = chip.querySelector('button')!
+    fireEvent.click(removeBtn)
+    expect(onFiltersChange).toHaveBeenCalledWith(
+      expect.objectContaining({ tags: [] })
+    )
+  })
+
+  it('hides already selected tags from dropdown', () => {
+    renderFilters({
+      filters: { ...INITIAL_FILTERS, tags: ['VIP'] },
+    })
+    fireEvent.focus(screen.getByPlaceholderText('Buscar tags...'))
+    // VIP is selected so should NOT appear in dropdown suggestions
+    // It appears as a chip but not as a dropdown item
+    const listItems = screen.queryAllByRole('button').filter(b => b.textContent === 'VIP' && b.closest('li'))
+    expect(listItems).toHaveLength(0)
+  })
+
+  it('does not render tags section when no tags available', () => {
+    renderFilters({ availableTags: [] })
+    expect(screen.queryByText('Tags')).toBeNull()
+    expect(screen.queryByPlaceholderText('Buscar tags...')).toBeNull()
+  })
+
+  it('includes tags in clear all', () => {
+    const onFiltersChange = vi.fn()
+    renderFilters({
+      filters: { ...INITIAL_FILTERS, tags: ['VIP'] },
+      onFiltersChange,
+    })
+    fireEvent.click(screen.getByText('Limpar'))
+    expect(onFiltersChange).toHaveBeenCalledWith(INITIAL_FILTERS)
+  })
+
+  it('toggles onlyWithPhone filter via chip', () => {
+    const onFiltersChange = vi.fn()
+    renderFilters({ onFiltersChange })
+
+    fireEvent.click(screen.getByText('Só com telefone'))
+
+    expect(onFiltersChange).toHaveBeenCalledWith(
+      expect.objectContaining({ onlyWithPhone: true })
+    )
+  })
+
+  it('deselects onlyWithPhone when already active', () => {
+    const onFiltersChange = vi.fn()
+    renderFilters({
+      filters: { ...INITIAL_FILTERS, onlyWithPhone: true },
+      onFiltersChange,
+    })
+
+    fireEvent.click(screen.getByText('Só com telefone'))
+
+    expect(onFiltersChange).toHaveBeenCalledWith(
+      expect.objectContaining({ onlyWithPhone: false })
+    )
+  })
+
+  it('updates owner filter onChange', () => {
+    const onFiltersChange = vi.fn()
+    renderFilters({ showOwnerFilter: true, onFiltersChange })
+
+    const ownerSelect = screen.getByText('Todos').closest('select')!
+    fireEvent.change(ownerSelect, { target: { value: 'u-1' } })
+
+    expect(onFiltersChange).toHaveBeenCalledWith(
+      expect.objectContaining({ ownerId: 'u-1' })
+    )
+  })
+
+  it('shows clear button when onlyWithPhone is the only active filter', () => {
+    renderFilters({
+      filters: { ...INITIAL_FILTERS, onlyWithPhone: true },
+    })
+    expect(screen.getByText('Limpar')).toBeTruthy()
   })
 })
