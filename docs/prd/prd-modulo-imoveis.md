@@ -12,7 +12,7 @@
 
 ### 1.1 Estado Atual
 
-O ZmobCRM e um CRM imobiliario AI-first construido com Next.js, React 19, TypeScript e Supabase. Possui 36 tabelas, RLS 100%, RBAC 3 niveis (admin > diretor > corretor), e ja completou o Epic CRM Imobiliario (EPIC-CRM-IMOB) com:
+O ZmobCRM e um CRM imobiliario AI-first construido com Next.js, React 19, TypeScript e Supabase. Possui 42 tabelas (48 migrations), RLS 100%, RBAC 3 niveis (admin > diretor > corretor), e ja completou o Epic CRM Imobiliario (EPIC-CRM-IMOB) com:
 
 - Modelo de dados de contatos com campos imobiliarios (CPF, classificacao, temperatura)
 - **Tabela `contact_preferences`** — perfil de interesse do contato (tipo imovel, faixa preco, regioes, quartos, vagas, financiamento, FGTS, urgencia)
@@ -25,7 +25,7 @@ O ZmobCRM e um CRM imobiliario AI-first construido com Next.js, React 19, TypeSc
 ### 1.2 Documentacao Disponivel
 
 - [x] Tech Stack (SCHEMA.md, system-architecture.md)
-- [x] Schema DB (42 migrations, 36 tabelas)
+- [x] Schema DB (48 migrations, 42 tabelas)
 - [x] Analise competitiva (6 concorrentes: Jetimob, Vista/Loft, Imoview, Arbo, Tecimob, Imobzi)
 - [x] Pesquisa APIs portais (ZAP/VivaReal, OLX, Chaves na Mao, Orulo)
 - [x] Technical Debt Assessment
@@ -77,17 +77,34 @@ O matching com IA sera o **diferencial unico** do ZmobCRM no mercado brasileiro.
 
 ---
 
+## 3.1 Fora do Escopo V1
+
+Os itens abaixo foram identificados durante pesquisa e analise competitiva mas **NAO fazem parte desta versao**:
+
+| Item | Referencia | Motivo da Exclusao |
+|------|-----------|-------------------|
+| Publicacao em portais (ZAP, OLX, VivaReal) | Jetimob, Tecimob | Requer site proprio (inexistente) e APIs de publicacao |
+| Site proprio do imovel / landing page | Tecimob (JetPage) | Feature separada, nao essencial para MVP |
+| Condominio como entidade reutilizavel | Jetimob | Complexidade adicional; imoveis standalone primeiro |
+| Marca d'agua em fotos | Tecimob | Feature de vaidade, baixo impacto em conversao |
+| Historico completo de alteracoes do imovel | Jetimob | Audit log generico pode cobrir isso futuramente |
+| Pipeline de propostas | Jetimob | Deals existentes cobrem negociacao |
+| Importacao de outros portais (ZAP, OLX, Chaves na Mao) | Pesquisa @analyst | Apenas Orulo no V1 por decisao do stakeholder |
+| Exportacao/publicacao de imoveis para portais | Pesquisa @analyst | Depende de integracao bidirecional (futuro) |
+
+---
+
 ## 4. Requisitos Funcionais
 
 ### Cadastro de Imoveis
 
-- **FR1:** O sistema deve permitir cadastro manual de imoveis com campos: titulo, descricao, tipo de transacao (venda/locacao/permuta/venda+locacao), tipo de imovel (apartamento, casa, terreno, comercial, rural, kitnet, galpao, sala comercial, loja), preco de venda, preco de locacao, condominio, IPTU.
+- **FR1:** O sistema deve permitir cadastro manual de imoveis com campos: titulo, descricao, tipo de transacao (venda/locacao/permuta/venda+locacao), tipo de imovel (apartamento, casa, terreno, comercial, rural, kitnet, galpao, sala comercial, loja), preco de venda, preco de locacao, condominio, IPTU. **Nota arquitetural:** Os tipos kitnet, sala comercial e loja sao novos e nao existem na validacao de `contact_preferences.property_types` (validacao atual e no app layer via comment SQL, sem CHECK constraint no banco). A migration de IM-1.1 deve adicionar os 3 novos tipos a validacao do app layer e, opcionalmente, criar CHECK constraint formal no banco para `contact_preferences.property_types`, garantindo compatibilidade com o matching (Wave 3).
 - **FR2:** O sistema deve permitir cadastro de caracteristicas do imovel: quartos, suites, banheiros, vagas de garagem, area util (m2), area total (m2), andar da unidade, andares do predio, ano de construcao.
 - **FR3:** O sistema deve permitir cadastro de localizacao: CEP (com preenchimento automatico via API), estado, cidade, bairro, endereco, numero, complemento, latitude, longitude.
 - **FR4:** O sistema deve permitir upload de multiplas fotos com reordenacao (drag and drop), definicao de foto principal, suporte a URLs externas (Orulo), e **categorias de foto**: imovel, planta baixa, interna/privada (ref. Tecimob).
 - **FR5:** O sistema deve permitir cadastro de features/comodidades (piscina, academia, playground, churrasqueira, portaria 24h, elevador, varanda gourmet, etc.) como tags selecionaveis.
 - **FR6:** O sistema deve manter status do imovel: ATIVO, INATIVO, VENDIDO, ALUGADO, RESERVADO.
-- **FR7:** O sistema deve atribuir um codigo interno unico por imovel (ex: ZMOB-001) auto-incremental por organizacao.
+- **FR7:** O sistema deve atribuir um codigo interno unico por imovel (ex: ZMOB-001) auto-incremental por organizacao. **Mecanismo:** Coluna `property_counter INTEGER DEFAULT 0` na tabela `organizations` + RPC atomica `next_property_code(org_id)` que incrementa o counter e retorna o codigo formatado (ZMOB-{counter zero-padded}).
 - **FR8:** O sistema deve registrar a origem do imovel: MANUAL ou ORULO.
 - **FR8b:** O sistema deve permitir campo `private_notes` no imovel — notas internas visiveis apenas para a imobiliaria, nao para clientes/portais futuramente (ref. Tecimob).
 
@@ -113,14 +130,14 @@ O matching com IA sera o **diferencial unico** do ZmobCRM no mercado brasileiro.
 - **FR18:** O sistema deve permitir configuracao das credenciais Orulo (client_id, client_secret) na tela de configuracoes da organizacao (admin only).
 - **FR19:** O sistema deve importar empreendimentos da Orulo com: dados do empreendimento, tipologias, imagens, localizacao, incorporadora, comissao, status, previsao de entrega.
 - **FR20:** Cada tipologia de um empreendimento Orulo deve gerar 1 property separada no ZmobCRM (para granularidade de matching e futura publicacao em portais).
-- **FR21:** O sistema deve permitir sincronizacao manual (botao "Sincronizar Agora") e automatica (diaria via cron/edge function).
+- **FR21:** O sistema deve permitir sincronizacao manual (botao "Sincronizar Agora") e automatica (diaria via Vercel Cron Jobs chamando API Route).
 - **FR22:** O sistema deve exibir log de sincronizacao: data/hora, empreendimentos importados/atualizados/erros, status.
 - **FR23:** O sistema deve permitir filtrar importacao por estado/cidade (evitar custos desnecessarios — R$0,39/empreendimento/mes).
-- **FR24:** O sistema deve marcar imoveis importados da Orulo como `source: 'orulo'` e manter rastreabilidade (`orulo_id`, `orulo_url`, `orulo_last_sync`).
+- **FR24:** O sistema deve marcar imoveis importados da Orulo com `source: 'orulo'`, `source_id` (orulo_id) e dados especificos em `source_data` JSONB (orulo_url, building_name, developer_name, delivery_date, building_status, comissao). Campo `source_last_sync` TIMESTAMPTZ para rastreabilidade. Esse design extensivel suporta futuras fontes (ZAP, OLX) sem alterar schema.
 
 ### Matching Contato-Imovel
 
-- **FR25:** O sistema deve calcular score de compatibilidade (0-100) entre um imovel e um contato baseado em `contact_preferences`: tipo imovel, faixa de preco, regiao/bairro, quartos, vagas, area, financiamento, finalidade.
+- **FR25:** O sistema deve calcular score de compatibilidade (0-100) entre imoveis e contatos baseado em `contact_preferences`. **Implementacao:** Duas RPC functions set-returning: `get_matching_contacts(p_property_id, p_threshold, p_limit)` e `get_matching_properties(p_contact_id, p_threshold, p_limit)` que retornam TABLE(id, name/title, score) — evitando N+1 queries. **Logica de regiao:** `score += 20 WHERE property.neighborhood = ANY(contact.regions) OR property.city = ANY(contact.regions)` (match exato por bairro ou cidade).
 - **FR26:** O sistema deve exibir no cockpit do contato a lista de imoveis compativeis ordenados por score (tab "Imoveis Sugeridos").
 - **FR27:** O sistema deve exibir no cockpit do imovel a lista de contatos compativeis ordenados por score.
 - **FR28:** O sistema deve gerar notificacao automatica quando um novo imovel compativel (score >= 70) entra no sistema ("Radar de Imoveis" — similar ao "Radar de Clientes" do Tecimob).
@@ -130,7 +147,7 @@ O matching com IA sera o **diferencial unico** do ZmobCRM no mercado brasileiro.
 
 - **FR30:** O sistema deve permitir vincular 1 ou mais imoveis a um deal.
 - **FR31:** O sistema deve exibir os imoveis vinculados no cockpit do deal (mini-cards com foto, titulo, preco, tipo).
-- **FR32:** O `CreateDealModal` e `DealDetailModal` devem incluir campo de selecao de imovel com busca.
+- **FR32:** O `DealDetailModal` deve incluir campo de selecao de imovel com busca. O `CreateDealModal` e minimalista (3 campos: contato, estagio, responsavel) — o campo de imovel deve ser adicionado apenas no `DealDetailModal` para manter a UX de "criar rapido, detalhar depois".
 
 ### IA
 
@@ -143,10 +160,10 @@ O matching com IA sera o **diferencial unico** do ZmobCRM no mercado brasileiro.
 
 - **NFR1:** Listagem de imoveis deve carregar em < 500ms para ate 5.000 registros por organizacao.
 - **NFR2:** Busca textual deve usar pg_trgm indexes para performance (ILIKE com trigrams).
-- **NFR3:** Fotos devem ser armazenadas em Supabase Storage com policy RLS por organizacao.
-- **NFR4:** Sync Orulo nao deve impactar performance do sistema — rodar em background (Edge Function ou API Route asssincrona).
+- **NFR3:** Fotos devem ser armazenadas em Supabase Storage com policy RLS por organizacao. Path: `{bucket}/{org_id}/{property_id}/{uuid}.{ext}` para isolamento por org.
+- **NFR4:** Sync Orulo nao deve impactar performance do sistema — rodar em background via Vercel Cron Jobs + API Route assincrona.
 - **NFR5:** Calculo de matching deve ser eficiente — RPC function no Supabase, nao calcular client-side.
-- **NFR6:** Todas as novas tabelas devem ter RLS org-level (mesma politica de contacts/deals).
+- **NFR6:** Todas as novas tabelas devem ter RLS org-level. Properties sao ativos da organizacao (sem owner_id): SELECT/INSERT/UPDATE para todos os membros da org; DELETE (soft) restrito a admin/diretor via `USING (public.is_admin_or_director(organization_id))` — sem fallback de owner_id pois imoveis sao org-level. Tabelas filhas (photos, documents) herdam acesso via JOIN com properties.
 - **NFR7:** Todas as queries devem respeitar soft delete (`WHERE deleted_at IS NULL`).
 
 ---
@@ -217,13 +234,13 @@ O cockpit de imovel usa layout **header hero + tabs** ao inves do layout 3 colun
 
 ### 8.2 Estrategia de Integracao
 
-**Database:** Novas tabelas `properties`, `property_photos`, `property_documents`, `property_features`, `deal_properties`, `orulo_sync_log`. Nenhuma alteracao em tabelas existentes alem de FK opcional em `deals`.
+**Database:** Novas tabelas `properties` (com `features TEXT[]` inline), `property_photos`, `property_documents`, `deal_properties`, `orulo_sync_log`. Total: 5 tabelas novas. Alteracao aditiva em `organizations` (`property_counter`). Alteracao aditiva em `contact_preferences` (expandir CHECK de `property_types` com 3 novos tipos). Nenhuma alteracao destrutiva.
 
 **API:** Novos services em `lib/supabase/properties.ts`. Novos hooks em `lib/query/hooks/`.
 
 **Frontend:** Nova feature em `features/properties/`. Componentes reutilizados do cockpit existente.
 
-**Storage:** Novos buckets `property-photos` e `property-documents` no Supabase Storage com RLS por organizacao.
+**Storage:** Novos buckets `property-photos` e `property-documents` no Supabase Storage com RLS por organizacao. Path: `{org_id}/{property_id}/{uuid}.{ext}`.
 
 ### 8.3 Organizacao de Codigo
 
@@ -260,7 +277,7 @@ lib/query/hooks/
 - **Build:** Sem impacto — adicao de paginas e componentes novos
 - **Deploy:** Vercel (preview branch → staging DB, main → prod DB) — fluxo inalterado
 - **Migrations:** Incrementais, rollback seguro, sem alteracoes destrutivas
-- **Sync Orulo:** Supabase Edge Function com cron schedule (diario) ou API Route on-demand
+- **Sync Orulo:** Vercel Cron Jobs (diario) chamando API Route `/api/orulo/sync` + sync manual on-demand via mesmo endpoint
 
 ### 8.5 Riscos
 
@@ -301,23 +318,23 @@ Epic unico com 3 waves sequenciais, mesmo padrao validado do EPIC-CRM-IMOB:
 **para que** eu possa cadastrar e gerenciar meu catalogo.
 
 **Acceptance Criteria:**
-1. Tabela `properties` criada com todos os campos (titulo, descricao, tipo_transacao, tipo_imovel, precos, caracteristicas, localizacao, status, source, codigo interno, org_id)
+1. Tabela `properties` criada com todos os campos (titulo, descricao, tipo_transacao, tipo_imovel, precos, caracteristicas, localizacao, status, source, source_id, source_data JSONB, source_last_sync, codigo interno, org_id, `features TEXT[] DEFAULT '{}'`, private_notes)
 2. Tabela `property_photos` criada (id, property_id, url, source, position, is_primary, **category** [imovel/planta/interna], org_id)
 3. Tabela `property_documents` criada (id, property_id, url, title, **category** [campanha/apresentacao/kit_contrato/divulgacao/documento/planta_contrato], file_type, file_size, org_id)
-4. Tabela `property_features` criada (id, property_id, feature_name, org_id) OU campo JSONB/TEXT[] em properties
-5. Tabela `deal_properties` criada (deal_id, property_id — junction table)
-6. Tabela `orulo_sync_log` criada (id, org_id, started_at, finished_at, status, buildings_imported, buildings_updated, errors)
-7. RLS org-level em todas as novas tabelas
-8. Indexes para busca server-side (titulo trigram, tipo, preco, bairro/cidade, status)
-9. Types TypeScript atualizados
-10. Codigo interno auto-incremental por organizacao (sequence ou counter)
-11. Campos Orulo: `orulo_id`, `orulo_url`, `orulo_last_sync`, `building_name`, `developer_name`, `delivery_date`, `building_status`
-12. Campo `private_notes` TEXT em `properties` (notas internas da imobiliaria)
+4. Tabela `deal_properties` criada (deal_id, property_id — junction table)
+5. Tabela `orulo_sync_log` criada (id, org_id, started_at, finished_at, status, buildings_imported, buildings_updated, errors)
+6. RLS org-level em todas as novas tabelas: SELECT/INSERT/UPDATE para membros da org, DELETE (soft) restrito a admin/diretor
+7. Indexes para busca server-side (titulo trigram, tipo, preco, bairro/cidade, status)
+8. Types TypeScript atualizados
+9. Coluna `property_counter INTEGER DEFAULT 0` adicionada a `organizations` + RPC `next_property_code(org_id)` atomica
+10. Validacao de `contact_preferences.property_types` expandida com 3 novos tipos: KITNET, SALA_COMERCIAL, LOJA (app layer — atualmente nao existe CHECK constraint no banco, apenas validacao via comment SQL; opcionalmente criar CHECK formal)
+11. Trigger `update_updated_at_column()` aplicado em `properties`
 
 **Integration Verification:**
-- IV1: Tabelas existentes (contacts, deals, profiles) nao foram alteradas destrutivamente
-- IV2: RLS policies seguem mesmo padrao de contacts/deals (org-level)
+- IV1: Tabelas existentes (contacts, deals, profiles) nao foram alteradas destrutivamente (apenas aditivas: counter em organizations, CHECK expandido em contact_preferences)
+- IV2: RLS policies seguem padrao existente (org-level via `is_admin_or_director()`)
 - IV3: Migrations sao incrementais e tem rollback seguro
+- IV4: `deals.property_ref` existente mantido como deprecated (nao removido)
 
 **Estimativa:** 5 pontos
 
@@ -339,7 +356,7 @@ Epic unico com 3 waves sequenciais, mesmo padrao validado do EPIC-CRM-IMOB:
 7. Toggle grid/lista na listagem
 8. Soft delete (deleted_at)
 9. Validacao de campos obrigatorios (titulo, tipo, tipo transacao, preco, localizacao)
-10. Supabase Storage buckets `property-photos` e `property-documents` com RLS
+10. Supabase Storage buckets `property-photos` e `property-documents` com RLS. Path: `{org_id}/{property_id}/{uuid}.{ext}`
 11. Item "Imoveis" adicionado ao menu lateral
 12. Campo `private_notes` para notas internas (FR8b)
 
@@ -396,11 +413,13 @@ Epic unico com 3 waves sequenciais, mesmo padrao validado do EPIC-CRM-IMOB:
 5. Cada tipologia gera 1 property separada (FR20)
 6. Imagens da Orulo armazenadas como URLs externas (sem re-download) (FR24)
 7. Log de sincronizacao com status, contagem, erros (FR22)
-8. Properties importadas marcadas com source='orulo' e campos orulo_* preenchidos (FR24)
+8. Properties importadas marcadas com source='orulo', source_id=orulo_building_id, source_data JSONB preenchido com dados Orulo (FR24)
 9. Sync incremental (updated_at) para evitar reimportar dados inalterados
 
+10. Migration para `ALTER TABLE organization_settings ADD COLUMN orulo_client_id TEXT, orulo_client_secret TEXT, orulo_filter_states TEXT[] DEFAULT '{}', orulo_filter_cities TEXT[] DEFAULT '{}', orulo_enabled BOOLEAN DEFAULT false` (tabela atual so possui campos AI)
+
 **Integration Verification:**
-- IV1: Credenciais Orulo armazenadas de forma segura (encrypted ou Supabase vault)
+- IV1: Credenciais Orulo armazenadas em `organization_settings` com colunas dedicadas (orulo_client_id, orulo_client_secret, orulo_filter_states, orulo_filter_cities, orulo_enabled)
 - IV2: Sync nao impacta performance do sistema (roda em background)
 - IV3: Imoveis importados aparecem corretamente na lista e cockpit
 
@@ -415,15 +434,15 @@ Epic unico com 3 waves sequenciais, mesmo padrao validado do EPIC-CRM-IMOB:
 **para que** meu catalogo esteja sempre atualizado sem acao manual.
 
 **Acceptance Criteria:**
-1. Supabase Edge Function (ou cron job) que executa sync diariamente
+1. Vercel Cron Job configurado em `vercel.json` que chama API Route `/api/orulo/sync` diariamente
 2. Respeita filtros de estado/cidade configurados pela organizacao
 3. Retry automatico com backoff exponencial em caso de falha
-4. Rate limiting respeitado (max 60 req/min)
-5. Notificacao para admin quando sync falha 3x consecutivas
+4. Rate limiting respeitado (max 60 req/min conforme API Orulo)
+5. Notificacao para admin quando sync falha 3x consecutivas (tipo ORULO_SYNC_FAILED)
 6. Dashboard de sync status: ultima sync, proxima sync, imoveis totais importados, erros recentes
 
 **Integration Verification:**
-- IV1: Edge Function nao conflita com outros cron jobs existentes
+- IV1: Vercel Cron Job nao conflita com outras rotas/crons existentes
 - IV2: Notificacao usa tabela `notifications` existente
 - IV3: Dashboard de sync acessivel apenas por admin
 
@@ -438,17 +457,18 @@ Epic unico com 3 waves sequenciais, mesmo padrao validado do EPIC-CRM-IMOB:
 **para que** eu saiba exatamente quais imoveis estao em negociacao com cada contato.
 
 **Acceptance Criteria:**
-1. Campo de selecao de imovel no CreateDealModal com busca (FR32)
-2. Campo de selecao de imovel no DealDetailModal com busca (FR32)
+1. Campo de selecao de imovel no DealDetailModal com busca (FR32) — CreateDealModal permanece minimalista
+2. Secao "Imoveis Vinculados" no DealDetailModal com busca e mini-cards (FR31, FR32)
 3. Multiplos imoveis podem ser vinculados ao mesmo deal (FR30)
 4. Imoveis vinculados exibidos no cockpit do deal como mini-cards (FR31)
 5. Junction table `deal_properties` com cascade delete
 6. Remover vinculacao com confirmacao
 
 **Integration Verification:**
-- IV1: CreateDealModal e DealDetailModal existentes continuam funcionando sem imovel selecionado (campo opcional)
+- IV1: DealDetailModal existente continua funcionando sem imovel selecionado (campo opcional). CreateDealModal nao e alterado
 - IV2: Cockpit do deal existente nao quebra com nova secao
 - IV3: Performance do cockpit do deal nao e impactada
+- IV4: Campo `deals.property_ref` (TEXT) existente mantido como deprecated/read-only. Dados existentes preservados. Migracão futura converterá property_ref em vinculacao via deal_properties
 
 **Estimativa:** 5 pontos
 
@@ -463,8 +483,8 @@ Epic unico com 3 waves sequenciais, mesmo padrao validado do EPIC-CRM-IMOB:
 **para que** eu possa fazer follow-up direcionado e fechar mais negocios.
 
 **Acceptance Criteria:**
-1. RPC function `calculate_property_match(property_id, contact_id)` que retorna score 0-100 (FR25)
-2. Criterios de score: tipo imovel (match exato = +20), faixa de preco (dentro = +25, proximo = +10), regiao/bairro (match = +20), quartos >= min (+10), vagas >= min (+5), area >= min (+5), financiamento compativel (+5), finalidade compativel (+10)
+1. Duas RPC functions set-returning: `get_matching_contacts(p_property_id UUID, p_threshold INT DEFAULT 30, p_limit INT DEFAULT 50)` RETURNS TABLE(contact_id, contact_name, score) e `get_matching_properties(p_contact_id UUID, p_threshold INT DEFAULT 30, p_limit INT DEFAULT 50)` RETURNS TABLE(property_id, title, score). Calculo server-side sem N+1 queries (FR25)
+2. Criterios de score: tipo imovel (match exato = +20), faixa de preco (dentro = +25, proximo ±20% = +10), regiao/bairro (property.neighborhood = ANY(contact.regions) OR property.city = ANY(contact.regions) = +20), quartos >= min (+10), vagas >= min (+5), area >= min (+5), financiamento compativel (+5), finalidade compativel (+10)
 3. Tab "Imoveis Sugeridos" no cockpit do contato com lista ordenada por score (FR26)
 4. Lista "Contatos Compativeis" no cockpit do imovel com lista ordenada por score (FR27)
 5. Score exibido como badge colorido (0-30 vermelho, 31-60 amarelo, 61-100 verde)
@@ -492,9 +512,10 @@ Epic unico com 3 waves sequenciais, mesmo padrao validado do EPIC-CRM-IMOB:
 3. Notificacao inclui: nome do contato, titulo do imovel, score, link para cockpit do imovel
 4. Integrar com sistema de notificacoes existente (tabela `notifications`, badge header)
 5. Configuravel: threshold de score (default 70), ativar/desativar por organizacao
+6. Migration para alterar CHECK constraint da tabela `notifications` adicionando tipo 'PROPERTY_MATCH' (CHECK atual: BIRTHDAY, CHURN_ALERT, DEAL_STAGNANT, SCORE_DROP)
 
 **Integration Verification:**
-- IV1: Tabela `notifications` existente recebe novo tipo sem quebrar
+- IV1: Tabela `notifications` existente recebe novo tipo via ALTER CHECK constraint sem quebrar tipos existentes
 - IV2: Badge counter no header funciona com novo tipo
 - IV3: Volume de notificacoes nao e excessivo (batch + dedupe)
 
@@ -589,6 +610,8 @@ IM-3.3 (IA Descricoes) ← pode rodar em paralelo com 3.1/3.2
 |------|--------|------|
 | 2026-03-03 | @pm (Morgan) | PRD criado — 9 stories, 3 waves, 34 FRs, baseado em pesquisas @analyst e decisoes stakeholder |
 | 2026-03-03 | @pm (Morgan) | PRD atualizado — UX refs adicionadas (Beotto, Tecimob, Jetimob). Layout cockpit alterado para header+tabs (ref. Beotto). Adicionados: categorias de foto (FR4), notas privadas (FR8b), documentos/materiais (FR16b), tabs detalhadas (FR13b), tabela property_documents. IM-1.3 ajustada de 5 para 8 pontos. Total: 57 pontos |
+| 2026-03-03 | @architect (Aria) | Review tecnico aplicado — 11 ajustes: (C1) Expandir contact_preferences CHECK com 3 novos tipos, (C2) Definir mecanismo counter atomico para codigo interno, (C3) Trocar Edge Function por Vercel Cron Jobs, (H1) property_features removida — usar features TEXT[] inline, (H2) Campos Orulo individuais → source_data JSONB extensivel, (H3) Matching RPC set-returning (evitar N+1), (H4) Logica de match regiao definida, (M1) deals.property_ref deprecated path, (M2) RLS DELETE restrito admin/diretor, (M3) Storage path com org_id, (M4) Credenciais Orulo em organization_settings. Total tabelas: 6→5 |
+| 2026-03-04 | @po (Pax) | Validacao PRD (84/100, GO condicional). 7 correcoes aplicadas: (C1) contact_preferences.property_types nao tem CHECK — corrigido para app layer, (C2) notifications.type CHECK precisa incluir PROPERTY_MATCH — AC adicionada em IM-3.2, (C3) Contagem tabelas 36→42 (48 migrations), (M1) Colunas Orulo explicitadas em organization_settings na IM-2.1, (M2) DELETE policy clarificada sem owner_id, (M3) CreateDealModal mantido minimalista — campo imovel apenas no DealDetailModal, (M4) Secao "Fora do Escopo V1" adicionada com 8 exclusoes |
 
 ---
 
