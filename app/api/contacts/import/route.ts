@@ -349,8 +349,8 @@ export async function POST(req: Request) {
     // Normalize mode — accept legacy names for backwards compat
     const normalizedMode: 'create_only' | 'upsert' | 'skip_duplicates' =
       mode === 'upsert_by_email' ? 'upsert' :
-      mode === 'skip_duplicates_by_email' ? 'skip_duplicates' :
-      mode as 'create_only' | 'upsert' | 'skip_duplicates';
+        mode === 'skip_duplicates_by_email' ? 'skip_duplicates' :
+          mode as 'create_only' | 'upsert' | 'skip_duplicates';
 
     // Existing contacts by email (batch)
     const emails = Array.from(
@@ -658,9 +658,30 @@ export async function POST(req: Request) {
           }
           const missingProducts = prodArray.filter(n => !productNameToId.has(n));
           if (missingProducts.length > 0) {
+            const productPrices = new Map<string, number>();
+            for (const p of parsed) {
+              const row = rows[p.rowNumber - (ignoreHeader ? 1 : 2)] || [];
+              const prodName = getCell(row, dealFieldIdx.deal_product);
+              if (prodName && missingProducts.includes(prodName)) {
+                const valueStr = getCell(row, dealFieldIdx.deal_value);
+                let val = 0;
+                if (valueStr) {
+                  const cleaned = valueStr.replace(/[^\d.,-]/g, '');
+                  const lastComma = cleaned.lastIndexOf(',');
+                  const lastDot = cleaned.lastIndexOf('.');
+                  if (lastComma > lastDot) val = parseFloat(cleaned.replace(/\./g, '').replace(',', '.')) || 0;
+                  else if (lastDot > lastComma) val = parseFloat(cleaned.replace(/,/g, '')) || 0;
+                  else val = parseFloat(cleaned) || 0;
+                }
+                if (!productPrices.has(prodName) || val > (productPrices.get(prodName) || 0)) {
+                  productPrices.set(prodName, val);
+                }
+              }
+            }
+
             const { data: created, error: prodInsertErr } = await supabase
               .from('products')
-              .insert(missingProducts.map(name => ({ name, price: 0, organization_id: organizationId })))
+              .insert(missingProducts.map(name => ({ name, price: productPrices.get(name) || 0, organization_id: organizationId })))
               .select('id, name');
             if (prodInsertErr) {
               errors.push({ rowNumber: 0, message: `Erro ao criar produtos: ${prodInsertErr.message}` });
@@ -681,7 +702,19 @@ export async function POST(req: Request) {
         const row = rows[p.rowNumber - (ignoreHeader ? 1 : 2)] || [];
         const title = getCell(row, dealFieldIdx.deal_title) || `Negócio — ${p.data.name || p.data.email || ''}`;
         const valueStr = getCell(row, dealFieldIdx.deal_value);
-        const value = valueStr ? parseFloat(valueStr.replace(/[^\d.,]/g, '').replace(',', '.')) || 0 : 0;
+        let value = 0;
+        if (valueStr) {
+          const cleaned = valueStr.replace(/[^\d.,-]/g, '');
+          const lastComma = cleaned.lastIndexOf(',');
+          const lastDot = cleaned.lastIndexOf('.');
+          if (lastComma > lastDot) {
+            value = parseFloat(cleaned.replace(/\./g, '').replace(',', '.')) || 0;
+          } else if (lastDot > lastComma) {
+            value = parseFloat(cleaned.replace(/,/g, '')) || 0;
+          } else {
+            value = parseFloat(cleaned) || 0;
+          }
+        }
         const dealType = getCell(row, dealFieldIdx.deal_type) || 'VENDA';
         const activityNote = getCell(row, dealFieldIdx.deal_activity);
         const productName = getCell(row, dealFieldIdx.deal_product);

@@ -464,21 +464,19 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                     onClick={(e) => { e.stopPropagation(); onOwnerChange(deal.id, m); setOwnerPickerOpen(false); }}
                     className={`w-full text-left px-2.5 py-1.5 text-xs hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2 ${isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                   >
-                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
-                      isSelected
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${isSelected
                         ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 ring-1 ring-blue-300/50 dark:ring-blue-600/30'
                         : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'
-                    }`}>
+                      }`}>
                       {getInitials(m.name)}
                     </span>
                     <span className={`flex-1 truncate ${isSelected ? 'text-blue-700 dark:text-blue-300 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>
                       {m.name}
                     </span>
-                    <span className={`text-[9px] px-1 py-0.5 rounded ${
-                      m.role === 'admin' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-500 dark:text-purple-400' :
-                      m.role === 'diretor' ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-500 dark:text-sky-400' :
-                      'bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-slate-500'
-                    }`}>
+                    <span className={`text-[9px] px-1 py-0.5 rounded ${m.role === 'admin' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-500 dark:text-purple-400' :
+                        m.role === 'diretor' ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-500 dark:text-sky-400' :
+                          'bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-slate-500'
+                      }`}>
                       {m.role}
                     </span>
                     {isSelected && <Check className="h-3 w-3 text-blue-500 dark:text-blue-400 shrink-0" />}
