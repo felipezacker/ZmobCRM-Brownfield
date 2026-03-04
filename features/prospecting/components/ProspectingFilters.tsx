@@ -176,7 +176,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
         </div>
       </div>
 
-      {/* Row 4: Source + Owner + Inactive days */}
+      {/* Row 4: Source + Owner + Inactive days + Phone toggle */}
       <div className="flex flex-wrap gap-4 items-end">
         <div>
           <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Origem</label>
@@ -224,24 +224,25 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
           />
         </div>
 
-        <label
-          className={`flex items-center gap-2 cursor-pointer self-center px-3 py-2 rounded-lg border transition-colors ${
-            filters.onlyWithPhone
-              ? 'bg-teal-50 border-teal-300 dark:bg-teal-500/15 dark:border-teal-500/30'
-              : 'bg-white border-slate-200 hover:border-slate-300 dark:bg-black/20 dark:border-white/10 dark:hover:border-white/20'
-          }`}
-        >
-          <input
-            type="checkbox"
-            checked={filters.onlyWithPhone}
-            onChange={(e) => onFiltersChange({ ...filters, onlyWithPhone: e.target.checked })}
-            className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
-          />
-          <Phone size={13} className={filters.onlyWithPhone ? 'text-teal-500' : 'text-slate-400'} />
-          <span className={`text-sm font-medium ${filters.onlyWithPhone ? 'text-teal-700 dark:text-teal-300' : 'text-slate-600 dark:text-slate-400'}`}>
-            Só com telefone
-          </span>
-        </label>
+        <div>
+          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone</label>
+          <label
+            className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${
+              filters.onlyWithPhone
+                ? 'bg-teal-500/10 border-teal-500/30 text-teal-400'
+                : 'bg-white border-slate-200 hover:border-slate-300 dark:bg-black/20 dark:border-white/10 dark:hover:border-white/20 text-slate-500 dark:text-slate-400'
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={filters.onlyWithPhone}
+              onChange={(e) => onFiltersChange({ ...filters, onlyWithPhone: e.target.checked })}
+              className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
+            />
+            <Phone size={13} />
+            <span className="text-sm font-medium whitespace-nowrap">Só com telefone</span>
+          </label>
+        </div>
       </div>
     </div>
   )
