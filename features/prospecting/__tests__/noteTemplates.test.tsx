@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import React from 'react'
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'

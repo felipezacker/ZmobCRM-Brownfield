@@ -77,21 +77,24 @@ describe('MetricsCards', () => {
   it('mostra skeleton cards quando loading', () => {
     const { container } = render(<MetricsCards metrics={null} isLoading={true} />)
     const skeletons = container.querySelectorAll('.animate-pulse')
-    expect(skeletons.length).toBe(4)
+    expect(skeletons.length).toBe(6)
   })
 
-  it('renderiza 4 KPI cards com dados corretos', () => {
+  it('renderiza 6 KPI cards com dados corretos', () => {
     render(<MetricsCards metrics={mockMetrics} isLoading={false} />)
     expect(screen.getByText('100')).toBeInTheDocument()
-    expect(screen.getByText('45.0%')).toBeInTheDocument()
+    expect(screen.getByText('45')).toBeInTheDocument() // connected
+    expect(screen.getByText('45% do total')).toBeInTheDocument()
     expect(screen.getByText('3:05')).toBeInTheDocument()
     expect(screen.getByText('72')).toBeInTheDocument()
   })
 
   it('mostra labels corretos', () => {
     render(<MetricsCards metrics={mockMetrics} isLoading={false} />)
-    expect(screen.getByText('Ligações')).toBeInTheDocument()
-    expect(screen.getByText('Taxa de Conexão')).toBeInTheDocument()
+    expect(screen.getByText('Ligações Discadas')).toBeInTheDocument()
+    expect(screen.getByText('Atendidas')).toBeInTheDocument()
+    expect(screen.getByText('Sem Resposta')).toBeInTheDocument()
+    expect(screen.getByText('Correio de Voz')).toBeInTheDocument()
     expect(screen.getByText('Tempo Médio')).toBeInTheDocument()
     expect(screen.getByText('Contatos Prospectados')).toBeInTheDocument()
   })
@@ -99,8 +102,7 @@ describe('MetricsCards', () => {
   it('mostra zeros quando metrics é null', () => {
     render(<MetricsCards metrics={null} isLoading={false} />)
     expect(screen.getByText('0:00')).toBeInTheDocument()
-    expect(screen.getByText('0.0%')).toBeInTheDocument()
-    expect(screen.getAllByText('0').length).toBe(2)
+    expect(screen.getAllByText('0').length).toBe(5) // total, connected, noAnswer, voicemail, contacts
   })
 })
 

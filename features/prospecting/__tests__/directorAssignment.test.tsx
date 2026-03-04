@@ -183,7 +183,8 @@ describe('ProspectingPage — Director Assignment (AC9)', () => {
     openFilters()
 
     // Select a corretor in assignment dropdown
-    const assignSelect = screen.getByText('Minha fila').closest('select')!
+    const assignContainer = screen.getByText('Atribuir fila para:').closest('div')!
+    const assignSelect = assignContainer.querySelector('select')!
     fireEvent.change(assignSelect, { target: { value: 'u-2' } })
 
     // Use "Selecionar todos" to select contacts (avoids conflict with sr-only filter checkboxes)
@@ -222,7 +223,8 @@ describe('ProspectingPage — Director Assignment (AC9)', () => {
     openFilters()
 
     // Select Maria Corretora
-    const assignSelect = screen.getByText('Minha fila').closest('select')!
+    const assignContainer = screen.getByText('Atribuir fila para:').closest('div')!
+    const assignSelect = assignContainer.querySelector('select')!
     fireEvent.change(assignSelect, { target: { value: 'u-2' } })
 
     // Select contacts and add
