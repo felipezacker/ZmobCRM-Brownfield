@@ -63,8 +63,17 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
 
   // Keyboard shortcuts
   useEffect(() => {
-    if (showCallModal || showScriptDropdown) return
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape closes dropdown
+      if (e.key === 'Escape' && showScriptDropdown) {
+        e.preventDefault()
+        setShowScriptDropdown(false)
+        return
+      }
+
+      // Other shortcuts disabled when modal/dropdown open
+      if (showCallModal || showScriptDropdown) return
+
       // Ignore when typing in inputs
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
@@ -284,7 +293,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             variant="unstyled"
             size="unstyled"
             onClick={onSkip}
-            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors relative"
+            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
           >
             <SkipForward size={20} />
             <span className="text-xs font-medium">Pular</span>
@@ -294,7 +303,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             variant="unstyled"
             size="unstyled"
             onClick={onEnd}
-            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors relative"
+            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors"
           >
             <Square size={20} />
             <span className="text-xs font-medium">Encerrar</span>

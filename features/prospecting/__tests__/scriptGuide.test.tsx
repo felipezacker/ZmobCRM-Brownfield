@@ -3,7 +3,6 @@ import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ProspectingScriptGuide, ALL_OBJECTIONS } from '../components/ProspectingScriptGuide'
-import { ScriptSelector } from '../components/ScriptSelector'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
 import type { ProspectingQueueItem, ProspectingQueueStatus } from '@/types'
 
@@ -218,57 +217,3 @@ describe('ProspectingScriptGuide', () => {
   })
 })
 
-// ── ScriptSelector Tests ──────────────────────────────────
-
-describe('ScriptSelector', () => {
-  it('renders available scripts', () => {
-    render(
-      <ScriptSelector selectedScript={null} onSelect={vi.fn()} />
-    )
-    expect(screen.getByText('Script Intro')).toBeInTheDocument()
-    expect(screen.getByText('Script Follow-up')).toBeInTheDocument()
-  })
-
-  it('shows header', () => {
-    render(
-      <ScriptSelector selectedScript={null} onSelect={vi.fn()} />
-    )
-    expect(screen.getByText('Script de Chamada')).toBeInTheDocument()
-  })
-
-  it('shows selected script indicator', () => {
-    render(
-      <ScriptSelector selectedScript={mockScripts[0]} onSelect={vi.fn()} />
-    )
-    // "Script Intro" appears twice: in header check + list item
-    expect(screen.getAllByText('Script Intro')).toHaveLength(2)
-    expect(screen.getByText('Limpar')).toBeInTheDocument()
-  })
-
-  it('expands script to show preview and select button', () => {
-    render(
-      <ScriptSelector selectedScript={null} onSelect={vi.fn()} />
-    )
-    fireEvent.click(screen.getByText('Script Intro'))
-    expect(screen.getByText('Selecionar este script')).toBeInTheDocument()
-  })
-
-  it('calls onSelect when selecting a script', () => {
-    const onSelect = vi.fn()
-    render(
-      <ScriptSelector selectedScript={null} onSelect={onSelect} />
-    )
-    fireEvent.click(screen.getByText('Script Intro'))
-    fireEvent.click(screen.getByText('Selecionar este script'))
-    expect(onSelect).toHaveBeenCalledWith(mockScripts[0])
-  })
-
-  it('calls onSelect(null) when clearing selection', () => {
-    const onSelect = vi.fn()
-    render(
-      <ScriptSelector selectedScript={mockScripts[0]} onSelect={onSelect} />
-    )
-    fireEvent.click(screen.getByText('Limpar'))
-    expect(onSelect).toHaveBeenCalledWith(null)
-  })
-})
