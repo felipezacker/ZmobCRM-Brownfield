@@ -55,15 +55,19 @@ BEGIN
       c.source,
       c.owner_id,
       c.created_at,
-      (
-        SELECT cp.phone_number
-        FROM contact_phones cp
-        WHERE cp.contact_id = c.id
-        ORDER BY cp.is_primary DESC
-        LIMIT 1
+      COALESCE(
+        (
+          SELECT cp.phone_number
+          FROM contact_phones cp
+          WHERE cp.contact_id = c.id
+          ORDER BY cp.is_primary DESC
+          LIMIT 1
+        ),
+        c.phone
       ) AS primary_phone,
-      EXISTS (
-        SELECT 1 FROM contact_phones cp WHERE cp.contact_id = c.id
+      (
+        EXISTS (SELECT 1 FROM contact_phones cp WHERE cp.contact_id = c.id)
+        OR c.phone IS NOT NULL AND c.phone <> ''
       ) AS has_phone,
       (
         SELECT EXTRACT(DAY FROM now() - MAX(a.date))::INT

@@ -74,12 +74,13 @@ export const ProspectingPage: React.FC = () => {
       if (!supabase) return []
       const { data } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url')
-        .order('full_name')
+        .select('id, name, first_name, avatar_url, role')
+        .order('name')
       return (data || []).map(p => ({
         id: p.id,
-        name: (p as any).full_name || 'Sem nome',
+        name: (p as any).name || (p as any).first_name || 'Sem nome',
         avatar: (p as any).avatar_url || undefined,
+        role: (p as any).role as string,
       }))
     },
     staleTime: 5 * 60 * 1000,
