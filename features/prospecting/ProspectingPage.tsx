@@ -8,7 +8,6 @@ import { CallQueue } from './components/CallQueue'
 import { PowerDialer } from './components/PowerDialer'
 import { SessionSummary } from './components/SessionSummary'
 import { AddToQueueSearch } from './components/AddToQueueSearch'
-import { ScriptSelector } from './components/ScriptSelector'
 import { ProspectingFilters, INITIAL_FILTERS, type ProspectingFiltersState } from './components/ProspectingFilters'
 import { FilteredContactsList } from './components/FilteredContactsList'
 import { useProspectingQueue } from './hooks/useProspectingQueue'
@@ -16,6 +15,7 @@ import { useProspectingFilteredContacts } from './hooks/useProspectingFilteredCo
 import { useAddBatchToProspectingQueue, useQueueContactIds } from '@/lib/query/hooks/useProspectingQueueQuery'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
+import { useTags } from '@/hooks/useTags'
 import { supabase } from '@/lib/supabase/client'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
 
@@ -35,6 +35,7 @@ export const ProspectingPage: React.FC = () => {
   const toast = addToast || showToast
 
   const isAdminOrDirector = profile?.role === 'admin' || profile?.role === 'diretor'
+  const { tags: availableTags } = useTags()
 
   const {
     queue,
@@ -247,14 +248,11 @@ export const ProspectingPage: React.FC = () => {
             onSkip={skip}
             onEnd={handleEndSession}
             selectedScript={selectedScript}
+            onScriptChange={setSelectedScript}
+            sessionStats={sessionStats}
           />
         ) : (
           <div className="space-y-4">
-            <ScriptSelector
-              selectedScript={selectedScript}
-              onSelect={setSelectedScript}
-            />
-
             {/* CP-1.3: Mass filter panel */}
             {showFilters && (
               <div className="space-y-4">
@@ -262,6 +260,7 @@ export const ProspectingPage: React.FC = () => {
                   filters={filters}
                   onFiltersChange={setFilters}
                   profiles={profiles}
+                  availableTags={availableTags}
                   showOwnerFilter={isAdminOrDirector}
                   onApply={handleApplyFilters}
                 />

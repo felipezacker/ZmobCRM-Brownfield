@@ -1,12 +1,14 @@
-import React, { useState, useCallback } from 'react'
-import { Phone, SkipForward, Square, Flame, Snowflake, Sun, User, Mail, FileText } from 'lucide-react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
+import { Phone, SkipForward, Square, Flame, Snowflake, Sun, User, Mail, FileText, ChevronDown, Check } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import { CallModal, CallLogData } from '@/features/inbox/components/CallModal'
 import { ProspectingScriptGuide } from '@/features/prospecting/components/ProspectingScriptGuide'
-import { Sheet } from '@/components/ui/Sheet'
+import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts'
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery'
+import { substituteVariables } from '@/features/prospecting/utils/scriptParser'
 import type { ProspectingQueueItem } from '@/types'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
+import type { SessionStats } from '@/features/prospecting/ProspectingPage'
 
 interface PowerDialerProps {
   contact: ProspectingQueueItem
@@ -16,6 +18,8 @@ interface PowerDialerProps {
   onSkip: () => void
   onEnd: () => void
   selectedScript?: QuickScript | null
+  onScriptChange?: (script: QuickScript | null) => void
+  sessionStats?: SessionStats
 }
 
 const TEMP_DISPLAY: Record<string, { icon: React.ReactNode; label: string }> = {
@@ -32,14 +36,61 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   onSkip,
   onEnd,
   selectedScript,
+  onScriptChange,
+  sessionStats,
 }) => {
   const [showCallModal, setShowCallModal] = useState(false)
-  const [showMobileScript, setShowMobileScript] = useState(false)
   const [markedObjections, setMarkedObjections] = useState<string[]>([])
+  const [showScriptDropdown, setShowScriptDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const createActivity = useCreateActivity()
+  const { scripts } = useQuickScripts()
 
   const progress = totalCount > 0 ? ((currentIndex + 1) / totalCount) * 100 : 0
   const temp = contact.contactTemperature ? TEMP_DISPLAY[contact.contactTemperature] : null
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!showScriptDropdown) return
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowScriptDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showScriptDropdown])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (showCallModal || showScriptDropdown) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+
+      switch (e.key.toLowerCase()) {
+        case 'l':
+          e.preventDefault()
+          setShowCallModal(true)
+          break
+        case 'p':
+          e.preventDefault()
+          onSkip()
+          break
+        case 'e':
+          e.preventDefault()
+          onEnd()
+          break
+        case 's':
+          e.preventDefault()
+          setShowScriptDropdown(prev => !prev)
+          break
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showCallModal, showScriptDropdown, onSkip, onEnd])
 
   const handleCallSave = useCallback((data: CallLogData) => {
     createActivity.mutate({
@@ -66,9 +117,38 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     onCallComplete(data.outcome)
   }, [contact.contactId, createActivity, onCallComplete, markedObjections])
 
+  const handleSelectScript = useCallback((script: QuickScript) => {
+    if (onScriptChange) {
+      onScriptChange(selectedScript?.id === script.id ? null : script)
+    }
+    setShowScriptDropdown(false)
+  }, [onScriptChange, selectedScript])
+
+  // Build script preview (first 2 lines, variables substituted)
+  const scriptPreview = selectedScript ? (() => {
+    const vars: Record<string, string> = {
+      nome: contact.contactName || '',
+      empresa: '',
+      valor: '',
+      produto: '',
+    }
+    const substituted = substituteVariables(selectedScript.template, vars)
+    const lines = substituted.split('\n').filter(l => l.trim() && !l.startsWith('##'))
+    return lines.slice(0, 2).join(' ').slice(0, 120) + (lines.length > 2 ? '...' : '')
+  })() : null
+
+  // Session stats chips
+  const statsChips = sessionStats ? [
+    { count: sessionStats.connected, label: 'Atenderam', color: 'text-green-400 bg-green-500/10' },
+    { count: sessionStats.noAnswer, label: 'Não atenderam', color: 'text-red-400 bg-red-500/10' },
+    { count: sessionStats.voicemail, label: 'Caixa postal', color: 'text-yellow-400 bg-yellow-500/10' },
+    { count: sessionStats.busy, label: 'Ocupados', color: 'text-orange-400 bg-orange-500/10' },
+    { count: sessionStats.skipped, label: 'Pulados', color: 'text-slate-400 bg-slate-500/10' },
+  ].filter(s => s.count > 0) : []
+
   return (
-    <div className="space-y-6">
-      {/* Progress bar */}
+    <div className="space-y-4">
+      {/* Progress bar with session stats */}
       <div className="max-w-lg mx-auto space-y-1">
         <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>Progresso da sessão</span>
@@ -80,131 +160,147 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             style={{ width: `${progress}%` }}
           />
         </div>
-      </div>
-
-      {/* Main content: Contact card + Script guide side-by-side on desktop */}
-      <div className={`${selectedScript ? 'lg:flex lg:gap-4 lg:items-start' : ''}`}>
-        {/* Contact card */}
-        <div className={`${selectedScript ? 'lg:flex-1' : 'max-w-lg mx-auto'}`}>
-          <div className="max-w-lg mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl p-6 space-y-4">
-            {/* Contact info */}
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-14 h-14 rounded-full bg-teal-500/10 flex items-center justify-center">
-                <User size={24} className="text-teal-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white truncate">
-                  {contact.contactName || 'Sem nome'}
-                </h2>
-                <div className="flex items-center gap-3 mt-1">
-                  {contact.contactPhone && (
-                    <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                      <Phone size={12} />
-                      {contact.contactPhone}
-                    </span>
-                  )}
-                  {contact.contactEmail && (
-                    <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                      <Mail size={12} />
-                      {contact.contactEmail}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 mt-2">
-                  {contact.contactStage && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                      {contact.contactStage}
-                    </span>
-                  )}
-                  {temp && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center gap-1">
-                      {temp.icon}
-                      {temp.label}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className={`grid ${selectedScript ? 'grid-cols-4' : 'grid-cols-3'} gap-3 pt-4 border-t border-slate-200 dark:border-slate-700/50`}>
-              <Button
-                variant="unstyled"
-                size="unstyled"
-                onClick={() => setShowCallModal(true)}
-                className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors"
-              >
-                <Phone size={20} />
-                <span className="text-xs font-medium">Ligar</span>
-              </Button>
-
-              {/* Mobile-only: show script button */}
-              {selectedScript && (
-                <Button
-                  variant="unstyled"
-                  size="unstyled"
-                  onClick={() => setShowMobileScript(true)}
-                  className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-500 transition-colors lg:hidden"
-                >
-                  <FileText size={20} />
-                  <span className="text-xs font-medium">Script</span>
-                </Button>
-              )}
-
-              <Button
-                variant="unstyled"
-                size="unstyled"
-                onClick={onSkip}
-                className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
-              >
-                <SkipForward size={20} />
-                <span className="text-xs font-medium">Pular</span>
-              </Button>
-
-              <Button
-                variant="unstyled"
-                size="unstyled"
-                onClick={onEnd}
-                className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors"
-              >
-                <Square size={20} />
-                <span className="text-xs font-medium">Encerrar</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop script guide panel */}
-        {selectedScript && (
-          <div className="hidden lg:block lg:w-80 xl:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl overflow-hidden max-h-[70vh]">
-            <ProspectingScriptGuide
-              script={selectedScript}
-              contact={contact}
-              markedObjections={markedObjections}
-              onObjectionsChange={setMarkedObjections}
-            />
+        {statsChips.length > 0 && (
+          <div className="flex items-center justify-center gap-2 flex-wrap pt-1">
+            {statsChips.map(({ count, label, color }) => (
+              <span key={label} className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full ${color}`}>
+                {count} {label}
+              </span>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Mobile script drawer */}
-      {selectedScript && (
-        <Sheet
-          isOpen={showMobileScript}
-          onClose={() => setShowMobileScript(false)}
-          ariaLabel="Script de chamada"
-          className="max-h-[80vh]"
-        >
-          <div className="h-[75vh]">
-            <ProspectingScriptGuide
-              script={selectedScript}
-              contact={contact}
-              markedObjections={markedObjections}
-              onObjectionsChange={setMarkedObjections}
-            />
+      {/* Contact card */}
+      <div className="max-w-lg mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl p-5 space-y-4">
+        {/* Contact info */}
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-teal-500/10 flex items-center justify-center">
+            <User size={22} className="text-teal-500" />
           </div>
-        </Sheet>
-      )}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white truncate">
+              {contact.contactName || 'Sem nome'}
+            </h2>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+              {contact.contactPhone && (
+                <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <Phone size={12} />
+                  {contact.contactPhone}
+                </span>
+              )}
+              {contact.contactEmail && (
+                <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1 truncate">
+                  <Mail size={12} />
+                  {contact.contactEmail}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              {contact.contactStage && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  {contact.contactStage}
+                </span>
+              )}
+              {temp && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                  {temp.icon}
+                  {temp.label}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Script dropdown selector */}
+        {onScriptChange && scripts.length > 0 && (
+          <div className="relative" ref={dropdownRef}>
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              onClick={() => setShowScriptDropdown(prev => !prev)}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-colors ${
+                selectedScript
+                  ? 'border-purple-500/30 bg-purple-500/5 text-purple-400'
+                  : 'border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+              }`}
+            >
+              <span className="flex items-center gap-2 truncate">
+                <FileText size={14} />
+                {selectedScript ? selectedScript.title : 'Selecionar script de chamada'}
+              </span>
+              <ChevronDown size={14} className={`shrink-0 transition-transform ${showScriptDropdown ? 'rotate-180' : ''}`} />
+            </Button>
+
+            {/* Script preview */}
+            {selectedScript && scriptPreview && !showScriptDropdown && (
+              <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500 leading-relaxed line-clamp-2 px-1">
+                {scriptPreview}
+              </p>
+            )}
+
+            {showScriptDropdown && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-lg shadow-xl max-h-56 overflow-y-auto">
+                {scripts.map((script) => {
+                  const isSelected = selectedScript?.id === script.id
+                  return (
+                    <Button
+                      key={script.id}
+                      variant="unstyled"
+                      size="unstyled"
+                      onClick={() => handleSelectScript(script)}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 text-left text-sm transition-colors ${
+                        isSelected
+                          ? 'bg-purple-500/10 text-purple-400'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <span className="truncate">{script.title}</span>
+                      {isSelected && <Check size={14} className="shrink-0 text-purple-400" />}
+                    </Button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-slate-200 dark:border-slate-700/50">
+          <Button
+            variant="unstyled"
+            size="unstyled"
+            onClick={() => setShowCallModal(true)}
+            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors relative"
+          >
+            <Phone size={20} />
+            <span className="text-xs font-medium">Ligar</span>
+            {selectedScript && (
+              <span className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-purple-500 rounded-full border-2 border-white dark:border-slate-900" />
+            )}
+          </Button>
+
+          <Button
+            variant="unstyled"
+            size="unstyled"
+            onClick={onSkip}
+            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors relative"
+          >
+            <SkipForward size={20} />
+            <span className="text-xs font-medium">Pular</span>
+          </Button>
+
+          <Button
+            variant="unstyled"
+            size="unstyled"
+            onClick={onEnd}
+            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors relative"
+          >
+            <Square size={20} />
+            <span className="text-xs font-medium">Encerrar</span>
+          </Button>
+        </div>
+      </div>
 
       {/* CallModal with script guide side panel */}
       <CallModal

@@ -106,7 +106,7 @@ export const ScriptSelector: React.FC<ScriptSelectorProps> = ({
         )}
       </div>
 
-      <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+      <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
         {scripts.map((script) => {
           const isSelected = selectedScript?.id === script.id
           const isExpanded = expandedId === script.id
