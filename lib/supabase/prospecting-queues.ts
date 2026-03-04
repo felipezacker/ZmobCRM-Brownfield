@@ -48,6 +48,8 @@ interface DbQueueItem {
   position: number;
   session_id: string | null;
   assigned_by: string | null;
+  retry_at: string | null;
+  retry_count: number;
   created_at: string;
   updated_at: string;
   contacts?: {
@@ -71,6 +73,8 @@ const transformQueueItem = (db: DbQueueItem): ProspectingQueueItem => ({
   position: db.position,
   sessionId: db.session_id || undefined,
   assignedBy: db.assigned_by || undefined,
+  retryAt: db.retry_at || undefined,
+  retryCount: db.retry_count ?? 0,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
   contactName: db.contacts?.name,
@@ -365,6 +369,105 @@ export const prospectingQueuesService = {
       };
     } catch (e) {
       return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Schedule a retry for a queue item (CP-2.1).
+   * Sets status to retry_pending, increments retry_count, sets retry_at.
+   * If retry_count >= 3, sets status to exhausted instead.
+   */
+  async scheduleRetry(id: string, retryIntervalDays: number): Promise<{ data: { exhausted: boolean } | null; error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { data: null, error: new Error('Supabase não configurado') };
+
+      // Get current retry_count
+      const { data: current, error: fetchError } = await sb
+        .from('prospecting_queues')
+        .select('retry_count')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) return { data: null, error: fetchError };
+
+      const currentCount = (current as any)?.retry_count ?? 0;
+      const newCount = currentCount + 1;
+
+      if (newCount >= 3) {
+        // Exhausted — no more retries
+        const { error } = await sb
+          .from('prospecting_queues')
+          .update({ status: 'exhausted', retry_count: newCount, retry_at: null })
+          .eq('id', id);
+        return { data: { exhausted: true }, error };
+      }
+
+      // Schedule retry
+      const retryAt = new Date();
+      retryAt.setDate(retryAt.getDate() + retryIntervalDays);
+
+      const { error } = await sb
+        .from('prospecting_queues')
+        .update({
+          status: 'retry_pending',
+          retry_count: newCount,
+          retry_at: retryAt.toISOString(),
+        })
+        .eq('id', id);
+
+      return { data: { exhausted: false }, error };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Activate retries that are ready (retry_at <= now) — CP-2.1.
+   * Moves retry_pending items back to pending status.
+   */
+  async activateReadyRetries(ownerId?: string): Promise<{ data: number | null; error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { data: null, error: new Error('Supabase não configurado') };
+
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return { data: null, error: new Error('Usuário não autenticado') };
+
+      const targetOwnerId = ownerId || user.id;
+
+      const { data, error } = await sb
+        .from('prospecting_queues')
+        .update({ status: 'pending', retry_at: null })
+        .eq('owner_id', targetOwnerId)
+        .eq('status', 'retry_pending')
+        .lte('retry_at', new Date().toISOString())
+        .select('id');
+
+      if (error) return { data: null, error };
+      return { data: (data || []).length, error: null };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Reset an exhausted queue item (CP-2.1).
+   * Zeroes retry_count and sets status back to pending.
+   */
+  async resetRetry(id: string): Promise<{ error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { error: new Error('Supabase não configurado') };
+
+      const { error } = await sb
+        .from('prospecting_queues')
+        .update({ status: 'pending', retry_count: 0, retry_at: null })
+        .eq('id', id);
+
+      return { error };
+    } catch (e) {
+      return { error: e as Error };
     }
   },
 

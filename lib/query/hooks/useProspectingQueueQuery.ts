@@ -180,6 +180,55 @@ export const useQueueContactIds = (targetOwnerId?: string) => {
   })
 }
 
+// CP-2.1: Schedule retry for a queue item
+export const useScheduleRetry = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, retryIntervalDays }: { id: string; retryIntervalDays: number }) => {
+      const { data, error } = await prospectingQueuesService.scheduleRetry(id, retryIntervalDays)
+      if (error) throw error
+      return data!
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
+    },
+  })
+}
+
+// CP-2.1: Activate retries that are ready (retry_at <= now)
+export const useActivateReadyRetries = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (ownerId?: string) => {
+      const { data, error } = await prospectingQueuesService.activateReadyRetries(ownerId)
+      if (error) throw error
+      return data ?? 0
+    },
+    onSuccess: (count) => {
+      if (count > 0) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
+      }
+    },
+  })
+}
+
+// CP-2.1: Reset an exhausted queue item
+export const useResetRetry = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await prospectingQueuesService.resetRetry(id)
+      if (error) throw error
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
+    },
+  })
+}
+
 export const useClearCompletedQueue = () => {
   const queryClient = useQueryClient()
 

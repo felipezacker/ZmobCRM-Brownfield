@@ -15,6 +15,7 @@ const makeItem = (overrides?: Partial<ProspectingQueueItem>): ProspectingQueueIt
   organizationId: 'org-1',
   status: 'pending',
   position: 0,
+  retryCount: 0,
   createdAt: '2026-03-03T00:00:00Z',
   updatedAt: '2026-03-03T00:00:00Z',
   contactName: 'João Silva',
@@ -23,6 +24,9 @@ const makeItem = (overrides?: Partial<ProspectingQueueItem>): ProspectingQueueIt
 })
 
 let mockQueueData: ProspectingQueueItem[] = []
+
+const mockScheduleRetryAsync = vi.fn()
+const mockResetRetryAsync = vi.fn()
 
 vi.mock('@/lib/query/hooks/useProspectingQueueQuery', () => ({
   useProspectingQueueItems: () => ({
@@ -41,6 +45,19 @@ vi.mock('@/lib/query/hooks/useProspectingQueueQuery', () => ({
   }),
   useStartProspectingSession: () => ({
     mutateAsync: vi.fn().mockResolvedValue('session-123'),
+  }),
+  useClearAllQueue: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useScheduleRetry: () => ({
+    mutateAsync: mockScheduleRetryAsync,
+  }),
+  useActivateReadyRetries: () => ({
+    mutate: vi.fn(),
+  }),
+  useResetRetry: () => ({
+    mutateAsync: mockResetRetryAsync,
   }),
 }))
 
@@ -171,5 +188,78 @@ describe('useProspectingQueue', () => {
     })
 
     expect(mockMutateAsync).toHaveBeenCalledWith({ id: 'q-1', status: 'completed' })
+  })
+
+  // ── CP-2.1: Retry tests ──────────────────────────────────
+
+  it('markCompleted com no_answer agenda retry em vez de completar', async () => {
+    mockScheduleRetryAsync.mockResolvedValueOnce({ exhausted: false })
+    mockQueueData = [makeItem()]
+    const { result } = renderHook(() => useProspectingQueue())
+
+    await act(async () => {
+      await result.current.startSession()
+    })
+
+    await act(async () => {
+      await result.current.markCompleted('no_answer')
+    })
+
+    expect(mockScheduleRetryAsync).toHaveBeenCalledWith({
+      id: 'q-1',
+      retryIntervalDays: 3, // default interval
+    })
+    expect(mockToast).toHaveBeenCalledWith('Retry agendado para 3 dias', 'info')
+  })
+
+  it('markCompleted com no_answer mostra toast de esgotado quando exhausted', async () => {
+    mockScheduleRetryAsync.mockResolvedValueOnce({ exhausted: true })
+    mockQueueData = [makeItem()]
+    const { result } = renderHook(() => useProspectingQueue())
+
+    await act(async () => {
+      await result.current.startSession()
+    })
+
+    await act(async () => {
+      await result.current.markCompleted('no_answer')
+    })
+
+    expect(mockToast).toHaveBeenCalledWith('Contato esgotou tentativas de retry', 'info')
+  })
+
+  it('filtra itens exhausted da queue principal e expõe em exhaustedItems', () => {
+    mockQueueData = [
+      makeItem({ id: 'q-1', status: 'pending' }),
+      makeItem({ id: 'q-2', status: 'exhausted', position: 1, retryCount: 3 }),
+    ]
+    const { result } = renderHook(() => useProspectingQueue())
+
+    expect(result.current.queue.length).toBe(1)
+    expect(result.current.queue[0].id).toBe('q-1')
+    expect(result.current.exhaustedItems.length).toBe(1)
+    expect(result.current.exhaustedItems[0].id).toBe('q-2')
+  })
+
+  it('resetExhaustedItem chama resetRetry e mostra toast', async () => {
+    mockResetRetryAsync.mockResolvedValueOnce(undefined)
+    const { result } = renderHook(() => useProspectingQueue())
+
+    await act(async () => {
+      await result.current.resetExhaustedItem('q-2')
+    })
+
+    expect(mockResetRetryAsync).toHaveBeenCalledWith('q-2')
+    expect(mockToast).toHaveBeenCalledWith('Contato resetado para fila', 'success')
+  })
+
+  it('retryInterval default é 3 e pode ser alterado', () => {
+    const { result } = renderHook(() => useProspectingQueue())
+    expect(result.current.retryInterval).toBe(3)
+
+    act(() => {
+      result.current.setRetryInterval(7)
+    })
+    expect(result.current.retryInterval).toBe(7)
   })
 })

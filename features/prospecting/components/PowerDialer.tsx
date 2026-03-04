@@ -3,6 +3,7 @@ import { Phone, SkipForward, Square, Flame, Snowflake, Sun, User, Mail, FileText
 import { Button } from '@/app/components/ui/Button'
 import { CallModal, CallLogData } from '@/features/inbox/components/CallModal'
 import { ProspectingScriptGuide } from '@/features/prospecting/components/ProspectingScriptGuide'
+import { ContactHistory } from '@/features/prospecting/components/ContactHistory'
 import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts'
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { substituteVariables } from '@/features/prospecting/utils/scriptParser'
@@ -309,6 +310,14 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             <span className="text-xs font-medium">Encerrar</span>
           </Button>
         </div>
+      </div>
+
+      {/* CP-2.1: Contact History panel */}
+      <div className="max-w-lg mx-auto">
+        <ContactHistory
+          contactId={contact.contactId}
+          defaultOpen={typeof window !== 'undefined' && window.innerWidth >= 768}
+        />
       </div>
 
       {/* CallModal with script guide side panel */}

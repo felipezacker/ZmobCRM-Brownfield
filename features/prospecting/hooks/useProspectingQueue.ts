@@ -4,7 +4,7 @@
  * Layer pattern: features/{name}/hooks/ - UI logic + state management
  * Calls: lib/query/hooks/useProspectingQueueQuery.ts
  */
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useToast } from '@/context/ToastContext'
 import {
   useProspectingQueueItems,
@@ -13,8 +13,14 @@ import {
   useRemoveFromQueue,
   useStartProspectingSession,
   useClearAllQueue,
+  useScheduleRetry,
+  useActivateReadyRetries,
+  useResetRetry,
 } from '@/lib/query/hooks/useProspectingQueueQuery'
 import type { ProspectingQueueItem } from '@/types'
+
+const RETRY_INTERVAL_KEY = 'prospecting_retry_interval'
+const DEFAULT_RETRY_INTERVAL = 3
 
 interface UseProspectingQueueOptions {
   viewOwnerId?: string
@@ -33,12 +39,45 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
   const removeMutation = useRemoveFromQueue()
   const clearAllMutation = useClearAllQueue()
   const startSessionMutation = useStartProspectingSession()
+  const scheduleRetryMutation = useScheduleRetry()
+  const activateRetriesMutation = useActivateReadyRetries()
+  const resetRetryMutation = useResetRetry()
   const { addToast, showToast } = useToast()
   const toast = addToast || showToast
 
-  // Sort by position, keep consistent
+  // CP-2.1: Retry interval from localStorage
+  const [retryInterval, setRetryIntervalState] = useState<number>(() => {
+    if (typeof window === 'undefined') return DEFAULT_RETRY_INTERVAL
+    const stored = localStorage.getItem(RETRY_INTERVAL_KEY)
+    return stored ? parseInt(stored, 10) : DEFAULT_RETRY_INTERVAL
+  })
+
+  const setRetryInterval = useCallback((days: number) => {
+    setRetryIntervalState(days)
+    localStorage.setItem(RETRY_INTERVAL_KEY, String(days))
+  }, [])
+
+  // CP-2.1: Activate ready retries on queue load
+  useEffect(() => {
+    if (!isLoading && rawQueue.length > 0) {
+      const hasRetryPending = rawQueue.some(item => item.status === 'retry_pending')
+      if (hasRetryPending) {
+        activateRetriesMutation.mutate(effectiveOwnerId)
+      }
+    }
+  }, [isLoading, rawQueue.length, activateRetriesMutation, effectiveOwnerId])
+
+  // Sort by position, keep consistent — exclude exhausted from main queue
   const queue = useMemo(
-    () => [...rawQueue].sort((a, b) => a.position - b.position),
+    () => [...rawQueue]
+      .filter(item => item.status !== 'exhausted')
+      .sort((a, b) => a.position - b.position),
+    [rawQueue]
+  )
+
+  // CP-2.1: Separate list of exhausted items
+  const exhaustedItems = useMemo(
+    () => rawQueue.filter(item => item.status === 'exhausted'),
     [rawQueue]
   )
 
@@ -91,12 +130,25 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     const item = queue[currentIndex]
     if (!item) return
     try {
-      await updateStatusMutation.mutateAsync({ id: item.id, status: 'completed' })
+      // CP-2.1: Auto-retry for no_answer outcomes
+      if (outcome === 'no_answer') {
+        const result = await scheduleRetryMutation.mutateAsync({
+          id: item.id,
+          retryIntervalDays: retryInterval,
+        })
+        if (result.exhausted) {
+          toast('Contato esgotou tentativas de retry', 'info')
+        } else {
+          toast(`Retry agendado para ${retryInterval} dias`, 'info')
+        }
+      } else {
+        await updateStatusMutation.mutateAsync({ id: item.id, status: 'completed' })
+      }
       advanceToNext()
     } catch {
       toast('Erro ao marcar como completo', 'error')
     }
-  }, [queue, currentIndex, updateStatusMutation, advanceToNext, toast])
+  }, [queue, currentIndex, updateStatusMutation, scheduleRetryMutation, retryInterval, advanceToNext, toast])
 
   const addToQueue = useCallback(async (contactId: string) => {
     try {
@@ -125,13 +177,26 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     }
   }, [clearAllMutation, options?.viewOwnerId, toast])
 
+  // CP-2.1: Reset an exhausted item back to pending
+  const resetExhaustedItem = useCallback(async (id: string) => {
+    try {
+      await resetRetryMutation.mutateAsync(id)
+      toast('Contato resetado para fila', 'success')
+    } catch {
+      toast('Erro ao resetar contato', 'error')
+    }
+  }, [resetRetryMutation, toast])
+
   return {
     queue,
+    exhaustedItems,
     currentIndex,
     sessionActive,
     sessionId,
     isLoading,
     isClearingQueue: clearAllMutation.isPending,
+    retryInterval,
+    setRetryInterval,
     startSession,
     endSession,
     next,
@@ -140,6 +205,7 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     addToQueue,
     removeFromQueue,
     clearQueue,
+    resetExhaustedItem,
     refetch,
   }
 }

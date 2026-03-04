@@ -1,5 +1,5 @@
 import React from 'react'
-import { Phone, X, Flame, Snowflake, Sun, User } from 'lucide-react'
+import { Phone, X, Flame, Snowflake, Sun, User, RotateCcw } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import type { ProspectingQueueItem } from '@/types'
 
@@ -8,6 +8,8 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   in_progress: { label: 'Em andamento', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
   completed: { label: 'Concluído', color: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' },
   skipped: { label: 'Pulado', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400' },
+  retry_pending: { label: 'Retry agendado', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' },
+  exhausted: { label: 'Esgotado', color: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' },
 }
 
 const TEMP_ICONS: Record<string, React.ReactNode> = {
@@ -38,6 +40,12 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove }) => {
             {item.contactName || 'Sem nome'}
           </span>
           {item.contactTemperature && TEMP_ICONS[item.contactTemperature]}
+          {item.retryCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">
+              <RotateCcw size={9} />
+              Retry #{item.retryCount}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 mt-0.5">
           {item.contactPhone && (

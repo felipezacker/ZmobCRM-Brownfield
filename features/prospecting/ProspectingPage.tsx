@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/app/components/ui/Button'
 import { CallQueue } from './components/CallQueue'
@@ -88,10 +88,13 @@ export const ProspectingPage: React.FC = () => {
 
   const {
     queue,
+    exhaustedItems,
     currentIndex,
     sessionActive,
     isLoading,
     isClearingQueue,
+    retryInterval,
+    setRetryInterval,
     startSession,
     endSession,
     next,
@@ -100,6 +103,7 @@ export const ProspectingPage: React.FC = () => {
     addToQueue,
     removeFromQueue,
     clearQueue,
+    resetExhaustedItem,
     refetch,
   } = useProspectingQueue({ viewOwnerId: resolvedViewOwnerId })
 
@@ -260,6 +264,20 @@ export const ProspectingPage: React.FC = () => {
 
             {!sessionActive && !showSummary && activeTab === 'queue' && (
               <>
+                {/* CP-2.1: Retry interval selector */}
+                <div className="flex items-center gap-1.5">
+                  <RotateCcw size={13} className="text-slate-400 dark:text-slate-500" />
+                  <select
+                    value={retryInterval}
+                    onChange={(e) => setRetryInterval(Number(e.target.value))}
+                    className="bg-slate-100 dark:bg-white/10 border-0 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                  >
+                    <option value={3}>Retry: 3 dias</option>
+                    <option value={5}>Retry: 5 dias</option>
+                    <option value={7}>Retry: 7 dias</option>
+                  </select>
+                </div>
+
                 <Button
                   variant="unstyled"
                   size="unstyled"
@@ -583,9 +601,11 @@ export const ProspectingPage: React.FC = () => {
             <AddToQueueSearch onAdd={addToQueue} />
             <CallQueue
               items={queue}
+              exhaustedItems={exhaustedItems}
               isLoading={isLoading}
               onRemove={removeFromQueue}
               onClearAll={isViewingAll ? undefined : clearQueue}
+              onResetExhausted={resetExhaustedItem}
               isClearing={isClearingQueue}
               ownerName={isViewingAll ? 'Todos' : viewingOwnerProfile?.name}
             />

@@ -324,7 +324,7 @@ export interface Activity {
 // Prospecting Queue (CP-1.1)
 // =============================================================================
 
-export type ProspectingQueueStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
+export type ProspectingQueueStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'retry_pending' | 'exhausted';
 
 export interface ProspectingQueueItem {
   id: string;
@@ -335,6 +335,8 @@ export interface ProspectingQueueItem {
   position: number;
   sessionId?: string;
   assignedBy?: string;
+  retryAt?: string;
+  retryCount: number;
   createdAt: string;
   updatedAt: string;
   // Joined data

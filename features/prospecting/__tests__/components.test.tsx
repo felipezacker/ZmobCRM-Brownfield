@@ -26,6 +26,7 @@ const makeItem = (overrides?: Partial<ProspectingQueueItem>): ProspectingQueueIt
   organizationId: 'org-1',
   status: 'pending' as ProspectingQueueStatus,
   position: 0,
+  retryCount: 0,
   createdAt: '2026-03-03T00:00:00Z',
   updatedAt: '2026-03-03T00:00:00Z',
   contactName: 'João Silva',
@@ -68,6 +69,37 @@ describe('CallQueue', () => {
     render(<CallQueue items={items} isLoading={false} onRemove={vi.fn()} />)
     expect(screen.getByText('2 pendentes')).toBeInTheDocument()
   })
+
+  // CP-2.1: Exhausted section
+  it('mostra seção esgotados quando há exhaustedItems', () => {
+    const items = [makeItem({ id: 'q-1', status: 'pending' })]
+    const exhaustedItems = [
+      makeItem({ id: 'q-2', status: 'exhausted', retryCount: 3, contactName: 'Carlos', position: 1 }),
+    ]
+    render(
+      <CallQueue items={items} exhaustedItems={exhaustedItems} isLoading={false} onRemove={vi.fn()} onResetExhausted={vi.fn()} />
+    )
+    expect(screen.getByText('Esgotados')).toBeInTheDocument()
+    expect(screen.getByText('Carlos')).toBeInTheDocument()
+    expect(screen.getByText('Resetar')).toBeInTheDocument()
+  })
+
+  it('chama onResetExhausted ao clicar Resetar', () => {
+    const onReset = vi.fn()
+    const exhaustedItems = [
+      makeItem({ id: 'q-2', status: 'exhausted', retryCount: 3, contactName: 'Carlos', position: 1 }),
+    ]
+    render(
+      <CallQueue items={[makeItem()]} exhaustedItems={exhaustedItems} isLoading={false} onRemove={vi.fn()} onResetExhausted={onReset} />
+    )
+    fireEvent.click(screen.getByText('Resetar'))
+    expect(onReset).toHaveBeenCalledWith('q-2')
+  })
+
+  it('não mostra seção esgotados quando lista está vazia', () => {
+    render(<CallQueue items={[makeItem()]} exhaustedItems={[]} isLoading={false} onRemove={vi.fn()} />)
+    expect(screen.queryByText('Esgotados')).not.toBeInTheDocument()
+  })
 })
 
 // ── QueueItem ──────────────────────────────────────────────
@@ -100,6 +132,27 @@ describe('QueueItem', () => {
   it('não renderiza botão de remover quando onRemove é undefined', () => {
     render(<QueueItem item={makeItem()} />)
     expect(screen.queryByLabelText('Remover da fila')).not.toBeInTheDocument()
+  })
+
+  // CP-2.1: Retry badge
+  it('mostra badge Retry #N quando retryCount > 0', () => {
+    render(<QueueItem item={makeItem({ retryCount: 2 })} />)
+    expect(screen.getByText('Retry #2')).toBeInTheDocument()
+  })
+
+  it('não mostra badge Retry quando retryCount é 0', () => {
+    render(<QueueItem item={makeItem({ retryCount: 0 })} />)
+    expect(screen.queryByText(/Retry #/)).not.toBeInTheDocument()
+  })
+
+  it('mostra status retry_pending', () => {
+    render(<QueueItem item={makeItem({ status: 'retry_pending', retryCount: 1 })} />)
+    expect(screen.getByText('Retry agendado')).toBeInTheDocument()
+  })
+
+  it('mostra status exhausted', () => {
+    render(<QueueItem item={makeItem({ status: 'exhausted', retryCount: 3 })} />)
+    expect(screen.getByText('Esgotado')).toBeInTheDocument()
   })
 })
 

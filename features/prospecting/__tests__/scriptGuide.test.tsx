@@ -76,6 +76,7 @@ const makeContact = (overrides?: Partial<ProspectingQueueItem>): ProspectingQueu
   organizationId: 'org-1',
   status: 'pending' as ProspectingQueueStatus,
   position: 0,
+  retryCount: 0,
   createdAt: '2026-01-01',
   updatedAt: '2026-01-01',
   contactName: 'Maria Silva',

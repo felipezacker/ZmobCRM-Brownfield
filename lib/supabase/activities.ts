@@ -172,8 +172,34 @@ export const activitiesService = {
   },
 
   /**
+   * Busca as últimas N atividades de um contato específico (CP-2.1).
+   * Usado pelo ContactHistory no PowerDialer.
+   */
+  async getContactActivities(contactId: string, limit = 5): Promise<{ data: Activity[] | null; error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { data: null, error: new Error('Supabase não configurado') };
+
+      const { data, error } = await sb
+        .from('activities')
+        .select(`
+          *,
+          deals:deal_id (title)
+        `)
+        .eq('contact_id', contactId)
+        .order('date', { ascending: false })
+        .limit(limit);
+
+      if (error) return { data: null, error };
+      return { data: (data || []).map(a => transformActivity(a as DbActivityWithDeal)), error: null };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
    * Cria uma nova atividade.
-   * 
+   *
    * @param activity - Dados da atividade (sem id e createdAt).
    * @returns Promise com atividade criada ou erro.
    */

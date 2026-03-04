@@ -31,9 +31,10 @@ export const queryKeys = {
 
     boards: createQueryKeys('boards'),
 
-    // Activities with custom extension for byDeal
+    // Activities with custom extension for byDeal and byContact
     activities: createExtendedQueryKeys('activities', base => ({
         byDeal: (dealId: string) => [...base.all, 'deal', dealId] as const,
+        byContact: (contactId: string) => [...base.all, 'contact', contactId] as const,
     })),
 
     // Prospecting queue (CP-1.1)

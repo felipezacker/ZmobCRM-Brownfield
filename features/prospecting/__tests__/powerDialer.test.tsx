@@ -29,6 +29,7 @@ vi.mock('@/features/prospecting/components/ProspectingScriptGuide', () => ({
 const mockMutate = vi.fn()
 vi.mock('@/lib/query/hooks/useActivitiesQuery', () => ({
   useCreateActivity: () => ({ mutate: mockMutate }),
+  useContactActivities: () => ({ data: [], isLoading: false }),
 }))
 
 const mockScripts: QuickScript[] = [
@@ -73,6 +74,7 @@ const makeContact = (overrides?: Partial<ProspectingQueueItem>): ProspectingQueu
   organizationId: 'org-1',
   status: 'pending' as ProspectingQueueStatus,
   position: 0,
+  retryCount: 0,
   createdAt: '2026-01-01',
   updatedAt: '2026-01-01',
   contactName: 'Maria Silva',

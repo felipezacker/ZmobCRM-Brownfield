@@ -1,19 +1,21 @@
 import React, { useState } from 'react'
-import { ListOrdered, Trash2 } from 'lucide-react'
+import { ListOrdered, Trash2, RotateCcw } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import { QueueItem } from './QueueItem'
 import type { ProspectingQueueItem } from '@/types'
 
 interface CallQueueProps {
   items: ProspectingQueueItem[]
+  exhaustedItems?: ProspectingQueueItem[]
   isLoading: boolean
   onRemove: (id: string) => void
   onClearAll?: () => void
+  onResetExhausted?: (id: string) => void
   isClearing?: boolean
   ownerName?: string
 }
 
-export const CallQueue: React.FC<CallQueueProps> = ({ items, isLoading, onRemove, onClearAll, isClearing, ownerName }) => {
+export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = [], isLoading, onRemove, onClearAll, onResetExhausted, isClearing, ownerName }) => {
   const [confirmClear, setConfirmClear] = useState(false)
 
   if (isLoading) {
@@ -101,6 +103,48 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, isLoading, onRemove
       {items.map(item => (
         <QueueItem key={item.id} item={item} onRemove={onRemove} />
       ))}
+
+      {/* CP-2.1: Exhausted items section */}
+      {exhaustedItems.length > 0 && (
+        <>
+          <div className="flex items-center gap-2 pt-4 px-1">
+            <h3 className="text-xs font-medium text-red-500 dark:text-red-400 uppercase tracking-wider">
+              Esgotados
+            </h3>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500">
+              ({exhaustedItems.length})
+            </span>
+          </div>
+          {exhaustedItems.map(item => (
+            <div key={item.id} className="flex items-center gap-3 p-3 bg-red-50/50 dark:bg-red-500/5 rounded-lg border border-red-200/50 dark:border-red-500/10">
+              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
+                <span className="text-xs font-bold text-red-500 dark:text-red-400">3x</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium text-slate-900 dark:text-white truncate block">
+                  {item.contactName || 'Sem nome'}
+                </span>
+                {item.contactPhone && (
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    {item.contactPhone}
+                  </span>
+                )}
+              </div>
+              {onResetExhausted && (
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
+                  onClick={() => onResetExhausted(item.id)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <RotateCcw size={12} />
+                  Resetar
+                </Button>
+              )}
+            </div>
+          ))}
+        </>
+      )}
     </div>
   )
 }
