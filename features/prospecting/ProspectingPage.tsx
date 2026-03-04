@@ -379,6 +379,8 @@ export const ProspectingPage: React.FC = () => {
             <MetricsChart
               data={metricsHook.metrics?.byDay || []}
               isLoading={metricsHook.isLoading}
+              periodStart={metricsHook.range.start}
+              periodEnd={metricsHook.range.end}
             />
 
             {isAdminOrDirector && (

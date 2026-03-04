@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-1.4
 - **Epic:** CP (Central de Prospeccao)
-- **Status:** InProgress
+- **Status:** Done
 - **Owner:** (unassigned)
 - **Executor:** @dev
 - **Quality Gate:** @architect
@@ -17,19 +17,19 @@ Dashboard de metricas de prospeccao dentro da pagina `/prospecting`. As metricas
 
 ## Acceptance Criteria
 
-- [ ] AC1: Secao "Metricas" na pagina de prospeccao com cards de KPI:
+- [x] AC1: Secao "Metricas" na pagina de prospeccao com cards de KPI:
   - Ligacoes hoje / esta semana / este mes
   - Taxa de conexao (% connected do total)
   - Tempo medio de ligacao
   - Contatos prospectados (unicos)
-- [ ] AC2: Grafico de evolucao (ultimos 7 ou 30 dias) — ligacoes por dia com breakdown por outcome (connected, no_answer, voicemail, busy)
-- [ ] AC3: Filtro de periodo: Hoje, Ultimos 7 dias, Ultimos 30 dias, Custom range
-- [ ] AC4: RBAC — Corretor: so ve seus dados (owner_id = auth.uid())
-- [ ] AC5: RBAC — Diretor/Admin: ve dados agregados de toda a org + ranking de corretores (org-wide, sem team_id)
-- [ ] AC7: Ranking de corretores (diretor/admin): tabela ordenavel por ligacoes, taxa de conexao, tempo medio
-- [ ] AC8: Metricas atualizam em tempo real durante sessao de prospeccao (otimistic update ou refetch)
-- [ ] AC9: Loading state com skeleton enquanto carrega
-- [ ] AC10: Dark mode + responsivo
+- [x] AC2: Grafico de evolucao (ultimos 7 ou 30 dias) — ligacoes por dia com breakdown por outcome (connected, no_answer, voicemail, busy)
+- [x] AC3: Filtro de periodo: Hoje, Ultimos 7 dias, Ultimos 30 dias, Custom range
+- [x] AC4: RBAC — Corretor: so ve seus dados (owner_id = auth.uid())
+- [x] AC5: RBAC — Diretor/Admin: ve dados agregados de toda a org + ranking de corretores (org-wide, sem team_id)
+- [x] AC7: Ranking de corretores (diretor/admin): tabela ordenavel por ligacoes, taxa de conexao, tempo medio
+- [x] AC8: Metricas atualizam em tempo real durante sessao de prospeccao (otimistic update ou refetch)
+- [x] AC9: Loading state com skeleton enquanto carrega
+- [x] AC10: Dark mode + responsivo
 
 ## Escopo
 
@@ -139,24 +139,29 @@ Dashboard de metricas de prospeccao dentro da pagina `/prospecting`. As metricas
 | File | Status | Notes |
 |------|--------|-------|
 | features/prospecting/components/MetricsCards.tsx | New | Cards de KPI (4 cards + skeleton) |
-| features/prospecting/components/MetricsChart.tsx | New | Stacked bar chart recharts |
+| features/prospecting/components/MetricsChart.tsx | New | Stacked bar chart recharts (fillDateGaps, CustomTooltip, inline legend) |
 | features/prospecting/components/CorretorRanking.tsx | New | Tabela ordenável + highlight top |
-| features/prospecting/hooks/useProspectingMetrics.ts | New | Query + aggregation + RBAC via RLS |
-| features/prospecting/ProspectingPage.tsx | Modified | Tab Fila/Métricas, period filter, integration |
-| features/prospecting/__tests__/prospectingMetrics.test.tsx | Modified | 31 testes (+15: aggregateMetrics, getDateRange unit tests) |
+| features/prospecting/components/SessionSummary.tsx | Modified | Renomeado formatDuration → formatElapsedTime (evitar colisão) |
+| features/prospecting/hooks/useProspectingMetrics.ts | New | Query + aggregation + RBAC via RLS + QUERY_LIMIT 5000 |
+| features/prospecting/hooks/useDarkMode.ts | New | Hook reutilizável dark mode via MutationObserver |
+| features/prospecting/utils/formatDuration.ts | New | Util compartilhado MM:SS (Math.floor para evitar 0:60) |
+| features/prospecting/ProspectingPage.tsx | Modified | Tab Fila/Métricas, period filter, error/truncation banners |
+| features/prospecting/__tests__/prospectingMetrics.test.tsx | Modified | 32 testes (+16: aggregateMetrics, getDateRange, other bucket) |
+| features/prospecting/__tests__/useDarkMode.test.ts | New | 4 testes (dark class add/remove, MutationObserver) |
+| features/prospecting/__tests__/formatDuration.test.ts | New | 7 testes (zero, seconds, minutes, edge cases) |
 | features/prospecting/__tests__/directorAssignment.test.tsx | Modified | Updated mock (removed refetchMetrics) |
 
 ## Definition of Done
 
-- [ ] All acceptance criteria met
-- [ ] KPIs corretos com dados reais
-- [ ] RBAC validado (corretor/diretor/admin) em staging
-- [ ] Grafico de evolucao funcional com breakdown por outcome
-- [ ] Ranking de corretores visivel apenas para diretor/admin
-- [ ] Performance aceitavel (< 2s para carregar metricas)
-- [ ] Dark mode testado
-- [ ] No regressions
-- [ ] Code reviewed
+- [x] All acceptance criteria met
+- [x] KPIs corretos com dados reais
+- [x] RBAC validado (corretor/diretor/admin) em staging
+- [x] Grafico de evolucao funcional com breakdown por outcome
+- [x] Ranking de corretores visivel apenas para diretor/admin
+- [x] Performance aceitavel (< 2s para carregar metricas)
+- [x] Dark mode testado
+- [x] No regressions
+- [x] Code reviewed
 
 ## Change Log
 
@@ -167,3 +172,6 @@ Dashboard de metricas de prospeccao dentro da pagina `/prospecting`. As metricas
 | 2026-03-03 | @data-engineer (Dara) | Review DB: RBAC org-wide (AC5/AC6 unificados), sem team_id |
 | 2026-03-03 | @dev (Dex) | Implementação completa: hook, 3 componentes, integração, 16 testes |
 | 2026-03-04 | @dev (Dex) | QA fixes: H1 useCallback stability, H2 task 5 note, M1 tooltip dark mode, M2 profiles dedup, +15 testes (aggregateMetrics, getDateRange) |
+| 2026-03-04 | @dev (Dex) | Melhorias: formatDuration util compartilhado, useDarkMode hook, QUERY_LIMIT 5000 + truncation warning, chart rewrite (fillDateGaps, CustomTooltip, inline legend), error banner, +12 testes (useDarkMode, formatDuration, other bucket) |
+| 2026-03-04 | @qa (Quinn) | Re-review: PASS — todas as issues resolvidas, 553 testes passando |
+| 2026-03-04 | @po (Pax) | Story closed: ACs 8/8 marcados, DoD 9/9, QA Gate PASS, Status → Done |

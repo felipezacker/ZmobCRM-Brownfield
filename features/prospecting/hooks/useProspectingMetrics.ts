@@ -251,6 +251,7 @@ export function useProspectingMetrics(
     error: metricsQuery.error,
     isAdminOrDirector,
     isDataTruncated,
+    range,
     invalidateMetrics,
   }
 }
