@@ -12,6 +12,9 @@ import { ProspectingFilters, INITIAL_FILTERS, type ProspectingFiltersState } fro
 import { FilteredContactsList } from './components/FilteredContactsList'
 import { MetricsCards } from './components/MetricsCards'
 import { MetricsChart } from './components/MetricsChart'
+import { ConversionFunnel } from './components/ConversionFunnel'
+import { AutoInsights } from './components/AutoInsights'
+import { CallDetailsTable } from './components/CallDetailsTable'
 import { CorretorRanking } from './components/CorretorRanking'
 import { useProspectingQueue } from './hooks/useProspectingQueue'
 import { useProspectingFilteredContacts } from './hooks/useProspectingFilteredContacts'
@@ -66,9 +69,8 @@ export const ProspectingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<PageTab>('queue')
   const [metricsPeriod, setMetricsPeriod] = useState<MetricsPeriod>('7d')
   const [customRange, setCustomRange] = useState<PeriodRange | undefined>()
-  // CP-1.4: Metrics hook receives profiles to avoid duplicate query (M2 fix)
-  // invalidateMetrics is stable via useCallback inside hook (H1 fix)
-  const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles)
+  const [metricsFilterOwnerId, setMetricsFilterOwnerId] = useState<string>('')
+  const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined)
   const { invalidateMetrics, isAdminOrDirector } = metricsHook
 
   // Queue owner view: admin/director can see other corretors' queues
@@ -376,9 +378,7 @@ export const ProspectingPage: React.FC = () => {
             sessionStats={sessionStats}
           />
         ) : activeTab === 'metrics' ? (
-          /* CP-1.4: Metrics view */
           <div className="space-y-4">
-            {/* Error state */}
             {metricsHook.error && (
               <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-600 dark:text-red-400">
                 <span>Erro ao carregar métricas. Tente novamente.</span>
@@ -392,13 +392,13 @@ export const ProspectingPage: React.FC = () => {
                 </Button>
               </div>
             )}
-            {/* Truncation warning */}
             {metricsHook.isDataTruncated && (
               <div className="px-4 py-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-xs text-amber-700 dark:text-amber-400">
                 Exibindo as 5.000 ligações mais recentes. Reduza o período para dados completos.
               </div>
             )}
-            {/* Period filter */}
+
+            {/* Filters: period + broker */}
             <div className="flex flex-wrap items-center gap-2">
               {([
                 { key: 'today', label: 'Hoje' },
@@ -457,21 +457,75 @@ export const ProspectingPage: React.FC = () => {
               )}
             </div>
 
+            {/* Broker filter pills */}
+            {isAdminOrDirector && (
+              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
+                  type="button"
+                  onClick={() => setMetricsFilterOwnerId('')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                    !metricsFilterOwnerId
+                      ? 'bg-teal-500 text-white shadow-sm'
+                      : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
+                  }`}
+                >
+                  <Users size={12} />
+                  Todos
+                </Button>
+                {profiles.map(p => (
+                  <Button
+                    key={p.id}
+                    variant="unstyled"
+                    size="unstyled"
+                    type="button"
+                    onClick={() => setMetricsFilterOwnerId(p.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                      metricsFilterOwnerId === p.id
+                        ? 'bg-teal-500 text-white shadow-sm'
+                        : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
+                    }`}
+                  >
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                      metricsFilterOwnerId === p.id
+                        ? 'bg-white/20 text-white'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                    }`}>
+                      {p.name.charAt(0).toUpperCase()}
+                    </span>
+                    {p.name.split(' ')[0]}
+                  </Button>
+                ))}
+              </div>
+            )}
+
             <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
 
-            <MetricsChart
-              data={metricsHook.metrics?.byDay || []}
-              isLoading={metricsHook.isLoading}
-              periodStart={metricsHook.range.start}
-              periodEnd={metricsHook.range.end}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+              <MetricsChart
+                data={metricsHook.metrics?.byDay || []}
+                isLoading={metricsHook.isLoading}
+                periodStart={metricsHook.range.start}
+                periodEnd={metricsHook.range.end}
+              />
+            </div>
 
-            {isAdminOrDirector && (
+            <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+
+            {isAdminOrDirector && !metricsFilterOwnerId && (
               <CorretorRanking
                 brokers={metricsHook.metrics?.byBroker || []}
                 isLoading={metricsHook.isLoading}
               />
             )}
+
+            <CallDetailsTable
+              activities={metricsHook.activities}
+              profiles={profiles}
+              isLoading={metricsHook.isLoading}
+            />
           </div>
         ) : (
           <div className="space-y-4">

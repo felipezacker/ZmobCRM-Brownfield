@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Phone, PhoneCall, Clock, Users } from 'lucide-react'
+import { Phone, PhoneCall, PhoneOff, Voicemail, Clock, Users } from 'lucide-react'
 import type { ProspectingMetrics } from '../hooks/useProspectingMetrics'
 import { formatDuration } from '../utils/formatDuration'
 
@@ -14,11 +14,13 @@ function KpiCard({
   icon: Icon,
   label,
   value,
+  subtitle,
   color,
 }: {
   icon: React.ElementType
   label: string
   value: string
+  subtitle?: string
   color: string
 }) {
   return (
@@ -30,6 +32,9 @@ function KpiCard({
         <div className="min-w-0">
           <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{label}</p>
           <p className="text-xl font-bold text-slate-900 dark:text-white">{value}</p>
+          {subtitle && (
+            <p className="text-[10px] text-slate-400 dark:text-slate-500">{subtitle}</p>
+          )}
         </div>
       </div>
     </div>
@@ -53,39 +58,62 @@ function SkeletonCard() {
 export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[1, 2, 3, 4].map(i => (
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        {[1, 2, 3, 4, 5, 6].map(i => (
           <SkeletonCard key={i} />
         ))}
       </div>
     )
   }
 
+  const total = metrics?.totalCalls || 0
+  const connected = metrics?.connectedCalls || 0
+  const noAnswer = metrics?.byOutcome?.find(o => o.outcome === 'no_answer')?.count || 0
+  const voicemailCount = metrics?.byOutcome?.find(o => o.outcome === 'voicemail')?.count || 0
+
+  const pct = (n: number) => total > 0 ? `${((n / total) * 100).toFixed(0)}% do total` : undefined
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
       <KpiCard
         icon={Phone}
-        label="Ligações"
-        value={metrics?.totalCalls?.toString() || '0'}
+        label="Ligações Discadas"
+        value={total.toString()}
         color="bg-blue-500"
       />
       <KpiCard
         icon={PhoneCall}
-        label="Taxa de Conexão"
-        value={`${(metrics?.connectionRate || 0).toFixed(1)}%`}
+        label="Atendidas"
+        value={connected.toString()}
+        subtitle={pct(connected)}
         color="bg-emerald-500"
+      />
+      <KpiCard
+        icon={PhoneOff}
+        label="Sem Resposta"
+        value={noAnswer.toString()}
+        subtitle={pct(noAnswer)}
+        color="bg-red-500"
+      />
+      <KpiCard
+        icon={Voicemail}
+        label="Correio de Voz"
+        value={voicemailCount.toString()}
+        subtitle={pct(voicemailCount)}
+        color="bg-amber-500"
       />
       <KpiCard
         icon={Clock}
         label="Tempo Médio"
         value={formatDuration(metrics?.avgDuration || 0)}
-        color="bg-amber-500"
+        subtitle={connected > 0 ? 'por ligação conectada' : undefined}
+        color="bg-violet-500"
       />
       <KpiCard
         icon={Users}
         label="Contatos Prospectados"
         value={metrics?.uniqueContacts?.toString() || '0'}
-        color="bg-violet-500"
+        color="bg-teal-500"
       />
     </div>
   )
