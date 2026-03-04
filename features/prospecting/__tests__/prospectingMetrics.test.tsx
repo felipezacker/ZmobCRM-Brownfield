@@ -30,9 +30,9 @@ const mockMetrics: ProspectingMetrics = {
   avgDuration: 185, // 3:05
   uniqueContacts: 72,
   byDay: [
-    { date: '2026-02-25', connected: 5, no_answer: 3, voicemail: 1, busy: 1, total: 10 },
-    { date: '2026-02-26', connected: 8, no_answer: 4, voicemail: 2, busy: 1, total: 15 },
-    { date: '2026-02-27', connected: 6, no_answer: 5, voicemail: 0, busy: 2, total: 13 },
+    { date: '2026-02-25', connected: 5, no_answer: 3, voicemail: 1, busy: 1, other: 0, total: 10 },
+    { date: '2026-02-26', connected: 8, no_answer: 4, voicemail: 2, busy: 1, other: 0, total: 15 },
+    { date: '2026-02-27', connected: 6, no_answer: 5, voicemail: 0, busy: 2, other: 0, total: 13 },
   ],
   byOutcome: [
     { outcome: 'connected', count: 45 },
@@ -330,6 +330,18 @@ describe('aggregateMetrics', () => {
     expect(result.totalCalls).toBe(1)
     expect(result.connectedCalls).toBe(0)
     expect(result.avgDuration).toBe(0)
+  })
+
+  it('counts unknown outcomes in "other" bucket', () => {
+    const acts: CallActivity[] = [
+      { id: '1', date: '2026-03-01T10:00:00', owner_id: 'u1', contact_id: 'c1', metadata: { outcome: 'connected' } },
+      { id: '2', date: '2026-03-01T11:00:00', owner_id: 'u1', contact_id: 'c2', metadata: { outcome: 'callback' } },
+      { id: '3', date: '2026-03-01T12:00:00', owner_id: 'u1', contact_id: 'c3', metadata: { outcome: 'wrong_number' } },
+    ]
+    const result = aggregateMetrics(acts, profiles)
+    expect(result.byDay[0].connected).toBe(1)
+    expect(result.byDay[0].other).toBe(2)
+    expect(result.byDay[0].total).toBe(3)
   })
 
   it('uses "Desconhecido" for unknown owner_id', () => {

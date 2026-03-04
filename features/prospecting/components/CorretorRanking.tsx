@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { User, ChevronUp, ChevronDown, Trophy } from 'lucide-react'
 import type { BrokerMetric } from '../hooks/useProspectingMetrics'
+import { formatDuration } from '../utils/formatDuration'
 
 interface CorretorRankingProps {
   brokers: BrokerMetric[]
@@ -11,12 +12,6 @@ interface CorretorRankingProps {
 
 type SortField = 'totalCalls' | 'connectionRate' | 'avgDuration' | 'uniqueContacts'
 type SortDir = 'asc' | 'desc'
-
-function formatDuration(seconds: number): string {
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.round(seconds % 60)
-  return `${mins}:${secs.toString().padStart(2, '0')}`
-}
 
 function SortHeader({
   label,

@@ -18,7 +18,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
     ? Math.floor((new Date().getTime() - startTime.getTime()) / 1000)
     : 0
 
-  const formatDuration = (seconds: number) => {
+  const formatElapsedTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     if (mins > 0) return `${mins}min ${secs}s`
@@ -59,7 +59,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
     {
       icon: <Clock size={16} className="text-blue-500" />,
       label: 'Tempo total',
-      value: formatDuration(elapsed),
+      value: formatElapsedTime(elapsed),
     },
   ]
 

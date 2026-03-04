@@ -40,7 +40,7 @@ export const ProspectingPage: React.FC = () => {
   const { addToast, showToast } = useToast()
   const toast = addToast || showToast
 
-  const isAdminOrDirector = profile?.role === 'admin' || profile?.role === 'diretor'
+  // isAdminOrDirector comes from metricsHook (single source of truth)
   const { tags: availableTags } = useTags()
 
   // Org profiles for owner filter + director assignment + metrics ranking
@@ -69,7 +69,7 @@ export const ProspectingPage: React.FC = () => {
   // CP-1.4: Metrics hook receives profiles to avoid duplicate query (M2 fix)
   // invalidateMetrics is stable via useCallback inside hook (H1 fix)
   const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles)
-  const { invalidateMetrics } = metricsHook
+  const { invalidateMetrics, isAdminOrDirector } = metricsHook
 
   const {
     queue,
@@ -299,6 +299,24 @@ export const ProspectingPage: React.FC = () => {
         ) : activeTab === 'metrics' ? (
           /* CP-1.4: Metrics view */
           <div className="space-y-4">
+            {/* Error state */}
+            {metricsHook.error && (
+              <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-600 dark:text-red-400">
+                <span>Erro ao carregar métricas. Tente novamente.</span>
+                <button
+                  onClick={() => invalidateMetrics()}
+                  className="ml-auto px-3 py-1 rounded-lg bg-red-100 dark:bg-red-500/20 hover:bg-red-200 dark:hover:bg-red-500/30 text-red-700 dark:text-red-300 text-xs font-medium transition-colors"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            )}
+            {/* Truncation warning */}
+            {metricsHook.isDataTruncated && (
+              <div className="px-4 py-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-xs text-amber-700 dark:text-amber-400">
+                Exibindo as 5.000 ligações mais recentes. Reduza o período para dados completos.
+              </div>
+            )}
             {/* Period filter */}
             <div className="flex flex-wrap items-center gap-2">
               {([
@@ -324,8 +342,12 @@ export const ProspectingPage: React.FC = () => {
                   className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-teal-500"
                   onChange={(e) => {
                     if (e.target.value) {
-                      setMetricsPeriod('custom')
-                      setCustomRange(prev => ({ start: e.target.value, end: prev?.end || e.target.value }))
+                      const newStart = e.target.value
+                      setCustomRange(prev => {
+                        const next = { start: newStart, end: prev?.end || '' }
+                        if (next.start && next.end) setMetricsPeriod('custom')
+                        return next
+                      })
                     }
                   }}
                   value={customRange?.start || ''}
@@ -336,13 +358,20 @@ export const ProspectingPage: React.FC = () => {
                   className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-teal-500"
                   onChange={(e) => {
                     if (e.target.value) {
-                      setMetricsPeriod('custom')
-                      setCustomRange(prev => ({ start: prev?.start || e.target.value, end: e.target.value }))
+                      const newEnd = e.target.value
+                      setCustomRange(prev => {
+                        const next = { start: prev?.start || '', end: newEnd }
+                        if (next.start && next.end) setMetricsPeriod('custom')
+                        return next
+                      })
                     }
                   }}
                   value={customRange?.end || ''}
                 />
               </div>
+              {metricsHook.isFetching && !metricsHook.isLoading && (
+                <span className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">Atualizando...</span>
+              )}
             </div>
 
             <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />

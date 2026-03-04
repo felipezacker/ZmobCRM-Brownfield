@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import {
   BarChart,
   Bar,
@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import type { DailyMetric } from '../hooks/useProspectingMetrics'
+import { useDarkMode } from '../hooks/useDarkMode'
 
 interface MetricsChartProps {
   data: DailyMetric[]
@@ -23,25 +24,12 @@ const OUTCOME_CONFIG = {
   no_answer: { color: '#ef4444', label: 'Sem Resposta' },
   voicemail: { color: '#f59e0b', label: 'Correio de Voz' },
   busy: { color: '#6b7280', label: 'Ocupado' },
+  other: { color: '#a78bfa', label: 'Outro' },
 } as const
 
 function formatDate(dateStr: string): string {
   const [, month, day] = dateStr.split('-')
   return `${day}/${month}`
-}
-
-function useDarkMode(): boolean {
-  const [isDark, setIsDark] = useState(false)
-  useEffect(() => {
-    const root = document.documentElement
-    setIsDark(root.classList.contains('dark'))
-    const observer = new MutationObserver(() => {
-      setIsDark(root.classList.contains('dark'))
-    })
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] })
-    return () => observer.disconnect()
-  }, [])
-  return isDark
 }
 
 function ChartSkeleton() {
@@ -73,11 +61,12 @@ export function MetricsChart({ data, isLoading }: MetricsChartProps) {
   }))
 
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
+    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4 min-h-[280px] lg:min-h-[360px]">
       <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
         Ligações por Dia
       </h3>
-      <ResponsiveContainer width="100%" height={256}>
+      <div className="h-56 lg:h-72">
+        <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
           <CartesianGrid
             strokeDasharray="3 3"
@@ -129,10 +118,17 @@ export function MetricsChart({ data, isLoading }: MetricsChartProps) {
             name={OUTCOME_CONFIG.busy.label}
             fill={OUTCOME_CONFIG.busy.color}
             stackId="calls"
+          />
+          <Bar
+            dataKey="other"
+            name={OUTCOME_CONFIG.other.label}
+            fill={OUTCOME_CONFIG.other.color}
+            stackId="calls"
             radius={[4, 4, 0, 0]}
           />
         </BarChart>
-      </ResponsiveContainer>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }

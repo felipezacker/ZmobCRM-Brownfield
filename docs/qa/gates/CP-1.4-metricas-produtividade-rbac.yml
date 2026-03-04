@@ -1,59 +1,63 @@
 storyId: CP-1.4
-verdict: CONCERNS
+verdict: PASS
 reviewer: "@qa (Quinn)"
-date: "2026-03-03"
+date: "2026-03-04"
 summary: >
-  Todos os 10 ACs funcionalmente atendidos. RBAC corretamente delegado a RLS.
-  16 testes novos, 537 total passando, zero regressões. Dark mode e responsivo OK.
-  Duas issues HIGH (useCallback instability, task 5 accuracy) e duas MEDIUM
-  (tooltip dark mode, profile query duplicada) documentadas. Nenhum bloqueio.
+  Re-review após fixes do commit 5883968. Todas as 4 issues (H1, H2, M1, M2)
+  resolvidas corretamente. 31 testes (era 16, +15), 552 total passando, zero
+  regressões. ACs funcionalmente atendidos, RBAC via RLS, dark mode OK.
 
-issues:
+previous_review:
+  date: "2026-03-03"
+  verdict: CONCERNS
+  issues_count: 4
+
+issues_resolution:
   - id: H1
     severity: high
-    category: code
+    status: resolved
     description: >
-      metricsHook como dependência de useCallback em handleCallComplete recria
-      o callback a cada render. metricsHook é objeto novo a cada ciclo.
-    recommendation: >
-      Extrair invalidateMetrics do hook antes do useCallback, ou usar useRef
-      para estabilizar a referência.
-    file: features/prospecting/ProspectingPage.tsx
-    line: 155
+      useCallback instability — invalidateMetrics agora estável via
+      useCallback+queryClient no hook, desestruturado antes do useCallback na page.
+    fix_commit: 5883968
 
   - id: H2
     severity: high
-    category: docs
+    status: resolved
     description: >
-      Task 5 marcada [x] ("usar aggregate queries") mas implementação usa
-      fetch all + compute client-side. Checkbox implica que foi feito.
-    recommendation: >
-      Adicionar nota na story documentando decisão técnica: volume < 1K/mês
-      justifica aggregação client-side. Manter checkbox mas com observação.
+      Task 5 accuracy — nota técnica adicionada documentando decisão:
+      volume < 1K/mês justifica aggregação client-side.
+    fix_commit: 5883968
 
   - id: M1
     severity: medium
-    category: code
+    status: resolved
     description: >
-      Tooltip do recharts em MetricsChart usa CSS variables (--tooltip-bg)
-      que não estão definidas. Fundo branco aparece em dark mode.
-    recommendation: >
-      Definir CSS variables no tema ou usar detecção de dark mode para
-      alternar contentStyle dinamicamente.
-    file: features/prospecting/components/MetricsChart.tsx
-    line: 81
+      Tooltip dark mode — useDarkMode() hook com MutationObserver +
+      contentStyle condicional (isDark ? slate : white).
+    fix_commit: 5883968
 
   - id: M2
     severity: medium
-    category: code
+    status: resolved
     description: >
-      Query de profiles duplicada entre ProspectingPage (['profiles']) e
-      useProspectingMetrics (['prospectingMetricsProfiles']).
-    recommendation: >
-      Unificar queryKey para reutilizar cache, ou passar profiles como
-      parâmetro ao hook.
+      Profile query duplicada — hook agora recebe profiles como parâmetro,
+      query interna removida. Single source of truth.
+    fix_commit: 5883968
 
-test_gaps:
-  - "aggregateMetrics: sem testes unitários da função pura"
-  - "getDateRange: sem testes diretos de cálculos de data"
-  - "ProspectingPage integration: sem testes de tab switching e period buttons"
+test_gaps_resolution:
+  - gap: "aggregateMetrics: sem testes unitários"
+    status: resolved
+    tests_added: 11
+  - gap: "getDateRange: sem testes diretos"
+    status: resolved
+    tests_added: 5
+  - gap: "ProspectingPage integration: tab switching"
+    status: accepted
+    reason: "Low risk — UI toggle only, coberto em teste manual"
+
+test_summary:
+  story_tests: 31
+  total_suite: 552
+  failures: 0
+  regressions: 0

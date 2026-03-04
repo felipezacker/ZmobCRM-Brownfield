@@ -25,6 +25,7 @@ export interface DailyMetric {
   no_answer: number
   voicemail: number
   busy: number
+  other: number
   total: number
 }
 
@@ -109,6 +110,7 @@ export function aggregateMetrics(
         no_answer: 0,
         voicemail: 0,
         busy: 0,
+        other: 0,
         total: 0,
       })
     }
@@ -119,6 +121,7 @@ export function aggregateMetrics(
     else if (outcome === 'no_answer') day.no_answer++
     else if (outcome === 'voicemail') day.voicemail++
     else if (outcome === 'busy') day.busy++
+    else day.other++
   }
   const byDay = Array.from(dayMap.values()).sort((a, b) =>
     a.date.localeCompare(b.date),
@@ -206,6 +209,8 @@ export function useProspectingMetrics(
   const isAdminOrDirector =
     profile?.role === 'admin' || profile?.role === 'diretor'
 
+  const QUERY_LIMIT = 5000
+
   const metricsQuery = useQuery({
     queryKey: ['prospectingMetrics', range.start, range.end],
     queryFn: async () => {
@@ -218,6 +223,7 @@ export function useProspectingMetrics(
         .gte('date', `${range.start}T00:00:00`)
         .lte('date', `${range.end}T23:59:59`)
         .is('deleted_at', null)
+        .limit(QUERY_LIMIT)
         .order('date', { ascending: true })
 
       if (error) throw error
@@ -226,6 +232,8 @@ export function useProspectingMetrics(
     enabled: !authLoading && !!user,
     staleTime: 30 * 1000,
   })
+
+  const isDataTruncated = (metricsQuery.data?.length ?? 0) >= QUERY_LIMIT
 
   const metrics = useMemo(() => {
     if (!metricsQuery.data) return null
@@ -242,6 +250,7 @@ export function useProspectingMetrics(
     isFetching: metricsQuery.isFetching,
     error: metricsQuery.error,
     isAdminOrDirector,
+    isDataTruncated,
     invalidateMetrics,
   }
 }

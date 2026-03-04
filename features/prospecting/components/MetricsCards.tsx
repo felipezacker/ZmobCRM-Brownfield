@@ -3,16 +3,11 @@
 import React from 'react'
 import { Phone, PhoneCall, Clock, Users } from 'lucide-react'
 import type { ProspectingMetrics } from '../hooks/useProspectingMetrics'
+import { formatDuration } from '../utils/formatDuration'
 
 interface MetricsCardsProps {
   metrics: ProspectingMetrics | null
   isLoading: boolean
-}
-
-function formatDuration(seconds: number): string {
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.round(seconds % 60)
-  return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
 function KpiCard({
