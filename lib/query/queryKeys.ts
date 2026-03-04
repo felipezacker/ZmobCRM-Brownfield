@@ -40,6 +40,9 @@ export const queryKeys = {
     // Prospecting queue (CP-1.1)
     prospectingQueue: createQueryKeys('prospectingQueue'),
 
+    // Note templates (CP-2.2)
+    noteTemplates: createQueryKeys('noteTemplates'),
+
     // Dashboard (non-standard structure)
     dashboard: {
         stats: ['dashboard', 'stats'] as const,

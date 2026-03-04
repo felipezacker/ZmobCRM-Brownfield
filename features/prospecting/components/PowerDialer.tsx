@@ -4,6 +4,7 @@ import { Button } from '@/app/components/ui/Button'
 import { CallModal, CallLogData } from '@/features/inbox/components/CallModal'
 import { ProspectingScriptGuide } from '@/features/prospecting/components/ProspectingScriptGuide'
 import { ContactHistory } from '@/features/prospecting/components/ContactHistory'
+import { QuickActionsPanel } from '@/features/prospecting/components/QuickActionsPanel'
 import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts'
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { substituteVariables } from '@/features/prospecting/utils/scriptParser'
@@ -43,6 +44,8 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   const [showCallModal, setShowCallModal] = useState(false)
   const [markedObjections, setMarkedObjections] = useState<string[]>([])
   const [showScriptDropdown, setShowScriptDropdown] = useState(false)
+  const [showQuickActions, setShowQuickActions] = useState(false)
+  const [lastCallData, setLastCallData] = useState<CallLogData | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const createActivity = useCreateActivity()
   const { scripts } = useQuickScripts()
@@ -72,8 +75,8 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
         return
       }
 
-      // Other shortcuts disabled when modal/dropdown open
-      if (showCallModal || showScriptDropdown) return
+      // Other shortcuts disabled when modal/dropdown/quickactions open
+      if (showCallModal || showScriptDropdown || showQuickActions) return
 
       // Ignore when typing in inputs
       const tag = (e.target as HTMLElement).tagName
@@ -100,7 +103,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showCallModal, showScriptDropdown, onSkip, onEnd])
+  }, [showCallModal, showScriptDropdown, showQuickActions, onSkip, onEnd])
 
   const handleCallSave = useCallback((data: CallLogData) => {
     createActivity.mutate({
@@ -124,8 +127,17 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
 
     setShowCallModal(false)
     setMarkedObjections([])
-    onCallComplete(data.outcome)
-  }, [contact.contactId, createActivity, onCallComplete, markedObjections])
+    setLastCallData(data)
+    setShowQuickActions(true)
+  }, [contact.contactId, createActivity, markedObjections])
+
+  const handleQuickActionsDismiss = useCallback(() => {
+    setShowQuickActions(false)
+    if (lastCallData) {
+      onCallComplete(lastCallData.outcome)
+    }
+    setLastCallData(null)
+  }, [lastCallData, onCallComplete])
 
   const handleSelectScript = useCallback((script: QuickScript) => {
     if (onScriptChange) {
@@ -312,13 +324,28 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
         </div>
       </div>
 
-      {/* CP-2.1: Contact History panel */}
-      <div className="max-w-lg mx-auto">
-        <ContactHistory
+      {/* CP-2.2: Quick Actions Panel (shown after call log saved) */}
+      {showQuickActions && lastCallData && (
+        <QuickActionsPanel
           contactId={contact.contactId}
-          defaultOpen={typeof window !== 'undefined' && window.innerWidth >= 768}
+          contactName={contact.contactName || 'Sem nome'}
+          contactPhone={contact.contactPhone}
+          contactStage={contact.contactStage}
+          outcome={lastCallData.outcome}
+          callNotes={lastCallData.notes}
+          onDismiss={handleQuickActionsDismiss}
         />
-      </div>
+      )}
+
+      {/* CP-2.1: Contact History panel */}
+      {!showQuickActions && (
+        <div className="max-w-lg mx-auto">
+          <ContactHistory
+            contactId={contact.contactId}
+            defaultOpen={typeof window !== 'undefined' && window.innerWidth >= 768}
+          />
+        </div>
+      )}
 
       {/* CallModal with script guide side panel */}
       <CallModal
@@ -328,6 +355,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
         contactName={contact.contactName || 'Sem nome'}
         contactPhone={contact.contactPhone || ''}
         suggestedTitle={`Prospecção - ${contact.contactName || ''}`}
+        isProspecting
         sideContent={selectedScript ? (
           <ProspectingScriptGuide
             script={selectedScript}

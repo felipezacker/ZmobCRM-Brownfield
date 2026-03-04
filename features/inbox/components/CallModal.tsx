@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink } from 'lucide-react';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { Button } from '@/app/components/ui/Button';
+import { NoteTemplates } from '@/features/prospecting/components/NoteTemplates';
 
 interface CallModalProps {
     isOpen: boolean;
@@ -12,6 +13,8 @@ interface CallModalProps {
     suggestedTitle?: string;
     /** Optional side panel content (e.g. script guide) shown alongside the modal on desktop */
     sideContent?: React.ReactNode;
+    /** When true, show note templates based on outcome (prospecting flow) */
+    isProspecting?: boolean;
 }
 
 export interface CallLogData {
@@ -49,6 +52,7 @@ export const CallModal: React.FC<CallModalProps> = ({
     contactPhone,
     suggestedTitle = 'Ligação',
     sideContent,
+    isProspecting,
 }) => {
     const [openedAt, setOpenedAt] = useState<Date | null>(null);
     const [dialerOpenedAt, setDialerOpenedAt] = useState<Date | null>(null);
@@ -303,6 +307,16 @@ export const CallModal: React.FC<CallModalProps> = ({
                             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-24 max-h-[30vh] break-words [overflow-wrap:anywhere]"
                             rows={3}
                         />
+                        {isProspecting && outcome && (
+                            <div className="mt-2">
+                                <NoteTemplates
+                                    outcome={outcome}
+                                    onSelect={(text) => {
+                                        setNotes((prev) => prev ? `${prev}\n${text}` : text)
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
 
