@@ -9,6 +9,7 @@ export { dealsService, calculateEstimatedCommission } from './supabase/deals';
 export { activitiesService } from './supabase/activities';
 export { productsService } from './supabase/products';
 export { settingsService, lifecycleStagesService } from './supabase/settings';
+export { noteTemplatesService } from './supabase/noteTemplates';
 
 // Re-export Realtime hooks
 export { useRealtimeSync, useRealtimeSyncAll, useRealtimeSyncKanban } from './realtime';

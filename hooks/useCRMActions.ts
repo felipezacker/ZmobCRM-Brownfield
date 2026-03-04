@@ -120,6 +120,18 @@ export function useCRMActions() {
         } as Omit<Contact, 'id' | 'createdAt'>);
         if (newContact) {
           finalContactId = newContact.id;
+        } else {
+          // Contato não foi criado (erro de RLS, DB, etc.) — aborta criação do deal
+          // para não criar negócio órfão sem contato vinculado.
+          if (optimisticBoardId) {
+            try {
+              queryClient.setQueryData<DealView[]>(
+                [...queryKeys.deals.lists(), 'view'],
+                (old = []) => old.filter((d) => d.id !== optimisticTempId)
+              );
+            } catch (e) { /* ignore */ }
+          }
+          throw new Error('Não foi possível criar o contato. Verifique os dados e tente novamente.');
         }
       }
     }

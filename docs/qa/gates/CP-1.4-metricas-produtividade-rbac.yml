@@ -1,0 +1,63 @@
+storyId: CP-1.4
+verdict: PASS
+reviewer: "@qa (Quinn)"
+date: "2026-03-04"
+summary: >
+  Re-review após fixes do commit 5883968. Todas as 4 issues (H1, H2, M1, M2)
+  resolvidas corretamente. 31 testes (era 16, +15), 552 total passando, zero
+  regressões. ACs funcionalmente atendidos, RBAC via RLS, dark mode OK.
+
+previous_review:
+  date: "2026-03-03"
+  verdict: CONCERNS
+  issues_count: 4
+
+issues_resolution:
+  - id: H1
+    severity: high
+    status: resolved
+    description: >
+      useCallback instability — invalidateMetrics agora estável via
+      useCallback+queryClient no hook, desestruturado antes do useCallback na page.
+    fix_commit: 5883968
+
+  - id: H2
+    severity: high
+    status: resolved
+    description: >
+      Task 5 accuracy — nota técnica adicionada documentando decisão:
+      volume < 1K/mês justifica aggregação client-side.
+    fix_commit: 5883968
+
+  - id: M1
+    severity: medium
+    status: resolved
+    description: >
+      Tooltip dark mode — useDarkMode() hook com MutationObserver +
+      contentStyle condicional (isDark ? slate : white).
+    fix_commit: 5883968
+
+  - id: M2
+    severity: medium
+    status: resolved
+    description: >
+      Profile query duplicada — hook agora recebe profiles como parâmetro,
+      query interna removida. Single source of truth.
+    fix_commit: 5883968
+
+test_gaps_resolution:
+  - gap: "aggregateMetrics: sem testes unitários"
+    status: resolved
+    tests_added: 11
+  - gap: "getDateRange: sem testes diretos"
+    status: resolved
+    tests_added: 5
+  - gap: "ProspectingPage integration: tab switching"
+    status: accepted
+    reason: "Low risk — UI toggle only, coberto em teste manual"
+
+test_summary:
+  story_tests: 31
+  total_suite: 552
+  failures: 0
+  regressions: 0

@@ -1,507 +1,816 @@
 # Frontend Specification - ZmobCRM
 
 > **Fase:** Brownfield Discovery - Phase 3 (UX/Frontend)
-> **Data:** 2026-02-23
-> **Agente:** @ux-design-expert
-> **Status:** Completo
+> **Data:** 2026-03-03
+> **Agente:** @ux-design-expert (Uma)
+> **Status:** Completo (atualizado)
+> **Versao do Projeto:** 1.4.3
 
 ---
 
 ## 1. Visao Geral da Arquitetura Frontend
 
-### Stack Tecnologico
+### 1.1 Stack Tecnologico
 
 | Tecnologia | Versao | Proposito |
 |------------|--------|-----------|
-| Next.js | 15.5.x | Framework (App Router) |
+| Next.js | 15.5.x | Framework (App Router, Turbopack dev) |
 | React | 19.2.1 | UI Library |
-| TypeScript | 5.x | Tipagem estatica |
-| Tailwind CSS | 4.x | Estilizacao |
+| TypeScript | 5.x | Tipagem estatica (strict mode) |
+| Tailwind CSS | 4.x | Estilizacao (CSS-first config via @theme) |
 | TanStack React Query | 5.90.x | Server state management |
 | Zustand | 5.0.x | Client state management |
 | Radix UI | Multiplos | Componentes primitivos acessiveis |
-| Framer Motion | 12.x | Animacoes |
-| Lucide React | 0.560 | Icones |
+| class-variance-authority | 0.7.x | Variants tipadas para componentes |
+| Framer Motion | 12.x | Animacoes (uso limitado) |
+| Lucide React | 0.560 | Icones (otimizado via optimizePackageImports) |
 | Recharts | 3.5.x | Graficos |
 | React Hook Form + Zod | 7.x / 4.x | Formularios e validacao |
 | Supabase SSR | 0.8.x | Auth e banco de dados |
 | AI SDK (Vercel) | 6.x | Integracao IA (Anthropic, OpenAI, Google) |
+| Sentry | 10.x | Error tracking (condicional) |
+| date-fns | 4.x | Manipulacao de datas |
+| Immer | 11.x | Mutacao imutavel de estado |
+| jsPDF + autoTable | 4.x / 5.x | Geracao de PDF |
 
-### Estrutura de Diretorios
+### 1.2 Estrutura de Diretorios
 
 ```
-app/                     # Next.js App Router (rotas e layouts)
-  (protected)/           # Rotas autenticadas (layout com app shell)
-  api/                   # API routes (Next.js Route Handlers)
-  login/                 # Pagina de login (publica)
-  install/               # Fluxo de instalacao
-  join/                  # Convite de usuarios
-components/              # Componentes reutilizaveis globais
-  ui/                    # Componentes UI primitivos (Button, Modal, Card, etc.)
-  navigation/            # Navegacao (BottomNav, NavigationRail, MoreMenu)
-  ai/                    # Componentes de IA (UIChat, RSCChat)
-  charts/                # Graficos (FunnelChart, RevenueTrend)
-  pwa/                   # PWA (ServiceWorker, InstallBanner)
-features/                # Feature modules (domain-driven)
-  inbox/                 # Inbox de vendas
-  boards/                # Boards/Kanban
-  contacts/              # Gestao de contatos
-  activities/            # Atividades e tarefas
-  dashboard/             # Dashboard
-  deals/                 # Cockpit de deals
-  decisions/             # Fila de decisoes
-  reports/               # Relatorios
-  settings/              # Configuracoes
-  ai-hub/                # Hub de IA
-  profile/               # Perfil do usuario
-context/                 # React Context providers
-  AuthContext             # Autenticacao
-  CRMContext              # Contexto unificado legado
-  ThemeContext             # Tema (dark/light)
-  ToastContext             # Notificacoes toast
-  AIContext                # Estado de IA
-  AIChatContext            # Chat de IA
-  deals/                  # Sub-contexto de deals
-  contacts/               # Sub-contexto de contatos
-  activities/             # Sub-contexto de atividades
-  boards/                 # Sub-contexto de boards
-  settings/               # Sub-contexto de configuracoes
-hooks/                   # Hooks globais reutilizaveis
-lib/                     # Utilitarios e servicos
-  a11y/                  # Acessibilidade (FocusTrap, SkipLink, LiveRegion)
-  query/                 # TanStack Query config + hooks
-  stores/                # Zustand stores
-  supabase/              # Clientes e servicos Supabase
-  ai/                    # Config e providers de IA
-  utils/                 # Utilitarios gerais
-types/                   # Definicoes de tipos TypeScript
+/
+  app/                         # Next.js App Router
+    (protected)/               # Grupo de rotas autenticadas
+      activities/              # Pagina de atividades
+      ai/                     # Hub de IA
+      boards/                  # Kanban boards
+      contacts/                # Gestao de contatos
+      dashboard/               # Visao geral
+      deals/                   # Deals / cockpit
+      inbox/                   # Inbox inteligente
+      instructions/            # Instrucoes do sistema
+      labs/                    # Features experimentais
+      notifications/           # Central de notificacoes
+      pipeline/                # Alias para boards
+      profile/                 # Perfil do usuario
+      reports/                 # Relatorios
+      settings/                # Configuracoes
+      setup/                   # Setup inicial (sem app shell)
+      layout.tsx               # Protected layout wrapper
+      providers.tsx            # Composed providers (10 providers)
+      page.tsx                 # Dashboard home redirect
+    actions/                   # Server Actions
+    api/                       # API routes
+    auth/                      # Auth callback
+    components/ui/             # Componentes shadcn/ui (app-level)
+      Button.tsx               # Button com variant "unstyled"
+      ErrorBoundary.tsx        # Error boundary React
+    install/                   # Fluxo de instalacao
+    join/                      # Convite de usuario
+    login/                     # Pagina de login
+    globals.css                # Design tokens + Tailwind v4 @theme
+    layout.tsx                 # Root layout (html, body, fonts)
+  components/                  # Componentes compartilhados
+    ai/                        # UIChat (assistente IA)
+    charts/                    # Graficos com lazy loading
+    debug/                     # Ferramentas de debug
+    filters/                   # Componentes de filtro
+    navigation/                # BottomNav, NavigationRail, navConfig
+    notifications/             # NotificationPopover
+    pwa/                       # ServiceWorkerRegister, InstallBanner
+    ui/                        # Biblioteca de componentes UI
+    AIAssistant.tsx            # Assistente IA (legado)
+    ConfirmModal.tsx           # Modal de confirmacao acessivel
+    ConsentModal.tsx           # Modal de consentimento LGPD
+    Layout.tsx                 # App shell principal
+    MaintenanceBanner.tsx      # Banner de manutencao
+    OnboardingModal.tsx        # Modal de onboarding
+    PageLoader.tsx             # Spinner de carregamento
+  context/                     # React Contexts
+    activities/                # ActivitiesContext
+    boards/                    # BoardsContext
+    contacts/                  # ContactsContext
+    deals/                     # DealsContext
+    settings/                  # SettingsContext
+    AIChatContext.tsx           # Estado do chat IA
+    AIContext.tsx               # Configuracao IA
+    AuthContext.tsx             # Autenticacao
+    CRMContext.tsx              # Contexto unificado (legado)
+    ThemeContext.tsx            # Dark/Light mode
+    ToastContext.tsx            # Notificacoes toast
+  features/                    # Feature modules (dominio)
+    activities/                # Gestao de atividades
+    ai-hub/                    # Hub de IA
+    boards/                    # Kanban boards
+    contacts/                  # Gestao de contatos
+    dashboard/                 # Dashboard
+    deals/                     # Cockpit de deals
+    decisions/                 # Decisoes
+    inbox/                     # Inbox inteligente
+    instructions/              # Instrucoes
+    notifications/             # Notificacoes
+    profile/                   # Perfil
+    reports/                   # Relatorios
+    settings/                  # Configuracoes
+  hooks/                       # Hooks globais
+  lib/                         # Bibliotecas utilitarias
+    a11y/                      # Acessibilidade (FocusTrap, SkipLink, etc.)
+    ai/                        # Agente IA
+    auth/                      # Auth helpers
+    fetch/                     # Fetch utilities
+    forms/                     # useFormEnhanced
+    query/                     # TanStack Query (client, keys, hooks)
+    realtime/                  # Supabase realtime sync
+    stores/                    # Zustand stores
+    supabase/                  # Supabase client + service modules
+    utils/                     # cn, responsive, csv, etc.
+    validations/               # Error codes, validacao
+  types/                       # Tipos globais TypeScript
+  squads/                      # Squads reutilizaveis (design, squad-creator)
 ```
+
+### 1.3 Metricas do Codebase
+
+| Metrica | Valor |
+|---------|-------|
+| Arquivos TS/TSX (excl. node_modules) | ~471 |
+| Componentes UI (components/ui/) | 23 arquivos |
+| Feature modules | 13 modulos |
+| React Contexts | 10 providers |
+| Hooks globais | 12 hooks |
+| Rotas protegidas | 18+ paginas |
 
 ---
 
-## 2. Componentes UI
+## 2. UI Components Inventory
 
-### 2.1 Componentes Primitivos (`components/ui/`)
+### 2.1 Biblioteca de Componentes
 
-| Componente | Base | Descricao |
-|-----------|------|-----------|
-| `Button` | CVA + Radix Slot | Variantes: default, destructive, outline, secondary, ghost, link. Tamanhos: default, sm, lg, icon |
-| `Modal` | Custom + FocusTrap | Dialog acessivel com focus trap, escape, backdrop click. Tamanhos sm/md/lg/xl |
-| `ConfirmModal` | Modal | Modal de confirmacao com acoes destrutivas |
-| `Sheet` | Custom | Slide-in panel |
-| `FullscreenSheet` | Custom | Sheet fullscreen mobile |
-| `ActionSheet` | Custom | Menu de acoes mobile |
-| `FormField` | Custom | Campo de formulario com label, erro, variantes |
-| `Card` | Custom | Container de conteudo |
-| `Badge` | Custom | Etiquetas/status |
-| `Tabs` | Radix Tabs | Navegacao por abas |
-| `Popover` | Radix Popover | Menu popup |
-| `Tooltip` | Radix Tooltip | Dica contextual |
-| `Avatar` | Radix Avatar | Foto/iniciais do usuario |
-| `Alert` | Custom | Mensagens de alerta |
-| `AudioPlayer` | Custom | Player de audio |
-| `ContactSearchCombobox` | Custom | Combobox de busca de contatos |
-| `CorretorSelect` | Custom | Select de corretor/responsavel |
-| `LossReasonModal` | Modal | Modal especifico para motivo de perda |
+O projeto usa uma combinacao de **shadcn/ui** (Radix UI primitivos + CVA) com componentes customizados:
 
-### 2.2 Componentes de Feature (`features/`)
+**Radix UI Primitivos instalados (15):**
 
-Cada feature segue padrao de organizacao:
+| Primitivo | Uso |
+|-----------|-----|
+| `@radix-ui/react-accordion` | Secoes expansiveis |
+| `@radix-ui/react-avatar` | Avatares de usuario |
+| `@radix-ui/react-checkbox` | Checkboxes |
+| `@radix-ui/react-dialog` | Dialogos base |
+| `@radix-ui/react-dropdown-menu` | Menus dropdown |
+| `@radix-ui/react-label` | Labels de formulario |
+| `@radix-ui/react-popover` | Popovers |
+| `@radix-ui/react-scroll-area` | Areas de scroll customizadas |
+| `@radix-ui/react-select` | Selects acessiveis |
+| `@radix-ui/react-separator` | Separadores |
+| `@radix-ui/react-slider` | Sliders |
+| `@radix-ui/react-slot` | Slot (composicao) |
+| `@radix-ui/react-switch` | Switches |
+| `@radix-ui/react-tabs` | Tabs |
+| `@radix-ui/react-tooltip` | Tooltips |
+
+### 2.2 Componentes Reutilizaveis (components/ui/)
+
+| Componente | Tipo | Pattern | Observacao |
+|------------|------|---------|------------|
+| `button.tsx` | Atom | CVA + forwardRef | shadcn padrao (6 variants, 4 sizes) |
+| `card.tsx` | Atom | forwardRef | Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter |
+| `badge.tsx` | Atom | CVA | 4 variants |
+| `alert.tsx` | Atom | CVA | 2 variants (default, destructive) |
+| `tabs.tsx` | Molecule | Radix Tabs | TabsList, TabsTrigger, TabsContent |
+| `tooltip.tsx` | Atom | Radix Tooltip | Provider, Trigger, Content |
+| `avatar.tsx` | Atom | Radix Avatar | Com fallback |
+| `popover.tsx` | Atom | Radix Popover | Wrapper basico |
+| `Modal.tsx` | Molecule | Custom | FocusTrap, ARIA, sizes sm-5xl |
+| `ConfirmModal.tsx` (components/) | Molecule | Custom | role=alertdialog, danger variants |
+| `Sheet.tsx` | Molecule | Framer Motion | Bottom sheet mobile |
+| `ActionSheet.tsx` | Molecule | Custom | Acoes em lista (mobile) |
+| `FullscreenSheet.tsx` | Molecule | Custom | Sheet fullscreen |
+| `FormField.tsx` | Molecule | Custom | Input, Textarea, Select, Checkbox, Submit |
+| `EmptyState.tsx` | Molecule | Custom | 3 sizes (sm, md, lg) |
+| `AudioPlayer.tsx` | Organism | Custom | Player de audio |
+| `ContactSearchCombobox.tsx` | Organism | Custom | Busca de contatos |
+| `DealSearchCombobox.tsx` | Organism | Custom | Busca de deals |
+| `CorretorSelect.tsx` | Molecule | Custom | Selecao de corretor |
+| `LossReasonModal.tsx` | Organism | Custom | Modal de motivo de perda |
+| `date-range-picker.tsx` | Organism | Custom | Seletor de intervalo de datas |
+| `modalStyles.ts` | Tokens | Classes | Tokens visuais compartilhados para modais |
+
+### 2.3 Componentes em `app/components/ui/`
+
+| Componente | Diferenca do `components/ui/` |
+|------------|------------------------------|
+| `Button.tsx` | Identico ao components/ui/button.tsx + variant "unstyled" e size "unstyled" |
+| `ErrorBoundary.tsx` | Error boundary com UI de fallback |
+
+**DEBT-001:** Duplicacao de Button entre `components/ui/button.tsx` e `app/components/ui/Button.tsx`. O segundo adiciona variants `unstyled` nao presentes no primeiro. Imports no codebase referenciam ambos caminhos.
+
+### 2.4 Padrao de Props e Typing
+
+Todos os componentes shadcn/ui seguem o padrao:
+
+```typescript
+// CVA para variants
+const variants = cva("base-classes", {
+  variants: { variant: {...}, size: {...} },
+  defaultVariants: { variant: "default", size: "default" }
+});
+
+// Interface com extends + VariantProps
+export interface ComponentProps
+  extends React.HTMLAttributes<HTMLElement>,
+  VariantProps<typeof variants> {
+  asChild?: boolean;
+}
+
+// forwardRef para composicao
+const Component = React.forwardRef<HTMLElement, ComponentProps>(
+  ({ className, variant, size, ...props }, ref) => (
+    <element ref={ref} className={cn(variants({ variant, size, className }))} {...props} />
+  )
+);
+Component.displayName = "Component";
 ```
-features/{feature}/
-  {Feature}Page.tsx           # Pagina principal
-  components/                 # Componentes especificos
-  hooks/                      # Hooks especificos
-  utils/                      # Utilitarios
-  types.ts                    # Tipos
-```
 
-Features identificadas: **inbox, boards, contacts, activities, dashboard, deals, decisions, reports, settings, ai-hub, profile**
-
-### 2.3 Componentes de Navegacao
-
-- **Desktop (>= 1280px):** Sidebar colapsavel (52px -> 80px) com icones + labels
-- **Tablet (768px - 1279px):** NavigationRail (apenas icones)
-- **Mobile (< 768px):** BottomNav fixa + MoreMenuSheet
+Componentes customizados (Modal, FormField, EmptyState) usam interfaces tipadas sem CVA.
 
 ---
 
 ## 3. Design System / Tokens
 
-### 3.1 Sistema de Cores
+### 3.1 Arquitetura de Tokens
 
-**Abordagem:** CSS Custom Properties com OKLCH color space + Tailwind v4 `@theme`.
+O sistema usa **3 camadas de tokens** em CSS, definidas em `app/globals.css`:
 
-**Cores primarias:** Escala blue/sky (primary-50 a primary-900, base #0ea5e9)
+**Camada 1 - Tailwind v4 @theme (primitivos):**
+```css
+@theme {
+  --font-sans: 'Inter', var(--font-inter), sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-serif: 'Cinzel', serif;
+  --color-primary-50 a --color-primary-900 (escala azul/sky)
+  --color-dark-bg, --color-dark-card, --color-dark-border, --color-dark-hover
+}
+```
 
-**Cores semanticas (via CSS vars):**
-- `--color-bg`, `--color-surface`, `--color-muted` - Fundos
-- `--color-border`, `--color-border-subtle` - Bordas
-- `--color-text-primary/secondary/muted/subtle` - Texto
-- `--color-success/warning/error/info` - Status (com variantes hover, bg, text)
-- `--glass-bg`, `--glass-border`, `--glass-blur` - Efeito glassmorphism
+**Camada 2 - shadcn/ui semantic tokens (@theme inline):**
+```css
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card / --color-card-foreground
+  --color-popover / --color-popover-foreground
+  --color-secondary / --color-secondary-foreground
+  --color-muted / --color-muted-foreground
+  --color-accent / --color-accent-foreground
+  --color-destructive / --color-destructive-foreground
+  --color-border, --color-input, --color-ring
+}
+```
 
-**Dark mode:** Classe `.dark` no `<html>` com override completo de todas as vars.
+**Camada 3 - Custom semantic tokens (:root / .dark):**
+```css
+:root {
+  /* Backgrounds */
+  --color-bg: oklch(97% 0.005 90);        /* Soft Cream */
+  --color-surface: oklch(99% 0.002 90);
+  --color-muted: oklch(95% 0.008 90);
+  --color-border: oklch(90% 0.01 90);
 
-### 3.2 Tipografia
+  /* Status Colors (with -hover, -bg, -text variants) */
+  --color-success: oklch(65% 0.17 145);
+  --color-warning: oklch(75% 0.15 85);
+  --color-error: oklch(62% 0.25 25);
+  --color-info: oklch(60% 0.20 240);
+  --color-orange: oklch(70% 0.18 55);
 
-| Token | Fonte | Uso |
+  /* Text hierarchy */
+  --color-text-primary: oklch(25% 0.015 260);
+  --color-text-secondary: oklch(45% 0.02 260);
+  --color-text-muted: oklch(55% 0.025 260);
+  --color-text-subtle: oklch(62% 0.025 260);
+
+  /* Glass effect */
+  --glass-bg / --glass-border / --glass-blur
+
+  /* App Shell */
+  --app-sidebar-width / --app-bottom-nav-height / --app-safe-area-bottom
+}
+```
+
+### 3.2 Paleta de Cores
+
+| Token | Light Mode | Dark Mode | Uso |
+|-------|-----------|-----------|-----|
+| `--color-bg` | oklch(97% 0.005 90) | oklch(11% 0.025 260) | Background principal |
+| `--color-surface` | oklch(99% 0.002 90) | oklch(15% 0.02 260) | Cards, paineis |
+| `--color-muted` | oklch(95% 0.008 90) | oklch(22% 0.015 260) | Backgrounds sutis |
+| `--color-border` | oklch(90% 0.01 90) | oklch(26% 0.012 260) | Bordas |
+| `--primary` | oklch(55% 0.20 240) | oklch(65% 0.20 240) | Acoes primarias |
+| `--color-success` | oklch(65% 0.17 145) | oklch(70% 0.17 145) | Sucesso |
+| `--color-warning` | oklch(75% 0.15 85) | oklch(80% 0.14 85) | Alerta |
+| `--color-error` | oklch(62% 0.25 25) | oklch(68% 0.24 25) | Erro |
+| `--color-info` | oklch(60% 0.20 240) | oklch(70% 0.19 240) | Informacional |
+
+**Nota:** Todas as cores semanticas usam OKLCH, o que e uma pratica moderna e perceptualmente uniforme. Os tokens antigos `--color-primary-50..900` na @theme usam hex (escala Sky).
+
+### 3.3 Tipografia
+
+| Token | Valor | Uso |
 |-------|-------|-----|
-| `--font-sans` | Inter | Corpo de texto principal |
+| `--font-sans` | Inter | Corpo de texto, UI geral |
 | `--font-display` | Space Grotesk | Titulos, labels de navegacao |
-| `--font-serif` | Cinzel | Decorativo (uso limitado) |
+| `--font-serif` | Cinzel | Nao utilizado no codebase atualmente |
 
-### 3.3 Efeitos Visuais
+**Escala tipografica:** Usa escala padrao do Tailwind (text-xs a text-2xl). Nao ha escala customizada.
 
-- **Glass effect:** Backdrop blur + transparencia (utility `glass`)
-- **Dot background:** Padrao de pontos radial (utility `bg-dots`)
-- **Ambient glow:** Gradientes blur como background decorativo
-- **Scrollbar customizado:** WebKit scrollbar estilizado
+### 3.4 Espacamento
 
-### 3.4 Breakpoints
+Usa sistema padrao do Tailwind: gap-1 (4px), gap-2 (8px), gap-3 (12px), gap-4 (16px), gap-6 (24px), gap-8 (32px).
 
-| Nome | Valor | Modo |
-|------|-------|------|
-| mobile | < 768px | BottomNav |
-| tablet (md) | 768px - 1279px | NavigationRail |
-| desktop (lg) | >= 1280px | Sidebar completa |
+### 3.5 Border Radius
+
+| Uso | Valor |
+|-----|-------|
+| `--radius` (shadcn) | 0.5rem |
+| Botoes | rounded-md (0.375rem) a rounded-lg (0.5rem) |
+| Cards | rounded-lg (0.5rem) a rounded-xl (0.75rem) |
+| Modais | rounded-xl / rounded-2xl (mobile/desktop) |
+| Avatares | rounded-full |
+| Badges | rounded-full |
+| Logo | rounded-xl |
+
+### 3.6 Sombras
+
+| Token | Uso |
+|-------|-----|
+| `shadow-sm` | Cards |
+| `shadow-lg` | Avatares, logo, botoes hover |
+| `shadow-xl` | Dropdown menus |
+| `shadow-2xl` | Modais, sheets |
+| `shadow-primary-500/20` | Logo accent glow |
+
+### 3.7 Dark Mode
+
+**Suporte:** Completo (class-based via `.dark` no `<html>`).
+
+**Implementacao:**
+- Default: dark mode ativado (`<html className="dark">`)
+- Script inline no `<head>` para evitar flash (FOUC)
+- Persistencia em localStorage (`crm_dark_mode`)
+- Toggle via `ThemeContext.toggleDarkMode()`
+- Todos os tokens semanticos tem variantes dark via `.dark { ... }`
 
 ---
 
-## 4. Padroes de Layout
+## 4. Layout Patterns
 
-### 4.1 App Shell
+### 4.1 App Shell (Layout Principal)
+
+O layout principal (`components/Layout.tsx`) implementa um pattern responsivo com 3 modos:
 
 ```
-+--sidebar--+--header---------+--ai-panel--+
-|            |                 |            |
-|  Nav       |  Page Content   |  UIChat    |
-|  Items     |                 |  (toggle)  |
-|            |                 |            |
-+------------+-----------------+------------+
+Desktop (>=1280px):     Sidebar (52/20) | Header + Main | AI Panel (opcional)
+Tablet (768-1279px):    Navigation Rail (5rem) | Header + Main
+Mobile (<768px):        Header + Main + Bottom Nav (fixo)
 ```
 
-- **Sidebar:** Colapsavel (13rem -> 5rem), com logo, nav items, user card
-- **Header:** Fixa h-16, contendo botoes AI, debug, notificacoes, tema
-- **AI Panel:** Sidebar direita w-96, toggle via botao no header
-- **Main content:** `overflow-auto`, padding 1.5rem, padding-bottom adicional no mobile
+**Composicao:**
+1. `app/layout.tsx` - Root layout (html, body, font, ServiceWorker)
+2. `app/(protected)/layout.tsx` -> `providers.tsx` - Composed providers wrapper
+3. `components/Layout.tsx` - App shell com sidebar/header/main/AI panel
+4. Feature page components (injetados como `children`)
 
-### 4.2 Paginas Protegidas
+### 4.2 Navegacao
 
-Todas as rotas em `app/(protected)/` usam layout comum com:
-- `QueryProvider` > `ToastProvider` > `ThemeProvider` > `AuthProvider` > `CRMProvider` > `AIProvider` > `Layout`
-- Redirect automatico para `/login` se nao autenticado
+**3 patterns de navegacao responsiva:**
 
-### 4.3 Lazy Loading de Paginas
+| Componente | Breakpoint | Tipo |
+|------------|-----------|------|
+| **Sidebar** (collapsible) | Desktop (lg+) | Lateral esquerda, 52px (collapsed) / 208px (expanded) |
+| **NavigationRail** | Tablet (md-lg) | Lateral esquerda, 80px, so icones |
+| **BottomNav** | Mobile (<md) | Barra inferior fixa, 56px |
 
-Todas as paginas de feature usam `React.lazy()` + `<Suspense>` com fallback `<PageLoader>`.
+**Itens primarios (mobile BottomNav):**
+- Inbox, Boards, Contatos, Atividades, Mais (menu sheet)
 
----
+**Itens completos (desktop sidebar):**
+- Inbox, Visao Geral, Boards, Contatos, Atividades, Relatorios, Notificacoes, Configuracoes
 
-## 5. Fluxos de Usuario
+**Itens secundarios (tablet rail + More menu):**
+- Visao Geral, Relatorios, Configuracoes, Perfil, Instrucoes
 
-### 5.1 Login
-`/login` -> Auth Supabase (OAuth) -> `/auth/callback` -> redirect para `/inbox`
+**Funcionalidades:**
+- `aria-current="page"` em links ativos
+- Prefetch on hover/focus via `prefetchRoute()`
+- Click tracking durante Suspense transitions
+- Sidebar collapse/expand com animacao
+- User menu dropdown no footer da sidebar
 
-### 5.2 Inbox (Pagina Inicial)
-- Overview com briefing diario (AI)
-- Lista de itens priorizados por urgencia
-- Acoes rapidas: ligar, agendar, enviar mensagem
-- Toggle entre views: overview / lista / foco
+### 4.3 Responsive Breakpoints
 
-### 5.3 Boards/Kanban
-- Selector de board no topo
-- Kanban horizontal com drag-and-drop
-- DealCard com info de contato, valor, probabilidade, atividades
-- Modais: criar deal, detalhe do deal, mover estagio, marcar ganho/perda
+| Breakpoint | Tamanho | Modo | CSS Class |
+|-----------|---------|------|-----------|
+| Mobile | < 768px | `mobile` | Tailwind default (no prefix) |
+| Tablet | >= 768px, < 1280px | `tablet` | `md:` |
+| Desktop | >= 1280px | `desktop` | `lg:` |
 
-### 5.4 Contatos
-- Tabs por lifecycle stage
-- Lista com filtros, busca, paginacao
-- Import/export CSV
-- Formulario de criacao/edicao (modal)
+**Nota:** O breakpoint desktop e 1280px (nao 1024px padrao do Tailwind) para que iPad landscape fique em modo tablet.
 
-### 5.5 Atividades
-- Lista com filtros por tipo, status, periodo
-- Calendario visual
-- Formulario de atividade (modal)
-- Bulk actions (completar, excluir)
+**Hook:** `useResponsiveMode()` retorna `{ mode: 'mobile'|'tablet'|'desktop', width: number }`.
 
-### 5.6 Deal Cockpit
-- Pagina dedicada por deal (`/deals/[dealId]/cockpit`)
-- Informacoes completas, timeline, notas, arquivos
-- Analise AI do deal
+### 4.4 Grid/Flex Patterns
 
-### 5.7 Decisoes
-- Fila de decisoes automaticas (deals estagnados, atividades atrasadas)
-- Cards com recomendacoes acionaveis
-
-### 5.8 Dashboard
-- Metricas: pipeline value, deals, win rate
-- Graficos: funil, tendencia de receita
-- Feed de atividades recentes
-
-### 5.9 Configuracoes
-- Secoes: IA, campos customizados, tags, lifecycle stages, produtos, webhooks, API keys, audit log
-- RBAC para controle de acesso
+- **App shell:** `flex h-screen overflow-hidden`
+- **Sidebar:** `flex flex-col` com altura 100%
+- **Main content:** `flex-1 flex flex-col min-w-0 overflow-hidden`
+- **Pages:** Geralmente `space-y-6` ou grid customizado por feature
+- **Dashboard:** Grid de StatCards (`grid grid-cols-2 lg:grid-cols-4`)
+- **Kanban:** `flex gap-3 overflow-x-auto` (scroll horizontal)
+- **Contact list:** Tabela responsiva com scroll
 
 ---
 
-## 6. Responsividade
+## 5. User Flows
 
-### Implementacao
+### 5.1 Fluxos Principais
 
-- Hook `useResponsiveMode()` com `window.innerWidth` + resize listener
-- Breakpoints: mobile (<768), tablet (768-1279), desktop (>=1280)
-- CSS var `--app-sidebar-width` e `--app-bottom-nav-height` para layout dinamic
-- Safe area insets para dispositivos com notch (`env(safe-area-inset-*)`)
-- `overflow-x: hidden` global para evitar scroll horizontal
+| Fluxo | Rota | Componentes Principais |
+|-------|------|----------------------|
+| **Login** | `/login` | Formulario de email/senha, Supabase Auth |
+| **Setup Inicial** | `/setup` | Wizard de configuracao (sem app shell) |
+| **Dashboard** | `/dashboard` | StatCards, ActivityFeed, PipelineAlerts |
+| **Kanban Boards** | `/boards` | BoardSelector, KanbanBoard, DealCard, DealDetailModal |
+| **Contatos** | `/contacts` | ContactsList, ContactFormModal, ContactDetailModal, ContactCockpit |
+| **Inbox** | `/inbox` | InboxListView, InboxFocusView, FocusContextPanel |
+| **Atividades** | `/activities` | ActivitiesList, ActivitiesCalendar, ActivityFormModal |
+| **Deal Cockpit** | `/deals/[id]` | DealCockpitClient, CockpitDataPanel, CockpitTimeline |
+| **Relatorios** | `/reports` | Feature de relatorios |
+| **Configuracoes** | `/settings` | SettingsPage (tabs: AI, Webhooks, API, Users, etc.) |
+| **Perfil** | `/profile` | Edicao de perfil do usuario |
 
-### Adaptacoes por Modo
+### 5.2 Form Patterns
 
-| Elemento | Mobile | Tablet | Desktop |
-|----------|--------|--------|---------|
-| Navegacao | BottomNav + MoreSheet | NavigationRail | Sidebar colapsavel |
-| AI Panel | (nao visivel) | (nao visivel) | Sidebar direita toggle |
-| Modais | Fullscreen | Centered | Centered |
-| Tabelas | Scroll horizontal | Adaptadas | Completas |
+**Biblioteca de formularios:**
+- `react-hook-form` para gestao de estado
+- `@hookform/resolvers` + `zod` para validacao
+- `useFormEnhanced` hook customizado em `lib/forms/`
+- `FormField` componentes tipados em `components/ui/FormField.tsx`
+
+**Componentes de formulario:**
+- `InputField` - Input com label, erro, hint, validacao
+- `TextareaField` - Textarea com as mesmas features
+- `SelectField` - Select nativo com opcoes
+- `CheckboxField` - Checkbox com label inline
+- `SubmitButton` - Botao com loading state e spinner
+- `FormErrorSummary` - Resumo de erros no topo
+
+**Validacao:**
+- Tempo real com feedback visual (borda vermelha + icone)
+- `aria-invalid`, `aria-describedby` automaticos
+- `role="alert"` nas mensagens de erro
+
+### 5.3 Modal/Dialog Patterns
+
+**Modal generico (`components/ui/Modal.tsx`):**
+- Focus trap via `focus-trap-react`
+- `useFocusReturn` para retorno de foco
+- Escape key para fechar
+- Backdrop click para fechar
+- 8 tamanhos (sm a 5xl)
+- Tokens visuais centralizados em `modalStyles.ts`
+- `MODAL_OVERLAY_CLASS` respeita `--app-sidebar-width` no desktop
+
+**ConfirmModal (`components/ConfirmModal.tsx`):**
+- `role="alertdialog"` para dialogos de confirmacao
+- Auto-focus no botao cancelar (opcao segura)
+- Variantes: default, danger
+
+**Sheet (`components/ui/Sheet.tsx`):**
+- Bottom sheet mobile-first com Framer Motion
+- Animacao de entrada/saida com blur
+- Safe area padding para iOS
+
+**FullscreenSheet, ActionSheet:**
+- Variantes especializadas para diferentes fluxos mobile
+
+### 5.4 Notificacoes / Feedback
+
+**Toast system (`context/ToastContext.tsx`):**
+- 4 tipos: success, error, warning, info
+- Auto-dismiss em 3 segundos
+- `aria-live="polite"` (info/success) e `aria-live="assertive"` (error)
+- Posicao: bottom-right fixo
+
+**Notification store (Zustand):**
+- Sistema paralelo mais avancado com acoes clicaveis
+- Auto-dismiss configuravel
+- Sem duplicacao com toast (funcionalidade diferente)
 
 ---
 
-## 7. Acessibilidade (a11y)
+## 6. Responsiveness
 
-### Implementacoes Existentes
+### 6.1 Nivel de Suporte Mobile
 
-**Infraestrutura dedicada (`lib/a11y/`):**
-- `SkipLink` - Link "pular para conteudo" para navegacao por teclado
-- `FocusTrap` - Armadilha de foco para modais/dialogs (usa `focus-trap-react`)
-- `LiveRegion` - Regiao ARIA live para anuncios de screen reader
-- `VisuallyHidden` - Texto visivel apenas para leitores de tela
-- `useFocusReturn` - Retorna foco ao elemento trigger ao fechar modal
-- `useAnnounce` - Hook para anunciar mudancas via live region
-- `useFormErrorFocus` - Foco automatico no primeiro campo com erro
-- `useKeyboardShortcut` - Atalhos de teclado
+**Status: BOM.** A aplicacao tem suporte mobile de primeira classe:
 
-**Nos componentes:**
-- `aria-hidden="true"` em icones decorativos (Lucide) - **consistente**
-- `aria-label` em botoes e regioes de navegacao - **presente na maioria**
-- `aria-current="page"` na navegacao ativa - **implementado no BottomNav**
-- `role="dialog"` + `aria-modal="true"` em modais - **implementado no Modal.tsx**
-- `aria-labelledby` nos modais apontando para titulo
-- Focus visible ring customizado (`.focus-visible-ring`)
-- `prefers-reduced-motion: reduce` - Desabilita animacoes
-- `prefers-contrast: more` - Aumenta outline de foco
-- Toast com `role="alert"` (erros) e `role="status"` (demais)
-- `aria-live="polite"` / `aria-live="assertive"` nos toasts
+| Feature | Suporte Mobile |
+|---------|---------------|
+| Navegacao | BottomNav dedicado |
+| Layout | Responsivo (flexbox) |
+| Modais | viewport cap com dvh |
+| Kanban | Scroll horizontal |
+| Formularios | Full width inputs |
+| Touch targets | Minimo 44px (maioria) |
+| Safe areas | env(safe-area-inset-*) |
+| PWA | ServiceWorker + InstallBanner + manifest |
 
-**Cobertura de aria-labels:** 217 ocorrencias em 58 arquivos.
+### 6.2 Patterns Responsivos
 
-### Testes de Acessibilidade
-- `axe-core` e `vitest-axe` configurados
-- Utilidades de teste em `lib/a11y/test/a11y-utils.ts`
+| Pattern | Implementacao |
+|---------|--------------|
+| **Navigation switch** | BottomNav (mobile), Rail (tablet), Sidebar (desktop) |
+| **Modal sizing** | `max-h-[calc(90dvh-1rem)]` mobile, `90dvh-2rem` desktop |
+| **Sidebar offset** | CSS var `--app-sidebar-width` em modais/overlays |
+| **Content padding** | `pb-[calc(1.5rem+var(--app-bottom-nav-height)+var(--app-safe-area-bottom))]` |
+| **Grid collapse** | `grid-cols-1 md:grid-cols-2 lg:grid-cols-4` |
+| **Hide/show** | `hidden md:flex lg:hidden` pattern |
+| **Touch optimization** | Larger click targets em mobile |
 
----
+### 6.3 PWA Support
 
-## 8. Consistencia Visual
-
-### Pontos Fortes
-
-- Sistema de CSS vars semantico bem definido (light + dark)
-- Utility classes customizadas (`glass`, `bg-dots`, `font-display`)
-- Componente `Modal` centralizado com `modalStyles.ts` compartilhado
-- Componente `Button` usando CVA (class-variance-authority) com variantes
-- Icones consistentes via Lucide React
-- `cn()` utility (clsx + tailwind-merge) para composicao de classes
-
-### Pontos de Atencao
-
-- Componente `Button` (CVA/shadcn) usa tokens como `bg-primary`, `text-primary-foreground` que **nao estao definidos** no CSS/tailwind config (apenas `primary-500`, `primary-600`, etc. estao definidos). Isso indica tokens orfaos do shadcn-ui que podem nao renderizar corretamente.
-- Mistura de abordagens de estilizacao: classes Tailwind inline vs CSS vars vs hardcoded hex values
+- ServiceWorker registrado via `ServiceWorkerRegister`
+- Install banner para instalacao como app
+- Manifest via `app/manifest.ts`
+- `sw.js` com cache headers
 
 ---
 
-## 9. Gerenciamento de Estado
+## 7. Accessibility (a11y)
 
-### Arquitetura Hibrida
+### 7.1 Biblioteca de Acessibilidade (`lib/a11y/`)
+
+**Componentes:**
+- `FocusTrap` - Armadilha de foco para modais (via `focus-trap-react`)
+- `VisuallyHidden` - Conteudo so para screen readers
+- `SkipLink` - Link "Pular para conteudo" no topo
+- `LiveRegion` - Anuncios para screen readers
+
+**Hooks:**
+- `useFocusReturn` - Retorna foco ao trigger ao fechar modal
+- `useAnnounce` - Anuncia mensagens via aria-live
+- `useKeyboardShortcut` - Gerencia atalhos de teclado
+- `useFormErrorFocus` - Foca no primeiro erro do formulario
+
+### 7.2 Implementacao WCAG
+
+| Criterio | Status | Detalhes |
+|----------|--------|----------|
+| **Skip link** | Implementado | `<SkipLink targetId="main-content" />` |
+| **Landmarks** | Parcial | `<nav>`, `<main>`, `<header>`, `<aside>` com aria-label |
+| **Focus management** | Bom | FocusTrap em todos os modais, focusReturn |
+| **Keyboard navigation** | Bom | `focus-visible-ring` pattern, Escape para fechar |
+| **ARIA roles** | Bom | `role="dialog"`, `role="alertdialog"`, `role="alert"`, `role="status"` |
+| **ARIA attributes** | Bom | `aria-modal`, `aria-labelledby`, `aria-describedby`, `aria-current`, `aria-invalid`, `aria-required`, `aria-hidden`, `aria-busy`, `aria-live` |
+| **Form accessibility** | Bom | Labels associados, error messages com `role="alert"`, hints |
+| **Screen reader** | Parcial | `sr-only` class, LiveRegion, mas falta anuncio de navegacao |
+| **Color contrast** | Provavel OK | OKLCH com lightness adequada, mas nao verificado formalmente |
+| **Reduced motion** | Implementado | `@media (prefers-reduced-motion: reduce)` reseta animacoes |
+| **High contrast** | Parcial | `@media (prefers-contrast: more)` para focus rings |
+| **Icons** | Bom | `aria-hidden="true"` em icones decorativos consistentemente |
+| **Images** | Parcial | Avatares com alt vazio (decorativo), mas imagens de conteudo variam |
+
+**Total de usos de aria-*:** 172 ocorrencias em 30+ arquivos.
+
+### 7.3 Axe-Core / Testes A11y
+
+- `axe-core` instalado como devDependency
+- `vitest-axe` instalado para testes automatizados
+- Testes existentes em `lib/a11y/test/` e `components/ui/FormField.test.tsx`
+
+---
+
+## 8. Performance (Percebida)
+
+### 8.1 Loading States
+
+| Pattern | Implementacao | Status |
+|---------|--------------|--------|
+| **PageLoader** | Spinner centralizado (`components/PageLoader.tsx`) | Basico |
+| **Skeleton** | Usado em charts (`ChartSkeleton`) | Limitado (2 arquivos) |
+| **Button loading** | `SubmitButton` com `isLoading` + spinner | Implementado |
+| **EmptyState** | Componente reutilizavel (3 sizes) | Implementado |
+| **ErrorBoundary** | Error boundary com "Tentar novamente" | Implementado |
+| **GlobalError** | Sentry + fallback page | Implementado |
+
+**DEBT-002:** Skeletons quase inexistentes. Apenas charts tem skeleton loading. Paginas inteiras usam spinner generico em vez de content-aware skeletons.
+
+### 8.2 Error States
+
+| Tipo | Implementacao |
+|------|--------------|
+| **Global error** | `app/global-error.tsx` (Sentry) |
+| **Error boundary** | `app/components/ui/ErrorBoundary.tsx` |
+| **Query errors** | Tratamento global no `QueryClient` com toast |
+| **Form errors** | `FormErrorSummary` + per-field errors |
+| **Empty state** | `EmptyState` component |
+
+### 8.3 Optimistic Updates
+
+Implementado via `useOptimisticMutation` em `lib/query/index.tsx`:
+- Cancel outgoing refetches
+- Snapshot previous value
+- Apply optimistic update
+- Rollback on error
+- Invalidate on settle
+
+### 8.4 Code Splitting / Lazy Loading
+
+| Pattern | Uso |
+|---------|-----|
+| **React.lazy** | Charts (FunnelChart, RevenueTrendChart), AIAssistant |
+| **Suspense** | Charts wrapper, Join page, Inbox panels |
+| **Dynamic imports** | Limitado |
+| **optimizePackageImports** | lucide-react, recharts, date-fns |
+| **content-visibility** | `.cv-auto` classes para listas longas |
+
+**Nota:** `content-visibility: auto` esta implementado com classes utilitarias (`.cv-auto`, `.cv-row-sm/md/lg`, `.cv-card`, `.cv-card-lg`) para renderizacao virtual CSS nativa.
+
+### 8.5 Prefetching
+
+- Prefetch de rotas via `prefetchRoute()` em `lib/prefetch.ts`
+- Ativado em `onMouseEnter` e `onFocus` nos links de navegacao
+- Implementado para dashboard e contacts
+
+---
+
+## 9. State Management
+
+### 9.1 Arquitetura de Estado
+
+O projeto usa uma arquitetura hibrida com separacao clara:
 
 ```
-                     +-------------------+
-                     |   TanStack Query  |  Server State
-                     |   (dados do DB)   |  staleTime: 5min
-                     +-------------------+  gcTime: 30min
-                              |
-                     +-------------------+
-                     |   React Context   |  Domain State (legado)
-                     |   CRMContext       |  Compoe 5 sub-contexts
-                     +-------------------+
-                              |
-                     +-------------------+
-                     |     Zustand       |  Client State
-                     |   UI/Form/Notif   |  Seletores finos
-                     +-------------------+
+Server State (TanStack Query)    Client State (Zustand)    UI State (React Context)
+  Deals, Contacts, Activities      UI Store (sidebar,        Auth, Theme, Toast,
+  Boards, Settings, AI              modals, search)          CRM (legado)
+  via query hooks                  Form Store (drafts)
+                                   Notification Store
 ```
 
-### TanStack React Query
-- **Configuracao:** staleTime 5min, gcTime 30min, retry 3x com backoff exponencial
-- **Query keys centralizadas:** `lib/query/queryKeys.ts`
-- **Hooks de entidade:** `useDealsQuery`, `useContactsQuery`, `useBoardsQuery`, `useActivitiesQuery`, `useAISuggestionsQuery`, `useMoveDeal`
-- **Optimistic updates:** Hook `useOptimisticMutation` generico
-- **Prefetch:** Na navegacao (hover/focus dos links)
-- **Realtime sync:** `lib/realtime/useRealtimeSync.ts` com presets Supabase
+### 9.2 Server State (TanStack Query)
 
-### React Context (Legado)
-- **CRMContext:** Mega-contexto que agrega 5 sub-contextos (Deals, Contacts, Activities, Boards, Settings)
-- **Problema:** Interface enorme (~180 propriedades), re-renders em cascata
-- **Sub-contextos individuais existem** mas CRMContext ainda e a interface principal
+**Configuracao:**
+- Stale time: 5 minutos
+- GC time: 30 minutos
+- Retry: 3x com backoff exponencial
+- Refetch em foco/reconexao
 
-### Zustand Stores
-- **useUIStore:** Sidebar, modais, busca global, loading states
-- **useFormStore:** Rascunhos de formulario com persistencia (localStorage)
-- **useNotificationStore:** Notificacoes com auto-dismiss
-- Seletores de granulacao fina (`useSidebarOpen`, `useAIAssistantOpen`, etc.)
+**Query keys centralizadas (`lib/query/queryKeys.ts`):**
+- `queryKeys.deals.*`, `queryKeys.contacts.*`, `queryKeys.activities.*`
+- `queryKeys.boards.*`, `queryKeys.settings.*`, `queryKeys.dashboard.*`
 
----
+**Hooks de entidade (`lib/query/hooks/`):**
+- `useDealsQuery.ts` - CRUD de deals
+- `useContactsQuery.ts` - CRUD de contatos
+- `useBoardsQuery.ts` - CRUD de boards
+- `useActivitiesQuery.ts` - CRUD de atividades
+- `useMoveDeal.ts` - Mover deal entre estagios
+- `useAISuggestionsQuery.ts` - Sugestoes de IA
 
-## 10. Estados de Erro e Loading
+**Realtime sync:** `lib/realtime/useRealtimeSync.ts` para subscricoes Supabase.
 
-### Loading
-- `<PageLoader>` - Spinner centralizado para carregamento de paginas
-- Loading states por contexto (deals, contacts, activities, boards, settings)
-- Loading states por chave no Zustand (`useUIStore.loadingStates`)
-- Suspense boundaries em todas as paginas lazy-loaded
+### 9.3 Client State (Zustand)
 
-### Erro
-- Error handler global no QueryCache e MutationCache
-- Codigos de erro centralizados (`lib/validations/errorCodes.ts`)
-- Notificacao automatica via `useNotificationStore` em erros de query/mutation
-- Tratamento de network error, timeout, 401, 404
+**3 stores especializados (`lib/stores/index.ts`):**
 
-### Toast/Feedback
-- `ToastContext` com auto-dismiss (3s)
-- `useNotificationStore` (Zustand) com auto-dismiss (5s, configuravel)
-- **Duplicacao:** Dois sistemas de notificacao coexistem (Toast Context + Notification Store)
+| Store | Persiste? | Responsabilidade |
+|-------|----------|------------------|
+| `useUIStore` | Nao | Sidebar, AI panel, board ativo, modais, search, loading |
+| `useFormStore` | Sim (localStorage) | Drafts de formularios, submitting states |
+| `useNotificationStore` | Nao | Notificacoes com auto-dismiss |
 
----
+**Selector hooks para performance:**
+- `useSidebarOpen()`, `useAIAssistantOpen()`, `useIsGlobalAIOpen()`
+- `useActiveBoardId()`, `useActiveModal()`, `useGlobalSearch()`
+- `useFormDraft(formId)`, `useIsFormSubmitting(formId)`
 
-## 11. Performance
+### 9.4 React Contexts
 
-### Otimizacoes Implementadas
+**Provider Composition (10 providers em `providers.tsx`):**
+1. `QueryProvider` - TanStack Query
+2. `ToastProvider` - Notificacoes toast
+3. `ThemeProvider` - Dark/Light mode
+4. `AuthProvider` - Autenticacao Supabase
+5. `SettingsProvider` - Configuracoes da org
+6. `BoardsProvider` - Boards/pipelines
+7. `ContactsProvider` - Contatos
+8. `ActivitiesProvider` - Atividades
+9. `DealsProvider` - Deals
+10. `AIProvider` - Configuracao IA
 
-- **Package imports otimizados:** `optimizePackageImports` para lucide-react, recharts, date-fns
-- **Lazy loading de paginas:** Todas as feature pages via `React.lazy()` + Suspense
-- **Prefetch de rotas:** `lib/prefetch.ts` com prefetch em hover/focus de links de navegacao
-- **Content-visibility:** Classes CSS `.cv-auto` para listas longas (skip layout/paint off-viewport)
-- **TanStack Query cache:** staleTime 5min evita refetches desnecessarios
-- **Optimistic updates:** UX instantanea com rollback em caso de erro
-- **PWA:** Service Worker registrado, manifest configurado
-- **Turbopack:** Habilitado para dev
+**CRMContext (legado):**
+- Contexto unificado que agrega todos os contextos de dominio
+- Mantido para compatibilidade retroativa
+- Recomendacao: usar hooks especificos diretamente
 
-### Pontos de Atencao
+### 9.5 Form State
 
-- **CRMContext monolitico:** Re-renders em cascata quando qualquer sub-estado muda
-- **Debug logging em producao:** Multiplos `fetch` para endpoint `127.0.0.1:7242` em CRMContext e layout (embora condicionados a `NODE_ENV !== 'production'`)
-- **Sem image optimization significativa:** next/image usado minimamente (apenas avatar)
-
----
-
-## 12. Debitos Tecnicos de Frontend
-
-### DEB-FE-001: Componentes Duplicados (ALTA)
-
-**Descricao:** Existem versoes V1 e V2 de componentes criticos sem deprecacao clara:
-- `ActivityFormModal.tsx` + `ActivityFormModalV2.tsx`
-- `CreateDealModal.tsx` + `CreateDealModalV2.tsx`
-- `ContactFormModal.tsx` + `ContactFormModalV2.tsx`
-- `DealCockpitClient.tsx` + `DealCockpitFocusClient.tsx`
-
-**Impacto:** Confusao sobre qual usar, manutencao duplicada, inconsistencia de UX.
-**Recomendacao:** Consolidar em versao unica, remover duplicatas.
-
-### DEB-FE-002: CRMContext Monolitico (ALTA)
-
-**Descricao:** `CRMContext` com ~180 propriedades agrega 5 sub-contextos. Qualquer mudanca causa re-render em todos os consumidores.
-**Impacto:** Performance degradada em telas com muitos componentes.
-**Recomendacao:** Migrar consumidores para hooks especificos (`useDeals`, `useContacts`, etc.) e deprecar CRMContext.
-
-### DEB-FE-003: Dois Sistemas de Notificacao (MEDIA)
-
-**Descricao:** `ToastContext` (React Context, 3s) e `useNotificationStore` (Zustand, 5s) coexistem com funcionalidades sobrepostas.
-**Impacto:** Inconsistencia na experiencia de notificacoes, confusao para devs.
-**Recomendacao:** Unificar em um unico sistema (preferencialmente Zustand store).
-
-### DEB-FE-004: Tokens de Button Orfaos (MEDIA)
-
-**Descricao:** Componente `Button` (shadcn) referencia tokens como `bg-primary`, `text-primary-foreground`, `bg-destructive` que nao estao definidos no tailwind.config.js nem no globals.css. Apenas `primary-50` a `primary-900` existem.
-**Impacto:** Botoes podem nao renderizar cores corretas; dependencia de defaults do Tailwind.
-**Recomendacao:** Definir tokens semanticos completos ou migrar Button para usar tokens existentes.
-
-### DEB-FE-005: Debug Logging Excessivo (MEDIA)
-
-**Descricao:** `CRMContext` e `ProtectedLayout` contem multiplas chamadas `fetch` para `http://127.0.0.1:7242/ingest/...` com dados de debug. Condicionadas a `NODE_ENV !== 'production'` mas poluem o codigo.
-**Impacto:** Codigo dificil de ler, requests desnecessarios em dev.
-**Recomendacao:** Extrair para modulo de telemetria dedicado ou remover apos debug.
-
-### DEB-FE-006: AI Panel Nao Responsivo (MEDIA)
-
-**Descricao:** O painel de IA (UIChat sidebar) so aparece em desktop (w-96 fixa). Nao ha alternativa mobile/tablet.
-**Impacto:** Funcionalidade de IA inacessivel em dispositivos moveis.
-**Recomendacao:** Implementar como FullscreenSheet ou modal em mobile.
-
-### DEB-FE-007: Ausencia de Error Boundaries (MEDIA)
-
-**Descricao:** Nao foram encontrados componentes `ErrorBoundary` para captura de erros de renderizacao.
-**Impacto:** Erros de runtime podem crashar toda a aplicacao sem feedback ao usuario.
-**Recomendacao:** Adicionar ErrorBoundary por feature/rota com fallback UI.
-
-### DEB-FE-008: Design System Informal (BAIXA)
-
-**Descricao:** Nao existe documentacao de design system, storybook ou catalogo de componentes. Os tokens estao espalhados entre `tailwind.config.js`, `globals.css` (@theme) e inline styles.
-**Impacto:** Inconsistencias visuais ao longo do tempo, dificuldade de onboarding.
-**Recomendacao:** Consolidar tokens, criar documentacao visual (Storybook ou similar).
-
-### DEB-FE-009: Hydration Safety com useState Fixo (BAIXA)
-
-**Descricao:** `useResponsiveMode` inicializa com `useState(1024)` (desktop) para evitar hydration mismatch, depois atualiza no mount. Causa flash de layout em mobile.
-**Impacto:** Flash visual em primeiro render no mobile.
-**Recomendacao:** Considerar `useSyncExternalStore` ou cookie/header-based detection.
-
-### DEB-FE-010: PWA Incompleto (BAIXA)
-
-**Descricao:** Service Worker e InstallBanner implementados, mas nao ha estrategia de cache offline, sync em background, ou push notifications.
-**Impacto:** PWA funcional mas basico.
-**Recomendacao:** Definir estrategia de offline-first se necessario para o produto.
+- `react-hook-form` para gestao de estado de formularios
+- `useFormEnhanced` hook customizado (`lib/forms/`)
+- Auto-save de drafts via `useFormDraftAutoSave()` hook
+- Drafts persistidos em localStorage
 
 ---
 
-## 13. Resumo de Metricas
+## 10. Technical Debts (UX/UI Level)
 
-| Metrica | Valor |
-|---------|-------|
-| Rotas protegidas | 17 |
-| API routes | 40+ |
-| Componentes UI primitivos | 17 |
-| Feature modules | 11 |
-| React Contexts | 7 (+ 5 sub-contexts) |
-| Zustand Stores | 3 |
-| Hooks globais | 11 |
-| Hooks de feature | 10+ |
-| Ocorrencias a11y (aria) | 217 em 58 arquivos |
-| Componentes duplicados (V1/V2) | 4 pares |
-| Debitos identificados | 10 |
+### Severidade CRITICA
+
+| ID | Descricao | Impacto | Localizacao |
+|----|-----------|---------|-------------|
+| **DEBT-001** | **Duplicacao de Button component.** Existem 2 versoes: `components/ui/button.tsx` e `app/components/ui/Button.tsx`. A segunda adiciona variants `unstyled`. Imports misturados no codebase. | Inconsistencia visual, confusao para devs | `components/ui/button.tsx`, `app/components/ui/Button.tsx` |
+| **DEBT-003** | **CRMContext monolito (33KB).** Contexto unificado que agrega todos os domainios. Qualquer mudanca causa re-render em todos os consumers. | Performance, manutenibilidade | `context/CRMContext.tsx` |
+| **DEBT-004** | **Componentes gigantes.** `FocusContextPanel.tsx` tem 109KB, `BoardCreationWizard.tsx` tem 75KB, `DealDetailModal.tsx` tem 87KB, `WebhooksSection.tsx` tem 55KB, `ContactsImportExportModal.tsx` tem 51KB, `CockpitDataPanel.tsx` tem 48KB. Estes precisam ser decompostos. | Manutenibilidade, performance, bundle | `features/inbox/components/`, `features/boards/components/` |
+
+### Severidade ALTA
+
+| ID | Descricao | Impacto | Localizacao |
+|----|-----------|---------|-------------|
+| **DEBT-002** | **Skeletons quase inexistentes.** Apenas charts tem skeleton. Paginas usam spinner generico. | Percepcao de velocidade ruim | Todas as paginas |
+| **DEBT-005** | **Nenhum sistema de i18n.** Strings hardcoded em portugues em todos os componentes (400+ strings). Sem infraestrutura para internacionalizacao. | Impossivel traduzir sem refatoracao massiva | Todo o codebase |
+| **DEBT-006** | **Controller hooks gigantes.** `useBoardsController.ts` (37KB), `useContactsController.ts` (30KB), `useInboxController.ts` (28KB), `useActivitiesController.ts` (19KB). Cada um centraliza toda a logica de uma feature. | Manutenibilidade, testabilidade | `features/*/hooks/` |
+| **DEBT-007** | **Mistura de import paths.** Alguns imports usam `@/lib/utils` e outros `@/lib/utils/cn`. Nao ha barrel file consistente. | Confusao para devs | `lib/utils/` |
+| **DEBT-008** | **Scrollbar styling com hex hardcoded.** Scrollbar custom usa `#cbd5e1`, `#94a3b8`, `#334155`, `#475569` em vez de tokens semanticos. | Inconsistencia com o sistema de tokens | `app/globals.css` (linhas 289-295, 434-458) |
+| **DEBT-009** | **Chart colors com hex hardcoded.** Tokens de chart usam `#64748b`, `#0f172a`, `rgba(...)` em vez de OKLCH ou tokens semanticos. | Inconsistencia visual em temas | `app/globals.css` (linhas 149-154, 209-214) |
+
+### Severidade MEDIA
+
+| ID | Descricao | Impacto | Localizacao |
+|----|-----------|---------|-------------|
+| **DEBT-010** | **Font serif nao utilizada.** `--font-serif: 'Cinzel'` definida mas nao referenciada em nenhum componente. | Peso desnecessario se carregada | `app/globals.css` |
+| **DEBT-011** | **Cores tailwind pre-v4 misturadas.** Uso de `text-slate-*`, `bg-slate-*`, `text-gray-*` diretamente em componentes (cores Tailwind padrao) ao lado de tokens semanticos customizados. | Duas fontes de verdade para cores | Multiplos componentes |
+| **DEBT-012** | **PageLoader com cores hardcoded.** Usa `text-gray-500 dark:text-gray-400` em vez de tokens semanticos (`text-muted-foreground`). | Inconsistencia | `components/PageLoader.tsx` |
+| **DEBT-013** | **ConfirmModal duplica estilo de modal.** Nao usa `modalStyles.ts` centralizado, tendo seus proprios estilos inline. | Deriva visual possivel | `components/ConfirmModal.tsx` |
+| **DEBT-014** | **Sem optimistic updates em todas as mutations.** Apenas deal moves tem updates otimistas via helper generico. Contacts, activities, etc. fazem full refetch. | UX mais lenta em operacoes CRUD | `lib/query/hooks/` |
+| **DEBT-015** | **ErrorBoundary usa inline styles.** `ErrorBoundary.tsx` usa `style={{ borderColor: 'var(--border)' }}` em vez de classes Tailwind com tokens. | Inconsistencia de padrao | `app/components/ui/ErrorBoundary.tsx` |
+| **DEBT-016** | **GlobalError sem design system.** `app/global-error.tsx` usa HTML puro sem nenhum styling do design system. | Experiencia visual quebrada em erros globais | `app/global-error.tsx` |
+
+### Severidade BAIXA
+
+| ID | Descricao | Impacto | Localizacao |
+|----|-----------|---------|-------------|
+| **DEBT-017** | **SubmitButton em FormField.tsx e duplicado.** Componente FormField exporta `SubmitButton` com seus proprios `buttonVariants` que conflitam com os do `button.tsx`. | Confusao de naming | `components/ui/FormField.tsx` |
+| **DEBT-018** | **Prefetch incompleto.** `prefetchRouteData()` so implementa dashboard e contacts. Outras rotas retornam `null`. | Prefetch parcial | `lib/query/index.tsx` |
+| **DEBT-019** | **Ambient background glow hardcoded.** O efeito decorativo de glow no main content usa `bg-primary-500/10` e `bg-purple-500/10` hardcoded. | Nao adaptavel por tema | `components/Layout.tsx` |
+| **DEBT-020** | **Nenhum teste e2e/visual.** Sem Playwright, Storybook, ou testes visuais. Apenas testes unitarios com vitest + @testing-library. | Regressoes visuais nao detectadas | Infraestrutura de testes |
 
 ---
 
-## 14. Recomendacoes Prioritarias
+## 11. Resumo e Recomendacoes
 
-1. **Consolidar componentes duplicados (V1/V2)** - Eliminar confusao e manutencao duplicada
-2. **Migrar de CRMContext para hooks especificos** - Performance e manutenibilidade
-3. **Unificar sistema de notificacoes** - Consistencia UX
-4. **Adicionar Error Boundaries** - Resiliencia da aplicacao
-5. **Corrigir tokens de Button** - Garantir renderizacao correta
-6. **Tornar AI Panel responsivo** - Funcionalidade em todos os dispositivos
-7. **Limpar debug logging** - Legibilidade do codigo
-8. **Criar documentacao de design system** - Onboarding e consistencia
+### 11.1 Pontos Fortes
+
+1. **Design system bem fundamentado.** Tokens OKLCH, shadcn/ui, CVA, Radix UI primitivos.
+2. **Acessibilidade acima da media.** Biblioteca dedicada (`lib/a11y/`), focus trap, skip link, ARIA attributes, axe-core.
+3. **Dark mode completo.** Todas as cores semanticas tem variantes dark.
+4. **Responsividade de primeira classe.** 3 patterns de navegacao, safe areas, viewport caps.
+5. **State management moderno.** TanStack Query + Zustand + Context compostos.
+6. **PWA support.** ServiceWorker, InstallBanner, manifest.
+7. **Performance CSS.** content-visibility para listas longas.
+8. **Error handling robusto.** Global error, ErrorBoundary, Query error handlers, Toast.
+9. **Modal system consistente.** Tokens centralizados, sidebar-aware, FocusTrap.
+
+### 11.2 Acoes Prioritarias
+
+| Prioridade | Acao | Debts Resolvidos |
+|-----------|------|-----------------|
+| 1 | **Unificar Button component** - Merge das 2 versoes, manter variants unstyled | DEBT-001 |
+| 2 | **Decompor componentes gigantes** - BoardCreationWizard, DealDetailModal, FocusContextPanel | DEBT-004 |
+| 3 | **Implementar skeletons** - Criar skeletons para todas as paginas principais | DEBT-002 |
+| 4 | **Migrar cores hardcoded para tokens** - Scrollbar, charts, PageLoader, backgrounds | DEBT-008, 009, 011, 012 |
+| 5 | **Decompor CRMContext** - Usar hooks especificos, depreciar contexto unificado | DEBT-003 |
+| 6 | **Decompor controller hooks** - Separar em hooks menores por responsabilidade | DEBT-006 |
+| 7 | **Avaliar i18n** - Definir se internationalizacao e necessaria antes de crescer mais | DEBT-005 |
+
+### 11.3 Arquitetura Target
+
+```
+Atual:                          Target:
+components/ui/button.tsx    --> components/ui/button.tsx (UNICO, com unstyled)
+app/components/ui/Button.tsx    (REMOVIDO)
+
+CRMContext (33KB monolito)  --> hooks especificos (useDeals, useContacts, etc.)
+                                CRMContext DEPRECATED
+
+FocusContextPanel (109KB)   --> 5-8 sub-componentes focados
+DealDetailModal (87KB)      --> tabs em componentes separados
+BoardCreationWizard (75KB)  --> wizard steps em componentes separados
+
+PageLoader (generico)       --> Page-specific skeletons
+text-gray-500               --> text-muted-foreground (tokens)
+#cbd5e1 (scrollbar)         --> var(--color-border) (tokens)
+```
 
 ---
 
-*Documento gerado por @ux-design-expert como parte da Brownfield Discovery Phase 3.*
+> **Gerado por:** @ux-design-expert (Uma) - Brownfield Discovery Phase 3
+> **Proxima fase:** Phase 4 (Technical Debt Draft) - @architect

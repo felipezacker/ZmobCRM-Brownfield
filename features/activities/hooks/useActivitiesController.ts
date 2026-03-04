@@ -219,7 +219,7 @@ export const useActivitiesController = () => {
       date: date.toISOString().split('T')[0],
       time: date.toTimeString().slice(0, 5),
       description: activity.description || '',
-      dealId: activity.dealId,
+      dealId: activity.dealId || '',
       recurrenceType: activity.recurrenceType || 'none',
       recurrenceEndDate: activity.recurrenceEndDate || '',
     });
@@ -313,7 +313,7 @@ export const useActivitiesController = () => {
                     type: activity.type,
                     description: activity.description,
                     date: nextDateStr,
-                    dealId: activity.dealId,
+                    dealId: activity.dealId || '',
                     contactId: activity.contactId,
                     participantContactIds: activity.participantContactIds,
                     dealTitle: selectedDeal?.title || activity.dealTitle || '',
@@ -407,7 +407,7 @@ export const useActivitiesController = () => {
       date: tomorrow.toISOString().split('T')[0],
       time: new Date(activity.date).toTimeString().slice(0, 5),
       description: activity.description || '',
-      dealId: activity.dealId,
+      dealId: activity.dealId || '',
       recurrenceType: activity.recurrenceType || 'none',
       recurrenceEndDate: activity.recurrenceEndDate || '',
     });
@@ -423,7 +423,7 @@ export const useActivitiesController = () => {
       date: date.toISOString().split('T')[0],
       time: date.toTimeString().slice(0, 5),
       description: activity.description || '',
-      dealId: activity.dealId,
+      dealId: activity.dealId || '',
       recurrenceType: activity.recurrenceType || 'none',
       recurrenceEndDate: activity.recurrenceEndDate || '',
     });

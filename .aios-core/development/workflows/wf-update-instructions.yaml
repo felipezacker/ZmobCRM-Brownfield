@@ -1,0 +1,441 @@
+# WF-UPDATE-INSTRUCTIONS: Atualizar Pagina de Instrucoes
+# Duration: 15-30 min
+# Best for: Pre-PR para producao quando ha features novas
+# Key Agents: @instructions-keeper (Agent phase) + Human Review
+# Trigger: *update-instructions
+# Version: 2.0.0 — Data-driven architecture
+
+workflow:
+  id: wf-update-instructions
+  name: "Atualizar Pagina de Instrucoes"
+  duration: "15-30 min"
+  description: |
+    Workflow Hybrid (Agent + Human Review) que atualiza a pagina
+    /instructions com novas features e alteracoes do sistema.
+
+    Executar ANTES de criar PR de develop para main.
+
+    O @instructions-keeper analisa mudancas, identifica gaps na documentacao,
+    gera copy estruturada e aplica no arquivo de dados (sections-data.ts).
+    O Human revisa antes do commit.
+
+    ARQUITETURA DATA-DRIVEN (v2):
+    - Conteudo em sections-data.ts (dados estruturados, nao JSX)
+    - SectionRenderer.tsx renderiza os dados automaticamente
+    - Agent edita DADOS, nao componentes visuais
+
+  command: "*update-instructions"
+
+  best_for:
+    - "Pre-PR para producao com features novas"
+    - "Garantir que documentacao do usuario reflete estado real do CRM"
+    - "Evitar instrucoes desatualizadas chegando em producao"
+
+  executor:
+    type: Hybrid
+    pattern: EXEC-HY-001
+    agent: "@instructions-keeper"
+    rationale: |
+      Decision tree path:
+      Q1: Output previsivel? NAO (copy varia, depende de features)
+      Q3: Linguagem natural? SIM (escrever copy pro usuario final)
+      Q4: Impacto de erro? MEDIO (instrucoes erradas confundem usuarios)
+      Resultado: Hybrid (Agent gera copy, Human revisa antes do commit)
+    ai_phase:
+      agent: "@instructions-keeper"
+      role: "Ler codigo, analisar mudancas, gerar copy em portugues"
+      skills_required:
+        - "Leitura de codigo React/TypeScript"
+        - "Escrita de copy UX em portugues para corretores imobiliarios"
+        - "Conhecimento do design system (Tailwind, Lucide icons)"
+        - "Article IV enforcement (no invention)"
+    human_phase:
+      action: "review_and_approve"
+      what_to_review:
+        - "Copy esta clara e correta para o usuario final (corretor)?"
+        - "Nenhuma feature inventada?"
+        - "Tom consistente com secoes existentes?"
+        - "Navegacao explicada (como chegar na feature)?"
+      timeout: "10 min"
+
+  veto_conditions:
+    - id: VC-1
+      condition: "Apenas refactoring/tech debt sem mudanca visivel ao usuario"
+      action: "SKIP workflow inteiro"
+      message: "Sem mudancas visiveis ao usuario. Instrucoes nao precisam de update."
+    - id: VC-2
+      condition: "Pagina ja reflete todas as features"
+      action: "SKIP workflow inteiro"
+      message: "Instrucoes ja estao atualizadas. Nenhum gap encontrado."
+    - id: VC-3
+      condition: "Feature descrita nao existe no codigo"
+      action: "BLOCK — remover descricao inventada"
+      message: "Article IV (No Invention): toda descricao deve corresponder a codigo real."
+    - id: VC-4
+      condition: "Secao existente removida sem aprovacao"
+      action: "BLOCK — restaurar secao"
+      message: "Nunca remover secoes sem aprovacao explicita do Human."
+    - id: VC-5
+      condition: "Linguagem tecnica no conteudo do usuario"
+      action: "REWRITE — traduzir para linguagem de corretor"
+      message: "Audiencia e corretor imobiliario, nao desenvolvedor."
+
+# ===============================================================================
+# PREREQUISITE: ARCHITECTURE CHECK
+# ===============================================================================
+prerequisite:
+  description: |
+    Antes de executar o workflow, verificar se a arquitetura data-driven
+    ja foi implementada. Se nao, executar o refactoring primeiro.
+
+  check:
+    - file: "features/instructions/types.ts"
+      exists: true
+      fallback: "Executar refactoring primeiro (Phase 0)"
+    - file: "features/instructions/sections-data.ts"
+      exists: true
+      fallback: "Executar refactoring primeiro (Phase 0)"
+    - file: "features/instructions/SectionRenderer.tsx"
+      exists: true
+      fallback: "Executar refactoring primeiro (Phase 0)"
+
+  phase_0_refactoring:
+    name: "Refactoring para Data-Driven (one-time)"
+    description: |
+      Executar apenas na PRIMEIRA vez. Depois disso, o workflow
+      opera normalmente sobre sections-data.ts.
+    steps:
+      - "Criar features/instructions/types.ts com interfaces"
+      - "Criar features/instructions/SectionRenderer.tsx"
+      - "Extrair conteudo de InstructionsPage.tsx para sections-data.ts"
+      - "Mover ScoreTable para features/instructions/components/"
+      - "Simplificar InstructionsPage.tsx para ler dados + renderizar"
+      - "Executar npm run typecheck"
+      - "Verificar visualmente que a pagina renderiza igual"
+    handoff: "@dev para implementar o refactoring"
+
+# ===============================================================================
+# PHASE 1: COLETA (Agent: @instructions-keeper)
+# ===============================================================================
+phases:
+  - id: PHASE-1
+    name: "Coleta de Mudancas"
+    tier: 0
+    description: |
+      @instructions-keeper coleta todas as fontes de mudancas para identificar
+      o que mudou desde a ultima atualizacao das instrucoes.
+
+    steps:
+      - id: "1.1"
+        action: "Ler features/instructions/sections-data.ts"
+        output: "Lista de secoes documentadas (id, title, conteudo resumido)"
+
+      - id: "1.2"
+        action: "Ler CHANGELOG.md"
+        output: "Entries de features novas (ignorar refactoring, tech debt, lint)"
+
+      - id: "1.3"
+        action: "Executar git log main..HEAD --oneline"
+        output: "Commits feat: que afetam features visiveis ao usuario"
+
+      - id: "1.4"
+        action: "Escanear docs/stories/active/*.story.md"
+        output: "Stories com status Done/InReview e seus acceptance criteria"
+
+      - id: "1.5"
+        action: "Listar rotas em app/(protected)/"
+        output: "Todas as rotas protegidas do app"
+
+      - id: "1.6"
+        action: "Listar diretorios em features/"
+        output: "Todos os modulos de features do app"
+
+    checkpoint:
+      criteria:
+        - "Fontes coletadas: sections-data.ts, CHANGELOG.md, git log, stories, rotas"
+        - "Lista de rotas protegidas extraida"
+        - "Lista de modulos features/ extraida"
+      human_review: false
+      message: "Dados coletados. Prosseguindo para analise de gaps."
+
+  # ===============================================================================
+  # PHASE 2: ANALISE DE GAPS (Agent + Human Review)
+  # ===============================================================================
+  - id: PHASE-2
+    name: "Analise de Gaps"
+    tier: 0
+    description: |
+      @instructions-keeper compara features documentadas vs features existentes
+      e produz relatorio de gaps.
+
+    steps:
+      - id: "2.1"
+        action: "Comparar secoes documentadas vs rotas protegidas + features/"
+        output: "Lista de rotas/features SEM secao correspondente nas instrucoes"
+
+      - id: "2.2"
+        action: "Comparar conteudo existente vs CHANGELOG entries e codigo real"
+        output: "Secoes com conteudo desatualizado ou incorreto"
+
+      - id: "2.3"
+        action: |
+          Classificar cada secao como:
+          - ADICIONAR: feature existe no codigo, nao tem secao
+          - ATUALIZAR: secao existe mas conteudo esta errado/desatualizado
+          - MANTER: secao existe e esta correta
+        output: "Gap report com decisao por secao"
+
+      - id: "2.4"
+        action: |
+          Para cada ATUALIZAR, especificar:
+          - O que esta errado na secao atual
+          - O que o codigo real mostra
+          - O que precisa mudar
+        output: "Detalhes dos updates necessarios"
+
+    checkpoint:
+      criteria:
+        - "Gap report produzido com pelo menos 1 gap (senao VC-2 SKIP)"
+        - "Cada gap classificado como ADICIONAR/ATUALIZAR/MANTER"
+        - "Updates detalhados com o que esta errado e o que deveria ser"
+      human_review: true
+      message: |
+        Gap report pronto. Apresentar ao Human:
+
+        | Secao | Status | Acao | Detalhe |
+        |-------|--------|------|---------|
+        | {secao} | {status} | {acao} | {detalhe} |
+
+        Aprovar gaps antes de gerar copy?
+
+    veto_condition: "Se zero gaps encontrados → VC-2 SKIP"
+
+  # ===============================================================================
+  # PHASE 3: GERACAO DE COPY (Agent: @instructions-keeper)
+  # ===============================================================================
+  - id: PHASE-3
+    name: "Gerar Copy Estruturada"
+    tier: 1
+    description: |
+      @instructions-keeper navega ate o codigo de cada feature com gap,
+      le os componentes reais, e gera copy em formato ContentBlock[].
+
+    steps:
+      - id: "3.1"
+        action: |
+          Para cada gap ADICIONAR:
+          - Ler features/{name}/ (todos os componentes)
+          - Ler app/(protected)/{name}/ (rotas e pages)
+          - Identificar funcionalidades REAIS do codigo
+          - Heuristic IK-H1: NUNCA descrever sem ler codigo
+        output: "Entendimento das funcionalidades reais por feature"
+
+      - id: "3.2"
+        action: |
+          Para cada gap ATUALIZAR:
+          - Identificar o que mudou no codigo vs o que a secao diz
+          - Preparar apenas as diferencas (nao reescrever tudo)
+          - Heuristic IK-H8: incremental updates only
+        output: "Diferencas especificas por secao"
+
+      - id: "3.3"
+        action: |
+          Gerar copy em formato ContentBlock[] seguindo o padrao:
+          1. paragraph: Descricao geral com highlights no nome da feature
+          2. feature-grid: Funcionalidades principais em grid
+          3. feature-list: Sub-funcionalidades em lista
+          4. info-box: Contexto relevante com cor tematica
+          5. tip: Dica pratica para o corretor
+          Heuristic IK-H3: Section Pattern
+          Heuristic IK-H6: Navigation Clarity (como chegar na feature)
+          Heuristic IK-H7: Role-Aware Tips (diferenca admin/corretor)
+        output: "ContentBlock[] para cada gap"
+
+      - id: "3.4"
+        action: |
+          Para novas secoes, definir metadados:
+          - id: kebab-case unico
+          - title: nome da feature em portugues
+          - icon: icone Lucide (Heuristic IK-H4: nao duplicar)
+          - color: bg-{cor}-500 (Heuristic IK-H4: nao duplicar)
+          - route: rota do app (e.g., '/prospecting')
+          - roles: quais roles tem acesso
+        output: "Metadados completos da secao"
+
+    checkpoint:
+      criteria:
+        - "Copy gerada para todos os gaps aprovados"
+        - "Padrao visual consistente (ContentBlock types corretos)"
+        - "Icones e cores nao duplicados"
+        - "Conteudo baseado em codigo real (Article IV / IK-VC1)"
+        - "Linguagem de corretor, nao de desenvolvedor (IK-VC5)"
+        - "Navegacao explicada em cada secao nova"
+      human_review: false
+      message: "Copy estruturada gerada. Aplicando no arquivo de dados."
+
+    veto_condition: "Copy descreve feature que nao existe no codigo → VC-3 BLOCK"
+
+  # ===============================================================================
+  # PHASE 4: APLICAR MUDANCAS (Agent: @instructions-keeper)
+  # ===============================================================================
+  - id: PHASE-4
+    name: "Aplicar em sections-data.ts"
+    tier: 1
+    description: |
+      @instructions-keeper edita features/instructions/sections-data.ts
+      com as mudancas geradas.
+
+    steps:
+      - id: "4.1"
+        action: "Adicionar imports de icones Lucide necessarios em sections-data.ts"
+        output: "Import statement atualizado"
+
+      - id: "4.2"
+        action: "Adicionar novas secoes ao array sections[]"
+        output: "Array sections atualizado com novos InstructionSection objects"
+
+      - id: "4.3"
+        action: "Atualizar content[] de secoes existentes (se ATUALIZAR)"
+        output: "ContentBlock[] editados"
+
+      - id: "4.4"
+        action: "Executar npm run typecheck"
+        output: "TypeScript compila sem erros"
+
+    checkpoint:
+      criteria:
+        - "TypeScript compila sem erros"
+        - "Nenhuma secao existente removida (VC-4)"
+        - "Imports corretos"
+        - "Dados seguem interface InstructionSection"
+      human_review: false
+      message: "Arquivo de dados atualizado e TypeScript OK."
+
+    veto_condition: "typecheck falha → BLOCK, corrigir antes de prosseguir"
+
+  # ===============================================================================
+  # PHASE 5: REVIEW HUMANO (Human)
+  # ===============================================================================
+  - id: PHASE-5
+    name: "Review Humano"
+    tier: 2
+    description: |
+      Human revisa as mudancas aplicadas antes do commit.
+      Este e o checkpoint CRITICO do workflow Hybrid.
+
+    steps:
+      - id: "5.1"
+        action: "@instructions-keeper apresenta diff das mudancas feitas"
+        output: "Resumo visual das alteracoes"
+
+      - id: "5.2"
+        action: |
+          Human revisa:
+          - Copy esta clara para o usuario final (corretor imobiliario)?
+          - Informacoes estao corretas?
+          - Navegacao explicada (como chegar em cada feature)?
+          - Tom e consistente com o restante?
+          - Nenhuma feature inventada?
+          - Diferenca por role mencionada quando relevante?
+        output: "Aprovacao ou pedido de ajustes"
+
+      - id: "5.3"
+        condition: "Se Human aprova"
+        action: "Agent faz git add + git commit da mudanca"
+        output: "Commit com mensagem: docs(instructions): update user guide with new features"
+
+      - id: "5.4"
+        condition: "Se Human pede ajustes"
+        action: "@instructions-keeper aplica ajustes e retorna ao step 5.1"
+        max_iterations: 3
+
+    checkpoint:
+      criteria:
+        - "Human aprovou as mudancas"
+        - "Commit realizado"
+      human_review: true
+      message: "Instrucoes atualizadas e commitadas. Pronto para o PR."
+
+# ===============================================================================
+# COMPLETION
+# ===============================================================================
+completion_signal: "Pagina de instrucoes atualizada. Prossiga com o PR."
+
+outputs:
+  primary:
+    - "features/instructions/sections-data.ts (atualizado)"
+  secondary:
+    - "Git commit com mudancas"
+
+# ===============================================================================
+# AGENT ASSIGNMENTS
+# ===============================================================================
+agents_by_phase:
+  PHASE-0:
+    executor: "@dev"
+    notes: "Refactoring one-time para arquitetura data-driven (apenas primeira vez)"
+  PHASE-1:
+    executor: "@instructions-keeper"
+    notes: "Coleta dados de todas as fontes"
+  PHASE-2:
+    executor: "@instructions-keeper"
+    human_review: true
+    notes: "Analisa gaps, Human aprova lista"
+  PHASE-3:
+    executor: "@instructions-keeper"
+    notes: "Gera copy estruturada baseada em codigo real"
+  PHASE-4:
+    executor: "@instructions-keeper"
+    notes: "Edita sections-data.ts e valida typecheck"
+  PHASE-5:
+    executor: Human
+    notes: "Human revisa copy final, Agent commita"
+
+# ===============================================================================
+# QUALITY CHECKLIST
+# ===============================================================================
+quality_checklist:
+  prerequisite:
+    - "[ ] Arquitetura data-driven implementada (types.ts, sections-data.ts, SectionRenderer.tsx)"
+  coleta:
+    - "[ ] sections-data.ts lido"
+    - "[ ] CHANGELOG.md lido"
+    - "[ ] Git log analisado"
+    - "[ ] Rotas protegidas listadas"
+    - "[ ] Modulos features/ listados"
+  analise:
+    - "[ ] Gap report com ADICIONAR/ATUALIZAR/MANTER"
+    - "[ ] Updates detalhados (o que esta errado + o que deveria ser)"
+    - "[ ] Gaps aprovados pelo Human"
+  copy:
+    - "[ ] Copy segue padrao ContentBlock (paragraph + grid + list + info-box + tip)"
+    - "[ ] Conteudo baseado em codigo real (Article IV)"
+    - "[ ] Linguagem de corretor imobiliario (sem jargao tecnico)"
+    - "[ ] Navegacao explicada (como chegar na feature)"
+    - "[ ] Diferenca por role mencionada quando relevante"
+    - "[ ] Icones e cores unicos"
+    - "[ ] Dark mode classes presentes"
+  aplicacao:
+    - "[ ] TypeScript compila sem erros"
+    - "[ ] Nenhuma secao removida"
+    - "[ ] Dados seguem interface InstructionSection"
+  review:
+    - "[ ] Human aprovou"
+    - "[ ] Commit realizado"
+
+# ===============================================================================
+# METADATA
+# ===============================================================================
+metadata:
+  version: "2.0.0"
+  framework: "AIOS v4.0"
+  created: "2026-03-04"
+  updated: "2026-03-04"
+  primary_use_case: "Pre-PR: manter instrucoes do usuario atualizadas"
+  executor_type: "Hybrid (EXEC-HY-001)"
+  agent: "@instructions-keeper"
+  decision_tree_path: "Q1:NAO → Q3:SIM → Q4:MEDIO → Hybrid"
+  architecture: "Data-driven (sections-data.ts → SectionRenderer.tsx)"
+  changelog:
+    - "2.0.0: Adicionado @instructions-keeper como executor, arquitetura data-driven, VC-5, Phase 0 refactoring, heuristics reference, step 1.6/2.4, navegacao e roles no review"
+    - "1.0.0: Versao inicial com 5 phases Hybrid"

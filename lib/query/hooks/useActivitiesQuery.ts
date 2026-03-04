@@ -15,6 +15,26 @@ import type { Activity } from '@/types';
 
 // ============ QUERY HOOKS ============
 
+/**
+ * CP-2.1: Hook to fetch recent activities for a specific contact.
+ * Used by ContactHistory in the PowerDialer.
+ */
+export const useContactActivities = (contactId: string | undefined, limit = 5) => {
+  const { user, loading: authLoading } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.activities.byContact(contactId || ''),
+    queryFn: async () => {
+      if (!contactId) return [];
+      const { data, error } = await activitiesService.getContactActivities(contactId, limit);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !authLoading && !!user && !!contactId,
+    staleTime: 30 * 1000,
+  });
+};
+
 export interface ActivitiesFilters {
   dealId?: string;
   type?: Activity['type'];

@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZmobCRM — O CRM Imobiliario com Inteligencia Artificial</title>
+  <meta name="description" content="O primeiro CRM imobiliario que pensa junto com voce. IA multi-provider integrada ao seu pipeline de vendas.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    /* === PREMIUM THEME: Zinc Teal === */
+    :root {
+      --bg-primary: #09090b;
+      --bg-secondary: #18181b;
+      --bg-tertiary: #27272a;
+      --bg-elevated: #303033;
+      --accent: #2dd4bf;
+      --accent-secondary: #14b8a6;
+      --accent-soft: #5eead4;
+      --accent-hover: #5eead4;
+      --text: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --border: #27272a;
+      --border-subtle: #1e1e21;
+      --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --glow-color: rgba(45, 212, 191, 0.15);
+      --glow-spread: 0 0 40px;
+      --glass-bg: rgba(45, 212, 191, 0.04);
+      --glass-border: rgba(45, 212, 191, 0.08);
+      --glass-blur: 16px;
+      --gradient-hero: radial-gradient(ellipse at 50% 0%, rgba(45, 212, 191, 0.08) 0%, transparent 70%);
+      --gradient-section: linear-gradient(180deg, #09090b 0%, #18181b 100%);
+      --section-padding: 56px;
+      --hero-padding: 88px;
+      --card-padding: 20px;
+      --gap: 16px;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* === RESET === */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* === SCROLL PROGRESS BAR (Enhanced) === */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9998;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    }
+
+    /* === GRAIN (Enhanced) === */
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 9990;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+      animation: grain-shift 0.5s steps(4) infinite;
+    }
+    @keyframes grain-shift {
+      0% { background-position: 0 0; }
+      25% { background-position: -80px 40px; }
+      50% { background-position: 40px -60px; }
+      75% { background-position: -40px 80px; }
+    }
+
+    /* === SCROLL REVEALS (Enhanced) === */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+      filter: blur(4px);
+      transition: opacity 0.7s ease, transform 0.7s ease, filter 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+    .reveal-d1 { transition-delay: 0.1s; }
+    .reveal-d2 { transition-delay: 0.2s; }
+    .reveal-d3 { transition-delay: 0.3s; }
+    .reveal-d4 { transition-delay: 0.4s; }
+
+    /* === TYPOGRAPHY === */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.045em;
+      line-height: 1.1;
+    }
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.125rem; }
+    p { max-width: 640px; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* === EYEBROW (Enhanced) === */
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .eyebrow-number {
+      color: var(--accent-soft);
+      margin-right: 12px;
+    }
+
+    /* === LAYOUT === */
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    section {
+      padding: var(--section-padding) 0;
+      position: relative;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    /* === NAV === */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 0;
+      background: rgba(9, 9, 11, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: var(--transition);
+    }
+    .nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.03em;
+    }
+    .nav-logo span { color: var(--text-muted); font-weight: 400; }
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: var(--transition);
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* Mobile Nav Toggle */
+    .nav-toggle {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--text-secondary);
+      border-radius: 2px;
+      transition: var(--transition);
+    }
+    .nav-toggle:hover span { background: var(--text); }
+
+    /* Mobile Menu Overlay */
+    .mobile-menu {
+      position: fixed;
+      inset: 0;
+      top: 57px;
+      z-index: 99;
+      background: rgba(9, 9, 11, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 32px 16px;
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+    }
+    .mobile-menu.open {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .mobile-menu-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .mobile-menu-links li {
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .mobile-menu-links a {
+      display: block;
+      padding: 16px 0;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    .mobile-menu-links a:hover { color: var(--text); }
+    .mobile-menu-cta {
+      margin-top: 24px;
+    }
+    .mobile-menu-cta .btn { width: 100%; }
+
+    /* === BUTTONS === */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 24px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      width: 100%;
+      text-align: center;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #042f2e;
+      box-shadow: var(--glow-spread) var(--glow-color);
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 60px var(--glow-color);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      color: var(--text);
+      border-color: var(--accent-soft);
+    }
+    .btn-sm {
+      padding: 10px 20px;
+      font-size: 0.8125rem;
+    }
+
+    /* === CARDS (Glassmorphism) === */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: var(--card-padding);
+      transition: var(--transition);
+    }
+    .card:hover {
+      border-color: rgba(45, 212, 191, 0.15);
+      transform: translateY(-2px);
+    }
+
+    /* ============================================ */
+    /* HERO SECTION                                 */
+    /* ============================================ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: var(--hero-padding) 0 var(--section-padding);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gradient-hero);
+      pointer-events: none;
+    }
+    .hero-content {
+      max-width: 720px;
+    }
+    .hero-pre {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      line-height: 1.5;
+    }
+    .hero h1 {
+      margin-bottom: 20px;
+    }
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 12px;
+      max-width: 600px;
+    }
+    .hero-body {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      max-width: 580px;
+    }
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+    .hero-link {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: var(--transition);
+      padding: 14px 0;
+      text-align: center;
+    }
+    .hero-link:hover {
+      color: var(--accent);
+    }
+    .hero-proof {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .hero-proof-badge {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--text-muted);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    /* ============================================ */
+    /* PROBLEMS SECTION                             */
+    /* ============================================ */
+    .problems { background: var(--bg-secondary); }
+    .problems-grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .problem-item {
+      display: flex;
+      gap: 20px;
+      padding: 24px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-subtle);
+      transition: var(--transition);
+    }
+    .problem-item:hover {
+      border-color: var(--border);
+      background: rgba(45, 212, 191, 0.02);
+    }
+    .problem-icon {
+      flex-shrink: 0;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      margin-top: 8px;
+    }
+    .problem-item strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .problem-text {
+      font-size: 0.9375rem;
+      line-height: 1.65;
+    }
+    .problems-transition {
+      margin-top: 48px;
+      padding: 32px;
+      border-left: 2px solid var(--accent-soft);
+      max-width: 560px;
+    }
+    .problems-transition p {
+      font-size: 1.0625rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .problems-transition p + p {
+      margin-top: 12px;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    /* ============================================ */
+    /* SOLUTION SECTION                             */
+    /* ============================================ */
+    .solution {
+      position: relative;
+    }
+    .solution::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(45, 212, 191, 0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .solution-content {
+      max-width: 640px;
+    }
+    .solution-content p {
+      margin-bottom: 16px;
+    }
+    .solution-steps {
+      margin-top: 40px;
+      display: grid;
+      gap: 20px;
+    }
+    .solution-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .step-number {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--accent-soft);
+    }
+    .step-content h3 {
+      font-size: 1.0625rem;
+      margin-bottom: 6px;
+    }
+    .step-content p {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+    }
+    .solution-cta {
+      margin-top: 40px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ============================================ */
+    /* FEATURES SECTION                             */
+    /* ============================================ */
+    .features { background: var(--bg-secondary); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 36px;
+    }
+    .feature-card {
+      padding: var(--card-padding);
+    }
+    .feature-card.featured {
+      grid-row: span 1;
+    }
+    .feature-label {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .feature-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+    .feature-card p {
+      font-size: 0.9375rem;
+      margin-bottom: 20px;
+    }
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .feature-list li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .feature-list li::before {
+      content: '';
+      flex-shrink: 0;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      margin-top: 8px;
+    }
+
+    /* ============================================ */
+    /* CREDIBILITY SECTION                          */
+    /* ============================================ */
+    .credibility-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 36px;
+    }
+    .credibility-card {
+      padding: 28px;
+    }
+    .credibility-card h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    .credibility-card p {
+      font-size: 0.875rem;
+      line-height: 1.65;
+    }
+
+    /* ============================================ */
+    /* OBJECTIONS SECTION                           */
+    /* ============================================ */
+    .objections { background: var(--bg-secondary); }
+    .objections-list {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .objection-item {
+      border-bottom: 1px solid var(--border-subtle);
+      overflow: hidden;
+    }
+    .objection-q {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+      text-align: left;
+      transition: var(--transition);
+    }
+    .objection-q:hover { color: var(--accent-secondary); }
+    .objection-q .chevron {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+    }
+    .objection-item.open .chevron { transform: rotate(180deg); }
+    .objection-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+    .objection-item.open .objection-a {
+      max-height: 300px;
+      padding-bottom: 24px;
+    }
+    .objection-a p {
+      font-size: 0.9375rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ============================================ */
+    /* CTA SECTION                                  */
+    /* ============================================ */
+    .cta-section {
+      text-align: center;
+      padding: var(--section-padding) 0;
+      position: relative;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(45, 212, 191, 0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .cta-section h2 {
+      margin-bottom: 24px;
+    }
+    .cta-section .cta-body {
+      max-width: 560px;
+      margin: 0 auto 40px;
+      font-size: 1.0625rem;
+      color: var(--text-secondary);
+    }
+    .cta-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .cta-micro {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    /* === PRICING CARDS === */
+    .pricing-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .pricing-toggle span {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+    .pricing-toggle span.active {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .pricing-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      background: var(--bg-tertiary);
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .pricing-switch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      transition: transform 0.3s ease;
+    }
+    .pricing-switch.annual::after {
+      transform: translateX(22px);
+    }
+    .pricing-save {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .pricing-card {
+      text-align: left;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .pricing-card.popular {
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 40px var(--glow-color), 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .pricing-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--bg-primary);
+      background: var(--accent);
+      padding: 4px 16px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .pricing-card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 4px;
+    }
+    .pricing-card .pricing-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .pricing-price {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .pricing-price .currency {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .pricing-price .amount {
+      font-size: 2.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--text);
+    }
+    .pricing-price .period {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    .pricing-price-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .pricing-enterprise-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .pricing-divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 20px 0;
+    }
+    .pricing-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+      flex-grow: 1;
+    }
+    .pricing-list li {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .pricing-list li .check {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      color: #22c55e;
+      margin-top: 1px;
+    }
+    .pricing-list li::before {
+      display: none;
+    }
+
+    /* ============================================ */
+    /* FAQ SECTION                                  */
+    /* ============================================ */
+    .faq { background: var(--bg-secondary); }
+    .faq-list {
+      margin-top: 48px;
+      max-width: 700px;
+    }
+    .faq-item {
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .faq-q {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text);
+      text-align: left;
+      transition: var(--transition);
+    }
+    .faq-q:hover { color: var(--accent-secondary); }
+    .faq-q .chevron {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+    }
+    .faq-item.open .chevron { transform: rotate(180deg); }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+    .faq-item.open .faq-a {
+      max-height: 300px;
+      padding-bottom: 20px;
+    }
+    .faq-a p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ============================================ */
+    /* FOOTER                                       */
+    /* ============================================ */
+    .footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .footer .container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+      text-align: center;
+    }
+    .footer-copy {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .footer-links a {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .footer-links a:hover { color: var(--text); }
+
+    /* ============================================ */
+    /* MOBILE ENHANCEMENTS                          */
+    /* ============================================ */
+
+    /* Dynamic viewport for hero (mobile browser address bar fix) */
+    @supports (min-height: 100dvh) {
+      .hero { min-height: 100dvh; }
+    }
+
+    /* Safe area insets (notched phones — iPhone X+) */
+    @supports (padding: env(safe-area-inset-bottom)) {
+      .container {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+      }
+      .sticky-cta { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+      .footer { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+    }
+
+    /* Touch optimizations */
+    a, button { -webkit-tap-highlight-color: transparent; }
+    html { overscroll-behavior-y: none; }
+    button { touch-action: manipulation; }
+
+    /* Accessibility: reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+      .reveal { opacity: 1; transform: none; filter: none; }
+      .grain { display: none; }
+    }
+
+    /* Mobile-specific refinements (<640px) */
+    @media (max-width: 639px) {
+      .grain { opacity: 0.015; animation-duration: 1s; }
+
+      /* Hero mobile overhaul */
+      .hero {
+        min-height: 100dvh;
+        min-height: 100vh;
+        padding: 80px 0 32px;
+        align-items: center;
+        justify-content: center;
+      }
+      .hero-pre {
+        font-size: 0.625rem;
+        letter-spacing: 0.05em;
+        margin-bottom: 16px;
+      }
+      .hero h1 {
+        font-size: 1.75rem;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        margin-bottom: 16px;
+      }
+      .hero-sub {
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 8px;
+      }
+      .hero-body {
+        display: none;
+      }
+      .hero-actions {
+        gap: 10px;
+        margin-top: 24px;
+      }
+      .hero-actions .btn {
+        padding: 16px 24px;
+        font-size: 0.9375rem;
+      }
+      .hero-proof {
+        justify-content: center;
+      }
+      .hero-proof-badge {
+        font-size: 0.625rem;
+        padding: 3px 8px;
+      }
+      .hero-link {
+        font-size: 0.875rem;
+        padding: 12px 0;
+      }
+      .hero-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .problem-item { padding: 20px 16px; gap: 16px; }
+      .problems-transition { padding: 24px 20px; }
+      .credibility-card { padding: 24px 20px; }
+      .section-divider { margin: 0 16px; }
+      .footer { padding-bottom: 100px; }
+      h2 br { display: none; }
+    }
+
+    /* Sticky Mobile CTA */
+    .sticky-cta {
+      display: block;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 97;
+      padding: 12px 16px;
+      background: rgba(9, 9, 11, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-subtle);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sticky-cta.visible { transform: translateY(0); }
+    .sticky-cta .btn { width: 100%; }
+
+    /* Minimum touch targets (48px WCAG) */
+    .objection-q, .faq-q { min-height: 48px; }
+    .mobile-menu-links a { min-height: 48px; display: flex; align-items: center; }
+
+    /* ============================================ */
+    /* SIGNUP MODAL                                 */
+    /* ============================================ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 440px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px 24px;
+      position: relative;
+      transform: translateY(20px) scale(0.97);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-overlay.open .modal {
+      transform: translateY(0) scale(1);
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    .modal-close:hover {
+      background: var(--bg-tertiary);
+      color: var(--text);
+    }
+    .modal-header {
+      margin-bottom: 24px;
+    }
+    .modal-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--bg-primary);
+      background: var(--accent);
+      padding: 3px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .modal-title {
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .modal-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      color: var(--text);
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: var(--transition);
+      -webkit-appearance: none;
+    }
+    .form-group input::placeholder {
+      color: var(--text-muted);
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--accent-soft);
+      box-shadow: 0 0 0 3px var(--glow-color);
+    }
+    .form-group select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2371717a' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .modal-submit {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .modal-legal {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+    .modal-legal a {
+      color: var(--text-secondary);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .modal-success {
+      text-align: center;
+      padding: 24px 0;
+    }
+    .modal-success-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      color: #22c55e;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .modal-success h3 {
+      font-size: 1.25rem;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .modal-success p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ============================================ */
+    /* RESPONSIVE — MOBILE FIRST (min-width)        */
+    /* ============================================ */
+
+    /* Tablet (640px+) */
+    @media (min-width: 640px) {
+      :root {
+        --section-padding: 64px;
+        --hero-padding: 100px;
+        --card-padding: 28px;
+        --gap: 20px;
+        --radius: 14px;
+      }
+      .container { padding: 0 24px; }
+      h1 { font-size: 2.25rem; }
+      h2 { font-size: 1.75rem; }
+      h3 { font-size: 1.25rem; }
+      .btn { width: auto; font-size: 0.9375rem; padding: 14px 28px; }
+      .hero-pre { font-size: 0.75rem; letter-spacing: 0.08em; }
+      .hero-sub { font-size: 1.0625rem; }
+      .hero-actions { flex-direction: row; align-items: center; gap: 16px; }
+      .cta-actions { flex-direction: row; gap: 16px; }
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .pricing-card.popular { grid-column: span 2; max-width: 420px; justify-self: center; width: 100%; }
+      .credibility-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .objection-q { font-size: 0.9375rem; padding: 24px 0; }
+      .footer .container { flex-direction: row; justify-content: space-between; text-align: left; }
+      .footer { padding-bottom: 100px; }
+    }
+
+    /* Desktop (1024px+) */
+    @media (min-width: 1024px) {
+      :root {
+        --section-padding: 80px;
+        --hero-padding: 120px;
+        --card-padding: 32px;
+        --gap: 24px;
+        --radius: 16px;
+      }
+      h1 { font-size: 3.5rem; }
+      h2 { font-size: 2.25rem; }
+      h3 { font-size: 1.5rem; }
+      .hero-pre { font-size: 0.8125rem; }
+      .hero-sub { font-size: 1.125rem; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+      .feature-card.featured { grid-row: span 2; }
+      .cta-section { padding: 100px 0; }
+      .pricing-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .pricing-card.popular { grid-column: auto; max-width: none; }
+      .objection-q { font-size: 1rem; }
+
+      /* Show desktop nav, hide hamburger & sticky CTA */
+      .nav-links { display: flex; }
+      .nav-toggle { display: none; }
+      .mobile-menu { visibility: hidden !important; opacity: 0 !important; }
+      .sticky-cta { display: none; }
+      .footer { padding-bottom: 40px; }
+    }
+
+    /* Wide (1280px+) */
+    @media (min-width: 1280px) {
+      h1 { font-size: 4rem; }
+      h2 { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll Progress (Enhanced) -->
+  <div class="scroll-progress"></div>
+
+  <!-- Grain Texture (Enhanced) -->
+  <div class="grain"></div>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="container">
+      <a href="#" class="nav-logo">ZmobCRM</a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Planos</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#cta" class="btn btn-primary btn-sm">Testar Gratis</a></li>
+      </ul>
+      <button class="nav-toggle" onclick="document.querySelector('.mobile-menu').classList.toggle('open')" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu">
+    <ul class="mobile-menu-links">
+      <li><a href="#features" onclick="document.querySelector('.mobile-menu').classList.remove('open')">Features</a></li>
+      <li><a href="#pricing" onclick="document.querySelector('.mobile-menu').classList.remove('open')">Planos</a></li>
+      <li><a href="#faq" onclick="document.querySelector('.mobile-menu').classList.remove('open')">FAQ</a></li>
+    </ul>
+    <div class="mobile-menu-cta">
+      <a href="#cta" class="btn btn-primary" onclick="document.querySelector('.mobile-menu').classList.remove('open')">Testar Gratis</a>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 1: HERO                  -->
+  <!-- ============================== -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <div class="hero-content">
+        <p class="hero-pre reveal">CRM Imobiliario com IA</p>
+        <h1 class="reveal reveal-d1">O CRM Que <span class="gradient-text">Pensa Junto</span><br>Com Voce</h1>
+        <p class="hero-sub reveal reveal-d2">IA analisa seu pipeline, sugere a proxima acao e automatiza o que rouba seu tempo. Enquanto outros CRMs organizam planilhas, o ZmobCRM fecha vendas.</p>
+        <p class="hero-body reveal reveal-d2">Voce ja tem um CRM. Ele guarda dados, mostra um kanban e manda lembretes. Mas no final do dia, quem analisa cada negocio, decide o proximo passo e cobra follow-up ainda e voce. O ZmobCRM e diferente. Ele usa inteligencia artificial de verdade para entender cada deal do seu pipeline, identificar quais leads tem maior chance de fechar e dizer exatamente o que fazer agora.</p>
+        <div class="hero-actions reveal reveal-d3">
+          <a href="#cta" class="btn btn-primary">Testar Gratis por 14 Dias</a>
+          <a href="#demo" class="hero-link">Agendar Demonstracao &rarr;</a>
+        </div>
+        <div class="hero-proof reveal reveal-d3">
+          <span class="hero-proof-badge">Next.js</span>
+          <span class="hero-proof-badge">Supabase</span>
+          <span class="hero-proof-badge">OpenAI</span>
+          <span class="hero-proof-badge">Vercel</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 2: PROBLEMAS             -->
+  <!-- ============================== -->
+  <section class="problems" id="problems">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">01</span>O Problema</span>
+      <h2 class="reveal reveal-d1">Voce Reconhece Alguma<br>Dessas Situacoes?</h2>
+
+      <div class="problems-grid">
+        <div class="problem-item reveal">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Leads perdidos por falta de follow-up.</strong>
+            <p class="problem-text">A maioria das imobiliarias perde mais de 50% dos leads antes do primeiro contato. Cada lead perdido e dinheiro que foi para o concorrente.</p>
+          </div>
+        </div>
+        <div class="problem-item reveal reveal-d1">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Seu CRM virou um cemiterio de dados.</strong>
+            <p class="problem-text">Voce paga todo mes por um sistema que guarda informacoes, mas nao faz nada com elas. Os dados estao la. As decisoes continuam na sua cabeca.</p>
+          </div>
+        </div>
+        <div class="problem-item reveal reveal-d2">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Sem saber quais negocios priorizar.</strong>
+            <p class="problem-text">Com 30, 50, 100 deals abertos, como decidir onde investir energia? Sem inteligencia, voce aposta no feeling e perde vendas.</p>
+          </div>
+        </div>
+        <div class="problem-item reveal reveal-d3">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Seu time nao segue o processo.</strong>
+            <p class="problem-text">Corretores esquecem de registrar atividades, nao atualizam o pipeline e voce fica no escuro sobre o que esta acontecendo de verdade.</p>
+          </div>
+        </div>
+        <div class="problem-item reveal reveal-d4">
+          <div class="problem-icon"></div>
+          <div>
+            <strong>Horas gastas em trabalho operacional.</strong>
+            <p class="problem-text">Analisar pipeline, distribuir leads, escrever emails de follow-up, preparar briefings. Tempo que voce deveria usar para fechar negocios.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="problems-transition reveal">
+        <p>Se voce se identificou com pelo menos uma dessas situacoes, nao e culpa sua. E culpa do seu CRM.</p>
+        <p>Os CRMs tradicionais foram projetados para armazenar dados. O ZmobCRM foi projetado para gerar vendas.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 3: SOLUCAO               -->
+  <!-- ============================== -->
+  <section class="solution" id="solution">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">02</span>A Solucao</span>
+      <h2 class="reveal reveal-d1">Inteligencia Artificial<br>Que <span class="gradient-text">Realmente Vende</span></h2>
+
+      <div class="solution-content">
+        <p class="reveal reveal-d2">A maioria dos CRMs imobiliarios no Brasil tem zero inteligencia artificial. Os poucos que dizem ter IA oferecem um chatbot basico que gera descricoes de imoveis.</p>
+        <p class="reveal reveal-d2">O ZmobCRM opera em outro nivel. Integramos multiplos modelos de IA &mdash; incluindo a mesma tecnologia por tras do ChatGPT, Gemini e Claude &mdash; diretamente dentro do seu pipeline de vendas. Nao como um add-on. Como o cerebro do sistema.</p>
+      </div>
+
+      <div class="solution-steps">
+        <div class="solution-step reveal">
+          <div class="step-number">01</div>
+          <div class="step-content">
+            <h3>Analisa</h3>
+            <p>Cada deal automaticamente. Calcula probabilidade de fechamento baseado em dados reais, nao em achismo.</p>
+          </div>
+        </div>
+        <div class="solution-step reveal reveal-d1">
+          <div class="step-number">02</div>
+          <div class="step-content">
+            <h3>Sugere</h3>
+            <p>A proxima melhor acao para cada negocio: ligar agora, enviar proposta, esperar, descartar. Com justificativa.</p>
+          </div>
+        </div>
+        <div class="solution-step reveal reveal-d2">
+          <div class="step-number">03</div>
+          <div class="step-content">
+            <h3>Automatiza</h3>
+            <p>Tarefas que roubam seu tempo: emails de follow-up, scripts de venda, briefings diarios e transcricao de chamadas.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="solution-cta reveal">Nenhum outro CRM imobiliario no Brasil faz isso.</p>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 4: FEATURES              -->
+  <!-- ============================== -->
+  <section class="features" id="features">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">03</span>Features</span>
+      <h2 class="reveal reveal-d1">Tudo Que Voce Precisa.<br>Mais a Inteligencia Que <span class="gradient-text">Ninguem Oferece.</span></h2>
+
+      <div class="features-grid">
+        <!-- Featured Card -->
+        <div class="card feature-card featured reveal">
+          <span class="feature-label">Pipeline</span>
+          <h3>Pipeline Visual com IA Integrada</h3>
+          <p>Kanban board multi-pipeline com drag-and-drop. Cada card carrega analise de IA embutida: score de probabilidade, riscos e proxima acao recomendada.</p>
+          <ul class="feature-list">
+            <li>Multiplos boards para vendas, locacao, lancamentos</li>
+            <li>Arraste deals entre etapas em tempo real</li>
+            <li>Veja quais negocios precisam de atencao agora</li>
+            <li>Campos personalizados ilimitados por deal</li>
+          </ul>
+        </div>
+
+        <div class="card feature-card reveal reveal-d1">
+          <span class="feature-label">Briefing</span>
+          <h3>Briefing Diario Inteligente</h3>
+          <p>Todo dia a IA analisa seu pipeline e entrega um resumo executivo.</p>
+          <ul class="feature-list">
+            <li>Deals que avancaram ou travaram</li>
+            <li>Leads frios que precisam de resgate</li>
+            <li>Acoes prioritarias ordenadas por impacto</li>
+            <li>Alertas de negocios em risco</li>
+          </ul>
+        </div>
+
+        <div class="card feature-card reveal reveal-d2">
+          <span class="feature-label">Contatos</span>
+          <h3>Contatos e Historico Completo</h3>
+          <p>Cada cliente, cada interacao, tudo conectado em segundos.</p>
+          <ul class="feature-list">
+            <li>Lifecycle stages automaticos</li>
+            <li>Timeline unificada da jornada</li>
+            <li>Tags e campos personalizados sem limite</li>
+            <li>Vinculacao entre contatos e organizacoes</li>
+          </ul>
+        </div>
+
+        <div class="card feature-card reveal reveal-d1">
+          <span class="feature-label">Automacao</span>
+          <h3>Automacoes com IA</h3>
+          <p>A IA assume o trabalho operacional para voce focar em fechamento.</p>
+          <ul class="feature-list">
+            <li>Emails de follow-up personalizados pela IA</li>
+            <li>Scripts de venda sob medida</li>
+            <li>Transcricao de chamadas com sentimento</li>
+            <li>Fila de decisoes inteligente</li>
+          </ul>
+        </div>
+
+        <div class="card feature-card reveal reveal-d2">
+          <span class="feature-label">Seguranca</span>
+          <h3>Seguranca de Nivel Bancario</h3>
+          <p>Protecao completa para o ativo mais valioso da sua imobiliaria.</p>
+          <ul class="feature-list">
+            <li>RBAC com 3 niveis de acesso</li>
+            <li>Row Level Security no banco</li>
+            <li>Audit logs completos</li>
+            <li>API publica com 65+ endpoints</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 5: CREDIBILIDADE         -->
+  <!-- ============================== -->
+  <section class="credibility" id="credibility">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">04</span>Credibilidade</span>
+      <h2 class="reveal reveal-d1">Por Que Confiar<br>no ZmobCRM?</h2>
+
+      <div class="credibility-grid">
+        <div class="card credibility-card reveal">
+          <h3>Tecnologia de Ponta, Feita no Brasil</h3>
+          <p>Construido com React, Next.js, Supabase e Vercel. A mesma pilha tecnologica usada por Netflix, Uber e Nike. IA multi-provider: OpenAI, Google, Anthropic.</p>
+        </div>
+        <div class="card credibility-card reveal reveal-d1">
+          <h3>Seguranca Que os Grandes Confiam</h3>
+          <p>Row Level Security no banco. Audit logs imutaveis. RBAC com segregacao de funcoes. LGPD nativo. O mesmo nivel de seguranca que bancos e fintechs utilizam.</p>
+        </div>
+        <div class="card credibility-card reveal reveal-d2">
+          <h3>API Aberta Desde o Plano Basico</h3>
+          <p>Enquanto concorrentes cobram R$749/mes para liberar API, o ZmobCRM oferece 65+ endpoints REST e webhooks completos em todos os planos.</p>
+        </div>
+        <div class="card credibility-card reveal reveal-d3">
+          <h3>Construido Por Quem Entende o Mercado</h3>
+          <p>Desenvolvido por profissionais com experiencia em tecnologia e no mercado imobiliario brasileiro. Cada funcionalidade resolve problemas reais.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 6: OBJECOES              -->
+  <!-- ============================== -->
+  <section class="objections" id="objections">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">05</span>Duvidas</span>
+      <h2 class="reveal reveal-d1">Respostas Honestas<br>Para Suas Duvidas</h2>
+
+      <div class="objections-list">
+        <div class="objection-item reveal">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "Ja uso outro CRM e da muito trabalho migrar."
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>Entendemos. Por isso oferecemos migracao assistida gratuita. Nossa equipe importa seus contatos, deals e historico sem que voce precise mover um dedo. E se nao gostar, seus dados continuam sendo seus &mdash; exportaveis a qualquer momento.</p>
+          </div>
+        </div>
+
+        <div class="objection-item reveal reveal-d1">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "IA parece coisa de filme. Funciona de verdade?"
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>Funciona. E funciona porque nao e IA generica &mdash; e IA treinada para vendas imobiliarias. Ela analisa seu pipeline, seus leads, suas interacoes e entrega sugestoes baseadas em fatos. Sem misticismo, sem promessas vazias.</p>
+          </div>
+        </div>
+
+        <div class="objection-item reveal reveal-d2">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "Meus corretores nao sao bons com tecnologia."
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>Se seu corretor sabe usar WhatsApp, sabe usar o Zmob. Interface limpa, arrastar e soltar, e a IA cuida do resto. Oferecemos onboarding guiado para todo o time.</p>
+          </div>
+        </div>
+
+        <div class="objection-item reveal reveal-d3">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "E muito caro ter IA no CRM?"
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>Enquanto concorrentes cobram R$300-700/mes por CRMs sem IA, o ZmobCRM inclui inteligencia artificial em todos os planos. Voce paga menos e recebe mais.</p>
+          </div>
+        </div>
+
+        <div class="objection-item reveal reveal-d4">
+          <button class="objection-q" onclick="this.parentElement.classList.toggle('open')">
+            "E se precisar de algo que voces nao tem?"
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="objection-a">
+            <p>API publica com 65+ endpoints e webhooks. Conecte o ZmobCRM com WhatsApp, RD Station, Google Sheets ou qualquer ferramenta. Nosso roadmap e construido com feedback dos clientes.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 7: CTA + PRICING         -->
+  <!-- ============================== -->
+  <section class="cta-section" id="cta">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">06</span>Comece Agora</span>
+      <h2 class="reveal reveal-d1">Pronto Para Ter Um CRM Que<br><span class="gradient-text">Trabalha Por Voce?</span></h2>
+
+      <p class="cta-body reveal reveal-d2">Enquanto voce le isso, concorrentes estao perdendo leads por falta de follow-up e tomando decisoes no achismo. Teste o ZmobCRM e veja em 14 dias o que acontece quando IA de verdade entra no seu pipeline.</p>
+
+      <!-- Pricing Toggle -->
+      <div class="pricing-toggle reveal reveal-d2">
+        <span class="active" id="toggleMonthly">Mensal</span>
+        <div class="pricing-switch" id="pricingSwitch" onclick="togglePricing()"></div>
+        <span id="toggleAnnual">Anual</span>
+        <span class="pricing-save">-20%</span>
+      </div>
+
+      <div class="pricing-grid" id="pricing">
+        <!-- Plano 1: Corretor -->
+        <div class="card pricing-card reveal">
+          <h3>Corretor</h3>
+          <p class="pricing-desc">Para corretores autonomos</p>
+          <div class="pricing-price">
+            <span class="currency">R$</span>
+            <span class="amount" data-monthly="197" data-annual="157">197</span>
+            <span class="period">/mes</span>
+          </div>
+          <p class="pricing-price-note">ate 2 usuarios</p>
+          <div class="pricing-divider"></div>
+          <ul class="pricing-list">
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Pipeline visual com IA</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Contatos ilimitados</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Briefing diario com IA</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>500 imoveis ativos</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>API completa + Webhooks</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Suporte por email</li>
+          </ul>
+          <button type="button" class="btn btn-secondary" style="width:100%" onclick="openModal('corretor')">Comecar Gratis</button>
+        </div>
+
+        <!-- Plano 2: Imobiliaria (Popular) -->
+        <div class="card pricing-card popular reveal reveal-d1">
+          <span class="pricing-badge">Recomendado</span>
+          <h3>Imobiliaria</h3>
+          <p class="pricing-desc">Para times que querem escalar</p>
+          <div class="pricing-price">
+            <span class="currency">R$</span>
+            <span class="amount" data-monthly="397" data-annual="317">397</span>
+            <span class="period">/mes</span>
+          </div>
+          <p class="pricing-price-note">ate 10 usuarios</p>
+          <div class="pricing-divider"></div>
+          <ul class="pricing-list">
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Tudo do Corretor</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Imoveis ilimitados</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Multi-boards (vendas, locacao)</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>RBAC com 3 niveis de acesso</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Distribuicao inteligente de leads</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Relatorios avancados</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Onboarding dedicado</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Suporte prioritario</li>
+          </ul>
+          <button type="button" class="btn btn-primary" style="width:100%" onclick="openModal('imobiliaria')">Comecar Gratis</button>
+        </div>
+
+        <!-- Plano 3: Enterprise -->
+        <div class="card pricing-card reveal reveal-d2">
+          <h3>Enterprise</h3>
+          <p class="pricing-desc">Para operacoes de grande porte</p>
+          <p class="pricing-enterprise-price">Sob consulta</p>
+          <p class="pricing-price-note">usuarios ilimitados</p>
+          <div class="pricing-divider"></div>
+          <ul class="pricing-list">
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Tudo do Imobiliaria</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Usuarios ilimitados</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>SSO / SAML</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>SLA dedicado</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Account manager</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Migracao assistida gratuita</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Treinamento para equipe</li>
+            <li><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>Integracoes customizadas</li>
+          </ul>
+          <button type="button" class="btn btn-secondary" style="width:100%" onclick="openModal('enterprise')">Falar com Vendas</button>
+        </div>
+      </div>
+
+      <p class="cta-micro reveal" style="margin-top:24px; text-align:center;">14 dias gratis. Sem cartao de credito. Cancele quando quiser.</p>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ============================== -->
+  <!-- BLOCO 8: FAQ                   -->
+  <!-- ============================== -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <span class="eyebrow reveal"><span class="eyebrow-number">07</span>FAQ</span>
+      <h2 class="reveal reveal-d1">Perguntas Frequentes</h2>
+
+      <div class="faq-list">
+        <div class="faq-item reveal">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            Funciona para corretores autonomos ou so para imobiliarias?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>Funciona para ambos. Corretores autonomos usam o plano individual com pipeline, IA e gestao de contatos. Imobiliarias usam planos com multi-usuarios, RBAC e distribuicao de leads. A IA funciona igual em todos os planos.</p>
+          </div>
+        </div>
+
+        <div class="faq-item reveal reveal-d1">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            Preciso instalar alguma coisa no computador?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>Nao. O ZmobCRM funciona 100% no navegador. Acesse de qualquer lugar, em qualquer dispositivo. Nao precisa instalar nada.</p>
+          </div>
+        </div>
+
+        <div class="faq-item reveal reveal-d2">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            A IA e segura? Meus dados ficam expostos?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>Seus dados ficam protegidos com criptografia e Row Level Security. A IA processa dados dentro do ambiente seguro e nao compartilha informacoes entre contas. 100% compliance com a LGPD.</p>
+          </div>
+        </div>
+
+        <div class="faq-item reveal reveal-d3">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            Consigo integrar com WhatsApp e portais imobiliarios?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>O ZmobCRM tem API publica com 65+ endpoints e webhooks bidirecionais. Integracoes nativas com portais e WhatsApp estao no roadmap e serao lancadas em breve.</p>
+          </div>
+        </div>
+
+        <div class="faq-item reveal reveal-d4">
+          <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+            Tem contrato de fidelidade?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="faq-a">
+            <p>Nao. Cancele a qualquer momento, sem multa. Exporte todos os seus dados com um clique. Voce fica porque quer, nao porque esta preso.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <span class="footer-copy">&copy; 2026 ZmobCRM. Todos os direitos reservados.</span>
+      <ul class="footer-links">
+        <li><a href="#">Termos de Uso</a></li>
+        <li><a href="#">Politica de Privacidade</a></li>
+        <li><a href="#">Contato</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- Sticky Mobile CTA -->
+  <div class="sticky-cta" id="stickyCta">
+    <a href="#cta" class="btn btn-primary">Testar Gratis por 14 Dias</a>
+  </div>
+
+  <!-- Signup Modal -->
+  <div class="modal-overlay" id="signupModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()" aria-label="Fechar">&times;</button>
+      <div class="modal-header">
+        <span class="modal-badge" id="modalBadge">Corretor</span>
+        <h3 class="modal-title" id="modalTitle">Comece seu teste gratis</h3>
+        <p class="modal-desc" id="modalDesc">14 dias gratis. Sem cartao de credito.</p>
+      </div>
+      <form class="modal-form" id="signupForm" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label for="formName">Nome completo</label>
+          <input type="text" id="formName" name="name" required placeholder="Seu nome">
+        </div>
+        <div class="form-group">
+          <label for="formEmail">Email profissional</label>
+          <input type="email" id="formEmail" name="email" required placeholder="voce@empresa.com">
+        </div>
+        <div class="form-group">
+          <label for="formPhone">WhatsApp</label>
+          <input type="tel" id="formPhone" name="phone" required placeholder="(11) 99999-9999">
+        </div>
+        <div class="form-group" id="formCompanyGroup">
+          <label for="formCompany">Imobiliaria / Empresa</label>
+          <input type="text" id="formCompany" name="company" placeholder="Nome da empresa">
+        </div>
+        <div class="form-group" id="formTeamGroup" style="display:none;">
+          <label for="formTeam">Tamanho do time</label>
+          <select id="formTeam" name="team_size">
+            <option value="">Selecione</option>
+            <option value="10-25">10 a 25 usuarios</option>
+            <option value="25-50">25 a 50 usuarios</option>
+            <option value="50-100">50 a 100 usuarios</option>
+            <option value="100+">100+ usuarios</option>
+          </select>
+        </div>
+        <input type="hidden" id="formPlan" name="plan" value="">
+        <button type="submit" class="btn btn-primary modal-submit" id="modalSubmit">Comecar Teste Gratis</button>
+        <p class="modal-legal">Ao continuar, voce concorda com nossos <a href="#">Termos de Uso</a> e <a href="#">Politica de Privacidade</a>.</p>
+      </form>
+      <div class="modal-success" id="modalSuccess" style="display:none;">
+        <div class="modal-success-icon">&#10003;</div>
+        <h3>Cadastro recebido!</h3>
+        <p id="successMsg">Voce recebera um email com as instrucoes de acesso em instantes.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!-- SCRIPTS (Enhanced tier)        -->
+  <!-- ============================== -->
+  <script>
+    // Scroll Progress Bar
+    window.addEventListener('scroll', () => {
+      const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+      document.querySelector('.scroll-progress').style.width = pct + '%';
+    });
+
+    // Cinematic Scroll Reveals
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+    // Sticky Mobile CTA (appears after scrolling past hero)
+    const stickyCta = document.getElementById('stickyCta');
+    if (stickyCta) {
+      const heroEl = document.getElementById('hero');
+      const stickyObs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          stickyCta.classList.toggle('visible', !entry.isIntersecting);
+        });
+      }, { threshold: 0 });
+      if (heroEl) stickyObs.observe(heroEl);
+    }
+
+    // Signup Modal
+    const modalConfig = {
+      corretor: {
+        badge: 'Corretor',
+        title: 'Comece seu teste gratis',
+        desc: '14 dias gratis. Sem cartao de credito.',
+        submit: 'Comecar Teste Gratis',
+        success: 'Voce recebera um email com as instrucoes de acesso em instantes.',
+        showTeam: false
+      },
+      imobiliaria: {
+        badge: 'Imobiliaria',
+        title: 'Comece seu teste gratis',
+        desc: '14 dias gratis para ate 10 usuarios.',
+        submit: 'Comecar Teste Gratis',
+        success: 'Voce recebera um email com as instrucoes de acesso em instantes.',
+        showTeam: false
+      },
+      enterprise: {
+        badge: 'Enterprise',
+        title: 'Fale com nosso time',
+        desc: 'Um especialista vai entrar em contato em ate 24h.',
+        submit: 'Solicitar Contato',
+        success: 'Recebemos sua solicitacao. Um especialista entrara em contato em ate 24 horas.',
+        showTeam: true
+      }
+    };
+
+    function openModal(plan) {
+      const cfg = modalConfig[plan];
+      if (!cfg) return;
+      document.getElementById('modalBadge').textContent = cfg.badge;
+      document.getElementById('modalTitle').textContent = cfg.title;
+      document.getElementById('modalDesc').textContent = cfg.desc;
+      document.getElementById('modalSubmit').textContent = cfg.submit;
+      document.getElementById('successMsg').textContent = cfg.success;
+      document.getElementById('formPlan').value = plan;
+      document.getElementById('formTeamGroup').style.display = cfg.showTeam ? 'block' : 'none';
+      document.getElementById('formCompanyGroup').style.display = 'block';
+      document.getElementById('signupForm').style.display = 'block';
+      document.getElementById('modalSuccess').style.display = 'none';
+      document.getElementById('signupForm').reset();
+      document.getElementById('signupModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => document.getElementById('formName').focus(), 300);
+    }
+
+    function closeModal() {
+      document.getElementById('signupModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const form = document.getElementById('signupForm');
+      const data = Object.fromEntries(new FormData(form));
+      console.log('Signup:', data);
+      // TODO: enviar para API/Supabase
+      form.style.display = 'none';
+      document.getElementById('modalSuccess').style.display = 'block';
+      setTimeout(closeModal, 3000);
+    }
+
+    // Close on overlay click
+    document.getElementById('signupModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // Close on ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Pricing Toggle (monthly/annual)
+    function togglePricing() {
+      const sw = document.getElementById('pricingSwitch');
+      const monthly = document.getElementById('toggleMonthly');
+      const annual = document.getElementById('toggleAnnual');
+      const isAnnual = sw.classList.toggle('annual');
+      monthly.classList.toggle('active', !isAnnual);
+      annual.classList.toggle('active', isAnnual);
+      document.querySelectorAll('.pricing-price .amount').forEach(el => {
+        el.textContent = isAnnual ? el.dataset.annual : el.dataset.monthly;
+      });
+    }
+
+    // Close mobile menu on scroll
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => {
+      const mobileMenu = document.querySelector('.mobile-menu');
+      if (mobileMenu && mobileMenu.classList.contains('open') && Math.abs(window.scrollY - lastScroll) > 50) {
+        mobileMenu.classList.remove('open');
+      }
+      lastScroll = window.scrollY;
+    }, { passive: true });
+  </script>
+
+</body>
+</html>

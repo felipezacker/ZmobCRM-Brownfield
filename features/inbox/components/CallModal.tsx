@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink } from 'lucide-react';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { Button } from '@/app/components/ui/Button';
+import { NoteTemplates } from '@/features/prospecting/components/NoteTemplates';
 
 interface CallModalProps {
     isOpen: boolean;
@@ -10,6 +11,10 @@ interface CallModalProps {
     contactName: string;
     contactPhone: string;
     suggestedTitle?: string;
+    /** Optional side panel content (e.g. script guide) shown alongside the modal on desktop */
+    sideContent?: React.ReactNode;
+    /** When true, show note templates based on outcome (prospecting flow) */
+    isProspecting?: boolean;
 }
 
 export interface CallLogData {
@@ -45,7 +50,9 @@ export const CallModal: React.FC<CallModalProps> = ({
     onSave,
     contactName,
     contactPhone,
-    suggestedTitle = 'Ligação'
+    suggestedTitle = 'Ligação',
+    sideContent,
+    isProspecting,
 }) => {
     const [openedAt, setOpenedAt] = useState<Date | null>(null);
     const [dialerOpenedAt, setDialerOpenedAt] = useState<Date | null>(null);
@@ -54,6 +61,7 @@ export const CallModal: React.FC<CallModalProps> = ({
     const [notes, setNotes] = useState('');
     const [title, setTitle] = useState(suggestedTitle);
     const [copied, setCopied] = useState(false);
+    const [showMobileScript, setShowMobileScript] = useState(false);
 
     const phone = normalizePhoneE164(contactPhone);
 
@@ -78,6 +86,7 @@ export const CallModal: React.FC<CallModalProps> = ({
         setNotes('');
         setTitle(suggestedTitle);
         setCopied(false);
+        setShowMobileScript(false);
     }, [isOpen, suggestedTitle]);
 
     // Timer effect: without WebRTC we don't know call lifecycle, so we start counting only
@@ -150,8 +159,11 @@ export const CallModal: React.FC<CallModalProps> = ({
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleDiscard} />
 
+            {/* Container: side-by-side on desktop when sideContent provided */}
+            <div className={`relative flex ${sideContent ? 'gap-4' : ''} mx-4 max-h-[90vh]`}>
+
             {/* Modal */}
-            <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-xl mx-4 overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="bg-linear-to-r from-yellow-500/10 to-orange-500/10 p-4 border-b border-slate-200 dark:border-slate-700/50 shrink-0">
                     <div className="flex items-center justify-between">
@@ -192,16 +204,32 @@ export const CallModal: React.FC<CallModalProps> = ({
                                 </div>
                             </div>
                         </div>
-                        <Button
-                            variant="unstyled"
-                            size="unstyled"
-                            type="button"
-                            aria-label="Fechar modal"
-                            onClick={handleDiscard}
-                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-white"
-                        >
-                            <X size={18} />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            {/* Mobile script toggle */}
+                            {sideContent && (
+                                <Button
+                                    variant="unstyled"
+                                    size="unstyled"
+                                    type="button"
+                                    aria-label="Ver script"
+                                    onClick={() => setShowMobileScript(prev => !prev)}
+                                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors lg:hidden flex items-center gap-1.5 ${showMobileScript ? 'bg-purple-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                >
+                                    <FileText size={14} />
+                                    Script
+                                </Button>
+                            )}
+                            <Button
+                                variant="unstyled"
+                                size="unstyled"
+                                type="button"
+                                aria-label="Fechar modal"
+                                onClick={handleDiscard}
+                                className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                            >
+                                <X size={18} />
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -279,8 +307,25 @@ export const CallModal: React.FC<CallModalProps> = ({
                             className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-24 max-h-[30vh] break-words [overflow-wrap:anywhere]"
                             rows={3}
                         />
+                        {isProspecting && outcome && (
+                            <div className="mt-2">
+                                <NoteTemplates
+                                    outcome={outcome}
+                                    onSelect={(text) => {
+                                        setNotes((prev) => prev ? `${prev}\n${text}` : text)
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
+
+                {/* Mobile script overlay (inside modal) */}
+                {sideContent && showMobileScript && (
+                    <div className="lg:hidden overflow-y-auto border-t border-slate-200 dark:border-slate-700/50">
+                        {sideContent}
+                    </div>
+                )}
 
                 {/* Footer */}
                 <div className="p-4 border-t border-slate-200 dark:border-slate-700/50 grid grid-cols-2 gap-2 shrink-0">
@@ -327,6 +372,15 @@ export const CallModal: React.FC<CallModalProps> = ({
                         Salvar Log
                     </Button>
                 </div>
+            </div>
+
+            {/* Side content panel (script guide) — desktop only */}
+            {sideContent && (
+                <div className="hidden lg:flex relative w-80 xl:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]">
+                    {sideContent}
+                </div>
+            )}
+
             </div>
         </div>
     );

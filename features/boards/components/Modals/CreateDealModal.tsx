@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useAuth } from '@/context/AuthContext';
@@ -8,6 +8,7 @@ import { X, User, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react';
 import { DebugFillButton } from '@/components/debug/DebugFillButton';
 import { fakeDeal, fakeContact } from '@/lib/debug';
 import { ContactSearchCombobox } from '@/components/ui/ContactSearchCombobox';
+import { contactsService } from '@/lib/supabase';
 import { Button } from '@/app/components/ui/Button';
 
 interface CreateDealModalProps {
@@ -21,6 +22,8 @@ interface CreateDealModalProps {
     initialStageId?: string;
     /** Callback chamado após criação bem-sucedida do deal — abre DealDetailModal */
     onCreated?: (dealId: string) => void;
+    /** ID do contato para pré-selecionar automaticamente (ex: vindo do PowerDialer) */
+    initialContactId?: string;
 }
 
 /**
@@ -35,6 +38,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
     activeBoardId: propActiveBoardId,
     initialStageId,
     onCreated,
+    initialContactId,
 }) => {
     const { addDeal } = useCRMActions();
     const { activeBoard: contextActiveBoard, activeBoardId: contextActiveBoardId } = useBoards();
@@ -67,6 +71,14 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
     // Estado de UI
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Pre-fill contato quando initialContactId é fornecido
+    useEffect(() => {
+        if (!isOpen || !initialContactId || selectedContact) return;
+        contactsService.getById(initialContactId).then(({ data }) => {
+            if (data) setSelectedContact(data);
+        });
+    }, [isOpen, initialContactId]);
 
     // Estágio efetivo: initialStageId → stages[0]
     const effectiveStageId = selectedStageId || initialStageId || availableStages[0]?.id || '';

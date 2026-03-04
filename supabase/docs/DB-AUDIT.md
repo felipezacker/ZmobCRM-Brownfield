@@ -1,343 +1,422 @@
 # DB-AUDIT.md - Auditoria do Banco de Dados
 
-> **Projeto:** ZmobCRM (CRMIA)
-> **Gerado em:** 2026-02-23
-> **Fase:** Brownfield Discovery - Phase 2 (@data-engineer)
-> **Banco:** Supabase (PostgreSQL)
+> **Projeto:** ZmobCRM (CRM Imobiliario)
+> **Gerado em:** 2026-03-03
+> **Fase:** Brownfield Discovery - Phase 2 (@data-engineer / DB Sage)
+> **Base:** 42 migration files analisados (20251201 a 20260303)
+> **Referencia:** SCHEMA.md (gerado em paralelo)
 
 ---
 
 ## Sumario Executivo
 
-O banco possui **35 tabelas ativas** (1 removida por migration). A maior vulnerabilidade e a presenca de **~21 tabelas com politicas RLS totalmente permissivas** (`USING (true)`), permitindo que qualquer usuario autenticado leia, altere e delete todos os registros. Apenas 6 tabelas possuem RBAC adequado apos as migrations recentes.
-
-### Classificacao de Risco Geral: **ALTO**
-
----
-
-## 1. Analise de Cobertura RLS
-
-### 1.1 Tabelas com RBAC Adequado (6 tabelas)
-
-| Tabela | Modelo | Implementado em |
-|--------|--------|-----------------|
-| `deals` | owner-based (corretor) + admin/diretor full | Migration 20260220000000 + 20260220100001 |
-| `contacts` | owner-based (corretor) + admin/diretor full | Migration 20260220000000 + 20260220100001 |
-| `organization_invites` | admin/diretor management + member view | Migration 20260220000000 |
-| `organization_settings` | admin management + member view | Schema init |
-| `api_keys` | admin-only | Schema init |
-| `ai_prompt_templates` | admin management + member view | Schema init |
-
-### 1.2 Tabelas com Politicas Corretas por Usuario (3 tabelas)
-
-| Tabela | Modelo |
-|--------|--------|
-| `profiles` | SELECT: todos; UPDATE: apenas proprio |
-| `user_settings` | ALL: apenas proprio (user_id = auth.uid()) |
-| `quick_scripts` | Sistema visivel a todos; CRUD apenas proprios |
-
-### 1.3 Tabelas com Admin-Only Adequado (5 tabelas de integracao)
-
-| Tabela | Modelo |
-|--------|--------|
-| `ai_feature_flags` | admin management + member view |
-| `integration_inbound_sources` | admin-only |
-| `integration_outbound_endpoints` | admin-only |
-| `webhook_events_in` | admin view-only |
-| `webhook_events_out` | admin view-only |
-| `webhook_deliveries` | admin view-only |
-
-### 1.4 CRITICO: Tabelas com Politicas Permissivas (21 tabelas)
-
-Todas usam `FOR ALL TO authenticated USING (true)` -- qualquer usuario autenticado pode ler, alterar e deletar TODOS os registros.
-
-#### Risco CRITICO (dados sensiveis expostos)
-
-| Tabela | Risco | Impacto |
-|--------|-------|---------|
-| **`audit_logs`** | Qualquer usuario pode LER e DELETAR logs de auditoria | Destruicao de trilha de auditoria, compliance LGPD comprometida |
-| **`security_alerts`** | Qualquer usuario pode LER e DELETAR alertas de seguranca | Ocultacao de incidentes de seguranca |
-| **`user_consents`** | Qualquer usuario pode LER e ALTERAR consentimentos de outros | Violacao direta de LGPD |
-| **`ai_conversations`** | Qualquer usuario pode LER conversas de IA de outros | Vazamento de dados de negociacao |
-| **`ai_decisions`** | Qualquer usuario pode LER decisoes de IA de outros | Exposicao de estrategia comercial |
-| **`ai_audio_notes`** | Qualquer usuario pode LER transcricoes de audio de outros | Vazamento de informacoes confidenciais |
-
-#### Risco ALTO (dados de negocio sem isolamento)
-
-| Tabela | Risco |
-|--------|-------|
-| **`leads`** | Corretor pode ver/editar/deletar leads de outros corretores |
-| **`activities`** | Sem isolamento por owner; qualquer usuario pode alterar atividades de outros |
-| **`deal_notes`** | Notas de negociacao acessiveis a todos |
-| **`deal_files`** | Arquivos de deals acessiveis a todos |
-| **`products`** | Menor risco, mas permite delecao por qualquer usuario |
-
-#### Risco MEDIO (dados compartilhados mas sem protecao de escrita)
-
-| Tabela | Risco |
-|--------|-------|
-| **`boards`** | Qualquer usuario pode deletar pipelines |
-| **`board_stages`** | Qualquer usuario pode alterar estagios de pipelines |
-| **`lifecycle_stages`** | Dados globais/seed sem protecao de escrita |
-| **`tags`** | Qualquer usuario pode deletar tags |
-| **`custom_field_definitions`** | Qualquer usuario pode alterar campos custom |
-| **`deal_items`** | Sem isolamento |
-| **`system_notifications`** | Qualquer usuario pode deletar notificacoes |
-| **`rate_limits`** | Qualquer usuario pode manipular rate limiting |
-| **`ai_suggestion_interactions`** | Sem isolamento por usuario |
+| Categoria | CRITICAL | HIGH | MEDIUM | LOW | Total |
+|-----------|----------|------|--------|-----|-------|
+| Seguranca | 1 | 2 | 3 | 1 | 7 |
+| Performance | 0 | 1 | 3 | 2 | 6 |
+| Integridade de Dados | 1 | 2 | 3 | 1 | 7 |
+| Design do Schema | 0 | 1 | 4 | 3 | 8 |
+| Migrations | 1 | 1 | 1 | 0 | 3 |
+| **Total** | **3** | **7** | **14** | **7** | **31** |
 
 ---
 
-## 2. Indices Ausentes
+## 1. Auditoria de Seguranca
 
-### 2.1 Indices Recomendados
+### 1.1 Cobertura RLS
 
-| Tabela | Coluna(s) | Justificativa |
-|--------|-----------|---------------|
-| `deals` | `organization_id` | Filtro de org presente em todas as queries RBAC; full scan na subquery de profiles |
-| `deals` | `owner_id` | Usado em TODAS as policies RLS; sem indice, cada check faz seq scan |
-| `contacts` | `organization_id` | Mesmo motivo que deals |
-| `contacts` | `owner_id` | Usado em TODAS as policies RLS |
-| `activities` | `organization_id` | Filtro de tenant |
-| `activities` | `owner_id` | Futuro RBAC |
-| `leads` | `organization_id` | Filtro de tenant |
-| `leads` | `owner_id` | Futuro RBAC |
-| `profiles` | `organization_id, role` | Composto; usado em TODAS as subqueries de RLS (alta frequencia) |
-| `audit_logs` | `organization_id` | Filtro de tenant |
-| `audit_logs` | `created_at DESC` | Ordenacao cronologica |
-| `ai_decisions` | `user_id, status` | Filtro de decisoes pendentes por usuario |
-| `ai_conversations` | `user_id` | FK sem indice |
-| `ai_audio_notes` | `user_id` | FK sem indice |
-| `ai_audio_notes` | `deal_id` | FK sem indice |
-| `deal_items` | `product_id` | FK sem indice |
-| `organization_invites` | `token` | Lookup por token no fluxo de convite |
-| `organization_invites` | `organization_id` | Filtro de tenant |
-| `system_notifications` | `organization_id` | Filtro de tenant |
-| `user_consents` | `user_id` | FK sem indice |
+**Status Geral: 95% adequada. 100% das tabelas tem RLS ENABLED.**
 
-### 2.2 Impacto de Performance
+Todas as 36 tabelas ativas possuem `ENABLE ROW LEVEL SECURITY`. A grande maioria foi migrada de policies permissivas (`USING(true)`) para policies restritivas org-scoped entre as migrations 20260220-20260226. O trabalho de hardening foi significativo e bem executado.
 
-As subqueries de RLS (`SELECT id FROM profiles WHERE organization_id = X AND role IN (...)`) sao executadas em **cada linha retornada**. Sem indice composto em `profiles(organization_id, role)`, isso e um **seq scan por row** -- degradacao severa em tabelas com mais de 1000 registros.
+#### Tabelas com RLS Residual Permissiva
+
+| ID | Tabela | Problema | Severidade |
+|----|--------|----------|------------|
+| SEC-01 | `ai_suggestion_interactions` | RLS permissiva original (`USING(true)`) nunca foi restringida. Qualquer usuario autenticado pode ver/modificar interacoes de todos os usuarios. | **HIGH** |
+| SEC-02 | `rate_limits` | RLS permissiva (`USING(true)`). Qualquer usuario pode ver todos os rate limits. Risco baixo pois nao contem dados sensiveis, mas permite information disclosure. | **LOW** |
+
+**Recomendacao SEC-01:** Criar policies restritivas para `ai_suggestion_interactions` baseadas em `user_id = auth.uid()`.
+
+**Recomendacao SEC-02:** Remover policy permissiva de `rate_limits`. Se necessario, adicionar SELECT/INSERT para `authenticated` com restricao por `identifier = auth.uid()::text`.
 
 ---
 
-## 3. Problemas de Normalizacao
+### 1.2 Qualidade das Policies
 
-### 3.1 Campos de Status como TEXT sem Enum/FK
+#### SEC-03: notify_deal_stage_changed() referencia tabelas inexistentes [CRITICAL]
 
-| Tabela | Coluna | Valores Observados | Recomendacao |
-|--------|--------|-------------------|--------------|
-| `contacts.status` | TEXT | 'ACTIVE' (default) | Criar CHECK ou enum |
-| `contacts.stage` | TEXT | 'LEAD' (default) | Deveria referenciar lifecycle_stages(id) via FK |
-| `deals.status` | TEXT | - | Ambiguo com is_won/is_lost; campo parece nao-utilizado |
-| `deals.priority` | TEXT | 'medium' (default) | Criar CHECK |
-| `leads.status` | TEXT | 'NEW' (default) | Criar CHECK |
-| `ai_decisions.status` | TEXT | 'pending' (default) | Criar CHECK |
-| `ai_decisions.priority` | TEXT | 'medium' (default) | Criar CHECK |
+A migration `20260225000000_coderabbit_pr5_fixes.sql` reescreveu a funcao `notify_deal_stage_changed()` usando nomes de tabelas que NAO existem no schema:
 
-### 3.2 Duplicacao de Dados
+- `integration_webhook_events` (correto: `webhook_events_out`)
+- `integration_webhook_deliveries` (correto: `webhook_deliveries`)
 
-- **`profiles.avatar` vs `profiles.avatar_url`:** Duas colunas para a mesma finalidade. Consolidar em uma.
-- **`profiles.name` vs `profiles.first_name` + `profiles.last_name`:** Redundancia. O trigger `handle_new_user` so popula `name`.
-- **`deals.status` vs `deals.is_won`/`deals.is_lost`:** O campo `status` parece legado/nao-utilizado. As flags booleanas sao o mecanismo real.
+**Impacto:** Toda vez que um deal muda de stage, o trigger falha silenciosamente (ou lanca erro), impedindo webhooks outbound de funcionar. O erro e capturado pelo `EXCEPTION WHEN OTHERS`, entao o deal update em si nao falha, mas nenhum webhook e disparado.
 
-### 3.3 Colunas Orphans
+**Severidade: CRITICAL**
 
-- **`contacts.stage`** (TEXT) nao tem FK para `lifecycle_stages.id`, mesmo sendo claramente o mesmo conceito.
-- **`board_stages.linked_lifecycle_stage`** (TEXT) tambem nao tem FK para `lifecycle_stages.id`.
-- **`boards.linked_lifecycle_stage`** (TEXT) idem.
+**Correcao:** Reescrever a funcao usando os nomes corretos de tabela (`webhook_events_out`, `webhook_deliveries`) e campos correspondentes.
 
 ---
 
-## 4. Constraints Ausentes
+#### SEC-04: merge_contacts() como SECURITY DEFINER sem validacao de org [HIGH]
 
-| Tabela | Constraint Ausente | Risco |
-|--------|-------------------|-------|
-| `deals.probability` | Sem CHECK (0-100) | Valores invalidos possiveis |
-| `deals.value` | Sem CHECK (>= 0) | Valores negativos possiveis |
-| `products.price` | Sem CHECK (>= 0) | Valores negativos possiveis |
-| `deal_items.quantity` | Sem CHECK (> 0) | Zero ou negativo possivel |
-| `deal_items.price` | Sem CHECK (>= 0) | Valores negativos possiveis |
-| `contacts.email` | Sem CHECK de formato | Qualquer texto aceito |
-| `boards.type` | Sem CHECK | Apenas 'SALES' como default, mas sem restricao |
-| `activities.type` | Sem CHECK | Qualquer texto aceito |
-| `ai_decisions.confidence_score` | NUMERIC(3,2) mas sem CHECK (0.00-1.00) | Valores fora de faixa |
+A funcao `merge_contacts()` usa `SECURITY DEFINER`, o que significa que bypassa RLS completamente. Ela nao valida se o usuario chamador pertence a mesma organizacao dos contatos sendo merged. Qualquer usuario autenticado poderia potencialmente fazer merge de contatos de outra organizacao.
+
+**Impacto:** Cross-tenant data manipulation.
+
+**Correcao:** Adicionar validacao de que ambos os contatos pertencem a org do usuario chamador, ou migrar para `SECURITY INVOKER` com RLS.
 
 ---
 
-## 5. Vulnerabilidades de Seguranca
+#### SEC-05: increment/decrement_contact_ltv() como SECURITY DEFINER sem validacao [MEDIUM]
 
-### 5.1 CRITICO: RLS Permissivas
+Ambas funcoes `increment_contact_ltv()` e `decrement_contact_ltv()` usam `SECURITY DEFINER` sem validar se o contato pertence a organizacao do usuario. Qualquer usuario autenticado pode manipular o `total_value` de qualquer contato.
 
-**Descricao:** 21 tabelas usam `FOR ALL TO authenticated USING (true)`, o que significa que **qualquer usuario autenticado pode ler, alterar e deletar qualquer registro** nessas tabelas.
+**Impacto:** Cross-tenant data manipulation do campo LTV.
 
-**Vetores de Ataque:**
-1. **Corretor mal-intencionado** pode deletar leads de colegas
-2. **Qualquer usuario** pode ler/deletar audit_logs, eliminando evidencias
-3. **Qualquer usuario** pode ler conversas de IA de outros usuarios (ai_conversations)
-4. **Qualquer usuario** pode alterar consentimentos LGPD de outros (user_consents)
-5. **Qualquer usuario** pode manipular rate_limits, bypassando protecao de brute force
-6. **Qualquer usuario** pode deletar security_alerts, ocultando incidentes
-
-**Recomendacao:** Implementar politicas RBAC para TODAS as tabelas com dados sensiveis, seguindo o padrao ja aplicado em `deals` e `contacts`.
-
-### 5.2 ALTO: Funcoes SECURITY DEFINER sem Validacao
-
-| Funcao | Problema |
-|--------|----------|
-| `mark_deal_won(deal_id)` | Nao verifica se usuario tem permissao no deal |
-| `mark_deal_lost(deal_id, reason)` | Idem |
-| `reopen_deal(deal_id)` | Idem |
-| `get_dashboard_stats()` (versao original sem org_id) | Retorna dados de todos os tenants |
-
-> A versao atualizada de `get_dashboard_stats` na migration `20260220100000` ja recebe `p_organization_id`, mas as funcoes `mark_deal_*` e `reopen_deal` continuam sem validacao.
-
-### 5.3 ALTO: Chaves de API em Claro
-
-- **`user_settings.ai_api_key`** (legado), **`ai_google_key`**, **`ai_openai_key`**, **`ai_anthropic_key`**: armazenadas como TEXT plano.
-- **`organization_settings.ai_google_key`**, **`ai_openai_key`**, **`ai_anthropic_key`**: idem.
-- **`integration_inbound_sources.secret`** e **`integration_outbound_endpoints.secret`**: idem.
-
-**Recomendacao:** Usar `pgsodium` ou `vault` do Supabase para criptografia em repouso. No minimo, garantir que RLS impeca leitura por nao-admins (parcialmente feito para org_settings, mas nao para user_settings de outros usuarios -- embora user_settings tenha RLS por user_id).
-
-### 5.4 MEDIO: Storage Policies Permissivas
-
-- **deal-files:** Qualquer usuario autenticado pode fazer upload, ler e deletar arquivos de qualquer deal.
-- **avatars:** Upload permitido para qualquer autenticado; leitura publica.
+**Correcao:** Adicionar validacao de org ou migrar para `SECURITY INVOKER`.
 
 ---
 
-## 6. Preocupacoes de Performance
+#### SEC-06: contact_phones e contact_preferences RLS nao usa get_user_organization_id() [MEDIUM]
 
-### 6.1 Subqueries de RLS em Cada Row
-
-As politicas RBAC usam subqueries em `profiles`:
+As tabelas `contact_phones` e `contact_preferences` usam subquery direta em `profiles` para obter `organization_id`:
 ```sql
-auth.uid() IN (
-  SELECT id FROM public.profiles
-  WHERE organization_id = deals.organization_id
-    AND role IN ('admin', 'diretor')
-)
+organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid())
 ```
 
-**Problema:** Executada por row. Sem indice composto `profiles(organization_id, role)`, gera seq scans repetidos.
+Isso pode causar recursao RLS se a policy de `profiles` for modificada. A funcao `get_user_organization_id()` (SECURITY DEFINER) foi criada especificamente para evitar esse problema.
 
-**Recomendacao:** Criar indice composto + considerar funcao helper com cache (`STABLE`):
-```sql
-CREATE INDEX idx_profiles_org_role ON profiles(organization_id, role);
-```
+**Impacto:** Potencial recursao RLS (42P17) se profiles_select mudar.
 
-### 6.2 Trigger `notify_deal_stage_changed`
-
-- Executa em **CADA UPDATE** de deals (nao apenas mudanca de stage).
-- A funcao tem verificacao interna (`IF NEW.stage_id IS NOT DISTINCT FROM OLD.stage_id THEN RETURN`), mas o trigger nao filtra por coluna.
-- **Recomendacao:** Alterar trigger para `AFTER UPDATE OF stage_id ON deals`.
-
-### 6.3 Trigger `check_deal_duplicate`
-
-- Executa em **CADA INSERT OR UPDATE** de deals.
-- Faz query com JOIN em board_stages.
-- **Impacto:** Leve overhead em operacoes de drag-and-drop no kanban.
-
-### 6.4 Tabelas sem Particao/Archiving
-
-- **audit_logs** e **webhook_events_***: crescem indefinidamente sem estrategia de archiving ou particao por data.
-- **rate_limits**: tem funcao `cleanup_rate_limits` mas sem cron automatico.
+**Correcao:** Atualizar policies de `contact_phones`, `contact_preferences`, `notifications`, `lead_score_history` e outras tabelas que ainda usam subquery direta para usar `get_user_organization_id()`.
 
 ---
 
-## 7. Avaliacao de Versionamento de Migrations
+#### SEC-07: notifications sem DELETE policy [MEDIUM]
 
-### 7.1 Historico
+A tabela `notifications` tem policies para SELECT, INSERT e UPDATE, mas nao para DELETE. Isso significa que notificacoes nunca podem ser deletadas por usuarios autenticados (apenas service_role). Se intencional, esta correto; se nao, e um gap funcional.
 
-| # | Timestamp | Descricao | Transacional |
-|---|-----------|-----------|--------------|
-| 1 | 20251201000000 | Schema consolidado (1 arquivo gigante) | Nao (DDL misto) |
-| 2 | 20260205000000 | Indices de performance | Nao (apenas CREATE INDEX) |
-| 3 | 20260220000000 | RBAC 3 niveis | Sim (BEGIN/COMMIT) |
-| 4 | 20260220100000 | Remove companies/roles | Sim (BEGIN/COMMIT) |
-| 5 | 20260220100001 | Protecao owner_id | Sim (BEGIN/COMMIT) |
-| 6 | 20260220200000 | RPC reassign | Sim (BEGIN/COMMIT) |
-
-### 7.2 Observacoes
-
-**Positivo:**
-- Migrations recentes (3-6) usam transacoes (BEGIN/COMMIT)
-- Uso de `IF NOT EXISTS` / `IF EXISTS` para idempotencia
-- Convencao de timestamp consistente
-
-**Problemas:**
-- **Migration 1 e muito grande** (~2250 linhas): consolida todo o schema historico em um unico arquivo. Dificulta rollback parcial.
-- **Sem arquivos de rollback (down migrations):** Nenhuma migration tem script de reversao.
-- **Timestamp colisao potencial:** Migrations 3, 4 e 5 compartilham data base (20260220) diferenciadas apenas pelo sufixo (000000, 100000, 100001). Funciona, mas e fragil.
-- **Sem migration de seed separada:** Dados seed (lifecycle_stages, quick_scripts) estao misturados com DDL no schema init.
+**Impacto:** Acumulo indefinido de notificacoes, sem possibilidade de cleanup pelo usuario.
 
 ---
 
-## 8. Recomendacoes Priorizadas
+### 1.3 Dados Sensiveis
 
-### P0 - CRITICO (Fazer Imediatamente)
+| ID | Tabela.Coluna | Risco | Mitigacao Atual | Status |
+|----|---------------|-------|-----------------|--------|
+| SEC-08 | organization_settings.ai_*_key | API keys de IA em texto claro | RLS admin-only | Aceitavel para MVP |
+| SEC-09 | user_settings.ai_*_key | API keys de IA por usuario em texto claro | RLS user-only | Aceitavel para MVP |
+| SEC-10 | integration_inbound_sources.secret | Webhook secret em texto claro | RLS admin-only | Deveria usar pgcrypto |
+| SEC-11 | integration_outbound_endpoints.secret | Webhook secret em texto claro | RLS admin-only | Deveria usar pgcrypto |
+| SEC-12 | api_keys.key_hash | Armazenado como SHA-256 hex | Correto | OK |
+| SEC-13 | user_consents.ip_address | IP do usuario (LGPD) | RLS user/admin scoped | OK |
 
-1. **Implementar RLS RBAC para tabelas de seguranca:**
-   - `audit_logs` -> admin read-only (nunca delete via app)
-   - `security_alerts` -> admin management
-   - `user_consents` -> proprio usuario read + admin read
-   - `rate_limits` -> service role only (remover acesso authenticated)
+**Recomendacao:** Em uma evolucao futura, considerar usar Supabase Vault para chaves de API ao inves de texto claro nas tabelas.
 
-2. **Implementar RLS por usuario para tabelas de IA:**
-   - `ai_conversations` -> user_id = auth.uid()
-   - `ai_decisions` -> user_id = auth.uid() + admin/diretor view
-   - `ai_audio_notes` -> user_id = auth.uid() + admin/diretor view
+### 1.4 Qualidade de Integracao com Auth
 
-3. **Implementar RLS owner-based para leads:**
-   - Mesmo padrao de deals/contacts (owner_id + admin/diretor)
-
-### P1 - ALTO (Proximas 2 Sprints)
-
-4. **Criar indice composto** `profiles(organization_id, role)` -- impacto direto em performance de todas as queries com RBAC.
-
-5. **Adicionar indices de `owner_id`** em deals, contacts, activities, leads.
-
-6. **Adicionar indices de `organization_id`** em todas as tabelas que tem essa coluna e nao possuem indice.
-
-7. **Implementar RLS para boards/board_stages/activities:**
-   - Boards: admin/diretor write; all members read
-   - Activities: owner-based + admin/diretor view
-
-8. **Proteger funcoes SECURITY DEFINER:**
-   - `mark_deal_won/lost`, `reopen_deal`: validar ownership ou role
-
-### P2 - MEDIO (Backlog)
-
-9. Adicionar CHECK constraints para campos de status, probability, value, price.
-10. Consolidar colunas duplicadas em profiles (avatar/avatar_url, name/first_name+last_name).
-11. Criar FK de `contacts.stage` para `lifecycle_stages.id`.
-12. Implementar estrategia de archiving para audit_logs e webhook_events_*.
-13. Separar seed data em migration dedicada.
-14. Otimizar trigger `notify_deal_stage_changed` para filtrar por coluna `stage_id`.
-15. Avaliar criptografia de API keys em repouso.
-16. Adicionar down migrations para rollback.
+| Aspecto | Status | Notas |
+|---------|--------|-------|
+| Trigger on_auth_user_created | OK | Cria profile + user_settings |
+| Role injection prevention | OK | Hardcoded 'corretor' (fix 20260223000001) |
+| Org injection prevention | OK | Ignora metadata org_id (fix 20260223000002) |
+| Email sync | OK | Trigger on_auth_user_email_updated |
+| handle_new_user as DEFINER | NECESSARIO | Precisa acessar profiles sem RLS para insert |
 
 ---
 
-## 9. Matriz de Risco Consolidada
+## 2. Auditoria de Performance
 
-| # | Achado | Severidade | Probabilidade | Impacto | Prioridade |
-|---|--------|-----------|---------------|---------|------------|
-| 1 | RLS permissiva em audit_logs | CRITICO | Alta | Destruicao de trilha de auditoria | P0 |
-| 2 | RLS permissiva em security_alerts | CRITICO | Alta | Ocultacao de incidentes | P0 |
-| 3 | RLS permissiva em user_consents | CRITICO | Media | Violacao LGPD | P0 |
-| 4 | RLS permissiva em ai_conversations/decisions/audio | ALTO | Media | Vazamento de dados | P0 |
-| 5 | RLS permissiva em leads | ALTO | Alta | Manipulacao de leads entre corretores | P0 |
-| 6 | Funcoes SECURITY DEFINER sem auth check | ALTO | Media | Manipulacao de deals sem permissao | P1 |
-| 7 | Falta de indice profiles(org, role) | ALTO | Alta | Degradacao de performance em todas queries RBAC | P1 |
-| 8 | Falta de indices owner_id/organization_id | ALTO | Alta | Full scans em queries filtradas | P1 |
-| 9 | RLS permissiva em boards/board_stages | MEDIO | Baixa | Delecao acidental de pipelines | P1 |
-| 10 | API keys em texto plano | MEDIO | Baixa | Exposicao em caso de dump | P2 |
-| 11 | Sem archiving para audit_logs | MEDIO | Media | Crescimento ilimitado de tabela | P2 |
-| 12 | Colunas duplicadas em profiles | BAIXO | - | Confusao no desenvolvimento | P2 |
-| 13 | Campos TEXT sem CHECK | BAIXO | Baixa | Dados inconsistentes | P2 |
+### 2.1 Indexes Ausentes
+
+| ID | Tabela | Coluna(s) | Razao | Severidade |
+|----|--------|-----------|-------|------------|
+| PERF-01 | deals | contact_id, board_id (composite) | Queries de kanban que filtram por contato dentro de um board | **MEDIUM** |
+| PERF-02 | activities | organization_id, date DESC | Queries de timeline/agenda com filtro de org e ordenacao por data | **MEDIUM** |
+| PERF-03 | deals | organization_id, is_won, is_lost | Dashboard stats query faz full scan nos flags booleanos com filtro de org | **MEDIUM** |
+| PERF-04 | contacts | organization_id, name | Busca de contatos por nome dentro da org (a GIN trigram existe mas nao e composta com org_id) | **LOW** |
+| PERF-05 | leads | organization_id, status | Listagem de leads por org e status | **LOW** |
 
 ---
 
-*Documento gerado por @data-engineer (Dara) - Brownfield Discovery Phase 2*
+### 2.2 Patterns N+1 Visiveis no Schema
+
+| ID | Padrao | Risco | Severidade |
+|----|--------|-------|------------|
+| PERF-06 | deals -> contact (FK sem eager) | Kanban carrega deals e faz N queries para resolver nomes de contatos | **HIGH** |
+| PERF-07 | deals -> board_stages (FK) | Cada deal precisa do label do stage para exibicao | **MEDIUM** |
+
+**Mitigacao:** PostgREST/Supabase suporta `select=*,contacts(*)` para evitar N+1, mas depende da implementacao frontend.
+
+---
+
+### 2.3 Funcoes com Potencial Performance Issue
+
+| ID | Funcao | Problema | Severidade |
+|----|--------|----------|------------|
+| PERF-08 | `get_user_organization_id()` | Chamada em TODA policy RLS. E SECURITY DEFINER + STABLE, entao PostgreSQL pode cachear dentro da mesma transacao, mas e chamada repetidamente em cada row evaluation. | **LOW** (design intencional) |
+| PERF-09 | `is_admin_or_director(p_org_id)` | Subquery em profiles para cada row avaliada na policy. O index `idx_profiles_org_role` ajuda, mas em tabelas grandes o overhead e significativo. | **LOW** (design intencional) |
+
+---
+
+### 2.4 Observacoes sobre Denormalizacao
+
+| Aspecto | Status | Notas |
+|---------|--------|-------|
+| contacts.total_value | Denormalizado | LTV calculado via RPCs atomicos (increment/decrement). Correto para evitar queries pesadas de SUM. |
+| contacts.lead_score | Denormalizado | Score mantido no contato, historico em lead_score_history. Correto. |
+| deals.title synced com contact.name | Denormalizado | Data migration feita, mas sem trigger automatico para manter sync. Pode ficar desatualizado se contato muda de nome apos criacao do deal. |
+
+---
+
+## 3. Auditoria de Integridade de Dados
+
+### 3.1 Constraints Ausentes
+
+| ID | Tabela.Coluna | Problema | Severidade |
+|----|---------------|----------|------------|
+| INT-01 | deals.board_id | FK sem ON DELETE CASCADE ou SET NULL. Se um board for hard-deleted (nao soft), deals ficam orfaos. | **HIGH** |
+| INT-02 | deals.stage_id | FK sem ON DELETE CASCADE ou SET NULL. Se um stage for removido, deals ficam com referencia invalida. | **HIGH** |
+| INT-03 | deals.contact_id | FK sem ON DELETE action. Contatos soft-deleted manteem referencia, mas se alguma operacao fizer hard delete, deals ficam orfaos. | **MEDIUM** |
+| INT-04 | activities.organization_id | Nullable sem NOT NULL. Dependeu de backfill (migration 20260223200001). Novos registros podem ter NULL se nao fornecerem. | **MEDIUM** |
+| INT-05 | contacts.organization_id | Nullable, deveria ser NOT NULL como deals. | **MEDIUM** |
+| INT-06 | boards.organization_id | Nullable, deveria ser NOT NULL. | **LOW** |
+| INT-07 | products.price | Sem CHECK (>= 0). Deal_items tem, mas products nao. | **LOW** (menor risco) |
+
+---
+
+### 3.2 Risco de Registros Orfaos
+
+| Relacao | ON DELETE | Risco |
+|---------|-----------|-------|
+| deals -> boards | (none) | Orfao se board hard-deleted |
+| deals -> board_stages | (none) | Orfao se stage hard-deleted |
+| deals -> contacts | (none) | Orfao se contact hard-deleted |
+| deals -> profiles (owner_id) | (none) | Orfao se profile deletado |
+| contacts -> profiles (owner_id) | (none) | Orfao se profile deletado |
+| boards -> profiles (owner_id) | (none) | Orfao se profile deletado |
+| activities -> profiles (owner_id) | (none) | Orfao se profile deletado |
+| deal_items -> products | (none) | Orfao se product hard-deleted |
+| notifications -> organizations | (none) | Orfao se org deletada |
+| notifications -> profiles (owner_id) | (none) | Orfao se profile deletado |
+| lead_score_history -> organizations | (none) | Orfao se org deletada |
+| leads -> contacts (converted_to) | (none) | Orfao se contact hard-deleted |
+| leads -> profiles (owner_id) | (none) | Orfao se profile deletado |
+
+**Nota:** A maioria dos orfaos e mitigada pelo fato de o sistema usar soft delete (deleted_at) em vez de hard delete para entidades principais. O risco real e baixo para o uso normal, mas existiria se alguem usasse service_role para DELETE direto.
+
+**Recomendacao:** Adicionar `ON DELETE SET NULL` em FKs de owner_id para prevenir erros de constraint ao deletar profiles.
+
+---
+
+### 3.3 Defaults Ausentes
+
+| ID | Tabela.Coluna | Problema | Severidade |
+|----|---------------|----------|------------|
+| INT-08 | contacts.status | Default 'ACTIVE' -- OK | -- |
+| INT-09 | contacts.stage | Default 'LEAD' -- OK | -- |
+| INT-10 | activities.type | NOT NULL sem default. Exige valor explicito. | Aceitavel |
+| INT-11 | leads.phone | Coluna nao existe (removida com company_name/role). Nao havia campo phone originalmente. | Funcional (leads usa formularios externos) |
+
+---
+
+### 3.4 Consistencia de Dados
+
+| ID | Problema | Severidade |
+|----|----------|------------|
+| INT-12 | `deals.status` e `deals.stage_id` coexistem -- `status` e DEPRECATED mas nao tem constraint ligando ao `stage_id`. Pode ter valores divergentes. | **MEDIUM** |
+| INT-13 | `profiles.name` e `profiles.first_name` coexistem -- `name` e DEPRECATED (DB-014) mas ambos podem ser escritos. Trigger `handle_new_user` escreve apenas `first_name`, mas queries podem ler `name`. | **MEDIUM** (dados legacy) |
+| INT-14 | `profiles.avatar` e `profiles.avatar_url` coexistem -- mesma situacao de `name`/`first_name`. | **LOW** |
+
+---
+
+## 4. Auditoria de Design do Schema
+
+### 4.1 Normalizacao
+
+| ID | Problema | Severidade |
+|----|----------|------------|
+| DES-01 | `contacts.tags` (TEXT[]) e `contacts.custom_fields` (JSONB) -- dados estruturados em colunas EAV-style. Tags poderia referenciar a tabela `tags`. Custom fields usa definicoes de `custom_field_definitions` mas armazena valores inline. Padrao aceitavel para CRM com campos flexiveis. | **LOW** |
+| DES-02 | `deals.metadata` (JSONB) -- bag generico sem schema definido. Aceitavel para dados internos de automacao. | **LOW** |
+| DES-03 | `contacts.profile_data` (JSONB) -- dados complementares sem schema. Documentado via COMMENT. Aceitavel. | **LOW** |
+
+---
+
+### 4.2 Consistencia de Nomenclatura
+
+| ID | Problema | Severidade |
+|----|----------|------------|
+| DES-04 | Mistura de naming conventions em tabelas: `board_stages` (snake_case composto) vs `lifecycle_stages` vs `contact_phones` vs `deal_notes`. Consistente dentro do padrao `{entity}_{sub}`. | OK |
+| DES-05 | `quick_scripts` nao segue o padrao de nomenclatura. Poderia ser `script_templates` ou similar. | **LOW** (cosmetic) |
+| DES-06 | Duas tabelas de notificacoes: `system_notifications` (legado) e `notifications` (Epic 3). Sobreposicao funcional. | **MEDIUM** |
+| DES-07 | Tabelas webhook usam dois padroes: `webhook_events_in`/`webhook_events_out`/`webhook_deliveries` (schema init) vs nomes em funcoes `integration_webhook_events`/`integration_webhook_deliveries` (coderabbit fix -- bug). | **HIGH** (ver SEC-03) |
+
+---
+
+### 4.3 Uso de Tipos
+
+| Aspecto | Status | Notas |
+|---------|--------|-------|
+| UUIDs como PKs | Consistente | Todas as tabelas usam UUID com gen_random_uuid() |
+| TIMESTAMPTZ vs TIMESTAMP | Consistente | Todas usam TIMESTAMPTZ |
+| NUMERIC para valores monetarios | Correto | deals.value, deal_items.price, products.price |
+| TEXT para enums | Consistente | Todas usam CHECK constraints em TEXT (nao ENUM type) |
+| TEXT[] para arrays | Usado em tags, events, regions | Aceitavel para Supabase/PostgREST |
+| JSONB para dados flexiveis | Consistente | messages, profile_data, metadata, custom_fields |
+| VARCHAR vs TEXT | Inconsistente | `security_alerts` usa VARCHAR(50/20/255), todas as outras usam TEXT | **MEDIUM** |
+
+---
+
+### 4.4 Qualidade dos Relacionamentos
+
+| Aspecto | Status |
+|---------|--------|
+| organizations como tenant root | Correto. Todas as tabelas CRM referenciam org_id. |
+| Soft delete pattern | Consistente (deleted_at TIMESTAMPTZ) em entidades principais |
+| Cascade delete em filhas | Correto: deal_notes, deal_files, deal_items, contact_phones, contact_preferences usam ON DELETE CASCADE |
+| Owner_id pattern | Consistente: contacts, deals, activities, boards tem owner_id FK -> profiles |
+
+---
+
+## 5. Auditoria de Migrations
+
+### 5.1 Qualidade das Migrations
+
+| ID | Problema | Severidade |
+|----|----------|------------|
+| MIG-01 | `20260225000000_coderabbit_pr5_fixes.sql` reescreveu `notify_deal_stage_changed()` referenciando tabelas que nao existem (`integration_webhook_events`, `integration_webhook_deliveries`). Isso quebrou o webhook outbound. | **CRITICAL** |
+| MIG-02 | Varias migrations nao sao idempotentes. Ex: `20260226000000_add_recurrence_fields.sql` usa `ALTER TABLE ADD COLUMN` sem `IF NOT EXISTS` para constraints, e `CREATE INDEX` sem `IF NOT EXISTS`. Se rodada duas vezes, falharia. | **HIGH** |
+| MIG-03 | Migration `20260226200001_epic3_notifications.sql` cria tabela `notifications` sem qualificar schema (`public.notifications`). Funciona mas inconsistente com o padrao do projeto. | **MEDIUM** |
+
+---
+
+### 5.2 Rollback
+
+| Aspecto | Status |
+|---------|--------|
+| Migrations com BEGIN/COMMIT | Maioria sim (transacionais) |
+| Scripts de rollback | NAO existem. Nenhuma migration tem script de reversao. |
+| Additive vs destructive | Maioria e aditiva (ADD COLUMN, CREATE TABLE). Excecoes: DROP TABLE crm_companies, DROP COLUMN tags/custom_fields de deals. |
+
+**Recomendacao:** Para futuras migrations, incluir script de rollback (mesmo como comentario) ou usar `supabase db diff --linked` para gerar reversos.
+
+---
+
+### 5.3 Breaking Changes
+
+| Migration | Mudanca | Impacto |
+|-----------|---------|---------|
+| 20260220100000 | DROP TABLE crm_companies | Frontend que referenciava empresas precisou ser atualizado |
+| 20260227220048 | DROP COLUMN deals.tags, deals.custom_fields | Frontend que lia tags/custom_fields de deals precisou migrar para contacts |
+| 20260224000005 | profiles.name -> first_name | Trigger atualizado, mas queries diretas em name podem retornar dados antigos |
+
+---
+
+## 6. Debitos Tecnicos Consolidados
+
+### CRITICAL (3)
+
+| ID | Descricao | Tabela/Funcao | Risco |
+|----|-----------|---------------|-------|
+| SEC-03 | `notify_deal_stage_changed()` referencia tabelas inexistentes | Function | Webhooks outbound completamente quebrados |
+| INT-01 | deals.board_id FK sem ON DELETE | deals | Orfaos e erros de integridade |
+| MIG-01 | Migration coderabbit introduziu bug de tabela inexistente | Migration 24 | Mesmo que SEC-03 |
+
+### HIGH (7)
+
+| ID | Descricao | Tabela/Funcao | Risco |
+|----|-----------|---------------|-------|
+| SEC-01 | `ai_suggestion_interactions` RLS permissiva | ai_suggestion_interactions | Cross-user data access |
+| SEC-04 | `merge_contacts()` DEFINER sem validacao de org | Function | Cross-tenant merge |
+| INT-02 | deals.stage_id FK sem ON DELETE | deals | Orfaos |
+| DES-07 | Naming inconsistente em webhook tables (bug) | Functions | Confusao + SEC-03 |
+| PERF-06 | N+1 deals -> contacts no kanban | Schema design | Performance |
+| MIG-02 | Migrations nao idempotentes | Varias | Re-run failure |
+| DES-06 | Duplicidade system_notifications vs notifications | Schema design | Confusao de dominio |
+
+### MEDIUM (14)
+
+| ID | Descricao | Tabela |
+|----|-----------|--------|
+| SEC-05 | LTV RPCs DEFINER sem validacao | Functions |
+| SEC-06 | RLS subquery direta em vez de helper function | contact_phones, contact_preferences, etc. |
+| SEC-07 | notifications sem DELETE policy | notifications |
+| PERF-01 | Index ausente deals(contact_id, board_id) | deals |
+| PERF-02 | Index ausente activities(org_id, date DESC) | activities |
+| PERF-03 | Index ausente deals(org_id, is_won, is_lost) | deals |
+| PERF-07 | N+1 deals -> board_stages | Schema design |
+| INT-03 | deals.contact_id FK sem ON DELETE | deals |
+| INT-04 | activities.organization_id nullable | activities |
+| INT-05 | contacts.organization_id nullable | contacts |
+| INT-12 | deals.status e stage_id coexistem (deprecated) | deals |
+| INT-13 | profiles.name e first_name coexistem (deprecated) | profiles |
+| DES-08 | VARCHAR vs TEXT inconsistente em security_alerts | security_alerts |
+| MIG-03 | notifications sem schema qualifier | Migration |
+
+### LOW (7)
+
+| ID | Descricao | Tabela |
+|----|-----------|--------|
+| SEC-02 | rate_limits RLS permissiva | rate_limits |
+| INT-06 | boards.organization_id nullable | boards |
+| INT-07 | products.price sem CHECK (>= 0) | products |
+| INT-14 | profiles.avatar e avatar_url coexistem | profiles |
+| DES-01 | contacts.tags como TEXT[] (nao FK) | contacts |
+| DES-05 | quick_scripts naming inconsistente | quick_scripts |
+| PERF-04 | Index ausente contacts(org_id, name) | contacts |
+
+---
+
+## 7. Plano de Acao Recomendado
+
+### Prioridade 1 - Imediata (CRITICAL)
+
+1. **Fix notify_deal_stage_changed()** -- Reescrever funcao usando nomes corretos de tabelas (`webhook_events_out`, `webhook_deliveries`) e campos correspondentes. Migration corretiva.
+
+2. **Adicionar ON DELETE SET NULL/CASCADE em FKs criticas** -- `deals.board_id` e `deals.stage_id` devem ter ON DELETE SET NULL para prevenir erros de constraint.
+
+### Prioridade 2 - Proxima Sprint (HIGH)
+
+3. **Restringir RLS de ai_suggestion_interactions** -- Criar policy `user_id = auth.uid()`.
+
+4. **Validar org em merge_contacts()** -- Adicionar check de que ambos contatos pertencem a org do caller.
+
+5. **Unificar system_notifications e notifications** -- Definir qual tabela e a canonica.
+
+### Prioridade 3 - Backlog (MEDIUM)
+
+6. Migrar subqueries diretas para `get_user_organization_id()` em policies.
+7. Adicionar NOT NULL em organization_id das tabelas contacts, activities, boards.
+8. Adicionar indexes MEDIUM listados.
+9. Validar org em increment/decrement_contact_ltv().
+10. Adicionar DELETE policy em notifications (se necessario).
+11. Tornar migrations futuras idempotentes (IF NOT EXISTS).
+
+### Prioridade 4 - Opcional (LOW)
+
+12. Normalizar VARCHAR -> TEXT em security_alerts.
+13. Adicionar CHECK (>= 0) em products.price.
+14. Planejar DROP de colunas deprecated (profiles.name, profiles.avatar, deals.status) com migration segura.
+15. Considerar Supabase Vault para chaves de API.
+
+---
+
+## 8. Metricas do Schema
+
+| Metrica | Valor |
+|---------|-------|
+| Total de tabelas | 36 (excluindo crm_companies removida) |
+| Tabelas com RLS | 36/36 (100%) |
+| Tabelas com soft delete | 8 (organizations, boards, contacts, deals, activities, leads + crm_companies removida) |
+| Total de indexes | ~60+ |
+| Total de functions | ~20 |
+| Total de triggers | 14 |
+| Storage buckets | 3 (avatars, audio-notes, deal-files) |
+| Realtime tables | 5 (deals, activities, contacts, board_stages, boards) |
+| SECURITY DEFINER functions | ~12 (helper, auth, api_key, ltv, merge, notify) |
+| SECURITY INVOKER functions | ~8 (deal ops, stage counts, reassign, audit, duplicate check) |
+| CHECK constraints | ~15 |
+| UNIQUE constraints | ~8 |
+| Foreign keys | ~45+ |

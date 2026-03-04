@@ -1,0 +1,57 @@
+schema: 1
+story: 'CP-2.2'
+story_title: 'Quick Actions Pós-Chamada + Templates de Notas'
+gate: PASS
+status_reason: 'Re-review: 3 MEDIUM concerns da review anterior foram corrigidos (AC2 pre-fill, AC3 date picker, AC10 entry point). 28 testes passando, typecheck/lint clean. Implementação completa.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-03-04T04:08:00Z'
+
+quality_score: 90
+expires: '2026-03-18T04:08:00Z'
+
+previous_review:
+  gate: CONCERNS
+  quality_score: 70
+  date: '2026-03-04T03:50:00Z'
+  resolved_concerns:
+    - 'AC10: NoteTemplatesManager entry point adicionado no QuickActionsPanel (admin/diretor only)'
+    - 'AC2: CreateDealModal aceita initialContactId e auto-seleciona contato via contactsService.getById'
+    - 'AC3: Datetime picker com default next business day 10h, flow 2 passos (click → picker → confirmar)'
+
+top_issues:
+  - severity: low
+    category: code
+    description: 'NoteTemplates.tsx usa raw <button> em vez de <Button> do design system'
+    recommendation: 'Substituir por <Button> para consistência — tech debt'
+    suggested_owner: dev
+    refs: ['features/prospecting/components/NoteTemplates.tsx']
+
+waiver:
+  active: false
+
+evidence:
+  tests_reviewed: 28
+  tests_added_in_fix: 5
+  risks_identified: 0
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'RLS completo (4 policies), templates text-only (sem XSS), auth verificado, role check para admin/diretor'
+  performance:
+    status: PASS
+    notes: 'staleTime 5min, índice (org_id, outcome), contactsService.getById é single fetch sob demanda'
+  reliability:
+    status: PASS
+    notes: 'Error handling em todas as ações, estados de loading, disabled states, graceful degradation no pre-fill'
+  maintainability:
+    status: PASS
+    notes: 'Padrões CP-1 seguidos, componentes focados, hooks reutilizáveis, service layer separado'
+
+recommendations:
+  future:
+    - action: 'Substituir raw <button> por <Button> em NoteTemplates.tsx'
+      refs: ['features/prospecting/components/NoteTemplates.tsx']

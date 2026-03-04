@@ -298,7 +298,8 @@ export interface DealView extends Deal {
 export interface Activity {
   id: string;
   organizationId?: OrganizationId; // Tenant FK (for RLS) - optional during migration
-  dealId: string;
+  /** ID do deal associado. Opcional para atividades sem deal (ex: prospecção). */
+  dealId?: string;
   /** ID do contato associado (opcional). Útil para tarefas sem deal. */
   contactId?: string;
   /** IDs dos contatos participantes (opcional). */
@@ -315,6 +316,35 @@ export interface Activity {
   completed: boolean;
   recurrenceType?: 'daily' | 'weekly' | 'monthly' | null;
   recurrenceEndDate?: string | null;
+  /** Structured metadata (e.g. call outcome, duration). CP-1.1 */
+  metadata?: Record<string, unknown>;
+}
+
+// =============================================================================
+// Prospecting Queue (CP-1.1)
+// =============================================================================
+
+export type ProspectingQueueStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'retry_pending' | 'exhausted';
+
+export interface ProspectingQueueItem {
+  id: string;
+  contactId: string;
+  ownerId: string;
+  organizationId: string;
+  status: ProspectingQueueStatus;
+  position: number;
+  sessionId?: string;
+  assignedBy?: string;
+  retryAt?: string;
+  retryCount: number;
+  createdAt: string;
+  updatedAt: string;
+  // Joined data
+  contactName?: string;
+  contactPhone?: string;
+  contactStage?: string;
+  contactTemperature?: string;
+  contactEmail?: string;
 }
 
 export interface DashboardStats {

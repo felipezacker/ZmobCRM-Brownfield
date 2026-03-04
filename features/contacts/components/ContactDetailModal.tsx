@@ -204,8 +204,8 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
       title: a.title,
       description: a.description,
       date: a.date,
-      dealTitle: dealsMap.get(a.dealId)?.title || '',
-      dealId: a.dealId,
+      dealTitle: (a.dealId ? dealsMap.get(a.dealId)?.title : '') || '',
+      dealId: a.dealId || '',
     }));
     const scoreEntries = scoreHistory.map((s) => {
       const sign = s.change > 0 ? '+' : '';
