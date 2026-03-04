@@ -206,7 +206,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
         </Sheet>
       )}
 
-      {/* CallModal */}
+      {/* CallModal with script guide side panel */}
       <CallModal
         isOpen={showCallModal}
         onClose={() => setShowCallModal(false)}
@@ -214,6 +214,14 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
         contactName={contact.contactName || 'Sem nome'}
         contactPhone={contact.contactPhone || ''}
         suggestedTitle={`Prospecção - ${contact.contactName || ''}`}
+        sideContent={selectedScript ? (
+          <ProspectingScriptGuide
+            script={selectedScript}
+            contact={contact}
+            markedObjections={markedObjections}
+            onObjectionsChange={setMarkedObjections}
+          />
+        ) : undefined}
       />
     </div>
   )
