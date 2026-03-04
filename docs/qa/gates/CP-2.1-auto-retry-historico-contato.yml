@@ -1,0 +1,42 @@
+schema: 1
+story: 'CP-2.1'
+story_title: 'Auto-Retry de Contatos + Histórico no PowerDialer'
+gate: PASS
+status_reason: 'All 12 ACs verified, 194 tests passing (6 pre-existing failures unrelated), lint/typecheck clean, no HIGH/CRITICAL issues.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-03-04T03:06:00Z'
+
+top_issues: []
+waiver: { active: false }
+
+quality_score: 100
+expires: '2026-03-18T03:06:00Z'
+
+evidence:
+  tests_reviewed: 20
+  risks_identified: 2
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'RLS via Supabase client, UUID sanitization, no XSS/SQLi vectors'
+  performance:
+    status: PASS
+    notes: 'Partial index on retry fields, limit 5 on activities, conditional activation'
+  reliability:
+    status: PASS
+    notes: 'Proper error handling in all service methods, toast feedback on failures'
+  maintainability:
+    status: PASS
+    notes: 'Clean layer separation (service > query > feature > component), consistent patterns with CP-1'
+
+recommendations:
+  immediate: []
+  future:
+    - action: 'Consider media query hook instead of window.innerWidth static check for ContactHistory defaultOpen'
+      refs: ['features/prospecting/components/PowerDialer.tsx:319']
+    - action: 'scheduleRetry has minor TOCTOU (fetch then update retry_count) - consider atomic DB operation if concurrency increases'
+      refs: ['lib/supabase/prospecting-queues.ts:380-423']

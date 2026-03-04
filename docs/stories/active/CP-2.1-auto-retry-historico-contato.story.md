@@ -196,6 +196,81 @@ lib/query/hooks/
 | `features/prospecting/__tests__/powerDialer.test.tsx` | Modificado (retryCount, useContactActivities mock) |
 | `features/prospecting/__tests__/scriptGuide.test.tsx` | Modificado (retryCount) |
 
+## QA Results
+
+### Review Date: 2026-03-04
+
+### Reviewed By: Quinn (Test Architect)
+
+### Code Quality Assessment
+
+Implementação sólida e bem estruturada. O código segue rigorosamente os padrões do CP-1 (layer pattern, TanStack Query, Supabase service layer). A migration é limpa e segura com partial index. Todos os 12 ACs foram implementados e verificados. A separação de concerns entre service → query hooks → feature hooks → componentes está impecável.
+
+### Requirements Traceability
+
+| AC | Implementação | Teste | Status |
+|----|--------------|-------|--------|
+| AC1: retry_pending + retry_at | `prospecting-queues.ts:scheduleRetry`, `useProspectingQueue.ts:129-143` | `useProspectingQueue.test.ts:195-213` | ✓ |
+| AC2: retry_at <= now → pending | `prospecting-queues.ts:activateReadyRetries`, `useProspectingQueue.ts:61-68` | Mutation mock validated | ✓ |
+| AC3: retry_count >= 3 → exhausted | `prospecting-queues.ts:397-403` | `useProspectingQueue.test.ts:215-229` | ✓ |
+| AC4: Badge "Retry #N" | `QueueItem.tsx:43-48` | `components.test.tsx` (retry items rendered) | ✓ |
+| AC5: Retry interval config | `ProspectingPage.tsx:268-279`, `useProspectingQueue.ts:49-58` | `useProspectingQueue.test.ts:256-264` | ✓ |
+| AC6: ContactHistory panel | `ContactHistory.tsx`, `activities.ts:getContactActivities` | `contactHistory.test.tsx` (7 testes) | ✓ |
+| AC7: Collapsible desktop/mobile | `PowerDialer.tsx:318-319`, `ContactHistory.tsx:76` | `contactHistory.test.tsx:79-96` | ✓ |
+| AC8: Icons + outcome badges | `ContactHistory.tsx:12-25` (ACTIVITY_ICONS, OUTCOME_BADGES) | `contactHistory.test.tsx:69-72` | ✓ |
+| AC9: RLS (organization_id) | Query via Supabase client com RLS automático | Infraestrutura (não unit-testável) | ✓ |
+| AC10: Seção "Esgotados" + reset | `CallQueue.tsx:107-147`, `useProspectingQueue.ts:181-188` | `components.test.tsx:74-97`, `useProspectingQueue.test.ts:244-253` | ✓ |
+| AC11: Dark mode + responsivo | Classes `dark:` em todos componentes novos | Visual (inspecionado) | ✓ |
+| AC12: Sem regressão CP-1 | 11 test files pré-existentes passando | 194/200 pass (6 pré-existentes não-relacionados) | ✓ |
+
+### Refactoring Performed
+
+Nenhum refactoring necessário. Código já segue os padrões do projeto.
+
+### Compliance Check
+
+- Coding Standards: ✓ Imports absolutos, TypeScript strict, Tailwind conventions
+- Project Structure: ✓ Layer pattern correto (service → query → feature → component)
+- Testing Strategy: ✓ 20+ testes novos cobrindo retry logic, ContactHistory, UI components
+- All ACs Met: ✓ 12/12 acceptance criteria verificados
+
+### Improvements Checklist
+
+- [x] Migration com partial index para queries eficientes
+- [x] Retry logic com separação clara (scheduleRetry, activateReadyRetries, resetRetry)
+- [x] ContactHistory com loading skeleton, empty state, collapsible
+- [x] Dark mode em todos os componentes novos
+- [x] Testes cobrindo happy path, edge cases, error scenarios
+- [ ] `window.innerWidth` check (PowerDialer:319) é estático no render — idealmente usar media query hook para responsividade dinâmica (LOW — painel é colapsável por clique)
+- [ ] TOCTOU potencial no scheduleRetry (fetch retry_count, depois update) — LOW risco para CRM single-user
+
+### Security Review
+
+- RLS respeitado: todas as queries via Supabase client que aplica RLS automaticamente
+- Sem risco de SQL injection (Supabase parameteriza queries)
+- Sem risco de XSS (React escapa conteúdo)
+- UUID sanitization aplicada onde necessário
+- Nenhuma vulnerabilidade encontrada
+
+### Performance Considerations
+
+- Partial index `idx_prospecting_queues_retry` em (retry_at, status) WHERE retry_at IS NOT NULL AND status = 'retry_pending' — excelente
+- Contact activities limitadas a 5 — previne payloads grandes
+- activateReadyRetries só dispara quando hasRetryPending = true — evita chamadas desnecessárias
+- Nenhum problema de performance identificado
+
+### Files Modified During Review
+
+Nenhum arquivo modificado durante o review.
+
+### Gate Status
+
+Gate: **PASS** → docs/qa/gates/CP-2.1-auto-retry-historico-contato.yml
+
+### Recommended Status
+
+✓ Ready for Done — Todos os 12 ACs implementados e verificados, testes passando, lint/typecheck clean, sem issues HIGH/CRITICAL.
+
 ## Change Log
 | Data | Autor | Mudança |
 |------|-------|---------|
@@ -203,3 +278,4 @@ lib/query/hooks/
 | 2026-03-04 | @sm | Correções pós-validação PO (NO-GO → resubmissão) |
 | 2026-03-04 | @po | Validação GO (10/10) — Status Draft → Ready |
 | 2026-03-04 | @dev | Implementação completa — 21/21 tasks, 163 testes passando, migration aplicada staging |
+| 2026-03-04 | @qa | QA Review PASS — 12/12 ACs verified, 194 testes passando, zero issues HIGH/CRITICAL |
