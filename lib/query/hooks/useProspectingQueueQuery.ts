@@ -42,12 +42,33 @@ export const useAddToProspectingQueue = () => {
       if (error) throw error
       return data as ProspectingQueueItem
     },
+    onMutate: async ({ contactId }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+
+      // Snapshot contactIds caches for rollback
+      const contactIdsSnapshot = queryClient.getQueriesData<string[]>({
+        queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'],
+      })
+
+      // Optimistically add contactId to ALL contactIds caches (covers all ownerId variants)
+      queryClient.setQueriesData<string[]>(
+        { queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'] },
+        (old) => old ? [...old, contactId] : [contactId]
+      )
+
+      return { contactIdsSnapshot }
+    },
     onSuccess: (newItem) => {
       // Append new item to ALL list caches (prefix match covers filtered queries)
       queryClient.setQueriesData<ProspectingQueueItem[]>(
         { queryKey: queryKeys.prospectingQueue.lists() },
         (old) => old ? [...old, newItem] : [newItem]
       )
+    },
+    onError: (_error, _vars, context) => {
+      context?.contactIdsSnapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
     },
     onSettled: () => {
       // Background sync with server to ensure consistency
@@ -110,6 +131,11 @@ export const useRemoveFromQueue = () => {
         queryKey: queryKeys.prospectingQueue.lists(),
       })
 
+      // Snapshot contactIds caches for rollback
+      const contactIdsSnapshot = queryClient.getQueriesData<string[]>({
+        queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'],
+      })
+
       // Find the contact to remove (search across all cached lists)
       let contactToRemove: ProspectingQueueItem | undefined
       for (const [, data] of snapshot) {
@@ -123,7 +149,7 @@ export const useRemoveFromQueue = () => {
         (old) => old ? old.filter(item => item.id !== id) : old
       )
 
-      // Also remove from contactIds cache for badge consistency
+      // Remove from ALL contactIds caches (prefix match — covers all ownerId variants)
       if (contactToRemove) {
         queryClient.setQueriesData<string[]>(
           { queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'] },
@@ -131,11 +157,14 @@ export const useRemoveFromQueue = () => {
         )
       }
 
-      return { snapshot }
+      return { snapshot, contactIdsSnapshot }
     },
     onError: (_error, _id, context) => {
       // Rollback all queries to snapshot
       context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+      context?.contactIdsSnapshot?.forEach(([key, data]) => {
         queryClient.setQueryData(key, data)
       })
     },
@@ -170,6 +199,35 @@ export const useAddBatchToProspectingQueue = () => {
       const { data, error } = await prospectingQueuesService.addBatchToQueue(contactIds, targetOwnerId)
       if (error) throw error
       return data!
+    },
+    onMutate: async ({ contactIds }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+
+      // Snapshot list and contactIds caches for rollback
+      const listSnapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+      const contactIdsSnapshot = queryClient.getQueriesData<string[]>({
+        queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'],
+      })
+
+      // Optimistically add all contactIds to ALL contactIds caches (covers all ownerId variants)
+      queryClient.setQueriesData<string[]>(
+        { queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'] },
+        (old) => old ? [...old, ...contactIds] : [...contactIds]
+      )
+
+      return { listSnapshot, contactIdsSnapshot }
+    },
+    onError: (_error, _vars, context) => {
+      // Rollback list cache
+      context?.listSnapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+      // Rollback contactIds cache
+      context?.contactIdsSnapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
     },
     onSuccess: () => {
       // Force immediate refetch of queue list for instant UI update
@@ -275,16 +333,30 @@ export const useClearAllQueue = () => {
         queryKey: queryKeys.prospectingQueue.lists(),
       })
 
+      // Snapshot contactIds caches for rollback
+      const contactIdsSnapshot = queryClient.getQueriesData<string[]>({
+        queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'],
+      })
+
       // Optimistically clear ALL list caches
       queryClient.setQueriesData<ProspectingQueueItem[]>(
         { queryKey: queryKeys.prospectingQueue.lists() },
         () => []
       )
 
-      return { snapshot }
+      // Optimistically clear ALL contactIds caches so badges disappear immediately
+      queryClient.setQueriesData<string[]>(
+        { queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'] },
+        () => []
+      )
+
+      return { snapshot, contactIdsSnapshot }
     },
     onError: (_error, _vars, context) => {
       context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+      context?.contactIdsSnapshot?.forEach(([key, data]) => {
         queryClient.setQueryData(key, data)
       })
     },
