@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-1.3
 - **Epic:** CP (Central de Prospeccao)
-- **Status:** InProgress
+- **Status:** Ready for Review
 - **Owner:** (unassigned)
 - **Executor:** @dev
 - **Quality Gate:** @architect
@@ -140,7 +140,7 @@ Permitir ao corretor filtrar contatos por criterios avancados (stage, temperatur
 | supabase/migrations/20260303210000_rpc_prospecting_filtered_contacts.sql | New | RPC com RBAC e filtros server-side |
 | features/prospecting/__tests__/prospectingFilters.test.tsx | New | 19 testes de filtros |
 | features/prospecting/__tests__/filteredContactsList.test.tsx | New | 18 testes de lista/selecao |
-| features/prospecting/__tests__/useProspectingFilteredContacts.test.ts | New | 7 testes do hook |
+| features/prospecting/__tests__/useProspectingFilteredContacts.test.ts | New | 10 testes do hook |
 
 ## Definition of Done
 
@@ -161,3 +161,5 @@ Permitir ao corretor filtrar contatos por criterios avancados (stage, temperatur
 | 2026-03-03 | @pm (Morgan) | Decisao: tabela DB `prospecting_queues` para atribuicao cross-user |
 | 2026-03-03 | @data-engineer (Dara) | Review DB: RBAC org-wide (sem team_id), corrigir referências "equipe" para "org" |
 | 2026-03-03 | @dev (Dex) | Implementação completa: 8 arquivos novos/modificados, 44 testes, RPC com RBAC |
+| 2026-03-03 | @dev (Dex) | UX melhorias: ordenação phone-first, filtro "Só com telefone", select-all cross-page, 97 testes total |
+| 2026-03-03 | @dev (Dex) | Status → Ready for Review |
