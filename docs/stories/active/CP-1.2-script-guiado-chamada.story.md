@@ -117,14 +117,15 @@ Evoluir o sistema de scripts (ScriptEditorModal) para exibir um guia interativo 
 
 | File | Status | Notes |
 |------|--------|-------|
-| features/prospecting/components/ScriptSelector.tsx | New | Seletor pre-sessao com useQuickScripts |
+| features/prospecting/components/ScriptSelector.tsx | Deleted | Substituido por dropdown inline no PowerDialer |
 | features/prospecting/components/ProspectingScriptGuide.tsx | New | Painel de script guiado com secoes, copiar, objecoes |
 | features/prospecting/utils/scriptParser.ts | New | parseScriptSections + substituteVariables + cleanUnresolvedVariables + buildContactVariables |
-| features/prospecting/components/PowerDialer.tsx | Modified | Integrar ScriptGuide (desktop side panel + mobile Sheet) |
+| features/prospecting/components/PowerDialer.tsx | Modified | Integrar ScriptGuide, keyboard shortcuts, session stats, Escape handler |
 | features/prospecting/ProspectingPage.tsx | Modified | Adicionar ScriptSelector pre-sessao + estado selectedScript |
 | features/prospecting/__tests__/scriptParser.test.ts | New | 14 testes para parser, variaveis e cleanUnresolved |
-| features/prospecting/__tests__/scriptGuide.test.tsx | New | 15 testes para ScriptGuide, ScriptSelector, objecoes por categoria |
-| docs/qa/QA_FIX_REQUEST_CP-1.2.md | New | QA fix request com 3 issues LOW resolvidas |
+| features/prospecting/__tests__/scriptGuide.test.tsx | Modified | 9 testes para ScriptGuide e objecoes (ScriptSelector tests removidos) |
+| features/prospecting/__tests__/powerDialer.test.tsx | New | 21 testes para shortcuts, dropdown, stats chips, preview, purple dot |
+| docs/qa/QA_FIX_REQUEST_CP-1.2-UX.md | New | QA fix request UX com 4 issues resolvidas |
 
 ## Definition of Done
 
