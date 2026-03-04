@@ -4,7 +4,7 @@
  * Layer pattern: features/{name}/hooks/ - UI logic + state management
  * Calls: lib/query/hooks/useProspectingQueueQuery.ts
  */
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useToast } from '@/context/ToastContext'
 import {
   useProspectingQueueItems,
@@ -57,15 +57,17 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     localStorage.setItem(RETRY_INTERVAL_KEY, String(days))
   }, [])
 
-  // CP-2.1: Activate ready retries on queue load
+  // CP-2.1: Activate ready retries on queue load (run only once)
+  const hasActivatedRetries = useRef(false)
   useEffect(() => {
-    if (!isLoading && rawQueue.length > 0) {
+    if (!isLoading && rawQueue.length > 0 && !hasActivatedRetries.current) {
       const hasRetryPending = rawQueue.some(item => item.status === 'retry_pending')
       if (hasRetryPending) {
+        hasActivatedRetries.current = true
         activateRetriesMutation.mutate(effectiveOwnerId)
       }
     }
-  }, [isLoading, rawQueue.length, activateRetriesMutation, effectiveOwnerId])
+  }, [isLoading, rawQueue, activateRetriesMutation, effectiveOwnerId])
 
   // Sort by position, keep consistent — exclude exhausted from main queue
   const queue = useMemo(
