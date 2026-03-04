@@ -40,7 +40,15 @@ export const useAddToProspectingQueue = () => {
       if (error) throw error
       return data as ProspectingQueueItem
     },
-    onSuccess: () => {
+    onSuccess: (newItem) => {
+      // Immediately append new item to cached list for instant UI update
+      queryClient.setQueryData<ProspectingQueueItem[]>(
+        queryKeys.prospectingQueue.lists(),
+        (old = []) => [...old, newItem]
+      )
+    },
+    onSettled: () => {
+      // Background sync with server to ensure consistency
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
     },
   })
@@ -86,21 +94,35 @@ export const useRemoveFromQueue = () => {
       return id
     },
     onMutate: async (id) => {
+      // Cancel in-flight fetches to prevent them overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
-      const previous = queryClient.getQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists())
 
+      const previousList = queryClient.getQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists())
+
+      // Optimistically remove item from list cache
       queryClient.setQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists(), (old = []) =>
         old.filter(item => item.id !== id)
       )
 
-      return { previous }
+      // Also remove from contactIds cache for badge consistency
+      const contactToRemove = previousList?.find(item => item.id === id)
+      if (contactToRemove) {
+        queryClient.setQueriesData<string[]>(
+          { queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'] },
+          (old = []) => old.filter(cid => cid !== contactToRemove.contactId)
+        )
+      }
+
+      return { previousList }
     },
     onError: (_error, _id, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKeys.prospectingQueue.lists(), context.previous)
+      // Rollback on error
+      if (context?.previousList) {
+        queryClient.setQueryData(queryKeys.prospectingQueue.lists(), context.previousList)
       }
     },
     onSettled: () => {
+      // Sync with server after mutation completes (success or error)
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
     },
   })
@@ -132,6 +154,9 @@ export const useAddBatchToProspectingQueue = () => {
       return data!
     },
     onSuccess: () => {
+      // Force immediate refetch of queue list for instant UI update
+      queryClient.refetchQueries({ queryKey: queryKeys.prospectingQueue.lists() })
+      // Also invalidate all related queries (contactIds, etc.)
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
     },
   })
