@@ -224,26 +224,25 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
           />
         </div>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Telefone</label>
-          <label
-            className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-colors ${
-              filters.onlyWithPhone
-                ? 'bg-teal-500/10 border-teal-500/30 text-teal-400'
-                : 'bg-white border-slate-200 hover:border-slate-300 dark:bg-black/20 dark:border-white/10 dark:hover:border-white/20 text-slate-500 dark:text-slate-400'
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={filters.onlyWithPhone}
-              onChange={(e) => onFiltersChange({ ...filters, onlyWithPhone: e.target.checked })}
-              className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
-            />
-            <Phone size={13} />
-            <span className="text-sm font-medium whitespace-nowrap">Apenas com</span>
-          </label>
-        </div>
       </div>
+
+      {/* Row 5: Phone toggle */}
+      <label
+        className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+          filters.onlyWithPhone
+            ? 'bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30'
+            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 dark:bg-black/20 dark:text-slate-400 dark:border-white/10 dark:hover:border-white/20'
+        }`}
+      >
+        <input
+          type="checkbox"
+          className="sr-only"
+          checked={filters.onlyWithPhone}
+          onChange={(e) => onFiltersChange({ ...filters, onlyWithPhone: e.target.checked })}
+        />
+        <Phone size={12} />
+        Só com telefone
+      </label>
     </div>
   )
 }
