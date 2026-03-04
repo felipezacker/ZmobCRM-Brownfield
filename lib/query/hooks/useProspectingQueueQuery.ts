@@ -12,15 +12,17 @@ import type { ProspectingQueueItem, ProspectingQueueStatus } from '@/types'
 
 // ============ QUERY HOOKS ============
 
-export const useProspectingQueueItems = (sessionId?: string) => {
+export const useProspectingQueueItems = (sessionId?: string, ownerId?: string) => {
   const { user, loading: authLoading } = useAuth()
 
   return useQuery({
     queryKey: sessionId
-      ? queryKeys.prospectingQueue.list({ sessionId })
-      : queryKeys.prospectingQueue.lists(),
+      ? queryKeys.prospectingQueue.list({ sessionId, ownerId })
+      : ownerId
+        ? queryKeys.prospectingQueue.list({ ownerId })
+        : queryKeys.prospectingQueue.lists(),
     queryFn: async () => {
-      const { data, error } = await prospectingQueuesService.getQueue(sessionId)
+      const { data, error } = await prospectingQueuesService.getQueue(sessionId, ownerId)
       if (error) throw error
       return data || []
     },
@@ -187,6 +189,31 @@ export const useClearCompletedQueue = () => {
       if (error) throw error
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
+    },
+  })
+}
+
+export const useClearAllQueue = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (ownerId?: string) => {
+      const { error } = await prospectingQueuesService.clearAll(ownerId)
+      if (error) throw error
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+      const previousList = queryClient.getQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists())
+      queryClient.setQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists(), [])
+      return { previousList }
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previousList) {
+        queryClient.setQueryData(queryKeys.prospectingQueue.lists(), context.previousList)
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
     },
   })

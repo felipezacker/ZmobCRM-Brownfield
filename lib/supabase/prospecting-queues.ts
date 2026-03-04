@@ -89,7 +89,7 @@ export const prospectingQueuesService = {
   /**
    * Get all queue items for the current user's active session (or all pending).
    */
-  async getQueue(sessionId?: string): Promise<{ data: ProspectingQueueItem[] | null; error: Error | null }> {
+  async getQueue(sessionId?: string, ownerId?: string): Promise<{ data: ProspectingQueueItem[] | null; error: Error | null }> {
     try {
       const sb = supabase;
       if (!sb) return { data: null, error: new Error('Supabase não configurado') };
@@ -110,6 +110,10 @@ export const prospectingQueuesService = {
 
       if (sessionId) {
         query = query.eq('session_id', sessionId);
+      }
+
+      if (ownerId) {
+        query = query.eq('owner_id', ownerId);
       }
 
       const { data, error } = await query;
@@ -233,6 +237,31 @@ export const prospectingQueuesService = {
         .delete()
         .eq('owner_id', user.id)
         .in('status', ['completed', 'skipped']);
+
+      return { error };
+    } catch (e) {
+      return { error: e as Error };
+    }
+  },
+
+  /**
+   * Clear ALL items from queue for a specific owner (or current user).
+   * Used by "Limpar fila" action.
+   */
+  async clearAll(ownerId?: string): Promise<{ error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { error: new Error('Supabase não configurado') };
+
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return { error: new Error('Usuário não autenticado') };
+
+      const targetOwnerId = ownerId || user.id;
+
+      const { error } = await sb
+        .from('prospecting_queues')
+        .delete()
+        .eq('owner_id', targetOwnerId);
 
       return { error };
     } catch (e) {

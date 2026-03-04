@@ -12,18 +12,24 @@ import {
   useUpdateQueueItemStatus,
   useRemoveFromQueue,
   useStartProspectingSession,
+  useClearAllQueue,
 } from '@/lib/query/hooks/useProspectingQueueQuery'
 import type { ProspectingQueueItem } from '@/types'
 
-export const useProspectingQueue = () => {
+interface UseProspectingQueueOptions {
+  viewOwnerId?: string
+}
+
+export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
   const [sessionActive, setSessionActive] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [sessionId, setSessionId] = useState<string | undefined>()
 
-  const { data: rawQueue = [], isLoading, refetch } = useProspectingQueueItems()
+  const { data: rawQueue = [], isLoading, refetch } = useProspectingQueueItems(undefined, options?.viewOwnerId)
   const addMutation = useAddToProspectingQueue()
   const updateStatusMutation = useUpdateQueueItemStatus()
   const removeMutation = useRemoveFromQueue()
+  const clearAllMutation = useClearAllQueue()
   const startSessionMutation = useStartProspectingSession()
   const { addToast, showToast } = useToast()
   const toast = addToast || showToast
@@ -108,12 +114,22 @@ export const useProspectingQueue = () => {
     }
   }, [removeMutation, toast])
 
+  const clearQueue = useCallback(async () => {
+    try {
+      await clearAllMutation.mutateAsync(options?.viewOwnerId)
+      toast('Fila limpa com sucesso', 'success')
+    } catch {
+      toast('Erro ao limpar fila', 'error')
+    }
+  }, [clearAllMutation, options?.viewOwnerId, toast])
+
   return {
     queue,
     currentIndex,
     sessionActive,
     sessionId,
     isLoading,
+    isClearingQueue: clearAllMutation.isPending,
     startSession,
     endSession,
     next,
@@ -121,6 +137,7 @@ export const useProspectingQueue = () => {
     markCompleted,
     addToQueue,
     removeFromQueue,
+    clearQueue,
     refetch,
   }
 }

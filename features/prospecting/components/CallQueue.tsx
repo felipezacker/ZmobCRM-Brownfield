@@ -1,5 +1,6 @@
-import React from 'react'
-import { ListOrdered } from 'lucide-react'
+import React, { useState } from 'react'
+import { ListOrdered, Trash2 } from 'lucide-react'
+import { Button } from '@/app/components/ui/Button'
 import { QueueItem } from './QueueItem'
 import type { ProspectingQueueItem } from '@/types'
 
@@ -7,9 +8,14 @@ interface CallQueueProps {
   items: ProspectingQueueItem[]
   isLoading: boolean
   onRemove: (id: string) => void
+  onClearAll?: () => void
+  isClearing?: boolean
+  ownerName?: string
 }
 
-export const CallQueue: React.FC<CallQueueProps> = ({ items, isLoading, onRemove }) => {
+export const CallQueue: React.FC<CallQueueProps> = ({ items, isLoading, onRemove, onClearAll, isClearing, ownerName }) => {
+  const [confirmClear, setConfirmClear] = useState(false)
+
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -34,16 +40,64 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, isLoading, onRemove
     )
   }
 
+  const pendingCount = items.filter(i => i.status === 'pending').length
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between px-1">
         <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-          Fila de Prospecção
+          {ownerName ? `Fila de ${ownerName}` : 'Fila de Prospecção'}
         </h2>
-        <span className="text-xs text-slate-400">
-          {items.filter(i => i.status === 'pending').length} pendente{items.filter(i => i.status === 'pending').length !== 1 ? 's' : ''}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-400">
+            {pendingCount} pendente{pendingCount !== 1 ? 's' : ''}
+          </span>
+          {onClearAll && !confirmClear && (
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              type="button"
+              onClick={() => setConfirmClear(true)}
+              disabled={isClearing}
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
+            >
+              <Trash2 size={12} />
+              Limpar
+            </Button>
+          )}
+        </div>
       </div>
+
+      {confirmClear && (
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg">
+          <span className="text-xs text-red-600 dark:text-red-400 flex-1">
+            Remover todos os {items.length} contatos da fila?
+          </span>
+          <Button
+            variant="unstyled"
+            size="unstyled"
+            type="button"
+            onClick={() => {
+              onClearAll?.()
+              setConfirmClear(false)
+            }}
+            disabled={isClearing}
+            className="px-3 py-1 rounded-md text-xs font-medium bg-red-500 hover:bg-red-600 text-white transition-colors disabled:opacity-50"
+          >
+            {isClearing ? 'Limpando...' : 'Confirmar'}
+          </Button>
+          <Button
+            variant="unstyled"
+            size="unstyled"
+            type="button"
+            onClick={() => setConfirmClear(false)}
+            className="px-3 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          >
+            Cancelar
+          </Button>
+        </div>
+      )}
+
       {items.map(item => (
         <QueueItem key={item.id} item={item} onRemove={onRemove} />
       ))}

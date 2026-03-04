@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, Eye } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/app/components/ui/Button'
 import { CallQueue } from './components/CallQueue'
@@ -71,11 +71,15 @@ export const ProspectingPage: React.FC = () => {
   const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles)
   const { invalidateMetrics, isAdminOrDirector } = metricsHook
 
+  // Queue owner view: admin/director can see other corretors' queues
+  const [viewQueueOwnerId, setViewQueueOwnerId] = useState<string>('')
+
   const {
     queue,
     currentIndex,
     sessionActive,
     isLoading,
+    isClearingQueue,
     startSession,
     endSession,
     next,
@@ -83,8 +87,9 @@ export const ProspectingPage: React.FC = () => {
     markCompleted,
     addToQueue,
     removeFromQueue,
+    clearQueue,
     refetch,
-  } = useProspectingQueue()
+  } = useProspectingQueue({ viewOwnerId: viewQueueOwnerId || undefined })
 
   // CP-1.3: Filtered contacts
   const filteredContacts = useProspectingFilteredContacts()
@@ -451,11 +456,34 @@ export const ProspectingPage: React.FC = () => {
               </div>
             )}
 
+            {/* Admin/Director: view queue by owner */}
+            {isAdminOrDirector && (
+              <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-slate-700/50 rounded-xl">
+                <Eye size={16} className="text-slate-400 shrink-0" />
+                <span className="text-sm text-slate-600 dark:text-slate-300 font-medium">
+                  Ver fila de:
+                </span>
+                <select
+                  className="bg-white dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-teal-500 dark:text-white"
+                  value={viewQueueOwnerId}
+                  onChange={(e) => setViewQueueOwnerId(e.target.value)}
+                >
+                  <option value="">Minha fila</option>
+                  {profiles.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <AddToQueueSearch onAdd={addToQueue} />
             <CallQueue
               items={queue}
               isLoading={isLoading}
               onRemove={removeFromQueue}
+              onClearAll={clearQueue}
+              isClearing={isClearingQueue}
+              ownerName={viewQueueOwnerId ? profiles.find(p => p.id === viewQueueOwnerId)?.name : undefined}
             />
           </div>
         )}
