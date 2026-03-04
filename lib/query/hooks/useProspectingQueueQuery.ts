@@ -43,10 +43,10 @@ export const useAddToProspectingQueue = () => {
       return data as ProspectingQueueItem
     },
     onSuccess: (newItem) => {
-      // Immediately append new item to cached list for instant UI update
-      queryClient.setQueryData<ProspectingQueueItem[]>(
-        queryKeys.prospectingQueue.lists(),
-        (old = []) => [...old, newItem]
+      // Append new item to ALL list caches (prefix match covers filtered queries)
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => old ? [...old, newItem] : [newItem]
       )
     },
     onSettled: () => {
@@ -67,18 +67,24 @@ export const useUpdateQueueItemStatus = () => {
     },
     onMutate: async ({ id, status }) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
-      const previous = queryClient.getQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists())
 
-      queryClient.setQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists(), (old = []) =>
-        old.map(item => (item.id === id ? { ...item, status } : item))
+      // Snapshot ALL list queries for rollback (covers filtered keys like list({ ownerId }))
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+
+      // Optimistically update ALL list caches (prefix match)
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => old ? old.map(item => (item.id === id ? { ...item, status } : item)) : old
       )
 
-      return { previous }
+      return { snapshot }
     },
     onError: (_error, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKeys.prospectingQueue.lists(), context.previous)
-      }
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
@@ -99,29 +105,39 @@ export const useRemoveFromQueue = () => {
       // Cancel in-flight fetches to prevent them overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
 
-      const previousList = queryClient.getQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists())
+      // Snapshot ALL list queries for rollback (covers filtered keys like list({ ownerId }))
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
 
-      // Optimistically remove item from list cache
-      queryClient.setQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists(), (old = []) =>
-        old.filter(item => item.id !== id)
+      // Find the contact to remove (search across all cached lists)
+      let contactToRemove: ProspectingQueueItem | undefined
+      for (const [, data] of snapshot) {
+        contactToRemove = data?.find(item => item.id === id)
+        if (contactToRemove) break
+      }
+
+      // Optimistically remove item from ALL list caches (prefix match)
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => old ? old.filter(item => item.id !== id) : old
       )
 
       // Also remove from contactIds cache for badge consistency
-      const contactToRemove = previousList?.find(item => item.id === id)
       if (contactToRemove) {
         queryClient.setQueriesData<string[]>(
           { queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'] },
-          (old = []) => old.filter(cid => cid !== contactToRemove.contactId)
+          (old) => old ? old.filter(cid => cid !== contactToRemove!.contactId) : old
         )
       }
 
-      return { previousList }
+      return { snapshot }
     },
     onError: (_error, _id, context) => {
-      // Rollback on error
-      if (context?.previousList) {
-        queryClient.setQueryData(queryKeys.prospectingQueue.lists(), context.previousList)
-      }
+      // Rollback all queries to snapshot
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
     },
     onSettled: () => {
       // Sync with server after mutation completes (success or error)
@@ -253,14 +269,24 @@ export const useClearAllQueue = () => {
     },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
-      const previousList = queryClient.getQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists())
-      queryClient.setQueryData<ProspectingQueueItem[]>(queryKeys.prospectingQueue.lists(), [])
-      return { previousList }
+
+      // Snapshot ALL list queries for rollback
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+
+      // Optimistically clear ALL list caches
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        () => []
+      )
+
+      return { snapshot }
     },
     onError: (_error, _vars, context) => {
-      if (context?.previousList) {
-        queryClient.setQueryData(queryKeys.prospectingQueue.lists(), context.previousList)
-      }
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
