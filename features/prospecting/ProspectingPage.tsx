@@ -43,11 +43,33 @@ export const ProspectingPage: React.FC = () => {
   const isAdminOrDirector = profile?.role === 'admin' || profile?.role === 'diretor'
   const { tags: availableTags } = useTags()
 
+  // Org profiles for owner filter + director assignment + metrics ranking
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      if (!supabase) return []
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, name, first_name, avatar_url, role')
+        .order('name')
+      return (data || []).map(p => ({
+        id: p.id,
+        name: p.name || p.first_name || 'Sem nome',
+        avatar: p.avatar_url || undefined,
+        role: p.role as string,
+      }))
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
   // CP-1.4: Tab state + metrics
   const [activeTab, setActiveTab] = useState<PageTab>('queue')
   const [metricsPeriod, setMetricsPeriod] = useState<MetricsPeriod>('7d')
   const [customRange, setCustomRange] = useState<PeriodRange | undefined>()
-  const metricsHook = useProspectingMetrics(metricsPeriod, customRange)
+  // CP-1.4: Metrics hook receives profiles to avoid duplicate query (M2 fix)
+  // invalidateMetrics is stable via useCallback inside hook (H1 fix)
+  const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles)
+  const { invalidateMetrics } = metricsHook
 
   const {
     queue,
@@ -79,25 +101,6 @@ export const ProspectingPage: React.FC = () => {
   const effectiveOwnerId = assignToOwnerId || undefined
   const { data: queueContactIds = [] } = useQueueContactIds(effectiveOwnerId)
   const queueContactIdsSet = useMemo(() => new Set(queueContactIds), [queueContactIds])
-
-  // Org profiles for owner filter + director assignment
-  const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
-    queryFn: async () => {
-      if (!supabase) return []
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, name, first_name, avatar_url, role')
-        .order('name')
-      return (data || []).map(p => ({
-        id: p.id,
-        name: p.name || p.first_name || 'Sem nome',
-        avatar: p.avatar_url || undefined,
-        role: p.role as string,
-      }))
-    },
-    staleTime: 5 * 60 * 1000,
-  })
 
   const [showSummary, setShowSummary] = useState(false)
   const [selectedScript, setSelectedScript] = useState<QuickScript | null>(null)
@@ -151,8 +154,8 @@ export const ProspectingPage: React.FC = () => {
     }))
     markCompleted(outcome)
     // CP-1.4: Invalidate metrics after call registered
-    metricsHook.invalidateMetrics()
-  }, [markCompleted, metricsHook])
+    invalidateMetrics()
+  }, [markCompleted, invalidateMetrics])
 
   // CP-1.3: Apply filters handler
   const handleApplyFilters = useCallback(() => {

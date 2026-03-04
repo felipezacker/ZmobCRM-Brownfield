@@ -1,0 +1,59 @@
+storyId: CP-1.4
+verdict: CONCERNS
+reviewer: "@qa (Quinn)"
+date: "2026-03-03"
+summary: >
+  Todos os 10 ACs funcionalmente atendidos. RBAC corretamente delegado a RLS.
+  16 testes novos, 537 total passando, zero regressões. Dark mode e responsivo OK.
+  Duas issues HIGH (useCallback instability, task 5 accuracy) e duas MEDIUM
+  (tooltip dark mode, profile query duplicada) documentadas. Nenhum bloqueio.
+
+issues:
+  - id: H1
+    severity: high
+    category: code
+    description: >
+      metricsHook como dependência de useCallback em handleCallComplete recria
+      o callback a cada render. metricsHook é objeto novo a cada ciclo.
+    recommendation: >
+      Extrair invalidateMetrics do hook antes do useCallback, ou usar useRef
+      para estabilizar a referência.
+    file: features/prospecting/ProspectingPage.tsx
+    line: 155
+
+  - id: H2
+    severity: high
+    category: docs
+    description: >
+      Task 5 marcada [x] ("usar aggregate queries") mas implementação usa
+      fetch all + compute client-side. Checkbox implica que foi feito.
+    recommendation: >
+      Adicionar nota na story documentando decisão técnica: volume < 1K/mês
+      justifica aggregação client-side. Manter checkbox mas com observação.
+
+  - id: M1
+    severity: medium
+    category: code
+    description: >
+      Tooltip do recharts em MetricsChart usa CSS variables (--tooltip-bg)
+      que não estão definidas. Fundo branco aparece em dark mode.
+    recommendation: >
+      Definir CSS variables no tema ou usar detecção de dark mode para
+      alternar contentStyle dinamicamente.
+    file: features/prospecting/components/MetricsChart.tsx
+    line: 81
+
+  - id: M2
+    severity: medium
+    category: code
+    description: >
+      Query de profiles duplicada entre ProspectingPage (['profiles']) e
+      useProspectingMetrics (['prospectingMetricsProfiles']).
+    recommendation: >
+      Unificar queryKey para reutilizar cache, ou passar profiles como
+      parâmetro ao hook.
+
+test_gaps:
+  - "aggregateMetrics: sem testes unitários da função pura"
+  - "getDateRange: sem testes diretos de cálculos de data"
+  - "ProspectingPage integration: sem testes de tab switching e period buttons"

@@ -5,6 +5,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MetricsCards } from '../components/MetricsCards'
 import { MetricsChart } from '../components/MetricsChart'
 import { CorretorRanking } from '../components/CorretorRanking'
+import { getDateRange, aggregateMetrics, type CallActivity } from '../hooks/useProspectingMetrics'
 import type { ProspectingMetrics, DailyMetric, BrokerMetric } from '../hooks/useProspectingMetrics'
 
 // ── Mock recharts ──────────────────────────────────────────────
@@ -195,16 +196,147 @@ describe('RBAC visibility', () => {
   })
 })
 
-// ── Period filter ──────────────────────────────────────────────
+// ── getDateRange ──────────────────────────────────────────────
 
-describe('Period filter integration', () => {
-  it('different periods produce different date ranges', async () => {
-    // Testing the getDateRange logic indirectly via the hook module
-    const mod = await import('../hooks/useProspectingMetrics')
+describe('getDateRange', () => {
+  it('returns today for "today" period', () => {
+    const result = getDateRange('today')
+    expect(result.start).toBe(result.end)
+    // Should be a valid YYYY-MM-DD
+    expect(result.start).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
 
-    // Type assertion for testing private function - we test via exports
-    // The hook uses getDateRange internally, but we can verify behavior
-    // through the exported MetricsPeriod type
-    expect(mod.useProspectingMetrics).toBeDefined()
+  it('returns 7-day range for "7d" period', () => {
+    const result = getDateRange('7d')
+    const start = new Date(result.start)
+    const end = new Date(result.end)
+    const diffDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    expect(diffDays).toBe(6)
+  })
+
+  it('returns 30-day range for "30d" period', () => {
+    const result = getDateRange('30d')
+    const start = new Date(result.start)
+    const end = new Date(result.end)
+    const diffDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    expect(diffDays).toBe(29)
+  })
+
+  it('returns custom range when provided', () => {
+    const custom = { start: '2026-01-01', end: '2026-01-15' }
+    const result = getDateRange('custom', custom)
+    expect(result).toEqual(custom)
+  })
+
+  it('falls back to 30d when custom period but no range', () => {
+    const result = getDateRange('custom')
+    const start = new Date(result.start)
+    const end = new Date(result.end)
+    const diffDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    expect(diffDays).toBe(29)
+  })
+})
+
+// ── aggregateMetrics ──────────────────────────────────────────────
+
+describe('aggregateMetrics', () => {
+  const activities: CallActivity[] = [
+    { id: '1', date: '2026-03-01T10:00:00', owner_id: 'u1', contact_id: 'c1', metadata: { outcome: 'connected', duration_seconds: 120 } },
+    { id: '2', date: '2026-03-01T11:00:00', owner_id: 'u1', contact_id: 'c2', metadata: { outcome: 'no_answer' } },
+    { id: '3', date: '2026-03-02T09:00:00', owner_id: 'u2', contact_id: 'c1', metadata: { outcome: 'connected', duration_seconds: 180 } },
+    { id: '4', date: '2026-03-02T10:00:00', owner_id: 'u2', contact_id: 'c3', metadata: { outcome: 'voicemail', duration_seconds: 30 } },
+    { id: '5', date: '2026-03-02T11:00:00', owner_id: 'u1', contact_id: 'c4', metadata: { outcome: 'busy' } },
+  ]
+
+  const profiles = [
+    { id: 'u1', name: 'Ana' },
+    { id: 'u2', name: 'Bruno' },
+  ]
+
+  it('calculates totalCalls correctly', () => {
+    const result = aggregateMetrics(activities, profiles)
+    expect(result.totalCalls).toBe(5)
+  })
+
+  it('calculates connectedCalls and connectionRate', () => {
+    const result = aggregateMetrics(activities, profiles)
+    expect(result.connectedCalls).toBe(2)
+    expect(result.connectionRate).toBe(40)
+  })
+
+  it('calculates avgDuration from activities with duration', () => {
+    const result = aggregateMetrics(activities, profiles)
+    // durations: 120, 180, 30 → avg = 110
+    expect(result.avgDuration).toBe(110)
+  })
+
+  it('calculates uniqueContacts', () => {
+    const result = aggregateMetrics(activities, profiles)
+    // c1, c2, c3, c4 = 4 unique
+    expect(result.uniqueContacts).toBe(4)
+  })
+
+  it('groups by day correctly', () => {
+    const result = aggregateMetrics(activities, profiles)
+    expect(result.byDay).toHaveLength(2)
+    expect(result.byDay[0].date).toBe('2026-03-01')
+    expect(result.byDay[0].total).toBe(2)
+    expect(result.byDay[0].connected).toBe(1)
+    expect(result.byDay[1].date).toBe('2026-03-02')
+    expect(result.byDay[1].total).toBe(3)
+  })
+
+  it('groups by outcome correctly', () => {
+    const result = aggregateMetrics(activities, profiles)
+    const outcomeMap = new Map(result.byOutcome.map(o => [o.outcome, o.count]))
+    expect(outcomeMap.get('connected')).toBe(2)
+    expect(outcomeMap.get('no_answer')).toBe(1)
+    expect(outcomeMap.get('voicemail')).toBe(1)
+    expect(outcomeMap.get('busy')).toBe(1)
+  })
+
+  it('groups by broker with correct names', () => {
+    const result = aggregateMetrics(activities, profiles)
+    expect(result.byBroker).toHaveLength(2)
+    const ana = result.byBroker.find(b => b.ownerName === 'Ana')
+    const bruno = result.byBroker.find(b => b.ownerName === 'Bruno')
+    expect(ana).toBeDefined()
+    expect(ana!.totalCalls).toBe(3)
+    expect(bruno).toBeDefined()
+    expect(bruno!.totalCalls).toBe(2)
+  })
+
+  it('sorts brokers by totalCalls desc', () => {
+    const result = aggregateMetrics(activities, profiles)
+    expect(result.byBroker[0].ownerName).toBe('Ana')
+    expect(result.byBroker[1].ownerName).toBe('Bruno')
+  })
+
+  it('handles empty activities', () => {
+    const result = aggregateMetrics([], profiles)
+    expect(result.totalCalls).toBe(0)
+    expect(result.connectionRate).toBe(0)
+    expect(result.avgDuration).toBe(0)
+    expect(result.uniqueContacts).toBe(0)
+    expect(result.byDay).toHaveLength(0)
+    expect(result.byBroker).toHaveLength(0)
+  })
+
+  it('handles activities with null metadata', () => {
+    const acts: CallActivity[] = [
+      { id: '1', date: '2026-03-01T10:00:00', owner_id: 'u1', contact_id: 'c1', metadata: null },
+    ]
+    const result = aggregateMetrics(acts, profiles)
+    expect(result.totalCalls).toBe(1)
+    expect(result.connectedCalls).toBe(0)
+    expect(result.avgDuration).toBe(0)
+  })
+
+  it('uses "Desconhecido" for unknown owner_id', () => {
+    const acts: CallActivity[] = [
+      { id: '1', date: '2026-03-01T10:00:00', owner_id: 'unknown', contact_id: 'c1', metadata: { outcome: 'connected' } },
+    ]
+    const result = aggregateMetrics(acts, profiles)
+    expect(result.byBroker[0].ownerName).toBe('Desconhecido')
   })
 })

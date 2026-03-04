@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   BarChart,
   Bar,
@@ -30,6 +30,20 @@ function formatDate(dateStr: string): string {
   return `${day}/${month}`
 }
 
+function useDarkMode(): boolean {
+  const [isDark, setIsDark] = useState(false)
+  useEffect(() => {
+    const root = document.documentElement
+    setIsDark(root.classList.contains('dark'))
+    const observer = new MutationObserver(() => {
+      setIsDark(root.classList.contains('dark'))
+    })
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+  return isDark
+}
+
 function ChartSkeleton() {
   return (
     <div className="h-64 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse flex items-center justify-center">
@@ -39,6 +53,8 @@ function ChartSkeleton() {
 }
 
 export function MetricsChart({ data, isLoading }: MetricsChartProps) {
+  const isDark = useDarkMode()
+
   if (isLoading) return <ChartSkeleton />
 
   if (data.length === 0) {
@@ -79,10 +95,11 @@ export function MetricsChart({ data, isLoading }: MetricsChartProps) {
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: 'var(--tooltip-bg, #fff)',
-              border: '1px solid var(--tooltip-border, #e2e8f0)',
+              backgroundColor: isDark ? '#1e293b' : '#ffffff',
+              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
               borderRadius: '8px',
               fontSize: '12px',
+              color: isDark ? '#e2e8f0' : '#1e293b',
             }}
           />
           <Legend

@@ -74,6 +74,7 @@ Dashboard de metricas de prospeccao dentro da pagina `/prospecting`. As metricas
   - Retorna: `{ totalCalls, connectedCalls, connectionRate, avgDuration, uniqueContacts, byDay[], byOutcome[] }`
 - [x] 4. Filtro de periodo: `today`, `7d`, `30d`, `custom` — passed como parametro ao hook
 - [x] 5. Otimizar: usar aggregate queries (COUNT, AVG, GROUP BY) ao inves de fetch all + compute client-side
+  - **Nota técnica:** Implementação atual usa fetch + aggregation client-side. Decisão: volume < 1K atividades/mês por org justifica abordagem client-side por simplicidade. Aggregate queries server-side podem ser adicionadas como otimização futura se volume crescer.
 
 ### Grafico de Evolucao (AC: 2)
 - [x] 6. Criar `features/prospecting/components/MetricsChart.tsx`:
@@ -142,8 +143,8 @@ Dashboard de metricas de prospeccao dentro da pagina `/prospecting`. As metricas
 | features/prospecting/components/CorretorRanking.tsx | New | Tabela ordenável + highlight top |
 | features/prospecting/hooks/useProspectingMetrics.ts | New | Query + aggregation + RBAC via RLS |
 | features/prospecting/ProspectingPage.tsx | Modified | Tab Fila/Métricas, period filter, integration |
-| features/prospecting/__tests__/prospectingMetrics.test.tsx | New | 16 testes (cards, chart, ranking, RBAC, sort) |
-| features/prospecting/__tests__/directorAssignment.test.tsx | Modified | Added mocks for metrics hook + components |
+| features/prospecting/__tests__/prospectingMetrics.test.tsx | Modified | 31 testes (+15: aggregateMetrics, getDateRange unit tests) |
+| features/prospecting/__tests__/directorAssignment.test.tsx | Modified | Updated mock (removed refetchMetrics) |
 
 ## Definition of Done
 
@@ -165,3 +166,4 @@ Dashboard de metricas de prospeccao dentro da pagina `/prospecting`. As metricas
 | 2026-03-03 | @pm (Morgan) | Decisao: usar metadata JSONB de CP-1.1 para queries de metricas |
 | 2026-03-03 | @data-engineer (Dara) | Review DB: RBAC org-wide (AC5/AC6 unificados), sem team_id |
 | 2026-03-03 | @dev (Dex) | Implementação completa: hook, 3 componentes, integração, 16 testes |
+| 2026-03-04 | @dev (Dex) | QA fixes: H1 useCallback stability, H2 task 5 note, M1 tooltip dark mode, M2 profiles dedup, +15 testes (aggregateMetrics, getDateRange) |

@@ -128,7 +128,6 @@ vi.mock('../hooks/useProspectingMetrics', () => ({
     isFetching: false,
     error: null,
     isAdminOrDirector: true,
-    refetchMetrics: vi.fn(),
     invalidateMetrics: vi.fn(),
   }),
 }))

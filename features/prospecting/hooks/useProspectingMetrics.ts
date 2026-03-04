@@ -7,7 +7,7 @@
  *   - diretor/admin: sees all org activities
  */
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase/client'
@@ -49,7 +49,7 @@ export interface ProspectingMetrics {
   byBroker: BrokerMetric[]
 }
 
-function getDateRange(period: MetricsPeriod, custom?: PeriodRange): PeriodRange {
+export function getDateRange(period: MetricsPeriod, custom?: PeriodRange): PeriodRange {
   const now = new Date()
   const end = now.toISOString().split('T')[0]
 
@@ -68,7 +68,7 @@ function getDateRange(period: MetricsPeriod, custom?: PeriodRange): PeriodRange 
   return { start: start.toISOString().split('T')[0], end }
 }
 
-interface CallActivity {
+export interface CallActivity {
   id: string
   date: string
   owner_id: string | null
@@ -76,7 +76,7 @@ interface CallActivity {
   metadata: { outcome?: string; duration_seconds?: number } | null
 }
 
-function aggregateMetrics(
+export function aggregateMetrics(
   activities: CallActivity[],
   profiles: { id: string; name: string }[],
 ): ProspectingMetrics {
@@ -197,6 +197,7 @@ function aggregateMetrics(
 export function useProspectingMetrics(
   period: MetricsPeriod = '7d',
   customRange?: PeriodRange,
+  profiles: { id: string; name: string }[] = [],
 ) {
   const { user, profile, loading: authLoading } = useAuth()
   const queryClient = useQueryClient()
@@ -204,24 +205,6 @@ export function useProspectingMetrics(
 
   const isAdminOrDirector =
     profile?.role === 'admin' || profile?.role === 'diretor'
-
-  // Fetch profiles for broker names (only needed for ranking)
-  const profilesQuery = useQuery({
-    queryKey: ['prospectingMetricsProfiles'],
-    queryFn: async () => {
-      if (!supabase) return []
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, name, first_name')
-        .order('name')
-      return (data || []).map(p => ({
-        id: p.id,
-        name: p.name || p.first_name || 'Sem nome',
-      }))
-    },
-    enabled: !authLoading && !!user && isAdminOrDirector,
-    staleTime: 5 * 60 * 1000,
-  })
 
   const metricsQuery = useQuery({
     queryKey: ['prospectingMetrics', range.start, range.end],
@@ -246,19 +229,12 @@ export function useProspectingMetrics(
 
   const metrics = useMemo(() => {
     if (!metricsQuery.data) return null
-    return aggregateMetrics(
-      metricsQuery.data,
-      profilesQuery.data || [],
-    )
-  }, [metricsQuery.data, profilesQuery.data])
+    return aggregateMetrics(metricsQuery.data, profiles)
+  }, [metricsQuery.data, profiles])
 
-  const refetchMetrics = () => {
-    metricsQuery.refetch()
-  }
-
-  const invalidateMetrics = () => {
+  const invalidateMetrics = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['prospectingMetrics'] })
-  }
+  }, [queryClient])
 
   return {
     metrics,
@@ -266,7 +242,6 @@ export function useProspectingMetrics(
     isFetching: metricsQuery.isFetching,
     error: metricsQuery.error,
     isAdminOrDirector,
-    refetchMetrics,
     invalidateMetrics,
   }
 }
