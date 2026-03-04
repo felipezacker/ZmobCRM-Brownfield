@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/app/components/ui/Button'
 import { CallQueue } from './components/CallQueue'
@@ -10,8 +10,12 @@ import { SessionSummary } from './components/SessionSummary'
 import { AddToQueueSearch } from './components/AddToQueueSearch'
 import { ProspectingFilters, INITIAL_FILTERS, type ProspectingFiltersState } from './components/ProspectingFilters'
 import { FilteredContactsList } from './components/FilteredContactsList'
+import { MetricsCards } from './components/MetricsCards'
+import { MetricsChart } from './components/MetricsChart'
+import { CorretorRanking } from './components/CorretorRanking'
 import { useProspectingQueue } from './hooks/useProspectingQueue'
 import { useProspectingFilteredContacts } from './hooks/useProspectingFilteredContacts'
+import { useProspectingMetrics, type MetricsPeriod, type PeriodRange } from './hooks/useProspectingMetrics'
 import { useAddBatchToProspectingQueue, useQueueContactIds } from '@/lib/query/hooks/useProspectingQueueQuery'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
@@ -29,6 +33,8 @@ export type SessionStats = {
   busy: number
 }
 
+type PageTab = 'queue' | 'metrics'
+
 export const ProspectingPage: React.FC = () => {
   const { profile } = useAuth()
   const { addToast, showToast } = useToast()
@@ -36,6 +42,12 @@ export const ProspectingPage: React.FC = () => {
 
   const isAdminOrDirector = profile?.role === 'admin' || profile?.role === 'diretor'
   const { tags: availableTags } = useTags()
+
+  // CP-1.4: Tab state + metrics
+  const [activeTab, setActiveTab] = useState<PageTab>('queue')
+  const [metricsPeriod, setMetricsPeriod] = useState<MetricsPeriod>('7d')
+  const [customRange, setCustomRange] = useState<PeriodRange | undefined>()
+  const metricsHook = useProspectingMetrics(metricsPeriod, customRange)
 
   const {
     queue,
@@ -79,9 +91,9 @@ export const ProspectingPage: React.FC = () => {
         .order('name')
       return (data || []).map(p => ({
         id: p.id,
-        name: (p as any).name || (p as any).first_name || 'Sem nome',
-        avatar: (p as any).avatar_url || undefined,
-        role: (p as any).role as string,
+        name: p.name || p.first_name || 'Sem nome',
+        avatar: p.avatar_url || undefined,
+        role: p.role as string,
       }))
     },
     staleTime: 5 * 60 * 1000,
@@ -138,7 +150,9 @@ export const ProspectingPage: React.FC = () => {
       busy: outcome === 'busy' ? prev.busy + 1 : prev.busy,
     }))
     markCompleted(outcome)
-  }, [markCompleted])
+    // CP-1.4: Invalidate metrics after call registered
+    metricsHook.invalidateMetrics()
+  }, [markCompleted, metricsHook])
 
   // CP-1.3: Apply filters handler
   const handleApplyFilters = useCallback(() => {
@@ -190,7 +204,35 @@ export const ProspectingPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* CP-1.4: Tab toggle (only when not in session) */}
           {!sessionActive && !showSummary && (
+            <div className="flex items-center bg-slate-100 dark:bg-white/10 rounded-lg p-0.5 mr-1">
+              <button
+                onClick={() => setActiveTab('queue')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  activeTab === 'queue'
+                    ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                <ListChecks size={13} />
+                Fila
+              </button>
+              <button
+                onClick={() => setActiveTab('metrics')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  activeTab === 'metrics'
+                    ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                <BarChart3 size={13} />
+                Métricas
+              </button>
+            </div>
+          )}
+
+          {!sessionActive && !showSummary && activeTab === 'queue' && (
             <>
               <Button
                 variant="unstyled"
@@ -251,6 +293,69 @@ export const ProspectingPage: React.FC = () => {
             onScriptChange={setSelectedScript}
             sessionStats={sessionStats}
           />
+        ) : activeTab === 'metrics' ? (
+          /* CP-1.4: Metrics view */
+          <div className="space-y-4">
+            {/* Period filter */}
+            <div className="flex flex-wrap items-center gap-2">
+              {([
+                { key: 'today', label: 'Hoje' },
+                { key: '7d', label: '7 dias' },
+                { key: '30d', label: '30 dias' },
+              ] as const).map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => { setMetricsPeriod(key); setCustomRange(undefined) }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    metricsPeriod === key && !customRange
+                      ? 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/15'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+              <div className="flex items-center gap-1.5 ml-1">
+                <input
+                  type="date"
+                  className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-teal-500"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setMetricsPeriod('custom')
+                      setCustomRange(prev => ({ start: e.target.value, end: prev?.end || e.target.value }))
+                    }
+                  }}
+                  value={customRange?.start || ''}
+                />
+                <span className="text-slate-400 text-xs">-</span>
+                <input
+                  type="date"
+                  className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-teal-500"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setMetricsPeriod('custom')
+                      setCustomRange(prev => ({ start: prev?.start || e.target.value, end: e.target.value }))
+                    }
+                  }}
+                  value={customRange?.end || ''}
+                />
+              </div>
+            </div>
+
+            <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+
+            <MetricsChart
+              data={metricsHook.metrics?.byDay || []}
+              isLoading={metricsHook.isLoading}
+            />
+
+            {isAdminOrDirector && (
+              <CorretorRanking
+                brokers={metricsHook.metrics?.byBroker || []}
+                isLoading={metricsHook.isLoading}
+              />
+            )}
+          </div>
         ) : (
           <div className="space-y-4">
             {/* CP-1.3: Mass filter panel */}
