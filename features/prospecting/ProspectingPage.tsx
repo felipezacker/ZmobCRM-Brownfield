@@ -210,7 +210,9 @@ export const ProspectingPage: React.FC = () => {
           {/* CP-1.4: Tab toggle (only when not in session) */}
           {!sessionActive && !showSummary && (
             <div className="flex items-center bg-slate-100 dark:bg-white/10 rounded-lg p-0.5 mr-1">
-              <button
+              <Button
+                variant="unstyled"
+                size="unstyled"
                 onClick={() => setActiveTab('queue')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                   activeTab === 'queue'
@@ -220,8 +222,10 @@ export const ProspectingPage: React.FC = () => {
               >
                 <ListChecks size={13} />
                 Fila
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="unstyled"
+                size="unstyled"
                 onClick={() => setActiveTab('metrics')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                   activeTab === 'metrics'
@@ -231,7 +235,7 @@ export const ProspectingPage: React.FC = () => {
               >
                 <BarChart3 size={13} />
                 Métricas
-              </button>
+              </Button>
             </div>
           )}
 
@@ -303,12 +307,14 @@ export const ProspectingPage: React.FC = () => {
             {metricsHook.error && (
               <div className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-600 dark:text-red-400">
                 <span>Erro ao carregar métricas. Tente novamente.</span>
-                <button
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
                   onClick={() => invalidateMetrics()}
                   className="ml-auto px-3 py-1 rounded-lg bg-red-100 dark:bg-red-500/20 hover:bg-red-200 dark:hover:bg-red-500/30 text-red-700 dark:text-red-300 text-xs font-medium transition-colors"
                 >
                   Tentar novamente
-                </button>
+                </Button>
               </div>
             )}
             {/* Truncation warning */}
@@ -324,7 +330,9 @@ export const ProspectingPage: React.FC = () => {
                 { key: '7d', label: '7 dias' },
                 { key: '30d', label: '30 dias' },
               ] as const).map(({ key, label }) => (
-                <button
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
                   key={key}
                   onClick={() => { setMetricsPeriod(key); setCustomRange(undefined) }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -334,7 +342,7 @@ export const ProspectingPage: React.FC = () => {
                   }`}
                 >
                   {label}
-                </button>
+                </Button>
               ))}
               <div className="flex items-center gap-1.5 ml-1">
                 <input

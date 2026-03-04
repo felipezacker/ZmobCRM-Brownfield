@@ -18,6 +18,7 @@ vi.mock('@/app/components/ui/Button', () => ({
 
 vi.mock('@/features/inbox/components/CallModal', () => ({
   CallModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
+    // eslint-disable-next-line no-restricted-syntax -- mock component
     isOpen ? <div data-testid="call-modal"><button onClick={onClose}>Close</button></div> : null,
 }))
 
