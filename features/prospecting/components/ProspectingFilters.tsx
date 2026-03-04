@@ -240,7 +240,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
               className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
             />
             <Phone size={13} />
-            <span className="text-sm font-medium whitespace-nowrap">Só com telefone</span>
+            <span className="text-sm font-medium whitespace-nowrap">Apenas com</span>
           </label>
         </div>
       </div>
