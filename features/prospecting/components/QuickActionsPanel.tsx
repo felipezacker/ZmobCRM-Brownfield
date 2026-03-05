@@ -196,7 +196,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                 {returnScheduled ? (
                   <Check size={18} />
                 ) : (
-                  <CalendarClock size={18} className="text-teal-500" />
+                  <CalendarClock size={18} className="text-primary-500" />
                 )}
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-medium">{returnScheduled ? 'Retorno agendado' : 'Agendar Retorno'}</span>
@@ -211,14 +211,14 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                     type="datetime-local"
                     value={returnDate}
                     onChange={(e) => setReturnDate(e.target.value)}
-                    className="flex-1 text-xs bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-teal-500/50"
+                    className="flex-1 text-xs bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-primary-500/50"
                   />
                   <Button
                     variant="unstyled"
                     size="unstyled"
                     onClick={handleScheduleReturn}
                     disabled={isScheduling}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-teal-500 hover:bg-teal-600 text-white transition-colors disabled:opacity-40"
+                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-40"
                   >
                     {isScheduling ? <Loader2 size={12} className="animate-spin" /> : 'Confirmar'}
                   </Button>
@@ -282,7 +282,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
             size="unstyled"
             type="button"
             onClick={() => setShowTemplatesManager(true)}
-            className="w-full py-1.5 text-xs text-slate-400 dark:text-slate-500 hover:text-teal-500 dark:hover:text-teal-400 transition-colors text-center"
+            className="w-full py-1.5 text-xs text-slate-400 dark:text-slate-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors text-center"
           >
             Gerenciar templates de notas
           </Button>

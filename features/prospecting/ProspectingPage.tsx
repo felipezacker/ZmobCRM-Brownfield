@@ -218,8 +218,8 @@ export const ProspectingPage: React.FC = () => {
       <div className="border-b border-slate-200 dark:border-slate-700/50 shrink-0">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-teal-500/10 rounded-xl">
-              <PhoneOutgoing size={20} className="text-teal-500" />
+            <div className="p-2 bg-primary-500/10 rounded-xl">
+              <PhoneOutgoing size={20} className="text-primary-500" />
             </div>
             <div>
               <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Prospecção</h1>
@@ -270,7 +270,7 @@ export const ProspectingPage: React.FC = () => {
                   <select
                     value={retryInterval}
                     onChange={(e) => setRetryInterval(Number(e.target.value))}
-                    className="bg-slate-100 dark:bg-white/10 border-0 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                    className="bg-slate-100 dark:bg-white/10 border-0 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
                   >
                     <option value={3}>Retry: 3 dias</option>
                     <option value={5}>Retry: 5 dias</option>
@@ -284,7 +284,7 @@ export const ProspectingPage: React.FC = () => {
                   onClick={() => setShowFilters(prev => !prev)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     showFilters
-                      ? 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300'
+                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/15'
                   }`}
                 >
@@ -296,7 +296,7 @@ export const ProspectingPage: React.FC = () => {
                   size="unstyled"
                   onClick={handleStartSession}
                   disabled={pendingCount === 0}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-teal-500 hover:bg-teal-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Play size={16} />
                   Iniciar Sessão
@@ -327,7 +327,7 @@ export const ProspectingPage: React.FC = () => {
               onClick={() => setViewQueueOwnerId('')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                 !viewQueueOwnerId
-                  ? 'bg-teal-500 text-white shadow-sm'
+                  ? 'bg-primary-500 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
               }`}
             >
@@ -340,7 +340,7 @@ export const ProspectingPage: React.FC = () => {
               onClick={() => setViewQueueOwnerId('__all__')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                 isViewingAll
-                  ? 'bg-teal-500 text-white shadow-sm'
+                  ? 'bg-primary-500 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
               }`}
             >
@@ -357,7 +357,7 @@ export const ProspectingPage: React.FC = () => {
                 onClick={() => setViewQueueOwnerId(p.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                   viewQueueOwnerId === p.id
-                    ? 'bg-teal-500 text-white shadow-sm'
+                    ? 'bg-primary-500 text-white shadow-sm'
                     : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
                 }`}
               >
@@ -430,7 +430,7 @@ export const ProspectingPage: React.FC = () => {
                   onClick={() => { setMetricsPeriod(key); setCustomRange(undefined) }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     metricsPeriod === key && !customRange
-                      ? 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300'
+                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/15'
                   }`}
                 >
@@ -440,7 +440,7 @@ export const ProspectingPage: React.FC = () => {
               <div className="flex items-center gap-1.5 ml-1">
                 <input
                   type="date"
-                  className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-teal-500"
+                  className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
                   onChange={(e) => {
                     if (e.target.value) {
                       const newStart = e.target.value
@@ -456,7 +456,7 @@ export const ProspectingPage: React.FC = () => {
                 <span className="text-slate-400 text-xs">-</span>
                 <input
                   type="date"
-                  className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-teal-500"
+                  className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
                   onChange={(e) => {
                     if (e.target.value) {
                       const newEnd = e.target.value
@@ -485,7 +485,7 @@ export const ProspectingPage: React.FC = () => {
                   onClick={() => setMetricsFilterOwnerId('')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                     !metricsFilterOwnerId
-                      ? 'bg-teal-500 text-white shadow-sm'
+                      ? 'bg-primary-500 text-white shadow-sm'
                       : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
                   }`}
                 >
@@ -501,7 +501,7 @@ export const ProspectingPage: React.FC = () => {
                     onClick={() => setMetricsFilterOwnerId(p.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                       metricsFilterOwnerId === p.id
-                        ? 'bg-teal-500 text-white shadow-sm'
+                        ? 'bg-primary-500 text-white shadow-sm'
                         : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
                     }`}
                   >

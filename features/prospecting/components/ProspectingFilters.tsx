@@ -219,7 +219,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
             variant="unstyled"
             size="unstyled"
             onClick={onApply}
-            className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-teal-500 hover:bg-teal-600 text-white transition-colors"
+            className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-primary-500 hover:bg-primary-600 text-white transition-colors"
           >
             Aplicar Filtros
           </Button>
@@ -296,7 +296,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
       <label
         className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
           filters.onlyWithPhone
-            ? 'bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30'
+            ? 'bg-primary-100 text-primary-700 border-primary-300 dark:bg-primary-500/20 dark:text-primary-300 dark:border-primary-500/30'
             : CHIP_INACTIVE
         }`}
       >

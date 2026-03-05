@@ -68,8 +68,8 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col items-center text-center gap-2">
-          <div className="p-3 bg-teal-500/10 rounded-xl">
-            <BarChart3 size={24} className="text-teal-500" />
+          <div className="p-3 bg-primary-500/10 rounded-xl">
+            <BarChart3 size={24} className="text-primary-500" />
           </div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Sessão Encerrada
@@ -102,7 +102,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
           variant="unstyled"
           size="unstyled"
           onClick={onClose}
-          className="w-full py-2.5 rounded-lg text-sm font-semibold bg-teal-500 hover:bg-teal-600 text-white transition-colors text-center"
+          className="w-full py-2.5 rounded-lg text-sm font-semibold bg-primary-500 hover:bg-primary-600 text-white transition-colors text-center"
         >
           Voltar à Fila
         </Button>

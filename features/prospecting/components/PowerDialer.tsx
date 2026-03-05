@@ -178,7 +178,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
         </div>
         <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
           <div
-            className="h-full bg-teal-500 rounded-full transition-all duration-300"
+            className="h-full bg-primary-500 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -197,8 +197,8 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
       <div className="max-w-lg mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl p-5 space-y-4">
         {/* Contact info */}
         <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-teal-500/10 flex items-center justify-center">
-            <User size={22} className="text-teal-500" />
+          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary-500/10 flex items-center justify-center">
+            <User size={22} className="text-primary-500" />
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white truncate">
@@ -293,7 +293,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             variant="unstyled"
             size="unstyled"
             onClick={() => setShowCallModal(true)}
-            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-teal-500 hover:bg-teal-600 text-white transition-colors relative"
+            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors relative"
           >
             <Phone size={20} />
             <span className="text-xs font-medium">Ligar</span>

@@ -21,7 +21,7 @@ export const AddToQueueSearch: React.FC<AddToQueueSearchProps> = ({ onAdd }) => 
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Buscar contato por nome ou email..."
-          className="w-full pl-9 pr-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50"
+          className="w-full pl-9 pr-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50"
         />
       </div>
 
@@ -64,7 +64,7 @@ export const AddToQueueSearch: React.FC<AddToQueueSearchProps> = ({ onAdd }) => 
                     onAdd(contact.id)
                     setSearch('')
                   }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium bg-teal-500/10 text-teal-600 dark:text-teal-400 hover:bg-teal-500/20 transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium bg-primary-500/10 text-primary-600 dark:text-primary-400 hover:bg-primary-500/20 transition-colors"
                 >
                   <Plus size={12} />
                   Adicionar
