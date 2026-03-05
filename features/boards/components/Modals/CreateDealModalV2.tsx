@@ -66,7 +66,6 @@ export const CreateDealModalV2: React.FC<CreateDealModalV2Props> = ({ isOpen, on
     const deal: Deal = {
       id: crypto.randomUUID(),
       title: data.title,
-      companyId: companyId,
       contactId: contactId,
       boardId: activeBoardId,
       value: data.value,
@@ -76,15 +75,12 @@ export const CreateDealModalV2: React.FC<CreateDealModalV2Props> = ({ isOpen, on
       updatedAt: new Date().toISOString(),
       probability: 10,
       priority: 'medium',
-      tags: ['Novo'],
       owner: { name: 'Eu', avatar: 'https://i.pravatar.cc/150?u=me' },
-      customFields: {},
       isWon: false,
       isLost: false,
     };
 
     addDeal(deal, {
-      companyName: data.companyName,
       contact: {
         name: data.contactName || '',
         email: data.email || '',
