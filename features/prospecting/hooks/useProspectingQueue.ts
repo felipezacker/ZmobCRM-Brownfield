@@ -156,28 +156,34 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     try {
       await addMutation.mutateAsync({ contactId, sessionId })
       toast('Contato adicionado à fila', 'success')
+      // Force refetch to guarantee list is updated even if optimistic cache didn't match
+      await refetch()
     } catch {
       toast('Erro ao adicionar contato', 'error')
     }
-  }, [addMutation, sessionId, toast])
+  }, [addMutation, sessionId, toast, refetch])
 
   const removeFromQueue = useCallback(async (id: string) => {
     try {
       await removeMutation.mutateAsync(id)
       toast('Contato removido da fila', 'success')
+      // Force refetch as safety net for optimistic update
+      await refetch()
     } catch {
       toast('Erro ao remover contato', 'error')
     }
-  }, [removeMutation, toast])
+  }, [removeMutation, toast, refetch])
 
   const clearQueue = useCallback(async () => {
     try {
       await clearAllMutation.mutateAsync(options?.viewOwnerId)
       toast('Fila limpa com sucesso', 'success')
+      // Force refetch as safety net for optimistic update
+      await refetch()
     } catch {
       toast('Erro ao limpar fila', 'error')
     }
-  }, [clearAllMutation, options?.viewOwnerId, toast])
+  }, [clearAllMutation, options?.viewOwnerId, toast, refetch])
 
   // CP-2.1: Reset an exhausted item back to pending
   const resetExhaustedItem = useCallback(async (id: string) => {
@@ -197,6 +203,7 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     sessionId,
     isLoading,
     isClearingQueue: clearAllMutation.isPending,
+    removingId: removeMutation.isPending ? (removeMutation.variables as string | undefined) : undefined,
     retryInterval,
     setRetryInterval,
     startSession,

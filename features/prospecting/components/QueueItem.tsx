@@ -21,9 +21,10 @@ const TEMP_ICONS: Record<string, React.ReactNode> = {
 interface QueueItemProps {
   item: ProspectingQueueItem
   onRemove?: (id: string) => void
+  isRemoving?: boolean
 }
 
-export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove }) => {
+export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving }) => {
   const status = STATUS_LABELS[item.status] || STATUS_LABELS.pending
 
   return (
@@ -73,7 +74,8 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove }) => {
           variant="unstyled"
           size="unstyled"
           onClick={() => onRemove(item.id)}
-          className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+          disabled={isRemoving}
+          className="p-1 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-30 disabled:pointer-events-none"
           aria-label="Remover da fila"
         >
           <X size={14} />

@@ -64,6 +64,8 @@ export const useAddToProspectingQueue = () => {
         { queryKey: queryKeys.prospectingQueue.lists() },
         (old) => old ? [...old, newItem] : [newItem]
       )
+      // Force immediate list refetch to guarantee UI update
+      queryClient.refetchQueries({ queryKey: queryKeys.prospectingQueue.lists() })
     },
     onError: (_error, _vars, context) => {
       context?.contactIdsSnapshot?.forEach(([key, data]) => {

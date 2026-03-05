@@ -12,10 +12,11 @@ interface CallQueueProps {
   onClearAll?: () => void
   onResetExhausted?: (id: string) => void
   isClearing?: boolean
+  removingId?: string
   ownerName?: string
 }
 
-export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = [], isLoading, onRemove, onClearAll, onResetExhausted, isClearing, ownerName }) => {
+export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = [], isLoading, onRemove, onClearAll, onResetExhausted, isClearing, removingId, ownerName }) => {
   const [confirmClear, setConfirmClear] = useState(false)
 
   if (isLoading) {
@@ -101,7 +102,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
       )}
 
       {items.map(item => (
-        <QueueItem key={item.id} item={item} onRemove={onRemove} />
+        <QueueItem key={item.id} item={item} onRemove={onRemove} isRemoving={item.id === removingId} />
       ))}
 
       {/* CP-2.1: Exhausted items section */}

@@ -93,6 +93,7 @@ export const ProspectingPage: React.FC = () => {
     sessionActive,
     isLoading,
     isClearingQueue,
+    removingId,
     retryInterval,
     setRetryInterval,
     startSession,
@@ -607,6 +608,7 @@ export const ProspectingPage: React.FC = () => {
               onClearAll={isViewingAll ? undefined : clearQueue}
               onResetExhausted={resetExhaustedItem}
               isClearing={isClearingQueue}
+              removingId={removingId}
               ownerName={isViewingAll ? 'Todos' : viewingOwnerProfile?.name}
             />
           </div>
