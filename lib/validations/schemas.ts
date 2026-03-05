@@ -130,6 +130,7 @@ export type CompanyFormData = z.infer<typeof companyFormSchema>;
 
 export const dealFormSchema = z.object({
   title: requiredString('Nome do negócio', MAX_LENGTHS.TITLE),
+  companyName: optionalString,
   value: currencySchema,
   contactName: optionalString.pipe(z.string().max(MAX_LENGTHS.NAME)),
   email: z.string()

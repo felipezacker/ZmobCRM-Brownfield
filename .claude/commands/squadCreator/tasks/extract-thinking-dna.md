@@ -1,0 +1,1 @@
+/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/squads/squad-creator/tasks/extract-thinking-dna.md

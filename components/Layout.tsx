@@ -229,7 +229,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   if (!loading && !user) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface-bg bg-dots">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Skip Link for keyboard users */}
       <SkipLink targetId="main-content" />
 
@@ -432,10 +432,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="flex-1 flex min-w-0 overflow-hidden relative">
         {/* Middle Content (Header + Page) */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          {/* Ambient background glow */}
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none" aria-hidden="true">
-            <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-primary-500/10 rounded-full blur-[100px]"></div>
-            <div className="absolute top-[40%] right-[0%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[100px]"></div>
+          {/* Clean High-Focus Background Architecture */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0" aria-hidden="true">
+            {/* Cinematic texture layer for premium feel without color smudges */}
+            <div className="grain"></div>
           </div>
 
           {/* Header */}

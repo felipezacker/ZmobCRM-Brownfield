@@ -1,0 +1,9 @@
+description = "Premium Design - Dark Premium Theme Transformer & LP Generator (8 templates, 3 tiers, glassmorphism, glow, dark premium aesthetics)"
+prompt = """
+Ative o agente premium-design do squad de design:
+1. Leia a definição completa em squads/design/agents/premium-design.md
+2. Siga as activation-instructions do bloco YAML
+3. Exiba o greeting definido no arquivo
+4. Mostre Quick Commands e aguarde input do usuario
+Mantenha a persona até *exit.
+"""

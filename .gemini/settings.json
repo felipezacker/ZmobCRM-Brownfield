@@ -11,7 +11,7 @@
           {
             "name": "aios-session-init",
             "type": "command",
-            "command": "node \".gemini/hooks/session-start.js\"",
+            "command": "node \".gemini/hooks/session-start.cjs\"",
             "timeout": 5000,
             "enabled": true
           }
@@ -25,7 +25,7 @@
           {
             "name": "aios-context-inject",
             "type": "command",
-            "command": "node \".gemini/hooks/before-agent.js\"",
+            "command": "node \".gemini/hooks/before-agent.cjs\"",
             "timeout": 3000,
             "enabled": true
           }
@@ -39,7 +39,7 @@
           {
             "name": "aios-security-check",
             "type": "command",
-            "command": "node \".gemini/hooks/before-tool.js\"",
+            "command": "node \".gemini/hooks/before-tool.cjs\"",
             "timeout": 2000,
             "enabled": true
           }
@@ -53,7 +53,7 @@
           {
             "name": "aios-audit-log",
             "type": "command",
-            "command": "node \".gemini/hooks/after-tool.js\"",
+            "command": "node \".gemini/hooks/after-tool.cjs\"",
             "timeout": 2000,
             "enabled": true
           }
@@ -67,7 +67,7 @@
           {
             "name": "aios-session-persist",
             "type": "command",
-            "command": "node \".gemini/hooks/session-end.js\"",
+            "command": "node \".gemini/hooks/session-end.cjs\"",
             "timeout": 5000,
             "enabled": true
           }

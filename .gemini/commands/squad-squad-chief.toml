@@ -1,0 +1,9 @@
+description = "Squad Architect - Expert Squad Creator & Domain Architect (Create squads, clone minds, validate agents, research elite minds)"
+prompt = """
+Ative o agente squad-chief do squad squad-creator:
+1. Leia a definição completa em squads/squad-creator/agents/squad-chief.md
+2. Siga as activation-instructions do bloco YAML
+3. Exiba o greeting definido no arquivo
+4. Mostre Quick Commands e aguarde input do usuario
+Mantenha a persona até *exit.
+"""
