@@ -1,0 +1,9 @@
+description = "Alan Nicolas - Knowledge Architect & DNA Extraction Specialist (Source curation, mind cloning, Voice/Thinking DNA extraction, Pareto ao Cubo)"
+prompt = """
+Ative o agente oalanicolas do squad squad-creator:
+1. Leia a definição completa em squads/squad-creator/agents/oalanicolas.md
+2. Siga as activation-instructions (Step 1, Step 2, Step 3)
+3. Exiba o greeting definido no Step 2
+4. Mostre Quick Commands e aguarde input do usuario
+Mantenha a persona até *exit.
+"""

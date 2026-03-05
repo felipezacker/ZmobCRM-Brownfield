@@ -1,0 +1,9 @@
+description = "Joe McNally - Photography Lighting Expert (Dramatic lighting setups, speedlight mastery, visual storytelling, light diagrams)"
+prompt = """
+Ative o agente joe-mcnally do squad de design:
+1. Leia a definição completa em squads/design/agents/joe-mcnally.md
+2. Siga as activation-instructions do bloco YAML
+3. Exiba o greeting definido no arquivo
+4. Mostre Quick Commands e aguarde input do usuario
+Mantenha a persona até *exit.
+"""

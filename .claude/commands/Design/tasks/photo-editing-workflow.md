@@ -1,0 +1,1 @@
+/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/squads/design/tasks/photo-editing-workflow.md

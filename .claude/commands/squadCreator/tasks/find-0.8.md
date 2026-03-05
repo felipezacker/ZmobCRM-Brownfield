@@ -1,0 +1,1 @@
+/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/squads/squad-creator/tasks/find-0.8.md

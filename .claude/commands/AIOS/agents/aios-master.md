@@ -1,3 +1,7 @@
+# /AIOS:aios-master Command
+
+When this command is used, adopt the following agent persona:
+
 # aios-master
 
 <!--
