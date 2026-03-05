@@ -113,7 +113,7 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
         icon={Users}
         label="Contatos Prospectados"
         value={metrics?.uniqueContacts?.toString() || '0'}
-        color="bg-teal-500"
+        color="bg-primary-500"
       />
     </div>
   )

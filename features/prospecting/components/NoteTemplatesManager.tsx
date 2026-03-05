@@ -102,7 +102,7 @@ export const NoteTemplatesManager: React.FC<NoteTemplatesManagerProps> = ({
                 value={newText}
                 onChange={(e) => setNewText(e.target.value)}
                 placeholder="Texto do template..."
-                className="flex-1 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-md px-2 py-1.5 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-teal-500/50"
+                className="flex-1 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-md px-2 py-1.5 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-primary-500/50"
                 onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
               />
               <Button
@@ -110,7 +110,7 @@ export const NoteTemplatesManager: React.FC<NoteTemplatesManagerProps> = ({
                 size="unstyled"
                 onClick={handleCreate}
                 disabled={!newText.trim() || createTemplate.isPending}
-                className="p-1.5 rounded-md bg-teal-500 hover:bg-teal-600 text-white transition-colors disabled:opacity-40"
+                className="p-1.5 rounded-md bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-40"
               >
                 {createTemplate.isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
               </Button>

@@ -136,7 +136,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
               type="checkbox"
               checked={allSelectableSelected}
               onChange={toggleSelectAll}
-              className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500"
+              className="rounded border-slate-300 dark:border-slate-600 text-primary-500 focus:ring-primary-500"
             />
             Selecionar todos
           </label>
@@ -149,13 +149,13 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
               size="unstyled"
               onClick={handleSelectAllFiltered}
               disabled={isLoadingAllIds}
-              className="text-xs font-medium text-teal-600 dark:text-teal-400 hover:underline disabled:opacity-50"
+              className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline disabled:opacity-50"
             >
               {isLoadingAllIds ? 'Carregando...' : `Selecionar todos os ${totalCount} contatos`}
             </Button>
           )}
           {allFilteredSelected && (
-            <span className="text-xs font-medium text-teal-600 dark:text-teal-400">
+            <span className="text-xs font-medium text-primary-600 dark:text-primary-400">
               Todos os {selectedCount} contatos selecionados
             </span>
           )}
@@ -174,7 +174,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
               size="unstyled"
               onClick={handleAddToQueue}
               disabled={isAdding || maxAddable === 0}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold bg-teal-500 hover:bg-teal-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <UserPlus size={14} />
               {isAdding ? 'Adicionando...' : `Adicionar à Fila (${wouldExceedLimit ? maxAddable : selectedCount})`}
@@ -195,7 +195,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
               key={contact.id}
               className={`flex items-center gap-3 px-4 py-3 transition-colors ${
                 isSelected
-                  ? 'bg-teal-50 dark:bg-teal-500/10'
+                  ? 'bg-primary-50 dark:bg-primary-500/10'
                   : 'bg-white dark:bg-transparent hover:bg-slate-50 dark:hover:bg-white/5'
               } ${disabled ? 'opacity-60' : ''}`}
             >
@@ -205,7 +205,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                 checked={isSelected}
                 disabled={disabled}
                 onChange={() => toggleSelect(contact.id)}
-                className="rounded border-slate-300 dark:border-slate-600 text-teal-500 focus:ring-teal-500 disabled:opacity-40"
+                className="rounded border-slate-300 dark:border-slate-600 text-primary-500 focus:ring-primary-500 disabled:opacity-40"
               />
 
               {/* Name + Email */}
@@ -215,7 +215,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                     {contact.name}
                   </span>
                   {inQueue && (
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300">
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
                       Na fila
                     </span>
                   )}

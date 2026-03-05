@@ -120,7 +120,7 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
                 onClick={() => setCurrentSectionIndex(idx)}
                 className={`shrink-0 text-[11px] px-2.5 py-1 rounded-full transition-colors ${
                   idx === currentSectionIndex
-                    ? 'bg-teal-500 text-white font-medium'
+                    ? 'bg-primary-500 text-white font-medium'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
@@ -143,11 +143,11 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
                 variant="unstyled"
                 size="unstyled"
                 onClick={() => handleCopySection(currentSection)}
-                className="shrink-0 p-1.5 rounded-md text-slate-400 hover:text-teal-500 hover:bg-teal-500/10 transition-colors"
+                className="shrink-0 p-1.5 rounded-md text-slate-400 hover:text-primary-500 hover:bg-primary-500/10 transition-colors"
                 title="Copiar trecho"
               >
                 {copiedSection === currentSection.id ? (
-                  <Check size={14} className="text-teal-500" />
+                  <Check size={14} className="text-primary-500" />
                 ) : (
                   <Copy size={14} />
                 )}

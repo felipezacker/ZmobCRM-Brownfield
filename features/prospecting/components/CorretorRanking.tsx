@@ -141,8 +141,8 @@ export function CorretorRanking({ brokers, isLoading }: CorretorRankingProps) {
                   </td>
                   <td className="py-2 px-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-teal-100 dark:bg-teal-500/20 flex items-center justify-center flex-shrink-0">
-                        <User size={14} className="text-teal-600 dark:text-teal-400" />
+                      <div className="w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center flex-shrink-0">
+                        <User size={14} className="text-primary-600 dark:text-primary-400" />
                       </div>
                       <span className="text-slate-700 dark:text-slate-300 truncate">
                         {broker.ownerName}
