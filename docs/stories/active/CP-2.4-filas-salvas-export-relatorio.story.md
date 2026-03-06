@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-2.4
 - **Epic:** CP-2 (Prospecção Inteligente)
-- **Status:** InProgress
+- **Status:** InReview
 - **Owner:** (unassigned)
 - **Executor:** @dev
 - **Quality Gate:** @architect
@@ -210,3 +210,4 @@ lib/query/hooks/
 | 2026-03-04 | @sm | Correções pós-validação PO (NO-GO → resubmissão) |
 | 2026-03-04 | @po | Validação GO (10/10) — Status Draft → Ready |
 | 2026-03-06 | @dev | Implementação completa — 21 tasks, 273 testes passando, lint+typecheck clean |
+| 2026-03-06 | @po | Status InProgress → InReview — pronto para QA Gate |
