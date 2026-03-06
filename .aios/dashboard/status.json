@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-03-05T22:17:24.617Z",
+  "connected": true,
+  "project": {
+    "name": "ZmobCRM-Brownfield",
+    "path": "/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield"
+  },
+  "activeAgent": {
+    "id": "dev",
+    "name": "Gemini CLI",
+    "activatedAt": "2026-03-05T22:17:24.617Z"
+  },
+  "session": {
+    "id": "session-1772749044614",
+    "startedAt": "2026-03-05T22:17:24.617Z",
+    "commandsExecuted": 0
+  },
+  "stories": {
+    "inProgress": [],
+    "completed": []
+  }
+}

@@ -1,78 +1,13 @@
 {
-  "previewFeatures": true,
-  "folderTrust": {
-    "enabled": true
+  "project_name": "ZmobCRM-Brownfield",
+  "workflow_mode": "expert",
+  "preferred_language": "pt-BR",
+  "features": {
+    "parallel_tool_calls": true,
+    "context_compression": true
   },
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "name": "aios-session-init",
-            "type": "command",
-            "command": "node \".gemini/hooks/session-start.cjs\"",
-            "timeout": 5000,
-            "enabled": true
-          }
-        ]
-      }
-    ],
-    "BeforeAgent": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "name": "aios-context-inject",
-            "type": "command",
-            "command": "node \".gemini/hooks/before-agent.cjs\"",
-            "timeout": 3000,
-            "enabled": true
-          }
-        ]
-      }
-    ],
-    "BeforeTool": [
-      {
-        "matcher": "write_file|replace|shell|bash|execute",
-        "hooks": [
-          {
-            "name": "aios-security-check",
-            "type": "command",
-            "command": "node \".gemini/hooks/before-tool.cjs\"",
-            "timeout": 2000,
-            "enabled": true
-          }
-        ]
-      }
-    ],
-    "AfterTool": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "name": "aios-audit-log",
-            "type": "command",
-            "command": "node \".gemini/hooks/after-tool.cjs\"",
-            "timeout": 2000,
-            "enabled": true
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "name": "aios-session-persist",
-            "type": "command",
-            "command": "node \".gemini/hooks/session-end.cjs\"",
-            "timeout": 5000,
-            "enabled": true
-          }
-        ]
-      }
-    ]
+  "permissions": {
+    "full_autonomy": true,
+    "direct_execution": true
   }
 }

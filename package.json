@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
-    "token-coverage": "node scripts/token-coverage.mjs"
+    "token-coverage": "node scripts/token-coverage.mjs",
+    "stakeholder-dashboard": "node scripts/generate-stakeholder-dashboard.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.37",

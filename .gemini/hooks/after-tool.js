@@ -17,9 +17,6 @@ async function afterTool() {
   // Log execution result
   logToolResult(toolName, toolResult);
 
-  // Send event to AIOS Dashboard
-  await sendDashboardEvent(input, toolName, toolResult);
-
   // Track file modifications
   if (toolName === 'write_file' || toolName === 'replace' || toolName === 'edit') {
     trackFileModification(input.args?.path || input.args?.file_path);
@@ -69,36 +66,6 @@ function trackFileModification(filePath) {
       files.push(filePath);
       fs.writeFileSync(trackPath, JSON.stringify(files, null, 2));
     }
-  } catch (error) {
-    // Non-critical
-  }
-}
-
-async function sendDashboardEvent(input, toolName, result) {
-  try {
-    const payload = {
-      type: 'PostToolUse',
-      timestamp: Date.now(),
-      data: {
-        session_id: process.env.GEMINI_SESSION_ID || 'gemini-session',
-        project: 'ZmobCRM-Brownfield',
-        cwd: process.cwd(),
-        tool_name: toolName,
-        tool_input: input.args || {},
-        tool_result: typeof result === 'string' ? result : JSON.stringify(result),
-        is_error: result.success === false,
-        aios_agent: 'gemini-cli'
-      }
-    };
-
-    // Fire and forget to avoid blocking CLI performance
-    fetch('http://localhost:4001/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(() => {
-      /* ignore dashboard offline */
-    });
   } catch (error) {
     // Non-critical
   }

@@ -52,47 +52,7 @@ async function sessionStart() {
     // Non-critical
   }
 
-  // Update Dashboard status file
-  updateDashboardStatus(projectDir, sessionId);
-
   return result;
-}
-
-function updateDashboardStatus(projectDir, sessionId) {
-  try {
-    const statusDir = path.join(projectDir, '.aios', 'dashboard');
-    if (!fs.existsSync(statusDir)) {
-      fs.mkdirSync(statusDir, { recursive: true });
-    }
-
-    const status = {
-      version: '1.0',
-      updatedAt: new Date().toISOString(),
-      connected: true,
-      project: {
-        name: path.basename(projectDir),
-        path: projectDir,
-      },
-      activeAgent: {
-        id: 'dev', // Default agent
-        name: 'Gemini CLI',
-        activatedAt: new Date().toISOString(),
-      },
-      session: {
-        id: sessionId,
-        startedAt: new Date().toISOString(),
-        commandsExecuted: 0,
-      },
-      stories: {
-        inProgress: [],
-        completed: [],
-      },
-    };
-
-    fs.writeFileSync(path.join(statusDir, 'status.json'), JSON.stringify(status, null, 2));
-  } catch (error) {
-    // Non-critical
-  }
 }
 
 function detectProjectType(projectDir) {
