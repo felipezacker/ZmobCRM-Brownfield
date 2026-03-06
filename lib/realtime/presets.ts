@@ -31,7 +31,7 @@ const REALTIME_PRESETS = {
   prospecting: ['prospecting_queues', 'prospecting_saved_queues', 'prospecting_daily_goals'] as const,
 
   /** Full CRM sync (for main layout) */
-  all: ['deals', 'contacts', 'activities', 'boards'] as const,
+  all: ['deals', 'contacts', 'activities', 'boards', 'prospecting_queues', 'prospecting_saved_queues', 'prospecting_daily_goals'] as const,
 } as const;
 
 export type RealtimePreset = keyof typeof REALTIME_PRESETS;

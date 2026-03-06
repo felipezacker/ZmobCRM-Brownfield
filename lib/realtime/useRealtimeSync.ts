@@ -578,7 +578,7 @@ export function useRealtimeSync(
  * Ideal for the main app layout
  */
 export function useRealtimeSyncAll(options: UseRealtimeSyncOptions = {}) {
-  return useRealtimeSync(['deals', 'contacts', 'activities', 'boards'], options);
+  return useRealtimeSync(['deals', 'contacts', 'activities', 'boards', 'prospecting_queues', 'prospecting_saved_queues', 'prospecting_daily_goals'], options);
 }
 
 /**
