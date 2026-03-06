@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Target, Settings, Trophy } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import type { GoalProgress } from '../hooks/useProspectingGoals'
@@ -66,16 +66,17 @@ function CircularProgress({ percentage, color }: { percentage: number; color: Go
 
 export function DailyGoalCard({ progress, isLoading, isAdminOrDirector, onConfigureClick }: DailyGoalCardProps) {
   const [showCelebration, setShowCelebration] = useState(false)
-  const [prevComplete, setPrevComplete] = useState(false)
+  const prevCompleteRef = useRef(progress.isComplete)
 
   useEffect(() => {
-    if (progress.isComplete && !prevComplete) {
+    if (progress.isComplete && !prevCompleteRef.current) {
       setShowCelebration(true)
       const timer = setTimeout(() => setShowCelebration(false), 3000)
+      prevCompleteRef.current = true
       return () => clearTimeout(timer)
     }
-    setPrevComplete(progress.isComplete)
-  }, [progress.isComplete, prevComplete])
+    prevCompleteRef.current = progress.isComplete
+  }, [progress.isComplete])
 
   if (isLoading) {
     return (

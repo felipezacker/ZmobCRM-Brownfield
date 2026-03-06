@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react'
 import { Flame, Info } from 'lucide-react'
+import { Button } from '@/app/components/ui/Button'
 import type { CallActivity } from '../hooks/useProspectingMetrics'
 
 interface ConnectionHeatmapProps {
@@ -124,8 +125,10 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
         </div>
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/10 rounded-lg p-0.5">
           {PERIODS.map(p => (
-            <button
+            <Button
               key={p.value}
+              variant="unstyled"
+              size="unstyled"
               onClick={() => setPeriod(p.value)}
               className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
                 period === p.value
@@ -134,7 +137,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
               }`}
             >
               {p.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -170,9 +173,12 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
                   return (
                     <div
                       key={`${day}-${slot}`}
+                      role="gridcell"
+                      tabIndex={0}
+                      aria-label={`${day} ${slot.replace('-', 'h-')}h: ${(cell.rate * 100).toFixed(0)}% conexao (${cell.connected}/${cell.total})`}
                       className={`h-8 min-w-[48px] rounded-md cursor-default transition-colors ${getCellColor(cell.rate)} ${
                         cell.total === 0 ? 'opacity-40' : ''
-                      }`}
+                      } focus:outline-none focus:ring-2 focus:ring-primary-500`}
                       onMouseEnter={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect()
                         setTooltip({
@@ -186,6 +192,19 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
                         })
                       }}
                       onMouseLeave={() => setTooltip(null)}
+                      onFocus={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        setTooltip({
+                          day,
+                          time: slot.replace('-', 'h-') + 'h',
+                          rate: cell.rate,
+                          connected: cell.connected,
+                          total: cell.total,
+                          x: rect.left + rect.width / 2,
+                          y: rect.top - 8,
+                        })
+                      }}
+                      onBlur={() => setTooltip(null)}
                     />
                   )
                 })}

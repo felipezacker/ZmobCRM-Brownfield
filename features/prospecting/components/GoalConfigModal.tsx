@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { X, Target, Save, Users } from 'lucide-react'
 import { Button } from '@/app/components/ui/Button'
 import type { DbDailyGoal } from '@/lib/supabase/prospecting-goals'
@@ -41,6 +41,17 @@ export function GoalConfigModal({
       setTeamEdits(edits)
     }
   }, [isOpen, currentTarget, teamGoals])
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose()
+  }, [onClose])
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, handleKeyDown])
 
   if (!isOpen) return null
 
