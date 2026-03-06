@@ -347,6 +347,17 @@ export interface ProspectingQueueItem {
   contactEmail?: string;
 }
 
+// Prospecting Daily Goals (CP-2.3)
+export interface ProspectingDailyGoal {
+  id: string;
+  ownerId: string;
+  organizationId: string;
+  callsTarget: number;
+  connectionRateTarget: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DashboardStats {
   totalDeals: number;
   pipelineValue: number;

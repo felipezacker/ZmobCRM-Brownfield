@@ -16,6 +16,10 @@ import { ConversionFunnel } from './components/ConversionFunnel'
 import { AutoInsights } from './components/AutoInsights'
 import { CallDetailsTable } from './components/CallDetailsTable'
 import { CorretorRanking } from './components/CorretorRanking'
+import { DailyGoalCard } from './components/DailyGoalCard'
+import { ConnectionHeatmap } from './components/ConnectionHeatmap'
+import { GoalConfigModal } from './components/GoalConfigModal'
+import { useProspectingGoals } from './hooks/useProspectingGoals'
 import { useProspectingQueue } from './hooks/useProspectingQueue'
 import { useProspectingFilteredContacts } from './hooks/useProspectingFilteredContacts'
 import { useProspectingMetrics, type MetricsPeriod, type PeriodRange } from './hooks/useProspectingMetrics'
@@ -72,6 +76,9 @@ export const ProspectingPage: React.FC = () => {
   const [metricsFilterOwnerId, setMetricsFilterOwnerId] = useState<string>('')
   const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined)
   const { invalidateMetrics, isAdminOrDirector } = metricsHook
+
+  // CP-2.3: Daily goals + heatmap
+  const goalsHook = useProspectingGoals(metricsHook.activities)
 
   // Queue owner view: admin/director can see other corretors' queues
   const [viewQueueOwnerId, setViewQueueOwnerId] = useState<string>('')
@@ -519,6 +526,14 @@ export const ProspectingPage: React.FC = () => {
               </div>
             )}
 
+            {/* CP-2.3: Daily goal card */}
+            <DailyGoalCard
+              progress={goalsHook.progress}
+              isLoading={goalsHook.isLoading}
+              isAdminOrDirector={goalsHook.isAdminOrDirector}
+              onConfigureClick={() => goalsHook.setShowGoalModal(true)}
+            />
+
             <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -530,6 +545,12 @@ export const ProspectingPage: React.FC = () => {
                 periodEnd={metricsHook.range.end}
               />
             </div>
+
+            {/* CP-2.3: Connection heatmap */}
+            <ConnectionHeatmap
+              activities={metricsHook.activities}
+              isLoading={metricsHook.isLoading}
+            />
 
             <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
 
@@ -614,6 +635,19 @@ export const ProspectingPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* CP-2.3: Goal config modal */}
+      <GoalConfigModal
+        isOpen={goalsHook.showGoalModal}
+        onClose={() => goalsHook.setShowGoalModal(false)}
+        currentTarget={goalsHook.progress.target}
+        isAdminOrDirector={goalsHook.isAdminOrDirector}
+        teamGoals={goalsHook.teamGoals}
+        profiles={profiles}
+        currentUserId={profile?.id || ''}
+        onSave={goalsHook.updateGoal}
+        isSaving={goalsHook.isUpdating}
+      />
     </div>
   )
 }
