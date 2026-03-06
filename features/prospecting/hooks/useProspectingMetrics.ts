@@ -11,6 +11,7 @@ import { useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import { useAuth } from '@/context/AuthContext'
+import { queryKeys } from '@/lib/query/queryKeys'
 import { supabase } from '@/lib/supabase/client'
 
 export type MetricsPeriod = 'today' | '7d' | '30d' | 'custom'
@@ -219,7 +220,7 @@ export function useProspectingMetrics(
   const QUERY_LIMIT = 5000
 
   const metricsQuery = useQuery({
-    queryKey: ['prospectingMetrics', range.start, range.end],
+    queryKey: [...queryKeys.prospectingMetrics.all, range.start, range.end],
     queryFn: async () => {
       if (!supabase) return []
       const { data, error } = await supabase
@@ -255,7 +256,7 @@ export function useProspectingMetrics(
   }, [filteredActivities, metricsQuery.data, profiles])
 
   const invalidateMetrics = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['prospectingMetrics'] })
+    queryClient.invalidateQueries({ queryKey: queryKeys.prospectingMetrics.all })
   }, [queryClient])
 
   return {

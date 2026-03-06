@@ -13,6 +13,8 @@ import {
   Sparkles,
   Phone,
   Settings,
+  Zap,
+  UserCircle,
 } from 'lucide-react';
 import type { InstructionSection } from './types';
 
@@ -495,7 +497,7 @@ export const sections: InstructionSection[] = [
     ],
   },
 
-  // ─── Prospecção (NOVO) ────────────────────────────────────────────────────────
+  // ─── Prospecção ──────────────────────────────────────────────────────────────
   {
     id: 'prospecting',
     title: 'Prospecção',
@@ -531,6 +533,25 @@ export const sections: InstructionSection[] = [
       },
       {
         type: 'feature-list',
+        title: 'Metas diárias:',
+        items: [
+          { title: 'Meta de ligações', description: 'Defina quantas ligações quer fazer por dia' },
+          { title: 'Taxa de conexão', description: 'Acompanhe sua meta de contatos que atendem' },
+          { title: 'Heatmap de horário', description: 'Veja quais horários do dia têm melhor taxa de atendimento' },
+          { title: 'Acompanhamento por corretor', description: 'Diretores e admins podem definir e acompanhar metas individuais da equipe' },
+        ],
+      },
+      {
+        type: 'feature-list',
+        title: 'Filas salvas:',
+        items: [
+          { title: 'Salvar fila', description: 'Salve combinações de filtros como filas favoritas para reutilizar' },
+          { title: 'Compartilhar', description: 'Filas salvas podem ser compartilhadas com a equipe' },
+          { title: 'Exportar PDF', description: 'Exporte a fila de contatos em formato PDF para uso offline' },
+        ],
+      },
+      {
+        type: 'feature-list',
         title: 'Aba de métricas:',
         items: [
           { title: 'KPIs', description: 'Total de ligações, taxa de conversão, tempo médio de sessão' },
@@ -547,11 +568,18 @@ export const sections: InstructionSection[] = [
           'Visualize a fila de toda a equipe na aba "Fila da Equipe"',
           'Acompanhe o ranking de corretores por volume e conversão',
           'Diretores podem reatribuir contatos da fila em lote',
+          'Defina metas diárias individuais para cada corretor',
         ],
       },
       {
+        type: 'info-box',
+        title: 'Atualização em tempo real:',
+        text: 'A fila, metas e métricas são atualizadas automaticamente em tempo real. Se outro membro da equipe adicionar ou remover contatos da fila, você verá a mudança instantaneamente.',
+        color: 'blue',
+      },
+      {
         type: 'tip',
-        text: 'Dica: Configure o intervalo de retentativa para evitar ligar para o mesmo contato antes do tempo ideal.',
+        text: 'Dica: Salve suas filas mais usadas para acessar rapidamente e exporte em PDF antes de sair para visitas externas.',
       },
     ],
   },
@@ -629,6 +657,100 @@ export const sections: InstructionSection[] = [
       {
         type: 'tip',
         text: 'Dica: Configure primeiro o Centro de IA e o catálogo de Produtos — eles potencializam todo o resto do sistema.',
+      },
+    ],
+  },
+
+  // ─── Central de Decisões ────────────────────────────────────────────────────
+  {
+    id: 'decisions',
+    title: 'Central de Decisões',
+    icon: Zap,
+    color: 'bg-yellow-500',
+    content: [
+      {
+        type: 'paragraph',
+        text: 'A **Central de Decisões** usa inteligência artificial para analisar todo o seu CRM e sugerir ações proativas. Acesse pelo menu lateral > Decisões para ver recomendações personalizadas sobre seus negócios e contatos.',
+      },
+      {
+        type: 'feature-grid',
+        title: '4 níveis de prioridade:',
+        cols: 2,
+        items: [
+          { label: 'Crítico', description: 'Ação urgente necessária — deal em risco ou atividade muito atrasada', color: 'red' },
+          { label: 'Importante', description: 'Requer atenção em breve — oportunidade pode esfriar', color: 'orange' },
+          { label: 'Moderado', description: 'Ação recomendada — melhoria de processo ou follow-up', color: 'yellow' },
+          { label: 'Baixo', description: 'Sugestão opcional — otimização de rotina', color: 'slate' },
+        ],
+      },
+      {
+        type: 'feature-list',
+        title: 'Como funciona:',
+        items: [
+          { title: 'Analisar', description: 'Clique em "Analisar Agora" para a IA varrer seus negócios, atividades e contatos' },
+          { title: 'Revisar', description: 'Veja cada sugestão com o motivo e a ação recomendada' },
+          { title: 'Aprovar', description: 'Aceite a sugestão e a ação será executada automaticamente' },
+          { title: 'Rejeitar', description: 'Descarte a sugestão se não for relevante' },
+          { title: 'Adiar', description: 'Adie para revisar depois' },
+        ],
+      },
+      {
+        type: 'feature-list',
+        title: 'Exemplos de sugestões:',
+        items: [
+          { title: 'Deal parado', description: '"O negócio X está parado há 15 dias — agende um follow-up"' },
+          { title: 'Atividade atrasada', description: '"Você tem 3 ligações atrasadas — reagende ou conclua"' },
+          { title: 'Lead esfriando', description: '"O contato Y não é contatado há 30 dias — retome o relacionamento"' },
+          { title: 'Oportunidade', description: '"O lead Z tem score alto e negócio em fase final — priorize o fechamento"' },
+        ],
+      },
+      {
+        type: 'info-box',
+        title: 'Ações em lote:',
+        text: 'Use o botão "Aprovar todas as sugeridas" para aceitar todas as recomendações de uma vez, ou "Limpar tudo" para recomeçar a análise do zero.',
+        color: 'yellow',
+      },
+      {
+        type: 'tip',
+        text: 'Dica: Rode a análise no início do dia para começar com uma lista priorizada de ações.',
+      },
+    ],
+  },
+
+  // ─── Meu Perfil ─────────────────────────────────────────────────────────────
+  {
+    id: 'profile',
+    title: 'Meu Perfil',
+    icon: UserCircle,
+    color: 'bg-sky-500',
+    content: [
+      {
+        type: 'paragraph',
+        text: 'Na página **Meu Perfil** você gerencia suas informações pessoais e segurança. Acesse clicando no seu avatar no canto superior direito.',
+      },
+      {
+        type: 'feature-list',
+        title: 'Dados pessoais:',
+        items: [
+          { title: 'Nome e sobrenome', description: 'Como você aparece para a equipe' },
+          { title: 'Apelido', description: 'Nome curto — como gostaria de ser chamado no sistema' },
+          { title: 'Telefone', description: 'Seu número de contato profissional' },
+          { title: 'Foto de perfil', description: 'Envie ou remova sua foto (máximo 2MB)' },
+        ],
+      },
+      {
+        type: 'feature-list',
+        title: 'Segurança:',
+        items: [
+          { title: 'Alterar senha', description: 'Defina uma nova senha (mínimo 6 caracteres com maiúscula, minúscula e número)' },
+          { title: 'Alterar email', description: 'Mude seu email de acesso — um email de confirmação será enviado' },
+        ],
+      },
+      {
+        type: 'info-box',
+        title: 'Taxa de comissão:',
+        text: 'Administradores e diretores podem definir sua taxa de comissão padrão (0-100%). Esse valor é usado como base para cálculos quando o negócio não possui taxa específica.',
+        color: 'sky',
       },
     ],
   },
