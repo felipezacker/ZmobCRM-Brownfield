@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-2.3
 - **Epic:** CP-2 (Prospecção Inteligente)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Owner:** (unassigned)
 - **Executor:** @dev
 - **Quality Gate:** @architect
@@ -21,19 +21,19 @@ As a corretor, I want configurar metas diárias com progresso visual e ver um he
 
 ## Acceptance Criteria
 
-- [ ] AC1: Card "Meta do Dia" no dashboard de métricas com barra de progresso circular mostrando ligações feitas / meta
-- [ ] AC2: Meta padrão configurável pelo corretor (default: 30 ligações/dia)
-- [ ] AC3: Progresso atualiza em tempo real após cada chamada registrada na sessão
-- [ ] AC4: Indicador visual de % da meta atingida: vermelho (<50%), amarelo (50-99%), verde (100%+)
-- [ ] AC5: Animação de celebração ao atingir 100% da meta (confetti sutil ou badge "Meta atingida!")
-- [ ] AC6: Heatmap 7×12 (dias da semana × faixas de 2h: 8-10, 10-12, ..., 18-20) com cores por connection rate
-- [ ] AC7: Heatmap baseado nos últimos 30 dias de dados (configurável: 30/60/90 dias)
-- [ ] AC8: Heatmap exige mínimo de 50 chamadas no período para ser exibido — caso contrário, mensagem "Dados insuficientes, continue prospectando!"
-- [ ] AC9: Tooltip no heatmap mostrando: "Segunda 10h-12h: 45% conexão (18/40 chamadas)"
-- [ ] AC10: Diretor pode definir/editar metas dos corretores da equipe via modal de configuração
-- [ ] AC11: Tabela `prospecting_daily_goals` com RLS por organization_id
-- [ ] AC12: Dark mode + responsivo (heatmap scrollável horizontal no mobile)
-- [ ] AC13: Sem regressão nas funcionalidades do CP-1
+- [x] AC1: Card "Meta do Dia" no dashboard de métricas com barra de progresso circular mostrando ligações feitas / meta
+- [x] AC2: Meta padrão configurável pelo corretor (default: 30 ligações/dia)
+- [x] AC3: Progresso atualiza em tempo real após cada chamada registrada na sessão
+- [x] AC4: Indicador visual de % da meta atingida: vermelho (<50%), amarelo (50-99%), verde (100%+)
+- [x] AC5: Animação de celebração ao atingir 100% da meta (confetti sutil ou badge "Meta atingida!")
+- [x] AC6: Heatmap 7×6 (dias da semana × faixas de 2h: 8-10, 10-12, ..., 18-20) com cores por connection rate
+- [x] AC7: Heatmap baseado nos últimos 30 dias de dados (configurável: 30/60/90 dias)
+- [x] AC8: Heatmap exige mínimo de 50 chamadas no período para ser exibido — caso contrário, mensagem "Dados insuficientes, continue prospectando!"
+- [x] AC9: Tooltip no heatmap mostrando: "Segunda 10h-12h: 45% conexão (18/40 chamadas)"
+- [x] AC10: Diretor pode definir/editar metas dos corretores da equipe via modal de configuração
+- [x] AC11: Tabela `prospecting_daily_goals` com RLS por organization_id
+- [x] AC12: Dark mode + responsivo (heatmap scrollável horizontal no mobile)
+- [x] AC13: Sem regressão nas funcionalidades do CP-1
 
 ## Escopo
 
@@ -242,3 +242,5 @@ lib/query/hooks/
 | 2026-03-06 | @dev | Implementacao completa — 23/23 tasks, 23 testes novos, 246/246 passando, migration criada |
 | 2026-03-06 | @qa | QA Gate: PASS with CONCERNS — AC 13/13, 634/634 tests, 3 LOW + 1 MEDIUM concerns (non-blocking) |
 | 2026-03-06 | @dev | QA concerns fixed: Modal migrado para componente reutilizavel com FocusTrap, testes GoalConfigModal (9), doc fixes (Vitest, 7x6) |
+| 2026-03-06 | @qa | Re-Review: PASS — All 4 concerns resolved, 665/665 tests passing |
+| 2026-03-06 | @po | Story closed: ACs 13/13 marcados, DoD 7/7, QA Gate PASS, Status → Done |

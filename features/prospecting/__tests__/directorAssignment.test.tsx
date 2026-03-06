@@ -124,6 +124,19 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   }
 })
 
+// CP-2.4: Mock saved queues hook
+vi.mock('../hooks/useSavedQueues', () => ({
+  useSavedQueues: () => ({
+    savedQueues: [],
+    isLoading: false,
+    isSaving: false,
+    isDeleting: false,
+    saveQueue: vi.fn(),
+    deleteQueue: vi.fn(),
+    getFiltersFromSaved: vi.fn(),
+  }),
+}))
+
 // CP-2.3: Mock daily goals hook
 vi.mock('../hooks/useProspectingGoals', () => ({
   useProspectingGoals: () => ({

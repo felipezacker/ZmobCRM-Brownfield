@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/app/components/ui/Button'
 import { CallQueue } from './components/CallQueue'
@@ -19,7 +19,10 @@ import { CorretorRanking } from './components/CorretorRanking'
 import { DailyGoalCard } from './components/DailyGoalCard'
 import { ConnectionHeatmap } from './components/ConnectionHeatmap'
 import { GoalConfigModal } from './components/GoalConfigModal'
+import { SaveQueueModal } from './components/SaveQueueModal'
+import { SavedQueuesList } from './components/SavedQueuesList'
 import { useProspectingGoals } from './hooks/useProspectingGoals'
+import { useSavedQueues } from './hooks/useSavedQueues'
 import { useProspectingQueue } from './hooks/useProspectingQueue'
 import { useProspectingFilteredContacts } from './hooks/useProspectingFilteredContacts'
 import { useProspectingMetrics, type MetricsPeriod, type PeriodRange } from './hooks/useProspectingMetrics'
@@ -79,6 +82,11 @@ export const ProspectingPage: React.FC = () => {
 
   // CP-2.3: Daily goals + heatmap
   const goalsHook = useProspectingGoals(metricsHook.activities)
+
+  // CP-2.4: Saved queues + PDF export
+  const savedQueuesHook = useSavedQueues()
+  const [showSaveQueueModal, setShowSaveQueueModal] = useState(false)
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
 
   // Queue owner view: admin/director can see other corretors' queues
   const [viewQueueOwnerId, setViewQueueOwnerId] = useState<string>('')
@@ -215,6 +223,36 @@ export const ProspectingPage: React.FC = () => {
     }
   }, [addBatchMutation, assignToOwnerId, profiles, toast, refetch])
 
+  // CP-2.4: Load saved queue → apply filters
+  const handleLoadSavedQueue = useCallback((queue: import('@/lib/supabase/prospecting-saved-queues').SavedQueue) => {
+    const restored = savedQueuesHook.getFiltersFromSaved(queue)
+    setFilters(restored)
+    setShowFilters(true)
+    filteredContacts.applyFilters(restored)
+    toast(`Fila "${queue.name}" carregada`, 'success')
+  }, [savedQueuesHook, filteredContacts, toast])
+
+  // CP-2.4: PDF export
+  const handleExportPdf = useCallback(async () => {
+    setIsGeneratingPdf(true)
+    try {
+      const { generateMetricsPDF } = await import('./utils/generateMetricsPDF')
+      await generateMetricsPDF({
+        metrics: metricsHook.metrics,
+        activities: metricsHook.activities,
+        brokers: metricsHook.metrics?.byBroker || [],
+        range: metricsHook.range,
+        isAdminOrDirector,
+        organizationName: 'ZmobCRM',
+      })
+      toast('PDF exportado com sucesso', 'success')
+    } catch {
+      toast('Erro ao gerar PDF', 'error')
+    } finally {
+      setIsGeneratingPdf(false)
+    }
+  }, [metricsHook, isAdminOrDirector, profile, toast])
+
   const currentContact = sessionActive && queue[currentIndex] ? queue[currentIndex] : null
   const pendingCount = queue.filter(q => q.status === 'pending').length
 
@@ -299,6 +337,27 @@ export const ProspectingPage: React.FC = () => {
                   <Filter size={14} />
                   Filtros em Massa
                 </Button>
+                {/* CP-2.4: Save queue button (visible when filters are applied) */}
+                {showFilters && filteredContacts.hasResults && (
+                  <Button
+                    variant="unstyled"
+                    size="unstyled"
+                    onClick={() => setShowSaveQueueModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30 transition-colors"
+                  >
+                    <BookmarkPlus size={14} />
+                    Salvar Fila
+                  </Button>
+                )}
+                {/* CP-2.4: Saved queues dropdown */}
+                <SavedQueuesList
+                  savedQueues={savedQueuesHook.savedQueues}
+                  isLoading={savedQueuesHook.isLoading}
+                  isDeleting={savedQueuesHook.isDeleting}
+                  currentUserId={profile?.id || ''}
+                  onLoad={handleLoadSavedQueue}
+                  onDelete={savedQueuesHook.deleteQueue}
+                />
                 <Button
                   variant="unstyled"
                   size="unstyled"
@@ -423,6 +482,21 @@ export const ProspectingPage: React.FC = () => {
                 Exibindo as 5.000 ligações mais recentes. Reduza o período para dados completos.
               </div>
             )}
+
+            {/* CP-2.4: PDF export button */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Dashboard de Métricas</span>
+              <Button
+                variant="unstyled"
+                size="unstyled"
+                onClick={handleExportPdf}
+                disabled={isGeneratingPdf || metricsHook.isLoading || !metricsHook.metrics}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/15 transition-colors disabled:opacity-50"
+              >
+                <FileDown size={14} />
+                {isGeneratingPdf ? 'Gerando PDF...' : 'Exportar PDF'}
+              </Button>
+            </div>
 
             {/* Filters: period + broker */}
             <div className="flex flex-wrap items-center gap-2">
@@ -635,6 +709,15 @@ export const ProspectingPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* CP-2.4: Save queue modal */}
+      <SaveQueueModal
+        isOpen={showSaveQueueModal}
+        onClose={() => setShowSaveQueueModal(false)}
+        onSave={async (name, isShared) => { await savedQueuesHook.saveQueue(name, filters, isShared) }}
+        isSaving={savedQueuesHook.isSaving}
+        isAdminOrDirector={isAdminOrDirector}
+      />
 
       {/* CP-2.3: Goal config modal */}
       <GoalConfigModal
