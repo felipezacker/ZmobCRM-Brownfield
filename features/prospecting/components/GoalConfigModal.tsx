@@ -35,12 +35,13 @@ export function GoalConfigModal({
     if (isOpen) {
       setMyTarget(currentTarget)
       const edits: Record<string, number> = {}
-      for (const g of teamGoals) {
-        edits[g.owner_id] = g.calls_target
+      for (const p of profiles) {
+        const existing = teamGoals.find(g => g.owner_id === p.id)
+        edits[p.id] = existing?.calls_target ?? 30
       }
       setTeamEdits(edits)
     }
-  }, [isOpen, currentTarget, teamGoals])
+  }, [isOpen, currentTarget, teamGoals, profiles])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') onClose()

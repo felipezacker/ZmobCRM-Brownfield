@@ -46,7 +46,11 @@ export const useUpsertDailyGoal = () => {
       if (error) throw error
       return data!
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(
+        queryKeys.dailyGoals.detail(variables.ownerId),
+        data,
+      )
       queryClient.invalidateQueries({ queryKey: queryKeys.dailyGoals.all })
     },
   })
