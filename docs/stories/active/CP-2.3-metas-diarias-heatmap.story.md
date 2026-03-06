@@ -130,7 +130,7 @@ features/prospecting/
 │   ├── MetricsCards.tsx                  # Adicionar DailyGoalCard aqui
 │   ├── MetricsChart.tsx                  # Adicionar ConnectionHeatmap abaixo do gráfico
 │   ├── DailyGoalCard.tsx                 # NOVO — card com progresso circular
-│   └── ConnectionHeatmap.tsx             # NOVO — grid 7×12
+│   └── ConnectionHeatmap.tsx             # NOVO — grid 7×6
 ├── hooks/
 │   ├── useProspectingMetrics.ts          # Adicionar dados heatmap
 │   └── useProspectingGoals.ts            # NOVO — CRUD de metas
@@ -155,7 +155,7 @@ lib/query/hooks/
 
 ### Testing
 
-- Framework: Jest + @testing-library/react
+- Framework: Vitest + @testing-library/react
 - Localização: `features/prospecting/__tests__/`
 - Padrões: seguir os 29 arquivos e 150+ testes do CP-1 (mesma estrutura)
 - Mocks: Supabase client mockado via `__mocks__`, TanStack Query com `QueryClientProvider` wrapper
@@ -194,6 +194,44 @@ lib/query/hooks/
 | `features/prospecting/__tests__/dailyGoalCard.test.tsx` | Criado (7 testes) |
 | `features/prospecting/__tests__/connectionHeatmap.test.tsx` | Criado (7 testes) |
 | `features/prospecting/__tests__/useProspectingGoals.test.ts` | Criado (9 testes) |
+| `features/prospecting/__tests__/goalConfigModal.test.tsx` | Criado (9 testes) |
+
+## QA Results
+
+### QA Gate — 2026-03-06 (@qa)
+
+**Verdict: PASS with CONCERNS**
+
+| Check | Result |
+|-------|--------|
+| Code review | ✅ Patterns consistent, clean separation |
+| Unit tests | ✅ 23 new tests, 634/634 total passing |
+| Acceptance criteria | ✅ AC1-AC13 all met |
+| No regressions | ✅ Zero regressions |
+| Performance | ✅ useMemo, staleTime 5min |
+| Security | ✅ RLS 4 policies, org validation |
+| Documentation | ✅ File List + Change Log complete |
+
+**Concerns (non-blocking):**
+1. (LOW) AC6 wording says "7x12" — implementation is 7x6 (correct per 2h slot description)
+2. (LOW) GoalConfigModal uses custom overlay instead of Radix Dialog (no focus-trap)
+3. (MEDIUM) GoalConfigModal has no dedicated test suite — team-member bug (ba8f827) would have been caught
+4. (LOW) Dev Notes say "Jest" but project uses Vitest
+
+**Recommendation:** Approved for push. Concern #3 can be addressed as follow-up in CP-2.4 or backlog.
+
+### Re-Review — 2026-03-06 (@qa)
+
+**Verdict: PASS**
+
+| Concern Original | Fix Aplicado | Verificacao | Status |
+|-----------------|--------------|-------------|--------|
+| AC6 "7x12" doc | Dev Notes corrigido para "7x6" | Grep confirmado | RESOLVED |
+| GoalConfigModal sem focus-trap | Migrado para `<Modal>` (FocusTrap, aria, Escape) | Code review OK | RESOLVED |
+| GoalConfigModal sem testes | 9 testes criados (inclui caso bug ba8f827) | 9/9 passing | RESOLVED |
+| Dev Notes "Jest" | Corrigido para "Vitest" | Grep confirmado | RESOLVED |
+
+**All concerns resolved. 665/665 tests passing. Approved for push.**
 
 ## Change Log
 | Data | Autor | Mudanca |
@@ -202,3 +240,5 @@ lib/query/hooks/
 | 2026-03-04 | @sm | Correções pós-validação PO (NO-GO → resubmissão) |
 | 2026-03-04 | @po | Validacao GO (10/10) — Status Draft → Ready |
 | 2026-03-06 | @dev | Implementacao completa — 23/23 tasks, 23 testes novos, 246/246 passando, migration criada |
+| 2026-03-06 | @qa | QA Gate: PASS with CONCERNS — AC 13/13, 634/634 tests, 3 LOW + 1 MEDIUM concerns (non-blocking) |
+| 2026-03-06 | @dev | QA concerns fixed: Modal migrado para componente reutilizavel com FocusTrap, testes GoalConfigModal (9), doc fixes (Vitest, 7x6) |
