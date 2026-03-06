@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** DX-1.1
 - **Epic:** DX-1 (Data Freshness — Realtime & Cache)
-- **Status:** InReview
+- **Status:** Done
 - **Owner:** (unassigned)
 - **Executor:** @dev
 - **Quality Gate:** @architect
@@ -72,7 +72,7 @@ Varias features do sistema exigem reload de pagina (F5) para refletir acoes feit
 - @qa (regressao em features existentes)
 
 ### Quality Gate Tasks
-- [ ] Pre-Commit (@dev): Run `coderabbit --prompt-only -t uncommitted` before marking story complete
+- [x] Pre-Commit (@dev): Run `coderabbit --prompt-only -t uncommitted` before marking story complete
 - [ ] Pre-PR (@devops): Run `coderabbit --prompt-only --base main` before creating pull request
 
 ### Self-Healing Configuration
@@ -212,6 +212,7 @@ Considerar criar preset `useRealtimeSyncProspecting()` se fizer sentido.
 | 2026-03-06 | 1.0 | Story criada a partir de diagnostico @architect | @sm (River) |
 | 2026-03-06 | 1.1 | Validacao GO (9.5/10): fix nome tabela goals→prospecting_daily_goals, add secao Risks, enriquecer query keys info. Status Draft→Ready | @po (Pax) |
 | 2026-03-06 | 1.2 | QA fix: migration para adicionar prospecting tables a publication supabase_realtime (Issue HIGH #1) | @dev (Dex) |
+| 2026-03-06 | 1.3 | Re-review QA: PASS. Issue HIGH #1 resolvido, 8/8 ACs atendidos, 665 testes OK. Status InReview→Done | @qa (Quinn) |
 
 ## Dev Agent Record
 
@@ -251,9 +252,17 @@ Claude Opus 4.6
 
 ## QA Results
 
-### Review Date: 2026-03-06
+### Review 1 — 2026-03-06
 ### Reviewer: @qa (Quinn)
 ### Verdict: **CONCERNS**
+
+> Issue HIGH #1 (publication gap) identificado. Devolvido ao @dev para fix.
+
+---
+
+### Review 2 — 2026-03-06 (Re-review)
+### Reviewer: @qa (Quinn)
+### Verdict: **PASS**
 
 ---
 
@@ -261,43 +270,40 @@ Claude Opus 4.6
 
 | AC | Descricao | Verdict | Evidencia |
 |----|-----------|---------|-----------|
-| AC1 | Prospecting atualiza via Realtime | PARTIAL | Hooks wired corretamente (`useProspectingQueue`, `useProspectingMetrics`, `useSavedQueues`). Porem, `prospecting_queues`, `prospecting_saved_queues`, `prospecting_daily_goals` **NAO estao na publication `supabase_realtime`** — subscriptions silenciosamente ignoradas. Metricas (via `activities`) FUNCIONAM porque `activities` esta na publication. Queue/SavedQueues beneficiam do staleTime 30s (refresh no window focus). |
-| AC2 | Dashboard atualiza via Realtime | PASS | `useRealtimeSync(['deals', 'activities'])` adicionado. Ambas tabelas estao na publication. |
-| AC3 | Settings reflete mudancas imediatamente | PASS | Avaliado corretamente: Settings usa React Context (nao TanStack Query), mutations ja usam `await`. Realtime nao aplicavel. |
-| AC4 | Decisions atualiza via Realtime | PASS | Avaliado corretamente: localStorage client-side, sem tabela no Supabase. Input data (deals, activities) coberto pelo Layout. |
-| AC5 | addActivity await invalidation | PASS | `void queryClient.invalidateQueries(...)` → `await queryClient.invalidateQueries(...)` verificado em `ActivitiesContext.tsx:72`. |
-| AC6 | staleTime global 30s | PASS | `lib/query/index.tsx:126` alterado de `5 * 60 * 1000` para `30 * 1000`. 5 overrides de `2 * 60 * 1000` removidos em useDealsQuery (3x) e useContactsQuery (2x). gcTime 30min mantido. |
-| AC7 | Zero regressoes | PASS | 65 test files, 665 tests passed, 0 failed. typecheck OK, lint OK. |
-| AC8 | Testes existentes passam | PASS | Confirmado. 2 mocks de `useRealtimeSync` adicionados para corrigir testes quebrados. |
+| AC1 | Prospecting atualiza via Realtime | PASS | Hooks wired (`useProspectingQueue`, `useProspectingMetrics`, `useSavedQueues`). Migration `20260306400000` adiciona `prospecting_queues`, `prospecting_saved_queues`, `prospecting_daily_goals` a publication `supabase_realtime`. Aplicada em staging com sucesso. |
+| AC2 | Dashboard atualiza via Realtime | PASS | `useRealtimeSync(['deals', 'activities'])` adicionado. Ambas tabelas na publication. |
+| AC3 | Settings reflete mudancas imediatamente | PASS | Settings usa React Context (nao TanStack Query), mutations ja usam `await`. Realtime nao aplicavel — decisao correta. |
+| AC4 | Decisions atualiza via Realtime | PASS | localStorage client-side, sem tabela Supabase. Input data (deals, activities) coberto pelo Layout — decisao correta. |
+| AC5 | addActivity await invalidation | PASS | `void` → `await` em `ActivitiesContext.tsx:72`. |
+| AC6 | staleTime global 30s | PASS | `lib/query/index.tsx:126`: `5 * 60 * 1000` → `30 * 1000`. 5 overrides removidos. gcTime 30min mantido. |
+| AC7 | Zero regressoes | PASS | 65 test files, 665 tests passed, 0 failed. typecheck OK. |
+| AC8 | Testes existentes passam | PASS | Confirmado. 2 mocks adicionados corretamente. |
 
 ### Issues
 
-| # | Severity | Category | Descricao | Recomendacao |
-|---|----------|----------|-----------|-------------|
-| 1 | **HIGH** | requirements | Tabelas `prospecting_queues`, `prospecting_saved_queues`, `prospecting_daily_goals` NAO estao na publication `supabase_realtime`. Subscriptions Realtime conectam mas nunca recebem eventos. | Criar migration para adicionar tabelas a publication. Story Risks #3 ja identifica isso. Scope exclui migrations, entao deve ser story separada (follow-up). Codigo esta forward-compatible — funciona automaticamente quando publication for atualizada. |
-| 2 | LOW | performance | Subscriptions duplicadas: `useProspectingMetrics` subscreve `activities` mas Layout ja subscreve via `useRealtimeSyncAll`. `useDashboardMetrics` subscreve `['deals', 'activities']`, tambem duplicado com Layout. | Aceitavel — segue o mesmo padrao de `useActivitiesController` e `useInboxController` que tambem duplicam. Supabase lida com canais duplicados sem problema. |
-| 3 | LOW | code | Preset `prospecting` adicionado em `presets.ts` mas nao e utilizado em nenhum lugar (hooks chamam `useRealtimeSync` diretamente em vez de `useRealtimePreset('prospecting')`). | Nao bloqueante. O preset esta disponivel para uso futuro. Consistente com a abordagem dos hooks existentes. |
-| 4 | INFO | scope | 4 arquivos no `git diff` nao pertencem a story: `app/actions/contacts.ts`, `lib/supabase/contacts.ts` (soft-delete fix), `components/Layout.tsx`, `NotificationPopover.tsx` (pre-existentes). | Ao commitar, separar mudancas nao relacionadas em commit diferente. |
+| # | Severity | Category | Descricao | Status |
+|---|----------|----------|-----------|--------|
+| 1 | ~~HIGH~~ | requirements | Publication gap — tabelas prospecting fora do `supabase_realtime` | **RESOLVED** — Migration `20260306400000` criada e aplicada em staging |
+| 2 | LOW | performance | Subscriptions duplicadas (metrics/dashboard vs Layout) | Aceitavel — padrao existente, Supabase lida sem problema |
+| 3 | LOW | code | Preset `prospecting` nao utilizado | Nao bloqueante — disponivel para uso futuro |
+| 4 | INFO | scope | Commits separados para mudancas nao relacionadas | Verificado — commits ja separados corretamente |
 
 ### Quality Checks
 
 | Check | Status |
 |-------|--------|
-| Code review — patterns, readability | PASS — Segue padrao identico ao existente em boards/contacts/activities |
-| Unit tests — coverage, passing | PASS — 665/665 passing, mocks adicionados corretamente |
-| Acceptance criteria — all met | PARTIAL — AC1 parcialmente (publication gap) |
+| Code review — patterns, readability | PASS |
+| Unit tests — coverage, passing | PASS — 665/665 |
+| Acceptance criteria — all met | PASS — 8/8 ACs atendidos |
 | No regressions | PASS — typecheck, lint, tests OK |
-| Performance | OK — staleTime 30s aumenta refetches no focus, risco documentado em story |
-| Security | N/A — sem mudancas de seguranca |
-| Documentation | PASS — Dev Agent Record completo, File List correto |
+| Performance | OK — risco documentado na story |
+| Security | N/A |
+| Documentation | PASS — Dev Agent Record completo |
 
 ### Gate Decision
 
-**CONCERNS** — Aprovar com observacoes.
+**PASS**
 
-**Rationale:** Implementacao segue padroes existentes com precisao. Todos os ACs atendidos exceto AC1 parcial (publication gap), que e um risco ja documentado na story e explicitamente fora do scope (sem migrations). O codigo esta forward-compatible e funcionara automaticamente quando a publication for atualizada. Recomendo criar follow-up story para adicionar tabelas a publication.
-
-**Follow-up requerido:**
-- Story para migration `ALTER PUBLICATION supabase_realtime ADD TABLE prospecting_queues, prospecting_saved_queues, prospecting_daily_goals;`
+**Rationale:** Todos os 8 ACs atendidos. Issue HIGH #1 (publication gap) resolvido com migration idempotente aplicada em staging. Implementacao segue padroes existentes com precisao. 665 testes passando, typecheck limpo. Issues restantes sao LOW/INFO e nao bloqueantes.
 
 — Quinn, guardiao da qualidade 🛡️
