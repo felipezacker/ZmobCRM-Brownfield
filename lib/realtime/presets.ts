@@ -17,16 +17,19 @@ const REALTIME_PRESETS = {
 
   /** Deals page: deals with contacts */
   deals: ['deals', 'contacts'] as const,
-  
+
   /** Kanban board: deals and stages */
   kanban: ['deals', 'board_stages'] as const,
-  
+
   /** Activities/Inbox: activities with deals */
   activities: ['activities', 'deals'] as const,
-  
+
   /** Boards management: boards and stages */
   boards: ['boards', 'board_stages'] as const,
-  
+
+  /** Prospecting: queue, saved queues, goals */
+  prospecting: ['prospecting_queues', 'prospecting_saved_queues', 'prospecting_daily_goals'] as const,
+
   /** Full CRM sync (for main layout) */
   all: ['deals', 'contacts', 'activities', 'boards'] as const,
 } as const;

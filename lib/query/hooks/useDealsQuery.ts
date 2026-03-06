@@ -59,7 +59,6 @@ export const useDeals = (filters?: DealsFilters) => {
 
       return deals;
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
     enabled: !authLoading && !!user, // Only fetch when auth is ready
   });
 };
@@ -148,7 +147,6 @@ export const useDealsView = (filters?: DealsFilters) => {
 
       return enrichedDeals;
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
     enabled: !authLoading && !!user, // Only fetch when auth is ready
   });
 };
@@ -243,7 +241,6 @@ export const useDealsByBoard = (boardId: string) => {
       if (!boardId || boardId.startsWith('temp-')) return [];
       return data.filter(d => d.boardId === boardId);
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes (same as useDealsView)
     enabled: !authLoading && !!user && !!boardId && !boardId.startsWith('temp-'),
   });
 };

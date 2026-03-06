@@ -9,6 +9,7 @@
 
 import { useCallback, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import { useAuth } from '@/context/AuthContext'
 import { supabase } from '@/lib/supabase/client'
 
@@ -206,6 +207,10 @@ export function useProspectingMetrics(
 ) {
   const { user, profile, loading: authLoading } = useAuth()
   const queryClient = useQueryClient()
+
+  // Realtime: refresh metrics when activities (calls) change
+  useRealtimeSync('activities')
+
   const range = useMemo(() => getDateRange(period, customRange), [period, customRange])
 
   const isAdminOrDirector =

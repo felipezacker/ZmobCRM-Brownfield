@@ -86,7 +86,6 @@ export const useContacts = (filters?: ContactsFilters) => {
 
       return contacts;
     },
-    staleTime: 2 * 60 * 1000,
     enabled: !authLoading && !!user, // Only fetch when auth is ready
   });
 };
@@ -154,7 +153,6 @@ export const useContactsPaginated = (
       return data!;
     },
     placeholderData: keepPreviousData,
-    staleTime: 2 * 60 * 1000, // 2 minutes
     enabled: !authLoading && !!user,
   });
 };
