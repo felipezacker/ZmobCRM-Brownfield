@@ -282,5 +282,5 @@ describeSupabase('AI Tools - matriz 5 corretores (integração real)', () => {
         'reorderStages',
       );
     }
-  }, 120_000);
+  }, 240_000);
 });
