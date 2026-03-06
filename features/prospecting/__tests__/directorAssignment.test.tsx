@@ -108,15 +108,47 @@ vi.mock('@/lib/query/hooks/useProspectingQueueQuery', () => ({
 }))
 
 // useQuery for profiles + useQueryClient for metrics hook
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: () => ({
-    data: [
-      { id: 'u-1', name: 'João Corretor', avatar: undefined, role: 'corretor' },
-      { id: 'u-2', name: 'Maria Corretora', avatar: undefined, role: 'corretor' },
-    ],
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-query')>()
+  return {
+    ...actual,
+    useQuery: () => ({
+      data: [
+        { id: 'u-1', name: 'João Corretor', avatar: undefined, role: 'corretor' },
+        { id: 'u-2', name: 'Maria Corretora', avatar: undefined, role: 'corretor' },
+      ],
+    }),
+    useQueryClient: () => ({
+      invalidateQueries: vi.fn(),
+    }),
+  }
+})
+
+// CP-2.4: Mock saved queues hook
+vi.mock('../hooks/useSavedQueues', () => ({
+  useSavedQueues: () => ({
+    savedQueues: [],
+    isLoading: false,
+    isSaving: false,
+    isDeleting: false,
+    saveQueue: vi.fn(),
+    deleteQueue: vi.fn(),
+    getFiltersFromSaved: vi.fn(),
   }),
-  useQueryClient: () => ({
-    invalidateQueries: vi.fn(),
+}))
+
+// CP-2.3: Mock daily goals hook
+vi.mock('../hooks/useProspectingGoals', () => ({
+  useProspectingGoals: () => ({
+    goal: null,
+    teamGoals: [],
+    progress: { target: 30, current: 0, percentage: 0, color: 'red', isComplete: false },
+    isLoading: false,
+    isAdminOrDirector: true,
+    showGoalModal: false,
+    setShowGoalModal: vi.fn(),
+    updateGoal: vi.fn(),
+    isUpdating: false,
   }),
 }))
 

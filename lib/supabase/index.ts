@@ -9,3 +9,4 @@ export { prospectingContactsService } from './prospecting-contacts';
 export { productsService } from './products';
 export { settingsService, lifecycleStagesService } from './settings';
 export { noteTemplatesService } from './noteTemplates';
+export { prospectingGoalsService } from './prospecting-goals';

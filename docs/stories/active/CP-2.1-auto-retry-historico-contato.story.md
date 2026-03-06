@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-2.1
 - **Epic:** CP-2 (Prospecção Inteligente)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Owner:** (unassigned)
 - **Executor:** @dev
 - **Quality Gate:** @architect

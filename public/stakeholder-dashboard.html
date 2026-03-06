@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZmobCRM — Status do Projeto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* === PREMIUM THEME: Zinc Blue (System Match) === */
+  :root {
+    /* Backgrounds */
+    --bg-primary: #09090b;
+    --bg-secondary: #18181b;
+    --bg-tertiary: #27272a;
+    --bg-elevated: #303033;
+
+    /* Accent */
+    --accent: #3b82f6;
+    --accent-secondary: #2563eb;
+    --accent-soft: #60a5fa;
+    --accent-hover: #93bbfd;
+
+    /* Semantic */
+    --green: #10b981;
+    --green-glow: rgba(16, 185, 129, 0.12);
+    --amber: #f59e0b;
+    --amber-glow: rgba(245, 158, 11, 0.12);
+
+    /* Text */
+    --text: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --text-dim: #52525b;
+
+    /* Borders */
+    --border: #27272a;
+    --border-subtle: #1e1e21;
+
+    /* Typography */
+    --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* Effects */
+    --glow-color: rgba(59, 130, 246, 0.2);
+    --glow-spread: 0 0 40px;
+    --glass-bg: rgba(59, 130, 246, 0.04);
+    --glass-border: rgba(59, 130, 246, 0.08);
+    --glass-blur: 16px;
+    --gradient-hero: radial-gradient(ellipse at 50% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+    --gradient-section: linear-gradient(180deg, #09090b 0%, #18181b 100%);
+
+    /* Spacing */
+    --section-padding: 80px;
+    --hero-padding: 100px;
+    --card-padding: 28px;
+    --gap: 20px;
+    --radius: 16px;
+    --radius-sm: 8px;
+
+    /* Transitions */
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* === RESET === */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    background: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* === SCROLL PROGRESS BAR (Enhanced) === */
+  .scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 9998;
+    height: 2px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent-secondary), var(--accent-soft));
+    transition: width 0.1s linear;
+  }
+
+  /* === GRAIN (Enhanced) === */
+  .grain {
+    position: fixed; inset: 0;
+    z-index: 9990;
+    pointer-events: none;
+    opacity: 0.022;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px;
+    animation: grain-shift 0.5s steps(4) infinite;
+  }
+  @keyframes grain-shift {
+    0% { background-position: 0 0; }
+    25% { background-position: -80px 40px; }
+    50% { background-position: 40px -60px; }
+    75% { background-position: -40px 80px; }
+  }
+
+  /* === SCROLL REVEALS (Enhanced) === */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+    filter: blur(4px);
+    transition: opacity 0.7s ease, transform 0.7s ease, filter 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+  .reveal-d1 { transition-delay: 0.1s; }
+  .reveal-d2 { transition-delay: 0.2s; }
+  .reveal-d3 { transition-delay: 0.3s; }
+  .reveal-d4 { transition-delay: 0.4s; }
+
+  /* === CONTAINER === */
+  .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* === HEADER === */
+  .header {
+    text-align: center;
+    padding: var(--hero-padding) 0 3rem;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-hero);
+    pointer-events: none;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
+    opacity: 0.3;
+  }
+  .header h1 {
+    font-family: var(--font-heading);
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    background: linear-gradient(135deg, var(--accent-soft), var(--accent), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+  .header p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+    position: relative;
+  }
+  .header .meta {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+  .meta-item .value {
+    color: var(--text);
+    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  /* === SECTION === */
+  .section {
+    margin-bottom: 4rem;
+    padding-top: 1rem;
+  }
+  .section-title {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.03em;
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .section-title .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--glow-color);
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .eyebrow-number {
+    color: var(--accent-soft);
+    margin-right: 0.75rem;
+  }
+
+  /* === STATS GRID === */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--gap);
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    padding: var(--card-padding);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    padding: 1px;
+    border-radius: var(--radius);
+    background: conic-gradient(from 180deg at 50% 50%,
+      transparent 0%, rgba(59, 130, 246, 0.15) 25%,
+      transparent 50%, rgba(59, 130, 246, 0.08) 75%,
+      transparent 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .stat-card:hover::before { opacity: 1; }
+  .stat-card:hover {
+    border-color: rgba(59, 130, 246, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  .stat-card .label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+  }
+  .stat-card .number {
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-card .sub {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+  }
+
+  /* === PROGRESS BAR === */
+  .progress-container { margin-bottom: 2rem; }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .progress-header .label { font-weight: 600; color: var(--text); font-size: 0.9rem; }
+  .progress-header .pct {
+    font-family: var(--font-mono);
+    color: var(--accent-soft);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .progress-bar {
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent-secondary), var(--accent), var(--accent-soft));
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 16px var(--glow-color);
+  }
+
+  /* === FEATURE GRID === */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--gap);
+  }
+  .feature-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    transition: var(--transition);
+    position: relative;
+  }
+  .feature-card:hover {
+    border-color: rgba(16, 185, 129, 0.2);
+    background: var(--bg-tertiary);
+    transform: translateY(-1px);
+  }
+  .feature-card .name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .feature-card .desc { color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .badge-live { background: var(--green-glow); color: var(--green); }
+  .badge-dev { background: var(--amber-glow); color: var(--amber); }
+  .badge-planned { background: rgba(59, 130, 246, 0.12); color: var(--accent-soft); }
+
+  /* === WHERE WE ARE === */
+  .where-we-are {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .where-we-are::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+  }
+  .where-we-are h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .milestone-track {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding: 1rem 0 0.5rem;
+  }
+  .milestone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 130px;
+    position: relative;
+  }
+  .milestone-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    background: var(--bg-primary);
+    z-index: 1;
+    margin-bottom: 0.75rem;
+    transition: var(--transition);
+  }
+  .milestone-dot.done {
+    background: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+  }
+  .milestone-dot.current {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--glow-color);
+    animation: pulse-blue 2s infinite;
+  }
+  .milestone-dot.future {
+    background: var(--bg-primary);
+    border-color: var(--text-dim);
+  }
+  .milestone-label {
+    font-size: 0.7rem;
+    text-align: center;
+    color: var(--text-muted);
+    max-width: 110px;
+    line-height: 1.4;
+  }
+  .milestone-label.current {
+    color: var(--accent-soft);
+    font-weight: 600;
+  }
+  .milestone-connector {
+    height: 3px;
+    flex: 1;
+    min-width: 20px;
+    background: var(--border);
+    margin-top: -30px;
+    border-radius: 2px;
+  }
+  .milestone-connector.done {
+    background: linear-gradient(90deg, var(--green), rgba(16, 185, 129, 0.5));
+  }
+
+  @keyframes pulse-blue {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+  }
+
+  /* === ROADMAP === */
+  .roadmap { position: relative; }
+  .roadmap-phase { margin-bottom: 2.5rem; }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .phase-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 3px solid;
+    flex-shrink: 0;
+  }
+  .phase-name { font-weight: 700; font-size: 1.05rem; }
+  .phase-count {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .phase-items {
+    padding-left: 2rem;
+    border-left: 2px solid var(--border);
+    margin-left: 6px;
+  }
+  .roadmap-item {
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 0.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    transition: var(--transition);
+  }
+  .roadmap-item:hover {
+    border-color: rgba(59, 130, 246, 0.12);
+    background: var(--bg-tertiary);
+  }
+  .roadmap-item.done { opacity: 0.65; }
+  .check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+    transition: var(--transition);
+  }
+  .check.done {
+    background: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+  }
+  .check.done::after { content: '\2713'; color: white; font-size: 11px; font-weight: 700; }
+  .roadmap-item .item-name {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .roadmap-item .item-desc { color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; }
+
+  /* === TIMELINE === */
+  .timeline-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+  .timeline-item {
+    display: flex;
+    gap: 1.25rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: var(--transition);
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-item:hover { padding-left: 0.5rem; }
+  .timeline-date {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    min-width: 80px;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+  .timeline-msg { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+
+  /* === BRAND VISION === */
+  .brand-hero {
+    text-align: center;
+    padding: 2.5rem 2rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: var(--gap);
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .brand-tagline {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+  .brand-positioning {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .archetype-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--gap);
+    margin-bottom: var(--gap);
+  }
+  .archetype-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--card-padding);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .archetype-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0.5;
+  }
+  .archetype-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(59, 130, 246, 0.15);
+  }
+  .archetype-name {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--accent-soft);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  .archetype-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .brand-aesthetic {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    padding: 1rem 2rem;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+
+  /* === EXPECTATIONS GRID === */
+  .expectations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--gap);
+  }
+  .expect-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--card-padding);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .expect-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  .expect-card .label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+  }
+  .expect-card .items {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 2;
+  }
+  .expect-card .items span {
+    display: block;
+    padding-left: 1rem;
+    position: relative;
+  }
+  .expect-card .items span::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 50%;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+  .expect-card.short .items span::before { background: var(--amber); box-shadow: 0 0 6px var(--amber-glow); }
+  .expect-card.mid .items span::before { background: var(--accent); box-shadow: 0 0 6px var(--glow-color); }
+  .expect-card.long .items span::before { background: #8b5cf6; box-shadow: 0 0 6px rgba(139, 92, 246, 0.2); }
+  .expect-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .expect-card.short::before { background: linear-gradient(90deg, var(--amber), transparent); }
+  .expect-card.mid::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .expect-card.long::before { background: linear-gradient(90deg, #8b5cf6, transparent); }
+
+  /* === MARKET GRID === */
+  .market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--gap);
+  }
+  .market-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: var(--transition);
+  }
+  .market-card:hover {
+    border-color: rgba(16, 185, 129, 0.15);
+    transform: translateY(-1px);
+  }
+  .market-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+  .market-value {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* === FOOTER === */
+  .footer {
+    text-align: center;
+    padding: 3rem 0 2rem;
+    position: relative;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+  }
+  .footer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .footer code {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: var(--text-muted);
+  }
+
+  /* === SECTION DIVIDERS === */
+  .section + .section::before {
+    content: '';
+    display: block;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin-bottom: 2rem;
+    opacity: 0.5;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 640px) {
+    .header h1 { font-size: 2rem; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .feature-grid { grid-template-columns: 1fr; }
+    .expectations-grid { grid-template-columns: 1fr; }
+    .archetype-grid { grid-template-columns: 1fr; }
+    .container { padding: 1rem; }
+    .where-we-are { padding: 1.5rem; }
+    .header { padding: 60px 0 2rem; }
+    .brand-tagline { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Scroll Progress (Enhanced) -->
+<div class="scroll-progress"></div>
+
+<!-- Grain Texture (Enhanced) -->
+<div class="grain"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header reveal">
+    <h1>ZmobCRM</h1>
+    <p>CRM Inteligente para o Mercado Imobiliario</p>
+    <div class="meta">
+      <div class="meta-item">Versao <span class="value">v1.5.1</span></div>
+      <div class="meta-item">Atualizado em <span class="value">06/03/2026, 10:52:41</span></div>
+      <div class="meta-item">Modulos <span class="value">14</span></div>
+    </div>
+  </div>
+
+  <!-- DNA do Produto -->
+  <div class="section">
+    <div class="eyebrow reveal"><span class="eyebrow-number">01</span>DNA do Produto</div>
+    <div class="section-title reveal"><span class="dot" style="background: var(--accent); box-shadow: 0 0 12px var(--glow-color)"></span> Visao & Posicionamento</div>
+    
+    <div class="brand-hero reveal">
+      <div class="brand-tagline">Pare de digitar. Comece a vender.</div>
+      <div class="brand-positioning">Nao somos o CRM amigavel. Somos a arma secreta do corretor de alta performance.</div>
+    </div>
+    <div class="archetype-grid">
+      <div class="archetype-card reveal reveal-d1">
+        <div class="archetype-name">O Mago</div>
+        <div class="archetype-desc">IA que transforma dados em acao — analisa negocios, gera scripts e preve resultados</div>
+      </div>
+      <div class="archetype-card reveal reveal-d2">
+        <div class="archetype-name">O Heroi</div>
+        <div class="archetype-desc">Performance implacavel — Power Dialer, metas diarias, metricas que empurram a venda</div>
+      </div>
+      <div class="archetype-card reveal reveal-d3">
+        <div class="archetype-name">O Sabio</div>
+        <div class="archetype-desc">Dados precisos sem achismo — Lead Score, Dashboard, historico completo de cada cliente</div>
+      </div>
+    </div>
+    <div class="brand-aesthetic reveal">
+      Minimalista. Dark premium. Precisao de instrumentos cirurgicos.
+    </div>
+  </div>
+
+  <!-- Mercado & Tracao -->
+  <div class="section">
+    <div class="eyebrow reveal"><span class="eyebrow-number">02</span>Mercado</div>
+    <div class="section-title reveal"><span class="dot" style="background: var(--green); box-shadow: 0 0 10px var(--green-glow)"></span> Mercado & Diferencial</div>
+    <div class="market-grid">
+      <div class="market-card reveal reveal-d1">
+        <div class="market-label">Publico-Alvo</div>
+        <div class="market-value">Imobiliarias de medio e alto porte no Brasil</div>
+      </div>
+      <div class="market-card reveal reveal-d2">
+        <div class="market-label">Tracao Atual</div>
+        <div class="market-value">3 imobiliarias</div>
+      </div>
+      <div class="market-card reveal reveal-d3">
+        <div class="market-label">Diferencial Competitivo</div>
+        <div class="market-value">IA integrada + Prospeccao ativa — unico CRM imobiliario com Power Dialer e assistente inteligente nativos</div>
+      </div>
+      <div class="market-card reveal reveal-d4">
+        <div class="market-label">Equipe</div>
+        <div class="market-value">Equipe enxuta com desenvolvimento acelerado por IA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onde Estamos -->
+  <div class="section">
+    <div class="eyebrow reveal"><span class="eyebrow-number">03</span>Status Atual</div>
+    <div class="section-title reveal"><span class="dot" style="background: var(--accent); box-shadow: 0 0 12px var(--glow-color)"></span> Onde Estamos Agora</div>
+
+    <div class="where-we-are reveal">
+      <h3>Jornada do Produto</h3>
+      <div class="milestone-track">
+        <div class="milestone">
+          <div class="milestone-dot done"></div>
+          <div class="milestone-label">CRM Base<br><small style="color:var(--green)">Completo</small></div>
+        </div><div class="milestone-connector done"></div>
+        <div class="milestone">
+          <div class="milestone-dot done"></div>
+          <div class="milestone-label">Seguranca & RBAC<br><small style="color:var(--green)">Completo</small></div>
+        </div><div class="milestone-connector done"></div>
+        <div class="milestone">
+          <div class="milestone-dot done"></div>
+          <div class="milestone-label">Prospeccao v1<br><small style="color:var(--green)">Completo</small></div>
+        </div><div class="milestone-connector done"></div>
+        <div class="milestone">
+          <div class="milestone-dot current"></div>
+          <div class="milestone-label current">Prospeccao v2<br><small>Em andamento</small></div>
+        </div><div class="milestone-connector"></div>
+        <div class="milestone">
+          <div class="milestone-dot future"></div>
+          <div class="milestone-label">Imoveis<br><small>Planejado</small></div>
+        </div><div class="milestone-connector"></div>
+        <div class="milestone">
+          <div class="milestone-dot future"></div>
+          <div class="milestone-label">Integracoes<br><small>Futuro</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card reveal reveal-d1">
+        <div class="label">Funcionalidades Ativas</div>
+        <div class="number" style="color: var(--green)">14</div>
+        <div class="sub">modulos em producao</div>
+      </div>
+      <div class="stat-card reveal reveal-d2">
+        <div class="label">Entregas Realizadas</div>
+        <div class="number" style="color: var(--accent-soft)">10</div>
+        <div class="sub">de 25 itens no roadmap</div>
+      </div>
+      <div class="stat-card reveal reveal-d3">
+        <div class="label">Evolucoes no Banco</div>
+        <div class="number" style="color: var(--amber)">57</div>
+        <div class="sub">melhorias na base de dados</div>
+      </div>
+      <div class="stat-card reveal reveal-d4">
+        <div class="label">Velocidade (30 dias)</div>
+        <div class="number" style="color: var(--accent-soft)">295</div>
+        <div class="sub">entregas no ultimo mes</div>
+      </div>
+    </div>
+
+    <div class="progress-container reveal">
+      <div class="progress-header">
+        <span class="label">Progresso do Roadmap</span>
+        <span class="pct">40%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 40%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- O que ja funciona -->
+  <div class="section">
+    <div class="eyebrow reveal"><span class="eyebrow-number">04</span>Funcionalidades</div>
+    <div class="section-title reveal"><span class="dot" style="background: var(--green); box-shadow: 0 0 10px var(--green-glow)"></span> O Que Ja Funciona</div>
+    <div class="feature-grid">
+      <div class="feature-card reveal reveal-d1">
+        <div class="name">Atividades <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Tarefas, ligacoes, reunioes e follow-ups com lembretes automaticos</div>
+      </div>
+      <div class="feature-card reveal reveal-d2">
+        <div class="name">Assistente IA <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Inteligencia artificial que analisa negocios, sugere acoes e gera scripts de venda</div>
+      </div>
+      <div class="feature-card reveal reveal-d3">
+        <div class="name">Board de Vendas <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Kanban visual para acompanhar cada negocio por etapa do funil</div>
+      </div>
+      <div class="feature-card reveal reveal-d4">
+        <div class="name">Contatos <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Base completa de clientes e leads com historico, score e importacao em massa</div>
+      </div>
+      <div class="feature-card reveal reveal-d1">
+        <div class="name">Dashboard <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Painel com KPIs de vendas, funil, LTV e saude do portfolio</div>
+      </div>
+      <div class="feature-card reveal reveal-d2">
+        <div class="name">Negocios <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Gestao detalhada de cada oportunidade — valor, etapa, probabilidade e comissao</div>
+      </div>
+      <div class="feature-card reveal reveal-d3">
+        <div class="name">Decisoes <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Apoio inteligente para tomada de decisao comercial baseada em dados</div>
+      </div>
+      <div class="feature-card reveal reveal-d4">
+        <div class="name">Caixa de Entrada <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Comunicacao centralizada com leads e clientes em um so lugar</div>
+      </div>
+      <div class="feature-card reveal reveal-d1">
+        <div class="name">Instrucoes <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Scripts e guias de abordagem para o time de vendas</div>
+      </div>
+      <div class="feature-card reveal reveal-d2">
+        <div class="name">Notificacoes <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Alertas em tempo real sobre atividades, negocios e prazos</div>
+      </div>
+      <div class="feature-card reveal reveal-d3">
+        <div class="name">Perfil <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Configuracoes pessoais e preferencias do usuario</div>
+      </div>
+      <div class="feature-card reveal reveal-d4">
+        <div class="name">Prospeccao <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Power Dialer, filas de ligacao, scripts guiados e metricas de produtividade</div>
+      </div>
+      <div class="feature-card reveal reveal-d1">
+        <div class="name">Relatorios <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Relatorios de performance individual e da equipe com exportacao PDF</div>
+      </div>
+      <div class="feature-card reveal reveal-d2">
+        <div class="name">Configuracoes <span class="badge badge-live">Ativo</span></div>
+        <div class="desc">Etapas do funil, campos personalizados, equipes e integracoes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Roadmap -->
+  <div class="section">
+    <div class="eyebrow reveal"><span class="eyebrow-number">05</span>Evolucao</div>
+    <div class="section-title reveal"><span class="dot" style="background: var(--accent); box-shadow: 0 0 10px var(--glow-color)"></span> Roadmap — O Que Vem Pela Frente</div>
+    <div class="roadmap">
+      
+      <div class="roadmap-phase reveal">
+        <div class="phase-header">
+          <div class="phase-dot" style="border-color: var(--green); background: var(--green); box-shadow: 0 0 8px var(--green-glow)"></div>
+          <div class="phase-name" style="color: var(--green)">Concluido</div>
+          <span class="phase-count">10 itens</span>
+        </div>
+        <div class="phase-items">
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">CRM Base Completo</div>
+              <div class="item-desc">Board de vendas, contatos, atividades, dashboard, negocios — toda a fundacao</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Central de Prospeccao</div>
+              <div class="item-desc">Power Dialer com filas de ligacao, scripts guiados e recontato automatico</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Metricas de Prospeccao</div>
+              <div class="item-desc">Dashboard de produtividade com visao individual e por equipe</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Assistente IA</div>
+              <div class="item-desc">Chat inteligente que conhece seus negocios, contatos e sugere acoes</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Acoes Rapidas Pos-Chamada</div>
+              <div class="item-desc">Criar negocio, agendar callback e mover etapa em 1 clique</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Seguranca & Estabilidade</div>
+              <div class="item-desc">RBAC por equipe, correcao de bugs criticos e protecao de dados</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Importacao de Leads</div>
+              <div class="item-desc">Importacao em massa com mapeamento de campos e validacao automatica</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Notificacoes de Release</div>
+              <div class="item-desc">Usuarios recebem aviso automatico sobre novidades a cada atualizacao</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Edicao Completa de Contatos</div>
+              <div class="item-desc">Todos os campos editaveis inline com ordenacao por qualquer coluna</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Card de Negocio Compacto</div>
+              <div class="item-desc">Redesign do card no board — de 8 linhas para 3, mais limpo e rapido</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="roadmap-phase reveal">
+        <div class="phase-header">
+          <div class="phase-dot" style="border-color: var(--amber)"></div>
+          <div class="phase-name" style="color: var(--amber)">Proximo Passo</div>
+          <span class="phase-count">4 itens</span>
+        </div>
+        <div class="phase-items">
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Metas Diarias + Heatmap</div>
+              <div class="item-desc">Progresso visual de metas de ligacao e mapa de melhor horario para ligar</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Filas Salvas + PDF</div>
+              <div class="item-desc">Salvar configuracoes de filas de prospeccao e exportar relatorios</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Lead Score Configuravel</div>
+              <div class="item-desc">Sistema de pesos ajustaveis por organizacao — cada fator com peso proprio</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Script no Cockpit</div>
+              <div class="item-desc">Script de ligacao integrado dentro do cockpit de deals</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="roadmap-phase reveal">
+        <div class="phase-header">
+          <div class="phase-dot" style="border-color: var(--accent-soft)"></div>
+          <div class="phase-name" style="color: var(--accent-soft)">Planejado</div>
+          <span class="phase-count">11 itens</span>
+        </div>
+        <div class="phase-items">
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Modulo de Imoveis</div>
+              <div class="item-desc">Cadastro completo com matching automatico entre imovel e perfil do cliente</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Permissoes Avancadas</div>
+              <div class="item-desc">Niveis customizaveis de acesso, cadeia de diretores e departamentos</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Dashboard Customizavel</div>
+              <div class="item-desc">Cada nivel (corretor, diretor, admin) com suas proprias metricas</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Listas de Contatos</div>
+              <div class="item-desc">Organizar leads em listas segmentadas para campanhas e follow-ups</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">IA de Perfil de Interesse</div>
+              <div class="item-desc">Campo unico onde voce descreve o cliente e a IA cria o perfil de busca</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Historico de IA</div>
+              <div class="item-desc">Acesso completo ao historico de conversas com o assistente para analise</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Atividades por Nivel</div>
+              <div class="item-desc">Admin ve tudo, diretor ve equipe, corretor ve so as dele</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Integracoes com Portais</div>
+              <div class="item-desc">Conexao direta com Orulo, ChavesNaMao e portais imobiliarios</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Wizard de Onboarding</div>
+              <div class="item-desc">Guia passo-a-passo para novos usuarios configurarem tudo em minutos</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Calculadora de Comissao</div>
+              <div class="item-desc">Calculo automatico de comissao por deal, produto e corretor</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Migracao de Outros CRMs</div>
+              <div class="item-desc">Importacao assistida de dados de sistemas anteriores (DataCrazy, etc)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Atividade Recente -->
+  <div class="section">
+    <div class="eyebrow reveal"><span class="eyebrow-number">06</span>Historico</div>
+    <div class="section-title reveal"><span class="dot"></span> Atividade Recente</div>
+    <div class="timeline-container reveal">
+      <div class="timeline">
+        
+        <div class="timeline-item">
+          <div class="timeline-date">06 de mar.</div>
+          <div class="timeline-msg">Nova funcionalidade: implement daily goals + connection heatmap [CP-2.3]</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">05 de mar.</div>
+          <div class="timeline-msg">Melhoria visual: unify Prospecting UI with system primary blue tokens (#25)</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">05 de mar.</div>
+          <div class="timeline-msg">Melhoria visual: unify Prospecting UI with system primary blue tokens</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">05 de mar.</div>
+          <div class="timeline-msg">Lancamento: bump version to v1.5.1</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">05 de mar.</div>
+          <div class="timeline-msg">fix(types): resolves type errors in DealCockpitV2 and CreateDealModalV2</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">05 de mar.</div>
+          <div class="timeline-msg">Nova funcionalidade: add design squad agents, update AIOS configs, and deal cockpit v2</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">05 de mar.</div>
+          <div class="timeline-msg">style(ui): clean background architecture and standardize design tokens</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">04 de mar.</div>
+          <div class="timeline-msg">fix(prospecting): fallback para telefone legado na fila</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- O que esperar -->
+  <div class="section">
+    <div class="eyebrow reveal"><span class="eyebrow-number">07</span>Visao</div>
+    <div class="section-title reveal"><span class="dot" style="background: var(--accent); box-shadow: 0 0 10px var(--glow-color)"></span> O Que Esperar</div>
+    <div class="expectations-grid">
+      <div class="expect-card short reveal reveal-d1">
+        <div class="label">Curto Prazo (1-2 semanas)</div>
+        <div class="items">
+          <span>Metas diarias de ligacao com progresso visual</span>
+          <span>Mapa de calor — melhor horario para ligar</span>
+          <span>Filas de prospeccao salvas e reutilizaveis</span>
+          <span>Lead Score com pesos configuraveis</span>
+        </div>
+      </div>
+      <div class="expect-card mid reveal reveal-d2">
+        <div class="label">Medio Prazo (1-2 meses)</div>
+        <div class="items">
+          <span>Modulo de Imoveis com matching automatico</span>
+          <span>Permissoes avancadas por cargo e departamento</span>
+          <span>Listas de contatos para segmentacao</span>
+          <span>IA de perfil de interesse do cliente</span>
+          <span>Dashboard customizavel por nivel de acesso</span>
+        </div>
+      </div>
+      <div class="expect-card long reveal reveal-d3">
+        <div class="label">Longo Prazo (3-6 meses)</div>
+        <div class="items">
+          <span>Integracoes com portais imobiliarios</span>
+          <span>App mobile (PWA)</span>
+          <span>Wizard de onboarding para novos usuarios</span>
+          <span>Migracao assistida de outros CRMs</span>
+          <span>Calculadora de comissao automatica</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer reveal">
+    ZmobCRM v1.5.1 &mdash; Gerado automaticamente em 06/03/2026, 10:52:41<br>
+    <span style="color: var(--text-dim)">Para atualizar, execute: <code>npm run stakeholder-dashboard</code></span>
+  </div>
+
+</div>
+
+<!-- Enhanced Tier: Scroll Reveals + Progress Bar -->
+<script>
+  // Scroll Progress Bar
+  window.addEventListener('scroll', () => {
+    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    document.querySelector('.scroll-progress').style.width = pct + '%';
+  });
+
+  // Cinematic Scroll Reveals
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+</script>
+
+</body>
+</html>

@@ -43,6 +43,12 @@ export const queryKeys = {
     // Note templates (CP-2.2)
     noteTemplates: createQueryKeys('noteTemplates'),
 
+    // Daily goals (CP-2.3)
+    dailyGoals: createQueryKeys('dailyGoals'),
+
+    // Saved queues (CP-2.4)
+    savedQueues: createQueryKeys('savedQueues'),
+
     // Dashboard (non-standard structure)
     dashboard: {
         stats: ['dashboard', 'stats'] as const,

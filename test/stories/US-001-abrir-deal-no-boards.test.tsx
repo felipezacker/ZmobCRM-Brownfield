@@ -66,6 +66,10 @@ vi.mock('@/hooks/useOrganizationMembers', () => ({
   useOrganizationMembers: () => ({ members: [], loading: false }),
 }));
 
+vi.mock('@/lib/query/hooks/useContactsQuery', () => ({
+  useContact: () => ({ data: { id: 'contact-1', name: 'Fulano', email: 'fulano@example.com', phone: '' } }),
+}));
+
 const mockBoard = {
   id: 'board-1',
   name: 'Pipeline de Vendas',

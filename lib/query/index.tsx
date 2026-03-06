@@ -122,8 +122,8 @@ const handleMutationError = (error: unknown, _variables: unknown, _context: unkn
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Stale time: 5 minutes
-      staleTime: 5 * 60 * 1000,
+      // Stale time: 30 seconds (reduced from 5 min for faster data freshness)
+      staleTime: 30 * 1000,
       // Cache time: 30 minutes
       gcTime: 30 * 60 * 1000,
       // Retry failed requests 3 times

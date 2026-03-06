@@ -5,6 +5,7 @@
  * Calls: lib/query/hooks/useProspectingQueueQuery.ts
  */
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import { useToast } from '@/context/ToastContext'
 import {
   useProspectingQueueItems,
@@ -30,6 +31,9 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
   const [sessionActive, setSessionActive] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [sessionId, setSessionId] = useState<string | undefined>()
+
+  // Realtime sync for prospecting queue changes from other users
+  useRealtimeSync('prospecting_queues')
 
   // '__all__' means no filter (admin sees all via RLS)
   const effectiveOwnerId = options?.viewOwnerId === '__all__' ? undefined : options?.viewOwnerId

@@ -52,15 +52,23 @@ type RealtimeTable =
   | 'activities'
   | 'boards'
   | 'board_stages'
+  | 'prospecting_queues'
+  | 'prospecting_saved_queues'
+  | 'prospecting_daily_goals'
+  | 'organization_settings'
 
 // Lazy getter for query keys mapping - avoids initialization issues in tests
 const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unknown[])[] => {
   const mapping: Record<RealtimeTable, readonly (readonly unknown[])[]> = {
     deals: [queryKeys.deals.all, queryKeys.dashboard.stats],
     contacts: [queryKeys.contacts.all],
-    activities: [queryKeys.activities.all],
+    activities: [queryKeys.activities.all, ['prospectingMetrics'] as const],
     boards: [queryKeys.boards.all],
     board_stages: [queryKeys.boards.all], // stages invalidate boards
+    prospecting_queues: [queryKeys.prospectingQueue.all],
+    prospecting_saved_queues: [queryKeys.savedQueues.all],
+    prospecting_daily_goals: [queryKeys.dailyGoals.all],
+    organization_settings: [['settings'] as const],
   };
   return mapping[table];
 };
@@ -570,7 +578,7 @@ export function useRealtimeSync(
  * Ideal for the main app layout
  */
 export function useRealtimeSyncAll(options: UseRealtimeSyncOptions = {}) {
-  return useRealtimeSync(['deals', 'contacts', 'activities', 'boards'], options);
+  return useRealtimeSync(['deals', 'contacts', 'activities', 'boards', 'prospecting_queues', 'prospecting_saved_queues', 'prospecting_daily_goals'], options);
 }
 
 /**
