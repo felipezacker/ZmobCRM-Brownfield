@@ -62,7 +62,7 @@ const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unknown[])[
   const mapping: Record<RealtimeTable, readonly (readonly unknown[])[]> = {
     deals: [queryKeys.deals.all, queryKeys.dashboard.stats],
     contacts: [queryKeys.contacts.all],
-    activities: [queryKeys.activities.all, ['prospectingMetrics'] as const],
+    activities: [queryKeys.activities.all, queryKeys.prospectingMetrics.all],
     boards: [queryKeys.boards.all],
     board_stages: [queryKeys.boards.all], // stages invalidate boards
     prospecting_queues: [queryKeys.prospectingQueue.all],

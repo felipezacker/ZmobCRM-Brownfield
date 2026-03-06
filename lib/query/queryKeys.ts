@@ -49,6 +49,9 @@ export const queryKeys = {
     // Saved queues (CP-2.4)
     savedQueues: createQueryKeys('savedQueues'),
 
+    // Prospecting metrics (CP-1.4)
+    prospectingMetrics: createQueryKeys('prospectingMetrics'),
+
     // Dashboard (non-standard structure)
     dashboard: {
         stats: ['dashboard', 'stats'] as const,
