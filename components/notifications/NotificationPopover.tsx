@@ -158,11 +158,11 @@ export const NotificationPopover = () => {
 
                     <div className="p-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 text-center">
                         <Link
-                            href="/dashboard"
+                            href="/notifications"
                             onClick={() => setIsOpen(false)}
                             className="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                         >
-                            Ver Dashboard Completo
+                            Ver Todas as Notificações
                         </Link>
                     </div>
                 </div>
