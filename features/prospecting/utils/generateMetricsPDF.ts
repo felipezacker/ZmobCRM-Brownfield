@@ -7,6 +7,10 @@
 
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
+
+interface jsPDFWithAutoTable extends jsPDF {
+  lastAutoTable: { finalY: number }
+}
 import type { ProspectingMetrics, BrokerMetric, PeriodRange } from '../hooks/useProspectingMetrics'
 import { formatDuration } from './formatDuration'
 
@@ -43,7 +47,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   doc.setFontSize(12)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 100, 100)
-  doc.text('Relatorio de Prospeccao', 14, y + 8)
+  doc.text('Relatório de Prospecção', 14, y + 8)
 
   doc.setFontSize(9)
   doc.text(
@@ -72,11 +76,11 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   y += 8
 
   const kpis = [
-    { label: 'Ligacoes Discadas', value: String(metrics.totalCalls) },
+    { label: 'Ligações Discadas', value: String(metrics.totalCalls) },
     { label: 'Atendidas', value: String(metrics.connectedCalls) },
     { label: 'Sem Resposta', value: String(metrics.byOutcome.find(o => o.outcome === 'no_answer')?.count || 0) },
     { label: 'Correio de Voz', value: String(metrics.byOutcome.find(o => o.outcome === 'voicemail')?.count || 0) },
-    { label: 'Tempo Medio', value: formatDuration(metrics.avgDuration) },
+    { label: 'Tempo Médio', value: formatDuration(metrics.avgDuration) },
     { label: 'Contatos Prospectados', value: String(metrics.uniqueContacts) },
   ]
 
@@ -113,7 +117,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(80, 80, 80)
   doc.text(
-    `Taxa de conexao: ${metrics.connectionRate.toFixed(1)}%`,
+    `Taxa de conexão: ${metrics.connectionRate.toFixed(1)}%`,
     14,
     y,
   )
@@ -126,7 +130,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
     doc.setTextColor(0, 0, 0)
     doc.setFontSize(13)
     doc.setFont('helvetica', 'bold')
-    doc.text('Ligacoes por Dia', 14, y)
+    doc.text('Ligações por Dia', 14, y)
     y += 2
 
     autoTable(doc, {
@@ -146,7 +150,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
       margin: { left: 14, right: 14 },
     })
 
-    y = (doc as any).lastAutoTable.finalY + 10
+    y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
   }
 
   // ========================================
@@ -183,7 +187,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
       margin: { left: 14, right: 14 },
     })
 
-    y = (doc as any).lastAutoTable.finalY + 10
+    y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
   }
 
   // ========================================
@@ -231,7 +235,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
       doc.internal.pageSize.getHeight() - 8,
     )
     doc.text(
-      `Pagina ${i}/${totalPages}`,
+      `Página ${i}/${totalPages}`,
       pageWidth - 14,
       doc.internal.pageSize.getHeight() - 8,
       { align: 'right' },
@@ -239,7 +243,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   }
 
   // Save
-  const filename = `prospeccao-${range.start}-${range.end}.pdf`
+  const filename = `prospeccao-${range.start}-a-${range.end}.pdf`
   doc.save(filename)
 }
 
@@ -248,13 +252,13 @@ function generateTextInsights(metrics: ProspectingMetrics): string[] {
 
   if (metrics.totalCalls >= 10 && metrics.connectionRate < 20) {
     insights.push(
-      `Baixa taxa de resposta (${metrics.connectionRate.toFixed(0)}%). Considere revisar horarios de ligacao.`,
+      `Baixa taxa de resposta (${metrics.connectionRate.toFixed(0)}%). Considere revisar horários de ligação.`,
     )
   }
 
   if (metrics.totalCalls >= 10 && metrics.connectionRate >= 30) {
     insights.push(
-      `Boa taxa de conexao (${metrics.connectionRate.toFixed(0)}%). Continue com essa estrategia.`,
+      `Boa taxa de conexão (${metrics.connectionRate.toFixed(0)}%). Continue com essa estratégia.`,
     )
   }
 
@@ -262,7 +266,7 @@ function generateTextInsights(metrics: ProspectingMetrics): string[] {
   const noAnswerRate = metrics.totalCalls > 0 ? (noAnswer / metrics.totalCalls) * 100 : 0
   if (metrics.totalCalls >= 10 && noAnswerRate > 60) {
     insights.push(
-      `Alto volume sem resposta (${noAnswerRate.toFixed(0)}%). Tente ligar em horarios diferentes.`,
+      `Alto volume sem resposta (${noAnswerRate.toFixed(0)}%). Tente ligar em horários diferentes.`,
     )
   }
 
@@ -270,20 +274,20 @@ function generateTextInsights(metrics: ProspectingMetrics): string[] {
     const top = metrics.byBroker[0]
     if (top.totalCalls > 0) {
       insights.push(
-        `${top.ownerName} lidera com ${top.totalCalls} ligacoes e ${top.connectionRate.toFixed(0)}% de conexao.`,
+        `${top.ownerName} lidera com ${top.totalCalls} ligações e ${top.connectionRate.toFixed(0)}% de conexão.`,
       )
     }
   }
 
   if (metrics.avgDuration > 0 && metrics.avgDuration < 30 && metrics.connectedCalls >= 5) {
     insights.push(
-      `Tempo medio de ${Math.round(metrics.avgDuration)}s por ligacao. Tente manter conversas mais longas.`,
+      `Tempo médio de ${Math.round(metrics.avgDuration)}s por ligação. Tente manter conversas mais longas.`,
     )
   }
 
   if (metrics.totalCalls < 10 && metrics.totalCalls > 0) {
     insights.push(
-      `Apenas ${metrics.totalCalls} ligacoes no periodo. Aumente o volume para resultados consistentes.`,
+      `Apenas ${metrics.totalCalls} ligações no período. Aumente o volume para resultados consistentes.`,
     )
   }
 

@@ -47,9 +47,9 @@ describe('SavedQueuesList', () => {
     vi.clearAllMocks()
   })
 
-  it('renders nothing when no saved queues', () => {
-    const { container } = render(<SavedQueuesList {...defaultProps} savedQueues={[]} />)
-    expect(container.querySelector('button')).toBeNull()
+  it('renders empty state when no saved queues', () => {
+    render(<SavedQueuesList {...defaultProps} savedQueues={[]} />)
+    expect(screen.getByText('Nenhuma fila salva')).toBeInTheDocument()
   })
 
   it('shows loading state', () => {

@@ -35,7 +35,14 @@ export function SavedQueuesList({
     )
   }
 
-  if (savedQueues.length === 0) return null
+  if (savedQueues.length === 0) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 text-xs text-slate-400 dark:text-slate-500">
+        <BookmarkPlus size={14} />
+        Nenhuma fila salva
+      </div>
+    )
+  }
 
   const handleDelete = (id: string) => {
     if (confirmDeleteId === id) {

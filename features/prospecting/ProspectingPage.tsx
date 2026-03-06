@@ -251,7 +251,7 @@ export const ProspectingPage: React.FC = () => {
     } finally {
       setIsGeneratingPdf(false)
     }
-  }, [metricsHook, isAdminOrDirector, profile, toast])
+  }, [metricsHook, isAdminOrDirector, toast])
 
   const currentContact = sessionActive && queue[currentIndex] ? queue[currentIndex] : null
   const pendingCount = queue.filter(q => q.status === 'pending').length
