@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useId, useMemo } from 'react';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useContacts } from '@/context/contacts/ContactsContext';
+import { useContact as useContactQuery } from '@/lib/query/hooks/useContactsQuery';
 import { useDeals } from '@/context/deals/DealsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useBoards } from '@/context/boards/BoardsContext';
@@ -104,7 +105,12 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const activitiesById = useMemo(() => new Map(activities.map((a) => [a.id, a])), [activities]);
 
   const deal = dealId ? dealsById.get(dealId) : undefined;
-  const contact = deal ? (contactsById.get(deal.contactId) ?? null) : null;
+  // Fetch contact directly by ID (guaranteed to work regardless of context cache state).
+  // Falls back to context map for instant display while the direct query loads.
+  const { data: contactDirect } = useContactQuery(deal?.contactId || undefined);
+  const contact = contactDirect ?? contactsById.get(deal?.contactId ?? '') ?? null;
+  // Resolved contact name: prefer direct query over enriched deal (which may be stale)
+  const resolvedContactName = contact?.name || deal?.contactName || 'Sem contato';
 
   // Determine the correct board for this deal
   const dealBoard = deal ? (boardsById.get(deal.boardId) ?? activeBoard) : activeBoard;
@@ -471,11 +477,11 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
           {/* Row 1: Lead name + product + action icons */}
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-400/20 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300 shrink-0">
-              {(deal.contactName || '?').charAt(0).toUpperCase()}
+              {(resolvedContactName || '?').charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
               <h2 id={headingId} className="text-base font-semibold text-slate-900 dark:text-white tracking-tight truncate leading-tight">
-                {deal.contactName || 'Sem contato'}
+                {resolvedContactName}
               </h2>
               {deal.items && deal.items.length > 0 && (
                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" title={deal.items[0].name}>
@@ -665,11 +671,11 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                 )}
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">
-                    {(deal.contactName || '?').charAt(0)}
+                    {(resolvedContactName || '?').charAt(0)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-slate-900 dark:text-white font-medium text-sm flex items-center gap-2">
-                      {deal.contactName || 'Sem contato'}
+                      {resolvedContactName}
                       {contact?.stage &&
                         (() => {
                           const stage = lifecycleStageById.get(contact.stage);
