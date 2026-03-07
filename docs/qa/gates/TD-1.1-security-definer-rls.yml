@@ -1,0 +1,8 @@
+schema: 1
+story: 'TD-1.1'
+gate: PASS
+status_reason: 'All 9 ACs verified against migration 20260306100002. DB-025 EXECUTE eliminated with CASE pattern, DB-014/DB-022 converted to SECURITY INVOKER, DB-019 composite index created, DB-012 triggers applied to 14 tables. 5 inline verification blocks ensure deploy-time correctness.'
+reviewer: 'Quinn'
+updated: '2026-03-07T12:00:00Z'
+top_issues: []
+waiver: { active: false }
