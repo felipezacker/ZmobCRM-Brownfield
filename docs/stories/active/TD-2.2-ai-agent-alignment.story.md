@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** TD-2.2
 - **Epic:** TD (Technical Debt Resolution)
-- **Status:** Ready
+- **Status:** InReview
 - **Priority:** P1
 - **Estimated Points:** 13
 - **Wave:** 2
@@ -20,26 +20,26 @@ Esta story corrige o alinhamento completo da IA com o sistema real: migrar BASE_
 ## Acceptance Criteria
 
 ### SYS-002 + SYS-014: BASE_INSTRUCTIONS e catalogo de prompts
-- [ ] AC1: Given o agente de IA, when ativado, then o system prompt e resolvido via `getResolvedPrompt('agent_crm_base_instructions')` em vez de string hardcoded
-- [ ] AC2: Given o admin de prompts (tabela `ai_prompt_templates`), when um template e editado, then o agente reflete a mudanca no proximo request
-- [ ] AC3: Given o system prompt do agente, when inspecionado, then menciona todas as 27 tools disponiveis (nao apenas 15)
-- [ ] AC4: Given a tool `getLeadScore` (SYS-014), when o agente recebe pergunta sobre score de lead, then utiliza a tool proativamente
+- [x] AC1: Given o agente de IA, when ativado, then o system prompt e resolvido via `getResolvedPrompt('agent_crm_base_instructions')` em vez de string hardcoded
+- [x] AC2: Given o admin de prompts (tabela `ai_prompt_templates`), when um template e editado, then o agente reflete a mudanca no proximo request
+- [x] AC3: Given o system prompt do agente, when inspecionado, then menciona todas as 27 tools disponiveis (nao apenas 15)
+- [x] AC4: Given a tool `getLeadScore` (SYS-014), when o agente recebe pergunta sobre score de lead, then utiliza a tool proativamente
 
 ### SYS-004 + SYS-005: Prospecting tools
-- [ ] AC5: Given o agente de IA, when solicitado "mostre minhas filas de prospeccao", then retorna lista de filas ativas da organizacao
-- [ ] AC6: Given o agente de IA, when solicitado "quais sao minhas metas de hoje", then retorna metas e progresso do power dialer
-- [ ] AC7: Given o agente de IA, when solicitado "gere um script de introducao para o lead X", then utiliza quick_scripts como base
-- [ ] AC8: Given o agente de IA, when solicitado "quais sao minhas metricas de prospeccao", then retorna metricas de conversao, ligacoes e cadencias
-- [ ] AC9: Given a tool de deal (SYS-005), when consultada, then inclui campo `property_ref` no resultado
-- [ ] AC10: Given a tool de activity (SYS-005), when consultada, then inclui campo `metadata` JSONB no resultado (outcomes de ligacao)
+- [x] AC5: Given o agente de IA, when solicitado "mostre minhas filas de prospeccao", then retorna lista de filas ativas da organizacao
+- [x] AC6: Given o agente de IA, when solicitado "quais sao minhas metas de hoje", then retorna metas e progresso do power dialer
+- [x] AC7: Given o agente de IA, when solicitado "gere um script de introducao para o lead X", then utiliza quick_scripts como base
+- [x] AC8: Given o agente de IA, when solicitado "quais sao minhas metricas de prospeccao", then retorna metricas de conversao, ligacoes e cadencias
+- [x] AC9: Given a tool de deal (SYS-005), when consultada, then inclui campo `property_ref` no resultado
+- [x] AC10: Given a tool de activity (SYS-005), when consultada, then inclui campo `metadata` JSONB no resultado (outcomes de ligacao)
 
 ### SYS-012: Quick scripts tools
-- [ ] AC11: Given o agente de IA, when solicitado "liste meus scripts de followup", then retorna scripts da tabela `quick_scripts` filtrados por categoria `followup`
-- [ ] AC12: Given o agente de IA, when solicitado "gere um script de vendas e salve", then o script e persistido na tabela `quick_scripts` (nao mais gerado como texto solto)
+- [x] AC11: Given o agente de IA, when solicitado "liste meus scripts de followup", then retorna scripts da tabela `quick_scripts` filtrados por categoria `followup`
+- [x] AC12: Given o agente de IA, when solicitado "gere um script de vendas e salve", then o script e persistido na tabela `quick_scripts` (nao mais gerado como texto solto)
 
 ### SYS-013: Tags e custom fields nas contact tools
-- [ ] AC13: Given o agente de IA, when solicitado "encontre contatos com tag VIP", then filtra por tag na busca
-- [ ] AC14: Given o agente de IA, when solicitado "encontre contatos com campo custom 'origem' = 'indicacao'", then filtra por custom field
+- [x] AC13: Given o agente de IA, when solicitado "encontre contatos com tag VIP", then filtra por tag na busca
+- [x] AC14: Given o agente de IA, when solicitado "encontre contatos com campo custom 'origem' = 'indicacao'", then filtra por custom field
 
 ## Scope
 
@@ -101,22 +101,35 @@ Esta story corrige o alinhamento completo da IA com o sistema real: migrar BASE_
 | SYS-013 | Tags/custom fields sem exposure | MEDIUM |
 
 ## Definition of Done
-- [ ] BASE_INSTRUCTIONS resolvido via catalogo (nao hardcoded)
-- [ ] Agente reconhece e usa 27/27 tools
-- [ ] Tools de prospeccao funcional (filas, metas, metricas, scripts)
-- [ ] property_ref e metadata expostos nas tools
-- [ ] Quick scripts com CRUD via IA
-- [ ] Tags/custom_fields como filtro em contact tools
-- [ ] `npm run typecheck` passando
-- [ ] `npm run lint` passando
-- [ ] `npm test` passando (incluindo novos testes para tools)
+- [x] BASE_INSTRUCTIONS resolvido via catalogo (nao hardcoded)
+- [x] Agente reconhece e usa 27/27 tools
+- [x] Tools de prospeccao funcional (filas, metas, metricas, scripts)
+- [x] property_ref e metadata expostos nas tools
+- [x] Quick scripts com CRUD via IA
+- [x] Tags/custom_fields como filtro em contact tools
+- [x] `npm run typecheck` passando
+- [x] `npm run lint` passando
+- [x] `npm test` passando (incluindo novos testes para tools)
 - [ ] Code reviewed
 
 ## File List
-_A ser preenchido durante implementacao_
+| File | Action | Description |
+|------|--------|-------------|
+| `lib/ai/crmAgent.ts` | Modified | BASE_INSTRUCTIONS migrado para resolveBaseInstructions() via catalogo com fallback |
+| `lib/ai/prompts/catalog.ts` | Modified | Template agent_crm_base_instructions atualizado com 27 tools |
+| `lib/ai/tools.ts` | Modified | Wired prospecting tools na factory |
+| `lib/ai/tools/index.ts` | Modified | Export de prospecting-tools |
+| `lib/ai/tools/prospecting-tools.ts` | Created | 6 tools: listProspectingQueues, getProspectingMetrics, getProspectingGoals, listQuickScripts, createQuickScript, generateAndSaveScript |
+| `lib/ai/tools/deal-tools.ts` | Modified | Exposto property_ref em searchDeals e getDealDetails |
+| `lib/ai/tools/activity-tools.ts` | Modified | Exposto metadata JSONB em listActivities |
+| `lib/ai/tools/contact-tools.ts` | Modified | Adicionados filtros tag, customFieldKey, customFieldValue em searchContacts; tags e customFields no response |
+| `lib/ai/__tests__/base-instructions-catalog.test.ts` | Created | 5 testes verificando catalogo lista 27 tools |
+| `lib/ai/__tests__/exposure-gaps.test.ts` | Created | 7 testes para property_ref, metadata, tags/custom_fields |
+| `lib/ai/__tests__/prospecting-tools.test.ts` | Created | 14 testes para as 6 prospecting tools |
 
 ## Change Log
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-03-06 | @pm | Story created |
-| 2026-03-07 | @po | Validated GO (9/10) — all deps met, status Draft → Ready |
+| 2026-03-07 | @po | Validated GO (9/10) -- all deps met, status Draft -> Ready |
+| 2026-03-07 | @dev | Implementation complete: BASE_INSTRUCTIONS via catalogo, 6 prospecting tools, property_ref/metadata/tags exposed, 26 novos testes (686 total). 14/14 ACs done. Status Ready -> InReview |

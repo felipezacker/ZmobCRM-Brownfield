@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** TD-2.1
 - **Epic:** TD (Technical Debt Resolution)
-- **Status:** Ready
+- **Status:** InReview
 - **Priority:** P2
 - **Estimated Points:** 8
 - **Wave:** 2
@@ -16,24 +16,24 @@ Proteger todas as paginas do sistema contra erros nao tratados e padronizar a ca
 ## Acceptance Criteria
 
 ### UX-028: Error boundaries por route segment
-- [ ] AC1: Given cada uma das 17 paginas protegidas, when ocorre um erro em runtime, then e capturado por um `error.tsx` local com mensagem amigavel e botao de retry
-- [ ] AC2: Given o `error.tsx`, when renderizado, then exibe branding do ZmobCRM e opcao de reportar o problema
-- [ ] AC3: Given um erro em um route segment, when capturado pelo error boundary local, then NAO afeta outros route segments na mesma pagina
+- [x] AC1: Given cada uma das 17 paginas protegidas, when ocorre um erro em runtime, then e capturado por um `error.tsx` local com mensagem amigavel e botao de retry
+- [x] AC2: Given o `error.tsx`, when renderizado, then exibe branding do ZmobCRM e opcao de reportar o problema
+- [x] AC3: Given um erro em um route segment, when capturado pelo error boundary local, then NAO afeta outros route segments na mesma pagina
 
 ### UX-029: Not-found customizado
-- [ ] AC4: Given uma URL invalida dentro das rotas protegidas, when acessada, then exibe pagina 404 customizada com branding ZmobCRM
-- [ ] AC5: Given a pagina 404, when renderizada, then oferece links para Dashboard e pagina inicial
+- [x] AC4: Given uma URL invalida dentro das rotas protegidas, when acessada, then exibe pagina 404 customizada com branding ZmobCRM
+- [x] AC5: Given a pagina 404, when renderizada, then oferece links para Dashboard e pagina inicial
 
 ### UX-026: Overlay de modais padronizado
-- [ ] AC6: Given todos os modais do sistema (20+), when inspecionados, then usam o mesmo overlay background definido em `modalStyles.ts`
-- [ ] AC7: Given `ConfirmModal`, when inspecionado, then NAO usa `bg-slate-900/60` hardcoded (migrado para `modalStyles`)
+- [x] AC6: Given todos os modais do sistema (20+), when inspecionados, then usam o mesmo overlay background definido em `modalStyles.ts`
+- [x] AC7: Given `ConfirmModal`, when inspecionado, then NAO usa `bg-slate-900/60` hardcoded (migrado para `modalStyles`)
 
 ### UX-027: Escala de z-index
-- [ ] AC8: Given o codebase, when buscado por `z-[9999]` ou `z-[10000]`, then retorna 0 resultados
-- [ ] AC9: Given o sistema de design, when inspecionado, then existe escala de z-index definida em tokens CSS (ex: `--z-modal`, `--z-popover`, `--z-tooltip`, `--z-toast`)
+- [x] AC8: Given o codebase, when buscado por `z-[9999]` ou `z-[10000]`, then retorna 0 resultados
+- [x] AC9: Given o sistema de design, when inspecionado, then existe escala de z-index definida em tokens CSS (ex: `--z-modal`, `--z-popover`, `--z-tooltip`, `--z-toast`)
 
 ### UX-016: GlobalError com design
-- [ ] AC10: Given um erro global (fora do app layout), when renderizado o GlobalError, then exibe CSS inline minimo com identidade visual ZmobCRM (nao depende de Tailwind/CSS externo)
+- [x] AC10: Given um erro global (fora do app layout), when renderizado o GlobalError, then exibe CSS inline minimo com identidade visual ZmobCRM (nao depende de Tailwind/CSS externo)
 
 ## Scope
 
@@ -83,21 +83,76 @@ Proteger todas as paginas do sistema contra erros nao tratados e padronizar a ca
 | UX-016 | GlobalError sem design system | MEDIUM |
 
 ## Definition of Done
-- [ ] 17/17 paginas protegidas com `error.tsx` funcional
-- [ ] `not-found.tsx` customizado com branding
-- [ ] 20+ modais usando overlay padronizado via `modalStyles.ts`
-- [ ] Escala de z-index definida em tokens CSS
-- [ ] GlobalError com identidade visual
-- [ ] `npm run typecheck` passando
-- [ ] `npm run lint` passando
-- [ ] `npm test` passando sem regressoes
+- [x] 17/17 paginas protegidas com `error.tsx` funcional
+- [x] `not-found.tsx` customizado com branding
+- [x] 20+ modais usando overlay padronizado via `modalStyles.ts`
+- [x] Escala de z-index definida em tokens CSS
+- [x] GlobalError com identidade visual
+- [x] `npm run typecheck` passando
+- [x] `npm run lint` passando
+- [x] `npm test` passando sem regressoes
 - [ ] Code reviewed
 
 ## File List
-_A ser preenchido durante implementacao_
+| File | Action | Description |
+|------|--------|-------------|
+| `app/globals.css` | Modified | Adicionados 7 z-index tokens CSS (--z-base thru --z-toast) |
+| `components/ui/ErrorBoundaryFallback.tsx` | Created | Componente compartilhado de error boundary com branding ZmobCRM |
+| `components/ui/modalStyles.ts` | Modified | Migrado para usar z-[var(--z-modal)] |
+| `app/(protected)/activities/error.tsx` | Created | Error boundary |
+| `app/(protected)/ai/error.tsx` | Created | Error boundary |
+| `app/(protected)/ai-test/error.tsx` | Created | Error boundary |
+| `app/(protected)/boards/error.tsx` | Created | Error boundary |
+| `app/(protected)/contacts/error.tsx` | Created | Error boundary |
+| `app/(protected)/dashboard/error.tsx` | Created | Error boundary |
+| `app/(protected)/deals/error.tsx` | Created | Error boundary |
+| `app/(protected)/decisions/error.tsx` | Created | Error boundary |
+| `app/(protected)/inbox/error.tsx` | Created | Error boundary |
+| `app/(protected)/instructions/error.tsx` | Created | Error boundary |
+| `app/(protected)/labs/error.tsx` | Created | Error boundary |
+| `app/(protected)/notifications/error.tsx` | Created | Error boundary |
+| `app/(protected)/pipeline/error.tsx` | Created | Error boundary |
+| `app/(protected)/profile/error.tsx` | Created | Error boundary |
+| `app/(protected)/prospecting/error.tsx` | Created | Error boundary |
+| `app/(protected)/reports/error.tsx` | Created | Error boundary |
+| `app/(protected)/settings/error.tsx` | Created | Error boundary |
+| `app/(protected)/setup/error.tsx` | Created | Error boundary |
+| `app/(protected)/not-found.tsx` | Created | Pagina 404 customizada com branding |
+| `app/global-error.tsx` | Modified | Redesenhado com CSS inline e identidade visual |
+| `components/ConfirmModal.tsx` | Modified | Migrado overlay para MODAL_OVERLAY_CLASS |
+| `components/ConsentModal.tsx` | Modified | Overlay padronizado |
+| `components/OnboardingModal.tsx` | Modified | Overlay padronizado |
+| `components/AIAssistant.tsx` | Modified | z-index migrado para token |
+| `components/ai/UIChat.tsx` | Modified | z-index migrado para token |
+| `components/pwa/InstallBanner.tsx` | Modified | z-index migrado para token |
+| `components/ui/ActionSheet.tsx` | Modified | Overlay padronizado |
+| `components/ui/LossReasonModal.tsx` | Modified | Overlay padronizado |
+| `components/ui/Sheet.tsx` | Modified | Overlay padronizado |
+| `features/activities/components/ActivityFormModal.tsx` | Modified | Overlay padronizado |
+| `features/boards/components/Modals/CreateDealModal.tsx` | Modified | Overlay padronizado |
+| `features/boards/components/Modals/DealDetailModal.tsx` | Modified | Overlay padronizado |
+| `features/boards/components/Modals/DeleteBoardModal.tsx` | Modified | Overlay padronizado |
+| `features/contacts/components/BulkActionsToolbar.tsx` | Modified | z-index migrado |
+| `features/contacts/components/ContactDetailModal.tsx` | Modified | Overlay padronizado |
+| `features/contacts/components/ContactFormModal.tsx` | Modified | Overlay padronizado |
+| `features/contacts/components/ContactMergeModal.tsx` | Modified | Overlay padronizado |
+| `features/contacts/components/SelectBoardModal.tsx` | Modified | Overlay padronizado |
+| `features/dashboard/components/PipelineAlertsModal.tsx` | Modified | Overlay padronizado |
+| `features/deals/cockpit/DealCockpitFocusClient.tsx` | Modified | z-index migrado |
+| `features/deals/cockpit/TemplatePickerModal.tsx` | Modified | Overlay padronizado |
+| `features/inbox/components/CallModal.tsx` | Modified | Overlay padronizado |
+| `features/inbox/components/InboxFocusView.tsx` | Modified | Overlay padronizado |
+| `features/inbox/components/ScheduleModal.tsx` | Modified | Overlay padronizado |
+| `features/inbox/components/ScriptEditorModal.tsx` | Modified | Overlay padronizado |
+| `features/prospecting/components/NoteTemplatesManager.tsx` | Modified | Overlay padronizado |
+| `features/prospecting/components/SaveQueueModal.tsx` | Modified | Overlay padronizado |
+| `features/settings/UsersPage.tsx` | Modified | Overlay padronizado |
+| `features/settings/components/LifecycleSettingsModal.tsx` | Modified | Overlay padronizado |
+| `app/(protected)/labs/deal-cockpit-mock/DealCockpitRealClient.tsx` | Modified | z-index migrado |
 
 ## Change Log
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-03-06 | @pm | Story created |
-| 2026-03-07 | @po | Validated GO (8/10) — renamed file, status Draft → Ready |
+| 2026-03-07 | @po | Validated GO (8/10) -- renamed file, status Draft -> Ready |
+| 2026-03-07 | @dev | Implementation complete: 18 error.tsx, not-found, 30+ overlays, 7 z-index tokens, GlobalError. 10/10 ACs done. Status Ready -> InReview |
