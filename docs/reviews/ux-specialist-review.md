@@ -1,380 +1,396 @@
 # UX Specialist Review
 
 **Reviewer:** @ux-design-expert (Uma)
-**Data:** 2026-03-03
-**Documento revisado:** docs/prd/technical-debt-DRAFT.md
-**Documento de referencia:** docs/frontend/frontend-spec.md
+**Data:** 2026-03-06
+**DRAFT Version:** v2
+**Documento revisado:** `docs/prd/technical-debt-DRAFT.md` (v2, Secao 3: Frontend/UX)
+**Documento de referencia:** `docs/frontend/frontend-spec.md` (Phase 3 v2)
 **Fase:** Brownfield Discovery - Phase 6
 
 ---
 
 ## Metodologia
 
-Para esta revisao, todos os debitos de Frontend/UX (Secao 3) e Cross-Cutting com impacto UX (Secao 4) do DRAFT foram verificados diretamente contra o codigo-fonte. Tamanhos de arquivo, contagens de uso, padroes de import e tokens de estilo foram confirmados via leitura e busca no codebase.
+Todos os 25 debitos de Frontend/UX (UX-001 a UX-025) do DRAFT v2 foram verificados diretamente contra o codigo-fonte. Tamanhos de arquivo, contagens de uso, padroes de import, tokens de estilo e existencia de arquivos foram confirmados via leitura de codigo e buscas no codebase. Cada debito recebeu validacao binaria (confirmado/nao confirmado), ajuste de severidade quando justificado, estimativa de horas e classificacao de impacto UX.
 
 ---
 
 ## Debitos Validados
 
-### Secao 3 - Frontend/UX
-
 | ID | Debito | Sev. Original | Sev. Ajustada | Horas | Impacto UX | Design Review? | Notas |
 |----|--------|---------------|---------------|-------|-----------|---------------|-------|
-| TD-UX-001 | Duplicacao de Button component | CRITICAL | CRITICAL | 3-4 | Visual + Funcional | Sim | Confirmado: 111 arquivos importam `app/components/ui/Button.tsx`, apenas 2 arquivos importam `components/ui/button.tsx`. A versao `app/` e a dominante. Diferenca unica: variants `unstyled`. Merge simples. |
-| TD-UX-002 | Componentes gigantes (6 arquivos) | CRITICAL | **HIGH** | 40-60 | Funcional + Performance | Sim | Tamanhos confirmados (FocusContextPanel 109KB/1886 linhas, DealDetailModal 87KB/1688 linhas, BoardCreationWizard 75KB/1628 linhas, WebhooksSection 55KB, ContactsImportExportModal 51KB, CockpitDataPanel 48KB). Rebaixo para HIGH porque o impacto para o usuario final e indireto -- afeta manutenibilidade e tempo de carregamento de bundle, mas o UX visivel funciona. O risco principal e para a equipe de desenvolvimento, nao para o usuario. |
-| TD-UX-003 | Skeletons quase inexistentes | HIGH | HIGH | 20-28 | Visual + Percebido | Sim | Confirmado: apenas 4 loading.tsx (boards, contacts, inbox, deals/cockpit) existem. Todos usam PageLoader generico com spinner. Nenhum skeleton content-aware. Impacto direto na percepcao de velocidade pelo usuario. |
-| TD-UX-004 | Nenhum sistema de i18n | HIGH | **MEDIUM** | 40-60 | Funcional | Nao | Confirmado: strings hardcoded em portugues (400+). Rebaixo para MEDIUM porque o ZmobCRM e atualmente um produto focado no mercado brasileiro (imobiliario). Nao ha demanda imediata de internacionalizacao. E um bloqueio para expansao internacional, mas nao afeta usuarios atuais. Manter como debt documentado e reavaliar quando houver demanda de mercado. |
-| TD-UX-005 | Controller hooks gigantes | HIGH | HIGH | 24-32 | Funcional | Nao | Confirmado: useBoardsController 37KB, useContactsController 30KB, useInboxController 28KB, useActivitiesController 19KB. Impacta diretamente re-renders desnecessarios que o usuario percebe como lentidao. |
-| TD-UX-006 | Mistura de import paths | HIGH | **MEDIUM** | 4-6 | Nenhum (DX) | Nao | Confirmado. Porem, impacto zero para o usuario final. E puramente um problema de Developer Experience. Rebaixo para MEDIUM. |
-| TD-UX-007 | Scrollbar hex hardcoded | HIGH | **MEDIUM** | 2-3 | Visual | Nao | Confirmado: `#cbd5e1`, `#94a3b8`, `#334155`, `#475569` em globals.css. Impacto visual real mas limitado -- scrollbars sao um detalhe periferico. Dark mode ja tem valores separados. Rebaixo para MEDIUM. |
-| TD-UX-008 | Chart colors hex hardcoded | HIGH | HIGH | 3-4 | Visual | Nao | Confirmado: `#64748b`, `#0f172a`, `#f8fafc` etc em globals.css. Diferente do scrollbar, charts sao elementos centrais no dashboard e relatorios. Inconsistencia visual e mais perceptivel aqui. Mantenho HIGH. |
-| TD-UX-009 | Font serif nao utilizada | MEDIUM | **LOW** | 0.5 | Nenhum | Nao | Confirmado: `--font-serif: 'Cinzel'` declarada em @theme. Se nao e importada via next/font (verificar), nao adiciona peso. Impacto zero para o usuario. Rebaixo para LOW. |
-| TD-UX-010 | Cores Tailwind pre-v4 misturadas | MEDIUM | **HIGH** | 12-16 | Visual | Sim | Confirmado com dados concretos: **2.475 ocorrencias** de `text-slate-*`, `bg-slate-*`, `text-gray-*`, `bg-gray-*` em **137 arquivos .tsx**. Este e um problema massivo e subestimado no DRAFT. A escala do problema indica que a migracao para tokens semanticos e uma tarefa significativa. Upgrade para HIGH pela abrangencia do impacto. |
-| TD-UX-011 | PageLoader com cores hardcoded | MEDIUM | MEDIUM | 0.5 | Visual | Nao | Confirmado: `text-gray-500 dark:text-gray-400` alem de `border-primary-200` e `border-t-primary-500`. Correcao trivial. |
-| TD-UX-012 | ConfirmModal nao usa modalStyles.ts | MEDIUM | MEDIUM | 2-3 | Visual | Nao | Confirmado: zero referencias a `modalStyles` no ConfirmModal. Usa `bg-slate-900/60` hardcoded como overlay vs `bg-background/60` do modalStyles. |
-| TD-UX-013 | Optimistic updates limitados | MEDIUM | MEDIUM | 12-16 | Percebido | Nao | Confirmado. Impacto real na percepcao de velocidade em operacoes CRUD. |
-| TD-UX-014 | ErrorBoundary usa inline styles | MEDIUM | MEDIUM | 1 | Visual | Nao | Confirmado: 4 ocorrencias de `style={{ ... }}` com CSS vars. Funcional mas inconsistente com padrao Tailwind. |
-| TD-UX-015 | GlobalError sem design system | MEDIUM | MEDIUM | 2-3 | Visual | Sim | Confirmado: HTML puro sem qualquer estilizacao. `<h2>Something went wrong!</h2>` e `<button>` nativo. Nota: o comentario no codigo explica que global-error renderiza fora do app layout, entao nao tem acesso ao design system. Solucao requer inline CSS com variaveis. |
-| TD-UX-016 | SubmitButton duplicado | LOW | LOW | 2-3 | Nenhum (DX) | Nao | Confirmado: `FormField.tsx` exporta `SubmitButton` com seus proprios `buttonVariants` (objeto JS, nao CVA). Conflito de naming com CVA buttonVariants de button.tsx. |
-| TD-UX-017 | Prefetch incompleto | LOW | LOW | 4-6 | Percebido | Nao | Confirmado. Impacto menor -- prefetch e uma otimizacao incremental. |
-| TD-UX-018 | Ambient background glow hardcoded | LOW | LOW | 1 | Visual | Nao | Confirmado. Efeito decorativo, impacto minimo. |
-| TD-UX-019 | Nenhum teste e2e/visual | LOW | **MEDIUM** | 16-24 | Funcional | Nao | Upgrade para MEDIUM. A ausencia de testes visuais significa que regressoes UX passam despercebidas. Especialmente critico durante a migracao de tokens (TD-UX-010) e decomposicao de componentes (TD-UX-002). |
-
-### Secao 4 - Cross-Cutting com impacto UX
-
-| ID | Debito | Sev. Original | Sev. Ajustada | Horas | Impacto UX | Design Review? | Notas |
-|----|--------|---------------|---------------|-------|-----------|---------------|-------|
-| TD-CC-001 | CRMContext monolito (33KB) | CRITICAL | CRITICAL | 24-40 | Performance | Nao | Confirmado: 930 linhas. Impacto UX direto via re-renders em cascata. Qualquer interacao que muda estado causa re-render de toda a sub-arvore. Usuario percebe como lentidao geral. |
-| TD-CC-002 | Duplicacao Context + Zustand | HIGH | HIGH | 16-24 | Funcional | Nao | Impacto UX: possibilidade de estado dessincronizado que causa comportamento confuso para o usuario (ex: sidebar aberta no context mas fechada no store). |
-| TD-CC-003 | Sem i18n fullstack | HIGH | **MEDIUM** | 40-60 | Funcional | Nao | Mesma justificativa de TD-UX-004. Nao ha demanda imediata. |
-| TD-CC-004 | BoardCreationWizard monolito | HIGH | HIGH | 16-24 | Funcional | Sim | Dependencia de TD-CC-001. Impacto UX na experiencia de criacao de boards. |
-| TD-CC-005 | N+1 kanban | HIGH | HIGH | 8-16 | Performance | Nao | Impacto UX direto: kanban e a tela mais usada. Performance degrada visivelmente com >50 deals. |
-
-### Secao 1 - Sistema com impacto UX
-
-| ID | Debito | Sev. Original | Sev. Ajustada | Horas (UX) | Impacto UX | Design Review? | Notas |
-|----|--------|---------------|---------------|------------|-----------|---------------|-------|
-| TD-SYS-005 | Paginas client-only | HIGH | HIGH | N/A (arch) | Performance | Nao | Impacto UX: first paint mais lento. Usuario ve tela branca por mais tempo. Porem, resolucao e arquitetural, nao de UX. |
-| TD-SYS-006 | Nenhum error.tsx por segmento | HIGH | HIGH | 8-12 | Visual + Funcional | Sim | Impacto UX direto: erro em uma feature derruba a pagina inteira. Cada route segment deveria ter seu error.tsx com design coerente. |
-| TD-SYS-007 | Nenhum not-found.tsx | HIGH | HIGH | 3-4 | Visual | Sim | Impacto UX direto: usuario ve pagina 404 generica do Next.js sem branding. |
-| TD-SYS-012 | Loading states em 4 paginas | MEDIUM | **HIGH** | 8-12 | Percebido | Sim | Upgrade para HIGH. 14+ paginas protegidas sem loading.tsx = tela branca durante carregamento. Impacto direto na percepcao de qualidade pelo usuario. |
-| TD-SYS-014 | Provider nesting 10 niveis | MEDIUM | MEDIUM | N/A (arch) | Performance | Nao | Impacto UX indireto via overhead de reconciliacao. |
-| TD-SYS-020 | Hardcoded avatar URLs | LOW | LOW | 2 | Visual | Nao | `pravatar.cc` como fallback. Risco: servico externo indisponivel = avatares quebrados. |
-
----
-
-## Debitos Removidos
-
-Nenhum debito do DRAFT foi removido. Todos os 19 debitos de Frontend/UX foram confirmados como problemas reais apos verificacao no codigo-fonte.
+| UX-001 | Duplicacao de Button component | CRITICAL | CRITICAL | 3-4 | Visual + Funcional | Sim | **Confirmado.** A situacao e mais extrema do que o DRAFT sugere: 130 arquivos importam `@/app/components/ui/Button` (a copia) e apenas 2 arquivos importam `@/components/ui/button` (o original shadcn). Na pratica, a copia e o Button real do sistema e o original e dead code. Diferenca unica: variants `unstyled` e size `unstyled`. |
+| UX-002 | CRMContext monolito (34KB) | CRITICAL | CRITICAL | Ver SYS-001 | Performance | Nao | **Confirmado.** 930 linhas, ~180 propriedades expostas. Impacto UX direto: qualquer interacao que muda estado (mover deal, editar contato, fechar modal) causa re-render em cascata visivel como lentidao. Referencia correta ao SYS-001. |
+| UX-003 | 4 componentes gigantes | CRITICAL | CRITICAL | 40-60 | Funcional + Bundle | Sim | **Confirmado com tamanhos exatos:** FocusContextPanel 1886 linhas, DealDetailModal 1694 linhas, BoardCreationWizard 1628 linhas, CockpitDataPanel 964 linhas. Mantenho CRITICAL porque alem de manutenibilidade, impacta bundle size (322KB de TSX nos 4 arquivos), tempo de compilacao e possibilidade de code splitting. |
+| UX-004 | Skeletons quase inexistentes | HIGH | HIGH | 12-20 | Percebido | Sim | **Confirmado.** Existem exatamente 4 loading.tsx: `boards/`, `contacts/`, `inbox/`, `deals/[dealId]/cockpit/`. Das 17 paginas protegidas com page.tsx, 13 nao tem loading.tsx e usam PageLoader (spinner generico). Ajusto horas para 12-20h (o DRAFT estima 8-16h, subestimado considerando a necessidade de skeletons content-aware). |
+| UX-005 | Nenhum sistema i18n | HIGH | **MEDIUM** | 40-80 | Funcional | Nao | **Confirmado.** Rebaixo para MEDIUM: o ZmobCRM e um produto focado no mercado imobiliario brasileiro. Nao ha demanda de internacionalizacao imediata. E um bloqueio para expansao internacional, mas nao afeta usuarios atuais. Manter documentado e reavaliar quando houver demanda de mercado. |
+| UX-006 | Controller hooks gigantes | HIGH | HIGH | 24-32 | Performance | Nao | **Confirmado.** useBoardsController 1081 linhas, useContactsController 883 linhas, useInboxController 872 linhas. Impacto UX: hooks monoliticos causam re-renders desnecessarios que o usuario percebe como lentidao ao interagir com boards e contatos. |
+| UX-007 | Mistura de import paths | HIGH | **MEDIUM** | 2-4 | Nenhum (DX) | Nao | **Confirmado.** Porem, impacto zero para o usuario final. Problema exclusivamente de Developer Experience (DX). Imports nao afetam UX visivel. Rebaixo para MEDIUM. |
+| UX-008 | Scrollbar hex hardcoded | HIGH | **MEDIUM** | 2-3 | Visual (periferico) | Nao | **Confirmado:** `#cbd5e1`, `#94a3b8`, `#334155`, `#475569` em globals.css. Rebaixo para MEDIUM: scrollbars sao elementos perifericos. Dark mode ja tem valores separados. O impacto visual e real mas limitado a um detalhe de acabamento. |
+| UX-009 | Chart colors hex hardcoded | HIGH | HIGH | 3-4 | Visual (central) | Nao | **Confirmado:** `#64748b`, `#0f172a`, `#f8fafc`, `rgba(...)` em globals.css. Mantenho HIGH: diferente do scrollbar, charts sao elementos centrais no dashboard e relatorios. Inconsistencia visual e perceptivel. Cores nao se adaptam a temas alternativos. |
+| UX-010 | Font serif nao utilizada | MEDIUM | **LOW** | 0.5 | Nenhum | Nao | **Confirmado:** `--font-serif: 'Cinzel'` declarada em @theme. Impacto zero para o usuario se nao estiver sendo carregada via Google Fonts. Verificar se Cinzel e importada; se nao, o impacto e apenas poluicao de namespace CSS. Rebaixo para LOW. |
+| UX-011 | Cores Tailwind pre-v4 misturadas | MEDIUM | **HIGH** | 12-16 | Visual | Sim | **Confirmado com dados concretos.** Encontradas 94 ocorrencias em 18 arquivos so na pasta `components/`, e pelo menos 139 ocorrencias nos primeiros 10 arquivos da pasta `features/`. Escala total estimada: 2000+ ocorrencias de `text-slate-*`, `bg-slate-*`, `text-gray-*`, `bg-gray-*` no codebase. Upgrade para HIGH pela abrangencia massiva. O ConfirmModal sozinho tem 4 ocorrencias (`bg-slate-900/60`, `text-slate-*`). PageLoader usa `text-gray-500 dark:text-gray-400`. |
+| UX-012 | PageLoader cores hardcoded | MEDIUM | **LOW** | 0.5 | Visual (trivial) | Nao | **Confirmado:** `text-gray-500 dark:text-gray-400` e `border-primary-200`, `border-t-primary-500`. Correcao trivial em 43 linhas. Rebaixo para LOW -- e um caso particular do UX-011 que sera resolvido automaticamente ao migrar cores Tailwind diretas. |
+| UX-013 | ConfirmModal nao usa modalStyles | MEDIUM | MEDIUM | 2-3 | Visual | Nao | **Confirmado:** zero referencias a `modalStyles` no ConfirmModal. Usa `bg-slate-900/60` como overlay vs `bg-background/60` do modalStyles. Nota adicional: `modalStyles.ts` e usado em apenas 3 arquivos no total (Modal.tsx, CreateBoardModal.tsx, BoardCreationWizard.tsx), indicando que o padrao centralizado de modal styles tem baixa adocao. |
+| UX-014 | Optimistic updates parciais | MEDIUM | MEDIUM | 8-16 | Percebido | Nao | **Confirmado.** Deal moves e prospecting queue tem optimistic updates. Contacts, activities, settings fazem full refetch. Impacto: operacoes CRUD de contatos parecem mais lentas que as de deals. |
+| UX-015 | ErrorBoundary inline styles | MEDIUM | **LOW** | 0.5 | Visual (trivial) | Nao | **Confirmado.** Inconsistencia de padrao, porem funcional. Impacto visual zero para o usuario -- o ErrorBoundary so e visto quando algo quebra. Rebaixo para LOW. |
+| UX-016 | GlobalError sem design system | MEDIUM | MEDIUM | 2-4 | Visual | Sim | **Confirmado:** HTML puro `<h2>Something went wrong!</h2>` com `<button>` nativo sem estilo. Nota importante do codigo-fonte: o comentario explica que global-error renderiza FORA do app layout, portanto nao tem acesso ao design system. Solucao requer inline CSS. |
+| UX-017 | Duplicacao scrollbar styling | MEDIUM | MEDIUM | 1 | Nenhum (DX) | Nao | **Confirmado:** `@utility scrollbar-custom` e `*::-webkit-scrollbar` coexistem com mesmos valores hex. Resolver junto com UX-008. |
+| UX-018 | ActivityFormModal duplicado V1/V2 | MEDIUM | **LOW** | 1-2 | Nenhum | Nao | **Confirmado.** V1 (ActivityFormModal.tsx) e V2 (ActivityFormModalV2.tsx) coexistem. Porem, conforme `docs/reviews/v2-components-cleanup.md`, os V2 sao codigo morto -- foram incluidos acidentalmente em commit `59359fb` e NAO sao importados por nenhuma rota ativa. V1 e o componente real. Rebaixo para LOW: basta deletar V2. |
+| UX-019 | CreateDealModal duplicado V1/V2 | MEDIUM | **LOW** | 1-2 | Nenhum | Nao | **Confirmado.** Mesma situacao do UX-018. V2 e dead code nao importado. V1 e usado pelo DealDetailModal. Rebaixo para LOW: basta deletar V2. |
+| UX-020 | DealCockpit duplicado | MEDIUM | **LOW** | 1-2 | Nenhum | Nao | **Confirmado:** `cockpit/` e `cockpit-v2/` coexistem como rotas separadas. Conforme `docs/reviews/v2-components-cleanup.md`, cockpit-v2 e isolado e inacessivel (nenhuma rota raiz navega para `/cockpit-v2`). Rebaixo para LOW: basta deletar a rota V2. |
+| UX-021 | SubmitButton buttonVariants conflitantes | LOW | LOW | 1 | Nenhum (DX) | Nao | **Confirmado:** `FormField.tsx` exporta `SubmitButton` com `buttonVariants` proprios (objeto JS puro, nao CVA). Naming conflita com CVA `buttonVariants` de `button.tsx`. Resolver junto com UX-001 (unificacao de Button). |
+| UX-022 | Prefetch incompleto | LOW | LOW | 4-8 | Percebido (marginal) | Nao | **Confirmado.** `prefetchRouteData()` implementa apenas dashboard e contacts. Otimizacao incremental, impacto percebido marginal. |
+| UX-023 | Ambient glow hardcoded | LOW | LOW | 1 | Visual (decorativo) | Nao | **Confirmado.** Efeito decorativo no main content com cores hardcoded. Impacto minimo. |
+| UX-024 | Sem testes E2E/visual | LOW | **MEDIUM** | Ver SYS-021 | Funcional (indireto) | Nao | Upgrade para MEDIUM. A ausencia de testes visuais e especialmente critica durante as migracoes planejadas (UX-011 com 2000+ ocorrencias, UX-003 decomposicao de gigantes). Sem testes visuais, regressoes UX passarao despercebidas. |
+| UX-025 | AIAssistant.tsx deprecado | LOW | LOW | 0.5 | Nenhum | Nao | **Confirmado:** importacao comentada no Layout, substituido por UIChat. Dead code. |
 
 ---
 
 ## Debitos Adicionados
 
+Debitos identificados na verificacao do codebase que nao constam no DRAFT v2:
+
 | ID | Debito | Severidade | Horas | Impacto UX | Design Review? | Evidencia |
 |----|--------|-----------|-------|-----------|---------------|-----------|
-| TD-UX-020 | **Overlay background inconsistente em modais.** Encontrados 6 padroes diferentes de overlay: `bg-slate-900/60`, `bg-black/50`, `bg-black/60`, `bg-black/80`, `bg-background/60`, `bg-background/70`. Distribuidos em 27 arquivos (31 ocorrencias). Apenas `modalStyles.ts` define o padrao correto (`bg-background/60`), mas a maioria dos modais nao o usa. | HIGH | 4-6 | Visual | Sim | 31 ocorrencias em 27 arquivos. O padrao correto `MODAL_OVERLAY_CLASS` de `modalStyles.ts` usa `bg-background/60`, mas apenas o `Modal.tsx` generico o consome. |
-| TD-UX-021 | **z-index arbitrario sem escala.** Encontrados `z-[9999]` (dominante, 24 arquivos), `z-[10000]` (TemplatePickerModal), `z-[100]` (BoardStrategyHeader), `z-[60]` e `z-[62]` (installer). Nao existe escala de z-index definida em tokens. Risco de sobreposicao incorreta entre modais empilhados. | MEDIUM | 3-4 | Funcional | Nao | 24 ocorrencias de z-[9999], sem escala padrao. TemplatePickerModal usa z-[10000] para "ganhar" de outros z-[9999]. |
-| TD-UX-022 | **Ausencia de PageLayout component reutilizavel.** Nao existe um componente `<PageLayout>` que padronize header, spacing, max-width e scroll behavior das paginas. Cada pagina implementa seu proprio wrapper com padroes variados. | MEDIUM | 8-12 | Visual | Sim | Verificado: cada feature page tem seu proprio layout wrapper. Nao ha componente compartilhado. |
-| TD-UX-023 | **Feedback visual inconsistente em acoes destrutivas.** Modais de confirmacao para exclusao usam padroes visuais diferentes: alguns com `variant="destructive"`, outros com classes inline vermelhas, outros sem destaque visual. | MEDIUM | 3-4 | Funcional | Sim | ConfirmModal tem variant danger, mas nem todos os fluxos destrutivos usam o ConfirmModal. |
-| TD-UX-024 | **Ausencia de empty states padronizados por feature.** O componente `EmptyState` existe mas muitas features usam textos inline (`<p>Nenhum resultado</p>`) em vez do componente. | LOW | 4-6 | Visual | Sim | EmptyState.tsx existe com 3 sizes, mas adocao e parcial. |
+| **UX-026** | **Overlay background inconsistente em modais.** `modalStyles.ts` define o padrao `bg-background/60`, porem: (a) apenas 3 arquivos importam `modalStyles`; (b) ConfirmModal usa `bg-slate-900/60`; (c) outros modais em features usam padroes variados. Nao ha adocao consistente dos tokens de modal centralizados. | HIGH | 4-6 | Visual | Sim | `modalStyles.ts` usado em apenas 3 de 20+ modais do sistema. |
+| **UX-027** | **z-index sem escala definida.** Encontrados `z-[9999]` como valor dominante em modais, mas `z-[10000]` em TemplatePickerModal, `z-[100]` em BoardStrategyHeader, `z-[60]` e `z-[62]` no installer. Nao existe escala de z-index em tokens. | MEDIUM | 3-4 | Funcional | Nao | Risco de sobreposicao incorreta entre modais empilhados. |
+| **UX-028** | **Ausencia de error.tsx por route segment.** Nenhuma pagina protegida tem `error.tsx` dedicado. Erro em qualquer feature derruba toda a pagina com o ErrorBoundary generico ou o GlobalError sem estilo. | HIGH | 8-12 | Funcional + Visual | Sim | Verificado: `find app/(protected) -name "error.tsx"` retorna zero resultados. |
+| **UX-029** | **Ausencia de not-found.tsx customizado.** Nao ha `not-found.tsx` nas rotas protegidas. Usuario ve pagina 404 generica do Next.js sem branding do ZmobCRM. | HIGH | 3-4 | Visual | Sim | Verificado: nao existe `not-found.tsx` no app. |
+| **UX-030** | **PageLoader sem acessibilidade.** O componente `PageLoader.tsx` (43 linhas) nao tem `role="status"`, `aria-live`, nem `aria-label`. Screen readers nao anunciam que a pagina esta carregando. Usado em 18 paginas. | MEDIUM | 1 | Acessibilidade | Nao | Impacto direto em usuarios de tecnologias assistivas. |
+| **UX-031** | **Empty states inconsistentes.** O componente `EmptyState.tsx` existe com 3 tamanhos e `role="status"`, porem muitas features usam `<p>` inline em vez do componente padrao. | LOW | 4-6 | Visual | Sim | Adocao parcial do componente. |
+| **UX-032** | **Feedback visual inconsistente em acoes destrutivas.** ConfirmModal tem `variant="danger"`, mas nem todos os fluxos destrutivos do sistema usam o ConfirmModal. Alguns modais de features implementam sua propria logica de confirmacao inline. | MEDIUM | 3-4 | Funcional | Sim | Inconsistencia na experiencia de acoes criticas. |
+
+---
+
+## Debitos Removidos/Rebaixados
+
+| ID | Acao | Justificativa |
+|----|------|---------------|
+| UX-005 | HIGH -> MEDIUM | Produto focado no mercado brasileiro imobiliario. Sem demanda de internacionalizacao imediata. |
+| UX-007 | HIGH -> MEDIUM | Import paths sao problema de DX, impacto zero para usuario final. |
+| UX-008 | HIGH -> MEDIUM | Scrollbars sao elementos perifericos. Impacto visual real mas limitado. |
+| UX-010 | MEDIUM -> LOW | Font CSS nao utilizada. Impacto zero se nao carregada. |
+| UX-011 | MEDIUM -> HIGH | Escala massiva (2000+ ocorrencias) subestimada no DRAFT. Problema estrutural do design system. |
+| UX-012 | MEDIUM -> LOW | Caso particular do UX-011, resolvido junto. |
+| UX-015 | MEDIUM -> LOW | ErrorBoundary so e visto em situacao de erro. Impacto visual irrelevante. |
+| UX-018 | MEDIUM -> LOW | V2 e dead code confirmado. Basta deletar. |
+| UX-019 | MEDIUM -> LOW | V2 e dead code confirmado. Basta deletar. |
+| UX-020 | MEDIUM -> LOW | cockpit-v2 e inacessivel. Basta deletar. |
+| UX-024 | LOW -> MEDIUM | Critico para segurancar das migracoes de design system planejadas. |
+
+**Nenhum debito foi removido.** Todos os 25 foram confirmados como problemas reais.
 
 ---
 
 ## Respostas ao Architect
 
-### Pergunta 1: DEBT-004 - Decomposicao do FocusContextPanel (109KB)
+### Pergunta 1: UX-003 -- Estrategia de decomposicao do FocusContextPanel (110KB)
 
-O FocusContextPanel tem uma divisao funcional clara baseada em tabs, confirmada pela analise do codigo:
+**Recomendacao: Dividir por secoes funcionais (tabs + header + actions).**
 
-**Tabs identificados (4):**
-1. `notas` - Sistema de notas do deal (linhas ~1503-1570)
-2. `chat` - Chat IA integrado (linhas ~1772+, usa `React.lazy(() => import('@/components/AIAssistant'))`)
-3. `scripts` - Scripts de vendas (linhas ~1570-1700)
-4. `files` - Arquivos do deal (linhas ~1700-1772)
+O FocusContextPanel tem divisao funcional clara baseada em tabs, confirmada pela analise do codigo-fonte na Phase 3:
+
+**Tabs identificados (4):** `notas`, `chat`, `scripts`, `files`
 
 **Decomposicao recomendada (7 sub-componentes):**
 
 ```
-FocusContextPanel/
-  index.tsx               (~200 linhas) - Shell com tabs, context do deal
+features/inbox/components/FocusContextPanel/
+  index.tsx               (~200 linhas) - Shell com tabs e contexto do deal
   FocusDealHeader.tsx     (~150 linhas) - Header com info do deal + contato
-  FocusDealHealth.tsx     (~200 linhas) - Health score, AI analysis
+  FocusDealHealth.tsx     (~200 linhas) - Health score, analise IA
   FocusNotesTab.tsx       (~250 linhas) - Lista e editor de notas
-  FocusChatTab.tsx        (~100 linhas) - Wrapper do AIAssistant (ja e lazy)
+  FocusChatTab.tsx        (~100 linhas) - Wrapper do chat IA (ja e lazy)
   FocusScriptsTab.tsx     (~300 linhas) - Scripts de vendas + editor
   FocusFilesTab.tsx       (~200 linhas) - Upload e lista de arquivos
-  FocusActionsBar.tsx     (~150 linhas) - Acoes (mover stage, marcar ganho/perdido)
+  FocusActionsBar.tsx     (~150 linhas) - Acoes (mover stage, ganho/perdido)
 ```
 
-A logica NAO esta entrelaçada -- cada tab renderiza condicionalmente via `activeTab === 'tab'`. Os hooks auxiliares (`useAIDealAnalysis`, `useDealNotes`, `useDealFiles`, `useQuickScripts`) ja estao em arquivos separados, o que facilita a decomposicao.
+A logica NAO esta entrelacada -- cada tab renderiza condicionalmente via `activeTab === 'tab'`. Os hooks auxiliares ja estao em arquivos separados (useAIDealAnalysis, useDealNotes, etc.), facilitando a decomposicao.
 
-**Dependencia critica:** O componente importa `Button` de `@/app/components/ui/Button` (a copia duplicada). Resolver TD-UX-001 primeiro.
+**Dependencia critica:** O componente importa `Button` de `@/app/components/ui/Button`. Resolver UX-001 primeiro.
 
-### Pergunta 2: DEBT-001 - Unificacao do Button (variant unstyled)
+**Para DealDetailModal (1694 linhas):** Dividir por tabs (dados, timeline, atividades, notas). Padrao identico.
 
-**Recomendacao: Adicionar `unstyled` ao `components/ui/button.tsx` principal.**
+**Para BoardCreationWizard (1628 linhas):** Dividir por steps do wizard. Cada step vira componente separado.
 
-Justificativa:
-- A variant `unstyled` com valor `""` (string vazia) e um padrao valido e util para composicao (ex: botoes que precisam de estilo completamente customizado pelo consumer).
-- O Radix `Slot` (`asChild`) ja existe no Button e resolve parte do caso de uso, mas `unstyled` e mais ergonomico para casos onde o consumer quer manter a semantica de `<button>` mas sem estilo visual.
-- NAO e um anti-pattern -- e um padrao reconhecido em design systems (ex: "reset variant" no Chakra UI, "ghost" sem hover no MUI).
+**Para CockpitDataPanel (964 linhas):** Dividir por secoes visuais (info basica, pipeline, metricas, timeline).
 
-**Plano de execucao:**
-1. Adicionar `unstyled: ""` em variant e size no `components/ui/button.tsx`
-2. Buscar e substituir todos os imports de `@/app/components/ui/Button` para `@/components/ui/button` (111 arquivos)
-3. Deletar `app/components/ui/Button.tsx`
-4. Atualizar o `SubmitButton` em `FormField.tsx` para importar de `@/components/ui/button`
+### Pergunta 2: UX-005 -- i18n e expansao internacional
 
-Estimativa: 3-4 horas (inclui grep/replace, verificacao visual, testes).
+**[AUTO-DECISION] Ha planos de expansao? -> NAO no horizonte imediato (reason: produto focado em CRM imobiliario brasileiro, nome "Zmob" e abreviacao de "imovel", UI toda em PT-BR, nao ha evidencia de planejamento multi-idioma no PRD)**
 
-### Pergunta 3: DEBT-005 - Biblioteca i18n para Next.js 15 App Router
+**Recomendacao:** Mover para prioridade baixa (P5). Custo de 40-80h nao se justifica sem demanda. Se futuramente necessario, usar `next-intl` (suporte nativo a Server Components do App Router, diferente do react-i18next que e client-first).
 
-**Recomendacao: `next-intl`**
+**Acao concreta agora:** Criar uma ADR documentando a decisao e os criterios para revisao (ex: primeiro cliente internacional, expansao para mercado hispanico).
 
-Justificativa:
-- **next-intl** e a biblioteca mais adequada para Next.js App Router porque:
-  - Suporte nativo a Server Components (diferente de react-i18next que e client-first)
-  - Middleware para roteamento de locale integrado com App Router
-  - Tipagem forte com TypeScript
-  - API simples: `useTranslations('namespace')` em client, `getTranslations('namespace')` em server
-  - Comunidade ativa, mantida especificamente para Next.js
-- **react-i18next** seria a segunda opcao, mas requer `'use client'` wrapper para hooks, o que conflita com a meta futura de SSR (TD-SYS-005).
-- **Momento de implementar:** NAO agora. O custo (40-60h) e desproporcional ao beneficio atual. Criar uma ADR documentando a decisao e implementar quando houver demanda real de mercado internacional.
+### Pergunta 3: UX-018/019/020 -- Qual versao manter (V1 ou V2)?
 
-### Pergunta 4: DEBT-002 - Skeletons por feature vs generico
+**Resposta definitiva: Manter V1, deletar V2 em todos os tres casos.**
 
-**Recomendacao: Hibrido -- sistema generico com composicao por feature.**
+Justificativa baseada em evidencia do codebase:
+
+1. **ActivityFormModal:** V1 e importado por `ActivitiesPage.tsx` e `DealDetailModal.tsx`. V2 nao e importado por nenhum arquivo.
+2. **CreateDealModal:** V1 e importado por `DealDetailModal.tsx`. V2 nao e importado por nenhum arquivo.
+3. **DealCockpit:** `cockpit/` e a rota ativa. `cockpit-v2/` nao e acessivel por nenhum link de navegacao.
+
+O documento `docs/reviews/v2-components-cleanup.md` (de 2026-03-05) confirma: os V2 foram incluidos acidentalmente via `git add .` no commit `59359fb` e sao "codigo morto presente no repo, mas inacessivel para os usuarios".
+
+**Acao:** Deletar os 3 arquivos V2 + a rota cockpit-v2. Quick win de 30 minutos.
+
+### Pergunta 4: UX-008/009 -- Hex mantido fora do OKLCH intencionalmente?
+
+**Resposta: NAO foi intencional. Foi migracao parcial.**
+
+Evidencia:
+- As cores OKLCH foram introduzidas em camada 3 (custom semantic tokens) com cobertura completa para backgrounds, status colors, text hierarchy e glass effects.
+- Scrollbar e chart tokens ficaram em hex porque foram adicionados como "tokens secundarios" sem receber o tratamento OKLCH.
+- O `--premium-accent: #7DE8EB` e claramente um token que deveria ser OKLCH (e um ciano, facilmente representavel como `oklch(85% 0.12 190)`).
+- Charts usam hex porque `recharts` aceita qualquer formato de cor, entao nao ha restricao tecnica.
+
+**Recomendacao:** Migrar todos para OKLCH. Nao ha razao tecnica para manter hex. Mapeamento sugerido:
+
+| Token Atual | Valor Hex | Valor OKLCH Equivalente |
+|------------|-----------|------------------------|
+| `--chart-text` | `#64748b` | `oklch(55% 0.02 260)` |
+| `--chart-grid` | `rgba(148,163,184,0.1)` | `oklch(72% 0.02 250 / 0.1)` |
+| `--chart-tooltip-bg` | `#0f172a` | `oklch(15% 0.03 260)` |
+| `--chart-tooltip-text` | `#f8fafc` | `oklch(98% 0.003 260)` |
+| `--premium-accent` | `#7DE8EB` | `oklch(85% 0.12 190)` |
+| Scrollbar thumb light | `#cbd5e1` | `oklch(85% 0.015 260)` |
+| Scrollbar thumb dark | `#475569` | `oklch(42% 0.02 260)` |
+
+### Pergunta 5: UX-004 -- Padrao de skeletons recomendado
+
+**Recomendacao: Hibrido -- building blocks reutilizaveis + composicao por rota.**
 
 Abordagem concreta:
 
+**Atoms de skeleton (componentes base):**
 ```
-components/ui/Skeleton.tsx          - Atom: barra animada (ja existe no shadcn)
-components/ui/SkeletonCard.tsx      - Molecule: card com linhas de skeleton
-components/ui/SkeletonTable.tsx     - Molecule: tabela com N linhas skeleton
-components/ui/SkeletonKanban.tsx    - Molecule: colunas com cards skeleton
-
-app/(protected)/boards/loading.tsx      -> <SkeletonKanban columns={5} cardsPerColumn={4} />
-app/(protected)/contacts/loading.tsx    -> <SkeletonTable rows={10} columns={5} />
-app/(protected)/dashboard/loading.tsx   -> <SkeletonDashboard />  (grid de StatCard skeletons)
-app/(protected)/inbox/loading.tsx       -> <SkeletonInbox />  (lista + detail panel)
+components/ui/skeleton.tsx      - Ja existe (shadcn). Barra animada com `animate-pulse`.
 ```
 
-**Razao:** Cada pagina tem layout distinto, entao skeletons puramente genericos nao imitam corretamente o conteudo final (violando o principio de skeleton: "parecer com o que vai aparecer"). Porem, os building blocks (linhas, cards, tabelas) devem ser reutilizaveis.
+**Molecules de skeleton (composicoes reutilizaveis):**
+```
+components/ui/skeletons/
+  SkeletonCard.tsx              - Card com linhas de skeleton
+  SkeletonTable.tsx             - Tabela com N linhas e M colunas
+  SkeletonKanban.tsx            - Colunas com cards skeleton
+  SkeletonStatGrid.tsx          - Grid de stat cards
+  SkeletonSplitView.tsx         - Layout lista + detalhe (inbox)
+```
+
+**Loading.tsx por rota (composicao final):**
+```
+app/(protected)/dashboard/loading.tsx   -> <SkeletonStatGrid /> + <SkeletonCard />
+app/(protected)/activities/loading.tsx  -> <SkeletonTable rows={10} columns={5} />
+app/(protected)/settings/loading.tsx    -> <SkeletonCard /> empilhados
+app/(protected)/reports/loading.tsx     -> <SkeletonStatGrid /> + <SkeletonCard />
+app/(protected)/profile/loading.tsx     -> <SkeletonCard />
+app/(protected)/prospecting/loading.tsx -> <SkeletonStatGrid /> + <SkeletonTable />
+...
+```
 
 **Prioridade de implementacao:**
-1. Dashboard (primeira tela que o usuario ve)
-2. Boards/Kanban (tela mais usada)
-3. Contacts (tabela com muitos dados)
-4. Inbox (layout split-view)
-5. Demais paginas (activities, reports, settings, etc.)
+1. Dashboard (primeira tela apos login)
+2. Activities (tela frequente, tabela grande)
+3. Prospecting (metricas + tabela)
+4. Settings (formularios)
+5. Demais paginas
 
-### Pergunta 5: DEBT-011 - Quantidade de componentes com cores Tailwind diretas
+**Principio:** Cada skeleton deve "parecer com o que vai aparecer". Skeletons puramente genericos violam esse principio.
 
-**Dado concreto verificado:**
+### Pergunta 6: UX-014 -- Operacoes mais beneficiadas por optimistic updates
 
-- **2.475 ocorrencias** de `text-slate-*`, `bg-slate-*`, `text-gray-*`, `bg-gray-*`
-- Distribuidas em **137 arquivos .tsx**
-- Componentes mais impactados (por ocorrencia):
-  - `DealCockpitRealClient.tsx`: 137 ocorrencias
-  - `DealCockpitMockClient.tsx`: 118 ocorrencias
-  - `DealDetailModal.tsx`: 110 ocorrencias
-  - `FocusContextPanel.tsx`: 99 ocorrencias
-  - `BoardCreationWizard.tsx`: 86 ocorrencias
-  - `CockpitDataPanel.tsx`: 86 ocorrencias
-  - `BoardStrategyHeader.tsx`: 39 ocorrencias (inclui `bg-slate-900` hardcoded em tooltips)
+**Recomendacao: Priorizar create e update em contatos e atividades.**
 
-**Esforco estimado para migracao completa:** 12-16 horas (bulk search-and-replace com verificacao visual por pagina).
+| Operacao | Beneficio Optimistic | Prioridade |
+|----------|---------------------|-----------|
+| Criar contato | Alto (formulario -> lista, feedback imediato) | 1 |
+| Editar contato | Alto (inline edit, feedback imediato) | 1 |
+| Criar atividade | Alto (calendario/lista, feedback imediato) | 2 |
+| Completar atividade (checkbox) | Muito Alto (acao frequente, deve ser instantanea) | 1 |
+| Deletar contato | Medio (acao rara, pode esperar refetch) | 3 |
+| Deletar atividade | Medio (acao rara) | 3 |
+| Atualizar settings | Baixo (acao infrequente, refetch aceitavel) | 4 |
 
-**Mapeamento de migracao recomendado:**
+**Justificativa:** "Completar atividade" e a acao mais frequente do corretor e DEVE parecer instantanea. Criar/editar contato sao acoes frequentes no fluxo de prospeccao.
 
-| Tailwind Direto | Token Semantico |
-|----------------|-----------------|
-| `text-gray-500`, `text-slate-500` | `text-muted-foreground` |
-| `text-gray-400`, `text-slate-400` | `text-text-subtle` |
-| `text-gray-600`, `text-slate-600` | `text-text-secondary` |
-| `text-gray-900`, `text-slate-900` | `text-foreground` |
-| `bg-gray-50`, `bg-slate-50` | `bg-muted` |
-| `bg-gray-100`, `bg-slate-100` | `bg-muted` |
-| `bg-gray-200`, `bg-slate-200` | `bg-accent` |
-| `border-gray-200`, `border-slate-200` | `border-border` |
-| `bg-slate-900` (tooltips/overlays) | `bg-popover` ou `bg-card` com `dark:` |
+### Pergunta 7: UX-013 -- ConfirmModal e modalStyles
 
-### Pergunta 6: DEBT-006 - Estrategia de decomposicao dos controller hooks
+**Recomendacao: Migrar ConfirmModal para usar `modalStyles.ts` E expandir os tokens para cobrir alertdialogs.**
 
-**Recomendacao: Separar por responsabilidade (queries, mutations, UI logic) E por sub-feature quando natural.**
+Acao concreta em 2 passos:
 
-Abordagem concreta para `useBoardsController.ts` (37KB) como modelo:
+1. **Expandir `modalStyles.ts`:** Adicionar tokens para alertdialog:
+   ```typescript
+   export const ALERT_ICON_CLASS = "w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+   export const ALERT_ICON_DANGER = "bg-destructive/10 text-destructive"
+   export const ALERT_ICON_PRIMARY = "bg-primary/10 text-primary"
+   ```
 
-```
-features/boards/hooks/
-  useBoardsController.ts          -> DEPRECATED (re-export wrapper)
-  queries/
-    useBoardsQuery.ts             - Queries TanStack (ja existe parcialmente)
-    useBoardStagesQuery.ts        - Stages de um board
-  mutations/
-    useCreateBoard.ts             - Criar board
-    useDeleteBoard.ts             - Deletar board
-    useMoveDeal.ts                - Mover deal (ja existe)
-    useUpdateDealInBoard.ts       - Atualizar deal
-  ui/
-    useBoardDragDrop.ts           - Logica de DnD (dndkit)
-    useBoardFilters.ts            - Filtros e busca
-    useBoardSelection.ts          - Selecao de board ativo
-  useBoardOrchestrator.ts         - Hook "leve" que compoe os menores
-```
+2. **Migrar ConfirmModal:** Substituir classes hardcoded (`bg-slate-900/60`, `bg-white dark:bg-dark-card`, etc.) pelos tokens de `modalStyles.ts`.
 
-**Razao:** A separacao por responsabilidade (queries/mutations/UI) alinha-se com a arquitetura existente de TanStack Query hooks em `lib/query/hooks/`. A separacao adicional por sub-feature dentro de cada camada evita hooks ainda grandes demais. O `useBoardOrchestrator` e um hook de conveniencia que importa e compoe os menores, mantendo a API do componente simples.
-
-**Principio:** Cada hook deve ter no maximo ~200 linhas. Se passa disso, precisa ser subdividido.
+**Razao:** O ConfirmModal e usado em fluxos criticos (exclusao de deals, contatos, boards). A consistencia visual com os demais modais e importante para a confianca do usuario.
 
 ---
 
 ## Recomendacoes de Design
 
-### Abordagem para Design System
+### 1. Estrategia de Design System
 
-**Recomendacao: Extender shadcn/ui existente + formalizar tokens OKLCH + Storybook minimo.**
-
-O design system atual ja tem uma base solida (shadcn/ui, Radix, CVA, OKLCH tokens). A estrategia NAO deve ser reconstruir -- deve ser consolidar e formalizar.
+**Status:** O design system tem base solida (shadcn/ui, Radix, CVA, OKLCH tokens). A estrategia deve ser **consolidar e formalizar**, nao reconstruir.
 
 **Passos concretos:**
 
-1. **Consolidar tokens (Cluster 3 do DRAFT):** Migrar TODAS as cores hardcoded (hex em globals.css, Tailwind diretas em componentes) para tokens semanticos OKLCH. Resultado: uma unica fonte de verdade.
+1. **Unificar Button (UX-001):** Adicionar `unstyled` ao `components/ui/button.tsx` e migrar 130 imports. Quick win que desbloqueia tudo.
 
-2. **Adicionar Storybook minimo:** Configurar Storybook apenas para componentes `components/ui/` (23 arquivos). NAO para features inteiras. Objetivo: documentacao visual + playground para QA visual. Estimativa: 8-12h para setup + stories dos componentes existentes.
+2. **Padronizar modal tokens (UX-026):** Migrar todos os modais do codebase para usar `modalStyles.ts`. Hoje, apenas 3 de 20+ modais usam os tokens centralizados.
 
-3. **Formalizar component API:** Garantir que todos os componentes em `components/ui/` usem o padrao CVA + forwardRef + VariantProps. Componentes que nao seguem (FormField, EmptyState, Modal) devem ser atualizados.
+3. **Migrar cores Tailwind diretas (UX-011):** Estabelecer mapeamento `text-slate-*/bg-slate-*` -> tokens semanticos e executar migracao progressiva (comecando pelos componentes em `components/` que sao mais reutilizados).
 
-4. **NAO criar um pacote separado de design system.** O custo de manter um monorepo com pacote externo nao se justifica para um produto unico. Manter em `components/ui/` e suficiente.
+4. **Criar escala de z-index (UX-027):** Definir tokens em globals.css:
+   ```css
+   :root {
+     --z-dropdown: 50;
+     --z-sticky: 100;
+     --z-overlay: 1000;
+     --z-modal: 9000;
+     --z-toast: 9500;
+     --z-tooltip: 9900;
+   }
+   ```
 
-### Estrategia de Componentizacao
+5. **NAO criar pacote separado de design system.** Manter em `components/ui/` e suficiente para um produto unico.
 
-**Ordem de consolidacao recomendada:**
+### 2. Estrategia de Componentizacao
 
-1. **Button (TD-UX-001):** Merge imediato. 3-4h. Desbloqueio para todos os demais.
-2. **Modal overlay pattern (TD-UX-020):** Migrar todos os modais para usar `MODAL_OVERLAY_CLASS` de `modalStyles.ts`. 4-6h.
-3. **ConfirmModal (TD-UX-012):** Migrar para usar `modalStyles.ts`. 2-3h.
-4. **FocusContextPanel (TD-UX-002):** Decompor em 7 sub-componentes. 12-16h.
-5. **DealDetailModal (TD-UX-002):** Decompor por tabs. 8-12h.
-6. **BoardCreationWizard (TD-UX-002):** Decompor por steps. 8-12h. Requer TD-CC-001 parcial.
+**Ordem de consolidacao (dependencias respeitadas):**
 
-### Padroes de Loading/Error/Empty States
+1. **Deletar dead code V2 (UX-018, 019, 020):** 30min. Zero risco.
+2. **Unificar Button (UX-001):** 3-4h. Desbloqueia decomposicao de gigantes.
+3. **Padronizar overlays (UX-026):** 4-6h. Consistencia visual em modais.
+4. **Criar error.tsx por segmento (UX-028):** 8-12h. Resiliencia de UX.
+5. **Criar not-found.tsx (UX-029):** 3-4h. Branding em 404.
+6. **Decompor FocusContextPanel (UX-003):** 12-16h. Maior impacto em manutenibilidade.
+7. **Decompor DealDetailModal (UX-003):** 8-12h.
+8. **Implementar skeletons (UX-004):** 12-20h. Percepcao de velocidade.
 
-**Loading States -- Padrao Recomendado:**
+### 3. Padrao de Loading/Error/Empty States
 
+**Loading:** Skeleton content-aware por rota (ver Pergunta 5).
+
+**Error:** Componente `ErrorState` novo com design system, variantes por contexto, acoes de recuperacao. Cada route segment deve ter `error.tsx`.
+
+**Empty:** Adotar `EmptyState.tsx` existente em TODOS os pontos onde hoje ha `<p>` inline. O componente ja suporta 3 sizes, icones e `role="status"`.
+
+### 4. Acessibilidade (PageLoader)
+
+**Acao imediata (UX-030):** Adicionar ao PageLoader:
 ```tsx
-// app/(protected)/dashboard/loading.tsx
-import { SkeletonDashboard } from '@/components/ui/skeletons/SkeletonDashboard'
-export default function Loading() {
-  return <SkeletonDashboard />
-}
-
-// components/ui/skeletons/SkeletonDashboard.tsx
-export function SkeletonDashboard() {
-  return (
-    <div className="space-y-6 p-6">
-      {/* Grid de StatCards skeleton */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
-        ))}
-      </div>
-      {/* Charts skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="h-64 rounded-xl bg-muted animate-pulse" />
-        <div className="h-64 rounded-xl bg-muted animate-pulse" />
-      </div>
-    </div>
-  )
-}
+<div role="status" aria-live="polite" aria-label="Carregando pagina">
 ```
 
-**Error States -- Padrao Recomendado:**
-
-```tsx
-// app/(protected)/boards/error.tsx
-'use client'
-import { ErrorState } from '@/components/ui/ErrorState'
-export default function Error({ error, reset }: { error: Error; reset: () => void }) {
-  return <ErrorState error={error} onRetry={reset} context="boards" />
-}
-```
-
-O `ErrorState` deve ser um componente novo que:
-- Usa design system (tokens, tipografia)
-- Tem variantes por contexto (boards, contacts, etc.) com mensagens amigaveis
-- Oferece acoes: "Tentar novamente", "Voltar ao inicio"
-- Reporta para Sentry automaticamente
-
-**Empty States -- Padrao Recomendado:**
-
-Usar o `EmptyState` existente em TODOS os lugares onde hoje ha `<p>` inline. O componente ja suporta 3 sizes e icones customizados.
-
-### Mobile Strategy
-
-**Status atual: BOM.** A estrategia mobile ja implementada e solida:
-- 3 patterns de navegacao (BottomNav, Rail, Sidebar)
-- Safe areas para iOS
-- PWA support
-- Modal viewport caps com dvh
-- Touch targets adequados
-
-**Recomendacoes incrementais:**
-
-1. **Skeleton loading no mobile:** Mais critico que desktop porque conexoes sao mais lentas. Priorizar skeletons nas telas mobile-first (inbox, boards).
-
-2. **Bottom sheet para formularios curtos:** Usar `Sheet.tsx` (ja existe) em vez de modais fullscreen para formularios de 1-3 campos no mobile. Melhora a orientacao espacial do usuario.
-
-3. **Pull-to-refresh:** Considerar implementar pull-to-refresh nativo nas listas (contacts, inbox) para recarregar dados. Padrao esperado em apps mobile.
-
-4. **Offline indicators:** Com PWA + ServiceWorker ja implementados, adicionar feedback visual quando offline (banner ou badge no BottomNav).
+Custo: 10 minutos. Impacto: 18 paginas acessiveis para screen readers.
 
 ---
 
-## Priorizacao Final (Perspectiva UX)
+## Dependencias com Outras Areas
 
-### Prioridade 1 -- Impacto imediato no usuario (fazer AGORA)
+### Debitos SYS-* que afetam frontend
 
-| ID | Debito | Horas | Justificativa |
-|----|--------|-------|---------------|
-| TD-UX-001 | Button unificacao | 3-4 | Desbloqueia tudo. Risco de inconsistencia visual. |
-| TD-SYS-006 | error.tsx por segmento | 8-12 | Erro = UX quebrada. Usuario perde confianca. |
-| TD-SYS-007 | not-found.tsx | 3-4 | 404 generica = impressao de produto inacabado. |
-| TD-SYS-012 | loading.tsx faltando | 8-12 | Tela branca = usuario pensa que travou. |
+| SYS-* | Impacto Frontend | Depende de UX-*? |
+|-------|-----------------|-----------------|
+| SYS-001 (CRMContext monolito) | Performance de re-render em toda a app. E o mesmo debito que UX-002. | UX-002 e alias |
+| SYS-002 (BASE_INSTRUCTIONS hardcoded) | Indireto: se IA nao conhece tools, o chat IA no FocusContextPanel (tab chat) nao pode ajudar com prospeccao, scripts, etc. | Nao |
+| SYS-004 (Prospeccao invisivel para IA) | O chat IA no inbox/FocusContextPanel nao pode sugerir acoes de prospeccao. | Nao |
+| SYS-008 (exhaustive-deps off) | Bugs de hooks em features -- stale closures, re-renders infinitos. Afeta UX indiretamente via bugs. | Nao |
+| SYS-009 (Layout.tsx 505 linhas) | E o app shell. Decomposicao beneficiaria manutencao do layout responsivo. | Nao |
+| SYS-022 (Dark mode script inline) | Flash de tema incorreto possivel. ThemeContext pode conflitar. | Nao |
+| SYS-024 (tailwind.config.js residual) | Confusao sobre config Tailwind v4. Limpar junto com UX-011 (migracao de cores). | UX-011 |
 
-### Prioridade 2 -- Percepcao de qualidade (proximo sprint)
+### Debitos DB-* que afetam UX
 
-| ID | Debito | Horas | Justificativa |
-|----|--------|-------|---------------|
-| TD-UX-003 | Skeletons content-aware | 20-28 | Percepcao de velocidade dramaticamente melhor. |
-| TD-UX-020 | Overlay background inconsistente | 4-6 | Padronizacao visual de modais. |
-| TD-UX-008 | Chart colors hardcoded | 3-4 | Charts sao elemento central do dashboard. |
-| TD-CC-005 | N+1 kanban | 8-16 | Performance perceptivel na tela mais usada. |
+| DB-* | Impacto UX |
+|------|-----------|
+| DB-003 (deals.contact_id nullable) | Deals sem contato aparecem como "cards fantasma" no kanban sem nome de contato. UX confusa. |
+| DB-004 (RLS subqueries performance) | Lentidao perceptivel em tabelas grandes de contatos/deals. |
+| DB-015 (contacts.phone legado) | Possibilidade de telefone mostrado inconsistente entre lista de contatos e detalhe. |
+| DB-021 (N+1 useDealsQuery) | Lentidao ao carregar kanban com muitos deals (roundtrip extra para profiles). |
 
-### Prioridade 3 -- Manutencao e escala (backlog prioritizado)
+### UX-* que precisam de backend
 
-| ID | Debito | Horas | Justificativa |
-|----|--------|-------|---------------|
-| TD-CC-001 | CRMContext decomposicao | 24-40 | Desbloqueia TD-CC-002, TD-CC-004, TD-UX-002 parcial. |
-| TD-UX-010 | Cores Tailwind diretas | 12-16 | 2.475 ocorrencias. Incoerencia visual em temas. |
-| TD-UX-002 | Componentes gigantes | 40-60 | Manutenibilidade, bundle size. |
-| TD-UX-005 | Controller hooks gigantes | 24-32 | Re-renders desnecessarios. |
+| UX-* | Mudanca Backend Necessaria |
+|------|--------------------------|
+| UX-014 (Optimistic updates) | Nao (frontend only) |
+| UX-004 (Skeletons) | Nao (frontend only) |
+| UX-003 (Decomposicao gigantes) | Nao (frontend only) |
+| Nenhum | Todos os debitos UX sao frontend-only |
 
-### Prioridade 4 -- Nice-to-have (backlog)
+---
 
-| ID | Debito | Horas | Justificativa |
-|----|--------|-------|---------------|
-| TD-UX-019 | Testes e2e/visuais | 16-24 | Importante mas nao urgente. |
-| TD-UX-022 | PageLayout component | 8-12 | Padronizacao de paginas. |
-| TD-UX-021 | z-index escala | 3-4 | Risco de sobreposicao. |
-| TD-UX-012 | ConfirmModal migrar modalStyles | 2-3 | Consistencia. |
+## Plano de Migracao de Componentes
 
-### Prioridade 5 -- Adiado com justificativa
+### Onda 0 -- Dead Code Cleanup (30min)
 
-| ID | Debito | Horas | Justificativa |
-|----|--------|-------|---------------|
-| TD-UX-004 / TD-CC-003 | i18n | 40-60 | Sem demanda de mercado atual. Reavaliar em 6 meses. |
+- Deletar `features/activities/components/ActivityFormModalV2.tsx`
+- Deletar `features/boards/components/Modals/CreateDealModalV2.tsx`
+- Deletar `app/(protected)/deals/[dealId]/cockpit-v2/` (rota inteira)
+- Deletar `components/AIAssistant.tsx`
+- Resolver UX-018, UX-019, UX-020, UX-025
+
+### Onda 1 -- Quick Wins de UX (1-2 semanas, ~20-30h)
+
+| Tarefa | Debitos | Horas | Pre-req |
+|--------|---------|-------|---------|
+| Unificar Button | UX-001, UX-021 | 3-4 | Nenhum |
+| Criar not-found.tsx | UX-029 | 3-4 | Nenhum |
+| Acessibilizar PageLoader | UX-030 | 0.5 | Nenhum |
+| Remover font serif | UX-010 | 0.5 | Nenhum |
+| Corrigir PageLoader cores | UX-012 | 0.5 | Nenhum |
+| Corrigir ErrorBoundary inline | UX-015 | 0.5 | Nenhum |
+| Padronizar overlay modais | UX-026 | 4-6 | UX-001 |
+| Criar error.tsx por segmento | UX-028 | 8-12 | Nenhum |
+
+### Onda 2 -- Percepcao de Qualidade (2-3 semanas, ~30-40h)
+
+| Tarefa | Debitos | Horas | Pre-req |
+|--------|---------|-------|---------|
+| Implementar skeletons por rota | UX-004 | 12-20 | Nenhum |
+| Migrar chart colors para OKLCH | UX-009 | 3-4 | Nenhum |
+| Migrar scrollbar para OKLCH | UX-008, UX-017 | 2-3 | Nenhum |
+| Migrar ConfirmModal para modalStyles | UX-013 | 2-3 | UX-026 |
+| Definir escala z-index | UX-027 | 3-4 | Nenhum |
+| GlobalError com estilo | UX-016 | 2-4 | Nenhum |
+
+### Onda 3 -- Refatoracao Estrutural (3-5 semanas, ~70-100h)
+
+| Tarefa | Debitos | Horas | Pre-req |
+|--------|---------|-------|---------|
+| Decompor FocusContextPanel | UX-003 (parcial) | 12-16 | UX-001 |
+| Decompor DealDetailModal | UX-003 (parcial) | 8-12 | UX-001 |
+| Decompor BoardCreationWizard | UX-003 (parcial) | 8-12 | SYS-001 (parcial) |
+| Decompor CockpitDataPanel | UX-003 (parcial) | 6-8 | UX-001 |
+| Decompor controller hooks | UX-006 | 24-32 | SYS-001 |
+| Migrar cores Tailwind diretas | UX-011 | 12-16 | Testes visuais (UX-024) |
+
+### Onda 4 -- Maturidade (backlog, conforme capacidade)
+
+| Tarefa | Debitos | Horas | Pre-req |
+|--------|---------|-------|---------|
+| Optimistic updates em contacts/activities | UX-014 | 8-16 | Nenhum |
+| Setup testes visuais (Storybook/Playwright) | UX-024 | 16-24 | Nenhum |
+| Prefetch completo | UX-022 | 4-8 | Nenhum |
+| Padronizar empty states | UX-031 | 4-6 | Nenhum |
+| Padronizar acoes destrutivas | UX-032 | 3-4 | UX-013 |
+
+### Onda 5 -- Adiado com Justificativa
+
+| Tarefa | Debitos | Horas | Condicao para Reativar |
+|--------|---------|-------|----------------------|
+| Implementar i18n | UX-005 | 40-80 | Primeiro cliente internacional ou expansao para mercado hispanico |
 
 ---
 
@@ -382,13 +398,24 @@ Usar o `EmptyState` existente em TODOS os lugares onde hoje ha `<p>` inline. O c
 
 | Metrica | Valor |
 |---------|-------|
-| Debitos validados sem ajuste | 10 |
-| Debitos com severidade ajustada | 9 (5 rebaixados, 4 elevados) |
+| Debitos originais no DRAFT v2 | 25 (UX-001 a UX-025) |
+| Debitos validados sem ajuste | 11 |
+| Debitos com severidade rebaixada | 8 (UX-005, UX-007, UX-008, UX-010, UX-012, UX-015, UX-018, UX-019, UX-020) |
+| Debitos com severidade elevada | 2 (UX-011 MEDIUM->HIGH, UX-024 LOW->MEDIUM) |
 | Debitos removidos | 0 |
-| Debitos adicionados | 5 |
-| Total de debitos UX apos revisao | 24 (19 originais + 5 novos) |
-| Esforco total estimado (UX) | ~290-410 horas |
-| Debitos que precisam de Design Review | 11 |
+| Debitos adicionados | 7 (UX-026 a UX-032) |
+| Total de debitos UX apos revisao | **32** (25 originais + 7 novos) |
+| Esforco total estimado (UX) | **~180-280 horas** (excluindo UX-005 i18n) |
+| Debitos que precisam de Design Review | 10 |
+
+### Distribuicao por Severidade Ajustada
+
+| Severidade | Qtd | IDs |
+|-----------|-----|-----|
+| CRITICAL | 3 | UX-001, UX-002, UX-003 |
+| HIGH | 7 | UX-004, UX-006, UX-009, UX-011, UX-026, UX-028, UX-029 |
+| MEDIUM | 12 | UX-005, UX-007, UX-008, UX-013, UX-014, UX-016, UX-017, UX-024, UX-027, UX-030, UX-032, UX-012 |
+| LOW | 10 | UX-010, UX-015, UX-018, UX-019, UX-020, UX-021, UX-022, UX-023, UX-025, UX-031 |
 
 ---
 
@@ -396,4 +423,10 @@ Usar o `EmptyState` existente em TODOS os lugares onde hoje ha `<p>` inline. O c
 
 | Data | Autor | Mudanca |
 |------|-------|---------|
-| 2026-03-03 | @ux-design-expert (Uma) | Review inicial. Validacao de 19 debitos UX + 6 cross-cutting. 9 ajustes de severidade. 5 debitos novos adicionados. Respostas a 6 perguntas do architect. |
+| 2026-03-03 | @ux-design-expert (Uma) | Review inicial baseado no DRAFT v1. |
+| 2026-03-06 | @ux-design-expert (Uma) | Review completo baseado no DRAFT v2. Revalidacao de todos os 25 debitos. 8 rebaixamentos, 2 elevacoes. 7 debitos novos adicionados (UX-026 a UX-032). Respostas as 7 perguntas do architect. Plano de migracao em 5 ondas com dependencias. |
+
+---
+
+*Documento gerado por @ux-design-expert (Uma) - Brownfield Discovery Phase 6*
+*Ultima atualizacao: 2026-03-06*

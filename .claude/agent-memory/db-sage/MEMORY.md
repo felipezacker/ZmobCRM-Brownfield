@@ -10,7 +10,7 @@
 
 ## Critical Known Bugs
 1. `notify_deal_stage_changed()` references non-existent tables `integration_webhook_events` / `integration_webhook_deliveries` (introduced by migration 20260225000000_coderabbit_pr5_fixes.sql). Correct tables: `webhook_events_out` / `webhook_deliveries`. Webhooks outbound are broken.
-2. `merge_contacts()` is SECURITY DEFINER without org validation - cross-tenant risk.
+2. `merge_contacts()` cross-tenant risk - FIXED by migration 20260306100001 (added auth.uid() org check + winner/loser same-org check).
 3. `ai_suggestion_interactions` still has permissive RLS (USING true) - never hardened.
 
 ## Schema Design Notes
