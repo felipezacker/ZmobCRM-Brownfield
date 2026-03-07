@@ -36,6 +36,7 @@ const eslintConfig = [
       '.claude/hooks/**',
       '.claude/worktrees/**',
       'squads/**',
+      'apps/**',
     ],
   },
 
