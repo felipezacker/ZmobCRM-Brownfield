@@ -38,7 +38,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
 
                 let queryBuilder = supabase
                     .from('deals')
-                    .select('id, title, value, is_won, is_lost, stage:board_stages(name, label), contact:contacts(name)')
+                    .select('id, title, value, is_won, is_lost, property_ref, stage:board_stages(name, label), contact:contacts(name)')
                     .is('deleted_at', null)
                     .limit(limit);
 
@@ -80,6 +80,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                         value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
                         stage: d.stage?.name || d.stage?.label || 'N/A',
                         contact: d.contact?.name || 'N/A',
+                        propertyRef: d.property_ref || null,
                         status: d.is_won ? '✅ Ganho' : d.is_lost ? '❌ Perdido' : '🔄 Aberto'
                     })) || []
                 };
@@ -332,6 +333,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     status: deal.is_won ? '✅ Ganho' : deal.is_lost ? '❌ Perdido' : '🔄 Aberto',
                     stage: (deal.stage as any)?.name || (deal.stage as any)?.label || 'N/A',
                     priority: deal.priority || 'medium',
+                    propertyRef: deal.property_ref || null,
                     contact: (deal.contact as any)?.name || 'N/A',
                     contactEmail: (deal.contact as any)?.email || 'N/A',
                     pendingActivities: pendingActivities.length,

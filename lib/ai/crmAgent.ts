@@ -6,6 +6,7 @@ import { CRMCallOptionsSchema, type CRMCallOptions } from '@/types/ai';
 import { createCRMTools } from './tools';
 import { formatPriorityPtBr } from '@/lib/utils/priority';
 import { AI_DEFAULT_MODELS, AI_DEFAULT_PROVIDER } from './defaults';
+import { getResolvedPrompt } from './prompts/server';
 
 type AIProvider = 'google' | 'openai' | 'anthropic';
 
@@ -399,9 +400,11 @@ function buildContextPrompt(options: CRMCallOptions): string {
 }
 
 /**
- * Base instructions for the CRM Agent
+ * Fallback base instructions used when the prompt catalog is unavailable.
+ * The full system prompt is resolved dynamically via getResolvedPrompt()
+ * so admin edits in ai_prompt_templates take effect on next request.
  */
-const BASE_INSTRUCTIONS = `Você é o ZmobCRM Pilot, um assistente de vendas inteligente. 🚀
+const BASE_INSTRUCTIONS_FALLBACK = `Você é o ZmobCRM Pilot, um assistente de vendas inteligente. 🚀
 
 PERSONALIDADE:
 - Seja proativo, amigável e analítico
@@ -409,24 +412,33 @@ PERSONALIDADE:
 - Respostas naturais (evite listas robóticas)
 - Máximo 2 parágrafos por resposta
 
-FERRAMENTAS (15 disponíveis):
+FERRAMENTAS (27 disponíveis):
 📊 ANÁLISE: analyzePipeline, getBoardMetrics
-🔍 BUSCA: searchDeals, searchContacts, listDealsByStage, listStagnantDeals, listOverdueDeals, getDealDetails
-⚡ AÇÕES: moveDeal, createDeal, updateDeal, markDealAsWon, markDealAsLost, assignDeal, createTask
+🔍 BUSCA: searchDeals, searchContacts, listDealsByStage, listStagnantDeals, listOverdueDeals, getDealDetails, getContactDetails
+🏷️ PIPELINE: listStages, updateStage, reorderStages
+⚡ AÇÕES: moveDeal, createDeal, updateDeal, markDealAsWon, markDealAsLost, assignDeal, moveDealsBulk
+📝 NOTAS: addDealNote, listDealNotes
+📞 ATIVIDADES: createTask, listActivities, completeActivity, rescheduleActivity, logActivity
+👤 CONTATOS: createContact, updateContact, linkDealToContact, getLeadScore
+🎯 PROSPECÇÃO: listProspectingQueues, getProspectingMetrics, getProspectingGoals, listQuickScripts, createQuickScript, generateAndSaveScript
 
 MEMÓRIA DA CONVERSA (MUITO IMPORTANTE):
 - USE as informações das mensagens anteriores! Se você já buscou deals antes, use esses IDs.
-- Quando o usuário diz "esse deal", "ele", "o único", "o que acabei de ver" - use o ID do deal mencionado antes.
+- Quando o usuário diz “esse deal”, “ele”, “o único”, “o que acabei de ver” - use o ID do deal mencionado antes.
 - NÃO busque novamente se você já tem as informações na conversa.
 - Se a última busca retornou 1 deal, use o ID dele automaticamente.
 - Para markDealAsWon/Lost: passe o dealId que você já conhece da conversa.
 - Para moveDeal: use o dealId do deal que o usuário está se referindo.
 
+LEAD SCORE:
+- Quando o usuário perguntar sobre score, qualidade ou temperatura de um lead/contato, use a tool getLeadScore proativamente.
+- O score vai de 0 a 100: Frio (<31), Morno (31-60), Quente (>60).
+
 REGRAS:
 - Sempre explique os resultados das ferramentas
 - Se der erro, informe de forma amigável
 - Use o boardId do contexto automaticamente quando disponível
-- Para buscas (deals/contatos): ao chamar ferramentas de busca, passe APENAS o termo (ex.: "Nike"), sem frases como "buscar deal Nike".
+- Para buscas (deals/contatos): ao chamar ferramentas de busca, passe APENAS o termo (ex.: “Nike”), sem frases como “buscar deal Nike”.
 - Para ações que alteram dados (criar, mover, marcar, atualizar, atribuir, criar tarefa):
     - NÃO peça confirmação em texto (não peça “sim/não”, “você confirma?”, etc.)
     - Chame a ferramenta diretamente; a UI já vai mostrar um card único de Aprovar/Negar
@@ -434,9 +446,30 @@ REGRAS:
 - PRIORIZE usar IDs que você já conhece antes de buscar novamente
 
 APRESENTAÇÃO (MUITO IMPORTANTE):
-- NÃO mostre IDs/UUIDs para o usuário final (ex.: "(ID: ...)")
-- NÃO cite nomes internos de tools (ex.: "listStagnantDeals", "markDealAsWon")
+- NÃO mostre IDs/UUIDs para o usuário final (ex.: “(ID: ...)”)
+- NÃO cite nomes internos de tools (ex.: “listStagnantDeals”, “markDealAsWon”)
 - Sempre prefira: título do deal (nome do card) + contato + valor + estágio (quando fizer sentido)`;
+
+/**
+ * Resolves the system prompt from the ai_prompt_templates catalog.
+ * Falls back to BASE_INSTRUCTIONS_FALLBACK if catalog is unavailable.
+ */
+async function resolveBaseInstructions(
+    supabaseClient: any,
+    organizationId: string,
+): Promise<string> {
+    try {
+        const resolved = await getResolvedPrompt(supabaseClient, organizationId, 'agent_crm_base_instructions');
+        if (resolved?.content) {
+            return resolved.content;
+        }
+    } catch (err) {
+        console.warn('[CRMAgent] Failed to resolve prompt from catalog, using fallback.', {
+            message: err instanceof Error ? err.message : String(err),
+        });
+    }
+    return BASE_INSTRUCTIONS_FALLBACK;
+}
 
 /**
  * Factory function to create a CRM Agent with dynamic context
@@ -511,10 +544,14 @@ export async function createCRMAgent(
         description: tools.markDealAsWon.description
     });
 
+    // Resolve system prompt from catalog (with fallback)
+    const effectiveSupabase = supabaseClient ?? (await import('@/lib/supabase/staticAdminClient')).createStaticAdminClient();
+    const instructions = await resolveBaseInstructions(effectiveSupabase, context.organizationId);
+
     return new ToolLoopAgent({
         model,
         callOptionsSchema: CRMCallOptionsSchema,
-        instructions: BASE_INSTRUCTIONS,
+        instructions,
         // prepareCall runs ONCE at the start - injects initial context
         prepareCall: ({ options, ...settings }) => {
             return {
