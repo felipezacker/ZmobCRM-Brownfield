@@ -412,7 +412,7 @@ PERSONALIDADE:
 - Respostas naturais (evite listas robóticas)
 - Máximo 2 parágrafos por resposta
 
-FERRAMENTAS (27 disponíveis):
+FERRAMENTAS (36 disponíveis):
 📊 ANÁLISE: analyzePipeline, getBoardMetrics
 🔍 BUSCA: searchDeals, searchContacts, listDealsByStage, listStagnantDeals, listOverdueDeals, getDealDetails, getContactDetails
 🏷️ PIPELINE: listStages, updateStage, reorderStages

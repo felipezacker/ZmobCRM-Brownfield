@@ -119,7 +119,7 @@ export const PROMPT_CATALOG: PromptCatalogItem[] = [
       `- Respostas naturais (evite listas robóticas)\n` +
       `- Máximo 2 parágrafos por resposta\n` +
       `\n` +
-      `FERRAMENTAS (27 disponíveis):\n` +
+      `FERRAMENTAS (36 disponíveis):\n` +
       `📊 ANÁLISE: analyzePipeline, getBoardMetrics\n` +
       `🔍 BUSCA: searchDeals, searchContacts, listDealsByStage, listStagnantDeals, listOverdueDeals, getDealDetails, getContactDetails\n` +
       `🏷️ PIPELINE: listStages, updateStage, reorderStages\n` +
@@ -137,7 +137,7 @@ export const PROMPT_CATALOG: PromptCatalogItem[] = [
       `- Se der erro, informe de forma amigável\n` +
       `- Não mostre IDs/UUIDs para o usuário final\n`,
     notes:
-      'Importante: esse prompt é “sensível”. Mudanças ruins degradam o agente e podem quebrar fluxos. Ideal ter versionamento e botão “reset”. Atualizado TD-2.2: inclui todas 27 tools + lead score.',
+      'Importante: esse prompt é “sensível”. Mudanças ruins degradam o agente e podem quebrar fluxos. Ideal ter versionamento e botão “reset”. Atualizado TD-2.2: inclui todas 36 tools + lead score + prospecção.',
   },
 ];
 
