@@ -377,7 +377,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   }, [applyVariables, nextBestAction.actionType, nextBestAction.isAI, openMessageComposer, selectedDeal, templatePickerMode, templateVariables]);
 
   const setDealInUrl = useCallback((nextDealId: string) => {
-    if (pathname?.includes('/deals/') && (pathname.endsWith('/cockpit') || pathname.endsWith('/cockpit-v2'))) {
+    if (pathname?.includes('/deals/') && pathname.endsWith('/cockpit')) {
       if (!nextDealId) return; router.replace(`/deals/${nextDealId}/cockpit`); return;
     }
     const sp = new URLSearchParams(searchParams?.toString());

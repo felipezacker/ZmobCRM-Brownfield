@@ -1,0 +1,16 @@
+schema: 1
+story: 'TD-0.1'
+gate: PASS
+status_reason: >-
+  All ACs verified. AC1-AC3 cross-tenant security checks correctly implemented.
+  AC4 now met: migration includes DO $$ inline test block (L168-201) that verifies
+  function existence, SECURITY DEFINER mode, caller-org validation, winner-org
+  validation, and auth.uid() call via pg_proc catalog introspection.
+  AC5-AC7, AC9 dead code cleanup confirmed. AC8 correctly documented as exception
+  (AIAssistant.tsx is actively imported by FocusContextPanel.tsx).
+  Note: AC8 AIAssistant.tsx was NOT deleted because it is actively imported via
+  React.lazy -- UX-025 debt needs re-evaluation in a separate story.
+reviewer: 'Quinn'
+updated: '2026-03-06T23:59:00Z'
+top_issues: []
+waiver: { active: false }
