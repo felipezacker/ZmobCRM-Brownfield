@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** TD-1.2
 - **Epic:** TD (Technical Debt Resolution)
-- **Status:** InProgress
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 5
 - **Wave:** 1
@@ -101,9 +101,9 @@ O Button e o quick win de maior impacto visual -- existem 2 versoes coexistindo 
 - [x] AI SDK atualizado (6 pacotes)
 - [x] WHATSAPP no enum de atividades
 - [x] `npm run typecheck` passando
-- [ ] `npm run lint` passando
+- [x] `npm run lint` passando
 - [x] `npm test` passando sem regressoes
-- [ ] Code reviewed
+- [x] Code reviewed
 
 ## File List
 | File | Action | Description |
@@ -123,3 +123,5 @@ O Button e o quick win de maior impacto visual -- existem 2 versoes coexistindo 
 |------|--------|--------|
 | 2026-03-06 | @pm | Story created |
 | 2026-03-07 | @dev | YOLO execution: all 14 ACs implemented |
+| 2026-03-07 | @dev | ESLint fix: excluded apps/ from root config |
+| 2026-03-07 | @qa | Code review PASS — 14/14 ACs verified, no concerns |
