@@ -11,7 +11,7 @@
 
 ## Descricao
 
-O agente de IA do ZmobCRM conhece apenas 15 das 27 ferramentas disponiveis, e o modulo mais ativo do sistema (prospeccao -- 24 componentes, 7 hooks, 25 testes) e completamente invisivel para a IA. Alem disso, o BASE_INSTRUCTIONS em `crmAgent.ts` e hardcoded e ignora o catalogo de prompts (`ai_prompt_templates`), tornando a funcionalidade de admin de prompts inoperante.
+O agente de IA do ZmobCRM conhece apenas 15 das 36 ferramentas disponiveis, e o modulo mais ativo do sistema (prospeccao -- 24 componentes, 7 hooks, 25 testes) e completamente invisivel para a IA. Alem disso, o BASE_INSTRUCTIONS em `crmAgent.ts` e hardcoded e ignora o catalogo de prompts (`ai_prompt_templates`), tornando a funcionalidade de admin de prompts inoperante.
 
 Esta story corrige o alinhamento completo da IA com o sistema real: migrar BASE_INSTRUCTIONS para usar o catalogo, criar tools de prospeccao, expor campos invisiveis (property_ref, metadata), criar tools para quick_scripts, e expor tags/custom_fields nas contact tools.
 
@@ -22,7 +22,7 @@ Esta story corrige o alinhamento completo da IA com o sistema real: migrar BASE_
 ### SYS-002 + SYS-014: BASE_INSTRUCTIONS e catalogo de prompts
 - [x] AC1: Given o agente de IA, when ativado, then o system prompt e resolvido via `getResolvedPrompt('agent_crm_base_instructions')` em vez de string hardcoded
 - [x] AC2: Given o admin de prompts (tabela `ai_prompt_templates`), when um template e editado, then o agente reflete a mudanca no proximo request
-- [x] AC3: Given o system prompt do agente, when inspecionado, then menciona todas as 27 tools disponiveis (nao apenas 15)
+- [x] AC3: Given o system prompt do agente, when inspecionado, then menciona todas as 36 tools disponiveis (nao apenas 15)
 - [x] AC4: Given a tool `getLeadScore` (SYS-014), when o agente recebe pergunta sobre score de lead, then utiliza a tool proativamente
 
 ### SYS-004 + SYS-005: Prospecting tools
@@ -45,7 +45,7 @@ Esta story corrige o alinhamento completo da IA com o sistema real: migrar BASE_
 
 ### IN
 - Migrar BASE_INSTRUCTIONS de hardcoded para catalogo `ai_prompt_templates` (SYS-002)
-- Incluir todas as 27 tools no prompt (SYS-002)
+- Incluir todas as 36 tools no prompt (SYS-002)
 - Mencionar lead score no prompt (SYS-014 -- resolvido com SYS-002)
 - Criar `lib/ai/tools/prospecting-tools.ts` com tools para filas, metas, scripts, metricas (SYS-004)
 - Expor `property_ref` nas deal tools (SYS-005)
@@ -102,7 +102,7 @@ Esta story corrige o alinhamento completo da IA com o sistema real: migrar BASE_
 
 ## Definition of Done
 - [x] BASE_INSTRUCTIONS resolvido via catalogo (nao hardcoded)
-- [x] Agente reconhece e usa 27/27 tools
+- [x] Agente reconhece e usa 36/36 tools
 - [x] Tools de prospeccao funcional (filas, metas, metricas, scripts)
 - [x] property_ref e metadata expostos nas tools
 - [x] Quick scripts com CRUD via IA
@@ -116,16 +116,31 @@ Esta story corrige o alinhamento completo da IA com o sistema real: migrar BASE_
 | File | Action | Description |
 |------|--------|-------------|
 | `lib/ai/crmAgent.ts` | Modified | BASE_INSTRUCTIONS migrado para resolveBaseInstructions() via catalogo com fallback |
-| `lib/ai/prompts/catalog.ts` | Modified | Template agent_crm_base_instructions atualizado com 27 tools |
+| `lib/ai/prompts/catalog.ts` | Modified | Template agent_crm_base_instructions atualizado com 36 tools |
 | `lib/ai/tools.ts` | Modified | Wired prospecting tools na factory |
 | `lib/ai/tools/index.ts` | Modified | Export de prospecting-tools |
 | `lib/ai/tools/prospecting-tools.ts` | Created | 6 tools: listProspectingQueues, getProspectingMetrics, getProspectingGoals, listQuickScripts, createQuickScript, generateAndSaveScript |
 | `lib/ai/tools/deal-tools.ts` | Modified | Exposto property_ref em searchDeals e getDealDetails |
 | `lib/ai/tools/activity-tools.ts` | Modified | Exposto metadata JSONB em listActivities |
 | `lib/ai/tools/contact-tools.ts` | Modified | Adicionados filtros tag, customFieldKey, customFieldValue em searchContacts; tags e customFields no response |
-| `lib/ai/__tests__/base-instructions-catalog.test.ts` | Created | 5 testes verificando catalogo lista 27 tools |
+| `lib/ai/__tests__/base-instructions-catalog.test.ts` | Created | 5 testes verificando catalogo lista 36 tools |
 | `lib/ai/__tests__/exposure-gaps.test.ts` | Created | 7 testes para property_ref, metadata, tags/custom_fields |
 | `lib/ai/__tests__/prospecting-tools.test.ts` | Created | 14 testes para as 6 prospecting tools |
+| `supabase/migrations/20260307100000_add_org_id_to_quick_scripts.sql` | Created | Migration: organization_id + RLS update para quick_scripts |
+
+## QA Results
+- **Reviewer:** @qa (Quinn)
+- **Date:** 2026-03-07
+- **Verdict:** PASS
+- **Tests:** 691 passed, 0 failed (68 test files), 26 novos testes TD-2.2
+- **TypeScript:** 0 errors (excl. apps/dashboard — pré-existente)
+- **Lint:** 0 warnings, 0 errors
+- **ACs verified:** 14/14
+- **Observations (MEDIUM — non-blocking):**
+  1. `quick_scripts` table has no `organization_id` — relies on RLS only (pre-existing design). Low risk but recommend adding org_id in future story.
+  2. `generateAndSaveScript` doesn't internally generate content — expects LLM to compose text. Name may mislead. Monitor quality in production.
+  3. Story text says "27 tools" but actual count is 36. Prompt and catalog are correct (36).
+- **Re-Review (QA Fixes):** 2026-03-07 — PASS. All 3 observations fixed: (1) migration adds org_id + RLS + code filters, (2) template now required field with accurate description, (3) story text corrected. 36/36 AI tests passing, 0 new TS errors.
 
 ## Change Log
 | Date | Author | Change |
@@ -133,3 +148,5 @@ Esta story corrige o alinhamento completo da IA com o sistema real: migrar BASE_
 | 2026-03-06 | @pm | Story created |
 | 2026-03-07 | @po | Validated GO (9/10) -- all deps met, status Draft -> Ready |
 | 2026-03-07 | @dev | Implementation complete: BASE_INSTRUCTIONS via catalogo, 6 prospecting tools, property_ref/metadata/tags exposed, 26 novos testes (686 total). 14/14 ACs done. Status Ready -> InReview |
+| 2026-03-07 | @qa | QA Review PASS — 14/14 ACs verified, 691 tests passing, 0 TS errors, 0 lint warnings. 3 non-blocking observations documented. |
+| 2026-03-07 | @dev | QA fixes applied: (1) organization_id added to quick_scripts with migration + RLS + code filters, (2) generateAndSaveScript description/schema fixed — template now required, (3) story text corrected 27 → 36 tools |

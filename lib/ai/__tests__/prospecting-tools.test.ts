@@ -14,6 +14,7 @@ function createMockSupabase(overrides: Record<string, unknown> = {}) {
     const chainable: Record<string, unknown> = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
+        or: vi.fn().mockReturnThis(),
         not: vi.fn().mockReturnThis(),
         gte: vi.fn().mockReturnThis(),
         lte: vi.fn().mockReturnThis(),
@@ -262,6 +263,7 @@ describe('createProspectingTools', () => {
             const result = await (tools.generateAndSaveScript as any).execute({
                 title: 'Script gerado',
                 category: 'closing',
+                template: 'Ola, gostaria de finalizar a negociacao do imovel X...',
                 context: 'Deal de alto valor',
             });
             expect(result.success).toBe(true);
