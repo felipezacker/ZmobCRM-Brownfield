@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { ServerCog, Copy, CheckCircle2, Play, AlertTriangle, RefreshCw, ChevronDown } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useOptionalToast } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase/client';
 import { SettingsSection } from './SettingsSection';

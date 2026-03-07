@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { getErrorMessage } from '@/lib/utils/errorUtils'
 import { useAuth } from '@/context/AuthContext'
 import { Loader2, Building2, User, Lock, ArrowRight } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Componente React `SetupPage`.

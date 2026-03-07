@@ -1,7 +1,7 @@
 import React, { useRef, useState, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft, Trophy, XCircle, Trash2 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface ActivityStatusIconProps {
     status: string;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Activity } from '@/types';
 import { AISuggestion } from '../hooks/useInboxController';

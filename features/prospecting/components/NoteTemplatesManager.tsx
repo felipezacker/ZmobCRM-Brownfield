@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { X, Plus, Trash2, Loader2 } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import {
   useNoteTemplates,
   useCreateNoteTemplate,

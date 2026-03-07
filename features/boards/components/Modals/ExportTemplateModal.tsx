@@ -4,7 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import type { Board, BoardStage, JourneyDefinition } from '@/types';
 import { useToast } from '@/context/ToastContext';
 import { z } from 'zod';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 function slugify(input: string) {
   // NOTE: avoid Unicode property escapes (\p{L}) for broader browser compatibility (Safari).

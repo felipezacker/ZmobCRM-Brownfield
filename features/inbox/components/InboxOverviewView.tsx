@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, TrendingUp, UserX, ArrowRight, Sparkles, Target } from 'lucide-react';
 import type { Activity } from '@/types';
 import type { AISuggestion } from '../hooks/useInboxController';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface InboxOverviewViewProps {
   overdueActivities: Activity[];

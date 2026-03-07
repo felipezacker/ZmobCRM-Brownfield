@@ -7,7 +7,7 @@ import { useBoards } from '@/context/boards/BoardsContext';
 import { supabase } from '@/lib/supabase/client';
 
 import { SettingsSection } from './SettingsSection';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 type ApiKeyRow = {
   id: string;

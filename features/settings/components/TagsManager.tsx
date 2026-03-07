@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tag, Plus, X } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { SettingsSection } from './SettingsSection';
 import { EmptyState } from '@/components/ui/EmptyState';
 

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Repeat } from 'lucide-react';
 import { Activity, Deal } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { getActivityIconCalendar } from '../utils';
 
 interface ProjectedActivity extends Activity {

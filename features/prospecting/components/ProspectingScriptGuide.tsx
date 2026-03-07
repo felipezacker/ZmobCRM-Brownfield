@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react'
 import { Copy, Check, ChevronLeft, ChevronRight, AlertTriangle, FileText } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { useToast } from '@/context/ToastContext'
 import { parseScriptSections, substituteVariables, cleanUnresolvedVariables, buildContactVariables } from '@/features/prospecting/utils/scriptParser'
 import type { ScriptSection } from '@/features/prospecting/utils/scriptParser'

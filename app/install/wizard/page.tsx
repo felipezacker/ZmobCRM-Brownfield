@@ -15,7 +15,7 @@ import {
   type InstallState,
 } from '@/lib/installer/installState';
 import { validateInstallerPassword } from '@/lib/installer/passwordPolicy';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Types
 type InstallerMeta = { enabled: boolean; requiresToken: boolean };

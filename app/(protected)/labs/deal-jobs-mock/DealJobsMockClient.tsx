@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CheckCircle2, ChevronDown, ChevronRight, MessageSquareText, Phone, Sparkles, Target } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 type TimelineItem = {
   id: string;

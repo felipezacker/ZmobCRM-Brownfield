@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ChevronDown, ChevronRight, ArrowRight } from 'lucide-react';
 import { Activity } from '@/types';
 import { InboxItem } from './InboxItem';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 const MAX_ITEMS = 5;
 

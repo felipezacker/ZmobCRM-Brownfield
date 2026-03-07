@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { X, Save, Share2 } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 
 interface SaveQueueModalProps {
   isOpen: boolean

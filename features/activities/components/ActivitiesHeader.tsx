@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus, LayoutList, Calendar as CalendarIcon, CalendarDays, ArrowDownUp } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import type { SortOrder } from '@/features/activities/types';
 
 interface ActivitiesHeaderProps {

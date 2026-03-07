@@ -1,7 +1,7 @@
 import React from 'react';
 import { ContactStage } from '@/types';
 import { Users, UserCheck, Handshake, Crown, Archive } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface StageCounts {
   LEAD: number;

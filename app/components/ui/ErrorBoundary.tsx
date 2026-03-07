@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -36,22 +36,17 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       }
 
       return (
-        <div className="flex min-h-[200px] flex-col items-center justify-center gap-4 rounded-lg border p-8" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--card)' }}>
+        <div className="flex min-h-[200px] flex-col items-center justify-center gap-4 rounded-lg border border-border bg-card p-8">
           <div className="text-center">
-            <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
+            <h2 className="text-lg font-semibold text-foreground">
               Algo deu errado
             </h2>
-            <p className="mt-1 text-sm" style={{ color: 'var(--muted-foreground)' }}>
+            <p className="mt-1 text-sm text-muted-foreground">
               {this.state.error?.message || 'Erro inesperado'}
             </p>
           </div>
           <Button
             onClick={() => this.setState({ hasError: false, error: null })}
-            className="rounded-md px-4 py-2 text-sm font-medium transition-colors"
-            style={{
-              backgroundColor: 'var(--primary)',
-              color: 'var(--primary-foreground)',
-            }}
           >
             Tentar novamente
           </Button>

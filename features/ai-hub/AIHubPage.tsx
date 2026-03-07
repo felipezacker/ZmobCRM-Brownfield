@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { Send, Loader2, Bot, User, Sparkles, StopCircle, Trash2, Settings, AlertCircle } from 'lucide-react';
 import { useCRMAgent, AgentMessage } from './hooks/useCRMAgent';
 import { useSettings } from '@/context/settings/SettingsContext';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Componente de mensagem individual
 const ChatMessage: React.FC<{ message: AgentMessage }> = ({ message }) => {

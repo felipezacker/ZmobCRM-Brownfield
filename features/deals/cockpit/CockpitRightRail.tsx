@@ -16,7 +16,7 @@ import { UIChat } from '@/components/ai/UIChat';
 import type { Tab, CockpitSnapshot } from './cockpit-types';
 import { formatAtISO, humanizeTestLabel, scriptCategoryChipClass } from './cockpit-utils';
 import type { QuickScript, ScriptCategory } from '@/lib/supabase/quickScripts';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CockpitRightRailProps {
   dealId: string;

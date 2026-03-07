@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react'
 import { Phone, PhoneOff, UserPlus, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { STAGE_LABELS, TEMPERATURE_CONFIG } from '@/features/contacts/constants'
 import type { ProspectingFilteredContact } from '@/lib/supabase/prospecting-filtered-contacts'
 

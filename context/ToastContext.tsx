@@ -40,7 +40,7 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /** Tipos de notificação toast */
 export type ToastType = 'success' | 'error' | 'info' | 'warning';

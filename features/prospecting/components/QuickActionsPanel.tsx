@@ -7,7 +7,7 @@ import {
   Loader2,
   Check,
 } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { CreateDealModal } from '@/features/boards/components/Modals/CreateDealModal'
 import { NoteTemplatesManager } from '@/features/prospecting/components/NoteTemplatesManager'
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery'

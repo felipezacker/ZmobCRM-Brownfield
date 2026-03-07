@@ -22,7 +22,7 @@ import {
   StickyNote,
   X,
 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 type Stage = { id: string; label: string; tone: 'blue' | 'violet' | 'amber' | 'green' | 'slate' };
 

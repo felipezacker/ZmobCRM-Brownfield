@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2, Save, X, Home } from 'lucide-react';
 import { ContactPreference, PropertyType, PreferencePurpose, PreferenceUrgency } from '@/types';
 import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import ConfirmModal from '@/components/ConfirmModal';
 
 import { INPUT_CLASS, LABEL_CLASS, LEGEND_CLASS } from '@/features/contacts/constants';

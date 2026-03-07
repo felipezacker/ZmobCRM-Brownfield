@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Target, Settings, Trophy } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { GoalProgress } from '../hooks/useProspectingGoals'
 
 interface DailyGoalCardProps {

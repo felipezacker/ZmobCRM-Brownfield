@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { CallLogData } from '@/features/inbox/components/CallModal'
 
 const TEMPLATES_BY_OUTCOME: Record<CallLogData['outcome'], string[]> = {

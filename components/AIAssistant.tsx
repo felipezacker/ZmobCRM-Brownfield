@@ -12,7 +12,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Board } from '@/types';
 import { UIChat } from '@/components/ai/UIChat';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface AIAssistantProps {
   isOpen: boolean;

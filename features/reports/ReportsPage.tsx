@@ -8,7 +8,7 @@ import { LazyRevenueTrendChart, ChartWrapper } from '@/components/charts';
 import { generateReportPDF } from './utils/generateReportPDF';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Componente React `ReportsPage`.

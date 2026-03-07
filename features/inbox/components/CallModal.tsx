@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink } from 'lucide-react';
 import { normalizePhoneE164 } from '@/lib/phone';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { NoteTemplates } from '@/features/prospecting/components/NoteTemplates';
 
 interface CallModalProps {

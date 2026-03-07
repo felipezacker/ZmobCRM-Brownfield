@@ -16,7 +16,7 @@ import { ContactsImportExportModal } from './components/ContactsImportExportModa
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 import { exportContactsCsv } from './utils/exportCsv';
 import ConfirmModal from '@/components/ConfirmModal';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Componente React `ContactsPage`.

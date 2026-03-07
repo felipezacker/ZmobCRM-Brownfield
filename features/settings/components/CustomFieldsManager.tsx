@@ -1,6 +1,6 @@
 import React from 'react';
 import { PenTool, Pencil, Check, Plus, List, Tag, Trash2 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { SettingsSection } from './SettingsSection';
 import { CustomFieldDefinition, CustomFieldType } from '@/types';

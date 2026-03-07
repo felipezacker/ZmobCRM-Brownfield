@@ -2,7 +2,7 @@ import React, { useCallback, useId, useMemo } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { BoardStage, DealView } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface MoveToStageModalProps {
   isOpen: boolean;

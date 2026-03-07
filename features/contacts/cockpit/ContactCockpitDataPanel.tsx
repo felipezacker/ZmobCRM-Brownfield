@@ -16,7 +16,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Chip } from '@/features/deals/cockpit/cockpit-ui';
 import { formatCurrencyBRL } from '@/features/deals/cockpit/cockpit-utils';
 import { CLASSIFICATION_LABELS, SOURCE_LABELS } from '@/features/contacts/constants';

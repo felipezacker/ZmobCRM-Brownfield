@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Contact } from '@/types';
 import { scanDuplicates, DuplicateGroup } from '@/lib/supabase/contact-dedup';
 import { ContactMergeModal } from './ContactMergeModal';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 
 // ============================================

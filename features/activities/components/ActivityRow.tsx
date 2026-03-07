@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Clock, Trash2, Edit2, CheckCircle2, Circle, Users, Copy, Repeat } from 'lucide-react';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { Activity, Deal, Contact } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { getActivityIconList } from '../utils';
 
 interface ActivityRowProps {

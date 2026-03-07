@@ -14,7 +14,7 @@ import { Board } from '@/types';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useUIStore } from '@/lib/stores';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Performance: reuse formatter instances.
 const BRL_CURRENCY_FORMATTER = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });

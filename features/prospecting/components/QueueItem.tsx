@@ -1,6 +1,6 @@
 import React from 'react'
 import { Phone, X, Flame, Snowflake, Sun, User, RotateCcw } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { ProspectingQueueItem } from '@/types'
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {

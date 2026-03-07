@@ -14,7 +14,7 @@ import { UsersPage } from './UsersPage';
 import { useAuth } from '@/context/AuthContext';
 import { hasMinRole, type Role } from '@/lib/auth/roles';
 import { Settings as SettingsIcon, Users, Database, Sparkles, Plug, Package } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 type SettingsTab = 'general' | 'products' | 'integrations' | 'ai' | 'data' | 'users';
 

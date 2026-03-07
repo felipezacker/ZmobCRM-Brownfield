@@ -4,7 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { rewriteMessageDraft, type RewriteMessageDraftInput } from '@/lib/ai/actionsClient';
 import { isConsentError, isRateLimitError } from '@/lib/supabase/ai-proxy';
 import { toWhatsAppPhone } from '@/lib/phone';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export type MessageChannel = 'WHATSAPP' | 'EMAIL';
 

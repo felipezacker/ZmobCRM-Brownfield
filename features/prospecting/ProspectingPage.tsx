@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { CallQueue } from './components/CallQueue'
 import { PowerDialer } from './components/PowerDialer'
 import { SessionSummary } from './components/SessionSummary'

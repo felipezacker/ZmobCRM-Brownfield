@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Users } from 'lucide-react';
 import { Contact, ContactSortableColumn, ContactClassification, ContactTemperature } from '@/types';
 import { StageBadge } from './ContactsStageTabs';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // ============================================
 // Story 3.5 — Source Badge Config

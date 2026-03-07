@@ -12,7 +12,7 @@ import { PipelineAlertsModal } from './components/PipelineAlertsModal';
 import { useDashboardMetrics, PeriodFilter, COMPARISON_LABELS } from './hooks/useDashboardMetrics';
 import { PeriodFilterSelect } from '@/components/filters/PeriodFilterSelect';
 import { LazyFunnelChart, ChartWrapper } from '@/components/charts';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 
 /**

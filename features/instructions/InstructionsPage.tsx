@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, BookOpen } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import type { InstructionSection } from './types';
 import { SectionRenderer } from './SectionRenderer';
 import { sections } from './sections-data';

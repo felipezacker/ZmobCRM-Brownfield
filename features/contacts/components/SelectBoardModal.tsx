@@ -2,7 +2,7 @@ import React, { useId } from 'react';
 import { X, LayoutGrid } from 'lucide-react';
 import { Board } from '@/types';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface SelectBoardModalProps {
   isOpen: boolean;

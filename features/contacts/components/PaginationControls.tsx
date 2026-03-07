@@ -11,7 +11,7 @@ import React from 'react';
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { PaginationState } from '@/types';
 import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export interface PaginationControlsProps {
   /** Estado atual de paginação { pageIndex, pageSize }. */

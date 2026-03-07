@@ -4,7 +4,7 @@ import { DealView, CustomFieldDefinition, BoardStage, DealSortableColumn } from 
 import { ActivityStatusIcon } from './ActivityStatusIcon';
 import { getActivityStatus } from '@/features/boards/hooks/useBoardsController';
 import { MoveToStageModal } from '../Modals/MoveToStageModal';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import {
   Mail,
   Phone,

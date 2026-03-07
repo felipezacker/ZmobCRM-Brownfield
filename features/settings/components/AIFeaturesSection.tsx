@@ -7,7 +7,7 @@ import { Copy, Loader2, Pencil, RotateCcw, SlidersHorizontal, ToggleLeft, Toggle
 import { useToast } from '@/context/ToastContext';
 import { Modal } from '@/components/ui/Modal';
 import { getPromptCatalogMap } from '@/lib/ai/prompts/catalog';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 type FeatureItem = {
   key: string;

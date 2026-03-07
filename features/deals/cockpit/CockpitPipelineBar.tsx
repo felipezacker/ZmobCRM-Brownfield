@@ -5,7 +5,7 @@ import { ArrowLeft, Check, ChevronDown, RotateCcw, Search, Trophy, XCircle } fro
 import type { DealView } from '@/types';
 import type { Stage } from './cockpit-types';
 import { formatCurrencyBRL, humanizeTestLabel, toneToBg, toneToGlowColor, toneToText } from './cockpit-utils';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CockpitPipelineBarProps {
   deal: DealView;

@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { Database, AlertTriangle, Trash2, Loader2 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';

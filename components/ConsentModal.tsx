@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import {
   ConsentType,
   REQUIRED_CONSENTS,

@@ -1,6 +1,6 @@
 import React, { useCallback, useId, useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { DealView, BoardStage } from '@/types';
 import { DealCard } from './DealCard';
 import { isDealRotting, getActivityStatus } from '@/features/boards/hooks/useBoardsController';

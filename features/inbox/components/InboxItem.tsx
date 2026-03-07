@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Activity } from '@/types';
 import { CheckCircle2, Clock, Calendar, Phone, Mail, FileText, Building2, MoreHorizontal, X, SkipForward, Edit2 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface InboxItemProps {
   activity: Activity;

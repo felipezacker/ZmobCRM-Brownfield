@@ -5,7 +5,7 @@ import { hasMinRole, type Role } from '@/lib/auth/roles';
 import { useToast } from '@/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
 import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Mail, Check, X, Sparkles, Clock, RefreshCw, Trash2, Link, Copy, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface Profile {
     id: string;

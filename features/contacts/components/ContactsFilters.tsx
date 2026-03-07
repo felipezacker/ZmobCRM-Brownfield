@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 
 const CLASSIFICATION_OPTIONS = [

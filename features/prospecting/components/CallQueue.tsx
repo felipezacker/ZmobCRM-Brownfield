@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { ListOrdered, Trash2, RotateCcw } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { QueueItem } from './QueueItem'
 import type { ProspectingQueueItem } from '@/types'
 

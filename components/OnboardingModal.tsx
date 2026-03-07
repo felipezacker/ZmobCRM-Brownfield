@@ -1,7 +1,7 @@
 import React, { useId } from 'react';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface OnboardingModalProps {
     isOpen: boolean;

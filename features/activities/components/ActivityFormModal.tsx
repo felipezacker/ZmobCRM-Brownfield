@@ -1,7 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { Activity, Deal } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { DealSearchCombobox } from '@/components/ui/DealSearchCombobox';
 import type { RecurrenceType } from '@/features/activities/types';
 

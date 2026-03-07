@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 const CONTACT_STAGES = [
   { id: 'LEAD', label: 'Lead', bg: 'bg-blue-500', ring: 'ring-blue-500/30' },

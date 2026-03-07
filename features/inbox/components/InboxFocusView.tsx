@@ -31,7 +31,7 @@ import { useMoveDealSimple } from '@/lib/query/hooks';
 import { useAuth } from '@/context/AuthContext';
 import { InboxZeroState } from './InboxZeroState';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Performance: reuse Intl formatter instances (avoid per-render allocations).
 const PT_BR_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });

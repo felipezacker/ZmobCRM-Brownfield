@@ -1,6 +1,6 @@
 import React, { useState, useId } from 'react';
 import { X, Plus, Trash2, ArrowUp, ArrowDown, Check } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useSettings } from '@/context/settings/SettingsContext';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { LifecycleStage } from '@/types';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, Calendar, Clock, CheckCircle } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export type ScheduleType = 'CALL' | 'MEETING' | 'TASK';
 

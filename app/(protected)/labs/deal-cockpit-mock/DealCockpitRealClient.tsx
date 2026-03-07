@@ -30,7 +30,7 @@ import { useDealNotes } from '@/features/inbox/hooks/useDealNotes';
 import { useDealFiles } from '@/features/inbox/hooks/useDealFiles';
 import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts';
 
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { UIChat } from '@/components/ai/UIChat';
 import { CallModal, type CallLogData } from '@/features/inbox/components/CallModal';
 import { MessageComposerModal, type MessageChannel, type MessageExecutedEvent } from '@/features/inbox/components/MessageComposerModal';

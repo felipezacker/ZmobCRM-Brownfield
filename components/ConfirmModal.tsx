@@ -39,7 +39,7 @@
 import React, { useId, useRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Props do componente ConfirmModal

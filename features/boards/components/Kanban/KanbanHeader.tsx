@@ -3,7 +3,7 @@ import { Plus, Search, LayoutGrid, Table as TableIcon, User, Settings, Lightbulb
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Board } from '@/types';
 import { BoardSelector } from '../BoardSelector';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface KanbanHeaderProps {
     // Boards

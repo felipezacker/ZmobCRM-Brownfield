@@ -15,7 +15,7 @@ import { ExportTemplateModal } from './Modals/ExportTemplateModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useAuth } from '@/context/AuthContext';
 import PageLoader from '@/components/PageLoader';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Trash2, ArrowRightCircle, ChevronDown, X } from 'lucide-react';
 
 interface PipelineViewProps {

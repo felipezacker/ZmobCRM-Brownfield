@@ -5,7 +5,7 @@
  * Usage: Import and render at top of App layout
  */
 import React from 'react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface MaintenanceBannerProps {
   /** Whether to show the banner */

@@ -8,7 +8,7 @@ import { useToast } from '@/context/ToastContext';
 import { Modal } from '@/components/ui/Modal';
 import { MODAL_FOOTER_CLASS } from '@/components/ui/modalStyles';
 import { slugify } from '@/lib/utils/slugify';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CreateBoardModalProps {
   isOpen: boolean;

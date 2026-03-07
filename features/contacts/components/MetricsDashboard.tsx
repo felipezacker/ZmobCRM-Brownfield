@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { ArrowLeft, RefreshCw, Users, Megaphone, Filter as FilterIcon, Trophy, PieChart } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import {
   fetchNewContactsByPeriod,
   fetchContactsBySource,

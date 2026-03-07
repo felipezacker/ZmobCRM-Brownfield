@@ -9,7 +9,7 @@ import { DebugFillButton } from '@/components/debug/DebugFillButton';
 import { fakeDeal, fakeContact } from '@/lib/debug';
 import { ContactSearchCombobox } from '@/components/ui/ContactSearchCombobox';
 import { contactsService } from '@/lib/supabase';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CreateDealModalProps {
     isOpen: boolean;

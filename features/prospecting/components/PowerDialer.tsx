@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { Phone, SkipForward, Square, Flame, Snowflake, Sun, User, Mail, FileText, ChevronDown, Check } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { CallModal, CallLogData } from '@/features/inbox/components/CallModal'
 import { ProspectingScriptGuide } from '@/features/prospecting/components/ProspectingScriptGuide'
 import { ContactHistory } from '@/features/prospecting/components/ContactHistory'

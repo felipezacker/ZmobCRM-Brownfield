@@ -1,6 +1,6 @@
 import React from 'react';
 import { BoardStage } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface StageProgressBarProps {
     stages: BoardStage[];

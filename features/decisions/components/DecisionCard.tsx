@@ -21,7 +21,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Decision, SuggestedAction, PRIORITY_COLORS, PRIORITY_LABELS } from '../types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface DecisionCardProps {
   decision: Decision;

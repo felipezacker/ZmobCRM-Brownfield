@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { FileText, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { CallActivity } from '../hooks/useProspectingMetrics'
 import { formatDuration } from '../utils/formatDuration'
 

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { DealView, Product } from '@/types';
 import type { OrgMember } from '@/hooks/useOrganizationMembers';
 import { Check, Hourglass, Loader2, Plus, Search, Trophy, XCircle } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { productsService } from '@/lib/supabase/products';
 import { ActivityStatusIcon } from './ActivityStatusIcon';

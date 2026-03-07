@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { AISuggestion, AISuggestionType } from '../hooks/useInboxController';
 import {
   Sparkles,

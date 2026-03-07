@@ -15,7 +15,7 @@ import { TabButton, Chip } from '@/features/deals/cockpit/cockpit-ui';
 import { formatCurrencyBRL, formatAtISO } from '@/features/deals/cockpit/cockpit-utils';
 import { UIChat } from '@/components/ai/UIChat';
 import { supabase } from '@/lib/supabase/client';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import type { Contact, Deal } from '@/types';
 
 // ---------------------------------------------------------------------------

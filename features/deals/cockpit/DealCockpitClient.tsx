@@ -61,7 +61,7 @@ import { CockpitTimeline } from './CockpitTimeline';
 import { CockpitChecklist } from './CockpitChecklist';
 import { CockpitRightRail } from './CockpitRightRail';
 import { TemplatePickerModal } from './TemplatePickerModal';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   const router = useRouter();

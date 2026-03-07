@@ -1,7 +1,7 @@
 import React from 'react';
 import { Search, Filter, Plus, Download, GitMerge, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface ContactsHeaderProps {
   viewMode: 'people' | 'companies';

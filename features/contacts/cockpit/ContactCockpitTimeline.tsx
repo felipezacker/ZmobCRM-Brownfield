@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Chip } from '@/features/deals/cockpit/cockpit-ui';
 import { formatAtISO, uid } from '@/features/deals/cockpit/cockpit-utils';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase/client';
 import type { Activity, Deal } from '@/types';
 

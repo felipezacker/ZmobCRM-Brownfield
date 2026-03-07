@@ -7,7 +7,7 @@ import { Send, Loader2, Bot, User, Sparkles, Wrench, X, MessageCircle, Minimize2
 import { useAI } from '@/context/AIContext';
 import dynamic from 'next/dynamic';
 import remarkGfm from 'remark-gfm';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Lazy load react-markdown para reduzir bundle inicial em ~35KB
 // O chat geralmente inicia minimizado (startMinimized={true}), então o markdown

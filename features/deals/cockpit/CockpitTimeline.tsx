@@ -14,7 +14,7 @@ import { Chip } from './cockpit-ui';
 import type { TimelineItem, Actor } from './cockpit-types';
 import type { Activity } from '@/types';
 import { buildExecutionHeader, errorMessage, formatAtISO } from './cockpit-utils';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CockpitTimelineProps {
   timelineItems: TimelineItem[];

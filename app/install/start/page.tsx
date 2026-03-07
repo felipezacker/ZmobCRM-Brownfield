@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, User, Rocket, Database, Eye, EyeOff } from 'lucide-react';
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'framer-motion';
 import { validateInstallerPassword } from '@/lib/installer/passwordPolicy';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 type InstallerMeta = { enabled: boolean; requiresToken: boolean };
 

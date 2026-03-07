@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Bell, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { useSystemNotifications, SystemNotification } from '@/hooks/useSystemNotifications';
 import Link from 'next/link';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 const getTimeAgo = (date: Date) => {
     const now = new Date();

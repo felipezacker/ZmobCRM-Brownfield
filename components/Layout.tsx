@@ -61,7 +61,7 @@ import { BottomNav, MoreMenuSheet, NavigationRail } from '@/components/navigatio
 import { UIChat } from './ai/UIChat';
 
 import { NotificationPopover } from './notifications/NotificationPopover';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Props do componente Layout

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import { useContactActivities } from '@/lib/query/hooks/useActivitiesQuery'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { Activity } from '@/types'
 
 interface ContactHistoryProps {

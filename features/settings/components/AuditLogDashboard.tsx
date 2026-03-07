@@ -25,7 +25,7 @@ import {
 import { EmptyState } from '@/components/ui/EmptyState';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Performance: reuse Intl formatter to avoid allocating options objects for every log row.
 const PT_BR_DATE_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', {

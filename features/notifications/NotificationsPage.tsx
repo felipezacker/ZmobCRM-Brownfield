@@ -11,7 +11,7 @@ import {
   markAllNotificationsRead,
 } from '@/app/actions/notifications'
 import type { CrmNotification, NotificationType } from '@/types'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import {
   Bell,
   Cake,

@@ -3,7 +3,7 @@ import { Download, Upload, FileDown, ChevronLeft, ChevronRight, Check, Plus } fr
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/context/ToastContext';
 import { stringifyCsv, withUtf8Bom, parseCsv, detectCsvDelimiter, type CsvDelimiter } from '@/lib/utils/csv';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 type CustomFieldDef = { id: string; key: string; label: string; type: string };
 

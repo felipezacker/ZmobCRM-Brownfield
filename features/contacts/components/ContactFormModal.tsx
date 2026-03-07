@@ -8,7 +8,7 @@ import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { useAuth } from '@/context/AuthContext';
 import { useActiveDealsCount } from '@/hooks/useReassignContactWithDeals';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { formatCPF, validateCPF, unformatCPF, formatCEP, validateCEP, BRAZILIAN_STATES } from '@/lib/validations/cpf-cep';
 import { ContactPreferencesSection } from './ContactPreferencesSection';
 import { findDuplicates, DuplicateMatch } from '@/lib/supabase/contact-dedup';

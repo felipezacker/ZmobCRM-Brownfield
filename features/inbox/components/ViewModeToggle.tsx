@@ -1,7 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, List, Target } from 'lucide-react';
 import { ViewMode } from '../hooks/useInboxController';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface ViewModeToggleProps {
   mode: ViewMode;

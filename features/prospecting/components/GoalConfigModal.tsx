@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Save, Users } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/Modal'
 import type { DbDailyGoal } from '@/lib/supabase/prospecting-goals'
 

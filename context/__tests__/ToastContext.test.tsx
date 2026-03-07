@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ToastProvider, useToast, useOptionalToast } from '../ToastContext';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 function TestConsumer() {
   const { addToast, removeToast } = useToast();

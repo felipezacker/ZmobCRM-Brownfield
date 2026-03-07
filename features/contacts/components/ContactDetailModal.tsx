@@ -12,7 +12,7 @@ import { useTags } from '@/hooks/useTags';
 import { useSettingsController } from '@/features/settings/hooks/useSettingsController';
 import { useResponsiveMode } from '@/hooks/useResponsiveMode';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import type { Contact, ContactPhone, ContactPreference, Deal, Activity } from '@/types';
 import type { DealNote } from '@/lib/supabase/dealNotes';
 

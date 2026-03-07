@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Search, Plus, Phone, User } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { useProspectingContacts } from '../hooks/useProspectingContacts'
 
 interface AddToQueueSearchProps {

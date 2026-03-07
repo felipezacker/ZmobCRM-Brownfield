@@ -5,7 +5,7 @@ import { Check, ChevronDown, Copy, FileText, Home, Package, Plus, Search, Settin
 import { Panel } from './cockpit-ui';
 import type { DealView, Contact, ContactPreference, CustomFieldDefinition, Product } from '@/types';
 import { formatAtISO, formatCurrencyBRL, humanizeTestLabel } from './cockpit-utils';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
 
 /** Labels legíveis para deal_type. */

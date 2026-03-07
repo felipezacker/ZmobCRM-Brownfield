@@ -5,7 +5,7 @@ import { Activity as ActivityIcon, Check, X } from 'lucide-react';
 import { Chip, Panel } from './cockpit-ui';
 import type { ChecklistItem } from './cockpit-types';
 import { uid } from './cockpit-utils';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CockpitChecklistProps {
   checklist: ChecklistItem[];

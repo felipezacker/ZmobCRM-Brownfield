@@ -477,7 +477,7 @@ interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
   variant?: 'primary' | 'secondary' | 'danger';
 }
 
-const buttonVariants = {
+const submitButtonVariants = {
   primary: 'bg-primary-600 hover:bg-primary-500 shadow-primary-600/20',
   secondary: 'bg-secondary hover:bg-secondary/90 shadow-secondary/20',
   danger: 'bg-destructive hover:bg-destructive/90 shadow-destructive/20',
@@ -523,7 +523,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
       'shadow-lg transition-all duration-200',
       'disabled:opacity-50 disabled:cursor-not-allowed',
       'focus:outline-none focus:ring-2 focus:ring-offset-2',
-      buttonVariants[variant],
+      submitButtonVariants[variant],
       className
     )}
     {...props}

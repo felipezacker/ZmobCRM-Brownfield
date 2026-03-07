@@ -5,7 +5,7 @@ import { Contact } from '@/types';
 import { mergeContacts } from '@/lib/supabase/contact-dedup';
 import { useAuth } from '@/context/AuthContext';
 import { FocusTrap } from '@/lib/a11y';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { formatCPF } from '@/lib/validations/cpf-cep';
 
 // ============================================

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useMemo } from 'react'
 import { Filter, Phone, X, Tag } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import {
   CLASSIFICATION_LABELS,
   SOURCE_LABELS,

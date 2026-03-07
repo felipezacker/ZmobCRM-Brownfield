@@ -14,7 +14,7 @@ import { fetchRegistry, fetchTemplateJourney } from '@/lib/templates/registrySer
 import { RegistryIndex, RegistryTemplate, JourneyDefinition } from '@/types';
 import { OFFICIAL_JOURNEYS } from '@/lib/templates/journey-templates';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface BoardCreationWizardProps {
   isOpen: boolean;

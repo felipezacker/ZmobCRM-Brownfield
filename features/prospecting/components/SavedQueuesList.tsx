@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react'
 import { BookmarkPlus, ChevronDown, Trash2, Share2, Loader2 } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { SavedQueue } from '@/lib/supabase/prospecting-saved-queues'
 
 interface SavedQueuesListProps {

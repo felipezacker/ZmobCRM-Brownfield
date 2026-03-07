@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, AlertTriangle, ChevronDown, Trash2, FolderOutput } from 'lucide-react';
 import { Board } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface DeleteBoardModalProps {
   isOpen: boolean;

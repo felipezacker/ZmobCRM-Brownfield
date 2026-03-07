@@ -9,7 +9,7 @@ import { ActivitiesMonthlyCalendar } from './components/ActivitiesMonthlyCalenda
 import { ActivityFormModal } from './components/ActivityFormModal';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 import ConfirmModal from '@/components/ConfirmModal';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 
 export const ActivitiesPage: React.FC = () => {

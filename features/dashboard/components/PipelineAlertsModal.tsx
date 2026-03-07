@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, AlertTriangle, Clock, Calendar, TrendingUp, ChevronRight } from 'lucide-react';
 import { Deal } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface PipelineAlert {
   type: 'stagnant' | 'no-activity' | 'ready-to-close';

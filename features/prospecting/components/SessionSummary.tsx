@@ -1,6 +1,6 @@
 import React from 'react'
 import { CheckCircle, XCircle, SkipForward, Phone, Clock, BarChart3, Voicemail, PhoneOff } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { SessionStats } from '../ProspectingPage'
 
 interface SessionSummaryProps {

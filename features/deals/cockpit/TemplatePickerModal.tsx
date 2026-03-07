@@ -5,7 +5,7 @@ import { Search, X } from 'lucide-react';
 import type { QuickScript, ScriptCategory } from '@/lib/supabase/quickScripts';
 import type { TemplatePickerMode } from './cockpit-types';
 import { scriptCategoryChipClass } from './cockpit-utils';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface TemplatePickerModalProps {
   isOpen: boolean;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Contact } from '@/types';
 import { Search, RefreshCw } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface ContactsViewProps {
   contacts: Contact[];

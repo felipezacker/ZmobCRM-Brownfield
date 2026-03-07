@@ -3,7 +3,7 @@
 import React from 'react';
 import { Download, X } from 'lucide-react';
 import { useInstallState } from './useInstallState';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export function InstallBanner() {
   const { isEligible, isDismissed, canPrompt, platformHint, promptInstall, dismiss } = useInstallState();

@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle2, CalendarClock, Trash2, X } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface BulkActionsToolbarProps {
     selectedCount: number;

@@ -16,7 +16,7 @@ import type { NextBestAction, TemplatePickerMode } from './cockpit-types';
 import type { MessageChannel } from '@/features/inbox/components/MessageComposerModal';
 import type { MessageLogContext } from './cockpit-types';
 import type { ScheduleType } from '@/features/inbox/components/ScheduleModal';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CockpitActionPanelProps {
   health: { score: number; status: 'excellent' | 'good' | 'warning' | 'critical' };
