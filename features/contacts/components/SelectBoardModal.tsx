@@ -3,6 +3,7 @@ import { X, LayoutGrid } from 'lucide-react';
 import { Board } from '@/types';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 interface SelectBoardModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const SelectBoardModal: React.FC<SelectBoardModalProps> = ({
   return (
     <FocusTrap active={isOpen} onEscape={onClose}>
       <div 
-        className="fixed inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-[var(--z-modal)]"
+        className={MODAL_OVERLAY_CLASS}
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}

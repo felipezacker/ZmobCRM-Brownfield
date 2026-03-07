@@ -7,6 +7,7 @@ import {
   useDeleteNoteTemplate,
 } from '@/lib/query/hooks/useNoteTemplatesQuery'
 import { useToast } from '@/context/ToastContext'
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles'
 import type { CallLogData } from '@/features/inbox/components/CallModal'
 import type { NoteTemplate } from '@/lib/supabase/noteTemplates'
 
@@ -61,7 +62,7 @@ export const NoteTemplatesManager: React.FC<NoteTemplatesManagerProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
+      className={MODAL_OVERLAY_CLASS}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div

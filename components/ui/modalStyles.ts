@@ -7,6 +7,9 @@
  * - consistent viewport caps (no overflow on small screens)
  * - consistent header/body/footer spacing
  */
+/** Shared backdrop bg+blur for inner overlay elements (absolute-positioned within modals). */
+export const MODAL_BACKDROP_CLASS = 'bg-background/60 backdrop-blur-sm';
+
 export const MODAL_OVERLAY_CLASS =
   // Use semantic z-index token (--z-modal) so modals layer correctly with popovers/tooltips/toasts.
   // On desktop, avoid covering the left navigation sidebar by offsetting from `--app-sidebar-width`.

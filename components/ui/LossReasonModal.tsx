@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useId } from 'react';
 import { X, ThumbsDown, DollarSign, Users, Clock, HelpCircle } from 'lucide-react';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 interface LossReasonModalProps {
   isOpen: boolean;
@@ -90,7 +91,7 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
       returnFocus={true}
     >
       <div 
-        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+        className={`${MODAL_OVERLAY_CLASS} animate-in fade-in duration-200`}
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <div 

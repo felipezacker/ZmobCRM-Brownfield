@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCRM } from '@/context/CRMContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { FocusContextPanel } from '@/features/inbox/components/FocusContextPanel';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import type { Activity, DealView } from '@/types';
 
 /**
@@ -74,7 +75,7 @@ export default function DealCockpitFocusClient({ dealId }: { dealId: string }) {
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] bg-background/60 backdrop-blur-sm"
+      className={MODAL_OVERLAY_CLASS}
     >
       <FocusContextPanel
         className="h-full w-full"

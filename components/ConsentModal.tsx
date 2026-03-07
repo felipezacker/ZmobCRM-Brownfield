@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import {
   ConsentType,
   REQUIRED_CONSENTS,
@@ -108,7 +109,7 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm"
+      className={MODAL_OVERLAY_CLASS}
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose?.();

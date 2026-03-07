@@ -13,6 +13,7 @@ import { X } from 'lucide-react';
 import { Board } from '@/types';
 import { UIChat } from '@/components/ai/UIChat';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 interface AIAssistantProps {
   isOpen: boolean;
@@ -101,7 +102,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm md:p-4 pb-[env(safe-area-inset-bottom)]"
+      className={`${MODAL_OVERLAY_CLASS} md:p-4 pb-[env(safe-area-inset-bottom)]`}
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose();

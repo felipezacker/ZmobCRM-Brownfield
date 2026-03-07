@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink } from 'lucide-react';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { Button } from '@/components/ui/button';
+import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
 import { NoteTemplates } from '@/features/prospecting/components/NoteTemplates';
 
 interface CallModalProps {
@@ -157,7 +158,7 @@ export const CallModal: React.FC<CallModalProps> = ({
     return (
         <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" onClick={handleDiscard} />
+            <div className={`absolute inset-0 ${MODAL_BACKDROP_CLASS}`} onClick={handleDiscard} />
 
             {/* Container: side-by-side on desktop when sideContent provided */}
             <div className={`relative flex ${sideContent ? 'gap-4' : ''} mx-4 max-h-[90vh]`}>

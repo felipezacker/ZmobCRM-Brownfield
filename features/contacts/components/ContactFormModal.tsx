@@ -9,6 +9,7 @@ import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { useAuth } from '@/context/AuthContext';
 import { useActiveDealsCount } from '@/hooks/useReassignContactWithDeals';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import { formatCPF, validateCPF, unformatCPF, formatCEP, validateCEP, BRAZILIAN_STATES } from '@/lib/validations/cpf-cep';
 import { ContactPreferencesSection } from './ContactPreferencesSection';
 import { findDuplicates, DuplicateMatch } from '@/lib/supabase/contact-dedup';
@@ -299,7 +300,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   return (
     <FocusTrap active={isOpen} onEscape={onClose}>
       <div
-        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
+        className={MODAL_OVERLAY_CLASS}
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}

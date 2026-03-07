@@ -2,6 +2,7 @@ import React from 'react';
 import { X, AlertTriangle, ChevronDown, Trash2, FolderOutput } from 'lucide-react';
 import { Board } from '@/types';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 interface DeleteBoardModalProps {
   isOpen: boolean;
@@ -56,7 +57,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] bg-background/60 backdrop-blur-sm z-[var(--z-modal)] flex items-center justify-center p-4"
+      className={MODAL_OVERLAY_CLASS}
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose();

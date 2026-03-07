@@ -13,6 +13,7 @@ import { useSettingsController } from '@/features/settings/hooks/useSettingsCont
 import { useResponsiveMode } from '@/hooks/useResponsiveMode';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import type { Contact, ContactPhone, ContactPreference, Deal, Activity } from '@/types';
 import type { DealNote } from '@/lib/supabase/dealNotes';
 
@@ -256,7 +257,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
   if (isLoading || !contact) {
     return (
       <div
-        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
+        className={MODAL_OVERLAY_CLASS}
         onClick={onClose}
       >
         <div className="max-w-xl w-full rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6" onClick={(e) => e.stopPropagation()}>
@@ -295,7 +296,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
     <FocusTrap active onEscape={onClose} clickOutsideDeactivates>
       {/* Overlay */}
       <div
-        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
+        className={MODAL_OVERLAY_CLASS}
         onClick={onClose}
       >
         {/* Panel */}

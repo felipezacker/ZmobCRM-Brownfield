@@ -13,6 +13,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { LossReasonModal } from '@/components/ui/LossReasonModal';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import { Activity } from '@/types';
 import { useResponsiveMode } from '@/hooks/useResponsiveMode';
 import { DealSheet } from '../DealSheet';
@@ -1677,7 +1678,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
         // Backdrop + positioning wrapper. Clicking outside the panel should close the modal.
         // No desktop, este modal não deve cobrir a sidebar de navegação.
         // Em md+ deslocamos o overlay pela largura da sidebar via `--app-sidebar-width`.
-        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
+        className={MODAL_OVERLAY_CLASS}
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}

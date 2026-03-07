@@ -32,6 +32,7 @@ import { useAuth } from '@/context/AuthContext';
 import { InboxZeroState } from './InboxZeroState';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 // Performance: reuse Intl formatter instances (avoid per-render allocations).
 const PT_BR_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -546,7 +547,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
                 stiffness: 300,
                 damping: 30
               }}
-              className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] bg-background/60 backdrop-blur-sm"
+              className={MODAL_OVERLAY_CLASS}
             >
               <FocusContextPanel
                 className="h-full w-full"
@@ -575,7 +576,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
                 stiffness: 300,
                 damping: 30
               }}
-              className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] bg-background/60 backdrop-blur-sm flex items-center justify-center p-4"
+              className={MODAL_OVERLAY_CLASS}
               role="dialog"
               aria-modal="true"
               aria-label="Vincular contexto"

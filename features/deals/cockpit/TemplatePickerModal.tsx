@@ -6,6 +6,7 @@ import type { QuickScript, ScriptCategory } from '@/lib/supabase/quickScripts';
 import type { TemplatePickerMode } from './cockpit-types';
 import { scriptCategoryChipClass } from './cockpit-utils';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 interface TemplatePickerModalProps {
   isOpen: boolean;
@@ -56,7 +57,7 @@ export function TemplatePickerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm" onClick={onClose}>
+    <div className={MODAL_OVERLAY_CLASS} onClick={onClose}>
       <div className="relative w-full max-w-2xl max-h-[80dvh] flex flex-col rounded-2xl border border-white/10 bg-slate-950 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
           <div className="text-sm font-semibold text-slate-100">

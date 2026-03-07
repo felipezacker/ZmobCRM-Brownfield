@@ -31,6 +31,7 @@ import { useDealFiles } from '@/features/inbox/hooks/useDealFiles';
 import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts';
 
 import { Button } from '@/components/ui/button';
+import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
 import { UIChat } from '@/components/ai/UIChat';
 import { CallModal, type CallLogData } from '@/features/inbox/components/CallModal';
 import { MessageComposerModal, type MessageChannel, type MessageExecutedEvent } from '@/features/inbox/components/MessageComposerModal';
@@ -189,7 +190,7 @@ function TemplatePickerModal({
 
   return (
     <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center">
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" onClick={onClose} />
+      <div className={`absolute inset-0 ${MODAL_BACKDROP_CLASS}`} onClick={onClose} />
       <div className="relative w-full max-w-3xl mx-4 rounded-2xl border border-white/10 bg-slate-950 shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div className="min-w-0">

@@ -5,6 +5,7 @@ import { useSettings } from '@/context/settings/SettingsContext';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { LifecycleStage } from '@/types';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
+import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
 
 interface LifecycleSettingsModalProps {
     isOpen: boolean;
@@ -81,7 +82,7 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
                 aria-modal="true"
                 aria-labelledby={headingId}
             >
-                <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" onClick={onClose} />
+                <div className={`absolute inset-0 ${MODAL_BACKDROP_CLASS}`} onClick={onClose} />
 
                 <div className="relative z-10 w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
                     <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">

@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { X, Save, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles'
 
 interface SaveQueueModalProps {
   isOpen: boolean
@@ -53,7 +54,7 @@ export function SaveQueueModal({
 
   return (
     <div
-      className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm"
+      className={MODAL_OVERLAY_CLASS}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       role="dialog"
       aria-modal="true"

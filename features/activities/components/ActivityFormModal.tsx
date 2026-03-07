@@ -2,6 +2,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Activity, Deal } from '@/types';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import { DealSearchCombobox } from '@/components/ui/DealSearchCombobox';
 import type { RecurrenceType } from '@/features/activities/types';
 
@@ -49,7 +50,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
+      className={MODAL_OVERLAY_CLASS}
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose();

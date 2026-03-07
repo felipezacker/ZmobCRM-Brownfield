@@ -2,6 +2,7 @@ import React from 'react';
 import { X, AlertTriangle, Clock, Calendar, TrendingUp, ChevronRight } from 'lucide-react';
 import { Deal } from '@/types';
 import { Button } from '@/components/ui/button';
+import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
 
 interface PipelineAlert {
   type: 'stagnant' | 'no-activity' | 'ready-to-close';
@@ -119,7 +120,7 @@ export const PipelineAlertsModal: React.FC<PipelineAlertsModalProps> = ({
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-background/60 backdrop-blur-sm pointer-events-none" />
+      <div className={`absolute inset-0 ${MODAL_BACKDROP_CLASS} pointer-events-none`} />
       
       {/* Modal */}
       <div className="relative bg-white dark:bg-dark-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border border-slate-200 dark:border-white/10">

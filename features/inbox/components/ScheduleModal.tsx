@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
 
 export type ScheduleType = 'CALL' | 'MEETING' | 'TASK';
 
@@ -145,7 +146,7 @@ export function ScheduleModal({
         <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+                className={`absolute inset-0 ${MODAL_BACKDROP_CLASS}`}
                 onClick={onClose}
             />
 

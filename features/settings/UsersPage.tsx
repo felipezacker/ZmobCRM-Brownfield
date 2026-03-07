@@ -6,6 +6,7 @@ import { useToast } from '@/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
 import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Mail, Check, X, Sparkles, Clock, RefreshCw, Trash2, Link, Copy, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 interface Profile {
     id: string;
@@ -423,7 +424,7 @@ export const UsersPage: React.FC = () => {
             {/* Modal */}
             {isModalOpen && (
                 <div
-                    className="fixed inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center p-4 z-[var(--z-modal)]"
+                    className={MODAL_OVERLAY_CLASS}
                     onClick={(e) => {
                         // Close only when clicking the backdrop (outside the panel).
                         if (e.target === e.currentTarget) closeModal();

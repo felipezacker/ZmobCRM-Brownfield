@@ -8,6 +8,7 @@ import { useAI } from '@/context/AIContext';
 import dynamic from 'next/dynamic';
 import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 // Lazy load react-markdown para reduzir bundle inicial em ~35KB
 // O chat geralmente inicia minimizado (startMinimized={true}), então o markdown
@@ -1257,7 +1258,7 @@ export function UIChat({
                 <>
                     {/* Overlay */}
                     <div
-                        className="fixed inset-0 z-[var(--z-modal)] bg-background/60 backdrop-blur-sm transition-opacity duration-300"
+                        className={`${MODAL_OVERLAY_CLASS} transition-opacity duration-300`}
                         onClick={() => setIsExpanded(false)}
                     />
                     {/* Drawer Panel */}
