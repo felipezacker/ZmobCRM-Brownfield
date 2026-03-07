@@ -56,7 +56,7 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
 
             {/* Reassign Modal */}
             {showReassignModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm">
                     <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-white/10 p-6 w-full max-w-md mx-4">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">

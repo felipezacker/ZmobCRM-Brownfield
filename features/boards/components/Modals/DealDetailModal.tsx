@@ -1677,7 +1677,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
         // Backdrop + positioning wrapper. Clicking outside the panel should close the modal.
         // No desktop, este modal não deve cobrir a sidebar de navegação.
         // Em md+ deslocamos o overlay pela largura da sidebar via `--app-sidebar-width`.
-        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}

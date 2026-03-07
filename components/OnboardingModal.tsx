@@ -41,11 +41,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             clickOutsideDeactivates={true}
         >
             <div
-                className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center"
+                className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center"
                 role="presentation"
             >
                 <div
-                    className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                    className="absolute inset-0 bg-background/60 backdrop-blur-md"
                     aria-hidden="true"
                     onClick={onSkip}
                 />

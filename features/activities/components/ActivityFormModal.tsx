@@ -49,7 +49,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose();
