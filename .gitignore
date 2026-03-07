@@ -113,3 +113,6 @@ supabase/backups/
 
 # SYNAPSE runtime data
 .synapse/
+
+# Dashboard app (separate repo)
+apps/
