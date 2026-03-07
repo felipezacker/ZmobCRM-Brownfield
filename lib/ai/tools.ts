@@ -7,6 +7,7 @@ import { createDealTools } from './tools/deal-tools';
 import { createContactTools } from './tools/contact-tools';
 import { createActivityTools } from './tools/activity-tools';
 import { createNoteTools } from './tools/note-tools';
+import { createProspectingTools } from './tools/prospecting-tools';
 
 /**
  * Creates all CRM tools with context injection.
@@ -32,6 +33,7 @@ export function createCRMTools(context: CRMCallOptions, userId: string, supabase
         ...createContactTools(toolContext),
         ...createActivityTools(toolContext),
         ...createNoteTools(toolContext),
+        ...createProspectingTools(toolContext),
     } as Record<string, any>;
 
     // Debug/diagnóstico (scripts): registra chamadas de tools.

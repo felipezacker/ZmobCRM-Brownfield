@@ -69,7 +69,7 @@ export function createActivityTools({ supabase, organizationId, context, userId,
 
                 let q = supabase
                     .from('activities')
-                    .select('id, title, description, type, date, completed, deal_id, contact_id, deals(title, board_id), contact:contacts(name)')
+                    .select('id, title, description, type, date, completed, metadata, deal_id, contact_id, deals(title, board_id), contact:contacts(name)')
                     .eq('organization_id', organizationId)
                     .is('deleted_at', null)
                     .order('date', { ascending: true })
@@ -84,7 +84,7 @@ export function createActivityTools({ supabase, organizationId, context, userId,
                 if (targetBoardId) {
                     q = supabase
                         .from('activities')
-                        .select('id, title, description, type, date, completed, deal_id, contact_id, deals!inner(title, board_id), contact:contacts(name)')
+                        .select('id, title, description, type, date, completed, metadata, deal_id, contact_id, deals!inner(title, board_id), contact:contacts(name)')
                         .eq('organization_id', organizationId)
                         .is('deleted_at', null)
                         .order('date', { ascending: true })
@@ -110,6 +110,7 @@ export function createActivityTools({ supabase, organizationId, context, userId,
                             type: a.type,
                             date: a.date,
                             completed: !!a.completed,
+                            metadata: a.metadata || null,
                             dealTitle: a.deals?.title || null,
                             contactName: a.contact?.name || null,
                         })) || [],

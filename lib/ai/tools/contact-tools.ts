@@ -7,29 +7,46 @@ import { calculateLeadScore } from '@/lib/supabase/lead-scoring';
 export function createContactTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
         searchContacts: tool({
-            description: 'Busca contatos por nome ou email',
+            description: 'Busca contatos por nome, email, tag ou custom field',
             inputSchema: z.object({
-                query: z.string().describe('Termo de busca'),
+                query: z.string().describe('Termo de busca (nome ou email)'),
+                tag: z.string().optional().describe('Filtrar por tag (ex: "VIP", "Indicação")'),
+                customFieldKey: z.string().optional().describe('Nome do campo custom para filtrar (ex: "origem")'),
+                customFieldValue: z.string().optional().describe('Valor do campo custom (ex: "indicacao")'),
                 limit: z.number().optional().default(5),
             }),
-            execute: async ({ query, limit }) => {
-                console.log('[AI] 🔍 searchContacts EXECUTED!', query);
+            execute: async ({ query, tag, customFieldKey, customFieldValue, limit }) => {
+                console.log('[AI] 🔍 searchContacts EXECUTED!', { query, tag, customFieldKey, customFieldValue });
 
-                const { data: contacts } = await supabase
+                let q = supabase
                     .from('contacts')
-                    .select('id, name, email, phone')
+                    .select('id, name, email, phone, tags, custom_fields')
                     .eq('organization_id', organizationId)
-                    .is('deleted_at', null)
-                    .or(`name.ilike.%${sanitizeFilterValue(query)}%,email.ilike.%${sanitizeFilterValue(query)}%`)
-                    .limit(limit);
+                    .is('deleted_at', null);
+
+                if (query) {
+                    q = q.or(`name.ilike.%${sanitizeFilterValue(query)}%,email.ilike.%${sanitizeFilterValue(query)}%`);
+                }
+
+                if (tag) {
+                    q = q.contains('tags', [tag]);
+                }
+
+                if (customFieldKey && customFieldValue) {
+                    q = q.contains('custom_fields', { [customFieldKey]: customFieldValue });
+                }
+
+                const { data: contacts } = await q.limit(limit);
 
                 return {
                     count: contacts?.length || 0,
-                    contacts: contacts?.map(c => ({
+                    contacts: contacts?.map((c: any) => ({
                         id: c.id,
                         name: c.name,
                         email: c.email || 'N/A',
                         phone: c.phone || 'N/A',
+                        tags: c.tags || [],
+                        customFields: c.custom_fields || {},
                     })) || []
                 };
             },
@@ -106,21 +123,25 @@ export function createContactTools({ supabase, organizationId, context, userId, 
         }),
 
         getContactDetails: tool({
-            description: 'Mostra detalhes de um contato.',
+            description: 'Mostra detalhes de um contato, incluindo tags e campos customizados.',
             inputSchema: z.object({
                 contactId: z.string(),
             }),
             execute: async ({ contactId }) => {
                 const { data, error } = await supabase
                     .from('contacts')
-                    .select('id, name, email, phone, notes, status, stage, source, created_at, updated_at')
+                    .select('id, name, email, phone, notes, status, stage, source, tags, custom_fields, created_at, updated_at')
                     .eq('organization_id', organizationId)
                     .eq('id', contactId)
                     .is('deleted_at', null)
                     .maybeSingle();
                 if (error) return { error: formatSupabaseFailure(error) };
                 if (!data) return { error: 'Contato não encontrado nesta organização.' };
-                return data;
+                return {
+                    ...data,
+                    tags: (data as any).tags || [],
+                    customFields: (data as any).custom_fields || {},
+                };
             },
         }),
 
