@@ -1,0 +1,47 @@
+schema: 1
+story: 'TD-3.2'
+story_title: 'Database -- RLS Rate Limits + Phone Sync + Dashboard Performance'
+gate: PASS
+status_reason: 'All 8 ACs met. DB-007 server-only RLS, DB-015 bidirectional triggers with triple loop prevention, DB-009 COUNT FILTER optimization. No CRITICAL/HIGH issues.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-03-07T00:00:00Z'
+
+quality_score: 100
+expires: '2026-03-21T00:00:00Z'
+
+top_issues: []
+waiver: { active: false }
+
+evidence:
+  tests_reviewed:
+    count: 0
+    notes: 'Database migration story — validated via staging deployment and EXPLAIN ANALYZE'
+  risks_identified:
+    count: 0
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'rate_limits server-only RLS. Trigger functions SECURITY DEFINER with SET search_path. get_dashboard_stats SECURITY INVOKER. No SQL injection vectors.'
+  performance:
+    status: PASS
+    notes: 'get_dashboard_stats reduced from 6 subqueries to 3 (single scan per table). 25ms on staging with 107 deals. Trigger overhead minimal with guard clauses.'
+  reliability:
+    status: PASS
+    notes: 'Triple loop prevention (IS DISTINCT FROM + pg_trigger_depth + conditional guards). Data reconciliation before trigger installation. Idempotent migrations.'
+  maintainability:
+    status: PASS
+    notes: 'Well-commented SQL with COMMENT ON TABLE/FUNCTION. Clear separation in two migrations (main + fix). syncPrimaryPhone deprecated with JSDoc.'
+
+recommendations:
+  immediate: []
+  future:
+    - action: 'Consider making frontend dashboard consume get_dashboard_stats() via RPC instead of client-side computation'
+      refs: ['features/dashboard/hooks/useDashboardMetrics.ts']
+  resolved:
+    - action: 'Remove no-op syncPrimaryPhone() calls — RESOLVED by @dev 2026-03-07'
+    - action: 'Remove manual is_primary management in TS — RESOLVED by @dev 2026-03-07'
+    - action: 'Remove orphaned phoneData query in delete() — RESOLVED by @dev 2026-03-07'
