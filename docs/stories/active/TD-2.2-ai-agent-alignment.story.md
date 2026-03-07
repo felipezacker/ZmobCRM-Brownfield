@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** TD-2.2
 - **Epic:** TD (Technical Debt Resolution)
-- **Status:** InReview
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 13
 - **Wave:** 2
@@ -110,7 +110,7 @@ Esta story corrige o alinhamento completo da IA com o sistema real: migrar BASE_
 - [x] `npm run typecheck` passando
 - [x] `npm run lint` passando
 - [x] `npm test` passando (incluindo novos testes para tools)
-- [ ] Code reviewed
+- [x] Code reviewed
 
 ## File List
 | File | Action | Description |

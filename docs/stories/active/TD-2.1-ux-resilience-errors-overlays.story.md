@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** TD-2.1
 - **Epic:** TD (Technical Debt Resolution)
-- **Status:** InReview
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 8
 - **Wave:** 2
@@ -91,7 +91,7 @@ Proteger todas as paginas do sistema contra erros nao tratados e padronizar a ca
 - [x] `npm run typecheck` passando
 - [x] `npm run lint` passando
 - [x] `npm test` passando sem regressoes
-- [ ] Code reviewed
+- [x] Code reviewed
 
 ## File List
 | File | Action | Description |
