@@ -17,7 +17,7 @@ import {
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 
 interface DateRangePickerProps {
   from: string;

@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { DealDetailModal } from '@/features/boards/components/Modals/DealDetailModal';
+import { DealDetailModal } from '@/features/boards/components/deal-detail';
 import { runStorySteps } from './storyRunner';
 
 // Story: US-001 — Abrir um deal no Boards

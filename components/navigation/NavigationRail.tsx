@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 import { PRIMARY_NAV, SECONDARY_NAV } from './navConfig';
 
 export interface NavigationRailProps {
@@ -33,7 +33,7 @@ export function NavigationRail({ onOpenMore }: NavigationRailProps) {
         </div>
       </div>
 
-      <div className="flex-1 px-3 py-2 overflow-y-auto scrollbar-custom">
+      <div className="flex-1 px-3 py-2 overflow-y-auto">
         <div className="space-y-2">
           {PRIMARY_NAV.filter((i) => i.id !== 'more').map((item) => {
             const Icon = item.icon;

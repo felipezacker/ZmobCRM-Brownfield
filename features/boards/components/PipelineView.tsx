@@ -1,9 +1,9 @@
 import React from 'react';
 import { Info } from 'lucide-react';
-import { DealDetailModal } from './Modals/DealDetailModal';
+import { DealDetailModal } from '@/features/boards/components/deal-detail';
 import { CreateDealModal } from './Modals/CreateDealModal';
 import { CreateBoardModal } from './Modals/CreateBoardModal';
-import { BoardCreationWizard } from './BoardCreationWizard';
+import { BoardCreationWizard } from '@/features/boards/components/board-wizard';
 import { KanbanHeader } from './Kanban/KanbanHeader';
 import { BoardStrategyHeader } from './Kanban/BoardStrategyHeader';
 import { KanbanBoard } from './Kanban/KanbanBoard';

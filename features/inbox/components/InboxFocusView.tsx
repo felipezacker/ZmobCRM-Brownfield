@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { FocusItem, AISuggestion } from '../hooks/useInboxController';
 import { Activity, DealView } from '@/types';
-import { FocusContextPanel } from './FocusContextPanel';
+import { FocusContextPanel } from './focus-context';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useDeals } from '@/context/deals/DealsContext';
 import { useContacts } from '@/context/contacts/ContactsContext';

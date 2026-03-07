@@ -4,7 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCRM } from '@/context/CRMContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
-import { FocusContextPanel } from '@/features/inbox/components/FocusContextPanel';
+import { FocusContextPanel } from '@/features/inbox/components/focus-context';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import type { Activity, DealView } from '@/types';
 

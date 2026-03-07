@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sheet } from '@/components/ui/Sheet';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 
 export interface DealSheetProps {
   isOpen: boolean;

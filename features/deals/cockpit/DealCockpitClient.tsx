@@ -56,7 +56,7 @@ import {
 
 import { CockpitPipelineBar } from './CockpitPipelineBar';
 import { CockpitActionPanel } from './CockpitActionPanel';
-import { CockpitDataPanel } from './CockpitDataPanel';
+import { CockpitDataPanel } from './components';
 import { CockpitTimeline } from './CockpitTimeline';
 import { CockpitChecklist } from './CockpitChecklist';
 import { CockpitRightRail } from './CockpitRightRail';

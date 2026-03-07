@@ -8,7 +8,7 @@
  */
 import React from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 import { Sheet } from './Sheet';
 
 export interface FullscreenSheetProps {
