@@ -56,7 +56,7 @@ export function TemplatePickerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60" onClick={onClose}>
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm" onClick={onClose}>
       <div className="relative w-full max-w-2xl max-h-[80dvh] flex flex-col rounded-2xl border border-white/10 bg-slate-950 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
           <div className="text-sm font-semibold text-slate-100">

@@ -74,7 +74,7 @@ export default function DealCockpitFocusClient({ dealId }: { dealId: string }) {
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] bg-background/60 backdrop-blur-sm"
     >
       <FocusContextPanel
         className="h-full w-full"

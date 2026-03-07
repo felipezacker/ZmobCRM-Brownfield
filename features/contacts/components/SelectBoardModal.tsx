@@ -46,7 +46,7 @@ export const SelectBoardModal: React.FC<SelectBoardModalProps> = ({
   return (
     <FocusTrap active={isOpen} onEscape={onClose}>
       <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+        className="fixed inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-[var(--z-modal)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}

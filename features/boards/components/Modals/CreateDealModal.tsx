@@ -114,7 +114,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
 
     if (!activeBoard || !activeBoard.stages?.length) {
         return (
-            <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+            <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4">
                 <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-5">
                     <p className="text-slate-700 dark:text-slate-300 text-center">
                         Nenhum board selecionado ou board sem estágios.
@@ -193,7 +193,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
 
     return (
         <div
-            className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+            className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
             onClick={(e) => {
                 if (e.target === e.currentTarget) { onClose(); resetForm(); }
             }}

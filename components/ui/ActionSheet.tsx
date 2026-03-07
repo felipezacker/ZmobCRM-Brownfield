@@ -52,7 +52,7 @@ export function ActionSheet({
       {isOpen ? (
         <FocusTrap active={isOpen} onEscape={handleEscape} returnFocus={true}>
           <motion.div
-            className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] bg-background/70 backdrop-blur-sm"
+            className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] bg-background/70 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

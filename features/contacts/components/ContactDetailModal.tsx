@@ -256,7 +256,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
   if (isLoading || !contact) {
     return (
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 dark:bg-black/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
         onClick={onClose}
       >
         <div className="max-w-xl w-full rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6" onClick={(e) => e.stopPropagation()}>
@@ -295,7 +295,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
     <FocusTrap active onEscape={onClose} clickOutsideDeactivates>
       {/* Overlay */}
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 dark:bg-black/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
+        className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm md:left-[var(--app-sidebar-width,0px)]"
         onClick={onClose}
       >
         {/* Panel */}

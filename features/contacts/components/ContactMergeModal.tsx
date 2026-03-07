@@ -113,7 +113,7 @@ export const ContactMergeModal: React.FC<ContactMergeModalProps> = ({
   return (
     <FocusTrap active={isOpen} onEscape={onClose}>
       <div
-        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
         role="dialog"
         aria-modal="true"
         aria-label="Merge de contatos"

@@ -38,7 +38,7 @@ export function Sheet({ isOpen, onClose, children, ariaLabel, className }: Sheet
         <FocusTrap active={isOpen} onEscape={handleEscape} returnFocus={true}>
           <motion.div
             className={cn(
-              'fixed inset-0 z-[9999] bg-background/70 backdrop-blur-sm',
+              'fixed inset-0 z-[var(--z-modal)] bg-background/70 backdrop-blur-sm',
               // keep consistent with desktop sidebar behavior
               'md:left-[var(--app-sidebar-width,0px)]'
             )}

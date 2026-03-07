@@ -423,7 +423,7 @@ export const UsersPage: React.FC = () => {
             {/* Modal */}
             {isModalOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+                    className="fixed inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center p-4 z-[var(--z-modal)]"
                     onClick={(e) => {
                         // Close only when clicking the backdrop (outside the panel).
                         if (e.target === e.currentTarget) closeModal();

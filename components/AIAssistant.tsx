@@ -101,7 +101,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm md:p-4 pb-[env(safe-area-inset-bottom)]"
+      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center bg-background/60 backdrop-blur-sm md:p-4 pb-[env(safe-area-inset-bottom)]"
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose();

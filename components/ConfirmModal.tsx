@@ -40,6 +40,7 @@ import React, { useId, useRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 /**
  * Props do componente ConfirmModal
@@ -102,7 +103,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             returnFocus={true}
         >
             <div 
-                className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+                className={`${MODAL_OVERLAY_CLASS} animate-in fade-in duration-200`}
                 onClick={(e) => e.target === e.currentTarget && onClose()}
             >
                 <div 
