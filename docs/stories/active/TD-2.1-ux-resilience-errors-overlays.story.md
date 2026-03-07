@@ -150,9 +150,24 @@ Proteger todas as paginas do sistema contra erros nao tratados e padronizar a ca
 | `features/settings/components/LifecycleSettingsModal.tsx` | Modified | Overlay padronizado |
 | `app/(protected)/labs/deal-cockpit-mock/DealCockpitRealClient.tsx` | Modified | z-index migrado |
 
+## QA Results
+- **Reviewer:** @qa (Quinn)
+- **Date:** 2026-03-07
+- **Verdict:** CONCERNS
+- **Tests:** 691 passed, 0 failed
+- **TypeScript:** 0 errors (excl. apps/dashboard — pre-existente)
+- **Lint:** 0 warnings, 0 errors
+- **ACs verified:** 10/10
+- **Concern (MEDIUM — non-blocking):**
+  1. 24 of 26 modals use inline overlay classes instead of importing MODAL_OVERLAY_CLASS from modalStyles.ts. Subtle differences in responsive classes (items-center vs items-stretch sm:items-center, p-4 vs p-2 sm:p-4).
+- **Re-Review (QA Fixes):** 2026-03-07 — PASS. All 24 modals migrated to use MODAL_OVERLAY_CLASS/MODAL_BACKDROP_CLASS imports (commit 3a145d6). Inline overlay strings eliminated.
+
 ## Change Log
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-03-06 | @pm | Story created |
 | 2026-03-07 | @po | Validated GO (8/10) -- renamed file, status Draft -> Ready |
 | 2026-03-07 | @dev | Implementation complete: 18 error.tsx, not-found, 30+ overlays, 7 z-index tokens, GlobalError. 10/10 ACs done. Status Ready -> InReview |
+| 2026-03-07 | @qa | QA Review CONCERNS — 10/10 ACs verified, 1 non-blocking observation: 24 modals with inline overlay instead of MODAL_OVERLAY_CLASS import |
+| 2026-03-07 | @dev | QA fix applied: replaced inline overlay classes with MODAL_OVERLAY_CLASS/MODAL_BACKDROP_CLASS in all 24 modals |
+| 2026-03-07 | @qa | Re-review PASS — all modals now use centralized overlay imports |
