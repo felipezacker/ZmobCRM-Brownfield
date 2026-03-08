@@ -195,7 +195,7 @@ export interface Contact {
 
   // Tags & Custom Fields (migrado de Deal para Contact)
   tags?: string[];
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
 }
 
 // Telefone de contato (tabela contact_phones)
@@ -290,7 +290,7 @@ export interface DealView extends Deal {
   /** Tags do contato vinculado (read-only no deal). */
   contactTags: string[];
   /** Campos customizados do contato vinculado (read-only no deal). */
-  contactCustomFields: Record<string, any>;
+  contactCustomFields: Record<string, unknown>;
   /** Nome/label do estágio atual (resolvido a partir do status UUID) */
   stageLabel: string;
 }

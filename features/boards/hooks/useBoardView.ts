@@ -143,7 +143,7 @@ export const useBoardView = ({
         dateRange: (dateRange.start || dateRange.end) ? dateRange : undefined,
       },
     });
-  }, [activeBoard, deals, statusFilter, ownerFilter, searchTerm, dateRange.start, dateRange.end]);
+  }, [activeBoard, deals, statusFilter, ownerFilter, searchTerm, dateRange, setContext]);
 
   return {
     selectedDealId, setSelectedDealId,

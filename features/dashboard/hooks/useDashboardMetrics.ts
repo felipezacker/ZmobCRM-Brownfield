@@ -317,7 +317,7 @@ export const useDashboardMetrics = (period: PeriodFilter = 'this_month', boardId
       count: activeSnapshotDeals.filter(d => d.status === stage.id).length,
       fill: COLOR_MAP[stage.color] || 'var(--chart-blue)',
     }));
-  }, [activeSnapshotDeals, defaultBoard, boards, boardId]);
+  }, [activeSnapshotDeals, defaultBoard, boards, boardId, deals]);
 
   // Mock Trend Data
   // Real Trend Data (Last 6 Months)

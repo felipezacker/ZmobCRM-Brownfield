@@ -335,7 +335,7 @@ export function ContactsImportExportModal(props: {
         const crmLabel = CRM_FIELDS.find(f => f.value === field)?.label || field;
         return { header, crmLabel };
       });
-  }, [columnMapping, parsedHeaders]);
+  }, [columnMapping, parsedHeaders, CRM_FIELDS]);
 
   const previewRows = useMemo(() => parsedRows.slice(0, 5), [parsedRows]);
 

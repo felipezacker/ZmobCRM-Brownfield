@@ -94,7 +94,7 @@ export const useInboxFilters = (p: UseInboxFiltersParams) => {
       } finally { if (alive) setIsGeneratingBriefing(false); }
     })();
     return () => { alive = false; };
-  }, [p.birthdaysThisMonth.length, p.stalledDeals.length, p.overdueActivities.length, p.upsellDeals.length]);
+  }, [briefing, p.birthdaysThisMonth, p.stalledDeals.length, p.overdueActivities.length, p.upsellDeals.length]);
 
   const stats = useMemo(() => {
     const oc = p.overdueActivities.length, tc = p.todayActivities.length, sc = aiSuggestions.length;

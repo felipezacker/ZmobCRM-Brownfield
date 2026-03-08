@@ -39,8 +39,8 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   // 'start' = next click sets from, 'end' = next click sets to
   const [picking, setPicking] = useState<'start' | 'end'>('start');
 
-  const fromDate = from ? new Date(from + 'T00:00:00') : null;
-  const toDate = to ? new Date(to + 'T00:00:00') : null;
+  const fromDate = useMemo(() => from ? new Date(from + 'T00:00:00') : null, [from]);
+  const toDate = useMemo(() => to ? new Date(to + 'T00:00:00') : null, [to]);
 
   const days = useMemo(() => {
     const monthStart = startOfMonth(viewMonth);

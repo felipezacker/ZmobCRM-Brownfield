@@ -44,6 +44,10 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
   const activitiesById = useMemo(() => new Map(activities.map((a) => [a.id, a])), [activities]);
 
   const deal = dealId ? dealsById.get(dealId) : undefined;
+  // Keep a ref to the current deal so effects that should only run on dealId change
+  // can read the latest deal data without depending on the deal object identity.
+  const dealRef = useRef(deal);
+  dealRef.current = deal;
   const { data: contactDirect } = useContactQuery(deal?.contactId || undefined);
   const contact = contactDirect ?? contactsById.get(deal?.contactId ?? '') ?? null;
   const resolvedContactName = contact?.name || deal?.contactName || 'Sem contato';
@@ -187,9 +191,10 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
   }, [deal?.id, fetchDealNotes]);
 
   useEffect(() => {
-    if (isOpen && deal) {
-      setEditValue(deal.value.toString());
-      setPropertyRef(deal.propertyRef || '');
+    const currentDeal = dealRef.current;
+    if (isOpen && currentDeal) {
+      setEditValue(currentDeal.value.toString());
+      setPropertyRef(currentDeal.propertyRef || '');
       setAiResult(null);
       setEmailDraft(null);
       setObjectionResponses([]);

@@ -198,7 +198,7 @@ export function ExportTemplateModal(props: {
   useEffect(() => {
     if (journeyNameDirty) return;
     setJourneyName(buildDefaultJourneyName(selectedBoards));
-  }, [selectedBoards]);
+  }, [selectedBoards, journeyNameDirty]);
 
   const journeyJson = useMemo(() => {
     return buildJourneyFromBoards({

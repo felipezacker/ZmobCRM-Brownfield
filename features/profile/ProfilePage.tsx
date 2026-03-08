@@ -235,7 +235,7 @@ export const ProfilePage: React.FC = () => {
                 }
             }
 
-            const updatePayload: Record<string, any> = {
+            const updatePayload: Record<string, string | number | null> = {
                 first_name: firstName.trim() || null,
                 last_name: lastName.trim() || null,
                 nickname: nickname.trim() || null,

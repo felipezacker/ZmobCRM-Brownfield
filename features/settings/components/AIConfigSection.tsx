@@ -245,7 +245,7 @@ export const AIConfigSection: React.FC = () => {
     useEffect(() => {
         // Keep select in sync when aiModel changes externally (initial load / provider auto-pick / save custom).
         setModelSelectValue(isCatalogModel ? aiModel : 'custom');
-    }, [aiProvider, aiModel]);
+    }, [aiProvider, aiModel, isCatalogModel]);
 
     // UX: for "Outro (Digitar ID)" we keep a local draft and only persist on explicit save.
     // This avoids POST /api/settings/ai failing (aiModel has z.string().min(1)).

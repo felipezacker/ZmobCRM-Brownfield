@@ -6,7 +6,7 @@ import type { CustomFieldDefinition } from '@/types';
 import { SectionHeader } from '@/features/deals/cockpit/components/SectionHeader';
 
 export interface CustomFieldsSectionProps {
-  customFields: Record<string, any> | undefined;
+  customFields: Record<string, unknown> | undefined;
   filledCustomFields: CustomFieldDefinition[];
   collapsed: boolean;
   onToggle: () => void;

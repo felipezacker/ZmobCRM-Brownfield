@@ -70,15 +70,17 @@ export const useContactsController = () => {
   });
 
   // handleSort bridges filters + search (resets pagination on sort change)
+  const { sortBy, setSortBy, setSortOrder } = filters;
+  const { setPagination } = search;
   const handleSort = useCallback((column: ContactSortableColumn) => {
-    if (filters.sortBy === column) {
-      filters.setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    if (sortBy === column) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
-      filters.setSortBy(column);
-      filters.setSortOrder('desc');
+      setSortBy(column);
+      setSortOrder('desc');
     }
-    search.setPagination(prev => ({ ...prev, pageIndex: 0 }));
-  }, [filters.sortBy, filters.setSortBy, filters.setSortOrder, search.setPagination]);
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [sortBy, setSortBy, setSortOrder, setPagination]);
 
   return {
     // Detail modal

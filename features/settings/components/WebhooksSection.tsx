@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Webhook, ArrowRight, Copy, Check, Link as LinkIcon, Pencil, Power, Trash2, KeyRound, HelpCircle } from 'lucide-react';
 import { SettingsSection } from './SettingsSection';
 import { Modal } from '@/components/ui/Modal';
@@ -88,7 +88,7 @@ export const WebhooksSection: React.FC = () => {
     [boards, selectedBoardId, defaultBoard]
   );
   const [selectedStageId, setSelectedStageId] = useState<string>('');
-  const stages = selectedBoard?.stages || [];
+  const stages = useMemo(() => selectedBoard?.stages || [], [selectedBoard?.stages]);
 
   // Follow-up modal
   const [isFollowUpOpen, setIsFollowUpOpen] = useState(false);
@@ -126,7 +126,7 @@ export const WebhooksSection: React.FC = () => {
     return s?.label || null;
   }, [activeInbound, boards]);
 
-  async function loadWebhooks() {
+  const loadWebhooks = useCallback(async () => {
     if (!canUse) return;
     if (!supabase) return;
     setLoading(true);
@@ -147,14 +147,14 @@ export const WebhooksSection: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [canUse]);
 
   React.useEffect(() => {
     if (!canUse) return;
     if (!supabase) return;
 
     loadWebhooks();
-  }, [canUse]);
+  }, [canUse, loadWebhooks]);
 
   React.useEffect(() => {
     if (!selectedBoardId && defaultBoard?.id) setSelectedBoardId(defaultBoard.id);

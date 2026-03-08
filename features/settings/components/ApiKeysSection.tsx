@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Key, Copy, ExternalLink, CheckCircle2, Plus, Trash2, ShieldCheck, RefreshCw, TerminalSquare, Play } from 'lucide-react';
 
 import ConfirmModal from '@/components/ConfirmModal';
@@ -84,7 +84,7 @@ export const ApiKeysSection: React.FC = () => {
     }
   };
 
-  const loadKeys = async () => {
+  const loadKeys = useCallback(async () => {
     if (!supabase) {
       addToast('Supabase não configurado neste ambiente.', 'error');
       return;
@@ -102,11 +102,11 @@ export const ApiKeysSection: React.FC = () => {
     } finally {
       setLoadingKeys(false);
     }
-  };
+  }, [addToast]);
 
   useEffect(() => {
     void loadKeys();
-  }, []);
+  }, [loadKeys]);
 
   const createKey = async () => {
     if (!supabase) {
@@ -294,7 +294,6 @@ export const ApiKeysSection: React.FC = () => {
     identityMode,
     identityPhone,
     identityEmail,
-    selectedToStageId,
     selectedToStageLabel,
     suggestedMark,
     activityTitle,

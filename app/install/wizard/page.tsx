@@ -466,13 +466,17 @@ export default function InstallWizardPage() {
     setSupabaseCreateError(null);
   }, [supabaseAccessToken]);
 
+  // Refs to hold latest function references (avoids listing complex functions as effect deps)
+  const loadOrgsAndDecideRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const resolveKeysRef = useRef<((mode: 'auto' | 'manual') => Promise<void>) | undefined>(undefined);
+
   useEffect(() => {
     if (supabaseUiStep !== 'pat') return;
     const pat = supabaseAccessToken.trim();
     if (!/^sbp_[A-Za-z0-9_-]{20,}$/.test(pat)) return;
     if (supabaseOrgsLoading || supabaseOrgs.length > 0 || supabaseOrgsError) return;
 
-    const handle = setTimeout(() => void loadOrgsAndDecide(), 400);
+    const handle = setTimeout(() => void loadOrgsAndDecideRef.current?.(), 400);
     return () => clearTimeout(handle);
   }, [supabaseUiStep, supabaseAccessToken, supabaseOrgsLoading, supabaseOrgs.length, supabaseOrgsError]);
 
@@ -483,12 +487,12 @@ export default function InstallWizardPage() {
     if (supabaseProvisioning) return;
 
     if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current);
-    resolveTimerRef.current = setTimeout(() => void resolveKeys('auto'), 600);
+    resolveTimerRef.current = setTimeout(() => void resolveKeysRef.current?.('auto'), 600);
 
     return () => { if (resolveTimerRef.current) clearTimeout(resolveTimerRef.current); };
   }, [supabaseAccessToken, supabaseUrl, supabaseResolving, supabaseResolvedOk, supabaseResolveError, supabaseProvisioning]);
 
-  // API Functions
+  // API Functions (keep ref in sync so effects can call the latest version)
   const loadOrgsAndDecide = async () => {
     if (supabaseOrgsLoading || supabasePreflightLoading) return;
     setSupabaseOrgsError(null);
@@ -532,6 +536,7 @@ export default function InstallWizardPage() {
       setSupabasePreflightLoading(false);
     }
   };
+  loadOrgsAndDecideRef.current = loadOrgsAndDecide;
 
   const decideAndCreate = async (orgs: SupabaseOrgOption[], preflight: typeof supabasePreflight) => {
     if (!preflight) return;
@@ -922,6 +927,7 @@ export default function InstallWizardPage() {
       setSupabaseResolving(false);
     }
   };
+  resolveKeysRef.current = resolveKeys;
 
   const runInstaller = async () => {
     if (!canInstall || installing || !project) return;

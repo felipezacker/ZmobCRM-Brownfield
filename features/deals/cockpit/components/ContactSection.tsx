@@ -3,7 +3,7 @@
 import React from 'react';
 import { Copy, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Contact } from '@/types';
+import type { Contact, Deal } from '@/types';
 import { humanizeTestLabel } from '@/features/deals/cockpit/cockpit-utils';
 import { SectionHeader } from '@/features/deals/cockpit/components/SectionHeader';
 import {
@@ -20,7 +20,7 @@ export interface ContactSectionProps {
   onToggle: () => void;
   onCopy: (label: string, text: string) => void;
   onUpdateContact?: (updates: Partial<Contact>) => void;
-  onUpdateDeal?: (updates: Record<string, any>) => void;
+  onUpdateDeal?: (updates: Partial<Deal>) => void;
 }
 
 /** Contact info section: name, temperature, classification, lead score, phone, email, source. */

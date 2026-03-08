@@ -225,7 +225,7 @@ const CustomFieldsSection: React.FC<CustomFieldsSectionProps> = ({
               {field.label}
             </span>
             <span className="text-[11px] text-secondary-foreground dark:text-muted-foreground truncate text-right">
-              {contact?.customFields?.[field.key]}
+              {String(contact?.customFields?.[field.key] ?? '')}
             </span>
           </div>
         ))}

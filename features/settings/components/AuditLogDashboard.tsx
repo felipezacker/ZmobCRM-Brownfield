@@ -6,7 +6,7 @@
  * Displays security audit logs for admin users.
  * Shows cross-tenant attempts, suspicious activities, and data exports.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Shield,
   AlertTriangle,
@@ -147,7 +147,7 @@ export const AuditLogDashboard: React.FC = () => {
 
   const isAdmin = profile?.role === 'admin';
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     if (!isAdmin) return;
 
     if (!sb) {
@@ -157,10 +157,10 @@ export const AuditLogDashboard: React.FC = () => {
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Calculate date filter
       const nowTs = Date.now();
@@ -219,11 +219,11 @@ export const AuditLogDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin, sb, severityFilter, actionFilter, timeFilter]);
 
   useEffect(() => {
     fetchLogs();
-  }, [severityFilter, actionFilter, timeFilter, isAdmin]);
+  }, [fetchLogs]);
 
   if (!isAdmin) {
     return (

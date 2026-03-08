@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, User, Rocket, Database, Eye, EyeOff } from 'lucide-react';
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'framer-motion';
@@ -288,22 +288,22 @@ export default function InstallStartPage() {
     setScreen('vercel');
   };
   
-  const handleVercelSubmit = async () => {
+  const handleVercelSubmit = useCallback(async () => {
     const t = vercelToken.trim();
     if (!t || t.length < 20) {
       setError('Token inválido');
       return;
     }
-    
+
     if (meta?.requiresToken && !installerToken.trim()) {
       setError('Installer token obrigatório');
       return;
     }
-    
+
     setError('');
     setIsLoading(true);
     setScreen('validating');
-    
+
     try {
       const res = await fetch('/api/installer/bootstrap', {
         method: 'POST',
@@ -316,11 +316,11 @@ export default function InstallStartPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Erro ao validar token');
-      
+
       localStorage.setItem(STORAGE_TOKEN, t);
       localStorage.setItem(STORAGE_PROJECT, JSON.stringify(data.project));
       if (installerToken.trim()) localStorage.setItem(STORAGE_INSTALLER_TOKEN, installerToken.trim());
-      
+
       setScreen('supabase');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao validar token');
@@ -328,21 +328,21 @@ export default function InstallStartPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [vercelToken, meta?.requiresToken, installerToken]);
   
-  const handleSupabaseSubmit = () => {
+  const handleSupabaseSubmit = useCallback(() => {
     const t = supabaseToken.trim();
     if (!t || !t.startsWith('sbp_')) {
       setError('Token Supabase inválido (deve começar com sbp_)');
       return;
     }
-    
+
     setError('');
     localStorage.setItem('crm_install_supabase_token', t);
     setScreen('ready');
-    
+
     setTimeout(() => router.push('/install/wizard'), 1200);
-  };
+  }, [supabaseToken, router]);
   
   // Auto-submit quando cola token
   useEffect(() => {
@@ -350,14 +350,14 @@ export default function InstallStartPage() {
       const handle = setTimeout(() => void handleVercelSubmit(), 800);
       return () => clearTimeout(handle);
     }
-  }, [vercelToken, screen, isLoading, error]);
+  }, [vercelToken, screen, isLoading, error, handleVercelSubmit]);
   
   useEffect(() => {
     if (screen === 'supabase' && supabaseToken.trim().startsWith('sbp_') && supabaseToken.trim().length >= 30) {
       const handle = setTimeout(() => void handleSupabaseSubmit(), 800);
       return () => clearTimeout(handle);
     }
-  }, [supabaseToken, screen]);
+  }, [supabaseToken, screen, handleSupabaseSubmit]);
   
   const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
     if (e.key === 'Enter') {

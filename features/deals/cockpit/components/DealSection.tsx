@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FileText } from 'lucide-react';
-import type { DealView } from '@/types';
+import type { Deal, DealView } from '@/types';
 import { formatAtISO, formatCurrencyBRL } from '@/features/deals/cockpit/cockpit-utils';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { SectionHeader } from '@/features/deals/cockpit/components/SectionHeader';
@@ -18,7 +18,7 @@ export interface DealSectionProps {
   collapsed: boolean;
   onToggle: () => void;
   estimatedCommission?: { rate: number; estimated: number } | null;
-  onUpdateDeal?: (updates: Record<string, any>) => void;
+  onUpdateDeal?: (updates: Partial<Deal>) => void;
 }
 
 /** Deal details section: value, type, probability, priority, dates, owner, commission. */
@@ -62,7 +62,7 @@ export function DealSection({
             <select
               className={`${SELECT_CLASS} text-secondary-foreground dark:text-muted-foreground`}
               value={deal.dealType ?? 'VENDA'}
-              onChange={(e) => onUpdateDeal?.({ dealType: e.target.value })}
+              onChange={(e) => onUpdateDeal?.({ dealType: e.target.value as Deal['dealType'] })}
             >
               {Object.entries(DEAL_TYPE_LABELS).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -106,7 +106,7 @@ export function DealSection({
                   : 'bg-muted dark:bg-white/5 text-muted-foreground ring-ring dark:ring-white/10'
               }`}
               value={priority ?? ''}
-              onChange={(e) => onUpdateDeal?.({ priority: e.target.value || null })}
+              onChange={(e) => onUpdateDeal?.({ priority: (e.target.value || undefined) as Deal['priority'] })}
             >
               <option value="">--</option>
               {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
@@ -123,7 +123,7 @@ export function DealSection({
               defaultValue={deal.expectedCloseDate ? deal.expectedCloseDate.slice(0, 10) : ''}
               onChange={(e) => {
                 const v = e.target.value;
-                onUpdateDeal?.({ expectedCloseDate: v || null });
+                onUpdateDeal?.({ expectedCloseDate: v || undefined });
               }}
             />
           </div>

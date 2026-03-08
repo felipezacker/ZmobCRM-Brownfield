@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { streamText, tool, ModelMessage, stepCountIs } from 'ai';
 import { z } from 'zod';
 import { useCRMActions } from '@/hooks/useCRMActions';
@@ -56,7 +56,7 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
   // EXECUTORES DAS TOOLS (conectam com o CRM)
   // ============================================
 
-  const toolExecutors = {
+  const toolExecutors = useMemo(() => ({
     // LEITURA
     searchDeals: async ({ query, status, minValue, maxValue, limit = 10 }: {
       query?: string;
@@ -403,7 +403,7 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
         },
       };
     },
-  };
+  }), [deals, contacts, activities, addActivity, updateActivity, updateDeal, addDeal, activeBoard]);
 
   // ============================================
   // FUNÇÃO PRINCIPAL DE ENVIO
@@ -609,7 +609,7 @@ Você é proativo - se perceber oportunidades ou riscos, mencione-os.`,
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  }, [messages, getModel, deals, contacts, activities, addActivity, updateActivity, updateDeal, addDeal, activeBoard]);
+  }, [messages, getConfiguredModel, toolExecutors]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);

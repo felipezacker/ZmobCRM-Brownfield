@@ -79,7 +79,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
         contactsService.getById(initialContactId).then(({ data }) => {
             if (data) setSelectedContact(data);
         });
-    }, [isOpen, initialContactId]);
+    }, [isOpen, initialContactId, selectedContact]);
 
     // Estágio efetivo: initialStageId → stages[0]
     const effectiveStageId = selectedStageId || initialStageId || availableStages[0]?.id || '';

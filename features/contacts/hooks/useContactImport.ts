@@ -95,19 +95,6 @@ export const useContactImport = ({ toast, contacts, boards }: UseContactImportPa
     }
   }, [selectedIds, toast, queryClient]);
 
-  // Convert contact to deal
-  const convertContactToDeal = useCallback((contactId: string) => {
-    if (boards.length === 0) {
-      toast('Nenhum board disponivel. Crie um board primeiro.', 'error');
-      return;
-    }
-    if (boards.length === 1) {
-      createDealDirectly(contactId, boards[0]);
-      return;
-    }
-    setCreateDealContactId(contactId);
-  }, [boards, toast]);
-
   const createDealDirectly = useCallback((contactId: string, board: typeof boards[0]) => {
     const contact = contacts.find(c => c.id === contactId);
     if (!contact) { toast('Contato nao encontrado', 'error'); return; }
@@ -134,6 +121,19 @@ export const useContactImport = ({ toast, contacts, boards }: UseContactImportPa
       }
     );
   }, [contacts, createDealMutation, toast]);
+
+  // Convert contact to deal
+  const convertContactToDeal = useCallback((contactId: string) => {
+    if (boards.length === 0) {
+      toast('Nenhum board disponivel. Crie um board primeiro.', 'error');
+      return;
+    }
+    if (boards.length === 1) {
+      createDealDirectly(contactId, boards[0]);
+      return;
+    }
+    setCreateDealContactId(contactId);
+  }, [boards, toast, createDealDirectly]);
 
   // Called from modal after board selection
   const createDealForContact = useCallback((boardId: string) => {

@@ -175,6 +175,9 @@ export function useFormEnhanced<TFormData extends FieldValues>({
   const { watch, formState, reset, getValues, trigger } = form;
   const { errors, isValid, isDirty, touchedFields, dirtyFields } = formState;
 
+  // Watch all form values to trigger auto-save on change
+  const watchedValues = watch();
+
   // Auto-save draft
   useEffect(() => {
     if (!autoSave || !formId || !isDirty) return;
@@ -185,17 +188,18 @@ export function useFormEnhanced<TFormData extends FieldValues>({
     }, autoSaveDelay);
 
     return () => clearTimeout(timer);
-  }, [autoSave, formId, isDirty, autoSaveDelay, getValues, saveDraft, watch()]);
+  }, [autoSave, formId, isDirty, autoSaveDelay, getValues, saveDraft, watchedValues]);
 
   // Track validation performance
   useEffect(() => {
     const start = performance.now();
+    const metrics = metricsRef.current;
 
     return () => {
       const duration = performance.now() - start;
-      metricsRef.current.validationCount++;
-      metricsRef.current.totalValidationTime += duration;
-      metricsRef.current.lastValidationTime = duration;
+      metrics.validationCount++;
+      metrics.totalValidationTime += duration;
+      metrics.lastValidationTime = duration;
     };
   }, [errors]);
 

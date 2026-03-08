@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { FileText } from 'lucide-react';
 import { Panel } from '@/features/deals/cockpit/cockpit-ui';
-import type { DealView, Contact, ContactPreference, CustomFieldDefinition, Product } from '@/types';
+import type { Deal, DealView, Contact, ContactPreference, CustomFieldDefinition, Product } from '@/types';
 
 import { ContactSection } from '@/features/deals/cockpit/components/ContactSection';
 import { ProductsSection } from '@/features/deals/cockpit/components/ProductsSection';
@@ -20,7 +20,7 @@ export interface CockpitDataPanelProps {
   estimatedCommission?: { rate: number; estimated: number } | null;
   preferences: ContactPreference | null;
   customFieldDefinitions: CustomFieldDefinition[];
-  onUpdateDeal?: (updates: Record<string, any>) => void;
+  onUpdateDeal?: (updates: Partial<Deal>) => void;
   onUpdateContact?: (updates: Partial<Contact>) => void;
   onUpdatePreferences?: (updates: Partial<ContactPreference>) => void;
   onCreatePreferences?: () => void;

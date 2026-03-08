@@ -30,7 +30,7 @@ import { CallModal, type CallLogData } from '@/features/inbox/components/CallMod
 import { MessageComposerModal, type MessageChannel, type MessageExecutedEvent } from '@/features/inbox/components/MessageComposerModal';
 import { ScheduleModal, type ScheduleData, type ScheduleType } from '@/features/inbox/components/ScheduleModal';
 
-import type { Activity, Board, BoardStage, Contact, ContactPreference } from '@/types';
+import type { Activity, Board, BoardStage, Contact, ContactPreference, Deal } from '@/types';
 import type {
   Actor,
   ChecklistItem,
@@ -548,7 +548,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
 
   // --- Inline edit handlers ---
 
-  const handleUpdateDeal = useCallback((updates: Record<string, any>) => {
+  const handleUpdateDeal = useCallback((updates: Partial<Deal>) => {
     if (!selectedDeal?.id) return;
     updateDeal(selectedDeal.id, updates);
   }, [selectedDeal?.id, updateDeal]);

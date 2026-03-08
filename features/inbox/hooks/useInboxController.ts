@@ -46,63 +46,78 @@ export const useInboxController = () => {
     recordInteraction: filters.recordInteraction,
   });
 
+  // Destructure stable references from sub-hooks for use in callbacks
+  const {
+    handleFocusNext: filtersHandleFocusNext,
+    currentFocusItem,
+    focusIndex,
+    focusQueue,
+    setFocusIndex,
+  } = filters;
+  const {
+    handleCompleteActivity,
+    handleAcceptSuggestion,
+    handleSnoozeActivity: actionsHandleSnoozeActivity,
+    handleSnoozeSuggestion: actionsHandleSnoozeSuggestion,
+  } = actions;
+
   // --- Focus mode composite handlers ---
   const handleFocusSkip = useCallback(() => {
-    filters.handleFocusNext();
+    filtersHandleFocusNext();
     showToast('Pulado para o proximo', 'info');
-  }, [filters.handleFocusNext, showToast]);
+  }, [filtersHandleFocusNext, showToast]);
 
   const handleFocusDone = useCallback(() => {
-    const item = filters.currentFocusItem;
+    const item = currentFocusItem;
     if (!item) return;
 
     if (item.type === 'activity') {
-      actions.handleCompleteActivity(item.id);
+      handleCompleteActivity(item.id);
     } else {
-      actions.handleAcceptSuggestion(item.data as AISuggestion);
+      handleAcceptSuggestion(item.data as AISuggestion);
     }
 
-    if (filters.focusIndex >= filters.focusQueue.length - 1) {
-      filters.setFocusIndex(Math.max(0, filters.focusQueue.length - 2));
+    if (focusIndex >= focusQueue.length - 1) {
+      setFocusIndex(Math.max(0, focusQueue.length - 2));
     }
   }, [
-    filters.currentFocusItem,
-    filters.focusIndex,
-    filters.focusQueue.length,
-    filters.setFocusIndex,
-    actions.handleCompleteActivity,
-    actions.handleAcceptSuggestion,
+    currentFocusItem,
+    focusIndex,
+    focusQueue.length,
+    setFocusIndex,
+    handleCompleteActivity,
+    handleAcceptSuggestion,
   ]);
 
   const handleFocusSnooze = useCallback(() => {
-    const item = filters.currentFocusItem;
+    const item = currentFocusItem;
     if (!item) return;
 
     if (item.type === 'activity') {
-      actions.handleSnoozeActivity(item.id, 1);
+      actionsHandleSnoozeActivity(item.id, 1);
     } else {
-      actions.handleSnoozeSuggestion(item.id);
+      actionsHandleSnoozeSuggestion(item.id);
     }
 
-    if (filters.focusIndex >= filters.focusQueue.length - 1) {
-      filters.setFocusIndex(Math.max(0, filters.focusQueue.length - 2));
+    if (focusIndex >= focusQueue.length - 1) {
+      setFocusIndex(Math.max(0, focusQueue.length - 2));
     }
   }, [
-    filters.currentFocusItem,
-    filters.focusIndex,
-    filters.focusQueue.length,
-    filters.setFocusIndex,
-    actions.handleSnoozeActivity,
-    actions.handleSnoozeSuggestion,
+    currentFocusItem,
+    focusIndex,
+    focusQueue.length,
+    setFocusIndex,
+    actionsHandleSnoozeActivity,
+    actionsHandleSnoozeSuggestion,
   ]);
 
   const handleSelectActivity = useCallback((id: string) => {
-    const index = filters.focusQueue.findIndex(item => item.id === id);
+    const index = focusQueue.findIndex(item => item.id === id);
     if (index !== -1) {
-      filters.setFocusIndex(index);
+      setFocusIndex(index);
       setViewMode('focus');
     }
-  }, [filters.focusQueue, filters.setFocusIndex, setViewMode]);
+  }, [focusQueue, setFocusIndex, setViewMode]);
 
   return {
     // Loading

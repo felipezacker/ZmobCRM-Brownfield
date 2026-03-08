@@ -342,7 +342,7 @@ export function ContactCockpitDataPanel({
                 </label>
                 {field.type === 'select' ? (
                   <select
-                    value={contact.customFields?.[field.key] || ''}
+                    value={String(contact.customFields?.[field.key] ?? '')}
                     onChange={(e) => onUpdateCustomField(field.key, e.target.value)}
                     className="w-full bg-muted dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500"
                   >
@@ -356,7 +356,7 @@ export function ContactCockpitDataPanel({
                 ) : (
                   <input
                     type={field.type}
-                    value={contact.customFields?.[field.key] || ''}
+                    value={String(contact.customFields?.[field.key] ?? '')}
                     onChange={(e) => onUpdateCustomField(field.key, e.target.value)}
                     className="w-full bg-muted dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500"
                   />
