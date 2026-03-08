@@ -69,7 +69,7 @@ export function CockpitDataPanel({
   return (
     <Panel
       title="Dados"
-      icon={<FileText className="h-4 w-4 text-slate-500 dark:text-slate-300" />}
+      icon={<FileText className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
       className="flex min-h-0 flex-1 flex-col"
       bodyClassName="min-h-0 flex-1 overflow-auto"
     >

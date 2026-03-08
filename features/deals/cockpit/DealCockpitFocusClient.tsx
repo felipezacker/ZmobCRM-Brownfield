@@ -65,7 +65,7 @@ export default function DealCockpitFocusClient({ dealId }: { dealId: string }) {
   if (!deal) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="text-sm text-slate-500 dark:text-slate-400">
+        <div className="text-sm text-muted-foreground dark:text-muted-foreground">
           Negócio não encontrado. Volte e tente novamente.
         </div>
       </div>

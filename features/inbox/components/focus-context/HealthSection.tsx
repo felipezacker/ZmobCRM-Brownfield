@@ -25,7 +25,7 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
                     ) : (
                         <Heart size={16} className={healthScore.color} />
                     )}
-                    <span className="text-xs uppercase tracking-wider text-slate-500 font-bold">Health</span>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Health</span>
                     {hasAIAnalysis && (
                         <span className="text-[9px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded flex items-center gap-1">
                             <Sparkles size={10} /> AI
@@ -36,14 +36,14 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
                     <span className={`font-mono font-bold text-2xl ${healthScore.color}`}>{healthScore.score}%</span>
                     <Button
                         onClick={onRefresh}
-                        className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-slate-300 transition-colors"
+                        className="p-1 hover:bg-white/5 rounded text-muted-foreground hover:text-muted-foreground transition-colors"
                         title="Reanalisar com IA"
                     >
                         <RefreshCw size={12} />
                     </Button>
                 </div>
             </div>
-            <div className="h-1.5 bg-slate-800/50 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-card/50 rounded-full overflow-hidden">
                 <div
                     className={`h-full rounded-full transition-all duration-500 ${healthScore.status === 'excellent' ? 'bg-emerald-500' :
                         healthScore.status === 'good' ? 'bg-green-500' :

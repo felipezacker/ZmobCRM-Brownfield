@@ -58,9 +58,9 @@ export function TemplatePickerModal({
 
   return (
     <div className={MODAL_OVERLAY_CLASS} onClick={onClose}>
-      <div className="relative w-full max-w-2xl max-h-[80dvh] flex flex-col rounded-2xl border border-white/10 bg-slate-950 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-w-2xl max-h-[80dvh] flex flex-col rounded-2xl border border-white/10 bg-background shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-          <div className="text-sm font-semibold text-slate-100">
+          <div className="text-sm font-semibold text-muted-foreground">
             {mode === 'WHATSAPP' ? 'Template WhatsApp' : 'Template E-mail'}
           </div>
           <Button
@@ -68,7 +68,7 @@ export function TemplatePickerModal({
             size="unstyled"
             type="button"
             aria-label="Fechar modal"
-            className="rounded-lg border border-white/10 bg-white/3 p-2 text-slate-300 hover:bg-white/5 transition-colors"
+            className="rounded-lg border border-white/10 bg-white/3 p-2 text-muted-foreground hover:bg-white/5 transition-colors"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
@@ -77,16 +77,16 @@ export function TemplatePickerModal({
 
         <div className="px-6 py-3 border-b border-white/10 flex items-center gap-3">
           <div className="flex items-center gap-2 flex-1 rounded-xl border border-white/10 bg-white/3 px-3 py-2">
-            <Search className="h-4 w-4 text-slate-400" />
+            <Search className="h-4 w-4 text-muted-foreground" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar template…"
-              className="flex-1 bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-600"
+              className="flex-1 bg-transparent text-xs text-muted-foreground outline-none placeholder:text-secondary-foreground"
             />
           </div>
           <select
-            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200 outline-none"
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-muted-foreground outline-none"
             value={category}
             onChange={(e) => setCategory(e.target.value as 'all' | ScriptCategory)}
           >
@@ -101,9 +101,9 @@ export function TemplatePickerModal({
 
         <div className="flex-1 min-h-0 overflow-auto px-6 py-4">
           {isLoading ? (
-            <div className="text-sm text-slate-400">Carregando scripts…</div>
+            <div className="text-sm text-muted-foreground">Carregando scripts…</div>
           ) : filtered.length === 0 ? (
-            <div className="text-sm text-slate-400">Nenhum template encontrado.</div>
+            <div className="text-sm text-muted-foreground">Nenhum template encontrado.</div>
           ) : (
             <div className="space-y-2">
               {filtered.map((s) => {
@@ -122,9 +122,9 @@ export function TemplatePickerModal({
                       <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>
                         {info.label}
                       </span>
-                      <span className="truncate text-sm font-semibold text-slate-100">{s.title}</span>
+                      <span className="truncate text-sm font-semibold text-muted-foreground">{s.title}</span>
                     </div>
-                    <div className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-400 whitespace-pre-wrap">{preview}</div>
+                    <div className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">{preview}</div>
                   </Button>
                 );
               })}

@@ -44,16 +44,16 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ hash, isAdmin }) => {
     <div className="pb-10">
       {/* General Settings */}
       <div className="mb-12">
-        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">Página Inicial</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+        <div className="bg-white dark:bg-white/5 border border-border rounded-2xl p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-1">Página Inicial</h3>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-4">
             Escolha qual tela deve abrir quando você iniciar o CRM.
           </p>
           <select
             aria-label="Selecionar página inicial"
             value={controller.defaultRoute}
             onChange={(e) => controller.setDefaultRoute(e.target.value)}
-            className="w-full max-w-xs px-4 py-2.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-slate-900 dark:text-white transition-all"
+            className="w-full max-w-xs px-4 py-2.5 bg-background dark:bg-black/20 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-foreground transition-all"
           >
             <option value="/dashboard">Dashboard</option>
             <option value="/inbox-list">Inbox (Lista)</option>
@@ -149,7 +149,7 @@ const IntegrationsSettings: React.FC = () => {
               className={`px-3 py-2 rounded-xl text-sm font-semibold border transition-colors ${
                 active
                   ? 'border-primary-500/50 bg-primary-500/10 text-primary-700 dark:text-primary-300'
-                  : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10'
+                  : 'border-border  bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10'
               }`}
             >
               {t.label}
@@ -229,7 +229,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ tab: initialTab }) => {
   return (
     <div className="max-w-5xl mx-auto">
       {/* Tabs minimalistas */}
-      <div className="flex items-center gap-1 mb-8 border-b border-slate-200 dark:border-white/10">
+      <div className="flex items-center gap-1 mb-8 border-b border-border">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -238,7 +238,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ tab: initialTab }) => {
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${isActive
                 ? 'text-primary-600 dark:text-primary-400'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                : 'text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
                 }`}
             >
               <tab.icon className="h-4 w-4" />

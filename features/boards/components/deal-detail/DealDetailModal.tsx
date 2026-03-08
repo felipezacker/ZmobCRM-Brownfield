@@ -28,10 +28,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const inner = (
     <>
       <div
-        className={
-          s.isMobile
-            ? 'bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 w-full h-[100dvh] flex flex-col overflow-hidden pb-[var(--app-safe-area-bottom,0px)]'
-            : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200'
+        className={s.isMobile
+ ?'bg-white dark:bg-dark-card border border-border  w-full h-[100dvh] flex flex-col overflow-hidden pb-[var(--app-safe-area-bottom,0px)]'
+            : 'bg-white dark:bg-dark-card border border-border  rounded-2xl shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200'
         }
       >
         <DealDetailHeader
@@ -57,7 +56,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
         />
 
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-          <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 p-4 sm:p-5 overflow-y-auto bg-white dark:bg-dark-card max-h-[38vh] md:max-h-none">
+          <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-border p-4 sm:p-5 overflow-y-auto bg-white dark:bg-dark-card max-h-[38vh] md:max-h-none">
             <DealDetailSidebar
               deal={deal}
               contact={s.contact}
@@ -78,13 +77,13 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
           </div>
 
           <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-dark-card">
-            <div className="h-14 border-b border-slate-200 dark:border-white/5 flex items-center px-6 shrink-0">
+            <div className="h-14 border-b border-border flex items-center px-6 shrink-0">
               <div className="flex gap-6">
                 {(['timeline', 'products', 'info'] as const).map(tab => (
                   <Button
                     key={tab}
                     onClick={() => s.setActiveTab(tab)}
-                    className={`text-sm font-bold h-14 border-b-2 transition-colors ${s.activeTab === tab ? 'border-primary-500 text-primary-600 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+                    className={`text-sm font-bold h-14 border-b-2 transition-colors ${s.activeTab === tab ? 'border-primary-500 text-primary-600 ' : 'border-transparent text-muted-foreground hover:text-secondary-foreground dark:hover:text-white'}`}
                   >
                     {tab === 'timeline' ? 'Timeline' : tab === 'products' ? 'Produtos' : 'IA Insights'}
                   </Button>
@@ -92,7 +91,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30 dark:bg-black/10">
+            <div className="flex-1 overflow-y-auto p-6 bg-background/30 dark:bg-black/10">
               {s.activeTab === 'timeline' && (
                 <DealDetailTimeline
                   deal={deal}

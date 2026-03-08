@@ -35,8 +35,8 @@ export const DealDetailProducts: React.FC<DealDetailProductsProps> = ({
 }) => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-      <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-xl border border-slate-200 dark:border-white/10">
-        <h3 className="text-sm font-bold text-slate-700 dark:text-white mb-3 flex items-center gap-2">
+      <div className="bg-background dark:bg-black/20 p-4 rounded-xl border border-border">
+        <h3 className="text-sm font-bold text-secondary-foreground mb-3 flex items-center gap-2">
           <Package size={16} /> Adicionar Produto/Servico
         </h3>
         <div className="flex gap-3">
@@ -46,10 +46,10 @@ export const DealDetailProducts: React.FC<DealDetailProductsProps> = ({
               variant="unstyled"
               size="unstyled"
               type="button"
-              className="w-full flex items-center justify-between gap-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white text-left cursor-pointer hover:bg-slate-50 dark:hover:bg-white/8 transition-colors"
+              className="w-full flex items-center justify-between gap-2 bg-white dark:bg-white/5 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 text-left cursor-pointer hover:bg-background dark:hover:bg-white/8 transition-colors"
               onClick={onToggleProductPicker}
             >
-              <span className={`truncate ${selectedProduct ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+              <span className={`truncate ${selectedProduct ? 'text-foreground ' : 'text-muted-foreground dark:text-muted-foreground'}`}>
                 {selectedProduct ? selectedProduct.name : 'Selecione um item...'}
               </span>
               <span className="text-xs text-emerald-600 dark:text-emerald-400 shrink-0">
@@ -74,7 +74,7 @@ export const DealDetailProducts: React.FC<DealDetailProductsProps> = ({
           <input
             type="number"
             min="1"
-            className="w-20 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+            className="w-20 bg-white dark:bg-white/5 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
             value={productQuantity}
             onChange={e => onProductQuantityChange(parseInt(e.target.value))}
           />
@@ -88,7 +88,7 @@ export const DealDetailProducts: React.FC<DealDetailProductsProps> = ({
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-3">
-          <div className="text-xs text-slate-500 dark:text-slate-400">
+          <div className="text-xs text-muted-foreground dark:text-muted-foreground">
             Produto depende do cliente? Use um item personalizado (nao precisa estar no catalogo).
           </div>
           <Button
@@ -114,9 +114,9 @@ export const DealDetailProducts: React.FC<DealDetailProductsProps> = ({
       </div>
 
       {/* Products table */}
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-white/5 border border-border rounded-xl overflow-hidden">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 dark:bg-black/20 border-b border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 font-medium">
+          <thead className="bg-background dark:bg-black/20 border-b border-border text-muted-foreground dark:text-muted-foreground font-medium">
             <tr>
               <th className="px-4 py-3">Item</th>
               <th className="px-4 py-3 w-20 text-center">Qtd</th>
@@ -125,22 +125,22 @@ export const DealDetailProducts: React.FC<DealDetailProductsProps> = ({
               <th className="px-4 py-3 w-10"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+          <tbody className="divide-y divide-border dark:divide-white/5">
             {!deal.items || deal.items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-slate-500 italic">
+                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground italic">
                   Nenhum produto adicionado. O valor do negocio e manual.
                 </td>
               </tr>
             ) : (
               deal.items.map(item => (
                 <tr key={item.id}>
-                  <td className="px-4 py-3 text-slate-900 dark:text-white font-medium">{item.name}</td>
-                  <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-300">{item.quantity}</td>
-                  <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-300">{BRL_CURRENCY.format(item.price)}</td>
-                  <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">{BRL_CURRENCY.format(item.price * item.quantity)}</td>
+                  <td className="px-4 py-3 text-foreground font-medium">{item.name}</td>
+                  <td className="px-4 py-3 text-center text-secondary-foreground dark:text-muted-foreground">{item.quantity}</td>
+                  <td className="px-4 py-3 text-right text-secondary-foreground dark:text-muted-foreground">{BRL_CURRENCY.format(item.price)}</td>
+                  <td className="px-4 py-3 text-right font-bold text-foreground">{BRL_CURRENCY.format(item.price * item.quantity)}</td>
                   <td className="px-4 py-3 text-center">
-                    <Button onClick={() => onRemoveItem(deal.id, item.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                    <Button onClick={() => onRemoveItem(deal.id, item.id)} className="text-muted-foreground hover:text-red-500 transition-colors">
                       <Trash2 size={14} />
                     </Button>
                   </td>
@@ -148,9 +148,9 @@ export const DealDetailProducts: React.FC<DealDetailProductsProps> = ({
               ))
             )}
           </tbody>
-          <tfoot className="bg-slate-50 dark:bg-black/20 border-t border-slate-200 dark:border-white/5">
+          <tfoot className="bg-background dark:bg-black/20 border-t border-border">
             <tr>
-              <td colSpan={3} className="px-4 py-3 text-right font-bold text-slate-700 dark:text-slate-300 uppercase text-xs tracking-wider">
+              <td colSpan={3} className="px-4 py-3 text-right font-bold text-secondary-foreground dark:text-muted-foreground uppercase text-xs tracking-wider">
                 Total do Pedido
               </td>
               <td className="px-4 py-3 text-right font-bold text-primary-600 dark:text-primary-400 text-lg">

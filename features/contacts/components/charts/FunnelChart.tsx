@@ -28,7 +28,7 @@ const STAGE_COLORS = [
 
 export function FunnelChart({ stages }: FunnelChartProps) {
   if (stages.length === 0) {
-    return <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">Sem dados</p>
+    return <p className="text-sm text-muted-foreground dark:text-muted-foreground py-4 text-center">Sem dados</p>
   }
 
   const maxCount = Math.max(...stages.map(s => s.count), 1)
@@ -39,7 +39,7 @@ export function FunnelChart({ stages }: FunnelChartProps) {
         const widthPct = Math.max((stage.count / maxCount) * 100, 8)
         return (
           <div key={stage.stage} className="flex items-center gap-3">
-            <span className="text-xs text-slate-600 dark:text-slate-400 w-16 text-right">
+            <span className="text-xs text-secondary-foreground dark:text-muted-foreground w-16 text-right">
               {STAGE_LABELS[stage.stage] || stage.stage}
             </span>
             <div className="flex-1 flex items-center">
@@ -52,7 +52,7 @@ export function FunnelChart({ stages }: FunnelChartProps) {
                 </span>
               </div>
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 w-10 text-right">
+            <span className="text-xs text-muted-foreground dark:text-muted-foreground w-10 text-right">
               {stage.percentage}%
             </span>
           </div>

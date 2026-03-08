@@ -27,7 +27,7 @@ export const PipelineHeader: React.FC<PipelineHeaderProps> = ({
                     </h1>
                 </div>
                 <div className="absolute left-1/2 -translate-x-1/2">
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
                         {board?.name || 'Board'}
                     </span>
                 </div>
@@ -56,7 +56,7 @@ export const PipelineHeader: React.FC<PipelineHeaderProps> = ({
                                     <div
                                         className={`relative w-5 h-5 rounded-full flex items-center justify-center transition-all duration-300
                                         ${isActive ? 'ring-4' : isPassed ? 'hover:scale-110 opacity-80' : 'hover:scale-110'}
-                                        ${!isActive && !isPassed ? 'bg-slate-700/80 hover:bg-slate-600' : ''}`}
+                                        ${!isActive && !isPassed ? 'bg-accent/80 hover:bg-accent' : ''}`}
                                         style={{
                                             backgroundColor: (isActive || isPassed) ? hexColor : undefined,
                                             boxShadow: isActive ? `0 0 15px ${hexColor}80` : undefined,
@@ -76,7 +76,7 @@ export const PipelineHeader: React.FC<PipelineHeaderProps> = ({
                                     </div>
                                     <span
                                         className={`text-[10px] font-medium whitespace-nowrap transition-all duration-200
-                                        ${isActive ? 'font-bold' : isPassed ? 'opacity-70' : 'text-slate-500 group-hover:text-slate-300'}`}
+                                        ${isActive ? 'font-bold' : isPassed ? 'opacity-70' : 'text-muted-foreground group-hover:text-muted-foreground'}`}
                                         style={{
                                             color: (isActive || isPassed) ? hexColor : undefined,
                                         }}
@@ -87,7 +87,7 @@ export const PipelineHeader: React.FC<PipelineHeaderProps> = ({
 
                                 {!isLast && (
                                     <div className="flex-1 mx-3 relative h-0.5 -mt-6">
-                                        <div className="absolute inset-0 bg-slate-800 rounded-full" />
+                                        <div className="absolute inset-0 bg-card rounded-full" />
                                         <div
                                             className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
                                             style={{

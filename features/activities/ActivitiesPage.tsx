@@ -137,7 +137,7 @@ export const ActivitiesPage: React.FC = () => {
     if (isLoading) {
         return (
             <div className="p-8 max-w-7xl mx-auto flex items-center justify-center min-h-[400px]">
-                <div className="flex flex-col items-center gap-3 text-slate-400">
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
                     <Loader2 size={32} className="animate-spin" />
                     <span className="text-sm font-medium">Carregando atividades...</span>
                 </div>
@@ -158,13 +158,13 @@ export const ActivitiesPage: React.FC = () => {
             />
 
             {/* Abas com contadores */}
-            <div className="flex gap-1 mb-6 border-b border-slate-200 dark:border-white/10">
+            <div className="flex gap-1 mb-6 border-b border-border">
                 <Button
                     onClick={() => handleTabChange('activities')}
                     className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-2 ${
                         activeTab === 'activities'
                             ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                            : 'border-transparent text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-muted-foreground'
                     }`}
                 >
                     Atividades
@@ -172,7 +172,7 @@ export const ActivitiesPage: React.FC = () => {
                         <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
                             activeTab === 'activities'
                                 ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
-                                : 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400'
+                                : 'bg-muted text-muted-foreground dark:bg-white/10 dark:text-muted-foreground'
                         }`}>
                             {tabCounts.activities}
                         </span>
@@ -183,7 +183,7 @@ export const ActivitiesPage: React.FC = () => {
                     className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-2 ${
                         activeTab === 'history'
                             ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                            : 'border-transparent text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-muted-foreground'
                     }`}
                 >
                     Histórico
@@ -191,7 +191,7 @@ export const ActivitiesPage: React.FC = () => {
                         <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
                             activeTab === 'history'
                                 ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
-                                : 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400'
+                                : 'bg-muted text-muted-foreground dark:bg-white/10 dark:text-muted-foreground'
                         }`}>
                             {tabCounts.history}
                         </span>

@@ -62,12 +62,11 @@ export function ActionSheet({
             <motion.div
               role="dialog"
               aria-modal="true"
-              className={cn(
-                'absolute left-0 right-0 bottom-0 mx-auto w-full',
-                'sm:w-[min(720px,92vw)]',
+              className={cn('absolute left-0 right-0 bottom-0 mx-auto w-full',
+ 'sm:w-[min(720px,92vw)]',
                 'rounded-t-2xl sm:rounded-2xl',
                 'bg-white dark:bg-dark-card',
-                'border border-border dark:border-white/10',
+                'border border-border ',
                 'shadow-2xl overflow-hidden',
                 // safe area
                 'pb-[var(--app-safe-area-bottom,0px)]',
@@ -82,10 +81,10 @@ export function ActionSheet({
               {/* subtle teal rim light */}
               <div className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 dark:opacity-100 bg-[radial-gradient(900px_circle_at_20%_0%,rgba(34,211,238,0.14),transparent_55%),radial-gradient(700px_circle_at_100%_10%,rgba(45,212,191,0.10),transparent_55%)]" />
 
-              <div className={cn('relative px-4 py-4 sm:px-5 border-b border-border dark:border-white/10', className)}>
+              <div className={cn('relative px-4 py-4 sm:px-5 border-b border-border ', className)}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-foreground dark:text-white">{title}</div>
+                    <div className="text-sm font-semibold text-foreground">{title}</div>
                     {description ? (
                       <div className="text-xs text-muted-foreground mt-1">{description}</div>
                     ) : null}

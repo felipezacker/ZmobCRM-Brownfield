@@ -331,22 +331,22 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
       {boardCreateOverlay && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
-          <div className="relative z-10 w-[min(520px,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur p-5 shadow-2xl">
+          <div className="relative z-10 w-[min(520px,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-white/95 dark:bg-card/95 backdrop-blur p-5 shadow-2xl">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 h-5 w-5 rounded-full border-2 border-primary-500/30 border-t-primary-500 animate-spin" />
               <div className="min-w-0 flex-1">
-                <div className="text-base font-semibold text-slate-900 dark:text-white">
+                <div className="text-base font-semibold text-foreground">
                   {boardCreateOverlay.title}
                 </div>
                 {boardCreateOverlay.subtitle && (
-                  <div className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                  <div className="mt-1 text-sm text-secondary-foreground dark:text-muted-foreground">
                     {boardCreateOverlay.subtitle}
                   </div>
                 )}
               </div>
             </div>
             <div className="mt-4">
-              <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+              <div className="h-2 w-full rounded-full bg-accent dark:bg-white/10 overflow-hidden">
                 <div className="h-full w-1/2 bg-primary-500/80 animate-pulse" />
               </div>
             </div>
@@ -358,10 +358,10 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
           <div className="w-24 h-24 bg-primary-50 dark:bg-primary-900/20 rounded-full flex items-center justify-center mb-6">
             <span className="text-4xl">🚀</span>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             Bem-vindo ao seu CRM
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 max-w-md mb-8">
+          <p className="text-muted-foreground dark:text-muted-foreground max-w-md mb-8">
             Você ainda não tem nenhum board criado. Comece criando seu primeiro fluxo de trabalho
             para organizar seus negócios.
           </p>
@@ -520,15 +520,15 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
         <>
           {/* Spacer to prevent content from being hidden behind fixed bar */}
           <div className="h-16" />
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/10 shadow-lg px-6 py-3">
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-card border-t border-border shadow-lg px-6 py-3">
             <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <span className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground">
                   {selectedDealIds.size} negocio{selectedDealIds.size !== 1 ? 's' : ''} selecionado{selectedDealIds.size !== 1 ? 's' : ''}
                 </span>
                 <Button
                   onClick={clearDealSelection}
-                  className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1"
+                  className="text-xs text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-muted-foreground flex items-center gap-1"
                 >
                   <X size={14} /> Limpar
                 </Button>
@@ -538,14 +538,14 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
                 <div className="relative" ref={bulkMoveRef}>
                   <Button
                     onClick={() => setIsBulkMoveOpen(!isBulkMoveOpen)}
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-2 transition-colors"
+                    className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-white dark:bg-card hover:bg-background dark:hover:bg-accent text-secondary-foreground dark:text-muted-foreground flex items-center gap-2 transition-colors"
                   >
                     <ArrowRightCircle size={16} />
                     Mover para Estagio
                     <ChevronDown size={14} className={`transition-transform ${isBulkMoveOpen ? 'rotate-180' : ''}`} />
                   </Button>
                   {isBulkMoveOpen && activeBoard && (
-                    <div className="absolute bottom-full mb-1 right-0 min-w-[200px] rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 shadow-lg py-1 z-50">
+                    <div className="absolute bottom-full mb-1 right-0 min-w-[200px] rounded-lg border border-border bg-white dark:bg-card shadow-lg py-1 z-50">
                       {activeBoard.stages.map(stage => (
                         <Button
                           key={stage.id}
@@ -554,13 +554,13 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
                             handleBulkMoveDealToStage(stage.id);
                             setIsBulkMoveOpen(false);
                           }}
-                          className="w-full justify-start px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2 transition-colors h-auto rounded-none"
+                          className="w-full justify-start px-3 py-2 text-sm hover:bg-background dark:hover:bg-white/5 flex items-center gap-2 transition-colors h-auto rounded-none"
                         >
                           <span
                             className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                             style={{ backgroundColor: stage.color || '#94a3b8' }}
                           />
-                          <span className="text-slate-700 dark:text-slate-200">{stage.label}</span>
+                          <span className="text-secondary-foreground dark:text-muted-foreground">{stage.label}</span>
                         </Button>
                       ))}
                     </div>

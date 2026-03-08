@@ -32,7 +32,7 @@ export const InboxBriefing: React.FC<InboxBriefingProps> = ({
   stats 
 }) => {
   return (
-    <div className="relative mb-8 p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 text-white overflow-hidden">
+    <div className="relative mb-8 p-6 rounded-2xl bg-gradient-to-br from-card to-card dark:from-card dark:to-card text-white overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
@@ -45,19 +45,19 @@ export const InboxBriefing: React.FC<InboxBriefingProps> = ({
           </div>
           <div>
             <h2 className="text-lg font-bold">Bom dia! 👋</h2>
-            <p className="text-sm text-slate-400">Seu briefing diário</p>
+            <p className="text-sm text-muted-foreground">Seu briefing diário</p>
           </div>
         </div>
 
         {/* Briefing content */}
         <div className="mb-6">
           {isLoading ? (
-            <div className="flex items-center gap-2 text-slate-400">
+            <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="animate-spin" size={16} />
               <span className="text-sm">Analisando seu dia...</span>
             </div>
           ) : (
-            <p className="text-slate-200 leading-relaxed">
+            <p className="text-muted-foreground leading-relaxed">
               {briefing || 'Vamos começar o dia! Confira suas atividades abaixo.'}
             </p>
           )}

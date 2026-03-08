@@ -25,7 +25,7 @@ export const AIInputStep: React.FC<AIInputStepProps> = ({
       <div>
         <div className="flex items-center gap-2 mb-4">
           <Sparkles size={20} className="text-primary-600 dark:text-primary-400" />
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-foreground">
             Descreva seu negocio em 1 frase:
           </h3>
         </div>
@@ -35,7 +35,7 @@ export const AIInputStep: React.FC<AIInputStepProps> = ({
           value={aiInput}
           onChange={(e) => onAiInputChange(e.target.value)}
           placeholder="Ex: Sou tatuador, Vendo cursos online, Consultoria de TI..."
-          className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-full px-4 py-3 rounded-lg border-2 border-border bg-white dark:bg-white/5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           autoFocus
           onKeyDown={(e) => {
             if (e.key === 'Enter') onGenerate();
@@ -50,7 +50,7 @@ export const AIInputStep: React.FC<AIInputStepProps> = ({
                 onClose();
                 router.push('/settings/ai#ai-config');
               }}
-              className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/10 hover:bg-slate-50 dark:hover:bg-white/15 text-slate-800 dark:text-white font-semibold rounded-lg border border-slate-200 dark:border-white/10 transition-colors"
+              className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-white/10 hover:bg-background dark:hover:bg-white/15 text-foreground font-semibold rounded-lg border border-border transition-colors"
               type="button"
             >
               <Settings size={16} />
@@ -59,7 +59,7 @@ export const AIInputStep: React.FC<AIInputStepProps> = ({
           </div>
         )}
 
-        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-3 text-sm text-muted-foreground dark:text-muted-foreground">
           A IA vai criar um board personalizado para voce!
         </p>
       </div>

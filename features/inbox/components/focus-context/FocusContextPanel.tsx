@@ -200,7 +200,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
 
     return (
         <>
-            <div className={`${isExpanded ? 'fixed inset-0' : ''} flex flex-col bg-slate-950 ${className || ''}`}>
+            <div className={`${isExpanded ? 'fixed inset-0' : ''} flex flex-col bg-background ${className || ''}`}>
                 <PipelineHeader deal={deal} board={board} currentIdx={currentIdx} onMoveStage={onMoveStage} />
 
                 <div className="flex-1 flex min-h-0 overflow-hidden">
@@ -215,14 +215,14 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                     </aside>
 
                     {/* RIGHT: Split View */}
-                    <main className="flex-1 flex min-w-0 bg-slate-900/10">
+                    <main className="flex-1 flex min-w-0 bg-card/10">
                         <ActivityTimeline activities={activities} board={board} contact={contact} deal={deal} note={note} onNoteChange={setNote} onAddActivity={onAddActivity} onQuickAction={handleQuickAction} onWhatsApp={handleWhatsApp} onEmail={handleEmail} buildWhatsAppMessage={wrapBuildWhatsApp} buildEmailBody={wrapBuildEmail} />
 
                         {/* Workspace */}
-                        <div className="w-[400px] flex flex-col min-h-0 bg-slate-900/20 border-l border-white/5 relative">
+                        <div className="w-[400px] flex flex-col min-h-0 bg-card/20 border-l border-white/5 relative">
                             <div className="shrink-0 flex items-center px-4 h-14 border-b border-white/5 gap-4">
                                 {['chat', 'notas', 'scripts', 'files'].map((tab) => (
-                                    <Button key={tab} onClick={() => setActiveTab(tab)} className={`relative h-full flex items-center justify-center text-xs font-semibold uppercase tracking-wider transition-all ${activeTab === tab ? 'text-primary-400 shadow-[0_4px_20px_-10px_rgba(var(--primary-500),0.3)]' : 'text-slate-500 hover:text-slate-300'}`}>
+                                    <Button key={tab} onClick={() => setActiveTab(tab)} className={`relative h-full flex items-center justify-center text-xs font-semibold uppercase tracking-wider transition-all ${activeTab === tab ? 'text-primary-400 shadow-[0_4px_20px_-10px_rgba(var(--primary-500),0.3)]' : 'text-muted-foreground hover:text-muted-foreground'}`}>
                                         {tab === 'notas' ? 'Notas' : tab === 'chat' ? 'Chat IA' : tab === 'scripts' ? 'Scripts' : 'Arquivos'}
                                         {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 shadow-[0_0_15px_rgba(var(--primary-500),0.8)]" />}
                                     </Button>
@@ -233,7 +233,7 @@ export const FocusContextPanel: React.FC<FocusContextPanelProps> = ({
                             {activeTab === 'scripts' && <ScriptsTab scripts={scripts} isLoading={isScriptsLoading} contactName={contact?.name} dealTitle={deal.title} currentStageLabel={currentStage?.label} applyVariables={applyVariables} getCategoryInfo={getCategoryInfo} onOpenEditor={(script) => { setEditingScript(script as ScriptFormData | null); setIsScriptEditorOpen(true); }} onDelete={(id) => deleteScript.mutate(id)} onNoteChange={setNote} />}
                             {activeTab === 'files' && <FilesTab files={files} isLoading={isFilesLoading} isUploading={uploadFile.isPending} formatFileSize={formatFileSize} onUpload={(file) => uploadFile.mutateAsync(file)} onDownload={downloadFile} onDelete={(fileId, filePath) => deleteFile.mutate({ fileId, filePath })} />}
                             {activeTab === 'chat' && (
-                                <div className="flex-1 min-h-0 bg-slate-950 overflow-hidden">
+                                <div className="flex-1 min-h-0 bg-background overflow-hidden">
                                     <React.Suspense fallback={<div className="flex items-center justify-center h-full"><Loader2 size={24} className="animate-spin text-primary-500" /></div>}>
                                         <AIAssistant isOpen={true} onClose={() => setActiveTab('notas')} variant="sidebar" activeBoard={board} dealId={deal.id} contactId={contact?.id} cockpitSnapshot={cockpitSnapshot} contextMode="props-only" />
                                     </React.Suspense>

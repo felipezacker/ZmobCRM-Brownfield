@@ -20,6 +20,7 @@ import { isAllowedOrigin } from '@/lib/security/sameOrigin';
 import { getResolvedPrompt } from '@/lib/ai/prompts/server';
 import { renderPromptTemplate } from '@/lib/ai/prompts/render';
 import { isAIFeatureEnabled } from '@/lib/ai/features/server';
+import { decryptApiKey } from '@/lib/crypto/encryption';
 
 export const maxDuration = 60;
 

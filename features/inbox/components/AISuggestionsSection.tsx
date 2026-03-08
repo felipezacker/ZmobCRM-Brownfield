@@ -87,7 +87,7 @@ export const AISuggestionsSection: React.FC<AISuggestionsSectionProps> = ({
         <div className="p-1.5 bg-gradient-to-br from-primary-500 to-purple-600 rounded-lg">
           <Sparkles size={16} className="text-white" />
         </div>
-        <h2 className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+        <h2 className="text-sm font-bold text-secondary-foreground dark:text-muted-foreground uppercase tracking-wider">
           Sugestões da IA
         </h2>
         <span className="text-xs px-2 py-0.5 rounded-full bg-primary-100 dark:bg-primary-500/20 text-primary-600 dark:text-primary-400 font-medium">
@@ -128,16 +128,16 @@ export const AISuggestionsSection: React.FC<AISuggestionsSectionProps> = ({
                       {config.label}
                     </span>
                   </div>
-                  <h3 className="font-medium text-slate-900 dark:text-white mb-1">
+                  <h3 className="font-medium text-foreground mb-1">
                     {suggestion.title}
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <p className="text-sm text-secondary-foreground dark:text-muted-foreground">
                     {suggestion.description}
                   </p>
 
                   {/* Deal/Contact info */}
                   {suggestion.data.deal && (
-                    <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="mt-2 text-xs text-muted-foreground dark:text-muted-foreground">
                       💰 R$ {suggestion.data.deal.value.toLocaleString('pt-BR')}
                     </div>
                   )}
@@ -147,14 +147,14 @@ export const AISuggestionsSection: React.FC<AISuggestionsSectionProps> = ({
                 <div className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
                     onClick={() => onSnooze(suggestion.id)}
-                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-white/50 dark:hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2 text-muted-foreground hover:text-secondary-foreground hover:bg-white/50 dark:hover:bg-white/10 rounded-lg transition-colors"
                     title="Adiar"
                   >
                     <Clock size={18} />
                   </Button>
                   <Button
                     onClick={() => onDismiss(suggestion.id)}
-                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                    className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                     title="Descartar"
                   >
                     <X size={18} />

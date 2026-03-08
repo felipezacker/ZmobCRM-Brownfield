@@ -117,8 +117,8 @@ function CustomTooltip({ active, payload, label, isDark }: {
 
 function ChartSkeleton() {
   return (
-    <div className="h-64 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse flex items-center justify-center">
-      <span className="text-sm text-slate-400 dark:text-slate-500">Carregando gráfico...</span>
+    <div className="h-64 bg-muted dark:bg-card rounded-lg animate-pulse flex items-center justify-center">
+      <span className="text-sm text-muted-foreground dark:text-muted-foreground">Carregando gráfico...</span>
     </div>
   )
 }
@@ -130,8 +130,8 @@ export function MetricsChart({ data, isLoading, periodStart, periodEnd }: Metric
 
   if (data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl">
-        <p className="text-sm text-slate-400 dark:text-slate-500">
+      <div className="h-64 flex items-center justify-center bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl">
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">
           Nenhuma ligação registrada no período
         </p>
       </div>
@@ -145,16 +145,16 @@ export function MetricsChart({ data, isLoading, periodStart, periodEnd }: Metric
   }))
 
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4 min-h-[280px] lg:min-h-[360px]">
+    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4 min-h-[280px] lg:min-h-[360px]">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+        <h3 className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground">
           Ligações por Dia
         </h3>
         <div className="flex items-center gap-3">
           {OUTCOMES.map(o => (
             <div key={o.key} className="flex items-center gap-1">
               <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: o.color }} />
-              <span className="text-[10px] text-slate-500 dark:text-slate-400">{o.label}</span>
+              <span className="text-[10px] text-muted-foreground dark:text-muted-foreground">{o.label}</span>
             </div>
           ))}
         </div>

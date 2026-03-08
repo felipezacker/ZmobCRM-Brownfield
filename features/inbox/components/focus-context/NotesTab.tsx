@@ -25,7 +25,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
     return (
         <div className="flex-1 flex flex-col bg-[#1A1A1A]">
             <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Notas do Deal</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notas do Deal</span>
                 {isSaving && (
                     <span className="text-[10px] text-primary-400 flex items-center gap-1">
                         <Loader2 size={10} className="animate-spin" /> Salvando...
@@ -38,7 +38,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
                 <textarea
                     value={note}
                     onChange={(e) => onNoteChange(e.target.value)}
-                    className="w-full bg-slate-900/50 border border-white/5 rounded-lg p-3 text-sm text-slate-300 placeholder:text-slate-600 resize-none focus:outline-none focus:border-primary-500/50 min-h-[160px]"
+                    className="w-full bg-card/50 border border-white/5 rounded-lg p-3 text-sm text-muted-foreground placeholder:text-secondary-foreground resize-none focus:outline-none focus:border-primary-500/50 min-h-[160px]"
                     placeholder="Escreva uma nota..."
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && e.metaKey) {
@@ -47,7 +47,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
                     }}
                 />
                 <div className="flex justify-between items-center mt-2">
-                    <span className="text-[10px] text-slate-600">Cmd+Enter para salvar</span>
+                    <span className="text-[10px] text-secondary-foreground">Cmd+Enter para salvar</span>
                     <Button
                         onClick={onSubmit}
                         disabled={!note.trim() || isSaving}
@@ -62,21 +62,21 @@ export const NotesTab: React.FC<NotesTabProps> = ({
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-8">
-                        <Loader2 size={20} className="text-slate-500 animate-spin" />
+                        <Loader2 size={20} className="text-muted-foreground animate-spin" />
                     </div>
                 ) : notes.length === 0 ? (
-                    <p className="text-sm text-slate-600 text-center py-8">Nenhuma nota ainda</p>
+                    <p className="text-sm text-secondary-foreground text-center py-8">Nenhuma nota ainda</p>
                 ) : (
                     notes.map((n) => (
-                        <div key={n.id} className="p-3 bg-slate-800/30 rounded-lg border border-white/5 group">
-                            <p className="text-sm text-slate-300 whitespace-pre-wrap">{n.content}</p>
+                        <div key={n.id} className="p-3 bg-card/30 rounded-lg border border-white/5 group">
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{n.content}</p>
                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-[10px] text-slate-600">
+                                <span className="text-[10px] text-secondary-foreground">
                                     {new Date(n.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                 </span>
                                 <Button
                                     onClick={() => onDelete(n.id)}
-                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/10 rounded text-slate-500 hover:text-red-400 transition-all"
+                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/10 rounded text-muted-foreground hover:text-red-400 transition-all"
                                 >
                                     <Trash2 size={12} />
                                 </Button>

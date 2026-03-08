@@ -132,7 +132,7 @@ export const ContactSearchCombobox: React.FC<ContactSearchComboboxProps> = ({
           onFocus={() => searchTerm && setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2.5 bg-muted dark:bg-black/20 border border-border rounded-lg text-sm text-foreground dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+          className="w-full pl-10 pr-4 py-2.5 bg-muted dark:bg-black/20 border border-border rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
       </div>
 

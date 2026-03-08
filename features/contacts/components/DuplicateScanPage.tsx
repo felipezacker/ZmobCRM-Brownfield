@@ -66,16 +66,16 @@ export const DuplicateScanPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <Button
             onClick={() => router.back()}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+            className="p-2 text-muted-foreground hover:text-secondary-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors"
             type="button"
           >
             <ArrowLeft size={20} />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white font-display">
+            <h1 className="text-xl font-bold text-foreground font-display">
               Verificar Duplicatas
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">
               Contatos com mesmo email, telefone ou CPF na organizacao
             </p>
           </div>
@@ -95,7 +95,7 @@ export const DuplicateScanPage: React.FC = () => {
       {loading && (
         <div className="flex items-center justify-center py-16">
           <Loader2 size={32} className="animate-spin text-primary-500" />
-          <span className="ml-3 text-slate-500 dark:text-slate-400">Buscando duplicatas...</span>
+          <span className="ml-3 text-muted-foreground dark:text-muted-foreground">Buscando duplicatas...</span>
         </div>
       )}
 
@@ -110,14 +110,14 @@ export const DuplicateScanPage: React.FC = () => {
       {!loading && !error && groups.length === 0 && (
         <div className="text-center py-16">
           <div className="text-4xl mb-3">✓</div>
-          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">Nenhuma duplicata encontrada</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Sua base de contatos esta limpa!</p>
+          <h3 className="text-lg font-semibold text-secondary-foreground dark:text-muted-foreground">Nenhuma duplicata encontrada</h3>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">Sua base de contatos esta limpa!</p>
         </div>
       )}
 
       {/* Result count */}
       {!loading && groups.length > 0 && (
-        <div className="text-sm text-slate-500 dark:text-slate-400">
+        <div className="text-sm text-muted-foreground dark:text-muted-foreground">
           {groups.length} possive{groups.length === 1 ? 'l' : 'is'} duplicata{groups.length === 1 ? '' : 's'} encontrada{groups.length === 1 ? '' : 's'}
         </div>
       )}
@@ -127,18 +127,18 @@ export const DuplicateScanPage: React.FC = () => {
         const matchCfg = MATCH_CONFIG[group.matchType] || MATCH_CONFIG.email;
 
         return (
-          <div key={group.key} className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+          <div key={group.key} className="glass rounded-xl border border-border shadow-sm overflow-hidden">
             {/* Group header */}
-            <div className="px-5 py-3 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between">
+            <div className="px-5 py-3 border-b border-border bg-background/50 dark:bg-white/[0.02] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${matchCfg.color}`}>
                   {matchCfg.icon}
                   {matchCfg.label}
                 </span>
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <span className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground">
                   {group.matchValue}
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-muted-foreground">
                   ({group.contacts.length} contatos)
                 </span>
               </div>
@@ -155,16 +155,16 @@ export const DuplicateScanPage: React.FC = () => {
             </div>
 
             {/* Contacts in group */}
-            <div className="divide-y divide-slate-100 dark:divide-white/5">
+            <div className="divide-y divide-border dark:divide-white/5">
               {group.contacts.map(contact => (
-                <div key={contact.id} className="px-5 py-3 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                <div key={contact.id} className="px-5 py-3 flex items-center justify-between hover:bg-background/50 dark:hover:bg-white/5 transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 text-primary-700 dark:text-primary-200 flex items-center justify-center font-bold text-sm">
                       {(contact.name || '?').charAt(0)}
                     </span>
                     <div>
-                      <span className="font-semibold text-slate-900 dark:text-white text-sm">{contact.name}</span>
-                      <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                      <span className="font-semibold text-foreground text-sm">{contact.name}</span>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground dark:text-muted-foreground">
                         {contact.email && <span>{contact.email}</span>}
                         {contact.phone && <span>{contact.phone}</span>}
                         {contact.cpf && <span>CPF: {contact.cpf}</span>}
@@ -184,8 +184,8 @@ export const DuplicateScanPage: React.FC = () => {
 
             {/* For groups with 3+ contacts, allow selecting pairs */}
             {group.contacts.length > 2 && (
-              <div className="px-5 py-2 border-t border-slate-200 dark:border-white/5 bg-slate-50/30 dark:bg-white/[0.01]">
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="px-5 py-2 border-t border-border bg-background/30 dark:bg-white/[0.01]">
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                   Selecione 2 contatos para fazer merge. Grupos com 3+ contatos precisam ser resolvidos em pares.
                 </p>
               </div>

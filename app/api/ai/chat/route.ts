@@ -8,6 +8,7 @@ import { AI_DEFAULT_MODELS } from '@/lib/ai/defaults';
 import type { CRMCallOptions } from '@/types/ai';
 import { isAllowedOrigin } from '@/lib/security/sameOrigin';
 import { isAIFeatureEnabled } from '@/lib/ai/features/server';
+import { decryptApiKey } from '@/lib/crypto/encryption';
 
 export const maxDuration = 60;
 
@@ -166,12 +167,14 @@ export async function POST(req: Request) {
     const provider = (orgSettings?.ai_provider ?? 'google') as AIProvider;
     const modelId: string | null = orgSettings?.ai_model ?? null;
 
-    const apiKey: string | null =
+    const rawKey: string | null =
         provider === 'google'
             ? (orgSettings?.ai_google_key ?? null)
             : provider === 'openai'
                 ? (orgSettings?.ai_openai_key ?? null)
                 : (orgSettings?.ai_anthropic_key ?? null);
+
+    const apiKey = rawKey ? decryptApiKey(rawKey) : null;
 
     if (!apiKey) {
         const providerLabel = provider === 'google' ? 'Google Gemini' : provider === 'openai' ? 'OpenAI' : 'Anthropic';

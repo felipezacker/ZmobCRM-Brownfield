@@ -33,12 +33,12 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
   if (step === 'select') return null;
 
   return (
-    <div className="p-6 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-dark-card shrink-0">
+    <div className="p-6 border-t border-border bg-white dark:bg-dark-card shrink-0">
       {step === 'playbook-preview' && selectedPlaybookId && (
         <div className="flex gap-3 justify-between items-center w-full">
           <Button
             onClick={onGoBackToSelect}
-            className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors font-medium"
+            className="px-4 py-2 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors font-medium"
           >
             &larr; Voltar
           </Button>
@@ -55,7 +55,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
         <div className="flex gap-3 justify-end">
           <Button
             onClick={onGoBackToSelect}
-            className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+            className="px-4 py-2 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors"
           >
             Voltar
           </Button>
@@ -82,11 +82,11 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
       {step === 'ai-preview' && (
         <div className="flex gap-3 justify-between items-center">
           {isChatMode ? (
-            <div className="text-sm text-slate-500">Modo de refinamento ativo</div>
+            <div className="text-sm text-muted-foreground">Modo de refinamento ativo</div>
           ) : (
             <Button
               onClick={onGoBackToAIInput}
-              className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+              className="px-4 py-2 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors"
             >
               Nao e isso
             </Button>
@@ -96,7 +96,7 @@ export const WizardFooter: React.FC<WizardFooterProps> = ({
             {!isChatMode && (
               <Button
                 onClick={onStartChatMode}
-                className="px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-muted dark:bg-white/10 text-secondary-foreground hover:bg-accent dark:hover:bg-white/20 rounded-lg transition-colors flex items-center gap-2"
               >
                 <MessageSquare size={18} />
                 Refinar com IA

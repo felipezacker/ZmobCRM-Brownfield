@@ -70,7 +70,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           <Button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800/70 text-slate-200 hover:bg-slate-700/70"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-card/70 text-muted-foreground hover:bg-accent/70"
             aria-label="Fechar assistente"
           >
             <X className="h-4 w-4" />
@@ -94,7 +94,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   if (variant === 'sidebar') {
     return (
-      <aside className="h-full w-full border-l border-slate-700/50 bg-slate-900">
+      <aside className="h-full w-full border-l border-border/50 bg-card">
         {content}
       </aside>
     );
@@ -109,7 +109,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
       }}
     >
       <div
-        className="h-full md:h-[85vh] w-full md:max-w-3xl overflow-hidden md:rounded-2xl md:border md:border-slate-700/50 bg-slate-900 md:shadow-2xl md:shadow-black/50"
+        className="h-full md:h-[85vh] w-full md:max-w-3xl overflow-hidden md:rounded-2xl md:border md:border-border/50 bg-card md:shadow-2xl md:shadow-black/50"
         onClick={(e) => e.stopPropagation()}
       >
         {content}

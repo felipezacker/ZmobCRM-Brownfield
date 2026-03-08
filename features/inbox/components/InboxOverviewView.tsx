@@ -30,14 +30,14 @@ const StatCard: React.FC<{
   onClick?: () => void;
 }> = ({ label, value, tone, hint, onClick }) => {
   const toneStyles: Record<typeof tone, string> = {
-    neutral: 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5',
+    neutral: 'border-border  bg-white dark:bg-white/5',
     danger: 'border-red-200 dark:border-red-500/20 bg-red-50/60 dark:bg-red-500/10',
     warning: 'border-orange-200 dark:border-orange-500/20 bg-orange-50/60 dark:bg-orange-500/10',
     success: 'border-green-200 dark:border-green-500/20 bg-green-50/60 dark:bg-green-500/10',
   };
 
   const valueStyles: Record<typeof tone, string> = {
-    neutral: 'text-slate-900 dark:text-white',
+    neutral: 'text-foreground ',
     danger: 'text-red-700 dark:text-red-300',
     warning: 'text-orange-700 dark:text-orange-300',
     success: 'text-green-700 dark:text-green-300',
@@ -49,13 +49,13 @@ const StatCard: React.FC<{
     <Component
       type={onClick ? 'button' : undefined}
       onClick={onClick}
-      className={`w-full text-left rounded-xl border p-4 transition-colors ${toneStyles[tone]} ${onClick ? 'hover:bg-slate-50 dark:hover:bg-white/10' : ''}`}
+      className={`w-full text-left rounded-xl border p-4 transition-colors ${toneStyles[tone]} ${onClick ? 'hover:bg-background dark:hover:bg-white/10' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground dark:text-muted-foreground">{label}</div>
           {hint ? (
-            <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{hint}</div>
+            <div className="mt-1 text-xs text-muted-foreground dark:text-muted-foreground">{hint}</div>
           ) : null}
         </div>
         <div className={`text-2xl font-bold ${valueStyles[tone]}`}>{value}</div>
@@ -92,11 +92,11 @@ const SuggestionMiniRow: React.FC<{
   }, [suggestion.data.deal?.id, suggestion.data.contact?.id]);
 
   return (
-    <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+    <div className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-background dark:hover:bg-white/5 transition-colors">
       <div className="shrink-0">{icon}</div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm text-slate-800 dark:text-slate-100 truncate">{suggestion.title}</div>
-        <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{suggestion.description}</div>
+        <div className="text-sm text-foreground dark:text-muted-foreground truncate">{suggestion.title}</div>
+        <div className="text-xs text-muted-foreground dark:text-muted-foreground truncate">{suggestion.description}</div>
       </div>
       <div className="shrink-0 flex items-center gap-2">
         <Button
@@ -108,7 +108,7 @@ const SuggestionMiniRow: React.FC<{
         <Button
           onClick={() => navigationTarget && router.push(navigationTarget)}
           disabled={!navigationTarget}
-          className="px-2.5 py-1.5 rounded-md text-xs font-semibold border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+          className="px-2.5 py-1.5 rounded-md text-xs font-semibold border border-border text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10 transition-colors disabled:opacity-50"
         >
           Abrir
         </Button>
@@ -188,15 +188,15 @@ export const InboxOverviewView: React.FC<InboxOverviewViewProps> = ({
       {/* Top CTA */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Visão Geral</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h2 className="text-lg font-bold text-foreground">Visão Geral</h2>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Diagnóstico rápido do dia (sem virar outra lista de atividades).
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
             onClick={onGoToList}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-sm font-semibold text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10 transition-colors"
           >
             Ver lista
             <ArrowRight size={16} aria-hidden="true" />
@@ -247,11 +247,11 @@ export const InboxOverviewView: React.FC<InboxOverviewViewProps> = ({
 
       {/* Groups */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-4">
+        <div className="rounded-xl border border-border bg-white dark:bg-white/5 p-4">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
               <AlertTriangle size={16} className="text-orange-600 dark:text-orange-400" aria-hidden="true" />
-              <h3 className="font-bold text-slate-900 dark:text-white">Risco (resgate e deals parados)</h3>
+              <h3 className="font-bold text-foreground">Risco (resgate e deals parados)</h3>
             </div>
             <Button
               onClick={onGoToList}
@@ -261,7 +261,7 @@ export const InboxOverviewView: React.FC<InboxOverviewViewProps> = ({
             </Button>
           </div>
           {riskSuggestions.length === 0 ? (
-            <div className="text-sm text-slate-500 dark:text-slate-400">Sem riscos destacados agora.</div>
+            <div className="text-sm text-muted-foreground dark:text-muted-foreground">Sem riscos destacados agora.</div>
           ) : (
             <div className="space-y-1">
               {riskSuggestions.map(s => (
@@ -275,11 +275,11 @@ export const InboxOverviewView: React.FC<InboxOverviewViewProps> = ({
           )}
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-4">
+        <div className="rounded-xl border border-border bg-white dark:bg-white/5 p-4">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
               <TrendingUp size={16} className="text-green-600 dark:text-green-400" aria-hidden="true" />
-              <h3 className="font-bold text-slate-900 dark:text-white">Oportunidades (upsell)</h3>
+              <h3 className="font-bold text-foreground">Oportunidades (upsell)</h3>
             </div>
             <Button
               onClick={onGoToList}
@@ -289,7 +289,7 @@ export const InboxOverviewView: React.FC<InboxOverviewViewProps> = ({
             </Button>
           </div>
           {opportunitySuggestions.length === 0 ? (
-            <div className="text-sm text-slate-500 dark:text-slate-400">Sem oportunidades destacadas agora.</div>
+            <div className="text-sm text-muted-foreground dark:text-muted-foreground">Sem oportunidades destacadas agora.</div>
           ) : (
             <div className="space-y-1">
               {opportunitySuggestions.map(s => (

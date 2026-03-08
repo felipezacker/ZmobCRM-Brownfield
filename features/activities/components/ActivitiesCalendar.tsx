@@ -66,7 +66,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
             case 'MEETING': return 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70 border-purple-400';
             case 'EMAIL': return 'bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/50 hover:shadow-green-500/70 border-green-400';
             case 'TASK': return 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/50 hover:shadow-orange-500/70 border-orange-400';
-            default: return 'bg-gradient-to-br from-slate-500 to-slate-600 shadow-lg shadow-slate-500/50 hover:shadow-slate-500/70 border-slate-400';
+            default: return 'bg-gradient-to-br from-muted-foreground to-muted-foreground/80 shadow-lg shadow-border/50 hover:shadow-border/70 border-border';
         }
     };
 
@@ -204,11 +204,11 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
     }, [deals]);
 
     return (
-        <div className="bg-white dark:bg-dark-card rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-xl">
+        <div className="bg-white dark:bg-dark-card rounded-2xl border border-border overflow-hidden shadow-xl">
             {/* Header */}
-            <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50">
+            <div className="p-6 border-b border-border flex justify-between items-center bg-gradient-to-r from-background to-muted dark:from-card/50 dark:to-card/50">
                 <div className="flex items-center gap-4">
-                    <h2 className="font-bold text-2xl text-slate-900 dark:text-white font-display">
+                    <h2 className="font-bold text-2xl text-foreground font-display">
                         {weekStart.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                     </h2>
                     <Button
@@ -220,11 +220,11 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                     </Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button onClick={prevWeek} className="p-3 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110">
-                        <ChevronLeft size={20} className="text-slate-600 dark:text-slate-400" />
+                    <Button onClick={prevWeek} className="p-3 hover:bg-accent dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110">
+                        <ChevronLeft size={20} className="text-secondary-foreground dark:text-muted-foreground" />
                     </Button>
-                    <Button onClick={nextWeek} className="p-3 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110">
-                        <ChevronRight size={20} className="text-slate-600 dark:text-slate-400" />
+                    <Button onClick={nextWeek} className="p-3 hover:bg-accent dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110">
+                        <ChevronRight size={20} className="text-secondary-foreground dark:text-muted-foreground" />
                     </Button>
                 </div>
             </div>
@@ -233,23 +233,23 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
             <div className="overflow-auto max-h-[calc(100dvh-280px)]">
                 <div className="min-w-[800px]">
                     {/* Day Headers */}
-                    <div className="grid grid-cols-8 border-b border-slate-200 dark:border-white/10 sticky top-0 bg-white dark:bg-dark-card z-10 shadow-sm">
-                        <div className="p-3 text-xs font-bold text-slate-500 uppercase bg-slate-50 dark:bg-white/5"></div>
+                    <div className="grid grid-cols-8 border-b border-border sticky top-0 bg-white dark:bg-dark-card z-10 shadow-sm">
+                        <div className="p-3 text-xs font-bold text-muted-foreground uppercase bg-background dark:bg-white/5"></div>
                         {weekDays.map((date, i) => (
                             <div
                                 key={i}
-                                className={`p-4 text-center border-l border-slate-200 dark:border-white/10 transition-all ${isToday(date)
+                                className={`p-4 text-center border-l border-border  transition-all ${isToday(date)
                                         ? 'bg-gradient-to-b from-primary-50 to-primary-100 dark:from-primary-500/20 dark:to-primary-500/10'
-                                        : 'bg-slate-50 dark:bg-white/5'
+                                        : 'bg-background dark:bg-white/5'
                                     }`}
                             >
-                                <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <div className="text-xs font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
                                     {DAYS_OF_WEEK[date.getDay()]}
                                 </div>
                                 <div className="flex items-center justify-center gap-1.5 mt-1">
                                     <span className={`text-2xl font-bold font-display ${isToday(date)
                                             ? 'text-primary-600 dark:text-primary-400'
-                                            : 'text-slate-900 dark:text-white'
+                                            : 'text-foreground '
                                         }`}>
                                         {date.getDate()}
                                     </span>
@@ -268,8 +268,8 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
 
                     {/* Time Slots */}
                     {HOURS.map(hour => (
-                        <div key={hour} className="grid grid-cols-8 border-b border-slate-200 dark:border-white/5">
-                            <div className="p-3 text-sm font-bold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-white/5 text-right pr-4">
+                        <div key={hour} className="grid grid-cols-8 border-b border-border">
+                            <div className="p-3 text-sm font-bold text-secondary-foreground dark:text-muted-foreground bg-background dark:bg-white/5 text-right pr-4">
                                 {hour}:00
                             </div>
                             {weekDays.map((date, i) => {
@@ -278,7 +278,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                 return (
                                     <div
                                         key={i}
-                                        className={`min-h-[70px] p-2 border-l border-slate-200 dark:border-white/10 transition-colors ${isToday(date)
+                                        className={`min-h-[70px] p-2 border-l border-border  transition-colors ${isToday(date)
                                                 ? 'bg-primary-50/20 dark:bg-primary-500/5'
                                                 : ''
                                             }`}

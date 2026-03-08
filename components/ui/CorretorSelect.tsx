@@ -32,7 +32,7 @@ export const CorretorSelect: React.FC<CorretorSelectProps> = ({
 
   if (!canEdit) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted dark:bg-white/5 border border-border dark:border-white/10 rounded-lg text-sm text-foreground dark:text-muted-foreground">
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted dark:bg-white/5 border border-border rounded-lg text-sm text-foreground dark:text-muted-foreground">
         <User size={14} className="text-muted-foreground" />
         <span>{displayName}</span>
       </div>
@@ -43,7 +43,7 @@ export const CorretorSelect: React.FC<CorretorSelectProps> = ({
     <select
       value={value || ''}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-muted dark:bg-black/20 border border-border dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary dark:text-white"
+      className="w-full bg-muted dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
     >
       <option value="">Selecione...</option>
       {members.map((m) => (

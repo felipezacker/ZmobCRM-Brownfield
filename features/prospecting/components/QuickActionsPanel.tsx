@@ -133,17 +133,17 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
 
   return (
     <>
-      <div className="max-w-lg mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl p-4 space-y-3 animate-in slide-in-from-bottom-2 duration-200">
+      <div className="max-w-lg mx-auto bg-white dark:bg-card border border-border dark:border-border/50 rounded-xl p-4 space-y-3 animate-in slide-in-from-bottom-2 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+          <h3 className="text-sm font-semibold text-foreground">
             Próximos Passos
           </h3>
           <Button
             variant="unstyled"
             size="unstyled"
             onClick={onDismiss}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-md text-muted-foreground hover:text-secondary-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-card transition-colors"
             aria-label="Dispensar"
           >
             <X size={16} />
@@ -162,14 +162,14 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors text-left ${
                 dealCreated
                   ? 'border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400'
-                  : 'border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                  : 'border-border dark:border-border/50 hover:bg-background dark:hover:bg-card/50 text-secondary-foreground dark:text-muted-foreground'
               }`}
             >
               {dealCreated ? <Check size={18} /> : <Briefcase size={18} className="text-blue-500" />}
               <div className="flex-1 min-w-0">
                 <span className="text-sm font-medium">{dealCreated ? 'Negócio criado' : 'Criar Negócio'}</span>
                 {!dealCreated && (
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Abre formulário pré-preenchido</p>
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">Abre formulário pré-preenchido</p>
                 )}
               </div>
             </Button>
@@ -180,7 +180,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
             <div className={`rounded-lg border transition-colors ${
               returnScheduled
                 ? 'border-green-500/30 bg-green-500/10'
-                : 'border-slate-200 dark:border-slate-700/50'
+                : 'border-border dark:border-border/50'
             }`}>
               <Button
                 variant="unstyled"
@@ -190,7 +190,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                 className={`w-full flex items-center gap-3 px-3 py-2.5 text-left ${
                   returnScheduled
                     ? 'text-green-600 dark:text-green-400'
-                    : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
+                    : 'hover:bg-background dark:hover:bg-card/50 text-secondary-foreground dark:text-muted-foreground'
                 }`}
               >
                 {returnScheduled ? (
@@ -201,7 +201,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-medium">{returnScheduled ? 'Retorno agendado' : 'Agendar Retorno'}</span>
                   {!returnScheduled && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500">Selecione data e hora</p>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">Selecione data e hora</p>
                   )}
                 </div>
               </Button>
@@ -211,7 +211,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                     type="datetime-local"
                     value={returnDate}
                     onChange={(e) => setReturnDate(e.target.value)}
-                    className="flex-1 text-xs bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-primary-500/50"
+                    className="flex-1 text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-primary-500/50"
                   />
                   <Button
                     variant="unstyled"
@@ -232,7 +232,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
             <div className={`rounded-lg border transition-colors ${
               stageUpdated
                 ? 'border-green-500/30 bg-green-500/10'
-                : 'border-slate-200 dark:border-slate-700/50'
+                : 'border-border dark:border-border/50'
             }`}>
               <div className="flex items-center gap-3 px-3 py-2.5">
                 {stageUpdated ? (
@@ -241,7 +241,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                   <ArrowRightLeft size={18} className="text-purple-500" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <span className={`text-sm font-medium ${stageUpdated ? 'text-green-600 dark:text-green-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <span className={`text-sm font-medium ${stageUpdated ? 'text-green-600 dark:text-green-400' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
                     {stageUpdated ? 'Stage atualizado' : 'Mover Stage'}
                   </span>
                 </div>
@@ -251,7 +251,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                   <select
                     value={selectedStage}
                     onChange={(e) => setSelectedStage(e.target.value)}
-                    className="flex-1 text-xs bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-purple-500/50"
+                    className="flex-1 text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/50"
                   >
                     <option value="">Selecionar stage...</option>
                     {otherStages.map((stage) => (
@@ -282,7 +282,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
             size="unstyled"
             type="button"
             onClick={() => setShowTemplatesManager(true)}
-            className="w-full py-1.5 text-xs text-slate-400 dark:text-slate-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors text-center"
+            className="w-full py-1.5 text-xs text-muted-foreground dark:text-muted-foreground hover:text-primary-500 dark:hover:text-primary-400 transition-colors text-center"
           >
             Gerenciar templates de notas
           </Button>
@@ -293,7 +293,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
           variant="unstyled"
           size="unstyled"
           onClick={onDismiss}
-          className="w-full py-2 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors text-center"
+          className="w-full py-2 text-xs text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground transition-colors text-center"
         >
           Pular e avançar →
         </Button>

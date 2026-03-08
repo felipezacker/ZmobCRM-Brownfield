@@ -132,12 +132,11 @@ export const Modal: React.FC<ModalProps> = ({
         aria-labelledby={titleId}
         aria-describedby={describedById}
         className={cn(
-          MODAL_PANEL_BASE_CLASS,
-          MODAL_VIEWPORT_CAP_CLASS,
-          'animate-in zoom-in-95 duration-200',
-          sizeClasses[size],
-          className
-        )}
+ MODAL_PANEL_BASE_CLASS,
+ MODAL_VIEWPORT_CAP_CLASS,'animate-in zoom-in-95 duration-200',
+ sizeClasses[size],
+ className
+ )}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={MODAL_HEADER_CLASS}>
@@ -150,7 +149,7 @@ export const Modal: React.FC<ModalProps> = ({
             aria-label="Fechar modal"
             className={MODAL_CLOSE_BUTTON_CLASS}
           >
-            <X size={20} className="text-slate-500" aria-hidden="true" />
+            <X size={20} className="text-muted-foreground" aria-hidden="true" />
           </button>
         </div>
         <div className={cn(MODAL_BODY_CLASS, bodyClassName)}>{children}</div>

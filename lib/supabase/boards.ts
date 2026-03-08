@@ -166,7 +166,7 @@ const transformStage = (db: DbBoardStage): BoardStage => ({
   organizationId: db.organization_id,
   boardId: db.board_id,
   label: db.label || db.name, // label pode ser null, usar name como fallback
-  color: db.color || 'bg-gray-500',
+  color: db.color || 'bg-accent',
   linkedLifecycleStage: db.linked_lifecycle_stage || undefined,
 });
 
@@ -298,7 +298,7 @@ const transformStageToDb = (
   board_id: boardId,
   name: stage.label,
   label: stage.label,
-  color: stage.color || 'bg-gray-500',
+  color: stage.color || 'bg-accent',
   order: orderNum,
   linked_lifecycle_stage: stage.linkedLifecycleStage || null,
 });
@@ -802,7 +802,7 @@ export const boardsService = {
         .insert({
           board_id: boardId,
           label: stage.label,
-          color: stage.color || 'bg-gray-500',
+          color: stage.color || 'bg-accent',
           order: nextOrder,
           linked_lifecycle_stage: stage.linkedLifecycleStage || null,
         })

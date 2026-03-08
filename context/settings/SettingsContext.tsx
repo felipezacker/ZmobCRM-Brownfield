@@ -21,7 +21,7 @@ const DEFAULT_LIFECYCLE_STAGES: LifecycleStage[] = [
   { id: 'MQL', name: 'MQL', color: 'bg-yellow-500', order: 1, isDefault: true },
   { id: 'PROSPECT', name: 'Oportunidade', color: 'bg-purple-500', order: 2, isDefault: true },
   { id: 'CUSTOMER', name: 'Cliente', color: 'bg-green-500', order: 3, isDefault: true },
-  { id: 'OTHER', name: 'Outros / Perdidos', color: 'bg-slate-500', order: 4, isDefault: true },
+  { id: 'OTHER', name: 'Outros / Perdidos', color: 'bg-accent', order: 4, isDefault: true },
 ];
 
 interface AIConfig {

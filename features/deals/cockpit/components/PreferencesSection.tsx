@@ -31,7 +31,7 @@ export function PreferencesSection({
   onCreatePreferences,
 }: PreferencesSectionProps) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-3">
+    <div className="rounded-xl border border-border bg-background dark:bg-white/2 p-3">
       <SectionHeader
         label="Preferencias"
         icon={<Home className="h-3.5 w-3.5" />}
@@ -45,9 +45,9 @@ export function PreferencesSection({
             <div className="space-y-1.5 text-xs">
               {/* Finalidade */}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Finalidade</span>
+                <span className="text-muted-foreground">Finalidade</span>
                 <select
-                  className={`${SELECT_CLASS} text-slate-700 dark:text-slate-200`}
+                  className={`${SELECT_CLASS} text-secondary-foreground dark:text-muted-foreground`}
                   value={preferences.purpose ?? ''}
                   onChange={(e) => onUpdatePreferences?.({ purpose: e.target.value || null } as Partial<ContactPreference>)}
                 >
@@ -59,7 +59,7 @@ export function PreferencesSection({
               </div>
               {/* Tipos imovel -- chips toggle */}
               <div className="flex items-start justify-between gap-2">
-                <span className="text-slate-500 pt-0.5">Tipos</span>
+                <span className="text-muted-foreground pt-0.5">Tipos</span>
                 <div className="flex flex-wrap justify-end gap-1">
                   {PROPERTY_TYPES.map((pt) => {
                     const active = preferences.propertyTypes.includes(pt);
@@ -69,7 +69,7 @@ export function PreferencesSection({
                         className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
                           active
                             ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-200 ring-1 ring-cyan-500/30'
-                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10'
+                            : 'bg-muted dark:bg-white/5 text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/10'
                         }`}
                         onClick={() => {
                           const next = active
@@ -86,10 +86,10 @@ export function PreferencesSection({
               </div>
               {/* Faixa de preco */}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Preco min</span>
+                <span className="text-muted-foreground">Preco min</span>
                 <input
                   type="number"
-                  className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right w-24`}
+                  className={`${INPUT_CLASS} text-secondary-foreground dark:text-muted-foreground text-right w-24`}
                   defaultValue={preferences.priceMin ?? ''}
                   placeholder="--"
                   onBlur={(e) => {
@@ -99,10 +99,10 @@ export function PreferencesSection({
                 />
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Preco max</span>
+                <span className="text-muted-foreground">Preco max</span>
                 <input
                   type="number"
-                  className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right w-24`}
+                  className={`${INPUT_CLASS} text-secondary-foreground dark:text-muted-foreground text-right w-24`}
                   defaultValue={preferences.priceMax ?? ''}
                   placeholder="--"
                   onBlur={(e) => {
@@ -113,10 +113,10 @@ export function PreferencesSection({
               </div>
               {/* Regioes */}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Regioes</span>
+                <span className="text-muted-foreground">Regioes</span>
                 <input
                   type="text"
-                  className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right flex-1 min-w-0`}
+                  className={`${INPUT_CLASS} text-secondary-foreground dark:text-muted-foreground text-right flex-1 min-w-0`}
                   defaultValue={preferences.regions.join(', ')}
                   placeholder="Centro, Zona Sul..."
                   onBlur={(e) => {
@@ -128,10 +128,10 @@ export function PreferencesSection({
               </div>
               {/* Quartos min */}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Quartos min.</span>
+                <span className="text-muted-foreground">Quartos min.</span>
                 <input
                   type="number"
-                  className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right w-16`}
+                  className={`${INPUT_CLASS} text-secondary-foreground dark:text-muted-foreground text-right w-16`}
                   defaultValue={preferences.bedroomsMin ?? ''}
                   placeholder="--"
                   onBlur={(e) => {
@@ -142,9 +142,9 @@ export function PreferencesSection({
               </div>
               {/* Urgencia */}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Urgencia</span>
+                <span className="text-muted-foreground">Urgencia</span>
                 <select
-                  className={`${SELECT_CLASS} text-slate-700 dark:text-slate-200`}
+                  className={`${SELECT_CLASS} text-secondary-foreground dark:text-muted-foreground`}
                   value={preferences.urgency ?? ''}
                   onChange={(e) => onUpdatePreferences?.({ urgency: e.target.value || null } as Partial<ContactPreference>)}
                 >
@@ -157,7 +157,7 @@ export function PreferencesSection({
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">Sem preferencias cadastradas</span>
+              <span className="text-xs text-muted-foreground">Sem preferencias cadastradas</span>
               {onCreatePreferences ? (
                 <Button
                   type="button"

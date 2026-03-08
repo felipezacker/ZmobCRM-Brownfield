@@ -11,16 +11,16 @@ import {
 } from '@/features/contacts/constants'
 
 const SELECT_CLASS =
-  'bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white'
+  'bg-white dark:bg-black/20 border border-border  rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 '
 
 const INPUT_CLASS =
-  'bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white w-20'
+  'bg-white dark:bg-black/20 border border-border  rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500  w-20'
 
 const CHIP_ACTIVE =
   'bg-primary-100 text-primary-700 border-primary-300 dark:bg-primary-500/20 dark:text-primary-300 dark:border-primary-500/30'
 
 const CHIP_INACTIVE =
-  'bg-white text-slate-600 border-slate-200 hover:border-slate-300 dark:bg-black/20 dark:text-slate-400 dark:border-white/10 dark:hover:border-white/20'
+  'bg-white text-secondary-foreground border-border hover:border-border dark:bg-black/20 dark:text-muted-foreground  dark:hover:border-white/20'
 
 export interface ProspectingFiltersState {
   stages: string[]
@@ -61,7 +61,7 @@ const ChipRow: React.FC<{
   onChange: (next: string[]) => void
 }> = ({ label, options, selected, onChange }) => (
   <div>
-    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">{label}</label>
+    <label className="block text-xs font-bold text-muted-foreground uppercase mb-2">{label}</label>
     <div className="flex flex-wrap gap-2">
       {options.map(opt => {
         const active = selected.includes(opt.value)
@@ -114,7 +114,7 @@ const TagsFilter: React.FC<{
 
   return (
     <div>
-      <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Tags</label>
+      <label className="block text-xs font-bold text-muted-foreground uppercase mb-2">Tags</label>
 
       {/* Selected tags */}
       {selected.length > 0 && (
@@ -149,13 +149,13 @@ const TagsFilter: React.FC<{
           onBlur={() => setTimeout(() => setOpen(false), 150)}
         />
         {open && suggestions.length > 0 && (
-          <ul className="absolute z-20 mt-1 w-48 max-h-40 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg shadow-lg py-1">
+          <ul className="absolute z-20 mt-1 w-48 max-h-40 overflow-y-auto bg-white dark:bg-card border border-border rounded-lg shadow-lg py-1">
             {suggestions.map(tag => (
               <li key={tag}>
                 <Button
                   variant="unstyled"
                   size="unstyled"
-                  className="w-full text-left px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10"
+                  className="w-full text-left px-3 py-1.5 text-xs text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => addTag(tag)}
                 >
@@ -198,10 +198,10 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
     Object.entries(CLASSIFICATION_LABELS).map(([value, label]) => ({ value, label })), [])
 
   return (
-    <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4 space-y-4 animate-in slide-in-from-top-2">
+    <div className="bg-background dark:bg-white/5 border border-border rounded-xl p-4 space-y-4 animate-in slide-in-from-top-2">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+        <div className="flex items-center gap-2 text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">
           <Filter size={14} />
           Filtros de Prospecção
         </div>
@@ -238,7 +238,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
       {/* Source + Owner + Inactive days + Tags */}
       <div className="flex flex-wrap gap-4 items-end">
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Origem</label>
+          <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Origem</label>
           <select
             className={SELECT_CLASS}
             value={filters.source}
@@ -253,7 +253,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
 
         {showOwnerFilter && (
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Corretor</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Corretor</label>
             <select
               className={SELECT_CLASS}
               value={filters.ownerId}
@@ -268,7 +268,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
         )}
 
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Sem atividade há (dias)</label>
+          <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Sem atividade há (dias)</label>
           <input
             type="number"
             min={1}

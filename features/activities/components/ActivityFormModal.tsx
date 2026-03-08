@@ -57,27 +57,27 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
       }}
     >
       <div
-        className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 max-h-[calc(100dvh-2rem)] overflow-hidden"
+        className="bg-white dark:bg-dark-card border border-border rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200 max-h-[calc(100dvh-2rem)] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-5 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">
+        <div className="p-5 border-b border-border flex justify-between items-center">
+          <h2 className="text-lg font-bold text-foreground font-display">
             {editingActivity ? 'Editar Atividade' : 'Nova Atividade'}
           </h2>
           <Button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+            className="text-muted-foreground hover:text-secondary-foreground dark:hover:text-white"
           >
             <X size={20} />
           </Button>
         </div>
         <form onSubmit={onSubmit} className="p-5 space-y-4 overflow-auto pb-[calc(1.25rem+var(--app-safe-area-bottom,0px))]">
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Título</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Título</label>
             <input
               required
               type="text"
-              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full bg-background dark:bg-black/20 border border-border dark:border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Ex: Ligar para Cliente"
               value={formData.title}
               onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -85,9 +85,9 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Tipo</label>
             <select
-              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full bg-background dark:bg-black/20 border border-border dark:border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary-500"
               value={formData.type}
               onChange={e =>
                 setFormData({ ...formData, type: e.target.value as Activity['type'] })
@@ -101,7 +101,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">
               Negócio Relacionado{formData.type === 'TASK' ? ' (opcional)' : ''}
             </label>
             <DealSearchCombobox
@@ -114,21 +114,21 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Data</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Data</label>
               <input
                 required
                 type="date"
-                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full bg-background dark:bg-black/20 border border-border dark:border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary-500"
                 value={formData.date}
                 onChange={e => setFormData({ ...formData, date: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Hora</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Hora</label>
               <input
                 required
                 type="time"
-                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full bg-background dark:bg-black/20 border border-border dark:border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary-500"
                 value={formData.time}
                 onChange={e => setFormData({ ...formData, time: e.target.value })}
               />
@@ -136,9 +136,9 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Repetir</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Repetir</label>
             <select
-              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full bg-background dark:bg-black/20 border border-border dark:border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary-500"
               value={formData.recurrenceType}
               onChange={e =>
                 setFormData({ ...formData, recurrenceType: e.target.value as ActivityFormData['recurrenceType'] })
@@ -153,10 +153,10 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
 
           {formData.recurrenceType !== 'none' && (
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Repetir até (opcional)</label>
+              <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Repetir até (opcional)</label>
               <input
                 type="date"
-                className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full bg-background dark:bg-black/20 border border-border dark:border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary-500"
                 value={formData.recurrenceEndDate}
                 min={formData.date}
                 onChange={e => setFormData({ ...formData, recurrenceEndDate: e.target.value })}
@@ -168,11 +168,11 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">
               Descrição
             </label>
             <textarea
-              className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 min-h-[80px]"
+              className="w-full bg-background dark:bg-black/20 border border-border dark:border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary-500 min-h-[80px]"
               placeholder="Detalhes da atividade..."
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}

@@ -112,7 +112,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
     return (
       <div className="space-y-2">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-14 bg-slate-100 dark:bg-white/5 rounded-lg animate-pulse" />
+          <div key={i} className="h-14 bg-muted dark:bg-white/5 rounded-lg animate-pulse" />
         ))}
       </div>
     )
@@ -120,7 +120,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
 
   if (contacts.length === 0) {
     return (
-      <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
+      <div className="text-center py-8 text-muted-foreground dark:text-muted-foreground text-sm">
         Nenhum contato encontrado com os filtros selecionados.
       </div>
     )
@@ -131,16 +131,16 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
       {/* Header with select all + counter + action */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-600 dark:text-slate-400">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary-foreground dark:text-muted-foreground">
             <input
               type="checkbox"
               checked={allSelectableSelected}
               onChange={toggleSelectAll}
-              className="rounded border-slate-300 dark:border-slate-600 text-primary-500 focus:ring-primary-500"
+              className="rounded border-border dark:border-border text-primary-500 focus:ring-primary-500"
             />
             Selecionar todos
           </label>
-          <span className="text-xs text-slate-500 dark:text-slate-400">
+          <span className="text-xs text-muted-foreground dark:text-muted-foreground">
             {selectedCount} selecionado{selectedCount !== 1 ? 's' : ''} de {totalCount} contato{totalCount !== 1 ? 's' : ''}
           </span>
           {onSelectAllFiltered && totalCount > contacts.length && allSelectableSelected && !allFilteredSelected && (
@@ -184,7 +184,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
       </div>
 
       {/* Contact list */}
-      <div className="border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-white/5">
+      <div className="border border-border rounded-xl overflow-hidden divide-y divide-border dark:divide-white/5">
         {contacts.map(contact => {
           const inQueue = existingQueueContactIds.has(contact.id)
           const disabled = !contact.hasPhone || inQueue
@@ -196,7 +196,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
               className={`flex items-center gap-3 px-4 py-3 transition-colors ${
                 isSelected
                   ? 'bg-primary-50 dark:bg-primary-500/10'
-                  : 'bg-white dark:bg-transparent hover:bg-slate-50 dark:hover:bg-white/5'
+                  : 'bg-white dark:bg-transparent hover:bg-background dark:hover:bg-white/5'
               } ${disabled ? 'opacity-60' : ''}`}
             >
               {/* Checkbox */}
@@ -205,13 +205,13 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                 checked={isSelected}
                 disabled={disabled}
                 onChange={() => toggleSelect(contact.id)}
-                className="rounded border-slate-300 dark:border-slate-600 text-primary-500 focus:ring-primary-500 disabled:opacity-40"
+                className="rounded border-border dark:border-border text-primary-500 focus:ring-primary-500 disabled:opacity-40"
               />
 
               {/* Name + Email */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                  <span className="text-sm font-medium text-foreground truncate">
                     {contact.name}
                   </span>
                   {inQueue && (
@@ -221,7 +221,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                   )}
                 </div>
                 {contact.email && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{contact.email}</p>
+                  <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate">{contact.email}</p>
                 )}
               </div>
 
@@ -229,8 +229,8 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
               <div className="flex items-center gap-1.5 min-w-[120px]">
                 {contact.hasPhone ? (
                   <>
-                    <Phone size={12} className="text-slate-400" />
-                    <span className="text-xs text-slate-600 dark:text-slate-400">
+                    <Phone size={12} className="text-muted-foreground" />
+                    <span className="text-xs text-secondary-foreground dark:text-muted-foreground">
                       {contact.primaryPhone}
                     </span>
                   </>
@@ -244,7 +244,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
 
               {/* Stage badge */}
               {contact.stage && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-secondary-foreground dark:bg-white/10 dark:text-muted-foreground">
                   {STAGE_LABELS[contact.stage] || contact.stage}
                 </span>
               )}
@@ -257,7 +257,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
               )}
 
               {/* Days since last activity */}
-              <span className="text-xs text-slate-500 dark:text-slate-400 min-w-[60px] text-right">
+              <span className="text-xs text-muted-foreground dark:text-muted-foreground min-w-[60px] text-right">
                 {contact.daysSinceLastActivity !== null
                   ? `${contact.daysSinceLastActivity}d`
                   : 'Nunca'}
@@ -270,7 +270,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-slate-500 dark:text-slate-400">
+          <span className="text-xs text-muted-foreground dark:text-muted-foreground">
             Página {page + 1} de {totalPages}
           </span>
           <div className="flex items-center gap-1">
@@ -279,7 +279,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
               size="unstyled"
               onClick={() => onPageChange(page - 1)}
               disabled={page === 0 || isFetching}
-              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-40 text-slate-600 dark:text-slate-400"
+              className="p-1.5 rounded-lg hover:bg-muted dark:hover:bg-white/10 disabled:opacity-40 text-secondary-foreground dark:text-muted-foreground"
             >
               <ChevronLeft size={16} />
             </Button>
@@ -288,7 +288,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
               size="unstyled"
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages - 1 || isFetching}
-              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-40 text-slate-600 dark:text-slate-400"
+              className="p-1.5 rounded-lg hover:bg-muted dark:hover:bg-white/10 disabled:opacity-40 text-secondary-foreground dark:text-muted-foreground"
             >
               <ChevronRight size={16} />
             </Button>
@@ -298,7 +298,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
 
       {/* Fetching indicator */}
       {isFetching && !isLoading && (
-        <div className="text-center text-xs text-slate-400">Atualizando...</div>
+        <div className="text-center text-xs text-muted-foreground">Atualizando...</div>
       )}
     </div>
   )

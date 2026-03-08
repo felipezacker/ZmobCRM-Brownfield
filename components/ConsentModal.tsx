@@ -117,11 +117,11 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
     >
       <div className="bg-white dark:bg-dark-card rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="px-6 py-4 border-b border-border dark:border-dark-border">
+          <h2 className="text-xl font-semibold text-foreground">
             Consentimentos Necessários
           </h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-sm text-secondary-foreground dark:text-muted-foreground">
             Para continuar usando o ZmobCRM, precisamos do seu consentimento.
           </p>
         </div>
@@ -131,7 +131,7 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
           {/* Required Consents */}
           {requiredMissing.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              <h3 className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3">
                 Obrigatórios
               </h3>
               <div className="space-y-3">
@@ -151,7 +151,7 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
           {/* Optional Consents */}
           {optionalMissing.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              <h3 className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3">
                 Opcionais
               </h3>
               <div className="space-y-3">
@@ -169,7 +169,7 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
           )}
 
           {/* Legal Links */}
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-dark-border">
+          <div className="mt-6 pt-4 border-t border-border dark:border-dark-border">
             <div className="flex flex-wrap gap-4 text-sm">
               <a
                 href="/termos-de-uso"
@@ -192,12 +192,12 @@ export const ConsentModal: React.FC<ConsentModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-dark-border bg-gray-50 dark:bg-dark-bg">
+        <div className="px-6 py-4 border-t border-border dark:border-dark-border bg-background dark:bg-dark-bg">
           <div className="flex justify-end gap-3">
             {onClose && (
               <Button
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-dark-hover rounded-lg transition-colors"
                 disabled={isSubmitting}
               >
                 Cancelar
@@ -240,12 +240,12 @@ const ConsentItem: React.FC<ConsentItemProps> = ({
           checked={checked}
           onChange={onChange}
           disabled={required}
-          className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 disabled:opacity-75"
+          className="w-4 h-4 text-primary-600 border-border rounded focus:ring-primary-500 disabled:opacity-75"
         />
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-gray-900 dark:text-white text-sm">
+          <span className="font-medium text-foreground text-sm">
             {label.title}
           </span>
           {required && (
@@ -254,7 +254,7 @@ const ConsentItem: React.FC<ConsentItemProps> = ({
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+        <p className="text-sm text-secondary-foreground dark:text-muted-foreground mt-0.5">
           {label.description}
         </p>
       </div>

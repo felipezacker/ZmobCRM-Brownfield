@@ -19,7 +19,7 @@ export const PipelineStages: React.FC<PipelineStagesProps> = ({
 }) => {
     return (
         <div className="p-4 border-t border-white/5">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-slate-600 font-medium mb-3">Pipeline</p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-secondary-foreground font-medium mb-3">Pipeline</p>
             <div className="space-y-2">
                 {board?.stages.map((stage, idx) => {
                     const isActive = idx === currentIdx;
@@ -34,7 +34,7 @@ export const PipelineStages: React.FC<PipelineStagesProps> = ({
                             key={stage.id}
                             onClick={() => onMoveStage(stage.id)}
                             className={`w-full px-3 py-2 rounded-lg flex items-center justify-between transition-all duration-200 group
-                                ${!isActive && !isPassed ? 'bg-slate-800/30 text-slate-500 border border-transparent hover:bg-slate-800/50 hover:text-slate-400' : ''}`}
+                                ${!isActive && !isPassed ? 'bg-card/30 text-muted-foreground border border-transparent hover:bg-card/50 hover:text-muted-foreground' : ''}`}
                             style={{
                                 backgroundColor: isActive ? `${hexColor}15` : isPassed ? `${hexColor}10` : undefined,
                                 color: (isActive || isPassed) ? hexColor : undefined,
@@ -79,8 +79,8 @@ export const PipelineStages: React.FC<PipelineStagesProps> = ({
             {/* Journey Summary */}
             <div className="mt-4 pt-3 border-t border-white/5">
                 <div className="flex items-center justify-between text-[10px]">
-                    <span className="text-slate-600 uppercase tracking-wider">Tempo no funil</span>
-                    <span className="text-slate-400 font-mono font-medium">
+                    <span className="text-secondary-foreground uppercase tracking-wider">Tempo no funil</span>
+                    <span className="text-muted-foreground font-mono font-medium">
                         {(() => {
                             const totalDays = board?.stages.reduce((acc, _, idx) => {
                                 if (idx < currentIdx) return acc + ([3, 12, 38][idx] || 5);

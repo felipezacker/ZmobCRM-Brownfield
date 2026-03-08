@@ -298,7 +298,7 @@ export const useDashboardMetrics = (period: PeriodFilter = 'this_month', boardId
       'bg-pink-500': 'var(--chart-pink)',
       'bg-indigo-500': 'var(--chart-indigo)',
       'bg-teal-500': 'var(--chart-teal)',
-      'bg-slate-500': 'var(--chart-slate)',
+      'bg-accent': 'var(--chart-slate)',
     };
 
     if (stages.length === 0) {

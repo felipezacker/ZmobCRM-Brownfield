@@ -58,5 +58,5 @@ export const PROPERTY_TYPE_LABELS: Record<string, string> = {
 };
 
 export const INPUT_CLASS =
-  'bg-transparent outline-none text-sm hover:bg-slate-100 dark:hover:bg-white/5 rounded px-1 py-0.5 focus:ring-1 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/5 transition-colors';
+  'bg-transparent outline-none text-sm hover:bg-muted dark:hover:bg-white/5 rounded px-1 py-0.5 focus:ring-1 focus:ring-cyan-500 focus:bg-white dark:focus:bg-white/5 transition-colors';
 export const SELECT_CLASS = `${INPUT_CLASS} cursor-pointer`;

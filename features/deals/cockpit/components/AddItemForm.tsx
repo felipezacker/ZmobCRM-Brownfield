@@ -87,7 +87,7 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
     return (
       <Button
         variant="unstyled" size="unstyled" type="button"
-        className="flex items-center gap-1 text-xs text-slate-500 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors mt-1"
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors mt-1"
         onClick={() => setShowForm(true)}
       >
         <Plus className="h-3 w-3" /> Produto
@@ -96,7 +96,7 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
   }
 
   return (
-    <div className="space-y-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 p-2">
+    <div className="space-y-1.5 rounded-lg border border-border bg-white dark:bg-white/3 p-2">
       {/* Mode tabs */}
       <div className="flex gap-1 mb-2">
         <Button
@@ -104,7 +104,7 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
           className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors ${
             addMode === 'catalog'
               ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-200'
-              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+              : 'text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
           }`}
           onClick={() => setAddMode('catalog')}
         >
@@ -115,7 +115,7 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
           className={`px-2 py-0.5 text-xs font-semibold rounded-md transition-colors ${
             addMode === 'custom'
               ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-200'
-              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+              : 'text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
           }`}
           onClick={() => setAddMode('custom')}
         >
@@ -130,7 +130,7 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
             <div className="relative" ref={productPickerRef}>
               <Button
                 variant="unstyled" size="unstyled" type="button"
-                className={`${SELECT_CLASS} w-full flex items-center justify-between gap-1 text-slate-700 dark:text-slate-200`}
+                className={`${SELECT_CLASS} w-full flex items-center justify-between gap-1 text-secondary-foreground dark:text-muted-foreground`}
                 onClick={() => setProductPickerOpen(!productPickerOpen)}
               >
                 <span className="truncate">
@@ -142,9 +142,9 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
               </Button>
 
               {productPickerOpen && (
-                <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950/95 backdrop-blur-xl shadow-xl shadow-slate-300/30 dark:shadow-black/40">
-                  <div className="flex items-center gap-1.5 border-b border-slate-200 dark:border-white/8 px-2 py-1.5">
-                    <Search className="h-3 w-3 shrink-0 text-slate-400" />
+                <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-border bg-white dark:bg-background/95 backdrop-blur-xl shadow-xl shadow-border/30 dark:shadow-black/40">
+                  <div className="flex items-center gap-1.5 border-b border-border px-2 py-1.5">
+                    <Search className="h-3 w-3 shrink-0 text-muted-foreground" />
                     <input
                       ref={productSearchRef}
                       type="text"
@@ -154,12 +154,12 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
                         if (e.key === 'Escape') { setProductPickerOpen(false); setProductSearch(''); }
                       }}
                       placeholder="Buscar produto..."
-                      className="flex-1 bg-transparent text-xs text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                      className="flex-1 bg-transparent text-xs text-secondary-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
                     />
                   </div>
                   <div className="max-h-[150px] overflow-auto py-0.5">
                     {filteredProducts.length === 0 ? (
-                      <div className="px-2 py-3 text-center text-xs text-slate-400 dark:text-slate-600">Nenhum produto encontrado</div>
+                      <div className="px-2 py-3 text-center text-xs text-muted-foreground dark:text-secondary-foreground">Nenhum produto encontrado</div>
                     ) : (
                       filteredProducts.map((p) => {
                         const isCurrent = p.id === selectedProductId;
@@ -167,14 +167,14 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
                           <Button
                             variant="unstyled" size="unstyled" key={p.id} type="button"
                             className={`flex w-full items-center gap-1.5 px-2 py-1.5 text-left transition-colors ${
-                              isCurrent ? 'bg-slate-100 dark:bg-white/6' : 'hover:bg-slate-50 dark:hover:bg-white/4'
+                              isCurrent ? 'bg-muted dark:bg-white/6' : 'hover:bg-background dark:hover:bg-white/4'
                             }`}
                             onClick={() => { setSelectedProductId(p.id); setProductPickerOpen(false); setProductSearch(''); }}
                           >
                             <div className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded ${isCurrent ? 'text-cyan-600 dark:text-cyan-400' : 'text-transparent'}`}>
                               <Check className="h-2.5 w-2.5" />
                             </div>
-                            <span className={`truncate text-xs ${isCurrent ? 'font-semibold text-slate-900 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}>
+                            <span className={`truncate text-xs ${isCurrent ? 'font-semibold text-foreground dark:text-muted-foreground' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
                               {p.name}
                             </span>
                             <span className="ml-auto shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400/70">
@@ -185,18 +185,18 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
                       })
                     )}
                   </div>
-                  <div className="border-t border-slate-200 dark:border-white/8 px-2 py-1">
-                    <span className="text-xs text-slate-400 dark:text-slate-600">{products.length} produtos no catalogo</span>
+                  <div className="border-t border-border px-2 py-1">
+                    <span className="text-xs text-muted-foreground dark:text-secondary-foreground">{products.length} produtos no catalogo</span>
                   </div>
                 </div>
               )}
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-slate-500">Qtd</span>
+              <span className="text-xs text-muted-foreground">Qtd</span>
               <input
                 type="number"
-                className={`${INPUT_CLASS} w-12 text-center text-slate-700 dark:text-slate-200`}
+                className={`${INPUT_CLASS} w-12 text-center text-secondary-foreground dark:text-muted-foreground`}
                 value={productQty}
                 onChange={(e) => setProductQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
                 min={1}
@@ -213,7 +213,7 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
               </Button>
               <Button
                 type="button"
-                className="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                className="rounded-lg px-2 py-1 text-xs text-muted-foreground hover:bg-muted dark:hover:bg-white/5 transition-colors"
                 onClick={resetForm}
               >
                 Cancelar
@@ -221,7 +221,7 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
             </div>
           </>
         ) : (
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-muted-foreground">
             Nenhum produto cadastrado.{' '}
             <Button variant="unstyled" size="unstyled" type="button" className="text-cyan-600 dark:text-cyan-300 hover:underline" onClick={() => setAddMode('custom')}>
               Adicionar manualmente
@@ -232,7 +232,7 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
         <>
           <input
             type="text"
-            className={`${INPUT_CLASS} w-full text-slate-700 dark:text-slate-200`}
+            className={`${INPUT_CLASS} w-full text-secondary-foreground dark:text-muted-foreground`}
             placeholder="Nome do produto"
             value={customName}
             onChange={(e) => setCustomName(e.target.value)}
@@ -240,14 +240,14 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
           <div className="flex gap-1.5">
             <input
               type="number"
-              className={`${INPUT_CLASS} flex-1 text-slate-700 dark:text-slate-200`}
+              className={`${INPUT_CLASS} flex-1 text-secondary-foreground dark:text-muted-foreground`}
               placeholder="Preco"
               value={customPrice}
               onChange={(e) => setCustomPrice(e.target.value)}
             />
             <input
               type="number"
-              className={`${INPUT_CLASS} w-12 text-center text-slate-700 dark:text-slate-200`}
+              className={`${INPUT_CLASS} w-12 text-center text-secondary-foreground dark:text-muted-foreground`}
               placeholder="Qtd"
               value={customQty}
               onChange={(e) => setCustomQty(e.target.value)}
@@ -265,7 +265,7 @@ export function AddItemForm({ products, onAddItem }: AddItemFormProps) {
             </Button>
             <Button
               type="button"
-              className="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+              className="rounded-lg px-2 py-1 text-xs text-muted-foreground hover:bg-muted dark:hover:bg-white/5 transition-colors"
               onClick={resetForm}
             >
               Cancelar

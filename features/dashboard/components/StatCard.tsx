@@ -73,14 +73,14 @@ export const StatCard: React.FC<StatCardProps> = ({
     return (
         <div
             onClick={onClick}
-            className={`glass p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm relative overflow-hidden group ${onClick ? 'cursor-pointer hover:border-primary-500/50 transition-colors' : ''}`}
+            className={`glass p-6 rounded-xl border border-border  shadow-sm relative overflow-hidden group ${onClick ? 'cursor-pointer hover:border-primary-500/50 transition-colors' : ''}`}
         >
             <div className={`absolute top-0 right-0 p-20 rounded-full blur-3xl opacity-10 -mr-10 -mt-10 transition-opacity group-hover:opacity-20 ${color}`}></div>
 
             <div className="flex justify-between items-start relative z-10">
                 <div>
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 font-display">{title}</p>
-                    <p className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">{value}</p>
+                    <p className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-1 font-display">{title}</p>
+                    <p className="text-3xl font-bold text-foreground font-display tracking-tight">{value}</p>
                 </div>
                 <div
                     className="p-3 rounded-xl ring-1 ring-inset ring-white/10"
@@ -95,11 +95,11 @@ export const StatCard: React.FC<StatCardProps> = ({
                     />
                 </div>
             </div>
-            <p className="text-xs text-slate-500 mt-3 flex items-center gap-1 relative z-10">
+            <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1 relative z-10">
                 <span className={`${trendColorClass} px-1.5 py-0.5 rounded text-xs font-bold flex items-center gap-1`}>
                     <TrendIcon size={10} strokeWidth={2} /> {subtext}
                 </span>
-                <span className="ml-1 dark:text-slate-500">{comparisonLabel}</span>
+                <span className="ml-1 dark:text-muted-foreground">{comparisonLabel}</span>
             </p>
         </div>
     );

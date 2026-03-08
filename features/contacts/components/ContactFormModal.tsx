@@ -308,10 +308,10 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
           if (e.target === e.currentTarget) onClose();
         }}
       >
-        <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200">
-          <div className="p-5 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
+        <div className="bg-white dark:bg-dark-card border border-border rounded-2xl shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200">
+          <div className="p-5 border-b border-border flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <h2 id={headingId} className="text-lg font-bold text-slate-900 dark:text-white font-display">
+              <h2 id={headingId} className="text-lg font-bold text-foreground font-display">
                 {editingContact ? 'Editar Contato' : 'Novo Contato'}
               </h2>
               <DebugFillButton onClick={fillWithFakeData} />
@@ -337,7 +337,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
               {editingContact && (
                 <Button
                   onClick={handleOpenCockpit}
-                  className="ml-2 text-slate-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+                  className="ml-2 text-muted-foreground hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
                   title="Abrir Cockpit"
                   type="button"
                 >
@@ -347,7 +347,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
               <Button
                 onClick={onClose}
                 aria-label="Fechar modal"
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white focus-visible-ring rounded"
+                className="text-muted-foreground hover:text-secondary-foreground dark:hover:text-white focus-visible-ring rounded"
                 type="button"
               >
                 <X size={20} aria-hidden="true" />
@@ -561,7 +561,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
               </span>
             </legend>
             {formData.phones.map((phone, index) => (
-              <div key={phone.id} className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-black/10 rounded-lg border border-slate-200 dark:border-white/5">
+              <div key={phone.id} className="flex items-start gap-2 p-3 bg-background dark:bg-black/10 rounded-lg border border-border">
                 <div className="flex-1 space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <input
@@ -582,22 +582,22 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
                     </select>
                   </div>
                   <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-xs text-secondary-foreground dark:text-muted-foreground cursor-pointer">
                       <input
                         type="checkbox"
                         checked={phone.isWhatsapp}
                         onChange={e => updatePhone(index, { isWhatsapp: e.target.checked })}
-                        className="rounded border-slate-300 text-green-600 focus:ring-green-500"
+                        className="rounded border-border text-green-600 focus:ring-green-500"
                       />
                       WhatsApp
                     </label>
-                    <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                    <label className="flex items-center gap-1.5 text-xs text-secondary-foreground dark:text-muted-foreground cursor-pointer">
                       <input
                         type="radio"
                         name="primaryPhone"
                         checked={phone.isPrimary}
                         onChange={() => updatePhone(index, { isPrimary: true })}
-                        className="border-slate-300 text-primary-600 focus:ring-primary-500"
+                        className="border-border text-primary-600 focus:ring-primary-500"
                       />
                       Primario
                     </label>
@@ -606,7 +606,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 <Button
                   type="button"
                   onClick={() => removePhone(index)}
-                  className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors mt-1"
+                  className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors mt-1"
                   aria-label="Remover telefone"
                 >
                   <Trash2 size={14} />
@@ -652,7 +652,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <span className={LABEL_CLASS}>Ultima Interacao</span>
-                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                  <span className="text-sm text-secondary-foreground dark:text-muted-foreground">
                     {editingContact.lastInteraction
                       ? new Date(editingContact.lastInteraction).toLocaleDateString('pt-BR')
                       : '\u2014'}
@@ -660,7 +660,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 </div>
                 <div>
                   <span className={LABEL_CLASS}>Ultima Compra</span>
-                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                  <span className="text-sm text-secondary-foreground dark:text-muted-foreground">
                     {editingContact.lastPurchaseDate
                       ? new Date(editingContact.lastPurchaseDate).toLocaleDateString('pt-BR')
                       : '\u2014'}
@@ -669,7 +669,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
               </div>
               <div>
                 <span className={LABEL_CLASS}>Valor Total (LTV)</span>
-                <span className="text-sm text-slate-700 dark:text-slate-300">
+                <span className="text-sm text-secondary-foreground dark:text-muted-foreground">
                   {editingContact.totalValue != null
                     ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(editingContact.totalValue)
                     : 'R$ 0,00'}
@@ -688,8 +688,8 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 <div key={match.contact.id} className="p-3 bg-white dark:bg-black/20 rounded-lg border border-amber-200 dark:border-amber-800/50">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{match.contact.name}</span>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <span className="font-semibold text-foreground dark:text-muted-foreground text-sm">{match.contact.name}</span>
+                      <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-0.5">
                         {match.contact.email && <span>{match.contact.email}</span>}
                         {match.contact.phone && <span> | {match.contact.phone}</span>}
                       </div>
@@ -718,7 +718,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 <Button
                   type="button"
                   onClick={() => { setShowDuplicateWarning(false); setDuplicateMatches([]); setPendingSubmitEvent(null); }}
-                  className="text-xs font-medium px-3 py-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                  className="text-xs font-medium px-3 py-1.5 text-secondary-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white"
                 >
                   Cancelar
                 </Button>

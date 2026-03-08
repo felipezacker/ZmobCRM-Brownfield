@@ -62,7 +62,7 @@ export async function installCommunityJourney(templatePath: string, d: JourneyIn
       const bDef = journey.boards[i];
       d.setInstallProgress({ total: journey.boards.length, current: i + 1, currentBoardName: bDef.name });
       const stages: BoardStage[] = bDef.columns.map((c) => ({
-        id: crypto.randomUUID(), label: c.name, color: c.color || 'bg-slate-500', linkedLifecycleStage: c.linkedLifecycleStage,
+        id: crypto.randomUUID(), label: c.name, color: c.color || 'bg-accent', linkedLifecycleStage: c.linkedLifecycleStage,
       }));
       const guessed = guessWonLostStageIds(stages);
       const lifecycle = bDef.columns.find((c) => c.linkedLifecycleStage)?.linkedLifecycleStage;
@@ -127,7 +127,7 @@ export async function installOfficialJourney(journeyId: string, d: JourneyInstal
     const bDef = journey.boards[i];
     d.setInstallProgress({ total: journey.boards.length, current: i + 1, currentBoardName: bDef.name });
     const stages: BoardStage[] = bDef.columns.map((c) => ({
-      id: crypto.randomUUID(), label: c.name, color: c.color || 'bg-slate-500', linkedLifecycleStage: c.linkedLifecycleStage,
+      id: crypto.randomUUID(), label: c.name, color: c.color || 'bg-accent', linkedLifecycleStage: c.linkedLifecycleStage,
     }));
     const tpl = BOARD_TEMPLATES[tplBySlug[bDef.slug] ?? 'CUSTOM'];
     const ov = wonLostMap[journeyId]?.[bDef.slug] || {};

@@ -86,16 +86,16 @@ export function MetricsDashboard() {
         <div className="flex items-center gap-3">
           <Link
             href="/contacts"
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+            className="p-2 text-muted-foreground hover:text-secondary-foreground dark:hover:text-white transition-colors"
             aria-label="Voltar para contatos"
           >
             <ArrowLeft size={20} />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-display">
+            <h1 className="text-2xl font-bold text-foreground font-display">
               Metricas de Contatos
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">
               Visao geral da performance e distribuicao de leads
             </p>
           </div>
@@ -106,23 +106,23 @@ export function MetricsDashboard() {
             value={dateRange.startDate}
             onChange={e => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
             aria-label="Data de inicio"
-            className="px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-1.5 text-sm border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500"
           />
-          <span className="text-slate-400" aria-hidden="true">-</span>
+          <span className="text-muted-foreground" aria-hidden="true">-</span>
           <input
             type="date"
             value={dateRange.endDate}
             onChange={e => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
             aria-label="Data de fim"
-            className="px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-1.5 text-sm border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500"
           />
           <Button
             onClick={handleRefresh}
             disabled={isLoading}
-            className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+            className="p-2 text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white bg-white dark:bg-white/5 border border-border dark:border-border rounded-lg hover:bg-background dark:hover:bg-white/10 transition-colors disabled:opacity-50"
             aria-label="Atualizar metricas"
           >
-            <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
+            <RefreshCw size={18} className={isLoading ?'animate-spin' : ''} />
           </Button>
         </div>
       </div>
@@ -230,7 +230,7 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-3 animate-pulse">
       {[1, 2, 3].map(i => (
-        <div key={i} className="h-6 bg-slate-100 dark:bg-slate-800 rounded-full" style={{ width: `${80 - i * 15}%` }} />
+        <div key={i} className="h-6 bg-muted dark:bg-card rounded-full" style={{ width: `${80 - i * 15}%` }} />
       ))}
     </div>
   )

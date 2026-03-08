@@ -19,15 +19,15 @@ export const DealDetailTimeline: React.FC<DealDetailTimelineProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
+      <div className="bg-white dark:bg-white/5 border border-border rounded-xl p-4 shadow-sm">
         <textarea
           ref={noteTextareaRef}
-          className="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none resize-none min-h-[80px]"
+          className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none min-h-[80px]"
           placeholder="Escreva uma nota..."
           value={newNote}
           onChange={e => onNewNoteChange(e.target.value)}
         ></textarea>
-        <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-100 dark:border-white/5">
+        <div className="flex justify-between items-center mt-2 pt-2 border-t border-border">
           <div />
           <Button
             onClick={onAddNote}
@@ -45,15 +45,15 @@ export const DealDetailTimeline: React.FC<DealDetailTimelineProps> = ({
           <StickyNote size={16} className="text-amber-500 mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">Nota do contato</p>
-            <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{contact.notes}</p>
+            <p className="text-sm text-secondary-foreground dark:text-muted-foreground whitespace-pre-wrap">{contact.notes}</p>
           </div>
         </div>
       )}
 
       {/* Unified timeline: activities + deal notes */}
-      <div className="space-y-3 pl-4 border-l border-slate-200 dark:border-slate-800">
+      <div className="space-y-3 pl-4 border-l border-border dark:border-border">
         {timelineFeed.length === 0 && !contact?.notes && (
-          <p className="text-sm text-slate-500 italic pl-4">
+          <p className="text-sm text-muted-foreground italic pl-4">
             Nenhuma atividade ou nota registrada.
           </p>
         )}
@@ -80,8 +80,8 @@ export const DealDetailTimeline: React.FC<DealDetailTimelineProps> = ({
             <div key={`note-${note.id}`} className="flex items-start gap-3 pl-4 py-2">
               <MessageSquare size={14} className="text-primary-500 mt-1 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{note.content}</p>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                <p className="text-sm text-foreground dark:text-muted-foreground whitespace-pre-wrap">{note.content}</p>
+                <p className="text-[11px] text-muted-foreground dark:text-muted-foreground mt-1">
                   {new Date(note.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   {' '}
                   {new Date(note.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}

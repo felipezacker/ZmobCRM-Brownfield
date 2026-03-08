@@ -19,7 +19,7 @@ export const InstallingOverlay: React.FC<InstallingOverlayProps> = ({ installPro
     >
       <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
       <div
-        className="relative z-10 w-[min(520px,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur p-5 shadow-2xl"
+        className="relative z-10 w-[min(520px,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-white/95 dark:bg-card/95 backdrop-blur p-5 shadow-2xl"
         aria-label={
           installProgress && installProgress.total === 1 ? 'Criando board' : 'Instalando funil'
         }
@@ -27,12 +27,12 @@ export const InstallingOverlay: React.FC<InstallingOverlayProps> = ({ installPro
         <div className="flex items-start gap-3">
           <Loader2 className="mt-0.5 animate-spin text-primary-500" size={22} />
           <div className="min-w-0 flex-1">
-            <div className="text-base font-semibold text-slate-900 dark:text-white">
+            <div className="text-base font-semibold text-foreground">
               {installProgress && installProgress.total === 1
                 ? 'Criando board...'
                 : 'Instalando funil...'}
             </div>
-            <div className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            <div className="mt-1 text-sm text-secondary-foreground dark:text-muted-foreground">
               {installProgress
                 ? `Criando board ${installProgress.current}/${installProgress.total}${installProgress.currentBoardName ? ` — ${installProgress.currentBoardName}` : ''}`
                 : 'Preparando...'}
@@ -41,7 +41,7 @@ export const InstallingOverlay: React.FC<InstallingOverlayProps> = ({ installPro
         </div>
         {installProgress && installProgress.total > 0 && (
           <div className="mt-4">
-            <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+            <div className="h-2 w-full rounded-full bg-accent dark:bg-white/10 overflow-hidden">
               <div
                 className="h-full bg-primary-500 transition-all"
                 style={{

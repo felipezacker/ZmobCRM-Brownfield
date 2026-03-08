@@ -114,10 +114,10 @@ function PreferenceSummary({ pref }: { pref: ContactPreference }) {
 
   return (
     <div className="flex-1 min-w-0">
-      <span className="text-sm font-medium text-slate-900 dark:text-white truncate block">
+      <span className="text-sm font-medium text-foreground truncate block">
         {types || 'Sem tipo definido'}
       </span>
-      <span className="text-xs text-slate-500 dark:text-slate-400">
+      <span className="text-xs text-muted-foreground dark:text-muted-foreground">
         {[purpose, priceRange].filter(Boolean).join(' · ') || 'Perfil incompleto'}
       </span>
     </div>
@@ -166,7 +166,7 @@ function PreferenceForm({
   };
 
   return (
-    <div className="space-y-4 pt-3 border-t border-slate-200 dark:border-white/5">
+    <div className="space-y-4 pt-3 border-t border-border">
       {/* Tipos de Imovel — toggle pills */}
       <div>
         <label className={LABEL_CLASS}>Tipos de Imovel</label>
@@ -181,7 +181,7 @@ function PreferenceForm({
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                   selected
                     ? 'bg-primary-600 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent'
                 }`}
               >
                 {opt.label}
@@ -286,21 +286,21 @@ function PreferenceForm({
 
       {/* Financiamento + FGTS */}
       <div className="flex items-center gap-6">
-        <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+        <label className="flex items-center gap-1.5 text-xs text-secondary-foreground dark:text-muted-foreground cursor-pointer">
           <input
             type="checkbox"
             checked={form.acceptsFinancing}
             onChange={e => onChange({ acceptsFinancing: e.target.checked })}
-            className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+            className="rounded border-border text-primary-600 focus:ring-primary-500"
           />
           Aceita financiamento
         </label>
-        <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+        <label className="flex items-center gap-1.5 text-xs text-secondary-foreground dark:text-muted-foreground cursor-pointer">
           <input
             type="checkbox"
             checked={form.acceptsFgts}
             onChange={e => onChange({ acceptsFgts: e.target.checked })}
-            className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+            className="rounded border-border text-primary-600 focus:ring-primary-500"
           />
           Aceita FGTS
         </label>
@@ -326,7 +326,7 @@ function PreferenceForm({
           <Button
             type="button"
             onClick={addRegion}
-            className="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-sm"
+            className="px-3 py-2 bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground rounded-lg hover:bg-accent dark:hover:bg-accent text-sm"
           >
             +
           </Button>
@@ -379,7 +379,7 @@ function PreferenceForm({
           type="button"
           onClick={onCancel}
           disabled={saving}
-          className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+          className="px-3 py-1.5 text-xs text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground transition-colors"
         >
           Cancelar
         </Button>
@@ -590,7 +590,7 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
             Perfil de Interesse
           </span>
         </legend>
-        <div className="text-xs text-slate-400 animate-pulse">Carregando preferencias...</div>
+        <div className="text-xs text-muted-foreground animate-pulse">Carregando preferencias...</div>
       </fieldset>
     );
   }
@@ -626,7 +626,7 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
       {preferences.map(pref => (
         <div
           key={pref.id}
-          className="bg-slate-50 dark:bg-black/10 rounded-lg border border-slate-200 dark:border-white/5"
+          className="bg-background dark:bg-black/10 rounded-lg border border-border"
         >
           {/* Header do card */}
           <div className="flex items-center gap-2 p-3">
@@ -635,13 +635,13 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
               onClick={() => startEditing(pref)}
               className="flex items-center gap-2 flex-1 min-w-0 text-left"
             >
-              {expandedId === pref.id ? <ChevronUp size={14} className="text-slate-400 shrink-0" /> : <ChevronDown size={14} className="text-slate-400 shrink-0" />}
+              {expandedId === pref.id ? <ChevronUp size={14} className="text-muted-foreground shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground shrink-0" />}
               <PreferenceSummary pref={pref} />
             </Button>
             <Button
               type="button"
               onClick={() => handleDelete(pref.id)}
-              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors shrink-0"
+              className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors shrink-0"
               aria-label="Excluir perfil"
             >
               <Trash2 size={14} />

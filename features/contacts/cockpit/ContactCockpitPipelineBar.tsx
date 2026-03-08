@@ -38,7 +38,7 @@ export function ContactCockpitPipelineBar({
             <div className="flex items-center gap-2">
               <div
                 className={`h-1.5 flex-1 rounded-full transition-colors ${
-                  isDone || isActive ? stage.bg : 'bg-slate-200 dark:bg-white/10'
+                  isDone || isActive ? stage.bg : 'bg-accent dark:bg-white/10'
                 }`}
               />
               <div
@@ -46,14 +46,14 @@ export function ContactCockpitPipelineBar({
                   isActive
                     ? `${stage.bg} ring-2 ${stage.ring}`
                     : isDone
-                      ? 'bg-slate-300 dark:bg-white/30'
-                      : 'bg-slate-200 dark:bg-white/10 group-hover:bg-slate-300 dark:group-hover:bg-white/20'
+                      ? 'bg-accent dark:bg-white/30'
+                      : 'bg-accent dark:bg-white/10 group-hover:bg-accent dark:group-hover:bg-white/20'
                 }`}
               />
             </div>
             <div
               className={`mt-1 text-[11px] font-medium transition-colors ${
-                isActive ? 'text-slate-800 dark:text-slate-200' : 'text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-400'
+                isActive ? 'text-foreground dark:text-muted-foreground' : 'text-muted-foreground group-hover:text-secondary-foreground dark:group-hover:text-muted-foreground'
               }`}
             >
               {stage.label}

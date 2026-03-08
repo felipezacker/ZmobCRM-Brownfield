@@ -195,10 +195,10 @@ const ReportsPage: React.FC = () => {
       {/* Header com Filtros */}
       <div className="flex justify-between items-center shrink-0">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">
+          <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">
             Relatórios de Performance
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground dark:text-muted-foreground text-sm mt-1">
             Análise detalhada de vendas e tendências.
           </p>
         </div>
@@ -207,7 +207,7 @@ const ReportsPage: React.FC = () => {
             value={selectedBoardId}
             onChange={(e) => setSelectedBoardId(e.target.value)}
             aria-label="Selecionar Pipeline"
-            className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-2 bg-white dark:bg-card border border-border dark:border-border rounded-lg text-sm font-medium text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             {boards.map(board => (
               <option key={board.id} value={board.id}>{board.name}</option>
@@ -219,7 +219,7 @@ const ReportsPage: React.FC = () => {
           <Button
             type="button"
             onClick={handleExportPDF}
-            className="group flex items-center gap-2 px-3 py-2 rounded-lg glass border border-slate-200/50 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:border-slate-300 dark:hover:border-white/20 transition-all duration-200"
+            className="group flex items-center gap-2 px-3 py-2 rounded-lg glass border border-border/50 text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white hover:border-border dark:hover:border-white/20 transition-all duration-200"
             title="Exportar PDF"
           >
             <Download size={16} className="group-hover:scale-110 transition-transform" />
@@ -230,25 +230,25 @@ const ReportsPage: React.FC = () => {
 
       {/* Forecast Bar - FEATURE #1 (80/20) */}
       {hasGoal ? (
-        <div className="glass p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm shrink-0">
+        <div className="glass p-4 rounded-xl border border-border shadow-sm shrink-0">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Target className={`${isOnTrack ? 'text-emerald-500' : 'text-amber-500'}`} size={20} />
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              <h3 className="text-sm font-bold text-foreground">
                 {goalKpi}
               </h3>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <span className="text-xs text-slate-500">Realizado</span>
+                <span className="text-xs text-muted-foreground">Realizado</span>
                 <p className="text-lg font-bold text-emerald-500">{formatGoalValue(currentValue)}</p>
               </div>
               <div className="text-right">
-                <span className="text-xs text-slate-500">Meta</span>
-                <p className="text-lg font-bold text-slate-900 dark:text-white">{formatGoalValue(goalTarget)}</p>
+                <span className="text-xs text-muted-foreground">Meta</span>
+                <p className="text-lg font-bold text-foreground">{formatGoalValue(goalTarget)}</p>
               </div>
               <div className="text-right">
-                <span className="text-xs text-slate-500">Gap</span>
+                <span className="text-xs text-muted-foreground">Gap</span>
                 <p className={`text-lg font-bold ${forecastGap > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
                   {forecastGap > 0 ? `-${formatGoalValue(forecastGap)}` : '✓ Atingido'}
                 </p>
@@ -256,7 +256,7 @@ const ReportsPage: React.FC = () => {
             </div>
           </div>
           <div className="relative">
-            <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-4 overflow-hidden">
+            <div className="w-full bg-muted dark:bg-white/10 rounded-full h-4 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${isOnTrack ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-amber-400 to-amber-500'
                   }`}
@@ -264,12 +264,12 @@ const ReportsPage: React.FC = () => {
               />
             </div>
             <div className="absolute top-0 right-0 h-4 flex items-center">
-              <span className={`text-xs font-bold px-2 ${forecastPercent >= 50 ? 'text-white' : 'text-slate-600'}`}>
+              <span className={`text-xs font-bold px-2 ${forecastPercent >= 50 ? 'text-white' : 'text-secondary-foreground'}`}>
                 {forecastPercent.toFixed(0)}%
               </span>
             </div>
           </div>
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             {isOnTrack
               ? `🎯 No ritmo! Faltam ${formatGoalValue(Math.abs(forecastGap))} para bater a meta.`
               : `⚠️ Atenção! Você está abaixo de 75% da meta. Faltam ${formatGoalValue(Math.abs(forecastGap))}.`
@@ -281,8 +281,8 @@ const ReportsPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <Settings className="text-amber-500" size={20} />
             <div className="flex-1">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Meta não configurada</h3>
-              <p className="text-xs text-slate-500">Defina uma meta no board para acompanhar o forecast.</p>
+              <h3 className="text-sm font-bold text-foreground">Meta não configurada</h3>
+              <p className="text-xs text-muted-foreground">Defina uma meta no board para acompanhar o forecast.</p>
             </div>
             <Button
               onClick={() => router.push('/boards')}
@@ -297,61 +297,61 @@ const ReportsPage: React.FC = () => {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
         {/* Pipeline Value - FEATURE #2 */}
-        <div className="glass p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+        <div className="glass p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg bg-blue-500/10">
               <DollarSign className="text-blue-500" size={18} />
             </div>
-            <span className="text-xs text-slate-500">Pipeline Total</span>
+            <span className="text-xs text-muted-foreground">Pipeline Total</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">{formatCurrency(pipelineValue)}</p>
+          <p className="text-2xl font-bold text-foreground">{formatCurrency(pipelineValue)}</p>
           <p className={`text-xs ${changes.pipeline >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
             {changes.pipeline >= 0 ? '+' : ''}{changes.pipeline.toFixed(1)}% {COMPARISON_LABELS[period]}
           </p>
         </div>
 
         {/* Win Rate */}
-        <div className="glass p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+        <div className="glass p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg bg-emerald-500/10">
               <Target className="text-emerald-500" size={18} />
             </div>
-            <span className="text-xs text-slate-500">Win Rate</span>
+            <span className="text-xs text-muted-foreground">Win Rate</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">{actualWinRate.toFixed(1)}%</p>
+          <p className="text-2xl font-bold text-foreground">{actualWinRate.toFixed(1)}%</p>
           <p className={`text-xs ${changes.winRate >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
             {changes.winRate >= 0 ? '+' : ''}{changes.winRate.toFixed(1)}% {COMPARISON_LABELS[period]}
           </p>
         </div>
 
         {/* Ciclo Médio */}
-        <div className="glass p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+        <div className="glass p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg bg-purple-500/10">
               <Clock className="text-purple-500" size={18} />
             </div>
-            <span className="text-xs text-slate-500">Ciclo Médio</span>
+            <span className="text-xs text-muted-foreground">Ciclo Médio</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">{avgSalesCycle} dias</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-2xl font-bold text-foreground">{avgSalesCycle} dias</p>
+          <p className="text-xs text-muted-foreground">
             Rápido: {fastestDeal}d | Lento: {slowestDeal}d
           </p>
         </div>
 
         {/* Deals Fechados */}
-        <div className="glass p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+        <div className="glass p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg bg-orange-500/10">
               <TrendingUp className="text-orange-500" size={18} />
             </div>
-            <span className="text-xs text-slate-500">Deals Fechados</span>
+            <span className="text-xs text-muted-foreground">Deals Fechados</span>
           </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white">
+          <p className="text-2xl font-bold text-foreground">
             <span className="text-emerald-500">{wonDeals.length}</span>
-            <span className="text-slate-400 mx-1">/</span>
+            <span className="text-muted-foreground mx-1">/</span>
             <span className="text-red-500">{lostDeals.length}</span>
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             Ganhos / Perdas
           </p>
         </div>
@@ -360,12 +360,12 @@ const ReportsPage: React.FC = () => {
       {/* Bottom Grid - Charts & Leaderboard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-[250px]">
         {/* Revenue Trend Chart */}
-        <div className="lg:col-span-2 glass p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex flex-col h-full">
+        <div className="lg:col-span-2 glass p-5 rounded-xl border border-border shadow-sm flex flex-col h-full">
           <div className="flex justify-between items-center mb-2 shrink-0">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">
+            <h2 className="text-lg font-bold text-foreground font-display">
               Tendência de Receita
             </h2>
-            <span className="text-xs text-slate-500 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded">
+            <span className="text-xs text-muted-foreground bg-muted dark:bg-white/5 px-2 py-1 rounded">
               Últimos 6 Meses
             </span>
           </div>
@@ -379,9 +379,9 @@ const ReportsPage: React.FC = () => {
         </div>
 
         {/* Leaderboard - FEATURE #3 (Top Performers) */}
-        <div className="glass p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex flex-col h-full overflow-hidden">
+        <div className="glass p-5 rounded-xl border border-border shadow-sm flex flex-col h-full overflow-hidden">
           <div className="flex justify-between items-center mb-3 shrink-0">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
+            <h2 className="text-lg font-bold text-foreground font-display flex items-center gap-2">
               <Trophy className="text-amber-500" size={20} />
               Top Corretores
             </h2>
@@ -391,12 +391,12 @@ const ReportsPage: React.FC = () => {
               leaderboard.map((rep, index) => (
                 <div
                   key={rep.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors"
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-background/50 dark:hover:bg-white/5 transition-colors"
                 >
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-amber-100 text-amber-600' :
-                    index === 1 ? 'bg-slate-100 text-slate-600' :
+                    index === 1 ? 'bg-muted text-secondary-foreground' :
                       index === 2 ? 'bg-orange-100 text-orange-600' :
-                        'bg-slate-50 text-slate-500'
+                        'bg-background text-muted-foreground'
                     }`}>
                     {index + 1}
                   </div>
@@ -409,8 +409,8 @@ const ReportsPage: React.FC = () => {
                     unoptimized
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{rep.name}</p>
-                    <p className="text-xs text-slate-500">{rep.deals} deals</p>
+                    <p className="text-sm font-medium text-foreground truncate">{rep.name}</p>
+                    <p className="text-xs text-muted-foreground">{rep.deals} deals</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-emerald-500">{formatCurrency(rep.revenue)}</p>
@@ -418,7 +418,7 @@ const ReportsPage: React.FC = () => {
                 </div>
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-slate-500 py-6">
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-6">
                 <Users size={32} className="mb-2 opacity-50" />
                 <p className="text-sm">Nenhum deal fechado no período.</p>
               </div>

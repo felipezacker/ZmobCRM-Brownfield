@@ -111,7 +111,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     aria-modal="true"
                     aria-labelledby={titleId}
                     aria-describedby={descId}
-                    className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200"
+                    className="bg-white dark:bg-dark-card border border-border rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200"
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="p-6 text-center">
@@ -127,14 +127,14 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
                         <h3 
                             id={titleId}
-                            className="text-lg font-bold text-slate-900 dark:text-white mb-2 font-display"
+                            className="text-lg font-bold text-foreground mb-2 font-display"
                         >
                             {title}
                         </h3>
 
                         <div 
                             id={descId}
-                            className="text-sm text-slate-500 dark:text-slate-400 mb-6"
+                            className="text-sm text-muted-foreground dark:text-muted-foreground mb-6"
                         >
                             {message}
                         </div>
@@ -144,7 +144,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                                 ref={cancelButtonRef}
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors focus-visible-ring"
+                                className="px-4 py-2 rounded-lg text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 transition-colors focus-visible-ring"
                                 autoFocus
                             >
                                 {cancelText}

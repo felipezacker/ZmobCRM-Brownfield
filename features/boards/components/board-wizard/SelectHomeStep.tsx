@@ -16,10 +16,10 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
 }) => {
   return (
     <div className="mx-auto w-full">
-      <h3 className="text-base font-bold text-slate-900 dark:text-white text-center">
+      <h3 className="text-base font-bold text-foreground text-center">
         Como voce quer comecar?
       </h3>
-      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 text-center">
+      <p className="mt-1 text-xs text-muted-foreground dark:text-muted-foreground text-center">
         Escolha um caminho. O resto aparece depois.
       </p>
 
@@ -29,7 +29,7 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
         className="mt-4 w-full relative overflow-hidden p-1 rounded-2xl group transition-all hover:shadow-lg hover:shadow-primary-500/20"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-95 group-hover:opacity-100 transition-opacity" />
-        <div className="relative bg-white dark:bg-slate-900 rounded-[14px] px-4 py-3 flex items-center justify-center gap-3 transition-colors group-hover:bg-opacity-90 dark:group-hover:bg-opacity-90">
+        <div className="relative bg-white dark:bg-card rounded-[14px] px-4 py-3 flex items-center justify-center gap-3 transition-colors group-hover:bg-opacity-90 dark:group-hover:bg-opacity-90">
           <Sparkles
             size={18}
             className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-pink-500"
@@ -38,7 +38,7 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
             <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 dark:from-indigo-400 dark:to-pink-400">
               Criar com IA
             </span>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+            <span className="text-[11px] text-muted-foreground dark:text-muted-foreground">
               Em 1 frase, eu monto o board pra voce.
             </span>
           </div>
@@ -49,17 +49,17 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
       <div className="mt-3 space-y-2">
         <Button
           onClick={() => onBrowse('playbooks', 'official')}
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all text-left"
+          className="w-full px-4 py-3 rounded-xl border border-border bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all text-left"
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center">
               <LayoutTemplate className="w-4 h-4 text-primary-600 dark:text-primary-400" />
             </div>
             <div className="min-w-0">
-              <div className="font-semibold text-slate-900 dark:text-white">
+              <div className="font-semibold text-foreground">
                 Usar um playbook (recomendado)
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="text-[11px] text-muted-foreground dark:text-muted-foreground">
                 Jornada completa pronta para usar.
               </div>
             </div>
@@ -68,17 +68,17 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
 
         <Button
           onClick={() => onBrowse('templates', 'official')}
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all text-left"
+          className="w-full px-4 py-3 rounded-xl border border-border bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all text-left"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center">
-              <Settings className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+            <div className="w-9 h-9 rounded-lg bg-muted dark:bg-white/5 flex items-center justify-center">
+              <Settings className="w-4 h-4 text-secondary-foreground dark:text-muted-foreground" />
             </div>
             <div className="min-w-0">
-              <div className="font-semibold text-slate-900 dark:text-white">
+              <div className="font-semibold text-foreground">
                 Usar template individual
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="text-[11px] text-muted-foreground dark:text-muted-foreground">
                 Um board pronto (Pre-venda, Vendas, CS...).
               </div>
             </div>
@@ -87,15 +87,15 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
 
         <Button
           onClick={onStartFromScratch}
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all text-left"
+          className="w-full px-4 py-3 rounded-xl border border-border bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all text-left"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center">
-              <Plus className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+            <div className="w-9 h-9 rounded-lg bg-muted dark:bg-white/5 flex items-center justify-center">
+              <Plus className="w-4 h-4 text-secondary-foreground dark:text-muted-foreground" />
             </div>
             <div className="min-w-0">
-              <div className="font-semibold text-slate-900 dark:text-white">Comecar do zero</div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="font-semibold text-foreground">Comecar do zero</div>
+              <div className="text-[11px] text-muted-foreground dark:text-muted-foreground">
                 Um board em branco.
               </div>
             </div>
@@ -106,7 +106,7 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
       <div className="mt-3 text-center">
         <Button
           onClick={() => onBrowse('community', 'community')}
-          className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+          className="text-xs font-medium text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground transition-colors"
         >
           Ver templates da comunidade &rarr;
         </Button>

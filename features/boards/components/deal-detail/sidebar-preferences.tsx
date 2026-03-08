@@ -18,8 +18,8 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
   onSetPreferences,
   onUpdatePreference,
 }) => (
-  <div className="pt-3 border-t border-slate-100 dark:border-white/5">
-    <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+  <div className="pt-3 border-t border-border">
+    <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2 flex items-center gap-2">
       Preferencias
       {!preferences && contact && (
         <Button
@@ -34,7 +34,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
     {preferences ? (
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
-          <span className="text-slate-500 text-xs">Finalidade</span>
+          <span className="text-muted-foreground text-xs">Finalidade</span>
           <select
             value={preferences.purpose || ''}
             onChange={e => {
@@ -42,7 +42,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
               onUpdatePreference(preferences.id, { purpose: val });
               onSetPreferences({ ...preferences, purpose: val });
             }}
-            className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+            className="text-xs text-foreground bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
           >
             <option value="">--</option>
             <option value="MORADIA">Moradia</option>
@@ -51,7 +51,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
           </select>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-slate-500 text-xs">Tipos</span>
+          <span className="text-muted-foreground text-xs">Tipos</span>
           <div className="flex flex-wrap gap-1 justify-end">
             {(['APARTAMENTO', 'CASA', 'TERRENO', 'COMERCIAL', 'RURAL', 'GALPAO'] as PropertyType[]).map(pt => (
               <Button
@@ -67,7 +67,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
                 className={`text-[9px] px-1.5 py-0.5 rounded-full border transition-colors ${
                   preferences.propertyTypes.includes(pt)
                     ? 'bg-primary-100 text-primary-700 border-primary-200 dark:bg-primary-500/10 dark:text-primary-400 dark:border-primary-500/20'
-                    : 'bg-slate-50 text-slate-400 border-slate-200 dark:bg-white/5 dark:border-white/10 hover:text-slate-600'
+                    : 'bg-background text-muted-foreground border-border dark:bg-white/5  hover:text-secondary-foreground'
                 }`}
               >
                 {pt.charAt(0) + pt.slice(1).toLowerCase()}
@@ -76,7 +76,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
           </div>
         </div>
         <div className="flex justify-between items-center gap-2">
-          <span className="text-slate-500 text-xs">Faixa R$</span>
+          <span className="text-muted-foreground text-xs">Faixa R$</span>
           <div className="flex items-center gap-1">
             <input
               type="number"
@@ -90,9 +90,9 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
                 onUpdatePreference(preferences.id, { priceMin: val });
               }}
               placeholder="Min"
-              className="w-20 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white"
+              className="w-20 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground"
             />
-            <span className="text-slate-400 text-xs">-</span>
+            <span className="text-muted-foreground text-xs">-</span>
             <input
               type="number"
               value={preferences.priceMax ?? ''}
@@ -105,12 +105,12 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
                 onUpdatePreference(preferences.id, { priceMax: val });
               }}
               placeholder="Max"
-              className="w-20 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white"
+              className="w-20 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground"
             />
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-slate-500 text-xs">Regioes</span>
+          <span className="text-muted-foreground text-xs">Regioes</span>
           <input
             type="text"
             value={preferences.regions.join(', ')}
@@ -123,11 +123,11 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
               onUpdatePreference(preferences.id, { regions: val });
             }}
             placeholder="Zona Sul, Centro..."
-            className="w-32 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white text-right"
+            className="w-32 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground text-right"
           />
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-slate-500 text-xs">Quartos min</span>
+          <span className="text-muted-foreground text-xs">Quartos min</span>
           <input
             type="number"
             min={0}
@@ -141,11 +141,11 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
               onUpdatePreference(preferences.id, { bedroomsMin: val });
             }}
             placeholder="--"
-            className="w-14 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white text-right"
+            className="w-14 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground text-right"
           />
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-slate-500 text-xs">Urgencia</span>
+          <span className="text-muted-foreground text-xs">Urgencia</span>
           <select
             value={preferences.urgency || ''}
             onChange={e => {
@@ -153,7 +153,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
               onUpdatePreference(preferences.id, { urgency: val });
               onSetPreferences({ ...preferences, urgency: val });
             }}
-            className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+            className="text-xs text-foreground bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
           >
             <option value="">--</option>
             <option value="IMMEDIATE">Imediato</option>
@@ -164,7 +164,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
         </div>
       </div>
     ) : (
-      <p className="text-xs text-slate-500 italic">Sem preferencias cadastradas</p>
+      <p className="text-xs text-muted-foreground italic">Sem preferencias cadastradas</p>
     )}
   </div>
 );

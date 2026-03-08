@@ -25,10 +25,10 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
             <BrainCircuit size={20} />
           </div>
           <div>
-            <h3 className="font-bold text-slate-900 dark:text-white font-display text-lg">
+            <h3 className="font-bold text-foreground font-display text-lg">
               IA Insights
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               Inteligencia Artificial aplicada ao negocio
             </p>
           </div>
@@ -36,7 +36,7 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
 
         {/* STRATEGY CONTEXT BAR */}
         {dealBoard?.agentPersona && (
-          <div className="mb-6 bg-slate-900/5 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-3 flex items-center gap-3">
+          <div className="mb-6 bg-card/5 dark:bg-white/5 border border-border rounded-lg p-3 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
               <Bot size={20} />
             </div>
@@ -46,10 +46,10 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
                   Atuando como
                 </span>
               </div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+              <p className="text-sm font-bold text-foreground mt-0.5">
                 {dealBoard.agentPersona?.name}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {dealBoard.agentPersona?.role} - Foco: {dealBoard.goal?.kpi || 'Geral'}
               </p>
             </div>
@@ -60,7 +60,7 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
           <Button
             onClick={onAnalyze}
             disabled={isAnalyzing}
-            className="flex-1 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-white text-sm font-medium rounded-lg shadow-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 bg-white dark:bg-white/5 text-secondary-foreground text-sm font-medium rounded-lg shadow-sm border border-border hover:bg-background dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
           >
             {isAnalyzing ? (
               <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
@@ -72,7 +72,7 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
           <Button
             onClick={onDraftEmail}
             disabled={isDrafting}
-            className="flex-1 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-white text-sm font-medium rounded-lg shadow-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 bg-white dark:bg-white/5 text-secondary-foreground text-sm font-medium rounded-lg shadow-sm border border-border hover:bg-background dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
           >
             {isDrafting ? (
               <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
@@ -85,7 +85,7 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
 
         {aiResult && (
           <div className="bg-white/80 dark:bg-black/40 backdrop-blur-md p-4 rounded-lg border border-primary-100 dark:border-primary-500/20 mb-4">
-            <div className="flex justify-between mb-2 border-b border-primary-100 dark:border-white/5 pb-2">
+            <div className="flex justify-between mb-2 border-b border-primary-100 pb-2">
               <span className="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider">
                 Sugestao
               </span>
@@ -93,7 +93,7 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
                 {aiResult.score}% Chance
               </span>
             </div>
-            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+            <p className="text-sm text-secondary-foreground dark:text-muted-foreground leading-relaxed">
               {aiResult.suggestion}
             </p>
           </div>
@@ -104,7 +104,7 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
             <h4 className="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-2">
               Rascunho de Email
             </h4>
-            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed italic">
+            <p className="text-sm text-secondary-foreground dark:text-muted-foreground leading-relaxed italic">
               &quot;{emailDraft}&quot;
             </p>
           </div>
@@ -118,10 +118,10 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
             <Sword size={20} />
           </div>
           <div>
-            <h3 className="font-bold text-slate-900 dark:text-white font-display text-lg">
+            <h3 className="font-bold text-foreground font-display text-lg">
               Objection Killer
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               O cliente esta dificil? A IA te ajuda a negociar.
             </p>
           </div>
@@ -130,7 +130,7 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
         <div className="flex gap-2 mb-4">
           <input
             type="text"
-            className="flex-1 bg-white dark:bg-white/5 border border-rose-200 dark:border-rose-500/20 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-500 dark:text-white"
+            className="flex-1 bg-white dark:bg-white/5 border border-rose-200 dark:border-rose-500/20 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-500"
             placeholder="Ex: 'Achamos o preco muito alto' ou 'Preciso falar com meu socio'"
             value={objection}
             onChange={e => onObjectionChange(e.target.value)}
@@ -158,7 +158,7 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
                 <div className="shrink-0 w-6 h-6 bg-rose-100 dark:bg-rose-500/20 rounded-full flex items-center justify-center text-rose-600 dark:text-rose-400 font-bold text-xs">
                   {idx + 1}
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-200">{resp}</p>
+                <p className="text-sm text-secondary-foreground dark:text-muted-foreground">{resp}</p>
               </div>
             ))}
           </div>

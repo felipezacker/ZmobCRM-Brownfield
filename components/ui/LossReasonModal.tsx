@@ -99,11 +99,11 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
           aria-modal="true"
           aria-labelledby={titleId}
           aria-describedby={descId}
-          className="bg-card dark:bg-dark-card border border-border dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
+          className="bg-card dark:bg-dark-card border border-border rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-border dark:border-white/10 flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center" aria-hidden="true">
                 <ThumbsDown className="w-5 h-5 text-red-600 dark:text-red-400" />
@@ -111,7 +111,7 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
               <div>
                 <h3 
                   id={titleId}
-                  className="font-bold text-foreground dark:text-white font-display"
+                  className="font-bold text-foreground font-display"
                 >
                   Negócio Perdido
                 </h3>
@@ -148,9 +148,9 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
                     key={item.label}
                     type="button"
                     onClick={() => handleQuickReason(item.value)}
-                    className="flex items-center gap-2 p-3 rounded-xl border border-border dark:border-white/10
-                               hover:border-destructive/50 dark:hover:border-destructive/50 hover:bg-destructive/5 dark:hover:bg-destructive/10
-                               transition-all group text-left focus-visible-ring"
+                    className="flex items-center gap-2 p-3 rounded-xl border border-border 
+ hover:border-destructive/50 dark:hover:border-destructive/50 hover:bg-destructive/5 dark:hover:bg-destructive/10
+ transition-all group text-left focus-visible-ring"
                   >
                     <item.icon className="w-4 h-4 text-muted-foreground group-hover:text-destructive transition-colors" aria-hidden="true" />
                     <span className="text-sm font-medium text-foreground dark:text-muted-foreground group-hover:text-destructive">
@@ -171,11 +171,11 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Digite o motivo..."
-                  className="w-full px-4 py-3 rounded-xl border border-border dark:border-white/10
-                             bg-muted dark:bg-white/5 text-foreground dark:text-white
-                             placeholder:text-muted-foreground
-                             focus:outline-none focus:ring-2 focus:ring-destructive/50 focus:border-destructive
-                             transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-border 
+ bg-muted dark:bg-white/5 text-foreground 
+ placeholder:text-muted-foreground
+ focus:outline-none focus:ring-2 focus:ring-destructive/50 focus:border-destructive
+ transition-all"
                   autoFocus
                 />
                 <div className="flex gap-2 mt-4">
@@ -183,7 +183,7 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
                     type="button"
                     onClick={() => setShowCustomInput(false)}
                     className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground
-                               hover:bg-muted dark:hover:bg-white/5 transition-colors focus-visible-ring"
+ hover:bg-muted dark:hover:bg-white/5 transition-colors focus-visible-ring"
                   >
                     Voltar
                   </button>
@@ -191,8 +191,8 @@ export const LossReasonModal: React.FC<LossReasonModalProps> = ({
                     type="submit"
                     disabled={!reason.trim()}
                     className="flex-1 px-4 py-2.5 rounded-lg text-sm font-bold text-destructive-foreground
-                               bg-destructive hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed
-                               shadow-lg shadow-destructive/20 transition-all focus-visible-ring"
+ bg-destructive hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed
+ shadow-lg shadow-destructive/20 transition-all focus-visible-ring"
                   >
                     Confirmar
                   </button>

@@ -27,7 +27,7 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
 
   const items = [
     {
-      icon: <Phone size={16} className="text-slate-500" />,
+      icon: <Phone size={16} className="text-muted-foreground" />,
       label: 'Total de ligações',
       value: stats.completed,
     },
@@ -65,16 +65,16 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
 
   return (
     <div className="max-w-md mx-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl p-6 space-y-6">
+      <div className="bg-white dark:bg-card border border-border dark:border-border/50 rounded-xl p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col items-center text-center gap-2">
           <div className="p-3 bg-primary-500/10 rounded-xl">
             <BarChart3 size={24} className="text-primary-500" />
           </div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+          <h2 className="text-lg font-semibold text-foreground">
             Sessão Encerrada
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Resumo da sua sessão de prospecção
           </p>
         </div>
@@ -84,13 +84,13 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
           {items.map(item => (
             <div
               key={item.label}
-              className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg"
+              className="flex items-center justify-between p-3 bg-background dark:bg-card/50 rounded-lg"
             >
               <div className="flex items-center gap-2">
                 {item.icon}
-                <span className="text-sm text-slate-700 dark:text-slate-300">{item.label}</span>
+                <span className="text-sm text-secondary-foreground dark:text-muted-foreground">{item.label}</span>
               </div>
-              <span className="text-sm font-semibold text-slate-900 dark:text-white">
+              <span className="text-sm font-semibold text-foreground">
                 {item.value}
               </span>
             </div>

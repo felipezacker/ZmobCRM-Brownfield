@@ -46,10 +46,10 @@ const ACTIVITY_TYPE_COLORS: Record<string, { bg: string; dot: string; text: stri
         gradient: 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 border-emerald-400',
     },
     NOTE: {
-        bg: 'bg-slate-500/20',
-        dot: 'bg-slate-500',
-        text: 'text-slate-400',
-        gradient: 'bg-gradient-to-br from-slate-500 to-slate-600 shadow-lg shadow-slate-500/50 hover:shadow-slate-500/70 border-slate-400',
+        bg: 'bg-accent/20',
+        dot: 'bg-accent',
+        text: 'text-muted-foreground',
+        gradient: 'bg-gradient-to-br from-muted-foreground to-muted-foreground/80 shadow-lg shadow-border/50 hover:shadow-border/70 border-border',
     },
     STATUS_CHANGE: {
         bg: 'bg-cyan-500/20',
@@ -329,11 +329,11 @@ const ActivitiesMonthlyCalendarInner: React.FC<ActivitiesMonthlyCalendarProps> =
     });
 
     return (
-        <div className="bg-white dark:bg-dark-card rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-xl">
+        <div className="bg-white dark:bg-dark-card rounded-2xl border border-border overflow-hidden shadow-xl">
             {/* Header */}
-            <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50">
+            <div className="p-6 border-b border-border flex justify-between items-center bg-gradient-to-r from-background to-muted dark:from-card/50 dark:to-card/50">
                 <div className="flex items-center gap-4">
-                    <h2 className="font-bold text-2xl text-slate-900 dark:text-white font-display capitalize">
+                    <h2 className="font-bold text-2xl text-foreground font-display capitalize">
                         {monthLabel}
                     </h2>
                     <Button
@@ -347,15 +347,15 @@ const ActivitiesMonthlyCalendarInner: React.FC<ActivitiesMonthlyCalendarProps> =
                 <div className="flex gap-2">
                     <Button
                         onClick={prevMonth}
-                        className="p-3 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110"
+                        className="p-3 hover:bg-accent dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110"
                     >
-                        <ChevronLeft size={20} className="text-slate-600 dark:text-slate-400" />
+                        <ChevronLeft size={20} className="text-secondary-foreground dark:text-muted-foreground" />
                     </Button>
                     <Button
                         onClick={nextMonth}
-                        className="p-3 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110"
+                        className="p-3 hover:bg-accent dark:hover:bg-white/10 rounded-xl transition-all hover:scale-110"
                     >
-                        <ChevronRight size={20} className="text-slate-600 dark:text-slate-400" />
+                        <ChevronRight size={20} className="text-secondary-foreground dark:text-muted-foreground" />
                     </Button>
                 </div>
             </div>
@@ -363,11 +363,11 @@ const ActivitiesMonthlyCalendarInner: React.FC<ActivitiesMonthlyCalendarProps> =
             {/* Calendar Grid */}
             <div className="overflow-auto">
                 {/* Day-of-week headers */}
-                <div className="grid grid-cols-7 border-b border-slate-200 dark:border-white/10">
+                <div className="grid grid-cols-7 border-b border-border">
                     {DAYS_OF_WEEK.map((day) => (
                         <div
                             key={day}
-                            className="p-3 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-white/5"
+                            className="p-3 text-center text-xs font-bold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider bg-background dark:bg-white/5"
                         >
                             {day}
                         </div>
@@ -396,12 +396,12 @@ const ActivitiesMonthlyCalendarInner: React.FC<ActivitiesMonthlyCalendarProps> =
                                     }
                                 }}
                                 className={`
-                                    relative min-h-[100px] p-2 border-b border-r border-slate-200 dark:border-white/5
+                                    relative min-h-[100px] p-2 border-b border-r border-border 
                                     cursor-pointer transition-all
                                     ${!isCurrentMonth ? 'opacity-40' : ''}
                                     ${today ? 'bg-primary-50/30 dark:bg-primary-500/10' : ''}
                                     ${selected ? 'ring-2 ring-inset ring-primary-500 dark:ring-primary-400 bg-primary-50/50 dark:bg-primary-500/15' : ''}
-                                    ${isCurrentMonth && !today && !selected ? 'hover:bg-slate-50 dark:hover:bg-white/5' : ''}
+                                    ${isCurrentMonth && !today && !selected ? 'hover:bg-background dark:hover:bg-white/5' : ''}
                                 `}
                             >
                                 {/* Day number */}
@@ -412,8 +412,8 @@ const ActivitiesMonthlyCalendarInner: React.FC<ActivitiesMonthlyCalendarProps> =
                                             ${today
                                                 ? 'bg-primary-500 text-white'
                                                 : isCurrentMonth
-                                                    ? 'text-slate-900 dark:text-white'
-                                                    : 'text-slate-400 dark:text-slate-600'
+                                                    ? 'text-foreground '
+                                                    : 'text-muted-foreground dark:text-secondary-foreground'
                                             }
                                         `}
                                     >
@@ -440,23 +440,23 @@ const ActivitiesMonthlyCalendarInner: React.FC<ActivitiesMonthlyCalendarProps> =
 
             {/* Selected day detail panel */}
             {selectedDay && (
-                <div className="border-t border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+                <div className="border-t border-border bg-background/50 dark:bg-white/[0.02]">
                     <div className="p-4">
-                        <h3 className="font-bold text-base text-slate-900 dark:text-white mb-3">
+                        <h3 className="font-bold text-base text-foreground mb-3">
                             {selectedDay.toLocaleDateString('pt-BR', {
                                 weekday: 'long',
                                 day: 'numeric',
                                 month: 'long',
                             })}
                             {selectedDayActivities.length > 0 && (
-                                <span className="ml-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                                <span className="ml-2 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
                                     ({selectedDayActivities.length} atividade{selectedDayActivities.length !== 1 ? 's' : ''})
                                 </span>
                             )}
                         </h3>
 
                         {selectedDayActivities.length === 0 ? (
-                            <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">
+                            <p className="text-sm text-muted-foreground dark:text-muted-foreground py-4 text-center">
                                 Nenhuma atividade neste dia
                             </p>
                         ) : (

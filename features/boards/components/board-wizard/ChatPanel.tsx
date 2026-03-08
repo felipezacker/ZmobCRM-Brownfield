@@ -28,7 +28,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   onApplyProposal,
 }) => {
   return (
-    <div className="h-[38vh] lg:h-auto w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-white/10 flex flex-col bg-slate-50 dark:bg-dark-bg/50">
+    <div className="h-[38vh] lg:h-auto w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-border flex flex-col bg-background dark:bg-dark-bg/50">
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
         {chatMessages.map((msg, idx) => (
           <div
@@ -39,7 +39,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               className={`max-w-[90%] p-3 rounded-xl text-sm whitespace-pre-wrap ${
                 msg.role === 'user'
                   ? 'bg-primary-600 text-white rounded-br-none'
-                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none'
+                  : 'bg-white dark:bg-card border border-border dark:border-border text-foreground dark:text-muted-foreground rounded-bl-none'
               }`}
             >
               {msg.content
@@ -60,7 +60,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors flex items-center gap-1 ${
                     previewBoard === msg.proposalData
                       ? 'bg-blue-100 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-500/50 dark:text-blue-300'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                      : 'bg-white dark:bg-card border-border dark:border-border text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-accent'
                   }`}
                 >
                   {previewBoard === msg.proposalData
@@ -79,15 +79,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         ))}
         {isRefining && (
           <div className="flex justify-start">
-            <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 p-3 rounded-xl rounded-bl-none flex items-center gap-2">
+            <div className="bg-white dark:bg-dark-card border border-border p-3 rounded-xl rounded-bl-none flex items-center gap-2">
               <Loader2 size={14} className="animate-spin text-primary-500" />
-              <span className="text-xs text-slate-500">Pensando...</span>
+              <span className="text-xs text-muted-foreground">Pensando...</span>
             </div>
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
-      <div className="p-4 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-dark-card">
+      <div className="p-4 border-t border-border bg-white dark:bg-dark-card">
         <div className="flex gap-2">
           <input
             type="text"
@@ -97,7 +97,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               if (e.key === 'Enter' && !isRefining) onRefine();
             }}
             placeholder="Ex: Adicione uma etapa de 'Negociacao'..."
-            className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="flex-1 px-3 py-2 text-sm rounded-lg border border-border bg-background dark:bg-white/5 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             disabled={isRefining}
           />
           <Button

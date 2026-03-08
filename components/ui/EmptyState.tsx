@@ -36,37 +36,34 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     <div
       role="status"
       aria-label={title}
-      className={cn(
-        'flex flex-col items-center justify-center text-center',
-        size === 'sm' && 'py-4',
-        size === 'md' && 'py-8',
-        size === 'lg' && 'py-8 md:py-16',
-        className,
-      )}
+      className={cn('flex flex-col items-center justify-center text-center',
+ size === 'sm' && 'py-4',
+ size === 'md' && 'py-8',
+ size === 'lg' && 'py-8 md:py-16',
+ className,
+ )}
     >
       {showIcon && (
         <div
-          className={cn(
-            'inline-flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 mb-4',
-            size === 'md' && 'w-10 h-10',
-            size === 'lg' && 'w-16 h-16',
-          )}
+          className={cn('inline-flex items-center justify-center rounded-xl bg-muted dark:bg-white/5 mb-4',
+ size === 'md' && 'w-10 h-10',
+ size === 'lg' && 'w-16 h-16',
+ )}
         >
           {icon}
         </div>
       )}
 
       <p
-        className={cn(
-          'font-medium text-slate-700 dark:text-slate-200',
-          size === 'lg' ? 'text-lg' : 'text-sm',
-        )}
+        className={cn('font-medium text-secondary-foreground dark:text-muted-foreground',
+ size === 'lg' ? 'text-lg' : 'text-sm',
+ )}
       >
         {title}
       </p>
 
       {description && (
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-sm">
+        <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground max-w-sm">
           {description}
         </p>
       )}

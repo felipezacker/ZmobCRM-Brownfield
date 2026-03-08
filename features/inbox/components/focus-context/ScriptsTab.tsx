@@ -42,7 +42,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
     return (
         <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-slate-800">
             <div className="flex items-center justify-between mb-4 px-1">
-                <p className="text-xs font-semibold text-slate-500 flex items-center gap-2">
+                <p className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
                     Templates de Venda
                     {isLoading && <Loader2 size={12} className="animate-spin" />}
                 </p>
@@ -80,7 +80,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                                     console.error('AI Script error:', err);
                                 }
                             }}
-                            className="flex-1 text-[9px] px-2 py-1.5 bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white rounded transition-colors capitalize"
+                            className="flex-1 text-[9px] px-2 py-1.5 bg-card/60 hover:bg-accent text-muted-foreground hover:text-white rounded transition-colors capitalize"
                         >
                             {type === 'followup' ? 'Follow-up' : type === 'closing' ? 'Fechamento' : type === 'objection' ? 'Objecao' : 'Resgate'}
                         </Button>
@@ -94,7 +94,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                     return (
                         <div
                             key={script.id}
-                            className={`p-4 bg-slate-800/40 rounded-xl border border-white/5 hover:border-slate-600 hover:bg-slate-800/80 transition-all cursor-pointer group ${copiedScript === script.id ? 'ring-2 ring-emerald-500/50' : ''}`}
+                            className={`p-4 bg-card/40 rounded-xl border border-white/5 hover:border-border hover:bg-card/80 transition-all cursor-pointer group ${copiedScript === script.id ? 'ring-2 ring-emerald-500/50' : ''}`}
                             onClick={() => {
                                 copyScript(script.template, script.id);
                                 onNoteChange(applyVariables(script.template, { nome: firstName }));
@@ -107,7 +107,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                                     </div>
                                     <span className="text-sm font-semibold text-white">{script.title}</span>
                                     {script.is_system && (
-                                        <span className="text-[9px] text-slate-500 bg-slate-700/50 px-1.5 py-0.5 rounded">Sistema</span>
+                                        <span className="text-[9px] text-muted-foreground bg-accent/50 px-1.5 py-0.5 rounded">Sistema</span>
                                     )}
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -129,7 +129,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                                                         icon: script.icon,
                                                     });
                                                 }}
-                                                className="p-1 text-slate-500 hover:text-primary-400 hover:bg-primary-500/10 rounded transition-colors"
+                                                className="p-1 text-muted-foreground hover:text-primary-400 hover:bg-primary-500/10 rounded transition-colors"
                                                 title="Editar"
                                             >
                                                 <FileText size={12} />
@@ -141,7 +141,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                                                         onDelete(script.id);
                                                     }
                                                 }}
-                                                className="p-1 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                                                className="p-1 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                                                 title="Excluir"
                                             >
                                                 <Trash2 size={12} />
@@ -150,7 +150,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                                     )}
                                 </div>
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed line-clamp-3 group-hover:text-slate-300">
+                            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 group-hover:text-muted-foreground">
                                 {applyVariables(script.template, { nome: firstName })}
                             </p>
                         </div>

@@ -29,7 +29,7 @@ function SortHeader({
   const isActive = currentField === field
   return (
     <th
-      className="text-right py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400 cursor-pointer select-none hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+      className="text-right py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground cursor-pointer select-none hover:text-secondary-foreground dark:hover:text-muted-foreground transition-colors"
       onClick={() => onSort(field)}
     >
       <span className="inline-flex items-center gap-0.5">
@@ -46,11 +46,11 @@ function SortHeader({
 
 function RankingSkeleton() {
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4 animate-pulse">
-      <div className="h-5 w-40 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
+    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4 animate-pulse">
+      <div className="h-5 w-40 bg-accent dark:bg-accent rounded mb-4" />
       <div className="space-y-3">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-8 bg-slate-100 dark:bg-slate-800 rounded" />
+          <div key={i} className="h-8 bg-muted dark:bg-card rounded" />
         ))}
       </div>
     </div>
@@ -86,12 +86,12 @@ export function CorretorRanking({ brokers, isLoading }: CorretorRankingProps) {
 
   if (brokers.length === 0) {
     return (
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-        <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+      <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4">
+        <h3 className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3 flex items-center gap-2">
           <Trophy size={16} className="text-amber-500" />
           Ranking de Corretores
         </h3>
-        <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground py-4 text-center">
           Sem dados no período
         </p>
       </div>
@@ -99,19 +99,19 @@ export function CorretorRanking({ brokers, isLoading }: CorretorRankingProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4">
-      <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4">
+      <h3 className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3 flex items-center gap-2">
         <Trophy size={16} className="text-amber-500" />
         Ranking de Corretores
       </h3>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-700">
-              <th className="text-left py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <tr className="border-b border-border dark:border-border">
+              <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">
                 #
               </th>
-              <th className="text-left py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">
                 Corretor
               </th>
               <SortHeader label="Ligações" field="totalCalls" currentField={sortField} currentDir={sortDir} onSort={handleSort} />
@@ -126,13 +126,13 @@ export function CorretorRanking({ brokers, isLoading }: CorretorRankingProps) {
               return (
                 <tr
                   key={broker.ownerId}
-                  className={`border-b border-slate-100 dark:border-slate-800 transition-colors ${
+                  className={`border-b border-border dark:border-border transition-colors ${
                     isTop
                       ? 'bg-amber-50 dark:bg-amber-500/5'
-                      : 'hover:bg-slate-50 dark:hover:bg-white/5'
+                      : 'hover:bg-background dark:hover:bg-white/5'
                   }`}
                 >
-                  <td className="py-2 px-2 text-xs text-slate-400">
+                  <td className="py-2 px-2 text-xs text-muted-foreground">
                     {isTop ? (
                       <Trophy size={14} className="text-amber-500" />
                     ) : (
@@ -144,21 +144,21 @@ export function CorretorRanking({ brokers, isLoading }: CorretorRankingProps) {
                       <div className="w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center flex-shrink-0">
                         <User size={14} className="text-primary-600 dark:text-primary-400" />
                       </div>
-                      <span className="text-slate-700 dark:text-slate-300 truncate">
+                      <span className="text-secondary-foreground dark:text-muted-foreground truncate">
                         {broker.ownerName}
                       </span>
                     </div>
                   </td>
-                  <td className="py-2 px-2 text-right text-slate-600 dark:text-slate-400 font-medium">
+                  <td className="py-2 px-2 text-right text-secondary-foreground dark:text-muted-foreground font-medium">
                     {broker.totalCalls}
                   </td>
-                  <td className="py-2 px-2 text-right text-slate-600 dark:text-slate-400">
+                  <td className="py-2 px-2 text-right text-secondary-foreground dark:text-muted-foreground">
                     {broker.connectionRate.toFixed(1)}%
                   </td>
-                  <td className="py-2 px-2 text-right text-slate-600 dark:text-slate-400">
+                  <td className="py-2 px-2 text-right text-secondary-foreground dark:text-muted-foreground">
                     {formatDuration(broker.avgDuration)}
                   </td>
-                  <td className="py-2 px-2 text-right text-slate-600 dark:text-slate-400">
+                  <td className="py-2 px-2 text-right text-secondary-foreground dark:text-muted-foreground">
                     {broker.uniqueContacts}
                   </td>
                 </tr>

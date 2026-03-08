@@ -27,9 +27,9 @@ export const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contact }) => 
                         {contact.phone && (
                             <Button
                                 onClick={() => navigator.clipboard.writeText(contact.phone || '')}
-                                className="flex items-center gap-2 text-xs text-slate-400 hover:text-green-400 transition-colors group"
+                                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-green-400 transition-colors group"
                             >
-                                <Phone size={12} className="text-slate-600 group-hover:text-green-400 shrink-0" />
+                                <Phone size={12} className="text-secondary-foreground group-hover:text-green-400 shrink-0" />
                                 <span className="truncate">{contact.phone}</span>
                                 <Copy size={10} className="opacity-0 group-hover:opacity-100 ml-auto shrink-0" />
                             </Button>
@@ -38,9 +38,9 @@ export const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contact }) => 
                         {contact.email && (
                             <Button
                                 onClick={() => navigator.clipboard.writeText(contact.email || '')}
-                                className="flex items-center gap-2 text-xs text-slate-400 hover:text-cyan-400 transition-colors group"
+                                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-cyan-400 transition-colors group"
                             >
-                                <Mail size={12} className="text-slate-600 group-hover:text-cyan-400 shrink-0" />
+                                <Mail size={12} className="text-secondary-foreground group-hover:text-cyan-400 shrink-0" />
                                 <span className="truncate">{contact.email}</span>
                                 <Copy size={10} className="opacity-0 group-hover:opacity-100 ml-auto shrink-0" />
                             </Button>
@@ -56,7 +56,7 @@ export const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contact }) => 
                         )}
                         {contact.status && (
                             <span className={`text-[10px] px-1.5 py-0.5 rounded border ${contact.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                contact.status === 'INACTIVE' ? 'bg-slate-500/10 text-slate-400 border-slate-500/20' :
+                                contact.status === 'INACTIVE' ? 'bg-accent/10 text-muted-foreground border-border/20' :
                                     'bg-red-500/10 text-red-400 border-red-500/20'
                                 }`}>
                                 {contact.status === 'ACTIVE' ? 'Ativo' : contact.status === 'INACTIVE' ? 'Inativo' : 'Churned'}
@@ -71,7 +71,7 @@ export const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contact }) => 
 
                     {/* Notes preview */}
                     {contact.notes && (
-                        <p className="mt-2 text-[11px] text-slate-500 line-clamp-2 italic">
+                        <p className="mt-2 text-[11px] text-muted-foreground line-clamp-2 italic">
                             &quot;{contact.notes}&quot;
                         </p>
                     )}

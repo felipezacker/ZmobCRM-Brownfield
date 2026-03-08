@@ -25,9 +25,9 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
   onSelect,
   onClose,
 }) => (
-  <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl shadow-slate-300/30 dark:shadow-black/40">
-    <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/8 px-3 py-2">
-      <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+  <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-border bg-white dark:bg-background/95 backdrop-blur-xl shadow-2xl shadow-border/30 dark:shadow-black/40">
+    <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+      <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       <input
         ref={productSearchInputRef}
         type="text"
@@ -35,15 +35,15 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
         onChange={(e) => onSearchChange(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
         placeholder="Buscar produto..."
-        className="flex-1 bg-transparent text-sm text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+        className="flex-1 bg-transparent text-sm text-secondary-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
       />
       {productSearch && (
-        <span className="text-[10px] text-slate-400 dark:text-slate-600">{filteredProducts.length}</span>
+        <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground">{filteredProducts.length}</span>
       )}
     </div>
     <div className="max-h-52 overflow-auto py-1">
       {filteredProducts.length === 0 ? (
-        <div className="px-3 py-4 text-center text-xs text-slate-400 dark:text-slate-600">Nenhum produto encontrado</div>
+        <div className="px-3 py-4 text-center text-xs text-muted-foreground dark:text-secondary-foreground">Nenhum produto encontrado</div>
       ) : (
         filteredProducts.map((p) => {
           const isCurrent = p.id === selectedProductId;
@@ -54,14 +54,14 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
               key={p.id}
               type="button"
               className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${
-                isCurrent ? 'bg-slate-100 dark:bg-white/6' : 'hover:bg-slate-50 dark:hover:bg-white/4'
+                isCurrent ? 'bg-muted dark:bg-white/6' : 'hover:bg-background dark:hover:bg-white/4'
               }`}
               onClick={() => onSelect(p.id)}
             >
               <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${isCurrent ? 'text-primary-600 dark:text-primary-400' : 'text-transparent'}`}>
                 <Check className="h-3 w-3" />
               </div>
-              <span className={`truncate text-sm ${isCurrent ? 'font-semibold text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>
+              <span className={`truncate text-sm ${isCurrent ? 'font-semibold text-foreground ' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
                 {p.name}
               </span>
               <span className="ml-auto shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400/70">
@@ -72,8 +72,8 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
         })
       )}
     </div>
-    <div className="border-t border-slate-200 dark:border-white/8 px-3 py-1.5">
-      <span className="text-[10px] text-slate-400 dark:text-slate-600">{products.length} produtos no catalogo</span>
+    <div className="border-t border-border px-3 py-1.5">
+      <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground">{products.length} produtos no catalogo</span>
     </div>
   </div>
 );
@@ -97,34 +97,34 @@ export const CustomItemForm: React.FC<CustomItemFormProps> = ({
   onQuantityChange,
   onAdd,
 }) => (
-  <div className="mt-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-white/5 p-3">
+  <div className="mt-3 rounded-xl border border-border bg-white/60 dark:bg-white/5 p-3">
     <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
       <div className="sm:col-span-6">
-        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nome do item</label>
+        <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Nome do item</label>
         <input
           value={customItemName}
           onChange={e => onNameChange(e.target.value)}
           placeholder="Ex.: Pacote personalizado, Procedimento X..."
-          className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+          className="w-full bg-white dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
         />
       </div>
       <div className="sm:col-span-3">
-        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Preco</label>
+        <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Preco</label>
         <input
           value={customItemPrice}
           onChange={e => onPriceChange(e.target.value)}
           inputMode="decimal"
-          className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+          className="w-full bg-white dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
         />
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Qtd</label>
+        <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Qtd</label>
         <input
           type="number"
           min={1}
           value={customItemQuantity}
           onChange={e => onQuantityChange(parseInt(e.target.value))}
-          className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+          className="w-full bg-white dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
         />
       </div>
       <div className="sm:col-span-1">

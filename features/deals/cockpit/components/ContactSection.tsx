@@ -39,7 +39,7 @@ export function ContactSection({
   const leadScore = (contactRecord?.leadScore ?? undefined) as number | undefined;
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-3">
+    <div className="rounded-xl border border-border bg-background dark:bg-white/2 p-3">
       <SectionHeader
         label="Contato"
         icon={<User className="h-3.5 w-3.5" />}
@@ -52,7 +52,7 @@ export function ContactSection({
           {/* Nome editavel */}
           <input
             type="text"
-            className={`${INPUT_CLASS} w-full text-base font-semibold text-slate-900 dark:text-slate-100`}
+            className={`${INPUT_CLASS} w-full text-base font-semibold text-foreground dark:text-muted-foreground`}
             defaultValue={humanizeTestLabel(contact?.name) || contact?.name || ''}
             onBlur={(e) => {
               const v = e.target.value.trim();
@@ -70,7 +70,7 @@ export function ContactSection({
               className={`${SELECT_CLASS} text-xs font-bold rounded-full px-2 py-0.5 ring-1 ${
                 temperature && TEMPERATURE_CONFIG[temperature]
                   ? TEMPERATURE_CONFIG[temperature].color
-                  : 'bg-slate-100 dark:bg-white/5 text-slate-500 ring-slate-200 dark:ring-white/10'
+                  : 'bg-muted dark:bg-white/5 text-muted-foreground ring-ring dark:ring-white/10'
               }`}
               value={temperature ?? ''}
               onChange={(e) => onUpdateContact?.({ temperature: e.target.value || null } as Partial<Contact>)}
@@ -84,7 +84,7 @@ export function ContactSection({
               className={`${SELECT_CLASS} text-xs font-bold rounded-full px-2 py-0.5 ring-1 ${
                 classification && CLASSIFICATION_CONFIG[classification]
                   ? CLASSIFICATION_CONFIG[classification].color
-                  : 'bg-slate-100 dark:bg-white/5 text-slate-500 ring-slate-200 dark:ring-white/10'
+                  : 'bg-muted dark:bg-white/5 text-muted-foreground ring-ring dark:ring-white/10'
               }`}
               value={classification ?? ''}
               onChange={(e) => onUpdateContact?.({ classification: e.target.value || null } as Partial<Contact>)}
@@ -98,8 +98,8 @@ export function ContactSection({
 
           {/* Lead Score (read-only) */}
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-[11px] text-slate-500">Score</span>
-            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+            <span className="text-[11px] text-muted-foreground">Score</span>
+            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-accent dark:bg-white/10">
               <div
                 className={`h-full rounded-full transition-all ${
                   (leadScore ?? 0) <= 30 ? 'bg-red-500' :
@@ -108,9 +108,9 @@ export function ContactSection({
                 style={{ width: `${Math.min(100, leadScore ?? 0)}%` }}
               />
             </div>
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <span className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
               {leadScore ?? 0}
-              <span className="ml-1 text-[10px] font-normal text-slate-500 dark:text-slate-400">
+              <span className="ml-1 text-[10px] font-normal text-muted-foreground dark:text-muted-foreground">
                 {(leadScore ?? 0) <= 30 ? 'Frio' : (leadScore ?? 0) <= 60 ? 'Morno' : 'Quente'}
               </span>
             </span>
@@ -119,11 +119,11 @@ export function ContactSection({
           {/* Phone + Email + Source */}
           <div className="mt-3 space-y-2 text-xs">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-slate-500">Tel</span>
+              <span className="text-muted-foreground">Tel</span>
               <span className="flex items-center gap-2">
                 <input
                   type="tel"
-                  className={`${INPUT_CLASS} font-mono text-sm text-slate-700 dark:text-slate-200 text-right w-32`}
+                  className={`${INPUT_CLASS} font-mono text-sm text-secondary-foreground dark:text-muted-foreground text-right w-32`}
                   defaultValue={contact?.phone ?? ''}
                   onBlur={(e) => {
                     const v = e.target.value.trim();
@@ -132,7 +132,7 @@ export function ContactSection({
                 />
                 <Button
                   type="button"
-                  className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors"
+                  className="rounded-lg border border-border bg-background dark:bg-white/2 p-1.5 text-secondary-foreground dark:text-muted-foreground hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors"
                   title="Copiar telefone"
                   onClick={() => phoneE164 && onCopy('Telefone', phoneE164)}
                   disabled={!phoneE164}
@@ -142,11 +142,11 @@ export function ContactSection({
               </span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-slate-500">Email</span>
+              <span className="text-muted-foreground">Email</span>
               <span className="flex items-center gap-2 min-w-0">
                 <input
                   type="email"
-                  className={`${INPUT_CLASS} text-sm text-slate-700 dark:text-slate-200 text-right min-w-0 flex-1`}
+                  className={`${INPUT_CLASS} text-sm text-secondary-foreground dark:text-muted-foreground text-right min-w-0 flex-1`}
                   defaultValue={contact?.email ?? ''}
                   onBlur={(e) => {
                     const v = e.target.value.trim();
@@ -155,7 +155,7 @@ export function ContactSection({
                 />
                 <Button
                   type="button"
-                  className="shrink-0 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors"
+                  className="shrink-0 rounded-lg border border-border bg-background dark:bg-white/2 p-1.5 text-secondary-foreground dark:text-muted-foreground hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-300 transition-colors"
                   title="Copiar email"
                   onClick={() => contact?.email && onCopy('Email', contact.email)}
                   disabled={!contact?.email}
@@ -165,10 +165,10 @@ export function ContactSection({
               </span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-slate-500">Origem</span>
+              <span className="text-muted-foreground">Origem</span>
               <input
                 type="text"
-                className={`${INPUT_CLASS} text-slate-700 dark:text-slate-200 text-right w-28`}
+                className={`${INPUT_CLASS} text-secondary-foreground dark:text-muted-foreground text-right w-28`}
                 defaultValue={contact?.source ?? ''}
                 onBlur={(e) => {
                   const v = e.target.value.trim();

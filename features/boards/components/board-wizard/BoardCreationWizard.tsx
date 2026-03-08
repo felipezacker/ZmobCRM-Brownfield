@@ -46,12 +46,12 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
 
       <div className={`relative z-10 w-full h-full sm:h-auto ${panelMaxWidthClass} bg-white dark:bg-dark-card rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[calc(90dvh-1rem)] sm:max-h-[calc(90dvh-2rem)] transition-all duration-300`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-200 dark:border-white/10 shrink-0">
-          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border shrink-0">
+          <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
             {st.isChatMode ? (<><MessageSquare size={24} className="text-primary-500" /> Refinar com IA</>) : 'Criar Novo Board'}
           </h2>
-          <Button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors">
-            <X size={20} className="text-slate-500" />
+          <Button onClick={onClose} className="p-2 hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors">
+            <X size={20} className="text-muted-foreground" />
           </Button>
         </div>
 
@@ -66,7 +66,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
             />
           )}
 
-          <div className={`flex-1 overflow-y-auto custom-scrollbar ${isSelectHome ? 'p-4 sm:p-4' : 'p-4 sm:p-6'} ${st.isChatMode ? 'bg-slate-100 dark:bg-black/20' : ''}`}>
+          <div className={`flex-1 overflow-y-auto custom-scrollbar ${isSelectHome ? 'p-4 sm:p-4' : 'p-4 sm:p-6'} ${st.isChatMode ? 'bg-muted dark:bg-black/20' : ''}`}>
             {st.step === 'select' && (
               <div className="space-y-6">
                 {st.selectMode === 'home' ? (

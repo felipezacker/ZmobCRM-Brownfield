@@ -18,24 +18,24 @@ function AccordionItem({
 }) {
   const Icon = section.icon;
   return (
-    <div className="border border-slate-200 dark:border-slate-700/50 rounded-xl overflow-hidden">
+    <div className="border border-border dark:border-border/50 rounded-xl overflow-hidden">
       <Button
         onClick={onToggle}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-background dark:hover:bg-white/5 transition-colors"
         aria-expanded={isOpen}
       >
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${section.color}`}>
           <Icon className="w-5 h-5 text-white" />
         </div>
-        <span className="flex-1 font-semibold text-slate-900 dark:text-white">
+        <span className="flex-1 font-semibold text-foreground">
           {section.title}
         </span>
         <ChevronDown
-          className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </Button>
       {isOpen && (
-        <div className="px-5 pb-5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-3 border-t border-slate-100 dark:border-slate-700/50 pt-4">
+        <div className="px-5 pb-5 text-sm text-secondary-foreground dark:text-muted-foreground leading-relaxed space-y-3 border-t border-border dark:border-border/50 pt-4">
           <SectionRenderer blocks={section.content} />
         </div>
       )}
@@ -65,10 +65,10 @@ export function InstructionsPage() {
           <BookOpen className="w-5 h-5 text-primary-500" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-display">
+          <h1 className="text-2xl font-bold text-foreground font-display">
             Instruções
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Guia completo de uso do CRM para corretores
           </p>
         </div>

@@ -103,7 +103,7 @@ export function toneToBg(tone: StageTone): string {
       return 'bg-emerald-500';
     case 'slate':
     default:
-      return 'bg-slate-500';
+      return 'bg-accent';
   }
 }
 
@@ -135,7 +135,7 @@ export function toneToText(tone: StageTone): string {
       return 'text-emerald-400';
     case 'slate':
     default:
-      return 'text-slate-400';
+      return 'text-muted-foreground';
   }
 }
 
@@ -152,7 +152,7 @@ export function scriptCategoryChipClass(color: string): string {
     case 'rose':
       return 'bg-rose-500/15 text-rose-200';
     default:
-      return 'bg-white/10 text-slate-200';
+      return 'bg-white/10 text-muted-foreground';
   }
 }
 

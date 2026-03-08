@@ -133,7 +133,7 @@ describe('cockpit-utils', () => {
       expect(toneToBg('violet')).toBe('bg-violet-500');
       expect(toneToBg('amber')).toBe('bg-amber-500');
       expect(toneToBg('green')).toBe('bg-emerald-500');
-      expect(toneToBg('slate')).toBe('bg-slate-500');
+      expect(toneToBg('slate')).toBe('bg-accent');
     });
   });
 

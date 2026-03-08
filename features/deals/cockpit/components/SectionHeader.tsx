@@ -16,10 +16,10 @@ export interface SectionHeaderProps {
 export function SectionHeader({ label, icon, iconColor, collapsed, onToggle }: SectionHeaderProps) {
   return (
     <Button variant="unstyled" size="unstyled" type="button" className="flex w-full items-center justify-between" onClick={onToggle}>
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">
         <span className={iconColor}>{icon}</span> {label}
       </div>
-      <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
+      <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
     </Button>
   );
 }

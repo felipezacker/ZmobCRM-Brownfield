@@ -33,21 +33,21 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
   onStageClick,
 }) => {
   return (
-    <div className="bg-slate-50 dark:bg-[#0b1222] border-b border-slate-200 dark:border-white/[0.06] px-6 pt-5 pb-4 shrink-0">
+    <div className="bg-background dark:bg-[#0b1222] border-b border-border dark:border-white/[0.06] px-6 pt-5 pb-4 shrink-0">
       {/* Row 1: Lead name + product + action icons */}
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-400/20 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300 shrink-0">
           {(resolvedContactName || '?').charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
-          <h2 id={headingId} className="text-base font-semibold text-slate-900 dark:text-white tracking-tight truncate leading-tight">
+          <h2 id={headingId} className="text-base font-semibold text-foreground tracking-tight truncate leading-tight">
             {resolvedContactName}
           </h2>
           {deal.items && deal.items.length > 0 && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" title={deal.items[0].name}>
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate mt-0.5" title={deal.items[0].name}>
               {deal.items[0].name}
               {deal.items.length > 1 && (
-                <span className="text-slate-400 dark:text-slate-500 ml-1">+{deal.items.length - 1}</span>
+                <span className="text-muted-foreground dark:text-muted-foreground ml-1">+{deal.items.length - 1}</span>
               )}
             </p>
           )}
@@ -55,21 +55,21 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
         <div className="flex gap-0.5 items-center shrink-0">
           <Button
             onClick={onOpenCockpit}
-            className="text-slate-400 hover:text-primary-500 dark:text-slate-500 dark:hover:text-primary-400 transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+            className="text-muted-foreground hover:text-primary-500 dark:text-muted-foreground dark:hover:text-primary-400 transition-colors p-1.5 rounded-lg hover:bg-muted dark:hover:bg-white/5"
             title="Abrir Cockpit"
           >
             <Maximize2 size={18} />
           </Button>
           <Button
             onClick={onDelete}
-            className="text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+            className="text-muted-foreground hover:text-red-500 dark:text-muted-foreground dark:hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-muted dark:hover:bg-white/5"
             title="Excluir Negocio"
           >
             <Trash2 size={18} />
           </Button>
           <Button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+            className="text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white transition-colors p-1.5 rounded-lg hover:bg-muted dark:hover:bg-white/5"
           >
             <X size={18} />
           </Button>
@@ -82,11 +82,11 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
         <div className="shrink-0">
           {isEditingValue ? (
             <div className="flex gap-2 items-center">
-              <span className="text-lg font-mono font-bold text-slate-500">R$</span>
+              <span className="text-lg font-mono font-bold text-muted-foreground">R$</span>
               <input
                 autoFocus
                 type="number"
-                className="text-lg font-mono font-bold text-primary-600 dark:text-primary-400 bg-white dark:bg-black/30 border border-slate-300 dark:border-primary-500/20 rounded-lg px-2.5 py-1 w-36 outline-none focus:ring-2 focus:ring-primary-500/40"
+                className="text-lg font-mono font-bold text-primary-600 dark:text-primary-400 bg-white dark:bg-black/30 border border-border dark:border-primary-500/20 rounded-lg px-2.5 py-1 w-36 outline-none focus:ring-2 focus:ring-primary-500/40"
                 value={editValue}
                 onChange={e => onEditValueChange(e.target.value)}
                 onBlur={onSaveValue}
@@ -99,7 +99,7 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
           ) : (
             <Button
               onClick={onEditValueStart}
-              className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+              className="text-2xl font-bold font-mono tracking-tight text-foreground hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               title="Clique para editar valor"
             >
               {BRL_CURRENCY.format(deal.value)}
@@ -107,7 +107,7 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
           )}
         </div>
 
-        <div className="h-6 w-px bg-slate-200 dark:bg-white/[0.06] shrink-0" />
+        <div className="h-6 w-px bg-accent dark:bg-white/[0.06] shrink-0" />
 
         {/* Corretor Select */}
         <div className="w-44 shrink-0">
@@ -132,7 +132,7 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
               </span>
               <Button
                 onClick={onReopen}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all border border-transparent dark:border-white/[0.06]"
+                className="px-3 py-1.5 bg-muted hover:bg-accent dark:bg-white/5 dark:hover:bg-white/10 text-secondary-foreground dark:text-muted-foreground rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all border border-transparent dark:border-white/[0.06]"
               >
                 Reabrir
               </Button>
@@ -164,7 +164,7 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
           onStageClick={onStageClick}
         />
       ) : (
-        <div className="mt-4 rounded-lg border border-slate-200/60 bg-slate-50 px-4 py-3 text-xs text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+        <div className="mt-4 rounded-lg border border-border/60 bg-background px-4 py-3 text-xs text-secondary-foreground dark:bg-white/5 dark:text-muted-foreground">
           Board nao encontrado para este negocio. Algumas acoes (mover estagio) podem ficar indisponiveis.
         </div>
       )}

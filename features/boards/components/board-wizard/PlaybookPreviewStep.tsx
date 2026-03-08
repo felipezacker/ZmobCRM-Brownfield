@@ -23,21 +23,21 @@ export const PlaybookPreviewStep: React.FC<PlaybookPreviewStepProps> = ({
     getJourneyForInstall(selectedPlaybookId)?.boards ?? journey.boards;
 
   return (
-    <div className="h-full flex flex-col bg-slate-50 dark:bg-black/20 -m-6">
+    <div className="h-full flex flex-col bg-background dark:bg-black/20 -m-6">
       {/* Header */}
-      <div className="bg-white dark:bg-dark-card border-b border-slate-200 dark:border-white/10 py-5 px-8 shrink-0">
+      <div className="bg-white dark:bg-dark-card border-b border-border py-5 px-8 shrink-0">
         <div className="flex items-center gap-5">
           <div className="w-12 h-12 bg-primary-50 dark:bg-primary-900/20 rounded-xl flex items-center justify-center text-primary-600 dark:text-primary-400 border border-primary-100 dark:border-primary-500/20 shrink-0">
             <LayoutTemplate className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
               {journey.name}
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wide border border-slate-200 dark:border-white/10">
+              <span className="px-2.5 py-0.5 rounded-full bg-muted dark:bg-white/5 text-muted-foreground dark:text-muted-foreground text-[10px] font-bold uppercase tracking-wide border border-border">
                 Playbook Oficial
               </span>
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1 max-w-3xl leading-relaxed">
               {journey.description}
             </p>
           </div>
@@ -48,32 +48,32 @@ export const PlaybookPreviewStep: React.FC<PlaybookPreviewStepProps> = ({
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-px flex-1 bg-slate-300 dark:bg-white/10" />
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <div className="h-px flex-1 bg-accent dark:bg-white/10" />
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
               Jornada do Cliente ({boards.length} Etapas)
             </span>
-            <div className="h-px flex-1 bg-slate-300 dark:bg-white/10" />
+            <div className="h-px flex-1 bg-accent dark:bg-white/10" />
           </div>
 
           {/* Optional renewals checkbox (Infoproducer only) */}
           {selectedPlaybookId === 'INFOPRODUCER' && (
-            <div className="mb-6 p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-dark-card">
+            <div className="mb-6 p-4 rounded-2xl border border-border bg-white dark:bg-dark-card">
               <div className="flex items-start gap-3">
                 <input
                   id="include-renewals"
                   type="checkbox"
                   checked={includeSubscriptionRenewals}
                   onChange={(e) => onToggleRenewals(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                  className="mt-1 h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500"
                 />
                 <div className="flex-1">
                   <label
                     htmlFor="include-renewals"
-                    className="font-semibold text-slate-900 dark:text-white"
+                    className="font-semibold text-foreground"
                   >
                     Incluir Renovacoes (Assinatura)
                   </label>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
                     Adiciona um board opcional para controlar renovacoes com antecedencia
                     (180/120/90/60/30 dias).
                   </p>
@@ -83,17 +83,17 @@ export const PlaybookPreviewStep: React.FC<PlaybookPreviewStepProps> = ({
           )}
 
           <div className="space-y-8 relative">
-            <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-slate-200 dark:bg-white/10" />
+            <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-accent dark:bg-white/10" />
 
             {boards.map((board, index) => (
               <div key={index} className="relative pl-20 group">
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white dark:bg-dark-card border-2 border-slate-200 dark:border-white/10 flex items-center justify-center text-lg font-bold text-slate-400 shadow-sm z-10 group-hover:border-primary-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 group-hover:scale-110 transition-all duration-300">
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white dark:bg-dark-card border-2 border-border flex items-center justify-center text-lg font-bold text-muted-foreground shadow-sm z-10 group-hover:border-primary-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 group-hover:scale-110 transition-all duration-300">
                   {index + 1}
                 </div>
 
-                <div className="bg-white dark:bg-dark-card rounded-2xl border border-slate-200 dark:border-white/10 p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-primary-500/30 group-hover:-translate-y-1">
+                <div className="bg-white dark:bg-dark-card rounded-2xl border border-border p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-primary-500/30 group-hover:-translate-y-1">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                    <h4 className="text-xl font-bold text-foreground flex items-center gap-3">
                       {board.name}
                     </h4>
                     <div className="flex gap-2">
@@ -111,18 +111,18 @@ export const PlaybookPreviewStep: React.FC<PlaybookPreviewStepProps> = ({
                   </div>
 
                   <div className="space-y-3">
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent dark:bg-accent" />
                       Etapas do Funil
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {board.columns.map((column, i) => (
                         <div key={i} className="flex items-center group/tag">
-                          <span className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-white/5 text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-white/5 group-hover/tag:border-primary-200 dark:group-hover/tag:border-primary-500/30 group-hover/tag:bg-primary-50 dark:group-hover/tag:bg-primary-900/20 transition-colors">
+                          <span className="px-3 py-1.5 rounded-lg bg-background dark:bg-white/5 text-sm font-medium text-secondary-foreground dark:text-muted-foreground border border-border group-hover/tag:border-primary-200 dark:group-hover/tag:border-primary-500/30 group-hover/tag:bg-primary-50 dark:group-hover/tag:bg-primary-900/20 transition-colors">
                             {column.name}
                           </span>
                           {i < board.columns.length - 1 && (
-                            <span className="mx-2 text-slate-300 dark:text-slate-600">
+                            <span className="mx-2 text-muted-foreground dark:text-secondary-foreground">
                               &rarr;
                             </span>
                           )}

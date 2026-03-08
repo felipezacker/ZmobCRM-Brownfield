@@ -15,7 +15,7 @@ export function TagsSection({ tags, collapsed, onToggle }: TagsSectionProps) {
   if (!tags || tags.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/2 p-3">
+    <div className="rounded-xl border border-border bg-background dark:bg-white/2 p-3">
       <SectionHeader
         label="Tags"
         icon={<Tag className="h-3.5 w-3.5" />}
@@ -28,7 +28,7 @@ export function TagsSection({ tags, collapsed, onToggle }: TagsSectionProps) {
           {tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300"
+              className="rounded-full border border-border bg-muted dark:bg-white/5 px-2 py-0.5 text-xs font-medium text-secondary-foreground dark:text-muted-foreground"
             >
               {tag}
             </span>

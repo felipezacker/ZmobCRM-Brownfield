@@ -1325,7 +1325,7 @@ export default function InstallWizardPage() {
 
   if (!isHydrated) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
       </div>
     );
@@ -1338,7 +1338,7 @@ export default function InstallWizardPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-slate-950 relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden"
       onMouseMove={handleMouseMove}
       onMouseLeave={() => { mx.set(0); my.set(0); }}
     >
@@ -1375,8 +1375,8 @@ export default function InstallWizardPage() {
                       <Sparkles className="w-8 h-8 text-emerald-400" />
                     </div>
                     <h1 className="text-2xl font-bold text-white mb-2">Conectar Supabase</h1>
-                    <p className="text-slate-400 mb-6">Cole seu token de acesso para continuar.</p>
-                    <input type="password" value={supabaseAccessToken} onChange={(e) => setSupabaseAccessToken(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent mb-4" placeholder="sbp_..." autoFocus />
+                    <p className="text-muted-foreground mb-6">Cole seu token de acesso para continuar.</p>
+                    <input type="password" value={supabaseAccessToken} onChange={(e) => setSupabaseAccessToken(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent mb-4" placeholder="sbp_..." autoFocus />
                     <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 mb-6">Gerar token <ExternalLink className="w-4 h-4" /></a>
                     {supabaseOrgsError && <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm">{supabaseOrgsError}</div>}
                   </motion.div>
@@ -1388,7 +1388,7 @@ export default function InstallWizardPage() {
                       <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
                     </div>
                     <h1 className="text-2xl font-bold text-white mb-2">Preparando seu projeto</h1>
-                    <p className="text-slate-400">Verificando sua conta Supabase…</p>
+                    <p className="text-muted-foreground">Verificando sua conta Supabase…</p>
                   </motion.div>
                 )}
 
@@ -1399,7 +1399,7 @@ export default function InstallWizardPage() {
                         <Pause className="w-8 h-8 text-amber-400" />
                       </div>
                       <h1 className="text-2xl font-bold text-white mb-2">Precisamos de espaço</h1>
-                      <p className="text-slate-400">
+                      <p className="text-muted-foreground">
                         {needSpaceReason === 'global_limit' || supabasePreflight?.freeGlobalLimitHit
                           ? (
                             <>
@@ -1437,7 +1437,7 @@ export default function InstallWizardPage() {
                             <div key={p.ref} className="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-xl p-4">
                               <div className="min-w-0">
                                 <div className="text-white font-medium truncate">{p.name}</div>
-                                <div className="text-slate-500 text-sm truncate">{p.orgName}</div>
+                                <div className="text-muted-foreground text-sm truncate">{p.orgName}</div>
                               </div>
                               <Button
                                 onClick={() => void pauseProject(p.ref)}
@@ -1450,7 +1450,7 @@ export default function InstallWizardPage() {
                           ))}
                         </div>
 
-                        <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-slate-400">
+                        <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-muted-foreground">
                           <Info className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                           <span>Você pode reativar a qualquer momento no painel do Supabase.</span>
                         </div>
@@ -1500,7 +1500,7 @@ export default function InstallWizardPage() {
 
                       {/* Ícone central */}
                       <motion.div
-                        className="relative w-16 h-16 rounded-full bg-slate-900/80 flex items-center justify-center border border-cyan-400/50"
+                        className="relative w-16 h-16 rounded-full bg-card/80 flex items-center justify-center border border-cyan-400/50"
                         animate={{ scale: [1, 1.05, 1] }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                       >
@@ -1521,7 +1521,7 @@ export default function InstallWizardPage() {
                         <h1 className="text-2xl font-bold text-white mb-2">
                           {provisioningMessages[provisioningMsgIndex]?.title || 'Preparando...'}
                         </h1>
-                        <p className="text-slate-400">
+                        <p className="text-muted-foreground">
                           {provisioningMessages[provisioningMsgIndex]?.subtitle || ''}
                         </p>
                       </motion.div>
@@ -1549,7 +1549,7 @@ export default function InstallWizardPage() {
                     </div>
 
                     {/* Telemetria fake */}
-                    <div className="flex justify-center gap-8 text-xs text-slate-500 font-mono mb-6">
+                    <div className="flex justify-center gap-8 text-xs text-muted-foreground font-mono mb-6">
                       <motion.span
                         animate={{ opacity: [0.5, 1, 0.5] }}
                         transition={{ duration: 2, repeat: Infinity }}
@@ -1595,7 +1595,7 @@ export default function InstallWizardPage() {
                       ))}
                     </div>
 
-                    <p className="text-slate-600 text-sm">
+                    <p className="text-secondary-foreground text-sm">
                       Não feche esta página
                     </p>
                   </motion.div>
@@ -1607,27 +1607,27 @@ export default function InstallWizardPage() {
                       <>
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 mb-6"><Loader2 className="w-8 h-8 text-cyan-400 animate-spin" /></div>
                         <h1 className="text-2xl font-bold text-white mb-2">Configurando chaves</h1>
-                        <p className="text-slate-400">Aguarde um momento…</p>
+                        <p className="text-muted-foreground">Aguarde um momento…</p>
                       </>
                     ) : supabaseResolvedOk ? (
                       <>
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-6"><CheckCircle2 className="w-8 h-8 text-emerald-400" /></div>
                         <h1 className="text-2xl font-bold text-white mb-2">Supabase configurado</h1>
-                        <p className="text-slate-400 mb-8">Projeto pronto para usar.</p>
+                        <p className="text-muted-foreground mb-8">Projeto pronto para usar.</p>
                         <Button onClick={goNext} className="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-white font-semibold text-lg transition-all shadow-lg shadow-cyan-500/25">Continuar</Button>
                       </>
                     ) : supabaseResolveError ? (
                       <>
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-6"><AlertCircle className="w-8 h-8 text-amber-400" /></div>
                         <h1 className="text-2xl font-bold text-white mb-2">Quase lá</h1>
-                        <p className="text-slate-400 mb-4">{supabaseResolveError}</p>
+                        <p className="text-muted-foreground mb-4">{supabaseResolveError}</p>
                         <Button onClick={() => void resolveKeys('manual')} className="w-full py-4 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-white font-semibold transition-all">Tentar novamente</Button>
                       </>
                     ) : (
                       <>
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 mb-6"><Loader2 className="w-8 h-8 text-cyan-400 animate-spin" /></div>
                         <h1 className="text-2xl font-bold text-white mb-2">Finalizando</h1>
-                        <p className="text-slate-400">Resolvendo configurações…</p>
+                        <p className="text-muted-foreground">Resolvendo configurações…</p>
                       </>
                     )}
                   </motion.div>
@@ -1640,11 +1640,11 @@ export default function InstallWizardPage() {
             <motion.div key="step-launch" variants={sceneVariants} initial="initial" animate="animate" exit="exit" transition={sceneTransition} className="text-center">
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 to-teal-400 mb-6"><Sparkles className="w-10 h-10 text-white" /></div>
               <h1 className="text-3xl font-bold text-white mb-2">Tudo pronto, {firstName}!</h1>
-              <p className="text-slate-400 mb-8">Sua jornada está prestes a começar.</p>
+              <p className="text-muted-foreground mb-8">Sua jornada está prestes a começar.</p>
               {!validateInstallerPassword(adminPassword).ok && (
                 <div className="mb-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-left">
                   <div className="text-amber-200 font-medium">Só falta fortalecer sua senha</div>
-                  <div className="text-slate-400 text-sm mt-1">Use 8+ caracteres com pelo menos 1 letra e 1 número.</div>
+                  <div className="text-muted-foreground text-sm mt-1">Use 8+ caracteres com pelo menos 1 letra e 1 número.</div>
                   <div className="mt-3 flex gap-2">
                     <Button
                       type="button"
@@ -1678,13 +1678,13 @@ export default function InstallWizardPage() {
         </AnimatePresence>
 
         {currentStep === 1 && supabaseUiStep === 'pat' && (
-          <Button onClick={goBack} className="mt-6 w-full py-3 text-slate-400 hover:text-white transition-colors">← Voltar</Button>
+          <Button onClick={goBack} className="mt-6 w-full py-3 text-muted-foreground hover:text-white transition-colors">← Voltar</Button>
         )}
       </div>
 
       <AnimatePresence>
         {showInstallOverlay && (
-          <motion.div key="install-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950">
+          <motion.div key="install-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-background">
             {/* Background cinematográfico */}
             <div className="absolute inset-0 overflow-hidden">
               {/* Gradiente pulsante */}
@@ -1849,7 +1849,7 @@ export default function InstallWizardPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className={`mb-6 h-6 ${cinePhase === 'success' ? 'text-emerald-400 text-lg' : 'text-slate-400'}`}
+                  className={`mb-6 h-6 ${cinePhase === 'success' ? 'text-emerald-400 text-lg' : 'text-muted-foreground'}`}
                 >
                   {cineSubtitle}
                 </motion.p>
@@ -1866,7 +1866,7 @@ export default function InstallWizardPage() {
                       transition={{ duration: 0.5, ease: 'easeOut' }}
                     />
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     {cineProgress}%{cineStepLabel ? ` • ${cineStepLabel}` : ''}
                   </p>
                 </div>
@@ -1880,9 +1880,9 @@ export default function InstallWizardPage() {
                   transition={{ delay: 0.8 }}
                   className="space-y-6"
                 >
-                  <p className="text-slate-300">
+                  <p className="text-muted-foreground">
                     Seu novo mundo está pronto.<br />
-                    <span className="text-slate-500 text-sm">Tudo está pronto — você já pode entrar. (Se parecer desatualizado, recarregue a página.)</span>
+                    <span className="text-muted-foreground text-sm">Tudo está pronto — você já pode entrar. (Se parecer desatualizado, recarregue a página.)</span>
                   </p>
                   <Button
                     onClick={() => {
@@ -1906,7 +1906,7 @@ export default function InstallWizardPage() {
                     return (
                       <div className="rounded-2xl bg-white/5 border border-white/10 p-4 text-left">
                         <div className="text-white font-semibold mb-2">{h.title}</div>
-                        <ol className="list-decimal list-inside space-y-1 text-sm text-slate-300">
+                        <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
                           {h.steps.map((s, idx) => (
                             <li key={idx}>{s}</li>
                           ))}
@@ -1992,14 +1992,14 @@ export default function InstallWizardPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900/95 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl"
+              className="bg-card/95 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl"
             >
               <div className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 mb-4">
                   <Sparkles className="w-8 h-8 text-cyan-300" />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">Trocar senha</h2>
-                <p className="text-slate-400">Vamos garantir seu acesso antes de concluir a missão.</p>
+                <p className="text-muted-foreground">Vamos garantir seu acesso antes de concluir a missão.</p>
               </div>
 
               <div className="space-y-3">
@@ -2007,7 +2007,7 @@ export default function InstallWizardPage() {
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-lg placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-lg placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent"
                   placeholder="Nova senha"
                   autoFocus
                 />
@@ -2018,14 +2018,14 @@ export default function InstallWizardPage() {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') void applyNewInstallerPassword();
                   }}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-lg placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-lg placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent"
                   placeholder="Confirmar senha"
                 />
 
                 <Button
                   type="button"
                   onClick={() => setShowNewPassword((v) => !v)}
-                  className="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-200 text-sm transition-all"
+                  className="w-full py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-muted-foreground text-sm transition-all"
                 >
                   {showNewPassword ? 'Ocultar senha' : 'Mostrar senha'}
                 </Button>
@@ -2074,21 +2074,21 @@ export default function InstallWizardPage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-slate-900/95 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl"
+              className="bg-card/95 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl"
             >
               <div className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-4">
                   <RefreshCw className="w-8 h-8 text-amber-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">Instalação em andamento</h2>
-                <p className="text-slate-400">
+                <p className="text-muted-foreground">
                   Encontramos uma instalação anterior que não foi concluída.
                 </p>
               </div>
 
               <div className="bg-white/5 rounded-xl p-4 mb-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-slate-400 text-sm">Progresso</span>
+                  <span className="text-muted-foreground text-sm">Progresso</span>
                   <span className="text-cyan-400 font-medium">{getProgressSummary(installState).percentage}%</span>
                 </div>
                 <div className="h-2 bg-white/10 rounded-full overflow-hidden">
@@ -2098,7 +2098,7 @@ export default function InstallWizardPage() {
                   />
                 </div>
                 {getProgressSummary(installState).currentStepName && (
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Último passo: {getProgressSummary(installState).currentStepName}
                   </p>
                 )}

@@ -34,11 +34,11 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
   return (
     <div className="flex justify-between items-center mb-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-display">
+        <h1 className="text-2xl font-bold text-foreground font-display">
           Atividades
         </h1>
         <div className="mt-1 flex items-center gap-2">
-          <p className="text-slate-500 dark:text-slate-400">Gerencie suas tarefas e compromissos</p>
+          <p className="text-muted-foreground dark:text-muted-foreground">Gerencie suas tarefas e compromissos</p>
           {filterLabel && (
             <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
               Filtro: {filterLabel}
@@ -52,11 +52,11 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1.5 bg-white dark:bg-dark-card px-2 py-1 rounded-lg border border-slate-200 dark:border-white/10">
-          <ArrowDownUp size={16} className="text-slate-400" />
+        <div className="flex items-center gap-1.5 bg-white dark:bg-dark-card px-2 py-1 rounded-lg border border-border">
+          <ArrowDownUp size={16} className="text-muted-foreground" />
           <select
             aria-label="Ordenar atividades"
-            className="bg-transparent text-sm outline-none text-slate-700 dark:text-slate-300 cursor-pointer"
+            className="bg-transparent text-sm outline-none text-secondary-foreground dark:text-muted-foreground cursor-pointer"
             value={sortOrder}
             onChange={e => setSortOrder(e.target.value as SortOrder)}
           >
@@ -64,13 +64,13 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
             <option value="oldest">Mais antigas</option>
           </select>
         </div>
-        <div className="flex bg-white dark:bg-dark-card p-1 rounded-lg border border-slate-200 dark:border-white/10">
+        <div className="flex bg-white dark:bg-dark-card p-1 rounded-lg border border-border">
           <Button
             onClick={() => setViewMode('list')}
             className={`p-2 rounded-md transition-all ${
               viewMode === 'list'
                 ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400'
-                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                : 'text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
             }`}
           >
             <LayoutList size={20} />
@@ -80,7 +80,7 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
             className={`p-2 rounded-md transition-all ${
               viewMode === 'calendar'
                 ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400'
-                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                : 'text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
             }`}
             title="Semanal"
           >
@@ -91,7 +91,7 @@ export const ActivitiesHeader: React.FC<ActivitiesHeaderProps> = ({
             className={`p-2 rounded-md transition-all ${
               viewMode === 'month'
                 ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400'
-                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                : 'text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
             }`}
             title="Mensal"
           >

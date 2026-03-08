@@ -24,16 +24,16 @@ function KpiCard({
   color: string
 }) {
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4 shadow-sm">
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg ${color}`}>
           <Icon size={18} className="text-white" />
         </div>
         <div className="min-w-0">
-          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{label}</p>
-          <p className="text-xl font-bold text-slate-900 dark:text-white">{value}</p>
+          <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate">{label}</p>
+          <p className="text-xl font-bold text-foreground">{value}</p>
           {subtitle && (
-            <p className="text-[10px] text-slate-400 dark:text-slate-500">{subtitle}</p>
+            <p className="text-[10px] text-muted-foreground dark:text-muted-foreground">{subtitle}</p>
           )}
         </div>
       </div>
@@ -43,12 +43,12 @@ function KpiCard({
 
 function SkeletonCard() {
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm animate-pulse">
+    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4 shadow-sm animate-pulse">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+        <div className="w-10 h-10 bg-accent dark:bg-accent rounded-lg" />
         <div className="space-y-2 flex-1">
-          <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded" />
-          <div className="h-6 w-14 bg-slate-200 dark:bg-slate-700 rounded" />
+          <div className="h-3 w-20 bg-accent dark:bg-accent rounded" />
+          <div className="h-6 w-14 bg-accent dark:bg-accent rounded" />
         </div>
       </div>
     </div>

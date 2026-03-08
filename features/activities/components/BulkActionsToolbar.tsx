@@ -21,7 +21,7 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
 
     return (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5 duration-300">
-            <div className="bg-slate-900 text-white rounded-2xl shadow-2xl border border-white/10 px-6 py-4 flex items-center gap-6">
+            <div className="bg-card text-white rounded-2xl shadow-2xl border border-white/10 px-6 py-4 flex items-center gap-6">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center font-bold text-sm">
                         {selectedCount}
@@ -60,7 +60,7 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
 
                     <Button
                         onClick={onClearSelection}
-                        className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                         title="Limpar seleção"
                     >
                         <X size={20} />

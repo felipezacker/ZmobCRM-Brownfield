@@ -140,10 +140,10 @@ export const UsersPage: React.FC = () => {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="text-center max-w-md">
-                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                    <h2 className="text-xl font-semibold text-foreground mb-2">
                         Configuração incompleta
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400">
+                    <p className="text-muted-foreground dark:text-muted-foreground">
                         O Supabase não está configurado neste ambiente. Configure as variáveis de ambiente para gerenciar usuários.
                     </p>
                 </div>
@@ -251,7 +251,7 @@ export const UsersPage: React.FC = () => {
             <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
                     <Loader2 className="animate-spin h-8 w-8 text-primary-500" />
-                    <span className="text-sm text-slate-500 dark:text-slate-400">Carregando equipe...</span>
+                    <span className="text-sm text-muted-foreground dark:text-muted-foreground">Carregando equipe...</span>
                 </div>
             </div>
         );
@@ -264,8 +264,8 @@ export const UsersPage: React.FC = () => {
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
                         <KeyRound className="h-8 w-8 text-red-500" />
                     </div>
-                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Acesso Restrito</h2>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-sm">
+                    <h2 className="text-xl font-semibold text-foreground mb-2">Acesso Restrito</h2>
+                    <p className="text-muted-foreground dark:text-muted-foreground max-w-sm">
                         Apenas administradores podem gerenciar usuários da equipe.
                     </p>
                 </div>
@@ -283,10 +283,10 @@ export const UsersPage: React.FC = () => {
             <div className="mb-10">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">
+                        <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">
                             Sua Equipe
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
+                        <p className="text-muted-foreground dark:text-muted-foreground mt-2 text-lg">
                             {users.length} {users.length === 1 ? 'membro' : 'membros'} • {admins.length} admin{admins.length !== 1 && 's'}, {diretores.length} diretor{diretores.length !== 1 && 'es'}, {corretores.length} corretor{corretores.length !== 1 && 'es'}
                         </p>
                     </div>
@@ -311,7 +311,7 @@ export const UsersPage: React.FC = () => {
                             key={user.id}
                             className={`group relative bg-white dark:bg-white/[0.03] border rounded-2xl p-5 transition-all duration-200 hover:shadow-lg dark:hover:bg-white/[0.05] ${isCurrentUser
                                 ? 'border-primary-200 dark:border-primary-500/30 ring-1 ring-primary-100 dark:ring-primary-500/10'
-                                : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                                : 'border-border  hover:border-border dark:hover:border-white/20'
                                 }`}
                         >
                             <div className="flex items-center gap-4">
@@ -319,7 +319,7 @@ export const UsersPage: React.FC = () => {
                                 <div className={`relative flex-shrink-0 h-14 w-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
                                     {initials}
                                     {user.role === 'admin' && (
-                                        <div className="absolute -top-1 -right-1 h-5 w-5 bg-amber-400 rounded-full flex items-center justify-center shadow-md ring-2 ring-white dark:ring-slate-900">
+                                        <div className="absolute -top-1 -right-1 h-5 w-5 bg-amber-400 rounded-full flex items-center justify-center shadow-md ring-2 ring-white">
                                             <Crown className="h-3 w-3 text-amber-900" />
                                         </div>
                                     )}
@@ -328,7 +328,7 @@ export const UsersPage: React.FC = () => {
                                 {/* Info */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <h3 className="font-semibold text-slate-900 dark:text-white truncate">
+                                        <h3 className="font-semibold text-foreground truncate">
                                             {user.email}
                                         </h3>
                                         {isCurrentUser && (
@@ -346,7 +346,7 @@ export const UsersPage: React.FC = () => {
                                     <div className="flex items-center gap-3 mt-1.5">
                                         <span className={`inline-flex items-center gap-1.5 text-sm ${user.role === 'admin'
                                             ? 'text-amber-600 dark:text-amber-400'
-                                            : 'text-slate-500 dark:text-slate-400'
+                                            : 'text-muted-foreground dark:text-muted-foreground'
                                             }`}>
                                             {user.role === 'admin' ? (
                                                 <>
@@ -365,8 +365,8 @@ export const UsersPage: React.FC = () => {
                                                 </>
                                             )}
                                         </span>
-                                        <span className="text-slate-300 dark:text-slate-600">•</span>
-                                        <span className="text-sm text-slate-400 dark:text-slate-500">
+                                        <span className="text-muted-foreground dark:text-secondary-foreground">•</span>
+                                        <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                                             {user.status === 'pending'
                                                 ? `Convidado ${new Date(user.invited_at || user.created_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}`
                                                 : `Desde ${new Date(user.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}`
@@ -380,7 +380,7 @@ export const UsersPage: React.FC = () => {
                                     <div className="flex items-center gap-1">
                                         {actionLoading === user.id ? (
                                             <div className="p-2">
-                                                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                                             </div>
                                         ) : (
                                             <>
@@ -404,11 +404,11 @@ export const UsersPage: React.FC = () => {
             {/* Empty State */}
             {users.length === 0 && (
                 <div className="text-center py-16">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-white/5 mb-4">
-                        <UserPlus className="h-10 w-10 text-slate-400" />
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted dark:bg-white/5 mb-4">
+                        <UserPlus className="h-10 w-10 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Nenhum membro ainda</h3>
-                    <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
+                    <h3 className="text-lg font-medium text-foreground mb-2">Nenhum membro ainda</h3>
+                    <p className="text-muted-foreground dark:text-muted-foreground mb-6 max-w-sm mx-auto">
                         Comece convidando membros da sua equipe para colaborar no CRM.
                     </p>
                     <Button
@@ -431,7 +431,7 @@ export const UsersPage: React.FC = () => {
                     }}
                 >
                     <div
-                        className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                        className="bg-white dark:bg-card rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Header */}
@@ -441,10 +441,10 @@ export const UsersPage: React.FC = () => {
                                     <Link className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
+                                    <h2 className="text-xl font-bold text-foreground font-display">
                                         Gerar Convite
                                     </h2>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                                         Crie links de acesso para sua equipe
                                     </p>
                                 </div>
@@ -454,14 +454,14 @@ export const UsersPage: React.FC = () => {
                         <div className="px-6 pb-6">
                             {/* Active Links List */}
                             <div className="mb-6">
-                                <h3 className="text-sm font-medium text-slate-900 dark:text-white mb-3">
+                                <h3 className="text-sm font-medium text-foreground mb-3">
                                     Links Ativos
                                 </h3>
 
                                 {activeInvites.length > 0 ? (
                                     <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                                         {activeInvites.map((invite) => (
-                                            <div key={invite.id} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                                            <div key={invite.id} className="bg-background dark:bg-card/50 rounded-xl p-3 border border-border dark:border-border flex items-center justify-between gap-3">
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${invite.role === 'admin'
@@ -470,14 +470,14 @@ export const UsersPage: React.FC = () => {
                                                             }`}>
                                                             {invite.role}
                                                         </span>
-                                                        <span className="text-xs text-slate-400">
+                                                        <span className="text-xs text-muted-foreground">
                                                             {invite.expires_at
                                                                 ? `Expira em ${new Date(invite.expires_at).toLocaleDateString()}`
                                                                 : 'Nunca expira'
                                                             }
                                                         </span>
                                                     </div>
-                                                    <code className="block text-xs text-slate-600 dark:text-slate-300 truncate">
+                                                    <code className="block text-xs text-secondary-foreground dark:text-muted-foreground truncate">
                                                         ...{invite.token.slice(-8)}
                                                     </code>
                                                 </div>
@@ -501,18 +501,18 @@ export const UsersPage: React.FC = () => {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center p-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    <div className="text-center p-6 border-2 border-dashed border-border dark:border-border rounded-xl">
+                                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                                             Nenhum link ativo
                                         </p>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="space-y-5 border-t border-slate-100 dark:border-white/5 pt-5">
+                            <div className="space-y-5 border-t border-border pt-5">
                                 {/* Role Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                                    <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3">
                                         Cargo
                                     </label>
                                     <div className={`grid gap-3 ${currentUserProfile?.role === 'admin' ? 'grid-cols-3' : 'grid-cols-1'}`}>
@@ -521,12 +521,12 @@ export const UsersPage: React.FC = () => {
                                             onClick={() => setNewUserRole('corretor')}
                                             className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'corretor'
                                                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                                : 'border-border dark:border-border hover:border-border dark:hover:border-border'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2 mb-1">
-                                                <Briefcase className={`h-4 w-4 ${newUserRole === 'corretor' ? 'text-primary-600 dark:text-primary-400' : 'text-slate-400'}`} />
-                                                <span className={`font-medium text-sm ${newUserRole === 'corretor' ? 'text-primary-900 dark:text-primary-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                <Briefcase className={`h-4 w-4 ${newUserRole === 'corretor' ? 'text-primary-600 dark:text-primary-400' : 'text-muted-foreground'}`} />
+                                                <span className={`font-medium text-sm ${newUserRole === 'corretor' ? 'text-primary-900 dark:text-primary-100' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
                                                     Corretor
                                                 </span>
                                             </div>
@@ -540,12 +540,12 @@ export const UsersPage: React.FC = () => {
                                                 onClick={() => setNewUserRole('diretor')}
                                                 className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'diretor'
                                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                                    : 'border-border dark:border-border hover:border-border dark:hover:border-border'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <Shield className={`h-4 w-4 ${newUserRole === 'diretor' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`} />
-                                                    <span className={`font-medium text-sm ${newUserRole === 'diretor' ? 'text-blue-900 dark:text-blue-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                    <Shield className={`h-4 w-4 ${newUserRole === 'diretor' ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
+                                                    <span className={`font-medium text-sm ${newUserRole === 'diretor' ? 'text-blue-900 dark:text-blue-100' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
                                                         Diretor
                                                     </span>
                                                 </div>
@@ -560,12 +560,12 @@ export const UsersPage: React.FC = () => {
                                                 onClick={() => setNewUserRole('admin')}
                                                 className={`relative p-3 rounded-xl border-2 text-left transition-all ${newUserRole === 'admin'
                                                     ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
-                                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                                    : 'border-border dark:border-border hover:border-border dark:hover:border-border'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <Crown className={`h-4 w-4 ${newUserRole === 'admin' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`} />
-                                                    <span className={`font-medium text-sm ${newUserRole === 'admin' ? 'text-amber-900 dark:text-amber-100' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                    <Crown className={`h-4 w-4 ${newUserRole === 'admin' ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`} />
+                                                    <span className={`font-medium text-sm ${newUserRole === 'admin' ? 'text-amber-900 dark:text-amber-100' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
                                                         Admin
                                                     </span>
                                                 </div>
@@ -579,7 +579,7 @@ export const UsersPage: React.FC = () => {
 
                                 {/* Expiration Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                                    <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3">
                                         Expiração
                                     </label>
                                     <div className="grid grid-cols-3 gap-3">
@@ -593,8 +593,8 @@ export const UsersPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setExpirationDays(opt.value)}
                                                 className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all ${expirationDays === opt.value
-                                                    ? 'bg-slate-800 text-white border-slate-800 dark:bg-white dark:text-slate-900 dark:border-white'
-                                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                                    ? 'bg-card text-white border-border dark:bg-white dark:text-foreground dark:border-white'
+                                                    : 'bg-white text-secondary-foreground border-border hover:border-border dark:bg-card dark:text-muted-foreground dark:border-border'
                                                     }`}
                                             >
                                                 {opt.label}
@@ -615,11 +615,11 @@ export const UsersPage: React.FC = () => {
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="flex gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-white/5">
+                            <div className="flex gap-3 mt-8 pt-6 border-t border-border">
                                 <Button
                                     type="button"
                                     onClick={closeModal}
-                                    className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                                    className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 transition-colors"
                                 >
                                     Fechar
                                 </Button>

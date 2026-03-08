@@ -460,28 +460,27 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
   const inner = (
     <>
       <div
-        className={
-          isMobile
-            ? 'bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 w-full h-[100dvh] flex flex-col overflow-hidden pb-[var(--app-safe-area-bottom,0px)]'
-            : 'bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200'
+        className={isMobile
+ ?'bg-white dark:bg-dark-card border border-border  w-full h-[100dvh] flex flex-col overflow-hidden pb-[var(--app-safe-area-bottom,0px)]'
+            : 'bg-white dark:bg-dark-card border border-border  rounded-2xl shadow-2xl w-full max-w-6xl h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200'
         }
       >
         {/* HEADER */}
-        <div className="bg-slate-50 dark:bg-[#0b1222] border-b border-slate-200 dark:border-white/[0.06] px-6 pt-5 pb-4 shrink-0">
+        <div className="bg-background dark:bg-[#0b1222] border-b border-border dark:border-white/[0.06] px-6 pt-5 pb-4 shrink-0">
           {/* Row 1: Lead name + product + action icons */}
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-400/20 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300 shrink-0">
               {(deal.contactName || '?').charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <h2 id={headingId} className="text-base font-semibold text-slate-900 dark:text-white tracking-tight truncate leading-tight">
+              <h2 id={headingId} className="text-base font-semibold text-foreground tracking-tight truncate leading-tight">
                 {deal.contactName || 'Sem contato'}
               </h2>
               {deal.items && deal.items.length > 0 && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" title={deal.items[0].name}>
+                <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate mt-0.5" title={deal.items[0].name}>
                   {deal.items[0].name}
                   {deal.items.length > 1 && (
-                    <span className="text-slate-400 dark:text-slate-500 ml-1">+{deal.items.length - 1}</span>
+                    <span className="text-muted-foreground dark:text-muted-foreground ml-1">+{deal.items.length - 1}</span>
                   )}
                 </p>
               )}
@@ -489,21 +488,21 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
             <div className="flex gap-0.5 items-center shrink-0">
               <Button
                 onClick={() => { onClose(); router.push(`/deals/${deal.id}/cockpit`); }}
-                className="text-slate-400 hover:text-primary-500 dark:text-slate-500 dark:hover:text-primary-400 transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                className="text-muted-foreground hover:text-primary-500 dark:text-muted-foreground dark:hover:text-primary-400 transition-colors p-1.5 rounded-lg hover:bg-muted dark:hover:bg-white/5"
                 title="Abrir Cockpit"
               >
                 <Maximize2 size={18} />
               </Button>
               <Button
                 onClick={() => setDeleteId(deal.id)}
-                className="text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                className="text-muted-foreground hover:text-red-500 dark:text-muted-foreground dark:hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-muted dark:hover:bg-white/5"
                 title="Excluir Negócio"
               >
                 <Trash2 size={18} />
               </Button>
               <Button
                 onClick={onClose}
-                className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+                className="text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white transition-colors p-1.5 rounded-lg hover:bg-muted dark:hover:bg-white/5"
               >
                 <X size={18} />
               </Button>
@@ -516,11 +515,11 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
             <div className="shrink-0">
               {isEditingValue ? (
                 <div className="flex gap-2 items-center">
-                  <span className="text-lg font-mono font-bold text-slate-500">R$</span>
+                  <span className="text-lg font-mono font-bold text-muted-foreground">R$</span>
                   <input
                     autoFocus
                     type="number"
-                    className="text-lg font-mono font-bold text-primary-600 dark:text-primary-400 bg-white dark:bg-black/30 border border-slate-300 dark:border-primary-500/20 rounded-lg px-2.5 py-1 w-36 outline-none focus:ring-2 focus:ring-primary-500/40"
+                    className="text-lg font-mono font-bold text-primary-600 dark:text-primary-400 bg-white dark:bg-black/30 border border-border dark:border-primary-500/20 rounded-lg px-2.5 py-1 w-36 outline-none focus:ring-2 focus:ring-primary-500/40"
                     value={editValue}
                     onChange={e => setEditValue(e.target.value)}
                     onBlur={saveValue}
@@ -533,7 +532,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
               ) : (
                 <Button
                   onClick={() => { setEditValue(deal.value.toString()); setIsEditingValue(true); }}
-                  className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  className="text-2xl font-bold font-mono tracking-tight text-foreground hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                   title="Clique para editar valor"
                 >
                   {BRL_CURRENCY.format(deal.value)}
@@ -541,7 +540,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
               )}
             </div>
 
-            <div className="h-6 w-px bg-slate-200 dark:bg-white/[0.06] shrink-0" />
+            <div className="h-6 w-px bg-accent dark:bg-white/[0.06] shrink-0" />
 
             {/* Corretor Select */}
             <div className="w-44 shrink-0">
@@ -580,7 +579,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       if (firstRegularStage) { moveDeal(deal, firstRegularStage.id); }
                       else { updateDeal(deal.id, { isWon: false, isLost: false, closedAt: undefined }); }
                     }}
-                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all border border-transparent dark:border-white/[0.06]"
+                    className="px-3 py-1.5 bg-muted hover:bg-accent dark:bg-white/5 dark:hover:bg-white/10 text-secondary-foreground dark:text-muted-foreground rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all border border-transparent dark:border-white/[0.06]"
                   >
                     ↩ Reabrir
                   </Button>
@@ -642,7 +641,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
               }}
             />
           ) : (
-            <div className="mt-4 rounded-lg border border-slate-200/60 bg-slate-50 px-4 py-3 text-xs text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+            <div className="mt-4 rounded-lg border border-border/60 bg-background px-4 py-3 text-xs text-secondary-foreground dark:bg-white/5 dark:text-muted-foreground">
               Board não encontrado para este negócio. Algumas ações (mover estágio) podem ficar indisponíveis.
             </div>
           )}
@@ -650,11 +649,11 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
           {/* Left Sidebar */}
-          <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 p-4 sm:p-5 overflow-y-auto bg-white dark:bg-dark-card max-h-[38vh] md:max-h-none">
+          <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-border p-4 sm:p-5 overflow-y-auto bg-white dark:bg-dark-card max-h-[38vh] md:max-h-none">
             <div className="space-y-4">
               {/* CONTATO (editável) */}
               <div>
-                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2 flex items-center gap-2">
                   <User size={14} /> Contato
                 </h3>
                 {deal.contactId && !contact && (
@@ -664,11 +663,11 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                   </div>
                 )}
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-accent dark:bg-accent flex items-center justify-center text-xs font-bold">
                     {(deal.contactName || '?').charAt(0)}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-slate-900 dark:text-white font-medium text-sm flex items-center gap-2">
+                    <p className="text-foreground font-medium text-sm flex items-center gap-2">
                       {deal.contactName || 'Sem contato'}
                       {contact?.stage &&
                         (() => {
@@ -683,14 +682,14 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     </p>
                     {/* Phone — editable inline */}
                     <div className="flex items-center gap-1 mt-1">
-                      <Phone size={11} className="text-slate-400 shrink-0" />
+                      <Phone size={11} className="text-muted-foreground shrink-0" />
                       <input
                         key={`phone-${contact?.id}`}
                         type="tel"
                         defaultValue={contact?.phone || ''}
                         onBlur={e => contact && updateContact(contact.id, { phone: e.target.value })}
                         placeholder="Telefone"
-                        className="text-xs text-slate-700 dark:text-slate-200 bg-transparent outline-none w-full placeholder:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5"
+                        className="text-xs text-secondary-foreground dark:text-muted-foreground bg-transparent outline-none w-full placeholder:text-muted-foreground hover:bg-background dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5"
                       />
                       {contact?.phone && (
                         <Button
@@ -698,7 +697,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                             navigator.clipboard.writeText(contact.phone || '').catch(() => {});
                             addToast('Telefone copiado', 'success');
                           }}
-                          className="text-slate-400 hover:text-primary-500 transition-colors shrink-0"
+                          className="text-muted-foreground hover:text-primary-500 transition-colors shrink-0"
                           title="Copiar telefone"
                         >
                           <Copy size={11} />
@@ -707,14 +706,14 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     </div>
                     {/* Email — editable inline */}
                     <div className="flex items-center gap-1 mt-0.5">
-                      <Mail size={11} className="text-slate-400 shrink-0" />
+                      <Mail size={11} className="text-muted-foreground shrink-0" />
                       <input
                         key={`email-${contact?.id}`}
                         type="email"
                         defaultValue={contact?.email || ''}
                         onBlur={e => contact && updateContact(contact.id, { email: e.target.value })}
                         placeholder="Email"
-                        className="text-xs text-slate-700 dark:text-slate-200 bg-transparent outline-none w-full placeholder:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5 truncate"
+                        className="text-xs text-secondary-foreground dark:text-muted-foreground bg-transparent outline-none w-full placeholder:text-muted-foreground hover:bg-background dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5 truncate"
                       />
                     </div>
                   </div>
@@ -725,10 +724,10 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                   <select
                     value={contact?.temperature || ''}
                     onChange={e => contact && updateContact(contact.id, { temperature: (e.target.value || undefined) as ContactTemperature | undefined })}
-                    className={`text-[11px] font-semibold bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer ${
+                    className={`text-[11px] font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer ${
                       contact?.temperature === 'HOT' ? 'text-red-500' :
                       contact?.temperature === 'WARM' ? 'text-amber-500' :
-                      contact?.temperature === 'COLD' ? 'text-blue-500' : 'text-slate-400'
+                      contact?.temperature === 'COLD' ? 'text-blue-500' : 'text-muted-foreground'
                     }`}
                   >
                     <option value="">Temperatura</option>
@@ -739,7 +738,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                   <select
                     value={contact?.classification || ''}
                     onChange={e => contact && updateContact(contact.id, { classification: (e.target.value || undefined) as ContactClassification | undefined })}
-                    className="text-[11px] font-semibold bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer text-slate-700 dark:text-slate-200"
+                    className="text-[11px] font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer text-secondary-foreground dark:text-muted-foreground"
                   >
                     <option value="">Classificação</option>
                     <option value="COMPRADOR">Comprador</option>
@@ -754,8 +753,8 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                 {/* Lead Score bar (read-only — score é calculado) */}
                 {contact?.leadScore != null && (
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-[10px] text-slate-400">Score</span>
-                    <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+                    <span className="text-[10px] text-muted-foreground">Score</span>
+                    <div className="h-1.5 w-16 overflow-hidden rounded-full bg-accent dark:bg-white/10">
                       <div
                         className={`h-full rounded-full transition-all ${
                           contact.leadScore <= 30 ? 'bg-red-500' :
@@ -764,9 +763,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         style={{ width: `${Math.min(100, contact.leadScore)}%` }}
                       />
                     </div>
-                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    <span className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
                       {contact.leadScore}
-                      <span className="ml-1 text-[10px] font-normal text-slate-400">
+                      <span className="ml-1 text-[10px] font-normal text-muted-foreground">
                         {contact.leadScore <= 30 ? 'Frio' : contact.leadScore <= 60 ? 'Morno' : 'Quente'}
                       </span>
                     </span>
@@ -775,8 +774,8 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
               </div>
 
               {/* PREFERÊNCIAS (editável) */}
-              <div className="pt-3 border-t border-slate-100 dark:border-white/5">
-                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+              <div className="pt-3 border-t border-border">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2 flex items-center gap-2">
                   Preferências
                   {!preferences && contact && (
                     <Button
@@ -811,7 +810,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                 {preferences ? (
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-xs">Finalidade</span>
+                      <span className="text-muted-foreground text-xs">Finalidade</span>
                       <select
                         value={preferences.purpose || ''}
                         onChange={e => {
@@ -819,7 +818,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           contactPreferencesService.update(preferences.id, { purpose: val });
                           setPreferences(p => p ? { ...p, purpose: val } : p);
                         }}
-                        className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                        className="text-xs text-foreground bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
                       >
                         <option value="">—</option>
                         <option value="MORADIA">Moradia</option>
@@ -828,7 +827,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       </select>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-xs">Tipos</span>
+                      <span className="text-muted-foreground text-xs">Tipos</span>
                       <div className="flex flex-wrap gap-1 justify-end">
                         {(['APARTAMENTO', 'CASA', 'TERRENO', 'COMERCIAL', 'RURAL', 'GALPAO'] as PropertyType[]).map(pt => (
                           <Button
@@ -844,7 +843,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                             className={`text-[9px] px-1.5 py-0.5 rounded-full border transition-colors ${
                               preferences.propertyTypes.includes(pt)
                                 ? 'bg-primary-100 text-primary-700 border-primary-200 dark:bg-primary-500/10 dark:text-primary-400 dark:border-primary-500/20'
-                                : 'bg-slate-50 text-slate-400 border-slate-200 dark:bg-white/5 dark:border-white/10 hover:text-slate-600'
+                                : 'bg-background text-muted-foreground border-border dark:bg-white/5  hover:text-secondary-foreground'
                             }`}
                           >
                             {pt.charAt(0) + pt.slice(1).toLowerCase()}
@@ -853,7 +852,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       </div>
                     </div>
                     <div className="flex justify-between items-center gap-2">
-                      <span className="text-slate-500 text-xs">Faixa R$</span>
+                      <span className="text-muted-foreground text-xs">Faixa R$</span>
                       <div className="flex items-center gap-1">
                         <input
                           type="number"
@@ -867,9 +866,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                             contactPreferencesService.update(preferences.id, { priceMin: val });
                           }}
                           placeholder="Mín"
-                          className="w-20 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white"
+                          className="w-20 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground"
                         />
-                        <span className="text-slate-400 text-xs">–</span>
+                        <span className="text-muted-foreground text-xs">–</span>
                         <input
                           type="number"
                           value={preferences.priceMax ?? ''}
@@ -882,12 +881,12 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                             contactPreferencesService.update(preferences.id, { priceMax: val });
                           }}
                           placeholder="Máx"
-                          className="w-20 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white"
+                          className="w-20 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground"
                         />
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-xs">Regiões</span>
+                      <span className="text-muted-foreground text-xs">Regiões</span>
                       <input
                         type="text"
                         value={preferences.regions.join(', ')}
@@ -900,11 +899,11 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           contactPreferencesService.update(preferences.id, { regions: val });
                         }}
                         placeholder="Zona Sul, Centro..."
-                        className="w-32 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white text-right"
+                        className="w-32 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground text-right"
                       />
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-xs">Quartos mín</span>
+                      <span className="text-muted-foreground text-xs">Quartos mín</span>
                       <input
                         type="number"
                         min={0}
@@ -918,11 +917,11 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           contactPreferencesService.update(preferences.id, { bedroomsMin: val });
                         }}
                         placeholder="—"
-                        className="w-14 text-xs bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-slate-900 dark:text-white text-right"
+                        className="w-14 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground text-right"
                       />
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500 text-xs">Urgência</span>
+                      <span className="text-muted-foreground text-xs">Urgência</span>
                       <select
                         value={preferences.urgency || ''}
                         onChange={e => {
@@ -930,7 +929,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           contactPreferencesService.update(preferences.id, { urgency: val });
                           setPreferences(p => p ? { ...p, urgency: val } : p);
                         }}
-                        className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                        className="text-xs text-foreground bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
                       >
                         <option value="">—</option>
                         <option value="IMMEDIATE">Imediato</option>
@@ -941,20 +940,20 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500 italic">Sem preferências cadastradas</p>
+                  <p className="text-xs text-muted-foreground italic">Sem preferências cadastradas</p>
                 )}
               </div>
 
               {/* DETALHES */}
-              <div className="pt-3 border-t border-slate-100 dark:border-white/5">
-                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">Detalhes</h3>
+              <div className="pt-3 border-t border-border">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">Detalhes</h3>
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500 text-xs">Tipo</span>
+                    <span className="text-muted-foreground text-xs">Tipo</span>
                     <select
                       value={deal.dealType || 'VENDA'}
                       onChange={e => updateDeal(deal.id, { dealType: e.target.value as 'VENDA' | 'LOCACAO' | 'PERMUTA' })}
-                      className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                      className="text-xs text-foreground bg-transparent border border-border dark:border-border rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
                     >
                       <option value="VENDA">Venda</option>
                       <option value="LOCACAO">Locação</option>
@@ -962,28 +961,28 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     </select>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500 text-xs">Prev. Fech.</span>
+                    <span className="text-muted-foreground text-xs">Prev. Fech.</span>
                     <input
                       type="date"
                       value={deal.expectedCloseDate ? deal.expectedCloseDate.split('T')[0] : ''}
                       onChange={e => updateDeal(deal.id, { expectedCloseDate: e.target.value || undefined })}
-                      className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
+                      className="text-xs text-foreground bg-transparent border border-border dark:border-border rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer"
                     />
                   </div>
                   <div className="flex justify-between items-start text-sm gap-2">
-                    <span className="text-slate-500 text-xs shrink-0 pt-1.5">Imóvel</span>
+                    <span className="text-muted-foreground text-xs shrink-0 pt-1.5">Imóvel</span>
                     <input
                       type="text"
                       value={propertyRef}
                       onChange={e => setPropertyRef(e.target.value)}
                       onBlur={() => updateDeal(deal.id, { propertyRef: propertyRef || undefined })}
                       placeholder="Ref. do imóvel..."
-                      className="text-xs text-slate-900 dark:text-white bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-right w-full max-w-[160px]"
+                      className="text-xs text-foreground bg-transparent border border-border dark:border-border rounded-md px-2 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-right w-full max-w-[160px]"
                     />
                   </div>
                   {/* Prioridade com badge colorido */}
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500 text-xs">Prioridade</span>
+                    <span className="text-muted-foreground text-xs">Prioridade</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                       deal.priority === 'high' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' :
                       deal.priority === 'medium' ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
@@ -994,9 +993,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                   </div>
                   {/* Probabilidade com barra visual */}
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500 text-xs">Probabilidade</span>
+                    <span className="text-muted-foreground text-xs">Probabilidade</span>
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-12 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+                      <div className="h-1.5 w-12 overflow-hidden rounded-full bg-accent dark:bg-white/10">
                         <div
                           className={`h-full rounded-full transition-all ${
                             (deal.probability ?? 0) <= 30 ? 'bg-red-500' :
@@ -1005,21 +1004,21 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           style={{ width: `${Math.min(100, deal.probability ?? 0)}%` }}
                         />
                       </div>
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{deal.probability ?? 0}%</span>
+                      <span className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">{deal.probability ?? 0}%</span>
                     </div>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 text-xs">Criado em</span>
-                    <span className="text-slate-900 dark:text-white text-xs">
+                    <span className="text-muted-foreground text-xs">Criado em</span>
+                    <span className="text-foreground text-xs">
                       {PT_BR_DATE_FORMATTER.format(new Date(deal.createdAt))}
                     </span>
                   </div>
                   {estimatedCommission && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 text-xs">Comissão Est.</span>
+                      <span className="text-muted-foreground text-xs">Comissão Est.</span>
                       <span className="text-emerald-600 dark:text-emerald-400 font-medium text-xs" title={`Taxa: ${estimatedCommission.rate}%`}>
                         {BRL_CURRENCY.format(estimatedCommission.estimated)}
-                        <span className="text-[10px] text-slate-400 ml-1">({estimatedCommission.rate}%)</span>
+                        <span className="text-[10px] text-muted-foreground ml-1">({estimatedCommission.rate}%)</span>
                       </span>
                     </div>
                   )}
@@ -1027,18 +1026,18 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
               </div>
 
               {/* TAGS (read-only from contact) */}
-              <div className="pt-3 border-t border-slate-100 dark:border-white/5">
-                <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+              <div className="pt-3 border-t border-border">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2 flex items-center gap-2">
                   <TagIcon size={12} /> Tags
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
                   {(contact?.tags || []).length === 0 ? (
-                    <p className="text-xs text-slate-500 italic">Sem tags.</p>
+                    <p className="text-xs text-muted-foreground italic">Sem tags.</p>
                   ) : (
                     (contact?.tags || []).map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10"
+                        className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
                       >
                         {tag}
                       </span>
@@ -1055,17 +1054,17 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                 });
                 if (filledFields.length === 0) return null;
                 return (
-                  <div className="pt-3 border-t border-slate-100 dark:border-white/5">
-                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">
+                  <div className="pt-3 border-t border-border">
+                    <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">
                       Campos Personalizados
                     </h3>
                     <div className="space-y-1.5">
                       {filledFields.map(field => (
                         <div key={field.id} className="flex items-center justify-between gap-2">
-                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                          <span className="text-[11px] font-medium text-muted-foreground dark:text-muted-foreground">
                             {field.label}
                           </span>
-                          <span className="text-[11px] text-slate-700 dark:text-slate-200 truncate text-right">
+                          <span className="text-[11px] text-secondary-foreground dark:text-muted-foreground truncate text-right">
                             {contact?.customFields?.[field.key]}
                           </span>
                         </div>
@@ -1079,41 +1078,41 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
           {/* Right Content (Tabs & Timeline) */}
           <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-dark-card">
-            <div className="h-14 border-b border-slate-200 dark:border-white/5 flex items-center px-6 shrink-0">
+            <div className="h-14 border-b border-border flex items-center px-6 shrink-0">
               <div className="flex gap-6">
                 <Button
                   onClick={() => setActiveTab('timeline')}
-                  className={`text-sm font-bold h-14 border-b-2 transition-colors ${activeTab === 'timeline' ? 'border-primary-500 text-primary-600 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+                  className={`text-sm font-bold h-14 border-b-2 transition-colors ${activeTab === 'timeline' ? 'border-primary-500 text-primary-600 ' : 'border-transparent text-muted-foreground hover:text-secondary-foreground dark:hover:text-white'}`}
                 >
                   Timeline
                 </Button>
                 <Button
                   onClick={() => setActiveTab('products')}
-                  className={`text-sm font-bold h-14 border-b-2 transition-colors ${activeTab === 'products' ? 'border-primary-500 text-primary-600 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+                  className={`text-sm font-bold h-14 border-b-2 transition-colors ${activeTab === 'products' ? 'border-primary-500 text-primary-600 ' : 'border-transparent text-muted-foreground hover:text-secondary-foreground dark:hover:text-white'}`}
                 >
                   Produtos
                 </Button>
                 <Button
                   onClick={() => setActiveTab('info')}
-                  className={`text-sm font-bold h-14 border-b-2 transition-colors ${activeTab === 'info' ? 'border-primary-500 text-primary-600 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
+                  className={`text-sm font-bold h-14 border-b-2 transition-colors ${activeTab === 'info' ? 'border-primary-500 text-primary-600 ' : 'border-transparent text-muted-foreground hover:text-secondary-foreground dark:hover:text-white'}`}
                 >
                   IA Insights
                 </Button>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/30 dark:bg-black/10">
+            <div className="flex-1 overflow-y-auto p-6 bg-background/30 dark:bg-black/10">
               {activeTab === 'timeline' && (
                 <div className="space-y-6">
-                  <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
+                  <div className="bg-white dark:bg-white/5 border border-border rounded-xl p-4 shadow-sm">
                     <textarea
                       ref={noteTextareaRef}
-                      className="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none resize-none min-h-[80px]"
+                      className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none min-h-[80px]"
                       placeholder="Escreva uma nota..."
                       value={newNote}
                       onChange={e => setNewNote(e.target.value)}
                     ></textarea>
-                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-border">
                       <div />
                       <Button
                         onClick={handleAddNote}
@@ -1131,15 +1130,15 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       <StickyNote size={16} className="text-amber-500 mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">Nota do contato</p>
-                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{contact.notes}</p>
+                        <p className="text-sm text-secondary-foreground dark:text-muted-foreground whitespace-pre-wrap">{contact.notes}</p>
                       </div>
                     </div>
                   )}
 
                   {/* Unified timeline: activities + deal notes */}
-                  <div className="space-y-3 pl-4 border-l border-slate-200 dark:border-slate-800">
+                  <div className="space-y-3 pl-4 border-l border-border dark:border-border">
                     {timelineFeed.length === 0 && !contact?.notes && (
-                      <p className="text-sm text-slate-500 italic pl-4">
+                      <p className="text-sm text-muted-foreground italic pl-4">
                         Nenhuma atividade ou nota registrada.
                       </p>
                     )}
@@ -1180,8 +1179,8 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         <div key={`note-${note.id}`} className="flex items-start gap-3 pl-4 py-2">
                           <MessageSquare size={14} className="text-primary-500 mt-1 shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{note.content}</p>
-                            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                            <p className="text-sm text-foreground dark:text-muted-foreground whitespace-pre-wrap">{note.content}</p>
+                            <p className="text-[11px] text-muted-foreground dark:text-muted-foreground mt-1">
                               {new Date(note.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                               {' '}
                               {new Date(note.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -1196,8 +1195,8 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
               {activeTab === 'products' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                  <div className="bg-slate-50 dark:bg-black/20 p-4 rounded-xl border border-slate-200 dark:border-white/10">
-                    <h3 className="text-sm font-bold text-slate-700 dark:text-white mb-3 flex items-center gap-2">
+                  <div className="bg-background dark:bg-black/20 p-4 rounded-xl border border-border">
+                    <h3 className="text-sm font-bold text-secondary-foreground mb-3 flex items-center gap-2">
                       <Package size={16} /> Adicionar Produto/Serviço
                     </h3>
                     <div className="flex gap-3">
@@ -1207,10 +1206,10 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           variant="unstyled"
                           size="unstyled"
                           type="button"
-                          className="w-full flex items-center justify-between gap-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white text-left cursor-pointer hover:bg-slate-50 dark:hover:bg-white/8 transition-colors"
+                          className="w-full flex items-center justify-between gap-2 bg-white dark:bg-white/5 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 text-left cursor-pointer hover:bg-background dark:hover:bg-white/8 transition-colors"
                           onClick={() => setProductPickerOpen(!productPickerOpen)}
                         >
-                          <span className={`truncate ${selectedProduct ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+                          <span className={`truncate ${selectedProduct ? 'text-foreground ' : 'text-muted-foreground dark:text-muted-foreground'}`}>
                             {selectedProduct ? selectedProduct.name : 'Selecione um item...'}
                           </span>
                           <span className="text-xs text-emerald-600 dark:text-emerald-400 shrink-0">
@@ -1219,10 +1218,10 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         </Button>
 
                         {productPickerOpen && (
-                          <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950/95 backdrop-blur-xl shadow-2xl shadow-slate-300/30 dark:shadow-black/40">
+                          <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-border bg-white dark:bg-background/95 backdrop-blur-xl shadow-2xl shadow-border/30 dark:shadow-black/40">
                             {/* Search */}
-                            <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/8 px-3 py-2">
-                              <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                            <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+                              <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                               <input
                                 ref={productSearchInputRef}
                                 type="text"
@@ -1232,16 +1231,16 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                                   if (e.key === 'Escape') { setProductPickerOpen(false); setProductSearch(''); }
                                 }}
                                 placeholder="Buscar produto..."
-                                className="flex-1 bg-transparent text-sm text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                className="flex-1 bg-transparent text-sm text-secondary-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
                               />
                               {productSearch && (
-                                <span className="text-[10px] text-slate-400 dark:text-slate-600">{filteredProducts.length}</span>
+                                <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground">{filteredProducts.length}</span>
                               )}
                             </div>
                             {/* List */}
                             <div className="max-h-52 overflow-auto py-1">
                               {filteredProducts.length === 0 ? (
-                                <div className="px-3 py-4 text-center text-xs text-slate-400 dark:text-slate-600">Nenhum produto encontrado</div>
+                                <div className="px-3 py-4 text-center text-xs text-muted-foreground dark:text-secondary-foreground">Nenhum produto encontrado</div>
                               ) : (
                                 filteredProducts.map((p) => {
                                   const isCurrent = p.id === selectedProductId;
@@ -1252,7 +1251,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                                       key={p.id}
                                       type="button"
                                       className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${
-                                        isCurrent ? 'bg-slate-100 dark:bg-white/6' : 'hover:bg-slate-50 dark:hover:bg-white/4'
+                                        isCurrent ? 'bg-muted dark:bg-white/6' : 'hover:bg-background dark:hover:bg-white/4'
                                       }`}
                                       onClick={() => {
                                         setSelectedProductId(p.id);
@@ -1263,7 +1262,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                                       <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${isCurrent ? 'text-primary-600 dark:text-primary-400' : 'text-transparent'}`}>
                                         <Check className="h-3 w-3" />
                                       </div>
-                                      <span className={`truncate text-sm ${isCurrent ? 'font-semibold text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>
+                                      <span className={`truncate text-sm ${isCurrent ? 'font-semibold text-foreground ' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
                                         {p.name}
                                       </span>
                                       <span className="ml-auto shrink-0 text-xs font-medium text-emerald-600 dark:text-emerald-400/70">
@@ -1275,8 +1274,8 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                               )}
                             </div>
                             {/* Footer */}
-                            <div className="border-t border-slate-200 dark:border-white/8 px-3 py-1.5">
-                              <span className="text-[10px] text-slate-400 dark:text-slate-600">{products.length} produtos no catálogo</span>
+                            <div className="border-t border-border px-3 py-1.5">
+                              <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground">{products.length} produtos no catálogo</span>
                             </div>
                           </div>
                         )}
@@ -1285,7 +1284,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       <input
                         type="number"
                         min="1"
-                        className="w-20 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+                        className="w-20 bg-white dark:bg-white/5 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
                         value={productQuantity}
                         onChange={e => setProductQuantity(parseInt(e.target.value))}
                       />
@@ -1299,7 +1298,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     </div>
 
                     <div className="mt-3 flex items-center justify-between gap-3">
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                      <div className="text-xs text-muted-foreground dark:text-muted-foreground">
                         Produto depende do cliente? Use um item personalizado (não precisa estar no catálogo).
                       </div>
                       <Button
@@ -1312,34 +1311,34 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     </div>
 
                     {showCustomItem && (
-                      <div className="mt-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-white/5 p-3">
+                      <div className="mt-3 rounded-xl border border-border bg-white/60 dark:bg-white/5 p-3">
                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
                           <div className="sm:col-span-6">
-                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nome do item</label>
+                            <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Nome do item</label>
                             <input
                               value={customItemName}
                               onChange={e => setCustomItemName(e.target.value)}
                               placeholder="Ex.: Pacote personalizado, Procedimento X…"
-                              className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+                              className="w-full bg-white dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
                             />
                           </div>
                           <div className="sm:col-span-3">
-                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Preço</label>
+                            <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Preço</label>
                             <input
                               value={customItemPrice}
                               onChange={e => setCustomItemPrice(e.target.value)}
                               inputMode="decimal"
-                              className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+                              className="w-full bg-white dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
                             />
                           </div>
                           <div className="sm:col-span-2">
-                            <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Qtd</label>
+                            <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Qtd</label>
                             <input
                               type="number"
                               min={1}
                               value={customItemQuantity}
                               onChange={e => setCustomItemQuantity(parseInt(e.target.value))}
-                              className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+                              className="w-full bg-white dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
                             />
                           </div>
                           <div className="sm:col-span-1">
@@ -1356,9 +1355,9 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     )}
                   </div>
 
-                  <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl overflow-hidden">
+                  <div className="bg-white dark:bg-white/5 border border-border rounded-xl overflow-hidden">
                     <table className="w-full text-left text-sm">
-                      <thead className="bg-slate-50 dark:bg-black/20 border-b border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 font-medium">
+                      <thead className="bg-background dark:bg-black/20 border-b border-border text-muted-foreground dark:text-muted-foreground font-medium">
                         <tr>
                           <th className="px-4 py-3">Item</th>
                           <th className="px-4 py-3 w-20 text-center">Qtd</th>
@@ -1367,32 +1366,32 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           <th className="px-4 py-3 w-10"></th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                      <tbody className="divide-y divide-border dark:divide-white/5">
                         {!deal.items || deal.items.length === 0 ? (
                           <tr>
-                            <td colSpan={5} className="px-4 py-8 text-center text-slate-500 italic">
+                            <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground italic">
                               Nenhum produto adicionado. O valor do negócio é manual.
                             </td>
                           </tr>
                         ) : (
                           deal.items.map(item => (
                             <tr key={item.id}>
-                              <td className="px-4 py-3 text-slate-900 dark:text-white font-medium">
+                              <td className="px-4 py-3 text-foreground font-medium">
                                 {item.name}
                               </td>
-                              <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-300">
+                              <td className="px-4 py-3 text-center text-secondary-foreground dark:text-muted-foreground">
                                 {item.quantity}
                               </td>
-                              <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-300">
+                              <td className="px-4 py-3 text-right text-secondary-foreground dark:text-muted-foreground">
                                 {BRL_CURRENCY.format(item.price)}
                               </td>
-                              <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">
+                              <td className="px-4 py-3 text-right font-bold text-foreground">
                                 {BRL_CURRENCY.format(item.price * item.quantity)}
                               </td>
                               <td className="px-4 py-3 text-center">
                                 <Button
                                   onClick={() => removeItemFromDeal(deal.id, item.id)}
-                                  className="text-slate-400 hover:text-red-500 transition-colors"
+                                  className="text-muted-foreground hover:text-red-500 transition-colors"
                                 >
                                   <Trash2 size={14} />
                                 </Button>
@@ -1401,11 +1400,11 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                           ))
                         )}
                       </tbody>
-                      <tfoot className="bg-slate-50 dark:bg-black/20 border-t border-slate-200 dark:border-white/5">
+                      <tfoot className="bg-background dark:bg-black/20 border-t border-border">
                         <tr>
                           <td
                             colSpan={3}
-                            className="px-4 py-3 text-right font-bold text-slate-700 dark:text-slate-300 uppercase text-xs tracking-wider"
+                            className="px-4 py-3 text-right font-bold text-secondary-foreground dark:text-muted-foreground uppercase text-xs tracking-wider"
                           >
                             Total do Pedido
                           </td>
@@ -1428,10 +1427,10 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         <BrainCircuit size={20} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-900 dark:text-white font-display text-lg">
+                        <h3 className="font-bold text-foreground font-display text-lg">
                           IA Insights
                         </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                           Inteligência Artificial aplicada ao negócio
                         </p>
                       </div>
@@ -1439,7 +1438,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
 
                     {/* STRATEGY CONTEXT BAR */}
                     {dealBoard?.agentPersona && (
-                      <div className="mb-6 bg-slate-900/5 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg p-3 flex items-center gap-3">
+                      <div className="mb-6 bg-card/5 dark:bg-white/5 border border-border rounded-lg p-3 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
                           <Bot size={20} />
                         </div>
@@ -1449,10 +1448,10 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                               Atuando como
                             </span>
                           </div>
-                          <p className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                          <p className="text-sm font-bold text-foreground mt-0.5">
                             {dealBoard.agentPersona?.name}
                           </p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                          <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                             {dealBoard.agentPersona?.role} • Foco: {dealBoard.goal?.kpi || 'Geral'}
                           </p>
                         </div>
@@ -1462,7 +1461,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       <Button
                         onClick={handleAnalyzeDeal}
                         disabled={isAnalyzing}
-                        className="flex-1 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-white text-sm font-medium rounded-lg shadow-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                        className="flex-1 py-2.5 bg-white dark:bg-white/5 text-secondary-foreground text-sm font-medium rounded-lg shadow-sm border border-border hover:bg-background dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
                       >
                         {isAnalyzing ? (
                           <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
@@ -1474,7 +1473,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                       <Button
                         onClick={handleDraftEmail}
                         disabled={isDrafting}
-                        className="flex-1 py-2.5 bg-white dark:bg-white/5 text-slate-700 dark:text-white text-sm font-medium rounded-lg shadow-sm border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                        className="flex-1 py-2.5 bg-white dark:bg-white/5 text-secondary-foreground text-sm font-medium rounded-lg shadow-sm border border-border hover:bg-background dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
                       >
                         {isDrafting ? (
                           <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
@@ -1486,7 +1485,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     </div>
                     {aiResult && (
                       <div className="bg-white/80 dark:bg-black/40 backdrop-blur-md p-4 rounded-lg border border-primary-100 dark:border-primary-500/20 mb-4">
-                        <div className="flex justify-between mb-2 border-b border-primary-100 dark:border-white/5 pb-2">
+                        <div className="flex justify-between mb-2 border-b border-primary-100 pb-2">
                           <span className="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider">
                             Sugestão
                           </span>
@@ -1494,7 +1493,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                             {aiResult.score}% Chance
                           </span>
                         </div>
-                        <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                        <p className="text-sm text-secondary-foreground dark:text-muted-foreground leading-relaxed">
                           {aiResult.suggestion}
                         </p>
                       </div>
@@ -1504,7 +1503,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         <h4 className="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wider mb-2">
                           Rascunho de Email
                         </h4>
-                        <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed italic">
+                        <p className="text-sm text-secondary-foreground dark:text-muted-foreground leading-relaxed italic">
                           "{emailDraft}"
                         </p>
                       </div>
@@ -1517,10 +1516,10 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                         <Sword size={20} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-900 dark:text-white font-display text-lg">
+                        <h3 className="font-bold text-foreground font-display text-lg">
                           Objection Killer
                         </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                           O cliente está difícil? A IA te ajuda a negociar.
                         </p>
                       </div>
@@ -1529,7 +1528,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                     <div className="flex gap-2 mb-4">
                       <input
                         type="text"
-                        className="flex-1 bg-white dark:bg-white/5 border border-rose-200 dark:border-rose-500/20 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-500 dark:text-white"
+                        className="flex-1 bg-white dark:bg-white/5 border border-rose-200 dark:border-rose-500/20 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-500"
                         placeholder="Ex: 'Achamos o preço muito alto' ou 'Preciso falar com meu sócio'"
                         value={objection}
                         onChange={e => setObjection(e.target.value)}
@@ -1557,7 +1556,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                             <div className="shrink-0 w-6 h-6 bg-rose-100 dark:bg-rose-500/20 rounded-full flex items-center justify-center text-rose-600 dark:text-rose-400 font-bold text-xs">
                               {idx + 1}
                             </div>
-                            <p className="text-sm text-slate-700 dark:text-slate-200">{resp}</p>
+                            <p className="text-sm text-secondary-foreground dark:text-muted-foreground">{resp}</p>
                           </div>
                         ))}
                       </div>
@@ -1671,7 +1670,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
         // Backdrop + positioning wrapper. Clicking outside the panel should close the modal.
         // No desktop, este modal não deve cobrir a sidebar de navegação.
         // Em md+ deslocamos o overlay pela largura da sidebar via `--app-sidebar-width`.
-        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+        className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-card/60 backdrop-blur-sm p-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}

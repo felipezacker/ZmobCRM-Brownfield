@@ -131,7 +131,7 @@ function WizardStepper({ step }: { step: WizardStep }) {
           {i > 0 && (
             <div
               className={`h-0.5 w-6 sm:w-10 ${
-                i <= currentIdx ? 'bg-primary-500' : 'bg-slate-200 dark:bg-white/10'
+                i <= currentIdx ? 'bg-primary-500' : 'bg-accent dark:bg-white/10'
               }`}
             />
           )}
@@ -142,14 +142,14 @@ function WizardStepper({ step }: { step: WizardStep }) {
                   ? 'bg-primary-500 text-white'
                   : i === currentIdx
                     ? 'bg-primary-600 text-white ring-2 ring-primary-300'
-                    : 'bg-slate-200 dark:bg-white/10 text-slate-400'
+                    : 'bg-accent dark:bg-white/10 text-muted-foreground'
               }`}
             >
               {i < currentIdx ? <Check size={14} /> : s.num}
             </div>
             <span
               className={`text-xs font-medium hidden sm:inline ${
-                i <= currentIdx ? 'text-slate-900 dark:text-white' : 'text-slate-400'
+                i <= currentIdx ? 'text-foreground ' : 'text-muted-foreground'
               }`}
             >
               {s.label}
@@ -520,8 +520,8 @@ export function ContactsImportExportModal(props: {
             onClick={() => handlePanelSwitch('export')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
               panel === 'export'
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white'
-                : 'bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10'
+                ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+                : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
             }`}
           >
             Exportar
@@ -531,8 +531,8 @@ export function ContactsImportExportModal(props: {
             onClick={() => handlePanelSwitch('import')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
               panel === 'import'
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white'
-                : 'bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10'
+                ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+                : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
             }`}
           >
             Importar CSV
@@ -542,13 +542,13 @@ export function ContactsImportExportModal(props: {
         {/* Only show delimiter in export or upload step */}
         {(panel === 'export' || (panel === 'import' && wizardStep === 'upload')) && (
           <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <label className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
               Delimitador
             </label>
             <select
               value={delimiter}
               onChange={e => setDelimiter(e.target.value as 'auto' | CsvDelimiter)}
-              className="text-sm rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-2 py-1"
+              className="text-sm rounded-lg border border-border bg-white dark:bg-white/5 px-2 py-1"
             >
               <option value="auto">Auto</option>
               <option value=",">, (vírgula)</option>
@@ -561,16 +561,16 @@ export function ContactsImportExportModal(props: {
 
       {/* ═══════════════ EXPORT PANEL ═══════════════ */}
       {panel === 'export' && (
-        <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5 space-y-3">
+        <div className="rounded-xl border border-border p-4 bg-background/50 dark:bg-white/5 space-y-3">
           <div>
-            <div className="text-sm font-bold text-slate-900 dark:text-white">
+            <div className="text-sm font-bold text-foreground">
               Exportar contatos (CSV)
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
               Padrão de mercado: exportar a lista respeitando filtros/pesquisa/ordenação atuais.
             </div>
           </div>
-          <div className="text-xs text-slate-600 dark:text-slate-300">
+          <div className="text-xs text-secondary-foreground dark:text-muted-foreground">
             <b>Campos exportados:</b> name, email, phone, cpf, contact_type, classification,
             temperature, status, stage, source, address_cep, address_city, address_state,
             birth_date, lead_score, notes, created_at, updated_at.
@@ -581,7 +581,7 @@ export function ContactsImportExportModal(props: {
             disabled={isExporting}
             className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
               isExporting
-                ? 'bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed'
+                ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                 : 'bg-primary-600 hover:bg-primary-700 text-white'
             }`}
           >
@@ -597,12 +597,12 @@ export function ContactsImportExportModal(props: {
 
           {/* ── Step 1: Upload ── */}
           {wizardStep === 'upload' && (
-            <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5 space-y-4">
+            <div className="rounded-xl border border-border p-4 bg-background/50 dark:bg-white/5 space-y-4">
               <div>
-                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                <div className="text-sm font-bold text-foreground">
                   1. Selecionar arquivo
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                   Selecione o CSV e configure opções. Na próxima etapa você mapeará as colunas.
                 </div>
               </div>
@@ -611,14 +611,14 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={handleDownloadTemplate}
-                  className="px-3 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold flex items-center gap-2"
+                  className="px-3 py-2 rounded-lg bg-card dark:bg-white text-white dark:text-foreground text-sm font-semibold flex items-center gap-2"
                 >
                   <Download size={16} /> Baixar template
                 </Button>
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
                   Arquivo CSV
                 </label>
                 <input
@@ -640,14 +640,14 @@ export function ContactsImportExportModal(props: {
                     <Upload size={16} /> Selecionar arquivo
                   </Button>
                   {file && (
-                    <span className="text-sm text-slate-600 dark:text-slate-300 truncate max-w-[300px]">
+                    <span className="text-sm text-secondary-foreground dark:text-muted-foreground truncate max-w-[300px]">
                       {file.name}
                     </span>
                   )}
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+              <label className="flex items-center gap-2 text-sm text-secondary-foreground dark:text-muted-foreground">
                 <input
                   type="checkbox"
                   checked={ignoreHeader}
@@ -663,7 +663,7 @@ export function ContactsImportExportModal(props: {
                   disabled={!file}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
                     !file
-                      ? 'bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed'
+                      ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                       : 'bg-primary-600 hover:bg-primary-700 text-white'
                   }`}
                 >
@@ -675,12 +675,12 @@ export function ContactsImportExportModal(props: {
 
           {/* ── Step 2: Mapping ── */}
           {wizardStep === 'mapping' && (
-            <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5 space-y-4">
+            <div className="rounded-xl border border-border p-4 bg-background/50 dark:bg-white/5 space-y-4">
               <div>
-                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                <div className="text-sm font-bold text-foreground">
                   2. Mapear colunas
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                   Associe cada coluna do CSV a um campo do CRM. Campos detectados automaticamente
                   já estão pré-selecionados.
                 </div>
@@ -700,9 +700,9 @@ export function ContactsImportExportModal(props: {
                         return (
                           <th
                             key={i}
-                            className="px-2 py-1 text-left align-top border-b border-slate-200 dark:border-white/10 min-w-[160px]"
+                            className="px-2 py-1 text-left align-top border-b border-border min-w-[160px]"
                           >
-                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate mb-1">
+                            <div className="text-xs font-semibold text-muted-foreground dark:text-muted-foreground truncate mb-1">
                               {h}
                             </div>
                             <select
@@ -712,7 +712,7 @@ export function ContactsImportExportModal(props: {
                                 isDuplicate
                                   ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
                                   : currentField === '_ignore'
-                                    ? 'border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 text-slate-400'
+                                    ? 'border-border  bg-muted dark:bg-white/5 text-muted-foreground'
                                     : 'border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                               }`}
                               title={isDuplicate ? 'Campo já mapeado em outra coluna!' : undefined}
@@ -747,10 +747,10 @@ export function ContactsImportExportModal(props: {
                         {parsedHeaders.map((_, ci) => (
                           <td
                             key={ci}
-                            className="px-2 py-1 text-xs text-slate-600 dark:text-slate-300 border-b border-slate-100 dark:border-white/5 truncate max-w-[200px]"
+                            className="px-2 py-1 text-xs text-secondary-foreground dark:text-muted-foreground border-b border-border truncate max-w-[200px]"
                             title={row[ci] || ''}
                           >
-                            {row[ci] || <span className="text-slate-300 dark:text-slate-600">—</span>}
+                            {row[ci] || <span className="text-muted-foreground dark:text-secondary-foreground">—</span>}
                           </td>
                         ))}
                       </tr>
@@ -759,7 +759,7 @@ export function ContactsImportExportModal(props: {
                       <tr>
                         <td
                           colSpan={parsedHeaders.length}
-                          className="px-2 py-3 text-xs text-slate-400 text-center"
+                          className="px-2 py-3 text-xs text-muted-foreground text-center"
                         >
                           Nenhuma linha de dados encontrada.
                         </td>
@@ -769,7 +769,7 @@ export function ContactsImportExportModal(props: {
                 </table>
               </div>
 
-              <div className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {parsedRows.length} linha(s) de dados • {parsedHeaders.length} coluna(s) •{' '}
                 {mappedFieldsSummary.length} campo(s) mapeado(s)
               </div>
@@ -792,7 +792,7 @@ export function ContactsImportExportModal(props: {
                       value={newCfLabel}
                       onChange={e => setNewCfLabel(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleCreateCustomField()}
-                      className="text-xs rounded border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-2 py-1 w-40"
+                      className="text-xs rounded border border-border bg-white dark:bg-white/5 px-2 py-1 w-40"
                     />
                     <Button
                       type="button"
@@ -805,7 +805,7 @@ export function ContactsImportExportModal(props: {
                     <Button
                       type="button"
                       onClick={() => { setShowNewCfInput(false); setNewCfLabel(''); }}
-                      className="text-xs text-slate-400 hover:text-slate-600"
+                      className="text-xs text-muted-foreground hover:text-secondary-foreground"
                     >
                       Cancelar
                     </Button>
@@ -817,7 +817,7 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={() => setWizardStep('upload')}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border hover:bg-background dark:hover:bg-white/10"
                 >
                   <ChevronLeft size={16} /> Voltar
                 </Button>
@@ -827,7 +827,7 @@ export function ContactsImportExportModal(props: {
                   disabled={mappedFieldsSummary.length === 0 || hasDuplicates}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
                     mappedFieldsSummary.length === 0 || hasDuplicates
-                      ? 'bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed'
+                      ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                       : 'bg-primary-600 hover:bg-primary-700 text-white'
                   }`}
                 >
@@ -839,17 +839,17 @@ export function ContactsImportExportModal(props: {
 
           {/* ── Step 3: Deal Mapping ── */}
           {wizardStep === 'deal_mapping' && (
-            <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5 space-y-4">
+            <div className="rounded-xl border border-border p-4 bg-background/50 dark:bg-white/5 space-y-4">
               <div>
-                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                <div className="text-sm font-bold text-foreground">
                   3. Criar negócios (opcional)
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                   Configure se deseja criar negócios automaticamente para os contatos importados.
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+              <label className="flex items-center gap-2 text-sm text-secondary-foreground dark:text-muted-foreground">
                 <input
                   type="checkbox"
                   checked={enableDealMapping}
@@ -863,7 +863,7 @@ export function ContactsImportExportModal(props: {
                   {/* Board + Stage selectors */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">
                         Quadro (Board)
                       </label>
                       <select
@@ -873,7 +873,7 @@ export function ContactsImportExportModal(props: {
                           const board = boards.find(b => b.id === e.target.value);
                           setSelectedStageId(board?.stages?.[0]?.id || '');
                         }}
-                        className="w-full text-sm rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-2 py-1.5"
+                        className="w-full text-sm rounded-lg border border-border bg-white dark:bg-white/5 px-2 py-1.5"
                       >
                         {boards.map(b => (
                           <option key={b.id} value={b.id}>{b.name}</option>
@@ -881,13 +881,13 @@ export function ContactsImportExportModal(props: {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                      <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">
                         Etapa (Stage)
                       </label>
                       <select
                         value={selectedStageId}
                         onChange={e => setSelectedStageId(e.target.value)}
-                        className="w-full text-sm rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-2 py-1.5"
+                        className="w-full text-sm rounded-lg border border-border bg-white dark:bg-white/5 px-2 py-1.5"
                       >
                         {(boards.find(b => b.id === selectedBoardId)?.stages || []).map(s => (
                           <option key={s.id} value={s.id}>{s.name}</option>
@@ -898,7 +898,7 @@ export function ContactsImportExportModal(props: {
 
                   {/* Deal column mapping table */}
                   <div>
-                    <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                    <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-2">
                       Mapear colunas do CSV para campos de negócio
                     </div>
                     <div className="overflow-x-auto -mx-4 px-4">
@@ -915,9 +915,9 @@ export function ContactsImportExportModal(props: {
                               return (
                               <th
                                 key={i}
-                                className="px-2 py-1 text-left align-top border-b border-slate-200 dark:border-white/10 min-w-[160px]"
+                                className="px-2 py-1 text-left align-top border-b border-border min-w-[160px]"
                               >
-                                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate mb-1">
+                                <div className="text-xs font-semibold text-muted-foreground dark:text-muted-foreground truncate mb-1">
                                   {h}
                                 </div>
                                 <select
@@ -927,7 +927,7 @@ export function ContactsImportExportModal(props: {
                                     isDealDup
                                       ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
                                       : currentDealField === '_ignore'
-                                        ? 'border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 text-slate-400'
+                                        ? 'border-border  bg-muted dark:bg-white/5 text-muted-foreground'
                                         : 'border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                                   }`}
                                 >
@@ -961,7 +961,7 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={() => setWizardStep('mapping')}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border hover:bg-background dark:hover:bg-white/10"
                 >
                   <ChevronLeft size={16} /> Voltar
                 </Button>
@@ -978,26 +978,26 @@ export function ContactsImportExportModal(props: {
 
           {/* ── Step 4: Confirm ── */}
           {wizardStep === 'confirm' && !importResult && (
-            <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5 space-y-4">
+            <div className="rounded-xl border border-border p-4 bg-background/50 dark:bg-white/5 space-y-4">
               <div>
-                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                <div className="text-sm font-bold text-foreground">
                   4. Confirmar importação
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                   Revise os campos mapeados e selecione o modo de tratamento de duplicados.
                 </div>
               </div>
 
               {/* Mapping summary */}
-              <div className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-black/30 p-3 space-y-1.5">
-                <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
+              <div className="rounded-lg border border-border bg-white dark:bg-black/30 p-3 space-y-1.5">
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-2">
                   Campos mapeados ({mappedFieldsSummary.length})
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                   {mappedFieldsSummary.map((m, i) => (
-                    <div key={i} className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1">
-                      <span className="text-slate-400">{m.header}</span>
-                      <span className="text-slate-300 dark:text-slate-500">→</span>
+                    <div key={i} className="text-xs text-secondary-foreground dark:text-muted-foreground flex items-center gap-1">
+                      <span className="text-muted-foreground">{m.header}</span>
+                      <span className="text-muted-foreground dark:text-muted-foreground">→</span>
                       <span className="font-medium text-primary-700 dark:text-primary-300">
                         {m.crmLabel}
                       </span>
@@ -1006,18 +1006,18 @@ export function ContactsImportExportModal(props: {
                 </div>
               </div>
 
-              <div className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {parsedRows.length} linha(s) de dados serão processadas
                 {ignoreHeader && ' • Cabeçalho ignorado'}
                 {enableDealMapping && ' • Negócios serão criados'}
               </div>
 
               {enableDealMapping && (
-                <div className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-black/30 p-3">
-                  <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+                <div className="rounded-lg border border-border bg-white dark:bg-black/30 p-3">
+                  <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">
                     Criação de negócios
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                  <div className="text-xs text-muted-foreground dark:text-muted-foreground">
                     Quadro: {boards.find(b => b.id === selectedBoardId)?.name || '—'} •{' '}
                     Etapa: {boards.find(b => b.id === selectedBoardId)?.stages?.find(s => s.id === selectedStageId)?.name || '—'}
                   </div>
@@ -1026,10 +1026,10 @@ export function ContactsImportExportModal(props: {
 
               {/* Duplicate mode */}
               <div className="space-y-2">
-                <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
                   Duplicados (match por email e/ou telefone)
                 </div>
-                <div className="flex flex-col gap-2 text-sm text-slate-700 dark:text-slate-200">
+                <div className="flex flex-col gap-2 text-sm text-secondary-foreground dark:text-muted-foreground">
                   <label className="flex items-center gap-2">
                     <input
                       type="radio"
@@ -1064,7 +1064,7 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={() => setWizardStep('deal_mapping')}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border hover:bg-background dark:hover:bg-white/10"
                 >
                   <ChevronLeft size={16} /> Voltar
                 </Button>
@@ -1074,7 +1074,7 @@ export function ContactsImportExportModal(props: {
                   disabled={isImporting}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
                     isImporting
-                      ? 'bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed'
+                      ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                       : 'bg-primary-600 hover:bg-primary-700 text-white'
                   }`}
                 >
@@ -1086,12 +1086,12 @@ export function ContactsImportExportModal(props: {
 
           {/* ── Import result ── */}
           {importResult && (
-            <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5 space-y-3">
-              <div className="text-sm font-bold text-slate-900 dark:text-white">
+            <div className="rounded-xl border border-border p-4 bg-background/50 dark:bg-white/5 space-y-3">
+              <div className="text-sm font-bold text-foreground">
                 Resultado da importação
               </div>
-              <div className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-black/30 p-3 space-y-2">
-                <div className="text-xs text-slate-600 dark:text-slate-300">
+              <div className="rounded-lg border border-border bg-white dark:bg-black/30 p-3 space-y-2">
+                <div className="text-xs text-secondary-foreground dark:text-muted-foreground">
                   <b>Resumo:</b>{' '}
                   {(importResult.totals as Record<string, number> | undefined)?.created ?? 0} criados •{' '}
                   {(importResult.totals as Record<string, number> | undefined)?.updated ?? 0} atualizados •{' '}
@@ -1124,7 +1124,7 @@ export function ContactsImportExportModal(props: {
                   setWizardStep('upload');
                   setFile(null);
                 }}
-                className="px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10"
+                className="px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border hover:bg-background dark:hover:bg-white/10"
               >
                 Nova importação
               </Button>

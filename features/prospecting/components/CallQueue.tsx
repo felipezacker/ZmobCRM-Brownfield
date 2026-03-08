@@ -23,7 +23,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
     return (
       <div className="space-y-2">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
+          <div key={i} className="h-16 bg-muted dark:bg-card rounded-lg animate-pulse" />
         ))}
       </div>
     )
@@ -32,11 +32,11 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl mb-3">
-          <ListOrdered size={24} className="text-slate-400" />
+        <div className="p-3 bg-muted dark:bg-card rounded-xl mb-3">
+          <ListOrdered size={24} className="text-muted-foreground" />
         </div>
-        <p className="text-sm font-medium text-slate-900 dark:text-white">Fila vazia</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm font-medium text-foreground">Fila vazia</p>
+        <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
           Use a busca acima para adicionar contatos à fila de prospecção
         </p>
       </div>
@@ -48,11 +48,11 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+        <h2 className="text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
           {ownerName ? `Fila de ${ownerName}` : 'Fila de Prospecção'}
         </h2>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-muted-foreground">
             {pendingCount} pendente{pendingCount !== 1 ? 's' : ''}
           </span>
           {onClearAll && !confirmClear && (
@@ -62,7 +62,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
               type="button"
               onClick={() => setConfirmClear(true)}
               disabled={isClearing}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
             >
               <Trash2 size={12} />
               Limpar
@@ -94,7 +94,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
             size="unstyled"
             type="button"
             onClick={() => setConfirmClear(false)}
-            className="px-3 py-1 rounded-md text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            className="px-3 py-1 rounded-md text-xs font-medium bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent transition-colors"
           >
             Cancelar
           </Button>
@@ -112,7 +112,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
             <h3 className="text-xs font-medium text-red-500 dark:text-red-400 uppercase tracking-wider">
               Esgotados
             </h3>
-            <span className="text-[10px] text-slate-400 dark:text-slate-500">
+            <span className="text-[10px] text-muted-foreground dark:text-muted-foreground">
               ({exhaustedItems.length})
             </span>
           </div>
@@ -122,11 +122,11 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
                 <span className="text-xs font-bold text-red-500 dark:text-red-400">3x</span>
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-medium text-slate-900 dark:text-white truncate block">
+                <span className="text-sm font-medium text-foreground truncate block">
                   {item.contactName || 'Sem nome'}
                 </span>
                 {item.contactPhone && (
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                  <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                     {item.contactPhone}
                   </span>
                 )}
@@ -136,7 +136,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
                   variant="unstyled"
                   size="unstyled"
                   onClick={() => onResetExhausted(item.id)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent transition-colors"
                 >
                   <RotateCcw size={12} />
                   Resetar

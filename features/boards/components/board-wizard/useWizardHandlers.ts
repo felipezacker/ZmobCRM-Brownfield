@@ -157,7 +157,7 @@ export function useWizardHandlers(s: WizardStateBag) {
     s.setProcessingStep('complete'); await new Promise((r) => setTimeout(r, 500)); s.setIsProcessingModalOpen(false);
     const stgs = Array.isArray(board.stages) ? board.stages : [];
     if (!stgs.length) { s.setError('Board sem estagios validos.'); return; }
-    const bs: BoardStage[] = stgs.map((st) => ({ id: crypto.randomUUID(), label: st.name || 'Nova Etapa', color: st.color || 'bg-slate-500', linkedLifecycleStage: st.linkedLifecycleStage }));
+    const bs: BoardStage[] = stgs.map((st) => ({ id: crypto.randomUUID(), label: st.name || 'Nova Etapa', color: st.color || 'bg-accent', linkedLifecycleStage: st.linkedLifecycleStage }));
     const nm = randomAgentName();
     const persona = strat.agentPersona ? { ...strat.agentPersona, name: nm, behavior: strat.agentPersona.behavior.replace(new RegExp(strat.agentPersona.name, 'g'), nm), role: strat.agentPersona.role.replace(new RegExp(strat.agentPersona.name, 'g'), nm) } : undefined;
     s.onCreate({ name: board.name, description: board.description, linkedLifecycleStage: board.linkedLifecycleStage, template: 'CUSTOM', stages: bs, isDefault: false, automationSuggestions: board.automationSuggestions, agentPersona: persona, goal: strat.goal, entryTrigger: strat.entryTrigger });

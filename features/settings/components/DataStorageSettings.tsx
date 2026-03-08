@@ -178,28 +178,28 @@ export const DataStorageSettings: React.FC = () => {
     return (
         <div className="space-y-6">
             {/* Data Statistics */}
-            <div className="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-dark-card rounded-lg border border-border dark:border-dark-border p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                     <Database className="w-5 h-5" />
                     Estatísticas do Sistema
                 </h3>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg text-center">
-                        <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.contacts}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Contatos</div>
+                    <div className="p-4 bg-background dark:bg-dark-bg rounded-lg text-center">
+                        <div className="text-2xl font-bold text-foreground">{stats.contacts}</div>
+                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">Contatos</div>
                     </div>
-                    <div className="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg text-center">
-                        <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.deals}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Negócios</div>
+                    <div className="p-4 bg-background dark:bg-dark-bg rounded-lg text-center">
+                        <div className="text-2xl font-bold text-foreground">{stats.deals}</div>
+                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">Negócios</div>
                     </div>
-                    <div className="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg text-center">
-                        <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activities}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Atividades</div>
+                    <div className="p-4 bg-background dark:bg-dark-bg rounded-lg text-center">
+                        <div className="text-2xl font-bold text-foreground">{stats.activities}</div>
+                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">Atividades</div>
                     </div>
-                    <div className="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg text-center">
-                        <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.boards}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Boards</div>
+                    <div className="p-4 bg-background dark:bg-dark-bg rounded-lg text-center">
+                        <div className="text-2xl font-bold text-foreground">{stats.boards}</div>
+                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">Boards</div>
                     </div>
                 </div>
             </div>
@@ -217,7 +217,7 @@ export const DataStorageSettings: React.FC = () => {
                         </h3>
                         <Button
                             onClick={() => setShowDangerZone(!showDangerZone)}
-                            className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                            className="text-sm text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground"
                         >
                             {showDangerZone ? 'Esconder' : 'Mostrar'}
                         </Button>
@@ -242,7 +242,7 @@ export const DataStorageSettings: React.FC = () => {
                             </div>
 
                             <div className="space-y-3">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground">
                                     Digite <span className="font-mono bg-red-100 dark:bg-red-900/30 px-1 rounded">DELETAR TUDO</span> para confirmar:
                                 </label>
                                 <input
@@ -250,14 +250,14 @@ export const DataStorageSettings: React.FC = () => {
                                     value={confirmText}
                                     onChange={(e) => setConfirmText(e.target.value)}
                                     placeholder="DELETAR TUDO"
-                                    className="w-full px-4 py-2 bg-white dark:bg-dark-bg border border-red-300 dark:border-red-800 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 bg-white dark:bg-dark-bg border border-red-300 dark:border-red-800 rounded-lg text-foreground focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                 />
                                 <Button
                                     onClick={handleNukeDatabase}
                                     disabled={confirmText !== 'DELETAR TUDO' || isDeleting}
                                     className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all ${confirmText === 'DELETAR TUDO' && !isDeleting
                                             ? 'bg-red-600 hover:bg-red-700 text-white'
-                                            : 'bg-slate-200 dark:bg-dark-hover text-slate-400 cursor-not-allowed'
+                                            : 'bg-accent dark:bg-dark-hover text-muted-foreground cursor-not-allowed'
                                         }`}
                                 >
                                     {isDeleting ? (
@@ -406,32 +406,32 @@ const OrphanDealsSection: React.FC = () => {
                     </Button>
                 </div>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
                 Negócios sem contato vinculado. Podem ser atribuídos a um contato ou excluídos.
             </p>
 
             {expanded && (
                 <div className="mt-4 space-y-3">
                     {loading ? (
-                        <div className="flex items-center gap-2 text-slate-500"><Loader2 className="w-4 h-4 animate-spin" /> Carregando...</div>
+                        <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Carregando...</div>
                     ) : orphans.length === 0 ? (
-                        <p className="text-sm text-slate-500">Nenhum deal órfão encontrado.</p>
+                        <p className="text-sm text-muted-foreground">Nenhum deal órfão encontrado.</p>
                     ) : (
                         <>
                             <div className="flex items-center gap-2 mb-2">
-                                <Button type="button" onClick={selectAll} className="text-xs text-slate-600 dark:text-slate-300 underline">
+                                <Button type="button" onClick={selectAll} className="text-xs text-secondary-foreground dark:text-muted-foreground underline">
                                     {selected.size === orphans.length ? 'Desmarcar todos' : 'Selecionar todos'}
                                 </Button>
-                                <span className="text-xs text-slate-500">{selected.size} selecionado(s)</span>
+                                <span className="text-xs text-muted-foreground">{selected.size} selecionado(s)</span>
                             </div>
 
-                            <div className="max-h-60 overflow-y-auto border border-slate-200 dark:border-white/10 rounded-lg divide-y divide-slate-100 dark:divide-white/5">
+                            <div className="max-h-60 overflow-y-auto border border-border rounded-lg divide-y divide-border dark:divide-white/5">
                                 {orphans.map(o => (
-                                    <label key={o.id} className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
+                                    <label key={o.id} className="flex items-center gap-3 px-3 py-2 hover:bg-background dark:hover:bg-white/5 cursor-pointer">
                                         <input type="checkbox" checked={selected.has(o.id)} onChange={() => toggleSelect(o.id)} className="rounded" />
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-medium text-slate-900 dark:text-white truncate">{o.title}</div>
-                                            <div className="text-xs text-slate-500">
+                                            <div className="text-sm font-medium text-foreground truncate">{o.title}</div>
+                                            <div className="text-xs text-muted-foreground">
                                                 {o.value != null ? `R$ ${o.value.toLocaleString('pt-BR')}` : 'Sem valor'}
                                                 {' · '}
                                                 {new Date(o.updated_at).toLocaleDateString('pt-BR')}
@@ -444,11 +444,11 @@ const OrphanDealsSection: React.FC = () => {
                             {selected.size > 0 && (
                                 <div className="flex flex-wrap items-end gap-3 pt-2">
                                     <div className="flex-1 min-w-[200px]">
-                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Atribuir ao contato:</label>
+                                        <label className="block text-xs font-medium text-secondary-foreground dark:text-muted-foreground mb-1">Atribuir ao contato:</label>
                                         <select
                                             value={assignContactId}
                                             onChange={e => setAssignContactId(e.target.value)}
-                                            className="w-full px-3 py-2 text-sm bg-white dark:bg-dark-bg border border-slate-200 dark:border-white/10 rounded-lg"
+                                            className="w-full px-3 py-2 text-sm bg-white dark:bg-dark-bg border border-border rounded-lg"
                                         >
                                             <option value="">Selecione um contato...</option>
                                             {contacts.slice(0, 100).map(c => (

@@ -32,7 +32,7 @@ const SOURCE_OPTIONS = [
     { value: 'MANUAL', label: 'Manual' },
 ] as const;
 
-const SELECT_CLASS = 'bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white';
+const SELECT_CLASS = 'bg-white dark:bg-black/20 border border-border  rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 ';
 
 interface ContactsFiltersProps {
     dateRange: { start: string; end: string };
@@ -96,11 +96,11 @@ export const ContactsFilters: React.FC<ContactsFiltersProps> = ({
     };
 
     return (
-        <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4 animate-in slide-in-from-top-2 space-y-4">
+        <div className="bg-background dark:bg-white/5 border border-border rounded-xl p-4 animate-in slide-in-from-top-2 space-y-4">
             {/* Row 1: Date Range + Single Selects */}
             <div className="flex flex-wrap gap-4 items-end">
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Data Inicio</label>
+                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Data Inicio</label>
                     <input
                         type="date"
                         className={SELECT_CLASS}
@@ -109,7 +109,7 @@ export const ContactsFilters: React.FC<ContactsFiltersProps> = ({
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Data Fim</label>
+                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Data Fim</label>
                     <input
                         type="date"
                         className={SELECT_CLASS}
@@ -118,7 +118,7 @@ export const ContactsFilters: React.FC<ContactsFiltersProps> = ({
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Temperatura</label>
+                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Temperatura</label>
                     <select
                         className={SELECT_CLASS}
                         value={temperature}
@@ -130,7 +130,7 @@ export const ContactsFilters: React.FC<ContactsFiltersProps> = ({
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label>
+                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Tipo</label>
                     <select
                         className={SELECT_CLASS}
                         value={contactType}
@@ -142,7 +142,7 @@ export const ContactsFilters: React.FC<ContactsFiltersProps> = ({
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Origem</label>
+                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Origem</label>
                     <select
                         className={SELECT_CLASS}
                         value={source}
@@ -154,7 +154,7 @@ export const ContactsFilters: React.FC<ContactsFiltersProps> = ({
                     </select>
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Responsavel</label>
+                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Responsavel</label>
                     <select
                         className={SELECT_CLASS}
                         value={ownerId}
@@ -179,7 +179,7 @@ export const ContactsFilters: React.FC<ContactsFiltersProps> = ({
 
             {/* Row 2: Classification multi-select (checkboxes) */}
             <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Classificacao</label>
+                <label className="block text-xs font-bold text-muted-foreground uppercase mb-2">Classificacao</label>
                 <div className="flex flex-wrap gap-2">
                     {CLASSIFICATION_OPTIONS.map(opt => (
                         <label
@@ -187,7 +187,7 @@ export const ContactsFilters: React.FC<ContactsFiltersProps> = ({
                             className={`flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
                                 classification.includes(opt.value)
                                     ? 'bg-primary-100 text-primary-700 border-primary-300 dark:bg-primary-500/20 dark:text-primary-300 dark:border-primary-500/30'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 dark:bg-black/20 dark:text-slate-400 dark:border-white/10 dark:hover:border-white/20'
+                                    : 'bg-white text-secondary-foreground border-border hover:border-border dark:bg-black/20 dark:text-muted-foreground  dark:hover:border-white/20'
                             }`}
                         >
                             <input

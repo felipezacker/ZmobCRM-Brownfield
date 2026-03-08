@@ -116,10 +116,10 @@ const NavItem = ({
       className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium focus-visible-ring
     ${isActuallyActive
           ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900/50'
-          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+          : 'text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 hover:text-foreground dark:hover:text-white'
         }`}
     >
-      <Icon size={20} className={isActuallyActive ? 'text-primary-500' : ''} aria-hidden="true" />
+      <Icon size={20} className={isActuallyActive ?'text-primary-500' : ''} aria-hidden="true" />
       <span className="font-display tracking-wide">{label}</span>
     </Link>
   );
@@ -248,7 +248,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary-500/20 shrink-0" aria-hidden="true">
                 Z
               </div>
-              <span className={`text-xl font-bold font-display tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
+              <span className={`text-xl font-bold font-display tracking-tight text-foreground  whitespace-nowrap overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
                 ZmobCRM
               </span>
             </div>
@@ -274,14 +274,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     onMouseEnter={() => prefetchRoute(item.prefetch)}
                     onClick={() => setClickedPath(item.to)}
                     className={(() => {
-                      const isActive = pathname === item.to || (item.to === '/boards' && pathname === '/pipeline');
+ const isActive = pathname === item.to || (item.to ==='/boards' && pathname === '/pipeline');
                       const wasJustClicked = clickedPath === item.to;
                       // If user clicked on a DIFFERENT item, immediately deactivate this one
                       const anotherItemWasClicked = clickedPath && clickedPath !== item.to;
                       const isActuallyActive = anotherItemWasClicked ? false : (isActive || wasJustClicked);
                       return `w-10 h-10 rounded-lg flex items-center justify-center ${isActuallyActive
                         ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900/50'
-                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+                        : 'text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 hover:text-foreground dark:hover:text-white'
                         }`;
                     })()}
                     title={item.label}
@@ -310,7 +310,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="px-4 pb-2">
               <Button
                 onClick={() => setSidebarCollapsed(true)}
-                className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all text-sm"
+                className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-muted-foreground hover:text-secondary-foreground dark:hover:text-white bg-background/50 dark:bg-white/5 border border-border hover:bg-muted dark:hover:bg-white/10 transition-all text-sm"
                 title="Recolher Menu"
               >
                 <PanelLeftClose size={18} />
@@ -324,7 +324,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="px-4 pb-2 flex justify-center">
               <Button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="flex items-center justify-center w-10 h-10 p-2 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+                className="flex items-center justify-center w-10 h-10 p-2 rounded-lg text-muted-foreground hover:text-secondary-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/5 transition-all"
                 title="Expandir Menu"
               >
                 <PanelLeftOpen size={20} />
@@ -337,7 +337,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {/* User Card - Clickable */}
               <Button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className={`flex items-center gap-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group focus-visible-ring ${sidebarCollapsed ? 'p-0 w-10 h-10 justify-center' : 'w-full p-3'
+                className={`flex items-center gap-3 rounded-xl bg-background/50 dark:bg-white/5 border border-border  hover:bg-muted dark:hover:bg-white/10 transition-all group focus-visible-ring ${sidebarCollapsed ? 'p-0 w-10 h-10 justify-center' : 'w-full p-3'
                   }`}
               >
                 {profile?.avatar_url ? (
@@ -346,11 +346,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     alt=""
                     width={40}
                     height={40}
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-lg"
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-lg"
                     unoptimized
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-sm ring-2 ring-white dark:ring-slate-800 shadow-lg shrink-0" aria-hidden="true">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-sm ring-2 ring-white shadow-lg shrink-0" aria-hidden="true">
                     {profile?.first_name && profile?.last_name
                       ? `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase()
                       : profile?.nickname?.substring(0, 2).toUpperCase() || userInitials}
@@ -360,15 +360,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {!sidebarCollapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                      <p className="text-sm font-semibold text-foreground truncate">
                         {profile?.nickname || profile?.first_name || profile?.email?.split('@')[0] || 'Usuário'}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate">
                         {profile?.email || ''}
                       </p>
                     </div>
                     <svg
-                      className={`w-4 h-4 text-slate-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`}
+                      className={`w-4 h-4 text-muted-foreground transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -389,23 +389,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     aria-hidden="true"
                   />
                   <div
-                    className={`absolute bottom-full mb-2 z-50 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-150 ${sidebarCollapsed ? 'left-0 w-48' : 'left-0 right-0'}`}
+                    className={`absolute bottom-full mb-2 z-50 bg-white dark:bg-card rounded-xl shadow-xl border border-border dark:border-border overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-150 ${sidebarCollapsed ? 'left-0 w-48' : 'left-0 right-0'}`}
                   >
                     <div className="p-1">
                       <Link
                         href="/profile"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg transition-colors focus-visible-ring"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-accent/50 rounded-lg transition-colors focus-visible-ring"
                       >
-                        <User className="w-4 h-4 text-slate-400" />
+                        <User className="w-4 h-4 text-muted-foreground" />
                         Editar Perfil
                       </Link>
                       <Link
                         href="/instructions"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg transition-colors focus-visible-ring"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-accent/50 rounded-lg transition-colors focus-visible-ring"
                       >
-                        <BookOpen className="w-4 h-4 text-slate-400" />
+                        <BookOpen className="w-4 h-4 text-muted-foreground" />
                         Instruções
                       </Link>
                       <Button
@@ -444,7 +444,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={() => setIsGlobalAIOpen(!isGlobalAIOpen)}
                 className={`p-2 rounded-full transition-all active:scale-95 focus-visible-ring ${isGlobalAIOpen
                   ? 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20'
-                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
+                  : 'text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/10'
                   }`}
               >
                 <Sparkles size={20} aria-hidden="true" />
@@ -455,7 +455,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={toggleDebugMode}
                 className={`p-2 rounded-full transition-all active:scale-95 focus-visible-ring ${debugEnabled
                   ? 'text-purple-600 bg-purple-100 dark:text-purple-400 dark:bg-purple-900/30 ring-2 ring-purple-400/50'
-                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
+                  : 'text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/10'
                   }`}
               >
                 <Bug size={20} aria-hidden="true" />
@@ -465,7 +465,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Button
                 type="button"
                 onClick={toggleDarkMode}
-                className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-all active:scale-95 focus-visible-ring"
+                className="p-2 text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/10 rounded-full transition-all active:scale-95 focus-visible-ring"
               >
                 {darkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
               </Button>

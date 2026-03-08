@@ -66,19 +66,19 @@ export const NoteTemplatesManager: React.FC<NoteTemplatesManagerProps> = ({
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col"
+        className="bg-white dark:bg-card border border-border dark:border-border/50 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700/50 flex items-center justify-between shrink-0">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+        <div className="p-4 border-b border-border dark:border-border/50 flex items-center justify-between shrink-0">
+          <h2 className="text-lg font-semibold text-foreground">
             Templates de Notas
           </h2>
           <Button
             variant="unstyled"
             size="unstyled"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-card transition-colors"
           >
             <X size={18} />
           </Button>
@@ -87,12 +87,12 @@ export const NoteTemplatesManager: React.FC<NoteTemplatesManagerProps> = ({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* Add new template */}
-          <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700/50">
+          <div className="space-y-2 p-3 bg-background dark:bg-card/50 rounded-lg border border-border dark:border-border/50">
             <div className="flex items-center gap-2">
               <select
                 value={newOutcome}
                 onChange={(e) => setNewOutcome(e.target.value as CallLogData['outcome'])}
-                className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-md px-2 py-1.5 text-slate-700 dark:text-slate-300 outline-none"
+                className="text-xs bg-white dark:bg-card border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none"
               >
                 {OUTCOMES.map((o) => (
                   <option key={o} value={o}>{OUTCOME_LABELS[o]}</option>
@@ -103,7 +103,7 @@ export const NoteTemplatesManager: React.FC<NoteTemplatesManagerProps> = ({
                 value={newText}
                 onChange={(e) => setNewText(e.target.value)}
                 placeholder="Texto do template..."
-                className="flex-1 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-md px-2 py-1.5 text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:ring-2 focus:ring-primary-500/50"
+                className="flex-1 text-sm bg-white dark:bg-card border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-foreground placeholder-muted-foreground outline-none focus:ring-2 focus:ring-primary-500/50"
                 onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
               />
               <Button
@@ -121,10 +121,10 @@ export const NoteTemplatesManager: React.FC<NoteTemplatesManagerProps> = ({
           {/* Existing templates by outcome */}
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 size={20} className="animate-spin text-slate-400" />
+              <Loader2 size={20} className="animate-spin text-muted-foreground" />
             </div>
           ) : templates.length === 0 ? (
-            <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground text-center py-4">
               Nenhum template customizado. Os padrões serão usados.
             </p>
           ) : (
@@ -133,22 +133,22 @@ export const NoteTemplatesManager: React.FC<NoteTemplatesManagerProps> = ({
               if (outcomeTemplates.length === 0) return null
               return (
                 <div key={outcome}>
-                  <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-1.5">
+                  <h4 className="text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase mb-1.5">
                     {OUTCOME_LABELS[outcome]}
                   </h4>
                   <div className="space-y-1">
                     {outcomeTemplates.map((t: NoteTemplate) => (
                       <div
                         key={t.id}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background dark:bg-card/50 border border-border dark:border-border/50"
                       >
-                        <span className="flex-1 text-sm text-slate-700 dark:text-slate-300">{t.text}</span>
+                        <span className="flex-1 text-sm text-secondary-foreground dark:text-muted-foreground">{t.text}</span>
                         <Button
                           variant="unstyled"
                           size="unstyled"
                           onClick={() => handleDelete(t.id)}
                           disabled={deleteTemplate.isPending}
-                          className="p-1 rounded text-slate-400 hover:text-red-500 transition-colors"
+                          className="p-1 rounded text-muted-foreground hover:text-red-500 transition-colors"
                         >
                           <Trash2 size={14} />
                         </Button>

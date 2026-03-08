@@ -89,7 +89,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                 {onEditBoard && (
                     <Button
                         onClick={() => onEditBoard(activeBoard)}
-                        className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors"
                         title="Configurações do Board"
                     >
                         <Settings size={20} />
@@ -100,7 +100,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                 {onExportTemplates && (
                     <Button
                         onClick={onExportTemplates}
-                        className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors"
                         title="Exportar template (comunidade)"
                     >
                         <Download size={20} />
@@ -120,20 +120,20 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-80 p-0" align="start">
-                            <div className="p-4 border-b border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-slate-900/50">
-                                <h4 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                            <div className="p-4 border-b border-border bg-background dark:bg-card/50">
+                                <h4 className="font-semibold text-foreground flex items-center gap-2">
                                     <Lightbulb size={16} className="text-yellow-500" />
                                     Automações Sugeridas
                                 </h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                                     Dicas da IA para otimizar este processo.
                                 </p>
                             </div>
                             <div className="p-2">
                                 <ul className="space-y-1">
                                     {activeBoard.automationSuggestions.map((suggestion, idx) => (
-                                        <li key={idx} className="text-sm text-slate-700 dark:text-slate-300 p-2 hover:bg-slate-50 dark:hover:bg-white/5 rounded-md flex gap-2 items-start">
-                                            <span className="text-slate-400 mt-0.5">•</span>
+                                        <li key={idx} className="text-sm text-secondary-foreground dark:text-muted-foreground p-2 hover:bg-background dark:hover:bg-white/5 rounded-md flex gap-2 items-start">
+                                            <span className="text-muted-foreground mt-0.5">•</span>
                                             <span>{suggestion}</span>
                                         </li>
                                     ))}
@@ -144,12 +144,12 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                 )}
 
                 {/* VIEW TOGGLE */}
-                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-lg border border-slate-200 dark:border-white/10">
+                <div className="flex bg-muted dark:bg-white/5 p-1 rounded-lg border border-border">
                     <Button
                         onClick={() => setViewMode('kanban')}
                         aria-label="Visualização em quadro Kanban"
                         aria-pressed={viewMode === 'kanban'}
-                        className={`p-1.5 rounded-md transition-all ${viewMode === 'kanban' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                        className={`p-1.5 rounded-md transition-all ${viewMode === 'kanban' ? 'bg-white dark:bg-accent shadow-sm text-primary-600 ' : 'text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground'}`}
                     >
                         <LayoutGrid size={16} aria-hidden="true" />
                     </Button>
@@ -157,21 +157,21 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                         onClick={() => setViewMode('list')}
                         aria-label="Visualização em lista"
                         aria-pressed={viewMode === 'list'}
-                        className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                        className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-accent shadow-sm text-primary-600 ' : 'text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground'}`}
                     >
                         <TableIcon size={16} aria-hidden="true" />
                     </Button>
                 </div>
 
-                <div className="h-8 w-px bg-slate-200 dark:bg-white/10 mx-2 hidden sm:block"></div>
+                <div className="h-8 w-px bg-accent dark:bg-white/10 mx-2 hidden sm:block"></div>
                 <div className="relative flex-1 sm:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                     <input
                         type="text"
                         placeholder="Filtrar negócios ou empresas..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white backdrop-blur-sm"
+                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-border dark:border-border bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 backdrop-blur-sm"
                     />
                 </div>
                 <div className="relative">
@@ -179,7 +179,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as 'open' | 'won' | 'lost' | 'all')}
                         aria-label="Filtrar por status"
-                        className="pl-3 pr-8 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white backdrop-blur-sm appearance-none cursor-pointer"
+                        className="pl-3 pr-8 py-2 rounded-lg border border-border dark:border-border bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 backdrop-blur-sm appearance-none cursor-pointer"
                     >
                         <option value="open">Em Aberto</option>
                         <option value="won">Ganhos</option>
@@ -189,7 +189,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                         <div className={`w-2 h-2 rounded-full ${statusFilter === 'open' ? 'bg-blue-500' :
                             statusFilter === 'won' ? 'bg-green-500' :
-                                statusFilter === 'lost' ? 'bg-red-500' : 'bg-slate-400'
+                                statusFilter === 'lost' ? 'bg-red-500' : 'bg-accent'
                             }`} />
                     </div>
                 </div>
@@ -199,12 +199,12 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                         value={ownerFilter}
                         onChange={(e) => setOwnerFilter(e.target.value as 'all' | 'mine')}
                         aria-label="Filtrar negócios por proprietário"
-                        className="pl-3 pr-8 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white backdrop-blur-sm appearance-none cursor-pointer"
+                        className="pl-3 pr-8 py-2 rounded-lg border border-border dark:border-border bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 backdrop-blur-sm appearance-none cursor-pointer"
                     >
                         <option value="all">Todos os Donos</option>
                         <option value="mine">Meus Negócios</option>
                     </select>
-                    <User className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                    <User className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={14} />
                 </div>
             </div>
 

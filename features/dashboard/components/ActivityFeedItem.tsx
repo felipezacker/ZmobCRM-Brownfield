@@ -74,13 +74,13 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ activity }) 
                 );
             case 'STATUS_CHANGE':
                 return (
-                    <div className="bg-slate-500/10 text-slate-500 p-2 rounded-full ring-1 ring-slate-500/20">
+                    <div className="bg-accent/10 text-muted-foreground p-2 rounded-full ring-1 ring-ring/20">
                         <ArrowRightLeft size={16} />
                     </div>
                 );
             default:
                 return (
-                    <div className="bg-slate-500/10 text-slate-500 p-2 rounded-full ring-1 ring-slate-500/20">
+                    <div className="bg-accent/10 text-muted-foreground p-2 rounded-full ring-1 ring-ring/20">
                         <AlertCircle size={16} />
                     </div>
                 );
@@ -91,26 +91,26 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ activity }) 
     const formattedDate = ACTIVITY_FEED_DATE_FORMATTER.format(new Date(activity.date));
 
     return (
-        <div className="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50 dark:hover:bg-white/5 px-2 rounded-lg transition-colors group">
+        <div className="flex items-start gap-3 py-3 border-b border-border last:border-0 hover:bg-background dark:hover:bg-white/5 px-2 rounded-lg transition-colors group">
             <div className="mt-0.5 shrink-0">
                 {icon}
             </div>
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                <p className="text-sm font-semibold text-foreground dark:text-muted-foreground truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                     {activity.title}
                 </p>
                 {activity.dealTitle && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                        em <span className="font-medium text-slate-600 dark:text-slate-300">{activity.dealTitle}</span>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-0.5 truncate">
+                        em <span className="font-medium text-secondary-foreground dark:text-muted-foreground">{activity.dealTitle}</span>
                     </p>
                 )}
                 {activity.description && (
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-1 italic">
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1 italic">
                         "{activity.description}"
                     </p>
                 )}
             </div>
-            <span className="text-[10px] text-slate-400 whitespace-nowrap bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] text-muted-foreground whitespace-nowrap bg-muted dark:bg-white/5 px-1.5 py-0.5 rounded">
                 {formattedDate}
             </span>
         </div>

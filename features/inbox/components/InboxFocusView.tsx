@@ -347,7 +347,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
       switch (activity.type) {
         case 'CALL': return 'text-blue-500';
         case 'MEETING': return 'text-purple-500';
-        default: return 'text-slate-500';
+        default: return 'text-muted-foreground';
       }
     }
     if (suggestion) {
@@ -355,10 +355,10 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
         case 'STALLED': return 'text-orange-500';
         case 'RESCUE': return 'text-red-500';
         case 'UPSELL': return 'text-green-500';
-        default: return 'text-slate-500';
+        default: return 'text-muted-foreground';
       }
     }
-    return 'text-slate-500';
+    return 'text-muted-foreground';
   };
 
   // Título e descrição
@@ -388,34 +388,34 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
 
       {/* Horário grande (se for reunião) */}
       {isMeeting && (
-        <div className="text-6xl font-bold text-slate-900 dark:text-white mb-4 font-display">
+        <div className="text-6xl font-bold text-foreground mb-4 font-display">
           {timeString}
         </div>
       )}
 
       {/* Ícone (se não for reunião) */}
       {!isMeeting && (
-        <div className={`mb-6 p-4 rounded-2xl bg-slate-100 dark:bg-white/5 ${getIconColor()}`}>
+        <div className={`mb-6 p-4 rounded-2xl bg-muted dark:bg-white/5 ${getIconColor()}`}>
           {getIcon()}
         </div>
       )}
 
       {/* Título */}
-      <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white text-center mb-3 max-w-lg">
+      <h1 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-3 max-w-lg">
         {title}
       </h1>
 
       {/* Descrição */}
       {description && (
-        <p className="text-slate-500 dark:text-slate-400 text-center mb-4 max-w-md">
+        <p className="text-muted-foreground dark:text-muted-foreground text-center mb-4 max-w-md">
           "{description}"
         </p>
       )}
 
       {/* Contexto (Deal/Empresa) */}
       {context && (
-        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300 mb-2">
-          <Building2 size={16} className="text-slate-400" />
+        <div className="flex items-center gap-2 text-secondary-foreground dark:text-muted-foreground mb-2">
+          <Building2 size={16} className="text-muted-foreground" />
           <span>{context}</span>
         </div>
       )}
@@ -460,11 +460,11 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
       <div className="flex items-center gap-4 mt-8" role="group" aria-label="Ações">
         <Button
           onClick={onSnooze}
-          className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-all font-medium border border-transparent hover:border-slate-300 dark:hover:border-white/10"
+          className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/10 transition-all font-medium border border-transparent hover:border-border dark:hover:border-white/10"
         >
-          <Clock size={18} aria-hidden="true" className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200" />
+          <Clock size={18} aria-hidden="true" className="text-muted-foreground group-hover:text-secondary-foreground dark:group-hover:text-muted-foreground" />
           <span>Adiar</span>
-          <kbd className="hidden group-hover:inline-flex h-5 items-center justify-center rounded border border-slate-300 dark:border-white/10 bg-slate-200 dark:bg-white/5 px-1.5 font-mono text-[10px] uppercase text-slate-500 font-bold opacity-0 group-hover:opacity-100 transition-all">
+          <kbd className="hidden group-hover:inline-flex h-5 items-center justify-center rounded border border-border bg-accent dark:bg-white/5 px-1.5 font-mono text-[10px] uppercase text-muted-foreground font-bold opacity-0 group-hover:opacity-100 transition-all">
             A
           </kbd>
         </Button>
@@ -484,13 +484,13 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
 
         <Button
           onClick={onSkip}
-          className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-all font-medium border border-transparent hover:border-slate-300 dark:hover:border-white/10"
+          className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/10 transition-all font-medium border border-transparent hover:border-border dark:hover:border-white/10"
         >
           <span>Pular</span>
-          <kbd className="hidden group-hover:inline-flex h-5 items-center justify-center rounded border border-slate-300 dark:border-white/10 bg-slate-200 dark:bg-white/5 px-1.5 font-mono text-[10px] uppercase text-slate-500 font-bold opacity-0 group-hover:opacity-100 transition-all">
+          <kbd className="hidden group-hover:inline-flex h-5 items-center justify-center rounded border border-border bg-accent dark:bg-white/5 px-1.5 font-mono text-[10px] uppercase text-muted-foreground font-bold opacity-0 group-hover:opacity-100 transition-all">
             P
           </kbd>
-          <SkipForward size={18} aria-hidden="true" className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200" />
+          <SkipForward size={18} aria-hidden="true" className="text-muted-foreground group-hover:text-secondary-foreground dark:group-hover:text-muted-foreground" />
         </Button>
       </div>
 
@@ -500,7 +500,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
           onClick={onPrev}
           disabled={currentIndex === 0}
           aria-label="Item anterior"
-          className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-2 text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronLeft size={24} aria-hidden="true" />
         </Button>
@@ -513,12 +513,12 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
               aria-hidden="true"
               className={`w-2 h-2 rounded-full transition-all ${i === currentIndex
                 ? 'w-6 bg-primary-500'
-                : 'bg-slate-300 dark:bg-slate-600'
+                : 'bg-accent dark:bg-accent'
                 }`}
             />
           ))}
           {totalItems > 10 && (
-            <span className="text-xs text-slate-400 ml-2">+{totalItems - 10}</span>
+            <span className="text-xs text-muted-foreground ml-2">+{totalItems - 10}</span>
           )}
         </div>
 
@@ -526,7 +526,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
           onClick={onNext}
           disabled={currentIndex >= totalItems - 1}
           aria-label="Próximo item"
-          className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-2 text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <ChevronRight size={24} aria-hidden="true" />
         </Button>
@@ -581,17 +581,17 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
               aria-modal="true"
               aria-label="Vincular contexto"
             >
-              <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 shadow-2xl p-5">
+              <div className="w-full max-w-xl rounded-2xl bg-white dark:bg-background border border-border shadow-2xl p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-semibold text-slate-900 dark:text-white">Vincular contexto</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    <div className="text-sm font-semibold text-foreground">Vincular contexto</div>
+                    <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                       Esta atividade não tem deal/contato associado. Selecione um negócio para abrir o Cockpit.
                     </div>
                   </div>
                   <Button
                     onClick={() => setShowContext(false)}
-                    className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                    className="text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground transition-colors"
                     aria-label="Fechar"
                   >
                     ×
@@ -603,7 +603,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
                     value={contextSearch}
                     onChange={e => setContextSearch(e.target.value)}
                     placeholder="Buscar negócio pelo título…"
-                    className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary-500/40"
+                    className="w-full rounded-xl border border-border bg-white dark:bg-white/5 px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary-500/40"
                   />
                 </div>
 
@@ -612,14 +612,14 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
                     <Button
                       key={d.id}
                       onClick={() => setManualDealId(d.id)}
-                      className="text-left rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 px-3 py-2 transition-colors"
+                      className="text-left rounded-xl border border-border bg-background dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 px-3 py-2 transition-colors"
                     >
-                      <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">{d.title}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{d.contactName}</div>
+                      <div className="text-sm font-semibold text-foreground truncate">{d.title}</div>
+                      <div className="text-xs text-muted-foreground dark:text-muted-foreground truncate">{d.contactName}</div>
                     </Button>
                   ))}
                   {suggestedDeals.length === 0 && (
-                    <div className="text-sm text-slate-500 dark:text-slate-400 py-6 text-center col-span-full">
+                    <div className="text-sm text-muted-foreground dark:text-muted-foreground py-6 text-center col-span-full">
                       Nenhum negócio encontrado. Tente outro termo.
                     </div>
                   )}

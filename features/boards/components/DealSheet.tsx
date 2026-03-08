@@ -22,10 +22,9 @@ export function DealSheet({ isOpen, onClose, ariaLabel, children, className }: D
       onClose={onClose}
       ariaLabel={ariaLabel}
       className={cn(
-        // Make the outer sheet container transparent so the deal UI can control its own surface.
-        'h-[100dvh] rounded-none bg-transparent dark:bg-transparent border-0 shadow-none p-0 pb-0',
-        className
-      )}
+ // Make the outer sheet container transparent so the deal UI can control its own surface.'h-[100dvh] rounded-none bg-transparent dark:bg-transparent border-0 shadow-none p-0 pb-0',
+ className
+ )}
     >
       {children}
     </Sheet>

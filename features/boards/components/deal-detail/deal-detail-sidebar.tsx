@@ -34,7 +34,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
     <div className="space-y-4">
       {/* CONTATO (editavel) */}
       <div>
-        <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+        <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2 flex items-center gap-2">
           <User size={14} /> Contato
         </h3>
         {deal.contactId && !contact && (
@@ -44,11 +44,11 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
           </div>
         )}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">
+          <div className="w-8 h-8 rounded-full bg-accent dark:bg-accent flex items-center justify-center text-xs font-bold">
             {(resolvedContactName || '?').charAt(0)}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-slate-900 dark:text-white font-medium text-sm flex items-center gap-2">
+            <p className="text-foreground font-medium text-sm flex items-center gap-2">
               {resolvedContactName}
               {contact?.stage &&
                 (() => {
@@ -63,19 +63,19 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
             </p>
             {/* Phone - editable inline */}
             <div className="flex items-center gap-1 mt-1">
-              <Phone size={11} className="text-slate-400 shrink-0" />
+              <Phone size={11} className="text-muted-foreground shrink-0" />
               <input
                 key={`phone-${contact?.id}`}
                 type="tel"
                 defaultValue={contact?.phone || ''}
                 onBlur={e => contact && onUpdateContact(contact.id, { phone: e.target.value })}
                 placeholder="Telefone"
-                className="text-xs text-slate-700 dark:text-slate-200 bg-transparent outline-none w-full placeholder:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5"
+                className="text-xs text-secondary-foreground dark:text-muted-foreground bg-transparent outline-none w-full placeholder:text-muted-foreground hover:bg-background dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5"
               />
               {contact?.phone && (
                 <Button
                   onClick={() => onCopyPhone(contact.phone || '')}
-                  className="text-slate-400 hover:text-primary-500 transition-colors shrink-0"
+                  className="text-muted-foreground hover:text-primary-500 transition-colors shrink-0"
                   title="Copiar telefone"
                 >
                   <Copy size={11} />
@@ -84,14 +84,14 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
             </div>
             {/* Email - editable inline */}
             <div className="flex items-center gap-1 mt-0.5">
-              <Mail size={11} className="text-slate-400 shrink-0" />
+              <Mail size={11} className="text-muted-foreground shrink-0" />
               <input
                 key={`email-${contact?.id}`}
                 type="email"
                 defaultValue={contact?.email || ''}
                 onBlur={e => contact && onUpdateContact(contact.id, { email: e.target.value })}
                 placeholder="Email"
-                className="text-xs text-slate-700 dark:text-slate-200 bg-transparent outline-none w-full placeholder:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5 truncate"
+                className="text-xs text-secondary-foreground dark:text-muted-foreground bg-transparent outline-none w-full placeholder:text-muted-foreground hover:bg-background dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5 truncate"
               />
             </div>
           </div>
@@ -102,10 +102,10 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
           <select
             value={contact?.temperature || ''}
             onChange={e => contact && onUpdateContact(contact.id, { temperature: (e.target.value || undefined) as ContactTemperature | undefined })}
-            className={`text-[11px] font-semibold bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer ${
+            className={`text-[11px] font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer ${
               contact?.temperature === 'HOT' ? 'text-red-500' :
               contact?.temperature === 'WARM' ? 'text-amber-500' :
-              contact?.temperature === 'COLD' ? 'text-blue-500' : 'text-slate-400'
+              contact?.temperature === 'COLD' ? 'text-blue-500' : 'text-muted-foreground'
             }`}
           >
             <option value="">Temperatura</option>
@@ -116,7 +116,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
           <select
             value={contact?.classification || ''}
             onChange={e => contact && onUpdateContact(contact.id, { classification: (e.target.value || undefined) as ContactClassification | undefined })}
-            className="text-[11px] font-semibold bg-transparent border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer text-slate-700 dark:text-slate-200"
+            className="text-[11px] font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer text-secondary-foreground dark:text-muted-foreground"
           >
             <option value="">Classificacao</option>
             <option value="COMPRADOR">Comprador</option>
@@ -131,8 +131,8 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
         {/* Lead Score bar */}
         {contact?.leadScore != null && (
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-[10px] text-slate-400">Score</span>
-            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+            <span className="text-[10px] text-muted-foreground">Score</span>
+            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-accent dark:bg-white/10">
               <div
                 className={`h-full rounded-full transition-all ${
                   contact.leadScore <= 30 ? 'bg-red-500' :
@@ -141,9 +141,9 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
                 style={{ width: `${Math.min(100, contact.leadScore)}%` }}
               />
             </div>
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <span className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
               {contact.leadScore}
-              <span className="ml-1 text-[10px] font-normal text-slate-400">
+              <span className="ml-1 text-[10px] font-normal text-muted-foreground">
                 {contact.leadScore <= 30 ? 'Frio' : contact.leadScore <= 60 ? 'Morno' : 'Quente'}
               </span>
             </span>
@@ -168,18 +168,18 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
       />
 
       {/* TAGS */}
-      <div className="pt-3 border-t border-slate-100 dark:border-white/5">
-        <h3 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+      <div className="pt-3 border-t border-border">
+        <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2 flex items-center gap-2">
           <TagIcon size={12} /> Tags
         </h3>
         <div className="flex flex-wrap gap-1.5">
           {(contact?.tags || []).length === 0 ? (
-            <p className="text-xs text-slate-500 italic">Sem tags.</p>
+            <p className="text-xs text-muted-foreground italic">Sem tags.</p>
           ) : (
             (contact?.tags || []).map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10"
+                className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
               >
                 {tag}
               </span>
@@ -214,17 +214,17 @@ const CustomFieldsSection: React.FC<CustomFieldsSectionProps> = ({
   });
   if (filledFields.length === 0) return null;
   return (
-    <div className="pt-3 border-t border-slate-100 dark:border-white/5">
-      <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">
+    <div className="pt-3 border-t border-border">
+      <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">
         Campos Personalizados
       </h3>
       <div className="space-y-1.5">
         {filledFields.map(field => (
           <div key={field.id} className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <span className="text-[11px] font-medium text-muted-foreground dark:text-muted-foreground">
               {field.label}
             </span>
-            <span className="text-[11px] text-slate-700 dark:text-slate-200 truncate text-right">
+            <span className="text-[11px] text-secondary-foreground dark:text-muted-foreground truncate text-right">
               {contact?.customFields?.[field.key]}
             </span>
           </div>

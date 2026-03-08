@@ -28,7 +28,7 @@ export function SavedQueuesList({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 text-xs text-slate-400">
+      <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
         <Loader2 size={14} className="animate-spin" />
         Carregando filas...
       </div>
@@ -37,7 +37,7 @@ export function SavedQueuesList({
 
   if (savedQueues.length === 0) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 text-xs text-slate-400 dark:text-slate-500">
+      <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground dark:text-muted-foreground">
         <BookmarkPlus size={14} />
         Nenhuma fila salva
       </div>
@@ -62,7 +62,7 @@ export function SavedQueuesList({
         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
           open
             ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
-            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/15'
+            : 'bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15'
         }`}
       >
         <BookmarkPlus size={14} />
@@ -76,11 +76,11 @@ export function SavedQueuesList({
             className="fixed inset-0 z-10"
             onClick={() => { setOpen(false); setConfirmDeleteId(null) }}
           />
-          <div className="absolute right-0 top-full mt-1 z-20 w-72 max-h-80 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl shadow-xl py-1">
+          <div className="absolute right-0 top-full mt-1 z-20 w-72 max-h-80 overflow-y-auto bg-white dark:bg-card border border-border rounded-xl shadow-xl py-1">
             {savedQueues.map((queue) => (
               <div
                 key={queue.id}
-                className="flex items-center justify-between px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/5 group"
+                className="flex items-center justify-between px-3 py-2 hover:bg-background dark:hover:bg-white/5 group"
               >
                 <Button
                   variant="unstyled"
@@ -89,7 +89,7 @@ export function SavedQueuesList({
                   className="flex-1 text-left min-w-0"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-700 dark:text-slate-200 truncate">
+                    <span className="text-sm text-secondary-foreground dark:text-muted-foreground truncate">
                       {queue.name}
                     </span>
                     {queue.isShared && (
@@ -97,7 +97,7 @@ export function SavedQueuesList({
                     )}
                   </div>
                   {queue.ownerId !== currentUserId && (
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                    <span className="text-[10px] text-muted-foreground dark:text-muted-foreground">
                       compartilhada
                     </span>
                   )}
@@ -112,7 +112,7 @@ export function SavedQueuesList({
                     className={`p-1.5 rounded-lg transition-colors shrink-0 ml-1 ${
                       confirmDeleteId === queue.id
                         ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400'
-                        : 'text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 opacity-0 group-hover:opacity-100'
+                        : 'text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 opacity-0 group-hover:opacity-100'
                     }`}
                     title={confirmDeleteId === queue.id ? 'Confirmar exclusão' : 'Excluir'}
                   >
