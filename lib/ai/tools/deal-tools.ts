@@ -429,10 +429,11 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 title: z.string().min(1).describe('Título do deal'),
                 value: z.number().optional().default(0).describe('Valor do deal em reais'),
                 contactName: z.string().optional().describe('Nome do contato'),
+                propertyRef: z.string().optional().describe('Referência do imóvel (código, endereço curto, etc.)'),
                 boardId: z.string().optional(),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ title, value, contactName, boardId }) => {
+            execute: async ({ title, value, contactName, propertyRef, boardId }) => {
                 const targetBoardId = boardId || context.boardId;
                 console.log('[AI] ➕ createDeal EXECUTED!', title);
 
@@ -487,6 +488,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                         board_id: targetBoardId,
                         title,
                         value,
+                        property_ref: propertyRef || null,
                         contact_id: contactId,
                         stage_id: firstStageId,
                         priority: 'medium',
@@ -520,9 +522,10 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 title: z.string().optional().describe('Novo título'),
                 value: z.number().optional().describe('Novo valor'),
                 priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+                propertyRef: z.string().optional().describe('Referência do imóvel'),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ dealId, title, value, priority }) => {
+            execute: async ({ dealId, title, value, priority, propertyRef }) => {
                 const targetDealId = dealId || context.dealId;
                 console.log('[AI] ✏️ updateDeal EXECUTED!');
 
@@ -534,6 +537,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 if (title) updateData.title = title;
                 if (value !== undefined) updateData.value = value;
                 if (priority) updateData.priority = priority;
+                if (propertyRef !== undefined) updateData.property_ref = propertyRef;
 
                 const { error } = await supabase
                     .from('deals')

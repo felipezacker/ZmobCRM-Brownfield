@@ -13,9 +13,10 @@ export function createActivityTools({ supabase, organizationId, context, userId,
                 dueDate: z.string().optional().describe('Data de vencimento ISO'),
                 dealId: z.string().optional(),
                 type: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP']).optional().default('TASK'),
+                metadata: z.record(z.string(), z.unknown()).optional().describe('Dados extras (ex: outcome de ligação, duração, notas estruturadas)'),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ title, description, dueDate, dealId, type }) => {
+            execute: async ({ title, description, dueDate, dealId, type, metadata }) => {
                 const targetDealId = dealId || context.dealId;
                 console.log('[AI] ✏️ createTask EXECUTED!', title);
 
@@ -32,6 +33,7 @@ export function createActivityTools({ supabase, organizationId, context, userId,
                         type,
                         owner_id: userId,
                         completed: false,
+                        metadata: metadata || null,
                     })
                     .select()
                     .single();
@@ -174,9 +176,10 @@ export function createActivityTools({ supabase, organizationId, context, userId,
                 contactId: z.string().optional(),
                 type: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP']).optional().default('CALL'),
                 date: z.string().optional().describe('ISO (padrão: agora)'),
+                metadata: z.record(z.string(), z.unknown()).optional().describe('Dados extras (ex: call_outcome, duration_seconds, objections)'),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ title, description, dealId, contactId, type, date }) => {
+            execute: async ({ title, description, dealId, contactId, type, date, metadata }) => {
                 const payload = {
                     organization_id: organizationId,
                     title,
@@ -187,6 +190,7 @@ export function createActivityTools({ supabase, organizationId, context, userId,
                     contact_id: contactId || null,
                     owner_id: userId,
                     completed: true,
+                    metadata: metadata || null,
                 };
 
                 const { data, error } = await supabase

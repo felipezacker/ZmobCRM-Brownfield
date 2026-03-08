@@ -62,9 +62,11 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                 status: z.string().optional().default('ACTIVE'),
                 stage: z.string().optional().default('LEAD'),
                 source: z.string().optional(),
+                tags: z.array(z.string()).optional().describe('Tags do contato (ex: ["VIP", "Indicação"])'),
+                customFields: z.record(z.string(), z.string()).optional().describe('Campos customizados (ex: {"origem": "site", "segmento": "premium"})'),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ name, email, phone, notes, status, stage, source }) => {
+            execute: async ({ name, email, phone, notes, status, stage, source, tags, customFields }) => {
                 const { data, error } = await supabase
                     .from('contacts')
                     .insert({
@@ -76,6 +78,8 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                         status,
                         stage,
                         source: source || null,
+                        tags: tags || null,
+                        custom_fields: customFields || null,
                         owner_id: userId,
                         updated_at: new Date().toISOString(),
                     })
@@ -97,6 +101,8 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                 status: z.string().optional(),
                 stage: z.string().optional(),
                 source: z.string().optional(),
+                tags: z.array(z.string()).optional().describe('Substituir tags do contato'),
+                customFields: z.record(z.string(), z.string()).optional().describe('Substituir campos customizados'),
             }),
             needsApproval: !bypassApproval,
             execute: async ({ contactId, ...patch }) => {
@@ -108,6 +114,8 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                 if (patch.status !== undefined) updateData.status = patch.status;
                 if (patch.stage !== undefined) updateData.stage = patch.stage;
                 if (patch.source !== undefined) updateData.source = patch.source;
+                if (patch.tags !== undefined) updateData.tags = patch.tags;
+                if (patch.customFields !== undefined) updateData.custom_fields = patch.customFields;
 
                 const { data, error } = await supabase
                     .from('contacts')
