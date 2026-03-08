@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { DealView, CustomFieldDefinition, BoardStage, DealSortableColumn } from '@/types';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
-import { getActivityStatus } from '@/features/boards/hooks/useBoardsController';
+import { getActivityStatus } from '@/features/boards/hooks/boardUtils';
 import { MoveToStageModal } from '../Modals/MoveToStageModal';
 import { Button } from '@/components/ui/button';
 import {

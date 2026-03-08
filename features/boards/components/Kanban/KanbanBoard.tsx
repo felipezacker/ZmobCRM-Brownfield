@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DealView, BoardStage } from '@/types';
 import { DealCard } from './DealCard';
-import { isDealRotting, getActivityStatus } from '@/features/boards/hooks/useBoardsController';
+import { isDealRotting, getActivityStatus } from '@/features/boards/hooks/boardUtils';
 import { MoveToStageModal } from '../Modals/MoveToStageModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useKanbanKeyboard } from '@/features/boards/hooks/useKanbanKeyboard';

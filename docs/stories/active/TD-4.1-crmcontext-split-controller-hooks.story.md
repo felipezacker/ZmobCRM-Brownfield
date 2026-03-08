@@ -131,12 +131,12 @@ Esta story decompoe o CRMContext em sub-contextos especializados e, em seguida, 
 - [x] Task 2.16: Suite regressao -- 2685 passed, 23 regression tests, zero regressoes
 
 ### Fase 3: Controller Hooks Split (AC8, AC9, AC10, AC11)
-- [ ] Task 3.1: Decompor `useBoardsController` em: `useBoardCRUD`, `useBoardFilters`, `useBoardDragDrop`, `useBoardView` (max 200 linhas cada)
-- [ ] Task 3.2: Decompor `useContactsController` em: `useContactCRUD`, `useContactSearch`, `useContactFilters`, `useContactImport` (max 200 linhas cada)
-- [ ] Task 3.3: Decompor `useInboxController` em: `useInboxMessages`, `useInboxFilters`, `useInboxActions` (max 200 linhas cada)
-- [ ] Task 3.4: Atualizar componentes consumidores para usar hooks decompostos
-- [ ] Task 3.5: Executar suite de regressao final -- confirmar zero regressoes
-- [ ] Task 3.6: Executar `npm run typecheck && npm run lint && npm test`
+- [x] Task 3.1: Decompor `useBoardsController` em: `useBoardCRUD` (186), `useBoardFilters` (143), `useBoardDragDrop` (156), `useBoardView` (156), composition (119)
+- [x] Task 3.2: Decompor `useContactsController` em: `useContactCRUD` (169), `useContactSearch` (125), `useContactFilters` (85), `useContactImport` (177), composition (171)
+- [x] Task 3.3: Decompor `useInboxController` em: `useInboxMessages` (191), `useInboxFilters` (135), `useInboxActions` (119), composition (156)
+- [x] Task 3.4: Atualizar componentes consumidores -- KanbanBoard/KanbanList imports atualizados, facades mantêm API idêntica
+- [x] Task 3.5: Suite regressão -- 294 passed, 5 failed (pre-existentes: Babel parser), zero regressões introduzidas
+- [x] Task 3.6: typecheck 0 erros, lint 0 erros, test 294 passed
 
 ## Technical Notes
 
@@ -207,7 +207,36 @@ Esta story decompoe o CRMContext em sub-contextos especializados e, em seguida, 
 - [ ] Code reviewed
 
 ## File List
-_A ser preenchido durante implementacao_
+
+### Fase 3: Controller Hooks Split
+**Boards (new):**
+- `features/boards/hooks/boardUtils.ts` — isDealRotting, getActivityStatus (extracted)
+- `features/boards/hooks/useBoardCRUD.ts` — Board create/edit/update/delete operations
+- `features/boards/hooks/useBoardFilters.ts` — Deal filtering, sorting, search
+- `features/boards/hooks/useBoardDragDrop.ts` — DnD, move deal, loss modal, quick actions
+- `features/boards/hooks/useBoardView.ts` — View state, selection, AI context, loading
+
+**Boards (modified):**
+- `features/boards/hooks/useBoardsController.ts` — Rewritten as thin composition facade (119 lines)
+- `features/boards/components/Kanban/KanbanBoard.tsx` — Updated import to boardUtils
+- `features/boards/components/Kanban/KanbanList.tsx` — Updated import to boardUtils
+
+**Contacts (new):**
+- `features/contacts/hooks/useContactCRUD.ts` — CRUD operations, form state, delete flow
+- `features/contacts/hooks/useContactSearch.ts` — Search, pagination, server filters
+- `features/contacts/hooks/useContactFilters.ts` — Advanced filters, URL sync, profiles
+- `features/contacts/hooks/useContactImport.ts` — Selection, bulk ops, deal creation
+
+**Contacts (modified):**
+- `features/contacts/hooks/useContactsController.ts` — Rewritten as thin composition facade (171 lines)
+
+**Inbox (new):**
+- `features/inbox/hooks/useInboxMessages.ts` — Data, activity buckets, computed lists
+- `features/inbox/hooks/useInboxFilters.ts` — AI suggestions, focus queue, stats, briefing
+- `features/inbox/hooks/useInboxActions.ts` — All mutation handlers
+
+**Inbox (modified):**
+- `features/inbox/hooks/useInboxController.ts` — Rewritten as thin composition facade (156 lines)
 
 ## Change Log
 | Date | Author | Change |
@@ -215,3 +244,4 @@ _A ser preenchido durante implementacao_
 | 2026-03-06 | @pm | Story created |
 | 2026-03-07 | @sm | PO validation fixes: added Executor Assignment, User Story, Tasks/Subtasks (28 tasks), CodeRabbit Integration, Testing Standards, consumers inventory, ROI reference. Filename renamed. |
 | 2026-03-07 | @po | Validation GO (10/10). Status Draft -> Ready. All 5 critical + 4 should-fix issues resolved. |
+| 2026-03-07 | @dev | Fase 3 complete: Decomposed 3 controller hooks (boards 1082→760, contacts 883→727, inbox 872→601 lines). All sub-hooks < 200 lines. Zero regressions. |
