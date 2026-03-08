@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tag, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SettingsSection } from './SettingsSection';
 import { EmptyState } from '@/components/ui/EmptyState';
+import ConfirmModal from '@/components/ConfirmModal';
 
 interface TagsManagerProps {
   availableTags: string[];
@@ -19,6 +20,8 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
   onAddTag,
   onRemoveTag,
 }) => {
+  const [pendingRemoveTag, setPendingRemoveTag] = useState<string | null>(null);
+
   return (
     <SettingsSection
       title="Tags"
@@ -56,7 +59,7 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
               {tag}
               <Button
                 type="button"
-                onClick={() => onRemoveTag(tag)}
+                onClick={() => setPendingRemoveTag(tag)}
                 className="text-muted-foreground hover:text-red-500 transition-colors"
                 aria-label={`Remover tag ${tag}`}
               >
@@ -66,6 +69,19 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!pendingRemoveTag}
+        onClose={() => setPendingRemoveTag(null)}
+        onConfirm={() => {
+          if (pendingRemoveTag) onRemoveTag(pendingRemoveTag);
+          setPendingRemoveTag(null);
+        }}
+        title="Remover tag"
+        message={`Remover a tag "${pendingRemoveTag || ''}"? Contatos que usam esta tag serão atualizados.`}
+        confirmText="Remover"
+        variant="danger"
+      />
     </SettingsSection>
   );
 };

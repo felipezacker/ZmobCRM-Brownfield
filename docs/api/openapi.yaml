@@ -1,0 +1,104 @@
+openapi: '3.1.0'
+info:
+  title: ZmobCRM Public API
+  version: v1
+  description: >
+    API publica do ZmobCRM para integracoes (n8n/Make).
+    Produto em primeiro lugar: copiar -> colar -> testar.
+
+    ## Modulos
+    - [Meta](meta.yaml) - Sobre a API e autenticacao
+    - [Boards](boards.yaml) - Pipelines/boards e etapas
+    - [Contacts](contacts.yaml) - Contatos (leads/pessoas)
+    - [Deals](deals.yaml) - Negocios (cards)
+    - [Activities](activities.yaml) - Atividades (nota/tarefa/reuniao/ligacao)
+
+servers:
+  - url: /api/public/v1
+
+tags:
+  - name: Meta
+    description: Sobre a API e autenticacao
+  - name: Boards
+    description: Pipelines/boards e etapas
+  - name: Contacts
+    description: Contatos (leads/pessoas)
+  - name: Deals
+    description: Negocios (cards)
+  - name: Activities
+    description: Atividades (nota/tarefa/reuniao/ligacao)
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Chave gerada na interface (Settings -> Integracoes).
+
+  schemas:
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+      required: [error]
+
+    PaginatedResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items: {}
+        nextCursor:
+          type: [string, 'null']
+      required: [data]
+
+  responses:
+    Unauthorized:
+      description: API key ausente ou invalida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            missing:
+              value: { error: 'Missing X-Api-Key', code: AUTH_MISSING }
+            invalid:
+              value: { error: 'Invalid API key', code: AUTH_INVALID }
+
+paths:
+  /openapi.json:
+    $ref: 'meta.yaml#/paths/~1openapi.json'
+  /me:
+    $ref: 'meta.yaml#/paths/~1me'
+  /boards:
+    $ref: 'boards.yaml#/paths/~1boards'
+  /boards/{boardKeyOrId}:
+    $ref: 'boards.yaml#/paths/~1boards~1{boardKeyOrId}'
+  /boards/{boardKeyOrId}/stages:
+    $ref: 'boards.yaml#/paths/~1boards~1{boardKeyOrId}~1stages'
+  /contacts:
+    $ref: 'contacts.yaml#/paths/~1contacts'
+  /contacts/{contactId}:
+    $ref: 'contacts.yaml#/paths/~1contacts~1{contactId}'
+  /deals:
+    $ref: 'deals.yaml#/paths/~1deals'
+  /deals/{dealId}:
+    $ref: 'deals.yaml#/paths/~1deals~1{dealId}'
+  /deals/{dealId}/move-stage:
+    $ref: 'deals.yaml#/paths/~1deals~1{dealId}~1move-stage'
+  /deals/move-stage-by-identity:
+    $ref: 'deals.yaml#/paths/~1deals~1move-stage-by-identity'
+  /deals/move-stage:
+    $ref: 'deals.yaml#/paths/~1deals~1move-stage'
+  /deals/{dealId}/mark-won:
+    $ref: 'deals.yaml#/paths/~1deals~1{dealId}~1mark-won'
+  /deals/{dealId}/mark-lost:
+    $ref: 'deals.yaml#/paths/~1deals~1{dealId}~1mark-lost'
+  /activities:
+    $ref: 'activities.yaml#/paths/~1activities'

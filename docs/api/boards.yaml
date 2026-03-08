@@ -1,0 +1,133 @@
+components:
+  schemas:
+    Board:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          description: UUID do board
+        key:
+          type: [string, 'null']
+          description: Slug estavel (integracoes)
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        position:
+          type: integer
+        is_default:
+          type: boolean
+      required: [id, key, name, description, position, is_default]
+
+    BoardStage:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          description: UUID do estagio
+        label:
+          type: string
+        color:
+          type: [string, 'null']
+        order:
+          type: integer
+      required: [id, label, color, order]
+
+paths:
+  /boards:
+    get:
+      tags: [Boards]
+      summary: Listar boards (pipelines)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Busca por name/key
+        - name: key
+          in: query
+          schema: { type: string }
+          description: Filtro exato por key
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 250 }
+          description: Tamanho da pagina
+        - name: cursor
+          in: query
+          schema: { type: string }
+          description: Cursor opaco
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Board'
+                  nextCursor:
+                    type: [string, 'null']
+                required: [data, nextCursor]
+        '401':
+          $ref: 'openapi.yaml#/components/responses/Unauthorized'
+
+  /boards/{boardKeyOrId}:
+    get:
+      tags: [Boards]
+      summary: Obter board por key ou id
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: boardKeyOrId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Board'
+                required: [data]
+        '401':
+          $ref: 'openapi.yaml#/components/responses/Unauthorized'
+
+  /boards/{boardKeyOrId}/stages:
+    get:
+      tags: [Boards]
+      summary: Listar etapas do board
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: boardKeyOrId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BoardStage'
+                required: [data]
+        '401':
+          $ref: 'openapi.yaml#/components/responses/Unauthorized'

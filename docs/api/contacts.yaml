@@ -1,0 +1,167 @@
+components:
+  schemas:
+    Contact:
+      type: object
+      additionalProperties: false
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: [string, 'null'] }
+        phone: { type: [string, 'null'] }
+        avatar: { type: [string, 'null'] }
+        source: { type: [string, 'null'] }
+        notes: { type: [string, 'null'] }
+        status: { type: [string, 'null'] }
+        stage: { type: [string, 'null'] }
+        birth_date: { type: [string, 'null'] }
+        last_interaction: { type: [string, 'null'] }
+        last_purchase_date: { type: [string, 'null'] }
+        total_value: { type: [number, 'null'] }
+        created_at: { type: string }
+        updated_at: { type: [string, 'null'] }
+      required:
+        - id
+        - name
+        - email
+        - phone
+        - avatar
+        - source
+        - notes
+        - status
+        - stage
+        - birth_date
+        - last_interaction
+        - last_purchase_date
+        - total_value
+        - created_at
+        - updated_at
+
+paths:
+  /contacts:
+    get:
+      tags: [Contacts]
+      summary: Listar contatos
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: email
+          in: query
+          schema: { type: string }
+        - name: phone
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 250 }
+        - name: cursor
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+                  nextCursor:
+                    type: [string, 'null']
+                required: [data, nextCursor]
+        '401':
+          $ref: 'openapi.yaml#/components/responses/Unauthorized'
+
+    post:
+      tags: [Contacts]
+      summary: Criar/atualizar contato (upsert)
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name: { type: string }
+                email: { type: string }
+                phone: { type: string }
+                avatar: { type: string }
+                status: { type: string }
+                stage: { type: string }
+                birth_date: { type: string, description: 'YYYY-MM-DD' }
+                last_interaction: { type: string, description: 'ISO timestamp' }
+                last_purchase_date: { type: string, description: 'YYYY-MM-DD' }
+                total_value: { type: number }
+                source: { type: string }
+                notes: { type: string }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { type: object }
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { type: object }
+        '401':
+          $ref: 'openapi.yaml#/components/responses/Unauthorized'
+
+  /contacts/{contactId}:
+    get:
+      tags: [Contacts]
+      summary: Obter contato
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Contact'
+                required: [data]
+        '401':
+          $ref: 'openapi.yaml#/components/responses/Unauthorized'
+
+    patch:
+      tags: [Contacts]
+      summary: Atualizar contato
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object }
+        '401':
+          $ref: 'openapi.yaml#/components/responses/Unauthorized'

@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Database, AlertTriangle, Trash2, Loader2, Unlink, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ConfirmModal from '@/components/ConfirmModal';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
@@ -308,6 +309,7 @@ const OrphanDealsSection: React.FC = () => {
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [assignContactId, setAssignContactId] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const fetchCount = useCallback(async () => {
         if (!sb) return;
@@ -369,7 +371,6 @@ const OrphanDealsSection: React.FC = () => {
 
     const handleDelete = async () => {
         if (!sb || selected.size === 0) return;
-        if (!window.confirm(`Tem certeza que deseja excluir ${selected.size} deal(s) órfão(s)?`)) return;
         setActionLoading(true);
         const { data, error } = await sb.rpc('delete_orphan_deals', {
             p_deal_ids: Array.from(selected),
@@ -389,6 +390,7 @@ const OrphanDealsSection: React.FC = () => {
     if (count === null || count === 0) return null;
 
     return (
+        <>
         <div className="bg-white dark:bg-dark-card rounded-lg border border-amber-200 dark:border-amber-900/50 p-6">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-2">
@@ -467,7 +469,7 @@ const OrphanDealsSection: React.FC = () => {
                                     </Button>
                                     <Button
                                         type="button"
-                                        onClick={handleDelete}
+                                        onClick={() => setShowDeleteConfirm(true)}
                                         disabled={actionLoading}
                                         className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium inline-flex items-center gap-2"
                                     >
@@ -481,6 +483,20 @@ const OrphanDealsSection: React.FC = () => {
                 </div>
             )}
         </div>
+
+        <ConfirmModal
+            isOpen={showDeleteConfirm}
+            onClose={() => setShowDeleteConfirm(false)}
+            onConfirm={() => {
+                setShowDeleteConfirm(false);
+                handleDelete();
+            }}
+            title="Excluir deals órfãos"
+            message={`Tem certeza que deseja excluir ${selected.size} deal(s) órfão(s)? Esta ação não pode ser desfeita.`}
+            confirmText="Excluir"
+            variant="danger"
+        />
+        </>
     );
 };
 

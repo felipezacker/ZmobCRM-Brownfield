@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PenTool, Pencil, Check, Plus, List, Tag, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import ConfirmModal from '@/components/ConfirmModal';
 import { SettingsSection } from './SettingsSection';
 import { CustomFieldDefinition, CustomFieldType } from '@/types';
 
@@ -66,6 +67,9 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
   onSaveField,
   onRemoveField
 }) => {
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
+  const pendingField = customFieldDefinitions.find(f => f.id === pendingRemoveId);
+
   return (
     <SettingsSection title="Campos Personalizados" icon={PenTool}>
       <p className="text-sm text-secondary-foreground dark:text-muted-foreground mb-4 leading-relaxed">
@@ -171,7 +175,7 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
                 <Pencil size={16} />
               </Button>
               <Button
-                onClick={() => onRemoveField(field.id)}
+                onClick={() => setPendingRemoveId(field.id)}
                 className="text-muted-foreground hover:text-red-500 p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 title="Remover campo"
               >
@@ -184,6 +188,19 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
           <EmptyState title="Nenhum campo personalizado criado." size="sm" />
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!pendingRemoveId}
+        onClose={() => setPendingRemoveId(null)}
+        onConfirm={() => {
+          if (pendingRemoveId) onRemoveField(pendingRemoveId);
+          setPendingRemoveId(null);
+        }}
+        title="Remover campo personalizado"
+        message={`Remover o campo "${pendingField?.label || ''}"? Dados existentes neste campo serão perdidos.`}
+        confirmText="Remover"
+        variant="danger"
+      />
     </SettingsSection>
   );
 };

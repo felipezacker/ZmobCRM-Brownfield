@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Package, Pencil, Plus, Save, Trash2, ToggleLeft, ToggleRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import ConfirmModal from '@/components/ConfirmModal';
 import { productsService } from '@/lib/supabase';
 import type { Product } from '@/types';
 
@@ -55,6 +56,7 @@ export const ProductsCatalogManager: React.FC = () => {
   const [editPrice, setEditPrice] = useState<string>('');
   const [editSku, setEditSku] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -173,8 +175,6 @@ export const ProductsCatalogManager: React.FC = () => {
   };
 
   const remove = async (p: Product) => {
-    const ok = window.confirm(`Excluir "${p.name}"? Isso não remove itens já usados em deals históricos.`);
-    if (!ok) return;
     setLoading(true);
     setError(null);
     const res = await productsService.delete(p.id);
@@ -376,7 +376,7 @@ export const ProductsCatalogManager: React.FC = () => {
                       </Button>
                       <Button
                         type="button"
-                        onClick={() => remove(p)}
+                        onClick={() => setPendingDelete(p)}
                         className="px-2 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/20"
                         title="Excluir"
                         aria-label="Excluir produto"
@@ -392,6 +392,19 @@ export const ProductsCatalogManager: React.FC = () => {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (pendingDelete) remove(pendingDelete);
+          setPendingDelete(null);
+        }}
+        title="Excluir produto"
+        message={`Excluir "${pendingDelete?.name}"? Isso não remove itens já usados em deals históricos.`}
+        confirmText="Excluir"
+        variant="danger"
+      />
     </div>
   );
 };

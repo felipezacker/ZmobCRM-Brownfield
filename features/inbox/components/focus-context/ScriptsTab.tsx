@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Sparkles, CheckCircle2, FileText, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ConfirmModal from '@/components/ConfirmModal';
 import { generateSalesScript } from '@/lib/ai/tasksClient';
 import type { ScriptCategory, QuickScript } from '@/lib/supabase/quickScripts';
 
@@ -30,6 +31,8 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
     onNoteChange,
 }) => {
     const [copiedScript, setCopiedScript] = useState<string | null>(null);
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+    const pendingScript = scripts.find(s => s.id === pendingDeleteId);
     const firstName = contactName?.split(' ')[0] || 'Cliente';
 
     const copyScript = (template: string, scriptId: string) => {
@@ -40,6 +43,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
     };
 
     return (
+        <>
         <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-slate-800">
             <div className="flex items-center justify-between mb-4 px-1">
                 <p className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
@@ -137,9 +141,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                                             <Button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    if (confirm('Excluir este script?')) {
-                                                        onDelete(script.id);
-                                                    }
+                                                    setPendingDeleteId(script.id);
                                                 }}
                                                 className="p-1 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                                                 title="Excluir"
@@ -158,5 +160,19 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                 })}
             </div>
         </div>
+
+        <ConfirmModal
+            isOpen={!!pendingDeleteId}
+            onClose={() => setPendingDeleteId(null)}
+            onConfirm={() => {
+                if (pendingDeleteId) onDelete(pendingDeleteId);
+                setPendingDeleteId(null);
+            }}
+            title="Excluir script"
+            message={`Excluir o script "${pendingScript?.title || ''}"? Esta ação não pode ser desfeita.`}
+            confirmText="Excluir"
+            variant="danger"
+        />
+        </>
     );
 };
