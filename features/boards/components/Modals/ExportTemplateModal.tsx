@@ -355,6 +355,10 @@ export function ExportTemplateModal(props: {
         }));
         const guessed = guessWonLostStageIds(stages);
 
+        const rawPersona = b.strategy?.agentPersona;
+        const agentPersona = rawPersona
+          ? { name: rawPersona.name ?? '', role: rawPersona.role ?? '', behavior: rawPersona.behavior ?? '' }
+          : undefined;
         await onCreateBoardAsync({
           name: b.name,
           description: `Parte da jornada: Sim`,
@@ -364,10 +368,10 @@ export function ExportTemplateModal(props: {
           isDefault: false,
           wonStageId: guessed.wonStageId,
           lostStageId: guessed.lostStageId,
-          agentPersona: b.strategy?.agentPersona,
+          agentPersona,
           goal: b.strategy?.goal,
           entryTrigger: b.strategy?.entryTrigger,
-        } as any);
+        });
       }
 
       addToast('Jornada importada com sucesso!', 'success');

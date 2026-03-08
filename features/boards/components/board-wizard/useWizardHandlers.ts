@@ -78,7 +78,7 @@ export function useWizardHandlers(s: WizardStateBag) {
 
   const handleTemplateSelect = (templateType: BoardTemplateType) => {
     const tpl = BOARD_TEMPLATES[templateType];
-    if (!Array.isArray((tpl as any)?.stages) || (tpl as any).stages.length === 0) {
+    if (!Array.isArray(tpl?.stages) || tpl.stages.length === 0) {
       s.onClose(); s.onOpenCustomModal(); handleReset(); return;
     }
     if (s.onCreateBoardAsync) { s.setIsInstalling(true); s.setInstallProgress({ total: 1, current: 1, currentBoardName: tpl.name }); }
@@ -87,7 +87,7 @@ export function useWizardHandlers(s: WizardStateBag) {
     const payload: Omit<Board, 'id' | 'createdAt'> = {
       name: tpl.name, description: tpl.description, linkedLifecycleStage: tpl.linkedLifecycleStage,
       template: templateType, stages, isDefault: false,
-      wonStageId: (g.wonStageId || null) as any, lostStageId: (g.lostStageId || null) as any,
+      wonStageId: g.wonStageId, lostStageId: g.lostStageId,
       agentPersona: { ...tpl.agentPersona!, name: randomAgentName() }, goal: tpl.goal, entryTrigger: tpl.entryTrigger,
     };
     if (s.onCreateBoardAsync) {
@@ -116,7 +116,7 @@ export function useWizardHandlers(s: WizardStateBag) {
       s.setProcessingStep('finalizing'); await new Promise((r) => setTimeout(r, 800));
       s.setProcessingStep('complete'); await new Promise((r) => setTimeout(r, 500));
       s.setGeneratedBoard(fb); s.setStep('ai-preview');
-    } catch (err) { console.error(err); s.setError((err as any)?.message || 'Erro ao gerar board.'); }
+    } catch (err) { console.error(err); s.setError(err instanceof Error ? err.message : 'Erro ao gerar board.'); }
     finally { s.setIsGenerating(false); s.setIsProcessingModalOpen(false); }
   };
 

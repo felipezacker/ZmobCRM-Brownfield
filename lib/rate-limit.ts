@@ -1,36 +1,68 @@
 /**
- * In-memory sliding window rate limiter for the public API.
+ * Distributed sliding window rate limiter for the public API.
  *
- * Keyed by IP address. Stores an array of request timestamps within the
- * current window. Stale entries are pruned on a background interval and also
- * lazily on every check to keep memory bounded.
+ * Uses Upstash Redis (@upstash/ratelimit) in production for shared state
+ * across serverless instances. Falls back to in-memory for dev/test when
+ * UPSTASH env vars are not set.
  *
  * Default: 60 requests per 60-second window per IP.
  */
 
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
 const WINDOW_MS = 60_000; // 1 minute
 const MAX_REQUESTS = 60;  // requests per window
 
-// Map<ip, timestamps[]>
-const store = new Map<string, number[]>();
+// ---------------------------------------------------------------------------
+// Upstash distributed limiter (production)
+// ---------------------------------------------------------------------------
 
-// Periodic cleanup — remove IPs whose last request is older than the window.
-const cleanupInterval = setInterval(() => {
-  const now = Date.now();
-  for (const [ip, timestamps] of store.entries()) {
-    const valid = timestamps.filter((t) => now - t < WINDOW_MS);
-    if (valid.length === 0) {
-      store.delete(ip);
-    } else {
-      store.set(ip, valid);
-    }
+const upstashLimiter = (() => {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (url && token) {
+    return new Ratelimit({
+      redis: new Redis({ url, token }),
+      limiter: Ratelimit.slidingWindow(MAX_REQUESTS, '60 s'),
+      prefix: 'rl:api',
+    });
   }
-}, WINDOW_MS);
+  return null;
+})();
 
-// Prevent the interval from keeping Node alive in test/serverless environments.
-if (cleanupInterval.unref) {
-  cleanupInterval.unref();
+// ---------------------------------------------------------------------------
+// In-memory fallback (dev/test only — NOT shared across instances)
+// ---------------------------------------------------------------------------
+
+const memStore = new Map<string, number[]>();
+
+function memoryRateLimit(ip: string): RateLimitResult {
+  const now = Date.now();
+  const windowStart = now - WINDOW_MS;
+
+  if (memStore.size > 10_000) memStore.clear();
+
+  const prev = memStore.get(ip) ?? [];
+  const valid = prev.filter((t) => t > windowStart);
+
+  if (valid.length >= MAX_REQUESTS) {
+    const oldestInWindow = valid[0];
+    const reset = Math.ceil((oldestInWindow + WINDOW_MS) / 1000);
+    memStore.set(ip, valid);
+    return { success: false, remaining: 0, reset };
+  }
+
+  valid.push(now);
+  memStore.set(ip, valid);
+
+  const reset = Math.ceil((now + WINDOW_MS) / 1000);
+  return { success: true, remaining: MAX_REQUESTS - valid.length, reset };
 }
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 export interface RateLimitResult {
   /** true when the request is within the allowed limit */
@@ -43,41 +75,18 @@ export interface RateLimitResult {
 
 /**
  * Check and record a request for the given IP.
- * Performs a lazy prune of expired timestamps on every call.
+ * Uses Upstash Redis when configured, in-memory fallback otherwise.
  */
-export function rateLimit(ip: string): RateLimitResult {
-  const now = Date.now();
-  const windowStart = now - WINDOW_MS;
-
-  // Max-size guard: if the store grows beyond 10 000 keys (e.g. during a
-  // distributed attack with many spoofed IPs), clear it entirely to prevent
-  // unbounded memory growth. This is a simple but effective safeguard for an
-  // in-memory store; at worst legitimate clients get one extra window of requests.
-  if (store.size > 10_000) {
-    store.clear();
+export async function rateLimit(ip: string): Promise<RateLimitResult> {
+  if (upstashLimiter) {
+    const result = await upstashLimiter.limit(ip);
+    return {
+      success: result.success,
+      remaining: result.remaining,
+      reset: Math.ceil(result.reset / 1000),
+    };
   }
-
-  // Lazy prune: keep only timestamps within the current window.
-  const prev = store.get(ip) ?? [];
-  const valid = prev.filter((t) => t > windowStart);
-
-  if (valid.length >= MAX_REQUESTS) {
-    // Oldest timestamp determines when the window resets for this IP.
-    const oldestInWindow = valid[0];
-    const reset = Math.ceil((oldestInWindow + WINDOW_MS) / 1000);
-    store.set(ip, valid);
-    return { success: false, remaining: 0, reset };
-  }
-
-  valid.push(now);
-  store.set(ip, valid);
-
-  const reset = Math.ceil((now + WINDOW_MS) / 1000);
-  return {
-    success: true,
-    remaining: MAX_REQUESTS - valid.length,
-    reset,
-  };
+  return memoryRateLimit(ip);
 }
 
 /**
@@ -102,11 +111,6 @@ export function getClientIp(request: Request): string {
   const realIp = request.headers.get('x-real-ip');
   if (realIp) return realIp.trim();
 
-  // When no IP can be determined, all such requests share a single rate-limit
-  // bucket keyed by 'unknown'. This means one unidentifiable client hitting the
-  // limit will block all other unidentifiable clients for the remainder of the
-  // window. In practice this only happens in local/test environments since
-  // production reverse proxies always set x-forwarded-for or x-real-ip.
   return 'unknown';
 }
 

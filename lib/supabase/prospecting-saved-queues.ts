@@ -48,7 +48,7 @@ async function getOrgAndUser() {
     .eq('id', user.id)
     .single()
 
-  const orgId = (profile as any)?.organization_id as string | null
+  const orgId = (profile as { organization_id?: string } | null)?.organization_id as string | null
   if (!orgId) return null
 
   return { userId: user.id, orgId }

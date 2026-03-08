@@ -76,7 +76,7 @@ export const GET = withRateLimit(async function GET(request: Request) {
   const nextCursor = nextOffset < total ? encodeOffsetCursor(nextOffset) : null;
 
   return NextResponse.json({
-    data: (data || []).map((c: any) => ({
+    data: (data || []).map((c) => ({
       id: c.id,
       name: c.name,
       email: c.email ?? null,
@@ -138,7 +138,7 @@ export const POST = withRateLimit(async function POST(request: Request) {
   if (existing.error) return NextResponse.json({ error: existing.error.message, code: 'DB_ERROR' }, { status: 500 });
 
   const now = new Date().toISOString();
-  const payload: any = {
+  const payload: Record<string, unknown> = {
     organization_id: auth.organizationId,
     email,
     phone,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { DealView, Board, CustomFieldDefinition } from '@/types';
+import { DealView, Board, CustomFieldDefinition, LifecycleStage } from '@/types';
 import { useAI } from '@/context/AIContext';
 import { isDealRotting } from './boardUtils';
 
@@ -15,9 +15,9 @@ interface UseBoardViewParams {
   boardsFetching: boolean;
   boardsUpdatedAt: number;
   boardsCount: number;
-  moveDealMutation: { mutate: (...args: any[]) => void };
-  deleteDealMutation: { mutate: (...args: any[]) => void };
-  lifecycleStages: any;
+  moveDealMutation: { mutate: (args: { dealId: string; targetStageId: string; deal: DealView; board: Board; lifecycleStages: LifecycleStage[] }) => void };
+  deleteDealMutation: { mutate: (id: string) => void };
+  lifecycleStages: LifecycleStage[];
   clearDealSelectionTrigger: 'kanban' | 'list'; // viewMode for clearing on switch
 }
 

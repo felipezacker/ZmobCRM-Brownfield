@@ -72,8 +72,8 @@ export const McpSection: React.FC = () => {
       // UX: leva o foco pro campo do Passo 2.
       setTimeout(() => apiKeyInputRef.current?.focus(), 0);
       return token;
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao criar chave', 'error');
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao criar chave', 'error');
       return null;
     } finally {
       setCreatingKey(false);
@@ -95,11 +95,11 @@ export const McpSection: React.FC = () => {
 
   const parseJsonSafe = async (res: Response) => {
     const text = await res.text().catch(() => '');
-    if (!text) return { json: null as any, text: '' };
+    if (!text) return { json: null as unknown, text: '' };
     try {
       return { json: JSON.parse(text), text };
     } catch {
-      return { json: null as any, text };
+      return { json: null as unknown, text };
     }
   };
 
@@ -165,7 +165,7 @@ export const McpSection: React.FC = () => {
         return;
       }
 
-      const tools = (listParsed?.json?.result?.tools as any[]) || [];
+      const tools = (listParsed?.json?.result?.tools as Record<string, unknown>[]) || [];
       const toolsPreview = tools
         .map((t) => t?.name)
         .filter((v) => typeof v === 'string')
@@ -178,8 +178,8 @@ export const McpSection: React.FC = () => {
         toolsPreview,
         testedAtIso: new Date().toISOString(),
       });
-    } catch (e: any) {
-      setTestResult({ ok: false, message: e?.message || 'Erro no teste', testedAtIso: new Date().toISOString() });
+    } catch (e: unknown) {
+      setTestResult({ ok: false, message: e instanceof Error ? e.message : 'Erro no teste', testedAtIso: new Date().toISOString() });
     } finally {
       setTesting(false);
     }

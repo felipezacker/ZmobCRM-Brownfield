@@ -47,7 +47,7 @@ export const GET = withRateLimit(async function GET(request: Request) {
   const nextCursor = nextOffset < total ? encodeOffsetCursor(nextOffset) : null;
 
   return NextResponse.json({
-    data: (data || []).map((c: any) => ({
+    data: (data || []).map((c) => ({
       id: c.id,
       name: c.name,
       website: c.website ?? null,
@@ -102,7 +102,7 @@ export const POST = withRateLimit(async function POST(request: Request) {
   const existing = { data: lookupResult.data?.[0] ?? null };
 
   const now = new Date().toISOString();
-  const payload: any = {
+  const payload: Record<string, unknown> = {
     organization_id: auth.organizationId,
     name: name || '',
     website,

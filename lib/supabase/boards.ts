@@ -18,10 +18,14 @@ import { Board, BoardStage, BoardGoal, AgentPersona, OrganizationId } from '@/ty
 import { sanitizeUUID, requireUUID } from './utils';
 import { slugify } from '@/lib/utils/slugify';
 
+interface PostgrestError {
+  message?: string;
+  code?: string;
+  details?: string;
+}
+
 function isMissingColumnInSchemaCache(error: unknown, table: string, column: string): boolean {
-  const message = String((error as any)?.message ?? '');
-  // PostgREST error example:
-  // "Could not find the 'default_product_id' column of 'boards' in the schema cache"
+  const message = String((error as PostgrestError)?.message ?? '');
   return (
     message.includes(`Could not find the '${column}' column`) &&
     message.includes(`'${table}'`) &&
@@ -51,7 +55,7 @@ async function getCurrentOrganizationId(): Promise<string | null> {
 
   if (error) return null;
 
-  const orgId = sanitizeUUID((profile as any)?.organization_id);
+  const orgId = sanitizeUUID((profile as Record<string, unknown>)?.organization_id as string | undefined);
   cachedOrgUserId = user.id;
   cachedOrgId = orgId;
   return orgId;
@@ -190,7 +194,7 @@ const transformBoard = (db: DbBoard, stages: DbBoardStage[]): Board => {
   return {
     id: db.id,
     organizationId: db.organization_id,
-    key: (db as any).key || undefined,
+    key: db.key || undefined,
     name: db.name,
     description: db.description || undefined,
     isDefault: db.is_default,
@@ -201,7 +205,7 @@ const transformBoard = (db: DbBoard, stages: DbBoardStage[]): Board => {
     lostStageId: db.lost_stage_id || undefined,
     wonStayInStage: db.won_stay_in_stage || false,
     lostStayInStage: db.lost_stay_in_stage || false,
-    defaultProductId: (db as any).default_product_id || undefined,
+    defaultProductId: db.default_product_id || undefined,
     goal,
     agentPersona,
     entryTrigger: db.entry_trigger || undefined,
@@ -220,9 +224,10 @@ function normalizeBoardKey(input: string | undefined | null): string | null {
 }
 
 function isUniqueViolationOnIndex(error: unknown, indexName: string): boolean {
-  const code = String((error as any)?.code ?? '');
-  const message = String((error as any)?.message ?? '');
-  const details = String((error as any)?.details ?? '');
+  const pgError = error as PostgrestError;
+  const code = String(pgError?.code ?? '');
+  const message = String(pgError?.message ?? '');
+  const details = String(pgError?.details ?? '');
   return code === '23505' && (message.includes(indexName) || details.includes(indexName));
 }
 
@@ -267,9 +272,9 @@ const transformToDb = (board: Omit<Board, 'id' | 'createdAt'>, order?: number): 
     db.default_product_id = defaultProductId;
   }
 
-  const key = normalizeBoardKey((board as any).key);
+  const key = normalizeBoardKey(board.key);
   if (key) {
-    (db as any).key = key;
+    db.key = key;
   }
 
   return db;
@@ -385,7 +390,7 @@ export const boardsService = {
 
       // Ensure we always set organization_id for boards/stages (prevents downstream deal creation failures).
       const organizationId =
-        sanitizeUUID((board as any).organizationId) || (await getCurrentOrganizationId());
+        sanitizeUUID(board.organizationId) || (await getCurrentOrganizationId());
 
       if (!organizationId) {
         return { data: null, error: new Error('Organização não identificada para este board. Recarregue a página e tente novamente.') };
@@ -403,18 +408,16 @@ export const boardsService = {
       }
 
       // 1. Create board
-      const baseKey = normalizeBoardKey((board as any).key) || normalizeBoardKey(board.name);
-      const boardDataBase: any = {
+      const baseKey = normalizeBoardKey(board.key) || normalizeBoardKey(board.name);
+      const boardDataBase: Partial<DbBoard> & { organization_id: string } = {
         ...transformToDb(board, boardOrder),
         organization_id: organizationId,
-        // For won/lost stages, we can't save them yet because stages don't exist
         won_stage_id: null,
         lost_stage_id: null,
       };
 
-      // Try insert with a stable key, retrying on unique violations by suffixing.
-      let newBoard: any = null;
-      let boardError: any = null;
+      let newBoard: DbBoard | null = null;
+      let boardError: PostgrestError | null = null;
 
       const MAX_KEY_ATTEMPTS = 20;
       for (let attempt = 0; attempt <= MAX_KEY_ATTEMPTS; attempt += 1) {
@@ -422,7 +425,7 @@ export const boardsService = {
           ? (attempt === 0 ? baseKey : `${baseKey}-${attempt + 1}`)
           : null;
 
-        const boardData: any = { ...boardDataBase };
+        const boardData: Partial<DbBoard> & { organization_id: string } = { ...boardDataBase };
         if (candidateKey) boardData.key = candidateKey;
 
         let insert = await supabase
@@ -431,22 +434,18 @@ export const boardsService = {
           .select()
           .single();
 
-        // Backwards-compat: DB may not have default_product_id yet (migration not applied).
         if (insert.error && isMissingColumnInSchemaCache(insert.error, 'boards', 'default_product_id')) {
-          const retryData = { ...(boardData as any) };
-          delete retryData.default_product_id;
+          const { default_product_id: _, ...retryData } = boardData;
           insert = await supabase.from('boards').insert(retryData).select().single();
         }
 
-        // Backwards-compat: DB may not have key yet (migration not applied).
         if (insert.error && isMissingColumnInSchemaCache(insert.error, 'boards', 'key')) {
-          const retryData = { ...(boardData as any) };
-          delete retryData.key;
+          const { key: _, ...retryData } = boardData;
           insert = await supabase.from('boards').insert(retryData).select().single();
         }
 
-        newBoard = insert.data as any;
-        boardError = insert.error as any;
+        newBoard = insert.data as DbBoard | null;
+        boardError = insert.error as PostgrestError | null;
 
         if (boardError && isUniqueViolationOnIndex(boardError, 'idx_boards_org_key_unique')) {
           continue;
@@ -455,9 +454,12 @@ export const boardsService = {
         break;
       }
 
-      if (boardError) {
+      if (boardError || !newBoard) {
         console.error('[boardsService.create] Board insert error:', boardError);
-        return { data: null, error: boardError };
+        const errorObj = boardError
+          ? new Error(boardError.message || 'Board insert error')
+          : new Error('Board insert returned no data');
+        return { data: null, error: errorObj };
       }
 
       // 2. Create stages and track ID mapping
@@ -509,16 +511,15 @@ export const boardsService = {
             lost_stage_id: realLostStageId
           }).eq('id', newBoard.id);
 
-          // Update the local newBoard object to reflect this for response
-          if (realWonStageId) (newBoard as DbBoard).won_stage_id = realWonStageId;
-          if (realLostStageId) (newBoard as DbBoard).lost_stage_id = realLostStageId;
+          if (realWonStageId) newBoard.won_stage_id = realWonStageId;
+          if (realLostStageId) newBoard.lost_stage_id = realLostStageId;
         }
       }
 
       // 4. Return complete board
       // Use the inserted stages directly
       const result = {
-        data: transformBoard(newBoard as DbBoard, insertedStages),
+        data: transformBoard(newBoard, insertedStages),
         error: null
       };
       return result;
@@ -538,11 +539,11 @@ export const boardsService = {
         .eq('id', id)
         .single();
       const organizationId =
-        sanitizeUUID((boardRow as any)?.organization_id) || (await getCurrentOrganizationId());
+        sanitizeUUID((boardRow as Record<string, unknown> | null)?.organization_id as string | undefined) || (await getCurrentOrganizationId());
 
       const dbUpdates: Partial<DbBoard> = {};
 
-      if ((updates as any).key !== undefined) (dbUpdates as any).key = normalizeBoardKey((updates as any).key);
+      if (updates.key !== undefined) dbUpdates.key = normalizeBoardKey(updates.key);
       if (updates.name !== undefined) dbUpdates.name = updates.name;
       if (updates.description !== undefined) dbUpdates.description = updates.description || null;
       if (updates.isDefault !== undefined) dbUpdates.is_default = updates.isDefault;
@@ -553,7 +554,7 @@ export const boardsService = {
       if (updates.lostStageId !== undefined) dbUpdates.lost_stage_id = updates.lostStageId || null;
       if (updates.wonStayInStage !== undefined) dbUpdates.won_stay_in_stage = updates.wonStayInStage;
       if (updates.lostStayInStage !== undefined) dbUpdates.lost_stay_in_stage = updates.lostStayInStage;
-      if (updates.defaultProductId !== undefined) dbUpdates.default_product_id = sanitizeUUID(updates.defaultProductId as any);
+      if (updates.defaultProductId !== undefined) dbUpdates.default_product_id = sanitizeUUID(updates.defaultProductId);
       if (updates.entryTrigger !== undefined) dbUpdates.entry_trigger = updates.entryTrigger || null;
       if (updates.automationSuggestions !== undefined) dbUpdates.automation_suggestions = updates.automationSuggestions || null;
 
@@ -578,28 +579,22 @@ export const boardsService = {
         .update(dbUpdates)
         .eq('id', id);
 
-      // Backwards-compat: ignore key updates if column isn't present yet.
       if (error && isMissingColumnInSchemaCache(error, 'boards', 'key')) {
-        const retryUpdates = { ...(dbUpdates as any) };
-        delete retryUpdates.key;
+        const { key: _, ...retryUpdates } = dbUpdates;
         const retry = await supabase
           .from('boards')
           .update(retryUpdates)
           .eq('id', id);
-        error = retry.error as any;
+        error = retry.error;
       }
 
-      // Backwards-compat: ignore default_product_id updates if column isn't present yet.
       if (error && isMissingColumnInSchemaCache(error, 'boards', 'default_product_id')) {
-        const retryUpdates = { ...(dbUpdates as any) };
-        delete retryUpdates.default_product_id;
-
+        const { default_product_id: _, ...retryUpdates } = dbUpdates;
         const retry = await supabase
           .from('boards')
           .update(retryUpdates)
           .eq('id', id);
-
-        error = retry.error as any;
+        error = retry.error;
       }
 
       if (error) return { error };

@@ -10,7 +10,7 @@ type JsonRpcRequest = {
   jsonrpc: '2.0';
   id?: string | number | null;
   method: string;
-  params?: any;
+  params?: Record<string, unknown>;
 };
 
 function jsonRpcResult(id: JsonRpcRequest['id'], result: unknown) {
@@ -45,7 +45,7 @@ async function authMcp(request: Request) {
 }
 
 function toToolResult(payload: unknown, opts?: { isError?: boolean }) {
-  const isError = !!opts?.isError || (payload && typeof payload === 'object' && !Array.isArray(payload) && 'error' in (payload as any));
+  const isError = !!opts?.isError || (payload && typeof payload === 'object' && !Array.isArray(payload) && 'error' in (payload as Record<string, unknown>));
   const text = JSON.stringify(payload, null, 2);
 
   // MCP guidance: when returning structuredContent, also include serialized JSON in a text block.
@@ -148,28 +148,35 @@ export async function POST(request: Request) {
     }
 
     // Validate inputs using the underlying Zod schema when available.
-    const schema: any = (tool as any).inputSchema;
-    if (schema && typeof schema.safeParse === 'function') {
-      const parsed = schema.safeParse(args);
+    const schema: unknown = (tool as Record<string, unknown>).inputSchema;
+    const executeFn = (tool as Record<string, unknown>).execute as
+      | ((args: unknown) => Promise<unknown> | unknown)
+      | undefined;
+
+    if (schema && typeof (schema as Record<string, unknown>).safeParse === 'function') {
+      const safeParse = (schema as { safeParse: (v: unknown) => { success: boolean; data?: unknown; error?: { issues?: Array<{ message?: string }> } } }).safeParse;
+      const parsed = safeParse(args);
       if (!parsed.success) {
-        const msg = parsed.error?.issues?.map((i: any) => i?.message).filter(Boolean).join('; ') || 'Invalid tool arguments';
+        const msg = parsed.error?.issues?.map((i) => i?.message).filter(Boolean).join('; ') || 'Invalid tool arguments';
         return NextResponse.json(jsonRpcResult(body.id, toToolResult({ error: msg }, { isError: true })));
       }
 
       try {
-        const out = await (tool as any).execute(parsed.data);
+        const out = executeFn ? await executeFn(parsed.data) : undefined;
         return NextResponse.json(jsonRpcResult(body.id, toToolResult(out)));
-      } catch (e: any) {
-        return NextResponse.json(jsonRpcResult(body.id, toToolResult({ error: e?.message || 'Tool execution failed' }, { isError: true })));
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'Tool execution failed';
+        return NextResponse.json(jsonRpcResult(body.id, toToolResult({ error: message }, { isError: true })));
       }
     }
 
     // No schema: best-effort execute.
     try {
-      const out = await (tool as any).execute(args);
+      const out = executeFn ? await executeFn(args) : undefined;
       return NextResponse.json(jsonRpcResult(body.id, toToolResult(out)));
-    } catch (e: any) {
-      return NextResponse.json(jsonRpcResult(body.id, toToolResult({ error: e?.message || 'Tool execution failed' }, { isError: true })));
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Tool execution failed';
+      return NextResponse.json(jsonRpcResult(body.id, toToolResult({ error: message }, { isError: true })));
     }
   }
 

@@ -159,7 +159,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
         try {
           const raw = sessionStorage.getItem(CREATE_BOARD_DRAFT_KEY);
           if (raw) {
-            const draft = JSON.parse(raw) as any;
+            const draft = JSON.parse(raw) as Record<string, unknown>;
             if (draft && typeof draft === 'object') {
               setName(String(draft.name ?? ''));
               setBoardKey(String(draft.boardKey ?? ''));
@@ -282,13 +282,13 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
       name: name.trim(),
       key: normalizedKey || undefined,
       description: description.trim() || undefined,
-      nextBoardId: (nextBoardId || null) as any,
-      linkedLifecycleStage: (linkedLifecycleStage || null) as any,
-      wonStageId: (wonStageId || null) as any,
-      lostStageId: (lostStageId || null) as any,
+      nextBoardId: nextBoardId || undefined,
+      linkedLifecycleStage: linkedLifecycleStage || undefined,
+      wonStageId: wonStageId || undefined,
+      lostStageId: lostStageId || undefined,
       wonStayInStage,
       lostStayInStage,
-      defaultProductId: (defaultProductId || null) as any,
+      defaultProductId: defaultProductId || undefined,
       template: selectedTemplate || 'CUSTOM',
       stages,
       isDefault: false

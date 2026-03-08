@@ -41,7 +41,7 @@ async function getCurrentOrganizationId(): Promise<string | null> {
 
   if (error) return null;
 
-  const orgId = sanitizeUUID((profile as any)?.organization_id);
+  const orgId = sanitizeUUID((profile as { organization_id?: string } | null)?.organization_id);
   cachedOrgUserId = user.id;
   cachedOrgId = orgId;
   return orgId;
@@ -360,7 +360,7 @@ export const dealsService = {
 
       // organization_id é obrigatório no banco. Se não vier do caller, inferimos pelo board.
       // (Evita deals com organization_id NULL que somem de ferramentas e quebram isolamento multi-tenant.)
-      let organizationId: string | null = sanitizeUUID((deal as any).organizationId);
+      let organizationId: string | null = sanitizeUUID((deal as { organizationId?: string }).organizationId);
 
       // Validação: verifica se o board existe antes de inserir
       const { data: boardExists, error: boardCheckError } = await supabase
@@ -377,7 +377,7 @@ export const dealsService = {
       }
 
       if (!organizationId) {
-        organizationId = sanitizeUUID((boardExists as any).organization_id);
+        organizationId = sanitizeUUID((boardExists as { organization_id?: string }).organization_id);
       }
 
       if (!organizationId) {
@@ -681,7 +681,7 @@ export const dealsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
-      const updates: Record<string, any> = {
+      const updates: Record<string, unknown> = {
         is_lost: true,
         is_won: false,
         closed_at: new Date().toISOString(),

@@ -234,7 +234,7 @@ export function useCRMActions() {
         completed: true,
       });
     }
-  }, [contacts, activeBoard, activeBoardId, addDealState, addActivity]);
+  }, [contacts, activeBoard, activeBoardId, addDealState, addActivity, ownerName, ownerAvatar]);
 
   const convertLead = useCallback(async (leadId: string) => {
     const lead = leads.find(l => l.id === leadId);
@@ -286,7 +286,7 @@ export function useCRMActions() {
         completed: true,
       });
     }
-  }, [leads, activeBoard, activeBoardId, addContact, addDealState, addActivity, discardLead]);
+  }, [leads, activeBoard, activeBoardId, addContact, addDealState, addActivity, discardLead, ownerName, ownerAvatar]);
 
   const checkWalletHealth = useCallback(async () => {
     const thirtyDaysAgo = new Date();

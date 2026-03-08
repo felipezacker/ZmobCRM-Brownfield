@@ -18,6 +18,12 @@ import { sanitizeUUID } from './utils';
 import { sortActivitiesSmart } from '@/lib/utils/activitySort';
 import { recalculateScore } from './lead-scoring';
 
+interface PostgrestError {
+  message?: string;
+  code?: string;
+  details?: string;
+}
+
 // ============================================
 // HELPERS
 // ============================================
@@ -40,7 +46,7 @@ async function getOrganizationId(): Promise<string | null> {
 
   if (error) return null;
 
-  const orgId = sanitizeUUID((profile as any)?.organization_id);
+  const orgId = sanitizeUUID((profile as { organization_id?: string } | null)?.organization_id);
   cachedOrgUserId = user.id;
   cachedOrgId = orgId;
   return orgId;
@@ -110,7 +116,7 @@ const transformActivity = (db: DbActivityWithDeal): Activity => ({
   completed: db.completed,
   dealId: db.deal_id || undefined,
   contactId: db.contact_id || undefined,
-  participantContactIds: (db as any).participant_contact_ids || [],
+  participantContactIds: db.participant_contact_ids || [],
   dealTitle: db.deals?.title || '',
   user: { name: 'Você', avatar: '' }, // Will be enriched later
   recurrenceType: (db.recurrence_type as Activity['recurrenceType']) || null,
@@ -134,10 +140,10 @@ const transformActivityToDb = (activity: Partial<Activity>): Partial<DbActivity>
   if (activity.completed !== undefined) db.completed = activity.completed;
   if (activity.dealId !== undefined) db.deal_id = sanitizeUUID(activity.dealId);
   if (activity.contactId !== undefined) db.contact_id = sanitizeUUID(activity.contactId);
-  if (activity.participantContactIds !== undefined) (db as any).participant_contact_ids = activity.participantContactIds || [];
+  if (activity.participantContactIds !== undefined) db.participant_contact_ids = activity.participantContactIds || [];
   if (activity.recurrenceType !== undefined) db.recurrence_type = activity.recurrenceType || null;
   if (activity.recurrenceEndDate !== undefined) db.recurrence_end_date = activity.recurrenceEndDate || null;
-  if (activity.metadata !== undefined) (db as any).metadata = activity.metadata || null;
+  if (activity.metadata !== undefined) db.metadata = activity.metadata || null;
 
   return db;
 };
@@ -213,14 +219,15 @@ export const activitiesService = {
 
       const { data: { user } } = await sb.auth.getUser();
 
-      const insertData: any = {
+      const contactIdSanitized = sanitizeUUID(activity.contactId);
+      const insertData: Record<string, unknown> = {
         title: activity.title,
         description: activity.description || null,
         type: activity.type,
         date: activity.date,
         completed: activity.completed || false,
         deal_id: sanitizeUUID(activity.dealId),
-        contact_id: sanitizeUUID(activity.contactId),
+        contact_id: contactIdSanitized,
         participant_contact_ids: activity.participantContactIds || [],
         organization_id: orgId,
         owner_id: user?.id || null,
@@ -232,9 +239,9 @@ export const activitiesService = {
       const { data, error } = await sb.from('activities').insert(insertData).select().single();
 
       if (error) {
-        // Se a migration ainda não foi aplicada ou schema cache desatualizado, retry sem os novos campos.
-        const msg = (error as any)?.message || '';
-        const code = (error as any)?.code || '';
+        const pgError = error as PostgrestError;
+        const msg = pgError?.message || '';
+        const code = pgError?.code || '';
         const isColumnMissing = code === '42703' || msg.includes('schema cache') || code === 'PGRST204';
         if (isColumnMissing) {
           if (msg.includes('participant_contact_ids')) delete insertData.participant_contact_ids;
@@ -242,19 +249,17 @@ export const activitiesService = {
           if (msg.includes('recurrence_end_date')) delete insertData.recurrence_end_date;
           if (msg.includes('metadata')) delete insertData.metadata;
           const retry = await sb.from('activities').insert(insertData).select().single();
-          if (retry.error) return { data: null, error: retry.error as any };
+          if (retry.error) return { data: null, error: retry.error };
           const result = transformActivity(retry.data as DbActivity);
-          // Story 3.8 — fire-and-forget lead score recalculation
-          if (insertData.contact_id && insertData.completed) {
-            recalculateScore(insertData.contact_id, orgId).catch(() => {});
+          if (contactIdSanitized && activity.completed) {
+            recalculateScore(contactIdSanitized, orgId).catch(() => {});
           }
           return { data: result, error: null };
         }
         return { data: null, error };
       }
-      // Story 3.8 — fire-and-forget lead score recalculation
-      if (insertData.contact_id && insertData.completed) {
-        recalculateScore(insertData.contact_id, orgId).catch(() => {});
+      if (contactIdSanitized && activity.completed) {
+        recalculateScore(contactIdSanitized, orgId).catch(() => {});
       }
       return { data: transformActivity(data as DbActivity), error: null };
     } catch (e) {
@@ -276,20 +281,21 @@ export const activitiesService = {
 
       const dbUpdates = transformActivityToDb(updates);
 
-      const { error } = await sb.from('activities').update(dbUpdates as any).eq('id', id);
+      const { error } = await sb.from('activities').update(dbUpdates as Partial<DbActivity>).eq('id', id);
 
       // Retry se colunas novas não existem ainda ou schema cache desatualizado
       if (error) {
-        const msg = (error as any)?.message || '';
-        const code = (error as any)?.code || '';
+        const pgError = error as PostgrestError;
+        const msg = pgError?.message || '';
+        const code = pgError?.code || '';
         const isColumnMissing = code === '42703' || msg.includes('schema cache') || code === 'PGRST204';
         if (isColumnMissing) {
-          const cleaned = { ...dbUpdates } as any;
+          const cleaned: Record<string, unknown> = { ...dbUpdates };
           if (msg.includes('participant_contact_ids')) delete cleaned.participant_contact_ids;
           if (msg.includes('recurrence_type')) delete cleaned.recurrence_type;
           if (msg.includes('recurrence_end_date')) delete cleaned.recurrence_end_date;
           const retry = await sb.from('activities').update(cleaned).eq('id', id);
-          if (retry.error) return { error: retry.error as any };
+          if (retry.error) return { error: retry.error };
           return { error: null };
         }
       }

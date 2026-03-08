@@ -2,8 +2,8 @@
 // DataStorageSettings - Configurações de armazenamento de dados (SIMPLIFICADO)
 // =============================================================================
 
-import React, { useState } from 'react';
-import { Database, AlertTriangle, Trash2, Loader2 } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Database, AlertTriangle, Trash2, Loader2, Unlink, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useContacts } from '@/context/contacts/ContactsContext';
@@ -167,9 +167,9 @@ export const DataStorageSettings: React.FC = () => {
             setConfirmText('');
             setShowDangerZone(false);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Erro ao zerar database:', error);
-            addToast(`Erro: ${error.message}`, 'error');
+            addToast(`Erro: ${error instanceof Error ? error.message : String(error)}`, 'error');
         } finally {
             setIsDeleting(false);
         }
@@ -203,6 +203,9 @@ export const DataStorageSettings: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Orphan Deals - Data Health (AC13, AC14) */}
+            {isAdmin && <OrphanDealsSection />}
 
             {/* Danger Zone - Só para Admin */}
             {isAdmin && (
@@ -271,6 +274,209 @@ export const DataStorageSettings: React.FC = () => {
                                 </Button>
                             </div>
                         </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ---------------------------------------------------------------------------
+// OrphanDealsSection — Data health card for deals without contact (DB-003)
+// ---------------------------------------------------------------------------
+
+interface OrphanDeal {
+    id: string;
+    title: string;
+    value: number | null;
+    status: string | null;
+    board_id: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+const OrphanDealsSection: React.FC = () => {
+    const sb = supabase;
+    const { addToast } = useToast();
+    const { contacts } = useContacts();
+    const queryClient = useQueryClient();
+
+    const [count, setCount] = useState<number | null>(null);
+    const [orphans, setOrphans] = useState<OrphanDeal[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [expanded, setExpanded] = useState(false);
+    const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [assignContactId, setAssignContactId] = useState('');
+    const [actionLoading, setActionLoading] = useState(false);
+
+    const fetchCount = useCallback(async () => {
+        if (!sb) return;
+        const { data, error } = await sb.rpc('get_orphan_deals_count');
+        if (!error && typeof data === 'number') setCount(data);
+    }, [sb]);
+
+    useEffect(() => { fetchCount(); }, [fetchCount]);
+
+    const fetchOrphans = async () => {
+        if (!sb) return;
+        setLoading(true);
+        const { data, error } = await sb.rpc('list_orphan_deals', { p_limit: 50, p_offset: 0 });
+        if (error) {
+            addToast('Erro ao carregar deals órfãos', 'error');
+        } else {
+            setOrphans((data ?? []) as OrphanDeal[]);
+        }
+        setLoading(false);
+    };
+
+    const toggleExpand = () => {
+        if (!expanded) fetchOrphans();
+        setExpanded(!expanded);
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelected(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const selectAll = () => {
+        if (selected.size === orphans.length) setSelected(new Set());
+        else setSelected(new Set(orphans.map(o => o.id)));
+    };
+
+    const handleAssign = async () => {
+        if (!sb || !assignContactId || selected.size === 0) return;
+        setActionLoading(true);
+        const { data, error } = await sb.rpc('assign_orphan_deals_to_contact', {
+            p_deal_ids: Array.from(selected),
+            p_contact_id: assignContactId,
+        });
+        if (error) {
+            addToast(error.message || 'Erro ao atribuir deals', 'error');
+        } else {
+            addToast(`${data} deal(s) atribuído(s) ao contato`, 'success');
+            setSelected(new Set());
+            setAssignContactId('');
+            await fetchCount();
+            await fetchOrphans();
+            await queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+        }
+        setActionLoading(false);
+    };
+
+    const handleDelete = async () => {
+        if (!sb || selected.size === 0) return;
+        if (!window.confirm(`Tem certeza que deseja excluir ${selected.size} deal(s) órfão(s)?`)) return;
+        setActionLoading(true);
+        const { data, error } = await sb.rpc('delete_orphan_deals', {
+            p_deal_ids: Array.from(selected),
+        });
+        if (error) {
+            addToast(error.message || 'Erro ao excluir deals', 'error');
+        } else {
+            addToast(`${data} deal(s) excluído(s)`, 'success');
+            setSelected(new Set());
+            await fetchCount();
+            await fetchOrphans();
+            await queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
+        }
+        setActionLoading(false);
+    };
+
+    if (count === null || count === 0) return null;
+
+    return (
+        <div className="bg-white dark:bg-dark-card rounded-lg border border-amber-200 dark:border-amber-900/50 p-6">
+            <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                    <Unlink className="w-5 h-5" />
+                    Deals Órfãos
+                </h3>
+                <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-amber-600 dark:text-amber-300">{count}</span>
+                    <Button
+                        type="button"
+                        onClick={toggleExpand}
+                        className="text-sm text-amber-700 dark:text-amber-300 underline"
+                    >
+                        {expanded ? 'Recolher' : 'Ver detalhes'}
+                    </Button>
+                </div>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Negócios sem contato vinculado. Podem ser atribuídos a um contato ou excluídos.
+            </p>
+
+            {expanded && (
+                <div className="mt-4 space-y-3">
+                    {loading ? (
+                        <div className="flex items-center gap-2 text-slate-500"><Loader2 className="w-4 h-4 animate-spin" /> Carregando...</div>
+                    ) : orphans.length === 0 ? (
+                        <p className="text-sm text-slate-500">Nenhum deal órfão encontrado.</p>
+                    ) : (
+                        <>
+                            <div className="flex items-center gap-2 mb-2">
+                                <Button type="button" onClick={selectAll} className="text-xs text-slate-600 dark:text-slate-300 underline">
+                                    {selected.size === orphans.length ? 'Desmarcar todos' : 'Selecionar todos'}
+                                </Button>
+                                <span className="text-xs text-slate-500">{selected.size} selecionado(s)</span>
+                            </div>
+
+                            <div className="max-h-60 overflow-y-auto border border-slate-200 dark:border-white/10 rounded-lg divide-y divide-slate-100 dark:divide-white/5">
+                                {orphans.map(o => (
+                                    <label key={o.id} className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer">
+                                        <input type="checkbox" checked={selected.has(o.id)} onChange={() => toggleSelect(o.id)} className="rounded" />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-medium text-slate-900 dark:text-white truncate">{o.title}</div>
+                                            <div className="text-xs text-slate-500">
+                                                {o.value != null ? `R$ ${o.value.toLocaleString('pt-BR')}` : 'Sem valor'}
+                                                {' · '}
+                                                {new Date(o.updated_at).toLocaleDateString('pt-BR')}
+                                            </div>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+
+                            {selected.size > 0 && (
+                                <div className="flex flex-wrap items-end gap-3 pt-2">
+                                    <div className="flex-1 min-w-[200px]">
+                                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">Atribuir ao contato:</label>
+                                        <select
+                                            value={assignContactId}
+                                            onChange={e => setAssignContactId(e.target.value)}
+                                            className="w-full px-3 py-2 text-sm bg-white dark:bg-dark-bg border border-slate-200 dark:border-white/10 rounded-lg"
+                                        >
+                                            <option value="">Selecione um contato...</option>
+                                            {contacts.slice(0, 100).map(c => (
+                                                <option key={c.id} value={c.id}>{c.name} {c.email ? `(${c.email})` : ''}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        onClick={handleAssign}
+                                        disabled={!assignContactId || actionLoading}
+                                        className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-medium inline-flex items-center gap-2"
+                                    >
+                                        {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                                        Atribuir
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={handleDelete}
+                                        disabled={actionLoading}
+                                        className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium inline-flex items-center gap-2"
+                                    >
+                                        {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                        Excluir
+                                    </Button>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             )}

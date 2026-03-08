@@ -22,7 +22,18 @@
 - notifications table is separate from system_notifications (duplication)
 
 ## File Locations
-- Migrations: `supabase/migrations/` (42 files)
-- Schema doc: `supabase/docs/SCHEMA.md`
+- Migrations: `supabase/migrations/` (now 45 files after DB-003, DB-004)
+- Schema doc: `supabase/docs/SCHEMA.md` (39 tables documented)
 - Audit doc: `supabase/docs/DB-AUDIT.md`
 - Config: `supabase/config.toml`
+
+## Completed DB Tasks (as of 2026-03-08)
+- **DB-003:** Orphan deals visibility (4 RPCs created)
+  - `get_orphan_deals_count()` — returns integer count (STABLE, SECURITY INVOKER)
+  - `list_orphan_deals(p_limit, p_offset)` — paginated TABLE return with id, title, value, status, board_id, created_at, updated_at
+  - `assign_orphan_deals_to_contact(deal_ids[], contact_id)` — bulk assign orphans, validates contact exists + same org
+  - `delete_orphan_deals(deal_ids[])` — bulk soft-delete (SET deleted_at = NOW())
+  - Migration: `/supabase/migrations/20260308100001_db003_orphan_deals_visibility.sql` (186 lines)
+  - Docs: `docs/DB-003_ORPHAN_DEALS_MIGRATION_SUMMARY.md` + `docs/DB-003_IMPLEMENTATION_GUIDE.md`
+  - All functions GRANTED to authenticated role
+  - All functions use `get_user_organization_id()` for org scoping

@@ -59,7 +59,7 @@ export const UsersPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState<string | null>(null); // id do usuário em ação
     const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
-    const [activeInvites, setActiveInvites] = useState<any[]>([]);
+    const [activeInvites, setActiveInvites] = useState<Array<{ id: string; token: string; role: string; expires_at: string | null; used_at: string | null }>>([]);
     const [expirationDays, setExpirationDays] = useState<number | null>(7); // 7 days default, null = never
 
     const sb = supabase;
@@ -101,7 +101,7 @@ export const UsersPage: React.FC = () => {
 
             const invites = data?.invites || [];
             const nowTs = Date.now();
-            const validInvites = (invites || []).filter((invite: any) => {
+            const validInvites = (invites || []).filter((invite: { used_at?: string | null; expires_at?: string | null }) => {
                 // Only show invites that are not used
                 if (invite.used_at) return false;
                 // If no expiration, it's valid
@@ -185,8 +185,8 @@ export const UsersPage: React.FC = () => {
             await new Promise(resolve => setTimeout(resolve, 100));
             
             addToast('Novo link gerado!', 'success');
-        } catch (err: any) {
-            setError(err.message || 'Erro ao gerar link');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Erro ao gerar link');
         } finally {
             setSendingInvites(false);
         }
@@ -206,7 +206,7 @@ export const UsersPage: React.FC = () => {
 
             await fetchActiveInvites();
             addToast('Link removido!', 'success');
-        } catch (err: any) {
+        } catch (err: unknown) {
             addToast('Erro ao remover link', 'error');
         }
     };
@@ -239,8 +239,8 @@ export const UsersPage: React.FC = () => {
                 'success'
             );
             fetchUsers();
-        } catch (err: any) {
-            addToast(`Erro: ${err.message}`, 'error');
+        } catch (err: unknown) {
+            addToast(`Erro: ${err instanceof Error ? err.message : 'Erro desconhecido'}`, 'error');
         } finally {
             setActionLoading(null);
         }

@@ -54,8 +54,8 @@ export const AIFeaturesSection: React.FC = () => {
     try {
       await setAIFeatureFlag(key, enabled);
       showToast(enabled ? 'Função ativada' : 'Função desativada', 'success');
-    } catch (e: any) {
-      showToast(e?.message || 'Falha ao salvar', 'error');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Falha ao salvar', 'error');
     } finally {
       setSavingKey(null);
     }
@@ -88,8 +88,8 @@ export const AIFeaturesSection: React.FC = () => {
       const fallbackDefault = catalogMap?.[feature.promptKey]?.defaultTemplate || '';
       const next = activeContent.trim().length > 0 ? activeContent : fallbackDefault;
       setPromptDraft(next || '');
-    } catch (e: any) {
-      showToast(e?.message || 'Falha ao carregar prompt', 'error');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Falha ao carregar prompt', 'error');
       setPromptDraft('');
     } finally {
       setPromptLoading(false);
@@ -126,8 +126,8 @@ export const AIFeaturesSection: React.FC = () => {
       if (!res.ok) throw new Error(data?.error || `Falha ao salvar prompt (HTTP ${res.status})`);
       showToast('Prompt salvo!', 'success');
       closePromptEditor();
-    } catch (e: any) {
-      showToast(e?.message || 'Falha ao salvar prompt', 'error');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Falha ao salvar prompt', 'error');
     } finally {
       setPromptSaving(false);
     }
@@ -146,8 +146,8 @@ export const AIFeaturesSection: React.FC = () => {
       if (!res.ok) throw new Error(data?.error || `Falha ao resetar prompt (HTTP ${res.status})`);
       showToast('Prompt resetado (voltou ao padrão)', 'success');
       closePromptEditor();
-    } catch (e: any) {
-      showToast(e?.message || 'Falha ao resetar prompt', 'error');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Falha ao resetar prompt', 'error');
     } finally {
       setPromptResetting(false);
     }

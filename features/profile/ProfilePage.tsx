@@ -168,7 +168,7 @@ export const ProfilePage: React.FC = () => {
             setAvatarUrl(urlWithTimestamp);
             if (refreshProfile) await refreshProfile();
             setMessage({ type: 'success', text: 'Foto atualizada!' });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Upload error:', err);
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
@@ -200,7 +200,7 @@ export const ProfilePage: React.FC = () => {
             setAvatarUrl(null);
             if (refreshProfile) await refreshProfile();
             setMessage({ type: 'success', text: 'Foto removida!' });
-        } catch (err: any) {
+        } catch (err: unknown) {
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
             setUploadingAvatar(false);
@@ -257,7 +257,7 @@ export const ProfilePage: React.FC = () => {
 
             setMessage({ type: 'success', text: 'Perfil atualizado com sucesso!' });
             setIsEditingProfile(false);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
             setSavingProfile(false);
@@ -291,7 +291,7 @@ export const ProfilePage: React.FC = () => {
             setIsChangingPassword(false);
             setNewPassword('');
             setConfirmPassword('');
-        } catch (err: any) {
+        } catch (err: unknown) {
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
             setLoading(false);
@@ -311,7 +311,7 @@ export const ProfilePage: React.FC = () => {
             setMessage({ type: 'success', text: 'E-mail de confirmação enviado para o novo endereço!' });
             setIsChangingEmail(false);
             setNewEmail('');
-        } catch (err: any) {
+        } catch (err: unknown) {
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
             setLoading(false);

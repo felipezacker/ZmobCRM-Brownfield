@@ -78,7 +78,7 @@ export const useBoardFilters = ({
       }
       return matchesSearch && matchesOwner && matchesDate && matchesStatus && matchesRecent;
     }).map(deal => {
-      if (deal.ownerId === profileId || deal.ownerId === (profileId as any)) {
+      if (deal.ownerId === profileId) {
         return {
           ...deal,
           owner: {

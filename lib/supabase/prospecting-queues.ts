@@ -29,7 +29,7 @@ async function getOrganizationId(): Promise<string | null> {
     .eq('id', user.id)
     .single();
 
-  const orgId = (profile as any)?.organization_id as string | null;
+  const orgId = (profile as { organization_id?: string } | null)?.organization_id ?? null;
   cachedOrgUserId = user.id;
   cachedOrgId = orgId;
   return orgId;
@@ -159,7 +159,7 @@ export const prospectingQueuesService = {
         .limit(1)
         .maybeSingle();
 
-      const nextPosition = maxPos ? (maxPos as any).position + 1 : 0;
+      const nextPosition = maxPos ? (maxPos as { position: number }).position + 1 : 0;
 
       const { data, error } = await sb
         .from('prospecting_queues')
@@ -333,7 +333,7 @@ export const prospectingQueuesService = {
         .eq('owner_id', ownerId)
         .in('status', ['pending', 'in_progress']);
 
-      const existingSet = new Set((existing || []).map(e => (e as any).contact_id as string));
+      const existingSet = new Set((existing || []).map(e => (e as { contact_id: string }).contact_id));
 
       // Filter out duplicates
       const newContactIds = contactIds.filter(id => !existingSet.has(id));
@@ -351,7 +351,7 @@ export const prospectingQueuesService = {
         .limit(1)
         .maybeSingle();
 
-      let nextPosition = maxPos ? (maxPos as any).position + 1 : 0;
+      let nextPosition = maxPos ? (maxPos as { position: number }).position + 1 : 0;
 
       // Build batch insert rows
       const rows = newContactIds.map(contactId => ({
@@ -396,7 +396,7 @@ export const prospectingQueuesService = {
 
       if (fetchError) return { data: null, error: fetchError };
 
-      const currentCount = (current as any)?.retry_count ?? 0;
+      const currentCount = (current as { retry_count?: number })?.retry_count ?? 0;
       const newCount = currentCount + 1;
 
       if (newCount >= 3) {
@@ -497,7 +497,7 @@ export const prospectingQueuesService = {
       const { data, error } = await query;
       if (error) return { data: null, error };
 
-      return { data: (data || []).map(d => (d as any).contact_id as string), error: null };
+      return { data: (data || []).map(d => (d as { contact_id: string }).contact_id), error: null };
     } catch (e) {
       return { data: null, error: e as Error };
     }

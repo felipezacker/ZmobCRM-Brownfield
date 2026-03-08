@@ -83,7 +83,7 @@ export interface DbContact {
   /** Tags do contato. */
   tags: string[];
   /** Campos customizados (JSONB). */
-  custom_fields: Record<string, any>;
+  custom_fields: Record<string, unknown>;
 }
 
 /** Representação de contact_phones no banco de dados. */
@@ -461,7 +461,7 @@ export const contactsService = {
 
       // organization_id e owner_id são obrigatórios para RLS.
       // Se não vierem no objeto, inferimos do usuário autenticado.
-      let organizationId = sanitizeUUID((contact as any).organizationId);
+      let organizationId = sanitizeUUID((contact as { organizationId?: string }).organizationId);
       let ownerId = sanitizeUUID(contact.ownerId);
 
       if (!organizationId || !ownerId) {

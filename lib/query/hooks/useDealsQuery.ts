@@ -95,7 +95,7 @@ export const useDealsView = (filters?: DealsFilters) => {
         contactsService.getByIds(contactIds),
         ownerIds.length > 0 && supabase
           ? supabase.from('profiles').select('id, first_name, last_name, email, avatar_url').in('id', ownerIds)
-          : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({ data: [] as { id: string; first_name?: string; last_name?: string; email?: string; avatar_url?: string }[] }),
       ]);
 
       const contacts = contactsResult.data || [];
@@ -201,7 +201,7 @@ export const useDealsByBoard = (boardId: string) => {
         contactsService.getByIds(contactIds),
         ownerIds.length > 0 && supabase
           ? supabase.from('profiles').select('id, first_name, last_name, email, avatar_url').in('id', ownerIds)
-          : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({ data: [] as { id: string; first_name?: string; last_name?: string; email?: string; avatar_url?: string }[] }),
       ]);
 
       const contacts = contactsResult.data || [];

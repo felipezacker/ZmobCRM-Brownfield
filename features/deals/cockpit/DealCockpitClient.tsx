@@ -24,6 +24,7 @@ import { useAIDealAnalysis, deriveHealthFromProbability } from '@/features/inbox
 import { useDealNotes } from '@/features/inbox/hooks/useDealNotes';
 import { useDealFiles } from '@/features/inbox/hooks/useDealFiles';
 import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts';
+import type { QuickScript } from '@/lib/supabase/quickScripts';
 
 import { CallModal, type CallLogData } from '@/features/inbox/components/CallModal';
 import { MessageComposerModal, type MessageChannel, type MessageExecutedEvent } from '@/features/inbox/components/MessageComposerModal';
@@ -365,7 +366,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     setTemplatePickerMode(mode); setIsTemplatePickerOpen(true);
   }, []);
 
-  const handlePickTemplate = useCallback((script: any) => {
+  const handlePickTemplate = useCallback((script: QuickScript) => {
     if (!selectedDeal) return;
     const applied = applyVariables(script.template, templateVariables);
     const ctx = { source: 'template' as const, origin: 'nextBestAction' as const, template: { id: script.id, title: script.title }, aiSuggested: nextBestAction.isAI, aiActionType: nextBestAction.actionType };
@@ -390,10 +391,10 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     const items: ChecklistItem[] = [];
     for (const it of raw) {
       if (!it || typeof it !== 'object') continue;
-      const anyIt = it as any;
-      const id = typeof anyIt.id === 'string' && anyIt.id ? anyIt.id : uid('chk');
-      const text = typeof anyIt.text === 'string' ? anyIt.text.trim() : '';
-      const done = Boolean(anyIt.done);
+      const rec = it as Record<string, unknown>;
+      const id = typeof rec.id === 'string' && rec.id ? rec.id : uid('chk');
+      const text = typeof rec.text === 'string' ? rec.text.trim() : '';
+      const done = Boolean(rec.done);
       if (!text) continue;
       items.push({ id, text, done });
     }
@@ -401,7 +402,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
   }, []);
 
   const loadChecklistFromDeal = useCallback(() => {
-    const raw = (selectedDeal?.metadata as any)?.cockpitChecklist;
+    const raw = (selectedDeal?.metadata as Record<string, unknown> | undefined)?.cockpitChecklist;
     const parsed = normalizeChecklist(raw);
     setChecklist(parsed ?? defaultChecklist);
   }, [defaultChecklist, normalizeChecklist, selectedDeal?.metadata]);
@@ -796,7 +797,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             getCategoryInfo={getCategoryInfo}
             templateVariables={templateVariables}
             contactNotes={contact?.notes ?? null}
-            onUpdateContactNotes={(notes) => { if (contact?.id) updateContact(contact.id, { notes } as any); }}
+            onUpdateContactNotes={(notes) => { if (contact?.id) updateContact(contact.id, { notes } as Parameters<typeof updateContact>[1]); }}
             crmLoading={crmLoading}
             onRefreshCRM={() => void refreshCRM()}
             onCopy={(label, text) => void copyToClipboard(label, text)}

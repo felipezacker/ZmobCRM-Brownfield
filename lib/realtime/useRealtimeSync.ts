@@ -108,6 +108,10 @@ export function useRealtimeSync(
     onchangeRef.current = onchange;
   }, [onchange]);
 
+  // Stable serialization of tables param — avoids resubscription when caller
+  // passes a new array literal with identical content each render.
+  const tablesKey = JSON.stringify(tables);
+
   useEffect(() => {
     if (!enabled) return;
 
@@ -117,7 +121,7 @@ export function useRealtimeSync(
       return;
     }
 
-    const tableList = Array.isArray(tables) ? tables : [tables];
+    const tableList: RealtimeTable[] = JSON.parse(tablesKey);
     const channelName = `realtime-sync-${tableList.join('-')}`;
 
     // Cleanup existing channel if any
@@ -347,7 +351,7 @@ export function useRealtimeSync(
                   // If deal not found in cache, apply the update (it might be a new deal or from another tab)
                   if (!currentDeal) {
                     // Add the deal to cache (this can happen if deal was created in another tab)
-                    return [...old, newData as any];
+                    return [...old, newData as unknown as DealView];
                   }
                   
                   // Guard: When status hasn't changed, still merge non-status fields
@@ -355,7 +359,7 @@ export function useRealtimeSync(
                   // This enables cross-tab sync for changes that don't affect stage.
                   if (currentStatus && incomingStatus && currentStatus === incomingStatus) {
                     const incomingTs = (newData.updated_at || newData.updatedAt) as string | undefined;
-                    const currentTs = currentDeal.updatedAt || (currentDeal as any).updated_at;
+                    const currentTs = currentDeal.updatedAt || (currentDeal as unknown as Record<string, unknown>).updated_at as string | undefined;
                     const incomingMs = typeof incomingTs === 'string' ? new Date(incomingTs).getTime() : 0;
                     const currentMs = typeof currentTs === 'string' ? new Date(currentTs).getTime() : 0;
 
@@ -384,7 +388,7 @@ export function useRealtimeSync(
                     if (!payloadOldStatus || payloadOldStatus === '') {
                       const incomingUpdatedAtRaw = (newData.updated_at || newData.updatedAt) as string | undefined;
                       const incomingUpdatedAt = typeof incomingUpdatedAtRaw === 'string' ? new Date(incomingUpdatedAtRaw).getTime() : null;
-                      const currentUpdatedAtRaw = currentDeal && (currentDeal.updatedAt || (currentDeal as any).updated_at);
+                      const currentUpdatedAtRaw = currentDeal && (currentDeal.updatedAt || (currentDeal as unknown as Record<string, unknown>).updated_at as string | undefined);
                       const currentUpdatedAt = typeof currentUpdatedAtRaw === 'string' ? new Date(currentUpdatedAtRaw).getTime() : null;
                       
                       // CRITICAL: When payload.old.status is empty, we can't verify if the update is stale.
@@ -553,9 +557,8 @@ export function useRealtimeSync(
       }
       setIsConnected(false);
     };
-    // Only re-run if enabled, tables, or debounceMs change
-    // queryClient is stable, onchange is handled via ref
-  }, [enabled, JSON.stringify(tables), debounceMs]);
+    // queryClient is stable (from QueryClientProvider), onchange is handled via ref
+  }, [enabled, tablesKey, debounceMs, queryClient]);
 
   return {
     /** Manually trigger a sync */

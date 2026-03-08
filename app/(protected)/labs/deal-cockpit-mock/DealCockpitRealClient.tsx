@@ -1016,7 +1016,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
       const items: ChecklistItem[] = [];
       for (const it of raw) {
         if (!it || typeof it !== 'object') continue;
-        const anyIt = it as any;
+        const anyIt = it as Record<string, unknown>;
         const id = typeof anyIt.id === 'string' && anyIt.id ? anyIt.id : uid('chk');
         const text = typeof anyIt.text === 'string' ? anyIt.text.trim() : '';
         const done = Boolean(anyIt.done);
@@ -1029,7 +1029,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
   );
 
   const loadChecklistFromDeal = useCallback(() => {
-    const raw = (selectedDeal?.metadata as any)?.cockpitChecklist;
+    const raw = (selectedDeal?.metadata as Record<string, unknown> | null | undefined)?.cockpitChecklist;
     const parsed = normalizeChecklist(raw);
     setChecklist(parsed ?? defaultChecklist);
     setChecklistDraft('');

@@ -18,6 +18,40 @@ type SupabaseApiKeyItem = {
   type?: string;
 };
 
+type SupabaseProjectResponse = {
+  ref?: string;
+  name?: string;
+  status?: string;
+  project_status?: string;
+  projectStatus?: string;
+  region?: string;
+  database?: { host?: string };
+  db_host?: string;
+  dbHost?: string;
+};
+
+type SupabaseCreateProjectResponse = {
+  ref?: string;
+  name?: string;
+};
+
+type SupabaseCliLoginRoleResponse = {
+  role?: string;
+  password?: string;
+  ttl_seconds?: number;
+};
+
+type SupabasePoolerConfigItem = {
+  database_type?: string;
+  pool_mode?: string;
+  db_host?: string;
+  dbHost?: string;
+  db_port?: number | string;
+  dbPort?: number | string;
+  db_name?: string;
+  dbName?: string;
+};
+
 function safeJsonParse(text: string): unknown | null {
   const trimmed = text.trim();
   if (!trimmed) return null;
@@ -93,7 +127,7 @@ export async function getSupabaseProject(params: {
   );
   if (!res.ok) return { ok: false, error: res.error, status: res.status, response: res.data };
 
-  const data = res.data as any;
+  const data = res.data as SupabaseProjectResponse;
   const status =
     typeof data?.status === 'string'
       ? data.status
@@ -418,8 +452,8 @@ export async function createSupabaseProject(params: {
 
   if (!res.ok) return { ok: false, error: res.error, status: res.status, response: res.data };
 
-  const projectRef = (res.data as any)?.ref;
-  const projectName = (res.data as any)?.name;
+  const projectRef = (res.data as SupabaseCreateProjectResponse)?.ref;
+  const projectName = (res.data as SupabaseCreateProjectResponse)?.name;
   if (typeof projectRef !== 'string' || !projectRef.trim() || typeof projectName !== 'string') {
     return { ok: false, error: 'Unexpected response creating project.', status: 500, response: res.data };
   }
@@ -591,10 +625,11 @@ export async function resolveSupabaseDbUrlViaCliLoginRole(params: {
     return { ok: false, error: project.error, status: project.status, response: project.data };
   }
 
+  const projectData = project.data as SupabaseProjectResponse;
   const host =
-    (project.data as any)?.database?.host ||
-    (project.data as any)?.db_host ||
-    (project.data as any)?.dbHost;
+    projectData?.database?.host ||
+    projectData?.db_host ||
+    projectData?.dbHost;
   if (typeof host !== 'string' || !host.trim()) {
     return {
       ok: false,
@@ -628,9 +663,10 @@ export async function resolveSupabaseDbUrlViaCliLoginRole(params: {
     };
   }
 
-  const role = (loginRole.data as any)?.role;
-  const password = (loginRole.data as any)?.password;
-  const ttlSecondsRaw = (loginRole.data as any)?.ttl_seconds;
+  const loginRoleData = loginRole.data as SupabaseCliLoginRoleResponse;
+  const role = loginRoleData?.role;
+  const password = loginRoleData?.password;
+  const ttlSecondsRaw = loginRoleData?.ttl_seconds;
   const ttlSeconds = typeof ttlSecondsRaw === 'number' ? ttlSecondsRaw : 0;
   if (typeof role !== 'string' || typeof password !== 'string' || !role.trim() || !password.trim()) {
     return {
@@ -658,10 +694,10 @@ export async function resolveSupabaseDbUrlViaCliLoginRole(params: {
   );
 
   if (poolerConfig.ok && Array.isArray(poolerConfig.data) && poolerConfig.data.length > 0) {
-    const configs = poolerConfig.data as any[];
+    const configs = poolerConfig.data as SupabasePoolerConfigItem[];
     const primary =
       configs.find(
-        (c) =>
+        (c: SupabasePoolerConfigItem) =>
           String(c?.database_type || '').toUpperCase() === 'PRIMARY' &&
           String(c?.pool_mode || '').toLowerCase() === 'transaction'
       ) || configs[0];

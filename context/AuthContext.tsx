@@ -27,7 +27,7 @@
  * ```
  */
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { OrganizationId } from '../types';
@@ -122,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // O app real exige Supabase configurado, mas este guard evita falha no build.
     const sb = supabase;
 
-    const checkInitialization = async () => {
+    const checkInitialization = useCallback(async () => {
         try {
             if (!sb) {
                 setIsInitialized(true);
@@ -136,9 +136,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Error checking initialization:', error);
             setIsInitialized(true);
         }
-    };
+    }, [sb]);
 
-    const fetchProfile = async (userId: string) => {
+    const fetchProfile = useCallback(async (userId: string) => {
         try {
             if (!sb) {
                 setProfile(null);
@@ -159,7 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
             setLoading(false);
         }
-    };
+    }, [sb]);
 
     const refreshProfile = async () => {
         if (user?.id) {
@@ -202,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return () => subscription.unsubscribe();
-    }, []);
+    }, [sb, checkInitialization, fetchProfile]);
 
     const signOut = async () => {
         if (sb) await sb.auth.signOut();

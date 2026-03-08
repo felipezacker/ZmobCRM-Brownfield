@@ -119,7 +119,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       {/* Clone children to add ARIA attributes */}
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement<any>, {
+          return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
             id: fieldId,
             'aria-invalid': error ? 'true' : undefined,
             'aria-describedby': cn(error && errorId, hint && !error && hintId) || undefined,

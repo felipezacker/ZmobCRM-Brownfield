@@ -41,15 +41,18 @@ export function createProspectingTools({ supabase, organizationId, userId, bypas
                 const { data, error } = await q;
                 if (error) return { error: formatSupabaseFailure(error) };
 
-                const items = (data || []).map((item: any) => ({
-                    id: item.id,
-                    contactName: item.contacts?.name || 'N/A',
-                    contactPhone: item.contacts?.phone || null,
-                    contactEmail: item.contacts?.email || null,
-                    status: item.status,
-                    position: item.position,
-                    createdAt: item.created_at,
-                }));
+                const items = (data || []).map((item) => {
+                    const contactRef = Array.isArray(item.contacts) ? item.contacts[0] : item.contacts;
+                    return {
+                        id: item.id,
+                        contactName: contactRef?.name || 'N/A',
+                        contactPhone: contactRef?.phone || null,
+                        contactEmail: contactRef?.email || null,
+                        status: item.status,
+                        position: item.position,
+                        createdAt: item.created_at,
+                    };
+                });
 
                 const statusCounts: Record<string, number> = {};
                 for (const item of items) {
@@ -108,23 +111,24 @@ export function createProspectingTools({ supabase, organizationId, userId, bypas
                 const { data, error } = await q;
                 if (error) return { error: formatSupabaseFailure(error) };
 
-                const activities = data || [];
+                type ActivityRow = { id: string; date: string; owner_id: string; contact_id: string | null; metadata: Record<string, unknown> | null };
+                const activities = (data || []) as ActivityRow[];
                 const totalCalls = activities.length;
-                const connectedCalls = activities.filter((a: any) => a.metadata?.outcome === 'connected').length;
+                const connectedCalls = activities.filter((a) => a.metadata?.outcome === 'connected').length;
                 const connectionRate = totalCalls > 0 ? Math.round((connectedCalls / totalCalls) * 100) : 0;
 
                 const durations = activities
-                    .map((a: any) => a.metadata?.duration_seconds)
+                    .map((a) => a.metadata?.duration_seconds)
                     .filter((d: unknown): d is number => typeof d === 'number' && d > 0);
                 const avgDuration = durations.length > 0
                     ? Math.round(durations.reduce((s: number, d: number) => s + d, 0) / durations.length)
                     : 0;
 
-                const uniqueContacts = new Set(activities.filter((a: any) => a.contact_id).map((a: any) => a.contact_id)).size;
+                const uniqueContacts = new Set(activities.filter((a) => a.contact_id).map((a) => a.contact_id)).size;
 
                 const outcomeMap = new Map<string, number>();
                 for (const a of activities) {
-                    const outcome = (a as any).metadata?.outcome || 'unknown';
+                    const outcome = (a.metadata?.outcome as string) || 'unknown';
                     outcomeMap.set(outcome, (outcomeMap.get(outcome) || 0) + 1);
                 }
 
@@ -217,7 +221,7 @@ export function createProspectingTools({ supabase, organizationId, userId, bypas
 
                 return {
                     count: data?.length || 0,
-                    scripts: (data || []).map((s: any) => ({
+                    scripts: (data || []).map((s: { id: string; title: string; category: string; template: string; is_system: boolean }) => ({
                         id: s.id,
                         title: s.title,
                         category: s.category,

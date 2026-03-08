@@ -49,7 +49,7 @@ export const dealNotesService = {
                 .select('organization_id')
                 .eq('id', user.id)
                 .single();
-            orgId = (profile as any)?.organization_id ?? undefined;
+            orgId = (profile as { organization_id?: string } | null)?.organization_id ?? undefined;
         }
 
         if (!orgId) {

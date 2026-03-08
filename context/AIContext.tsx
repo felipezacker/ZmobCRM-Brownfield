@@ -46,16 +46,16 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             enhancedContext.activeObject?.type || 'none',
             enhancedContext.activeObject?.id || '',
             // Filters (keep primitives only)
-            (enhancedContext as any)?.filters?.status || '',
-            (enhancedContext as any)?.filters?.owner || '',
-            (enhancedContext as any)?.filters?.search || '',
-            (enhancedContext as any)?.filters?.dateRange?.start || '',
-            (enhancedContext as any)?.filters?.dateRange?.end || '',
+            enhancedContext.filters?.status || '',
+            enhancedContext.filters?.owner || '',
+            enhancedContext.filters?.search || '',
+            enhancedContext.filters?.dateRange?.start || '',
+            enhancedContext.filters?.dateRange?.end || '',
             // A few board metrics (avoid logging names / PII)
-            String((enhancedContext.activeObject as any)?.metadata?.dealCount ?? ''),
-            String((enhancedContext.activeObject as any)?.metadata?.pipelineValue ?? ''),
-            String((enhancedContext.activeObject as any)?.metadata?.stagnantDeals ?? ''),
-            String((enhancedContext.activeObject as any)?.metadata?.overdueDeals ?? ''),
+            String(enhancedContext.activeObject?.metadata?.dealCount ?? ''),
+            String(enhancedContext.activeObject?.metadata?.pipelineValue ?? ''),
+            String(enhancedContext.activeObject?.metadata?.stagnantDeals ?? ''),
+            String(enhancedContext.activeObject?.metadata?.overdueDeals ?? ''),
         ].join('|');
 
         if (lastSignatureRef.current === sig) return;

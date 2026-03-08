@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { DealView, Board } from '@/types';
+import { DealView, Board, LifecycleStage } from '@/types';
 import { useMoveDeal } from '@/lib/query/hooks/useMoveDeal';
 import { useDeleteDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery';
@@ -7,8 +7,8 @@ import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery';
 interface UseBoardDragDropParams {
   deals: DealView[];
   activeBoard: Board | null;
-  lifecycleStages: any;
-  addToast: (msg: string, type: any) => void;
+  lifecycleStages: LifecycleStage[];
+  addToast: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
   selectedDealId: string | null;
   setSelectedDealId: (id: string | null) => void;
 }

@@ -1,22 +1,30 @@
 import { useCallback } from 'react';
-import { Activity } from '@/types';
+import { Activity, Board } from '@/types';
 import type { ParsedAction } from '@/types/aiActions';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { useCreateActivity, useUpdateActivity, useDeleteActivity } from '@/lib/query/hooks/useActivitiesQuery';
 import { useCreateContact, useUpdateContact } from '@/lib/query/hooks/useContactsQuery';
 import { useCreateDeal } from '@/lib/query/hooks/useDealsQuery';
-import { SuggestionType } from '@/lib/supabase/aiSuggestions';
+import { SuggestionAction, SuggestionType } from '@/lib/supabase/aiSuggestions';
 import { isDebugMode, generateFakeContacts, fakeDeal } from '@/lib/debug';
 import { supabase } from '@/lib/supabase/client';
 import type { AISuggestion } from './useInboxMessages';
+
+interface RecordInteractionInput {
+  suggestionType: SuggestionType;
+  entityType: 'deal' | 'contact';
+  entityId: string;
+  action: SuggestionAction;
+  snoozedUntil?: Date;
+}
 
 interface UseInboxActionsParams {
   activities: Activity[];
   aiSuggestions: AISuggestion[];
   activeBoardId: string;
-  activeBoard: { id: string; stages: { id: string; [k: string]: any }[] } | null | undefined;
-  recordInteraction: { mutate: (data: any) => void };
+  activeBoard: Board | null | undefined;
+  recordInteraction: { mutate: (data: RecordInteractionInput) => void };
 }
 
 /** Extract entity info from a suggestion (shared by dismiss/snooze). */
@@ -103,14 +111,14 @@ export const useInboxActions = ({ activities, aiSuggestions, activeBoardId, acti
       const now = new Date(), ago40 = new Date(now), ago10 = new Date(now);
       ago40.setDate(ago40.getDate() - 40); ago10.setDate(ago10.getDate() - 10);
       const [sc] = generateFakeContacts(1);
-      const cc = await createContact.mutateAsync({ name: sc.name, email: sc.email, phone: sc.phone, status: 'ACTIVE', stage: 'CUSTOMER', totalValue: 0 } as any);
+      const cc = await createContact.mutateAsync({ name: sc.name, email: sc.email, phone: sc.phone, status: 'ACTIVE', stage: 'CUSTOMER', totalValue: 0 } as Parameters<typeof createContact.mutateAsync>[0]);
       await supabase.from('contacts').update({ created_at: ago40.toISOString() }).eq('id', cc.id);
       const stg = activeBoard!.stages[0];
-      const ud = await createDeal.mutateAsync({ title: `Upsell - ${fakeDeal().title}`, contactId: cc.id, boardId: activeBoardId, status: stg.id, value: 12000, probability: 90, priority: 'high', items: [], owner: USER, isWon: true, isLost: false } as any);
+      const ud = await createDeal.mutateAsync({ title: `Upsell - ${fakeDeal().title}`, contactId: cc.id, boardId: activeBoardId, status: stg.id, value: 12000, probability: 90, priority: 'high', items: [], owner: USER, isWon: true, isLost: false } as Parameters<typeof createDeal.mutateAsync>[0]);
       await supabase.from('deals').update({ updated_at: ago40.toISOString(), is_won: true }).eq('id', ud.id);
-      const sd = await createDeal.mutateAsync({ title: `Stalled - ${fakeDeal().title}`, contactId: cc.id, boardId: activeBoardId, status: stg.id, value: 8000, probability: 60, priority: 'medium', items: [], owner: USER, isWon: false, isLost: false } as any);
+      const sd = await createDeal.mutateAsync({ title: `Stalled - ${fakeDeal().title}`, contactId: cc.id, boardId: activeBoardId, status: stg.id, value: 8000, probability: 60, priority: 'medium', items: [], owner: USER, isWon: false, isLost: false } as Parameters<typeof createDeal.mutateAsync>[0]);
       await supabase.from('deals').update({ updated_at: ago10.toISOString() }).eq('id', sd.id);
-      updateContact.mutate({ id: cc.id, updates: { lastPurchaseDate: ago40.toISOString() } } as any);
+      updateContact.mutate({ id: cc.id, updates: { lastPurchaseDate: ago40.toISOString() } } as Parameters<typeof updateContact.mutate>[0]);
       showToast('Seed Inbox criado (Upsell, Stalled, Rescue). Abra a Inbox.', 'success');
     } catch (e) { showToast(`Erro ao seedar Inbox: ${(e as Error).message}`, 'error'); }
   }, [activeBoard, activeBoardId, createContact, createDeal, profile?.id, showToast, updateContact]);

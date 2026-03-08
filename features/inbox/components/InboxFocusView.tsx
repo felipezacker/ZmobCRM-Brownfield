@@ -559,7 +559,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
                 onMoveStage={handleMoveStage}
                 onMarkWon={handleMarkWon}
                 onMarkLost={handleMarkLost}
-                onAddActivity={addActivity as any}
+                onAddActivity={addActivity as (activity: Partial<Activity>) => void | Promise<Activity | null>}
                 onUpdateActivity={updateActivity}
                 onClose={() => setShowContext(false)}
               />

@@ -13,7 +13,8 @@ type BootstrapResult =
   | { ok: true; organizationId: string; userId: string; mode: 'created' | 'updated' };
 
 async function findUserIdByEmail(
-  admin: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: ReturnType<typeof createClient<any, any, any>>,
   email: string
 ): Promise<string | null> {
   // Supabase Auth Admin API não tem "getUserByEmail" no client;
@@ -28,7 +29,7 @@ async function findUserIdByEmail(
     if (error) return null;
 
     const users = data?.users || [];
-    const found = users.find((u: any) => (u.email || '').toLowerCase() === target);
+    const found = users.find((u: { email?: string; id?: string }) => (u.email || '').toLowerCase() === target);
     if (found?.id) return found.id;
 
     if (users.length < perPage) return null;

@@ -29,7 +29,7 @@ export const POST = withRateLimit(async function POST(request: Request, ctx: { p
 
   const sb = createStaticAdminClient();
   const now = new Date().toISOString();
-  const updates: any = {
+  const updates: Record<string, unknown> = {
     is_lost: true,
     is_won: false,
     closed_at: now,

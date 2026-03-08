@@ -114,7 +114,7 @@ export function ContactCockpitRightRail({
           .select('organization_id')
           .eq('id', user.id)
           .single();
-        orgId = (profile as any)?.organization_id ?? undefined;
+        orgId = (profile as Record<string, unknown>)?.organization_id as string | undefined;
       }
 
       const dealId = deals[0]?.id;

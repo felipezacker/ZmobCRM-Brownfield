@@ -3,6 +3,20 @@ import { z } from 'zod';
 import type { ToolContext } from './types';
 import { formatSupabaseFailure, sanitizeFilterValue, ensureBoardBelongsToOrganization, ensureDealBelongsToOrganization, resolveStageIdForBoard } from './helpers';
 
+interface DealRow {
+    id: string;
+    title: string;
+    value: number | null;
+    is_won: boolean;
+    is_lost: boolean;
+    property_ref?: string | null;
+    updated_at?: string;
+    board_id?: string;
+    stage?: { name?: string; label?: string } | null;
+    contact?: { name?: string; email?: string; phone?: string } | null;
+    activities?: Array<{ id: string; type: string; title: string; completed: boolean; date: string }>;
+}
+
 export function createDealTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
         searchDeals: tool({
@@ -74,12 +88,12 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
 
                 return {
                     count: deals?.length || 0,
-                    deals: deals?.map((d: any) => ({
+                    deals: deals?.map((d) => ({
                         id: d.id,
                         title: d.title,
                         value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
-                        stage: d.stage?.name || d.stage?.label || 'N/A',
-                        contact: d.contact?.name || 'N/A',
+                        stage: (d.stage as DealRow['stage'])?.name || (d.stage as DealRow['stage'])?.label || 'N/A',
+                        contact: (d.contact as DealRow['contact'])?.name || 'N/A',
                         propertyRef: d.property_ref || null,
                         status: d.is_won ? '✅ Ganho' : d.is_lost ? '❌ Perdido' : '🔄 Aberto'
                     })) || []
@@ -175,18 +189,18 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     return { error: formatSupabaseFailure(dealsError) };
                 }
 
-                const openDeals = (deals || []).filter((d: any) => !d.is_won && !d.is_lost);
+                const openDeals = (deals || []).filter((d) => !d.is_won && !d.is_lost);
                 const finalDeals = openDeals.slice(0, limit);
-                const totalValue = finalDeals.reduce((s: number, d: any) => s + (d.value || 0), 0) || 0;
+                const totalValue = finalDeals.reduce((s: number, d) => s + (d.value || 0), 0) || 0;
 
                 return {
                     count: finalDeals.length || 0,
                     totalValue: `R$ ${totalValue.toLocaleString('pt-BR')}`,
-                    deals: finalDeals.map((d: any) => ({
+                    deals: finalDeals.map((d) => ({
                         id: d.id,
                         title: d.title,
                         value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
-                        contact: d.contact?.name || 'N/A'
+                        contact: (d.contact as DealRow['contact'])?.name || 'N/A'
                     })) || []
                 };
             },
@@ -223,20 +237,20 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     .order('updated_at', { ascending: true })
                     .limit(Math.max(limit * 5, 50));
 
-                const openDeals = (deals || []).filter((d: any) => !d.is_won && !d.is_lost);
+                const openDeals = (deals || []).filter((d) => !d.is_won && !d.is_lost);
                 const finalDeals = openDeals.slice(0, limit);
 
                 return {
                     count: finalDeals.length || 0,
                     message: `${finalDeals.length || 0} deals parados há mais de ${daysStagnant} dias`,
-                    deals: finalDeals.map((d: any) => {
+                    deals: finalDeals.map((d) => {
                         const days = Math.floor((Date.now() - new Date(d.updated_at).getTime()) / (1000 * 60 * 60 * 24));
                         return {
                             id: d.id,
                             title: d.title,
                             diasParado: days,
                             value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
-                            contact: d.contact?.name || 'N/A'
+                            contact: (d.contact as DealRow['contact'])?.name || 'N/A'
                         };
                     }) || []
                 };
@@ -284,11 +298,11 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 return {
                     count: deals?.length || 0,
                     message: `⚠️ ${deals?.length || 0} deals com atividades atrasadas`,
-                    deals: deals?.map((d: any) => ({
+                    deals: deals?.map((d) => ({
                         id: d.id,
                         title: d.title,
                         value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
-                        contact: d.contact?.name || 'N/A',
+                        contact: (d.contact as DealRow['contact'])?.name || 'N/A',
                         overdueCount: overdueActivities.filter(a => a.deal_id === d.id).length
                     })) || []
                 };
@@ -324,18 +338,21 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     return { error: 'Deal não encontrado.' };
                 }
 
-                const pendingActivities = deal.activities?.filter((a: any) => !a.completed) || [];
+                const activities = deal.activities as DealRow['activities'] | undefined;
+                const pendingActivities = activities?.filter((a) => !a.completed) || [];
+                const stageData = deal.stage as DealRow['stage'];
+                const contactData = deal.contact as DealRow['contact'];
 
                 return {
                     id: deal.id,
                     title: deal.title,
                     value: `R$ ${(deal.value || 0).toLocaleString('pt-BR')}`,
                     status: deal.is_won ? '✅ Ganho' : deal.is_lost ? '❌ Perdido' : '🔄 Aberto',
-                    stage: (deal.stage as any)?.name || (deal.stage as any)?.label || 'N/A',
+                    stage: stageData?.name || stageData?.label || 'N/A',
                     priority: deal.priority || 'medium',
                     propertyRef: deal.property_ref || null,
-                    contact: (deal.contact as any)?.name || 'N/A',
-                    contactEmail: (deal.contact as any)?.email || 'N/A',
+                    contact: contactData?.name || 'N/A',
+                    contactEmail: contactData?.email || 'N/A',
                     pendingActivities: pendingActivities.length,
                     createdAt: deal.created_at
                 };
@@ -560,24 +577,24 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     }
 
                     const { data: foundDeals } = await query.limit(20);
-                    const openFoundDeals = (foundDeals || []).filter((d: any) => !d.is_won && !d.is_lost);
+                    const openFoundDeals = (foundDeals || []).filter((d) => !d.is_won && !d.is_lost);
 
                     if (stageName && openFoundDeals) {
-                        const filtered = openFoundDeals.filter((d: any) =>
-                            d.stage?.name?.toLowerCase().includes(stageName.toLowerCase())
+                        const filtered = openFoundDeals.filter((d) =>
+                            (d.stage as DealRow['stage'])?.name?.toLowerCase().includes(stageName.toLowerCase())
                         );
                         if (filtered.length === 1) {
                             targetDealId = filtered[0].id;
                         } else if (filtered.length > 1) {
                             return {
-                                error: `Encontrei ${filtered.length} deals em "${stageName}". Especifique qual: ${filtered.map((d: any) => d.title).join(', ')}`
+                                error: `Encontrei ${filtered.length} deals em "${stageName}". Especifique qual: ${filtered.map((d) => d.title).join(', ')}`
                             };
                         }
                     } else if (openFoundDeals.length === 1) {
                         targetDealId = openFoundDeals[0].id;
                     } else if (dealTitle && openFoundDeals.length > 0) {
                         return {
-                            error: `Encontrei ${openFoundDeals.length} deals com "${dealTitle}". Especifique qual: ${openFoundDeals.map((d: any) => d.title).join(', ')}`
+                            error: `Encontrei ${openFoundDeals.length} deals com "${dealTitle}". Especifique qual: ${openFoundDeals.map((d) => d.title).join(', ')}`
                         };
                     }
                 }
@@ -603,7 +620,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     }
                 }
 
-                const updateData: any = {
+                const updateData: Record<string, unknown> = {
                     is_won: true,
                     is_lost: false,
                     closed_at: new Date().toISOString(),
@@ -758,7 +775,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
 
                 if (dealsError) return { error: formatSupabaseFailure(dealsError) };
 
-                const foundIds = new Set((deals || []).map((d: any) => d.id));
+                const foundIds = new Set((deals || []).map((d) => d.id));
                 const missingIds = unique.filter((id) => !foundIds.has(id));
 
                 if (missingIds.length > 0 && !allowPartial) {
@@ -768,7 +785,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 const stageRes = await resolveStageIdForBoard(supabase, organizationId, { boardId: targetBoardId, stageId, stageName });
                 if (!stageRes.ok) return { error: stageRes.error };
 
-                const idsToMove = (deals || []).map((d: any) => d.id);
+                const idsToMove = (deals || []).map((d) => d.id);
                 if (idsToMove.length === 0) {
                     return { error: 'Nenhum deal válido encontrado para mover (cheque board/organização).' };
                 }
@@ -811,7 +828,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     movedCount: idsToMove.length,
                     skippedCount: missingIds.length,
                     followUpCreated,
-                    deals: (deals || []).map((d: any) => ({ id: d.id, title: d.title })),
+                    deals: (deals || []).map((d) => ({ id: d.id, title: d.title })),
                     message:
                         `Movi ${idsToMove.length} deal(s) com sucesso.` +
                         (missingIds.length ? ` (${missingIds.length} ignorado(s) por não pertencerem ao board/organização.)` : '') +

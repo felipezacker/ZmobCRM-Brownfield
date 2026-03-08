@@ -104,16 +104,20 @@ export function createActivityTools({ supabase, organizationId, context, userId,
                 return {
                     count: data?.length || 0,
                     activities:
-                        (data || []).map((a: any) => ({
-                            id: a.id,
-                            title: a.title,
-                            type: a.type,
-                            date: a.date,
-                            completed: !!a.completed,
-                            metadata: a.metadata || null,
-                            dealTitle: a.deals?.title || null,
-                            contactName: a.contact?.name || null,
-                        })) || [],
+                        (data || []).map((a) => {
+                            const dealRef = Array.isArray(a.deals) ? a.deals[0] : a.deals;
+                            const contactRef = Array.isArray(a.contact) ? a.contact[0] : a.contact;
+                            return {
+                                id: a.id,
+                                title: a.title,
+                                type: a.type,
+                                date: a.date,
+                                completed: !!a.completed,
+                                metadata: a.metadata || null,
+                                dealTitle: dealRef?.title || null,
+                                contactName: contactRef?.name || null,
+                            };
+                        }) || [],
                 };
             },
         }),

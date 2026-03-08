@@ -102,7 +102,7 @@ export const WebhooksSection: React.FC = () => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [inboundEvents, setInboundEvents] = useState<InboundEventRow[]>([]);
   const [testLoading, setTestLoading] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; message: string; raw?: any } | null>(null);
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string; raw?: unknown } | null>(null);
 
   // Confirm modals
   const [confirmDeleteInboundOpen, setConfirmDeleteInboundOpen] = useState(false);
@@ -135,7 +135,7 @@ export const WebhooksSection: React.FC = () => {
         .from('integration_inbound_sources')
         .select('id,name,entry_board_id,entry_stage_id,secret,active')
         .order('created_at', { ascending: false });
-      setSources((srcData as any) || []);
+      setSources((srcData as InboundSourceRow[] | null) ?? []);
 
       const { data: epData } = await supabase
         .from('integration_outbound_endpoints')
@@ -143,7 +143,7 @@ export const WebhooksSection: React.FC = () => {
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      setEndpoint((epData as any) || null);
+      setEndpoint((epData as OutboundEndpointRow | null) ?? null);
     } finally {
       setLoading(false);
     }
@@ -186,7 +186,7 @@ export const WebhooksSection: React.FC = () => {
       .eq('source_id', sourceId)
       .order('received_at', { ascending: false })
       .limit(3);
-    setInboundEvents((data as any) || []);
+    setInboundEvents((data as InboundEventRow[] | null) ?? []);
   }
 
   async function createInboundSource() {
@@ -211,7 +211,7 @@ export const WebhooksSection: React.FC = () => {
 
       if (error) throw error;
 
-      const sourceId = (data as any)?.id as string;
+      const sourceId = (data as { id: string } | null)?.id ?? '';
       setSources((prev) => [
         { id: sourceId, name: 'Entrada de Leads', entry_board_id: selectedBoard.id, entry_stage_id: selectedStageId, secret, active: true },
         ...prev,
@@ -219,8 +219,8 @@ export const WebhooksSection: React.FC = () => {
       setInboundStep(2);
       await loadInboundEvents(sourceId);
       addToast('Pronto: URL e Secret gerados.', 'success');
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao ativar entrada de leads', 'error');
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao ativar entrada de leads', 'error');
     } finally {
       setLoading(false);
     }
@@ -242,8 +242,8 @@ export const WebhooksSection: React.FC = () => {
       if (error) throw error;
       addToast('Destino atualizado.', 'success');
       await loadWebhooks();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao atualizar destino', 'error');
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao atualizar destino', 'error');
     } finally {
       setLoading(false);
     }
@@ -282,9 +282,10 @@ export const WebhooksSection: React.FC = () => {
         addToast('Teste recebido com sucesso.', 'success');
       }
       await loadInboundEvents(activeInbound.id);
-    } catch (e: any) {
-      setTestResult({ ok: false, message: e?.message || 'Erro no teste' });
-      addToast(e?.message || 'Erro no teste do webhook', 'error');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Erro no teste';
+      setTestResult({ ok: false, message: msg });
+      addToast(msg || 'Erro no teste do webhook', 'error');
     } finally {
       setTestLoading(false);
     }
@@ -306,7 +307,7 @@ export const WebhooksSection: React.FC = () => {
           .select('id,name,url,secret,active')
           .single();
         if (error) throw error;
-        setEndpoint(data as any);
+        setEndpoint(data as OutboundEndpointRow | null);
         addToast('Follow-up atualizado!', 'success');
       } else {
         const secret = generateSecret();
@@ -324,13 +325,13 @@ export const WebhooksSection: React.FC = () => {
           .single();
 
         if (error) throw error;
-        setEndpoint(data as any);
+        setEndpoint(data as OutboundEndpointRow | null);
         addToast('Follow-up conectado!', 'success');
       }
       setIsFollowUpOpen(false);
       setFollowUpUrl('');
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao salvar follow-up', 'error');
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao salvar follow-up', 'error');
     } finally {
       setLoading(false);
     }
@@ -362,8 +363,8 @@ export const WebhooksSection: React.FC = () => {
       if (error) throw error;
       addToast(nextActive ? 'Entrada de leads ativada!' : 'Entrada de leads desativada.', 'success');
       await loadWebhooks();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao atualizar status do webhook', 'error');
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao atualizar status do webhook', 'error');
     } finally {
       setLoading(false);
     }
@@ -381,8 +382,8 @@ export const WebhooksSection: React.FC = () => {
       if (error) throw error;
       addToast('Configuração de entrada removida.', 'success');
       await loadWebhooks();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao excluir webhook', 'error');
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao excluir webhook', 'error');
     } finally {
       setLoading(false);
     }
@@ -400,8 +401,8 @@ export const WebhooksSection: React.FC = () => {
       if (error) throw error;
       addToast(nextActive ? 'Follow-up ativado!' : 'Follow-up desativado.', 'success');
       await loadWebhooks();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao atualizar follow-up', 'error');
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao atualizar follow-up', 'error');
     } finally {
       setLoading(false);
     }
@@ -420,10 +421,10 @@ export const WebhooksSection: React.FC = () => {
         .select('id,name,url,secret,active')
         .single();
       if (error) throw error;
-      setEndpoint(data as any);
+      setEndpoint(data as OutboundEndpointRow | null);
       addToast('Secret do follow-up regenerado. Atualize no seu n8n/Make/WhatsApp.', 'success');
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao regenerar secret', 'error');
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao regenerar secret', 'error');
     } finally {
       setLoading(false);
     }
@@ -441,8 +442,8 @@ export const WebhooksSection: React.FC = () => {
       if (error) throw error;
       setEndpoint(null);
       addToast('Follow-up removido.', 'success');
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao excluir follow-up', 'error');
+    } catch (e: unknown) {
+      addToast(e instanceof Error ? e.message : 'Erro ao excluir follow-up', 'error');
     } finally {
       setLoading(false);
     }

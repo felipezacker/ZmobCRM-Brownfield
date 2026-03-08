@@ -46,9 +46,9 @@ export const disableDebugMode = (): void => {
 
 // Expõe no window para fácil acesso via console
 if (typeof window !== 'undefined') {
-  (window as any).enableDebugMode = enableDebugMode;
-  (window as any).disableDebugMode = disableDebugMode;
-  (window as any).isDebugMode = isDebugMode;
+  (window as unknown as Record<string, unknown>).enableDebugMode = enableDebugMode;
+  (window as unknown as Record<string, unknown>).disableDebugMode = disableDebugMode;
+  (window as unknown as Record<string, unknown>).isDebugMode = isDebugMode;
 }
 
 // ============================================

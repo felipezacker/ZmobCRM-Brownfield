@@ -8,6 +8,61 @@ export type MoveStageTarget =
   | { to_stage_label: string }
   | { to_stage_id?: string; to_stage_label?: string };
 
+/* ── Row-projection interfaces for Supabase queries ── */
+
+interface BoardStageIdRow {
+  id: string;
+}
+
+interface BoardStageLabelRow {
+  id: string;
+  label: string;
+}
+
+interface DealCoreRow {
+  id: string;
+  board_id: string;
+  stage_id: string;
+}
+
+interface BoardConfigRow {
+  won_stage_id: string | null;
+  lost_stage_id: string | null;
+}
+
+interface ContactIdRow {
+  id: string;
+}
+
+interface DealIdRow {
+  id: string;
+}
+
+interface DealFullRow {
+  id: string;
+  title: string;
+  value: number;
+  board_id: string;
+  stage_id: string;
+  contact_id: string;
+  is_won: boolean;
+  is_lost: boolean;
+  loss_reason: string | null;
+  closed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DealStageUpdate {
+  stage_id: string;
+  last_stage_change_date: string;
+  updated_at: string;
+  is_won?: boolean;
+  is_lost?: boolean;
+  closed_at?: string;
+  loss_reason?: null;
+}
+
 async function resolveStageIdForBoard(opts: {
   organizationId: string;
   boardId: string;
@@ -27,7 +82,7 @@ async function resolveStageIdForBoard(opts: {
       .eq('id', idFromBody)
       .maybeSingle();
     if (error) throw error;
-    return (data as any)?.id ? idFromBody : null;
+    return (data as BoardStageIdRow | null)?.id ? idFromBody : null;
   }
 
   if (!label) return null;
@@ -42,7 +97,7 @@ async function resolveStageIdForBoard(opts: {
   if (error) throw error;
   if (!data || data.length === 0) return null;
   if (data.length > 1) return '__AMBIGUOUS__';
-  return (data[0] as any).id as string;
+  return (data[0] as BoardStageLabelRow).id;
 }
 
 export async function moveStageByDealId(opts: {
@@ -65,7 +120,8 @@ export async function moveStageByDealId(opts: {
   if (dealError) return { ok: false as const, status: 500, body: { error: dealError.message, code: 'DB_ERROR' } };
   if (!deal) return { ok: false as const, status: 404, body: { error: 'Deal not found', code: 'NOT_FOUND' } };
 
-  const boardId = (deal as any).board_id as string;
+  const dealRow = deal as DealCoreRow;
+  const boardId = dealRow.board_id;
   const { data: boardCfg, error: boardCfgError } = await sb
     .from('boards')
     .select('won_stage_id,lost_stage_id')
@@ -74,8 +130,9 @@ export async function moveStageByDealId(opts: {
     .eq('id', boardId)
     .maybeSingle();
   if (boardCfgError) return { ok: false as const, status: 500, body: { error: boardCfgError.message, code: 'DB_ERROR' } };
-  const wonStageId = sanitizeUUID((boardCfg as any)?.won_stage_id) || null;
-  const lostStageId = sanitizeUUID((boardCfg as any)?.lost_stage_id) || null;
+  const cfgRow = boardCfg as BoardConfigRow | null;
+  const wonStageId = sanitizeUUID(cfgRow?.won_stage_id) || null;
+  const lostStageId = sanitizeUUID(cfgRow?.lost_stage_id) || null;
   const stageId = await resolveStageIdForBoard({
     organizationId: opts.organizationId,
     boardId,
@@ -95,7 +152,7 @@ export async function moveStageByDealId(opts: {
   }
 
   const now = new Date().toISOString();
-  const updates: any = { stage_id: stageId, last_stage_change_date: now, updated_at: now };
+  const updates: DealStageUpdate = { stage_id: stageId, last_stage_change_date: now, updated_at: now };
   if (opts.mark === 'won' || (wonStageId && stageId === wonStageId)) {
     updates.is_won = true;
     updates.is_lost = false;
@@ -116,7 +173,7 @@ export async function moveStageByDealId(opts: {
     .maybeSingle();
   if (error) return { ok: false as const, status: 500, body: { error: error.message, code: 'DB_ERROR' } };
   if (!data) return { ok: false as const, status: 404, body: { error: 'Deal not found', code: 'NOT_FOUND' } };
-  return { ok: true as const, status: 200, body: { data, action: 'moved' } };
+  return { ok: true as const, status: 200, body: { data: data as DealFullRow, action: 'moved' } };
 }
 
 export async function moveStageByIdentity(opts: {
@@ -146,8 +203,9 @@ export async function moveStageByIdentity(opts: {
     .eq('id', boardId)
     .maybeSingle();
   if (boardCfgError) return { ok: false as const, status: 500, body: { error: boardCfgError.message, code: 'DB_ERROR' } };
-  const wonStageId = sanitizeUUID((boardCfg as any)?.won_stage_id) || null;
-  const lostStageId = sanitizeUUID((boardCfg as any)?.lost_stage_id) || null;
+  const cfgRow2 = boardCfg as BoardConfigRow | null;
+  const wonStageId = sanitizeUUID(cfgRow2?.won_stage_id) || null;
+  const lostStageId = sanitizeUUID(cfgRow2?.lost_stage_id) || null;
 
   let contactsQuery = sb
     .from('contacts')
@@ -160,7 +218,7 @@ export async function moveStageByIdentity(opts: {
 
   const { data: contacts, error: contactsError } = await contactsQuery.limit(20);
   if (contactsError) return { ok: false as const, status: 500, body: { error: contactsError.message, code: 'DB_ERROR' } };
-  const contactIds = (contacts || []).map((c: any) => c.id).filter(Boolean);
+  const contactIds = ((contacts || []) as ContactIdRow[]).map((c) => c.id).filter(Boolean);
   if (contactIds.length === 0) return { ok: false as const, status: 404, body: { error: 'Deal not found for this identity', code: 'NOT_FOUND' } };
 
   const { data: deals, error: dealsError } = await sb
@@ -180,7 +238,7 @@ export async function moveStageByIdentity(opts: {
     return { ok: false as const, status: 409, body: { error: 'More than one open deal found for this identity in this board', code: 'AMBIGUOUS_MATCH' } };
   }
 
-  const dealId = (deals[0] as any).id as string;
+  const dealId = (deals[0] as DealIdRow).id;
   const stageId = await resolveStageIdForBoard({
     organizationId: opts.organizationId,
     boardId,
@@ -199,7 +257,7 @@ export async function moveStageByIdentity(opts: {
   }
 
   const now = new Date().toISOString();
-  const updates: any = { stage_id: stageId, last_stage_change_date: now, updated_at: now };
+  const updates: DealStageUpdate = { stage_id: stageId, last_stage_change_date: now, updated_at: now };
   if (opts.mark === 'won' || (wonStageId && stageId === wonStageId)) {
     updates.is_won = true;
     updates.is_lost = false;
@@ -220,6 +278,6 @@ export async function moveStageByIdentity(opts: {
     .maybeSingle();
   if (updateError) return { ok: false as const, status: 500, body: { error: updateError.message, code: 'DB_ERROR' } };
   if (!updated) return { ok: false as const, status: 404, body: { error: 'Deal not found', code: 'NOT_FOUND' } };
-  return { ok: true as const, status: 200, body: { data: updated, action: 'moved' } };
+  return { ok: true as const, status: 200, body: { data: updated as DealFullRow, action: 'moved' } };
 }
 

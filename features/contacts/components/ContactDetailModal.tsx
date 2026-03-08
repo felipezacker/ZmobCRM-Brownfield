@@ -100,7 +100,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
 
       setPhones(phonesResult.data || []);
       const prefArray = prefResult.data;
-      setPreferences(prefArray && (prefArray as any[]).length > 0 ? (prefArray as any[])[0] : null);
+      setPreferences(prefArray && (prefArray as ContactPreference[]).length > 0 ? (prefArray as ContactPreference[])[0] : null);
       const fetchedDeals = (dealsResult?.data as Deal[]) || [];
       setDeals(fetchedDeals);
       setScoreHistory((scoreHistoryResult?.data as typeof scoreHistory) || []);

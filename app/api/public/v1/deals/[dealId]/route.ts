@@ -54,7 +54,7 @@ export const PATCH = withRateLimit(async function PATCH(request: Request, ctx: {
     return NextResponse.json({ error: 'Invalid payload', code: 'VALIDATION_ERROR' }, { status: 422 });
   }
 
-  const updates: any = {};
+  const updates: Record<string, unknown> = {};
   if (parsed.data.title !== undefined) updates.title = normalizeText(parsed.data.title);
   if (parsed.data.value !== undefined) updates.value = Number(parsed.data.value ?? 0);
   if (parsed.data.contact_id !== undefined) updates.contact_id = sanitizeUUID(parsed.data.contact_id);

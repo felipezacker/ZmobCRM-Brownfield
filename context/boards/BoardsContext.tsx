@@ -121,7 +121,7 @@ export const BoardsProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       return data;
     },
-    [profile?.organization_id, queryClient]
+    [profile, queryClient]
   );
 
   const updateBoard = useCallback(async (id: string, updates: Partial<Board>) => {

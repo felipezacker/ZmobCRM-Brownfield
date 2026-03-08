@@ -177,7 +177,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                 <div className="relative">
                     <select
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as any)}
+                        onChange={(e) => setStatusFilter(e.target.value as 'open' | 'won' | 'lost' | 'all')}
                         aria-label="Filtrar por status"
                         className="pl-3 pr-8 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white backdrop-blur-sm appearance-none cursor-pointer"
                     >

@@ -10,7 +10,7 @@
 //
 // Contract:
 // POST { action: string, data: object }
-// -> 200 { result?: any, error?: string, consentType?: string, retryAfter?: number }
+// -> 200 { result?: unknown, error?: string, consentType?: string, retryAfter?: number }
 
 import { generateObject, generateText } from 'ai';
 import { getModel, type AIProvider } from '@/lib/ai/config';
@@ -46,17 +46,112 @@ type AIAction =
   | 'chatWithBoardAgent'
   | 'generateSalesScript';
 
+// --- Per-action data shapes (destructured from request body) ---
+
+type DealData = {
+  title?: string;
+  value?: number;
+  status?: string;
+  probability?: number;
+  contactName?: string;
+};
+
+type AnalyzeLeadData = {
+  deal?: DealData;
+  stageLabel?: string;
+};
+
+type GenerateEmailDraftData = {
+  deal?: DealData;
+};
+
+type RewriteMessageDraftData = {
+  channel?: string;
+  currentSubject?: string;
+  currentMessage?: string;
+  nextBestAction?: unknown;
+  cockpitSnapshot?: unknown;
+};
+
+type GenerateRescueMessageData = {
+  deal?: DealData;
+  channel?: string;
+};
+
+type LifecycleStageInput = {
+  id?: string;
+  name?: string;
+};
+
+type GenerateBoardStructureData = {
+  description?: string;
+  lifecycleStages?: unknown[];
+};
+
+type GenerateBoardStrategyData = {
+  boardData?: { boardName?: string };
+};
+
+type RefineBoardData = {
+  currentBoard?: unknown;
+  userInstruction?: string;
+  chatHistory?: unknown;
+};
+
+type GenerateObjectionResponseData = {
+  deal?: DealData;
+  objection?: string;
+};
+
+type ParseNaturalLanguageActionData = {
+  text?: string;
+};
+
+type ChatWithCRMData = {
+  message?: string;
+  context?: unknown;
+};
+
+type GenerateBirthdayMessageData = {
+  contactName?: string;
+  age?: number | string;
+};
+
+type ChatWithBoardAgentData = {
+  message?: string;
+  boardContext?: { agentName?: string; [key: string]: unknown };
+};
+
+type GenerateSalesScriptData = {
+  deal?: DealData;
+  scriptType?: string;
+  context?: string;
+};
+
+// --- Org settings shape from Supabase select ---
+
+type OrgSettingsRow = {
+  ai_enabled: boolean | null;
+  ai_provider: string | null;
+  ai_model: string | null;
+  ai_google_key: string | null;
+  ai_openai_key: string | null;
+  ai_anthropic_key: string | null;
+};
+
+// -----------------------------------------------
+
 const AnalyzeLeadSchema = z.object({
-  action: z.string().max(50).describe('Ação curta e direta, máximo 50 caracteres.'),
-  reason: z.string().max(80).describe('Razão breve, máximo 80 caracteres.'),
-  actionType: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP']).describe('Tipo de ação sugerida'),
-  urgency: z.enum(['low', 'medium', 'high']).describe('Urgência da ação'),
+  action: z.string().max(50).describe('Acao curta e direta, maximo 50 caracteres.'),
+  reason: z.string().max(80).describe('Razao breve, maximo 80 caracteres.'),
+  actionType: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP']).describe('Tipo de acao sugerida'),
+  urgency: z.enum(['low', 'medium', 'high']).describe('Urgencia da acao'),
   probabilityScore: z.number().min(0).max(100).describe('Score de probabilidade (0-100)'),
 });
 
 const BoardStructureSchema = z.object({
-  boardName: z.string().describe('Nome do board em português'),
-  description: z.string().describe('Descrição do propósito do board'),
+  boardName: z.string().describe('Nome do board em portugues'),
+  description: z.string().describe('Descricao do proposito do board'),
   stages: z.array(
     z.object({
       name: z.string(),
@@ -84,11 +179,11 @@ const BoardStrategySchema = z.object({
 });
 
 const RefineBoardSchema = z.object({
-  message: z.string().describe('Resposta conversacional explicando mudanças'),
+  message: z.string().describe('Resposta conversacional explicando mudancas'),
   board: BoardStructureSchema.nullable().describe('Board modificado ou null se apenas pergunta'),
 });
 
-const ObjectionResponseSchema = z.array(z.string()).describe('3 respostas diferentes para contornar objeção');
+const ObjectionResponseSchema = z.array(z.string()).describe('3 respostas diferentes para contornar objecao');
 
 const ParsedActionSchema = z.object({
   title: z.string(),
@@ -133,11 +228,11 @@ function json<T>(body: T, status = 200): Response {
 /**
  * Handler HTTP `POST` deste endpoint (Next.js Route Handler).
  *
- * @param {Request} req - Objeto da requisição.
+ * @param {Request} req - Objeto da requisicao.
  * @returns {Promise<Response>} Retorna um valor do tipo `Promise<Response>`.
  */
 export async function POST(req: Request) {
-  // Mitigação CSRF: bloqueia POST cross-site em endpoint que usa auth via cookies.
+  // Mitigacao CSRF: bloqueia POST cross-site em endpoint que usa auth via cookies.
   if (!isAllowedOrigin(req)) {
     return json<AIActionResponse>({ error: 'Forbidden' }, 403);
   }
@@ -176,10 +271,11 @@ export async function POST(req: Request) {
     .eq('organization_id', profile.organization_id)
     .single();
 
-  const aiEnabled = typeof (orgSettings as any)?.ai_enabled === 'boolean' ? (orgSettings as any).ai_enabled : true;
+  const typedSettings = orgSettings as OrgSettingsRow | null;
+  const aiEnabled = typeof typedSettings?.ai_enabled === 'boolean' ? typedSettings.ai_enabled : true;
   if (!aiEnabled) {
     return json<AIActionResponse>(
-      { error: 'IA desativada pela organização. Um admin pode ativar em Configurações → Central de I.A.' },
+      { error: 'IA desativada pela organizacao. Um admin pode ativar em Configuracoes -> Central de I.A.' },
       403
     );
   }
@@ -201,36 +297,36 @@ export async function POST(req: Request) {
 
   const featureKey = featureKeyByAction[action];
   if (featureKey) {
-    const enabled = await isAIFeatureEnabled(supabase as any, profile.organization_id as any, featureKey);
+    const enabled = await isAIFeatureEnabled(supabase, profile.organization_id, featureKey);
     if (!enabled) {
       return json<AIActionResponse>(
-        { error: `Função de IA desativada para esta ação (${action}).` },
+        { error: `Funcao de IA desativada para esta acao (${action}).` },
         403
       );
     }
   }
 
   // Frontend expects "AI consent required" as a *payload* error.
-  const provider: AIProvider = (orgSettings?.ai_provider ?? 'google') as AIProvider;
+  const provider: AIProvider = (typedSettings?.ai_provider ?? 'google') as AIProvider;
   const apiKey: string | null =
     provider === 'google'
-      ? (orgSettings?.ai_google_key ?? null)
+      ? (typedSettings?.ai_google_key ?? null)
       : provider === 'openai'
-        ? (orgSettings?.ai_openai_key ?? null)
-        : (orgSettings?.ai_anthropic_key ?? null);
+        ? (typedSettings?.ai_openai_key ?? null)
+        : (typedSettings?.ai_anthropic_key ?? null);
 
   if (orgError || !apiKey) {
     return json<AIActionResponse>({ error: 'AI consent required', consentType: 'AI_CONSENT' }, 200);
   }
 
-  const modelId = orgSettings.ai_model || '';
+  const modelId = typedSettings?.ai_model || '';
   const model = getModel(provider, apiKey, modelId);
 
   try {
     switch (action) {
       case 'analyzeLead': {
-        const { deal, stageLabel } = data as any;
-        const resolved = await getResolvedPrompt(supabase as any, profile.organization_id as any, 'task_deals_analyze');
+        const { deal, stageLabel } = data as unknown as AnalyzeLeadData;
+        const resolved = await getResolvedPrompt(supabase, profile.organization_id, 'task_deals_analyze');
         const prompt = renderPromptTemplate(resolved?.content || '', {
           dealTitle: deal?.title || '',
           dealValue: deal?.value?.toLocaleString?.('pt-BR') ?? deal?.value ?? 0,
@@ -247,8 +343,8 @@ export async function POST(req: Request) {
       }
 
       case 'generateEmailDraft': {
-        const { deal } = data as any;
-        const resolved = await getResolvedPrompt(supabase as any, profile.organization_id as any, 'task_deals_email_draft');
+        const { deal } = data as unknown as GenerateEmailDraftData;
+        const resolved = await getResolvedPrompt(supabase, profile.organization_id, 'task_deals_email_draft');
         const prompt = renderPromptTemplate(resolved?.content || '', {
           contactName: deal?.contactName || 'Cliente',
           dealTitle: deal?.title || '',
@@ -268,7 +364,7 @@ export async function POST(req: Request) {
           currentMessage,
           nextBestAction,
           cockpitSnapshot,
-        } = data as any;
+        } = data as unknown as RewriteMessageDraftData;
 
         const channelLabel = channel === 'EMAIL' ? 'EMAIL' : 'WHATSAPP';
 
@@ -279,8 +375,8 @@ export async function POST(req: Request) {
           model,
           maxRetries: 3,
           schema: RewriteMessageDraftSchema,
-          prompt: `Você é um corretor sênior e copywriter.
-Sua tarefa é REESCREVER (melhorar) uma mensagem para enviar ao cliente.
+          prompt: `Voce e um corretor senior e copywriter.
+Sua tarefa e REESCREVER (melhorar) uma mensagem para enviar ao cliente.
 
 CANAL: ${channelLabel}
 
@@ -288,53 +384,56 @@ RASCUNHO ATUAL:
 - subject (se houver): ${String(currentSubject ?? '')}
 - message: ${String(currentMessage ?? '')}
 
-PRÓXIMA AÇÃO (sugestão/NBA):
-${nbaText || '[não fornecida]'}
+PROXIMA ACAO (sugestao/NBA):
+${nbaText || '[nao fornecida]'}
 
 CONTEXTO COMPLETO (cockpitSnapshot):
-${snapshotText || '[não fornecido]'}
+${snapshotText || '[nao fornecido]'}
 
 REGRAS:
-1) Português do Brasil, natural e humano. Evite jargão e evite rótulos tipo "Contexto:"/"Sobre:".
-2) Use o contexto para personalizar (nome, deal, etapa, próximos passos), mas NÃO invente fatos.
-3) Para WHATSAPP: curto, direto e MUITO legível no WhatsApp. Use quebras de linha (parágrafos) e, quando houver opções, use lista com marcadores no formato "- item" (hífen + espaço). Evite parágrafos longos. 3–10 linhas.
-4) Para EMAIL: devolva subject + body (message = body). Aplique boas práticas de email de vendas/CRM:
-   - Assunto curto e específico (<= 80), sem ALL CAPS e sem "RE:" falso.
-   - Corpo SEMPRE bem escaneável: parágrafos curtos (1–2 frases), com linhas em branco entre blocos.
+1) Portugues do Brasil, natural e humano. Evite jargao e evite rotulos tipo "Contexto:"/"Sobre:".
+2) Use o contexto para personalizar (nome, deal, etapa, proximos passos), mas NAO invente fatos.
+3) Para WHATSAPP: curto, direto e MUITO legivel no WhatsApp. Use quebras de linha (paragrafos) e, quando houver opcoes, use lista com marcadores no formato "- item" (hifen + espaco). Evite paragrafos longos. 3-10 linhas.
+4) Para EMAIL: devolva subject + body (message = body). Aplique boas praticas de email de vendas/CRM:
+   - Assunto curto e especifico (<= 80), sem ALL CAPS e sem "RE:" falso.
+   - Corpo SEMPRE bem escaneavel: paragrafos curtos (1-2 frases), com linhas em branco entre blocos.
    - Estrutura sugerida (adapte ao contexto):
-     a) Saudação breve (use o nome se tiver certeza).
-     b) 1 frase de contexto (por que está falando agora).
-     c) 1–2 bullets com valor/objetivo ou próximos passos (use "- ").
-     d) CTA claro e simples (uma pergunta) e, se houver opções de agenda, liste em bullets ("- segunda 10h", "- terça 15h").
+     a) Saudacao breve (use o nome se tiver certeza).
+     b) 1 frase de contexto (por que esta falando agora).
+     c) 1-2 bullets com valor/objetivo ou proximos passos (use "- ").
+     d) CTA claro e simples (uma pergunta) e, se houver opcoes de agenda, liste em bullets ("- segunda 10h", "- terca 15h").
      e) Fechamento curto (ex.: "Obrigado!"), sem assinatura com dados pessoais.
-   - Evite bloco único de texto: NÃO devolva tudo em um parágrafo.
-   - Tamanho: 6–16 linhas no total (incluindo linhas em branco).
-5) Não inclua placeholders (tipo "[nome]") e não inclua assinatura com dados pessoais.
+   - Evite bloco unico de texto: NAO devolva tudo em um paragrafo.
+   - Tamanho: 6-16 linhas no total (incluindo linhas em branco).
+5) Nao inclua placeholders (tipo "[nome]") e nao inclua assinatura com dados pessoais.
 
-Retorne APENAS no formato do schema (subject opcional, message obrigatório).`,
+Retorne APENAS no formato do schema (subject opcional, message obrigatorio).`,
         });
 
         return json<AIActionResponse>({ result: result.object });
       }
 
       case 'generateRescueMessage': {
-        const { deal, channel } = data as any;
+        const { deal, channel } = data as unknown as GenerateRescueMessageData;
         const result = await generateText({
           model,
           maxRetries: 3,
           prompt: `Gere uma mensagem de resgate/follow-up para reativar um deal parado.
 DEAL: ${deal?.title} (${deal?.contactName || ''})
 CANAL: ${channel}
-Responda em português do Brasil.`,
+Responda em portugues do Brasil.`,
         });
         return json<AIActionResponse>({ result: result.text });
       }
 
       case 'generateBoardStructure': {
-        const { description, lifecycleStages } = data as any;
+        const { description, lifecycleStages } = data as unknown as GenerateBoardStructureData;
         const lifecycleList =
           Array.isArray(lifecycleStages) && lifecycleStages.length > 0
-            ? lifecycleStages.map((s: any) => ({ id: s?.id || '', name: s?.name || String(s) }))
+            ? lifecycleStages.map((s: unknown) => {
+                const stage = s as LifecycleStageInput;
+                return { id: stage?.id || '', name: stage?.name || String(s) };
+              })
             : [
                 { id: 'LEAD', name: 'Lead' },
                 { id: 'MQL', name: 'MQL' },
@@ -343,7 +442,7 @@ Responda em português do Brasil.`,
                 { id: 'OTHER', name: 'Outros' },
               ];
 
-        const resolved = await getResolvedPrompt(supabase as any, profile.organization_id as any, 'task_boards_generate_structure');
+        const resolved = await getResolvedPrompt(supabase, profile.organization_id, 'task_boards_generate_structure');
         const prompt = renderPromptTemplate(resolved?.content || '', {
           description,
           lifecycleJson: JSON.stringify(lifecycleList),
@@ -359,8 +458,8 @@ Responda em português do Brasil.`,
       }
 
       case 'generateBoardStrategy': {
-        const { boardData } = data as any;
-        const resolved = await getResolvedPrompt(supabase as any, profile.organization_id as any, 'task_boards_generate_strategy');
+        const { boardData } = data as unknown as GenerateBoardStrategyData;
+        const resolved = await getResolvedPrompt(supabase, profile.organization_id, 'task_boards_generate_strategy');
         const prompt = renderPromptTemplate(resolved?.content || '', {
           boardName: boardData?.boardName || '',
         });
@@ -374,12 +473,12 @@ Responda em português do Brasil.`,
       }
 
       case 'refineBoardWithAI': {
-        const { currentBoard, userInstruction, chatHistory } = data as any;
-        const historyContext = chatHistory ? `\nHistórico:\n${JSON.stringify(chatHistory)}` : '';
+        const { currentBoard, userInstruction, chatHistory } = data as unknown as RefineBoardData;
+        const historyContext = chatHistory ? `\nHistorico:\n${JSON.stringify(chatHistory)}` : '';
         const boardContext = currentBoard
           ? `\nBoard atual (JSON):\n${JSON.stringify(currentBoard)}`
           : '';
-        const resolved = await getResolvedPrompt(supabase as any, profile.organization_id as any, 'task_boards_refine');
+        const resolved = await getResolvedPrompt(supabase, profile.organization_id, 'task_boards_refine');
         const prompt = renderPromptTemplate(resolved?.content || '', {
           userInstruction,
           boardContext,
@@ -395,8 +494,8 @@ Responda em português do Brasil.`,
       }
 
       case 'generateObjectionResponse': {
-        const { deal, objection } = data as any;
-        const resolved = await getResolvedPrompt(supabase as any, profile.organization_id as any, 'task_deals_objection_responses');
+        const { deal, objection } = data as unknown as GenerateObjectionResponseData;
+        const resolved = await getResolvedPrompt(supabase, profile.organization_id, 'task_deals_objection_responses');
         const prompt = renderPromptTemplate(resolved?.content || '', {
           objection,
           dealTitle: deal?.title || '',
@@ -411,7 +510,7 @@ Responda em português do Brasil.`,
       }
 
       case 'parseNaturalLanguageAction': {
-        const { text } = data as any;
+        const { text } = data as unknown as ParseNaturalLanguageActionData;
         const result = await generateObject({
           model,
           maxRetries: 3,
@@ -423,30 +522,30 @@ Campos: title, type (CALL/MEETING/EMAIL/TASK), date, contactName, confidence.`,
       }
 
       case 'chatWithCRM': {
-        const { message, context } = data as any;
+        const { message, context } = data as unknown as ChatWithCRMData;
         const result = await generateText({
           model,
           maxRetries: 3,
           prompt: `Assistente CRM.
 Contexto: ${JSON.stringify(context)}
-Usuário: ${message}
-Responda em português.`,
+Usuario: ${message}
+Responda em portugues.`,
         });
         return json<AIActionResponse>({ result: result.text });
       }
 
       case 'generateBirthdayMessage': {
-        const { contactName, age } = data as any;
+        const { contactName, age } = data as unknown as GenerateBirthdayMessageData;
         const result = await generateText({
           model,
           maxRetries: 3,
-          prompt: `Parabéns para ${contactName} (${age || ''} anos). Curto e profissional.`,
+          prompt: `Parabens para ${contactName} (${age || ''} anos). Curto e profissional.`,
         });
         return json<AIActionResponse>({ result: result.text });
       }
 
       case 'generateDailyBriefing': {
-        const resolved = await getResolvedPrompt(supabase as any, profile.organization_id as any, 'task_inbox_daily_briefing');
+        const resolved = await getResolvedPrompt(supabase, profile.organization_id, 'task_inbox_daily_briefing');
         const prompt = renderPromptTemplate(resolved?.content || '', {
           dataJson: JSON.stringify(data),
         });
@@ -459,7 +558,7 @@ Responda em português.`,
       }
 
       case 'chatWithBoardAgent': {
-        const { message, boardContext } = data as any;
+        const { message, boardContext } = data as unknown as ChatWithBoardAgentData;
         const result = await generateText({
           model,
           maxRetries: 3,
@@ -469,8 +568,8 @@ Responda em português.`,
       }
 
       case 'generateSalesScript': {
-        const { deal, scriptType, context } = data as any;
-        const resolved = await getResolvedPrompt(supabase as any, profile.organization_id as any, 'task_inbox_sales_script');
+        const { deal, scriptType, context } = data as unknown as GenerateSalesScriptData;
+        const resolved = await getResolvedPrompt(supabase, profile.organization_id, 'task_inbox_sales_script');
         const prompt = renderPromptTemplate(resolved?.content || '', {
           scriptType: scriptType || 'geral',
           dealTitle: deal?.title || '',
@@ -489,8 +588,9 @@ Responda em português.`,
         return json<AIActionResponse>({ error: `Unknown action: ${exhaustive}` }, 200);
       }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[api/ai/actions] Error:', err);
-    return json<AIActionResponse>({ error: err?.message || 'Internal Server Error' }, 200);
+    const message = err instanceof Error ? err.message : 'Internal Server Error';
+    return json<AIActionResponse>({ error: message }, 200);
   }
 }

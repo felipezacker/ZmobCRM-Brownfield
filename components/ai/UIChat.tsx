@@ -2,6 +2,7 @@
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
+import type { UIMessagePart, DynamicToolUIPart, UIDataTypes, UITools } from 'ai';
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Send, Loader2, Bot, User, Sparkles, Wrench, X, MessageCircle, Minimize2, Maximize2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAI } from '@/context/AIContext';
@@ -17,6 +18,55 @@ const ReactMarkdown = dynamic(() => import('react-markdown'), {
     ssr: false,
     loading: () => <span className="animate-pulse text-muted-foreground">...</span>
 });
+
+/** Narrowed part type for tool-related UI parts (both static tool-{name} and dynamic-tool). */
+type ToolLikePart = DynamicToolUIPart & {
+    /** Runtime alias used by some tool states */
+    args?: unknown;
+    /** Runtime output payload for tool results */
+    output?: unknown;
+};
+
+/** Type alias for a single UIMessagePart used throughout this component. */
+type MessagePart = UIMessagePart<UIDataTypes, UITools>;
+
+/** Shape expected from cockpitSnapshot for title/contact extraction. */
+interface CockpitSnapshotShape {
+    deal?: { title?: string };
+    contact?: { name?: string };
+}
+
+/** Represents the input payload for CRM tool calls (summarizeToolInput). */
+interface ToolInputPayload {
+    dealId?: string;
+    dealTitle?: string;
+    title?: string;
+    reason?: string;
+    wonValue?: number;
+    stageName?: string;
+    dueDate?: string;
+    [key: string]: unknown;
+}
+
+/** Shape of a deal-like object in tool outputs. */
+interface DealRecord {
+    id?: string;
+    title?: string;
+    [key: string]: unknown;
+}
+
+/** Shape of tool output containing deals. */
+interface ToolOutputWithDeals {
+    deals?: DealRecord[];
+    id?: string;
+    title?: string;
+    [key: string]: unknown;
+}
+
+function isToolLikePart(part: MessagePart): part is ToolLikePart {
+    const t = part.type;
+    return t === 'dynamic-tool' || t === 'tool-invocation' || t.startsWith('tool-');
+}
 
 function humanizeTestLabel(input: unknown): string | undefined {
     const raw = typeof input === 'string' ? input.trim() : '';
@@ -81,13 +131,13 @@ export function UIChat({
     const [isExpanded, setIsExpanded] = useState(false);
 
     const cockpitDealTitle = useMemo(() => {
-        const s: any = cockpitSnapshot as any;
+        const s = cockpitSnapshot as CockpitSnapshotShape | null | undefined;
         const title = s?.deal?.title;
         return humanizeTestLabel(title) ?? (typeof title === 'string' && title.trim() ? title.trim() : undefined);
     }, [cockpitSnapshot]);
 
     const cockpitContactName = useMemo(() => {
-        const s: any = cockpitSnapshot as any;
+        const s = cockpitSnapshot as CockpitSnapshotShape | null | undefined;
         const name = s?.contact?.name;
         return humanizeTestLabel(name) ?? (typeof name === 'string' && name.trim() ? name.trim() : undefined);
     }, [cockpitSnapshot]);
@@ -170,15 +220,13 @@ export function UIChat({
 
             for (const m of messages) {
                 if (m.role !== 'assistant') continue;
-                for (const part of (m.parts as any[]) ?? []) {
-                    const type = (part?.type as string) || '';
-                    const isTool = type.startsWith('tool-') || type === 'dynamic-tool' || type === 'tool-invocation';
-                    if (!isTool) continue;
+                for (const part of m.parts ?? []) {
+                    if (!isToolLikePart(part)) continue;
 
-                    if (part?.state === 'approval-responded') {
+                    if (part.state === 'approval-responded') {
                         hasResponded = true;
                     }
-                    if (part?.state === 'approval-requested' && part?.approval?.approved == null) {
+                    if (part.state === 'approval-requested' && part.approval?.approved == null) {
                         hasPending = true;
                     }
                 }
@@ -193,22 +241,20 @@ export function UIChat({
     const dealTitleById = useMemo(() => {
         const map = new Map<string, string>();
 
-        const recordDeal = (d: any) => {
+        const recordDeal = (d: DealRecord | undefined) => {
             if (d?.id && d?.title && !map.has(d.id)) {
                 map.set(d.id, d.title);
             }
         };
 
         for (const m of messages) {
-            for (const p of (m.parts as any[])) {
-                const type = (p?.type as string) || '';
-                const isToolPart = type.startsWith('tool-') || type === 'dynamic-tool' || type === 'tool-invocation';
-                if (!isToolPart) continue;
+            for (const p of m.parts) {
+                if (!isToolLikePart(p)) continue;
 
-                const output = p?.output;
+                const output = p.output as ToolOutputWithDeals | undefined;
                 if (!output) continue;
 
-                if (Array.isArray(output?.deals)) {
+                if (Array.isArray(output.deals)) {
                     for (const d of output.deals) recordDeal(d);
                 }
                 // getDealDetails-like
@@ -285,17 +331,13 @@ export function UIChat({
     const pendingApprovalIds = (() => {
         const ids: string[] = [];
         for (const m of messages) {
-            const parts = (m as any).parts || [];
-            for (const part of parts) {
-                const partType = part?.type as string | undefined;
-                const isTool = partType === 'tool-invocation' || (typeof partType === 'string' && partType.startsWith('tool-'));
-                if (!isTool) continue;
+            for (const part of m.parts ?? []) {
+                if (!isToolLikePart(part)) continue;
 
-                const toolPart = part as any;
-                if (toolPart?.state !== 'approval-requested') continue;
-                if (toolPart?.approval?.approved != null) continue;
+                if (part.state !== 'approval-requested') continue;
+                if (part.approval?.approved != null) continue;
 
-                const id = toolPart?.approval?.id || toolPart?.toolCallId;
+                const id = part.approval?.id || part.toolCallId;
                 if (id) ids.push(id);
             }
         }
@@ -493,7 +535,7 @@ export function UIChat({
         return t;
     };
 
-    const summarizeToolInput = (toolName: string, input: any): string[] => {
+    const summarizeToolInput = (toolName: string, input: ToolInputPayload | undefined): string[] => {
         const lines: string[] = [];
 
         const dealTitleFromId = (dealId?: string) => {
@@ -634,26 +676,25 @@ export function UIChat({
                 )}
 
                 {messages.map((message) => {
-                    const messageParts = (message.parts ?? []) as any[];
+                    const messageParts = message.parts ?? [];
 
                     // Agrupa múltiplos pedidos de aprovação do mesmo tool numa única confirmação.
                     // Motivação: quando o modelo propõe várias ações repetidas (tarefas, mover deals, etc.),
                     // a UI não deve exigir dezenas de cliques (um por ação) para aprovar.
-                    const getToolName = (p: any) => {
-                        const partType = p?.type as string | undefined;
-                        return p?.toolName || (typeof partType === 'string' && partType.startsWith('tool-') ? partType.replace('tool-', '') : undefined);
+                    const getPartToolName = (p: MessagePart) => {
+                        if (!isToolLikePart(p)) return undefined;
+                        const partType = p.type;
+                        return p.toolName || (partType.startsWith('tool-') ? partType.replace('tool-', '') : undefined);
                     };
 
-                    const approvalParts = messageParts.filter((p: any) => {
-                        const partType = p?.type as string | undefined;
-                        const isTool = partType === 'tool-invocation' || (typeof partType === 'string' && partType.startsWith('tool-'));
-                        if (!isTool) return false;
-                        return p?.state === 'approval-requested';
+                    const approvalParts = messageParts.filter((p): p is ToolLikePart => {
+                        if (!isToolLikePart(p)) return false;
+                        return p.state === 'approval-requested';
                     });
 
-                    const approvalsByTool = new Map<string, any[]>();
+                    const approvalsByTool = new Map<string, ToolLikePart[]>();
                     for (const p of approvalParts) {
-                        const name = getToolName(p) || 'ferramenta';
+                        const name = getPartToolName(p) || 'ferramenta';
                         const arr = approvalsByTool.get(name) ?? [];
                         arr.push(p);
                         approvalsByTool.set(name, arr);
@@ -672,15 +713,15 @@ export function UIChat({
                     // de tools "silenciosas" (sem necessidade de aprovação) e sem texto. Como a UI oculta
                     // essas tools, acabava aparecendo um avatar + balão vazio (geralmente junto do "Pensando...").
                     // Aqui evitamos renderizar mensagens do assistente sem conteúdo visível.
-                    const hasVisibleText = messageParts.some((p: any) => {
-                        if (p?.type !== 'text') return false;
-                        const raw = String(p?.text ?? '').trim();
+                    const hasVisibleText = messageParts.some((p) => {
+                        if (p.type !== 'text') return false;
+                        const raw = String(p.text ?? '').trim();
                         if (!raw) return false;
                         return message.role === 'assistant' ? sanitizeAssistantText(raw).trim().length > 0 : true;
                     });
 
-                    const ungroupedApprovalsCount = approvalParts.filter((p: any) => {
-                        const name = getToolName(p) || 'ferramenta';
+                    const ungroupedApprovalsCount = approvalParts.filter((p) => {
+                        const name = getPartToolName(p) || 'ferramenta';
                         return (groupedToolCounts[name] ?? 0) <= 1;
                     }).length;
 
@@ -713,11 +754,11 @@ export function UIChat({
                                             const expanded = !!expandedApprovalGroups[groupKey];
                                             const selectionMode = !!selectionModeByGroup[groupKey];
 
-                                            const getApprovalId = (toolPart: any) => toolPart?.approval?.id || toolPart?.toolCallId;
+                                            const getApprovalId = (toolPart: ToolLikePart) => toolPart.approval?.id || toolPart.toolCallId;
 
                                             const parsedItems = items
                                                 .map((toolPart) => {
-                                                    const toolInput = toolPart.input ?? toolPart.args;
+                                                    const toolInput = (toolPart.input ?? toolPart.args) as ToolInputPayload | undefined;
                                                     const lines = summarizeToolInput(toolName, toolInput);
                                                     const dealLine = lines.find((l) => l.startsWith('Deal: '));
                                                     const dealTitle = dealLine ? dealLine.replace(/^Deal:\s*/, '') : (toolInput?.dealTitle || undefined);
@@ -1121,11 +1162,9 @@ export function UIChat({
                                         return <p key={index} className="text-sm whitespace-pre-wrap m-0">{text}</p>;
                                     }
 
-                                    const partType = part.type as string;
-                                    const isTool = partType === 'tool-invocation' || partType.startsWith('tool-');
-
-                                    if (isTool) {
-                                        const toolPart = part as any;
+                                    if (isToolLikePart(part)) {
+                                        const toolPart = part;
+                                        const partType = toolPart.type;
                                         const toolName = toolPart.toolName || (partType.startsWith('tool-') ? partType.replace('tool-', '') : 'ferramenta');
                                         const toolTitle = toolLabelMap[toolName] || toolName;
 
@@ -1138,7 +1177,7 @@ export function UIChat({
                                         console.log('[UIChat] 🔧 Handling tool part:', { type: partType, state: toolPart.state, name: toolName });
 
                                         if (toolPart.state === 'approval-requested') {
-                                            const toolInput = toolPart.input ?? toolPart.args;
+                                            const toolInput = (toolPart.input ?? toolPart.args) as ToolInputPayload | undefined;
                                             const summaryLines = summarizeToolInput(toolName, toolInput);
 
                                             return (

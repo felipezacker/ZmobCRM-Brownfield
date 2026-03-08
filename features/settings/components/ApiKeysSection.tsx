@@ -9,6 +9,17 @@ import { supabase } from '@/lib/supabase/client';
 import { SettingsSection } from './SettingsSection';
 import { Button } from '@/components/ui/button';
 
+type ActionType = 'create_lead' | 'create_deal' | 'move_stage' | 'create_activity';
+
+/** Extract error message from unknown catch value */
+const extractErrorMsg = (e: unknown, fallback: string): string => {
+  if (e instanceof Error) return e.message;
+  if (typeof e === 'object' && e !== null && 'message' in e) {
+    return String((e as { message: unknown }).message);
+  }
+  return fallback;
+};
+
 type ApiKeyRow = {
   id: string;
   name: string;
@@ -26,7 +37,7 @@ export const ApiKeysSection: React.FC = () => {
   const { addToast } = useOptionalToast();
   const { boards: boardsFromContext } = useBoards();
 
-  const [action, setAction] = useState<'create_lead' | 'create_deal' | 'move_stage' | 'create_activity'>('create_lead');
+  const [action, setAction] = useState<ActionType>('create_lead');
   const [keys, setKeys] = useState<ApiKeyRow[]>([]);
   const [loadingKeys, setLoadingKeys] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -55,7 +66,7 @@ export const ApiKeysSection: React.FC = () => {
   const [activityType, setActivityType] = useState<string>('NOTE');
   const [activityTitle, setActivityTitle] = useState<string>('Nota via integração');
   const [actionTestLoading, setActionTestLoading] = useState(false);
-  const [actionTestResult, setActionTestResult] = useState<{ ok: boolean; message: string; raw?: any } | null>(null);
+  const [actionTestResult, setActionTestResult] = useState<{ ok: boolean; message: string; raw?: unknown } | null>(null);
 
   const openApiUrl = useMemo(() => '/api/public/v1/openapi.json', []);
   const swaggerUrl = useMemo(() => '/api/public/v1/docs', []);
@@ -86,8 +97,8 @@ export const ApiKeysSection: React.FC = () => {
         .order('created_at', { ascending: false });
       if (error) throw error;
       setKeys((data || []) as ApiKeyRow[]);
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao carregar chaves', 'error');
+    } catch (e: unknown) {
+      addToast(extractErrorMsg(e, 'Erro ao carregar chaves'), 'error');
     } finally {
       setLoadingKeys(false);
     }
@@ -119,8 +130,8 @@ export const ApiKeysSection: React.FC = () => {
       setApiKeyToken(token);
       addToast('Chave criada. Copie agora — ela aparece só uma vez.', 'success');
       await loadKeys();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao criar chave', 'error');
+    } catch (e: unknown) {
+      addToast(extractErrorMsg(e, 'Erro ao criar chave'), 'error');
     } finally {
       setCreating(false);
     }
@@ -137,8 +148,8 @@ export const ApiKeysSection: React.FC = () => {
       if (error) throw error;
       addToast('Chave revogada.', 'success');
       await loadKeys();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao revogar chave', 'error');
+    } catch (e: unknown) {
+      addToast(extractErrorMsg(e, 'Erro ao revogar chave'), 'error');
     } finally {
       setRevokingId(null);
     }
@@ -160,8 +171,8 @@ export const ApiKeysSection: React.FC = () => {
       if (error) throw error;
       addToast('Chave excluída.', 'success');
       await loadKeys();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao excluir chave', 'error');
+    } catch (e: unknown) {
+      addToast(extractErrorMsg(e, 'Erro ao excluir chave'), 'error');
     } finally {
       setDeletingId(null);
     }
@@ -194,8 +205,8 @@ export const ApiKeysSection: React.FC = () => {
         return;
       }
       setTestResult({ ok: true, message: 'OK — API key validada' });
-    } catch (e: any) {
-      setTestResult({ ok: false, message: e?.message || 'Erro no teste' });
+    } catch (e: unknown) {
+      setTestResult({ ok: false, message: extractErrorMsg(e, 'Erro no teste') });
     } finally {
       setTestLoading(false);
     }
@@ -405,8 +416,8 @@ export const ApiKeysSection: React.FC = () => {
         setActionTestResult({ ok: true, message: 'OK (deal movido)', raw: json });
         return;
       }
-    } catch (e: any) {
-      setActionTestResult({ ok: false, message: e?.message || 'Erro no teste' });
+    } catch (e: unknown) {
+      setActionTestResult({ ok: false, message: extractErrorMsg(e, 'Erro no teste') });
     } finally {
       setActionTestLoading(false);
     }
@@ -509,7 +520,7 @@ export const ApiKeysSection: React.FC = () => {
           </div>
           <select
             value={action}
-            onChange={(e) => setAction(e.target.value as any)}
+            onChange={(e) => setAction(e.target.value as ActionType)}
             className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="create_lead">Criar/Atualizar Lead (Contato)</option>

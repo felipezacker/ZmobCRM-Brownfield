@@ -1,10 +1,10 @@
-function getByPath(obj: any, path: string): unknown {
+function getByPath(obj: Record<string, unknown>, path: string): unknown {
   if (!path) return undefined;
   const parts = path.split('.');
-  let cur: any = obj;
+  let cur: unknown = obj;
   for (const p of parts) {
-    if (cur == null) return undefined;
-    cur = cur[p];
+    if (cur == null || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<string, unknown>)[p];
   }
   return cur;
 }

@@ -45,7 +45,7 @@ function buildExtraFields(fd: ContactFormData) {
   };
 }
 
-export const useContactCRUD = ({ toast }: { toast: (msg: string, type?: any) => void }) => {
+export const useContactCRUD = ({ toast }: { toast: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void }) => {
   const createMut = useCreateContact();
   const updateMut = useUpdateContact();
   const deleteMut = useDeleteContact();

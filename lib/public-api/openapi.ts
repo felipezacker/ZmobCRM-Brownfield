@@ -4,7 +4,7 @@
 // - Keep this file updated together with route implementations.
 // - Prefer stable, integration-friendly shapes (simple objects, consistent errors).
 
-export type OpenApiDocument = Record<string, any>;
+export type OpenApiDocument = Record<string, unknown>;
 
 export function getPublicApiOpenApiDocument(): OpenApiDocument {
   return {

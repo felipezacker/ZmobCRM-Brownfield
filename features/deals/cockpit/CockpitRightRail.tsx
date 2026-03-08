@@ -16,6 +16,7 @@ import { UIChat } from '@/components/ai/UIChat';
 import type { Tab, CockpitSnapshot } from './cockpit-types';
 import { formatAtISO, humanizeTestLabel, scriptCategoryChipClass } from './cockpit-utils';
 import type { QuickScript, ScriptCategory } from '@/lib/supabase/quickScripts';
+import type { DealFile } from '@/lib/supabase/dealFiles';
 import { Button } from '@/components/ui/button';
 
 interface CockpitRightRailProps {
@@ -26,13 +27,13 @@ interface CockpitRightRailProps {
   cockpitSnapshot: CockpitSnapshot | undefined;
   notes: Array<{ id: string; content: string; created_at: string; created_by?: string | null }>;
   isNotesLoading: boolean;
-  createNote: { mutateAsync: (content: string) => Promise<any>; isPending: boolean };
+  createNote: { mutateAsync: (content: string) => Promise<unknown>; isPending: boolean };
   deleteNote: { mutate: (id: string) => void };
-  files: Array<{ id: string; file_name: string; file_size: number | null; mime_type: string | null; file_path: string; created_at: string }>;
+  files: DealFile[];
   isFilesLoading: boolean;
-  uploadFile: { mutateAsync: (file: File) => Promise<any> };
+  uploadFile: { mutateAsync: (file: File) => Promise<unknown> };
   deleteFile: { mutate: (args: { fileId: string; filePath: string }) => void };
-  downloadFile: (file: any) => void;
+  downloadFile: (file: DealFile) => void;
   formatFileSize: (size: number) => string;
   scripts: QuickScript[];
   isScriptsLoading: boolean;

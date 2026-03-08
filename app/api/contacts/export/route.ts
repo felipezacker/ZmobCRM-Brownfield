@@ -44,7 +44,27 @@ export async function GET(req: Request) {
 
     const chunkSize = 1000;
     let page = 0;
-    let allContacts: Array<any> = [];
+    type ContactRow = {
+      name?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      cpf?: string | null;
+      contact_type?: string | null;
+      classification?: string | null;
+      temperature?: string | null;
+      status?: string | null;
+      stage?: string | null;
+      source?: string | null;
+      address_cep?: string | null;
+      address_city?: string | null;
+      address_state?: string | null;
+      birth_date?: string | null;
+      lead_score?: number | null;
+      notes?: string | null;
+      created_at?: string | null;
+      updated_at?: string | null;
+    };
+    let allContacts: Array<ContactRow> = [];
 
     // We'll fetch in chunks. For export, we don't rely on count to avoid expensive exact counts.
     // Stop when a chunk returns less than chunkSize.
@@ -87,7 +107,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
 
-      const chunk = (data || []) as any[];
+      const chunk = (data || []) as ContactRow[];
       allContacts = allContacts.concat(chunk);
       if (chunk.length < chunkSize) break;
       page += 1;

@@ -13,7 +13,7 @@ interface UseBoardCRUDParams {
   activeBoardId: string | null;
   setActiveBoardId: (id: string | null) => void;
   defaultBoard: Board | null | undefined;
-  addToast: (msg: string, type: any) => void;
+  addToast: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
 }
 
 const makeTempId = () => {

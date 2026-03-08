@@ -40,7 +40,7 @@ export function createContactTools({ supabase, organizationId, context, userId, 
 
                 return {
                     count: contacts?.length || 0,
-                    contacts: contacts?.map((c: any) => ({
+                    contacts: contacts?.map((c: { id: string; name: string; email: string | null; phone: string | null; tags: string[] | null; custom_fields: Record<string, unknown> | null }) => ({
                         id: c.id,
                         name: c.name,
                         email: c.email || 'N/A',
@@ -137,10 +137,11 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                     .maybeSingle();
                 if (error) return { error: formatSupabaseFailure(error) };
                 if (!data) return { error: 'Contato não encontrado nesta organização.' };
+                const row = data as typeof data & { tags?: string[] | null; custom_fields?: Record<string, unknown> | null };
                 return {
                     ...data,
-                    tags: (data as any).tags || [],
-                    customFields: (data as any).custom_fields || {},
+                    tags: row.tags || [],
+                    customFields: row.custom_fields || {},
                 };
             },
         }),

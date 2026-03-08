@@ -600,7 +600,7 @@ export default function InstallWizardPage() {
           const orgProjectsData = await orgProjectsRes.json().catch(() => null);
           if (orgProjectsRes.ok) {
             const allNames = Array.isArray(orgProjectsData?.projects)
-              ? (orgProjectsData.projects as any[])
+              ? (orgProjectsData.projects as Record<string, unknown>[])
                 .map((p) => (typeof p?.name === 'string' ? p.name.trim() : ''))
                 .filter(Boolean)
               : [];

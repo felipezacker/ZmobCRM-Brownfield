@@ -12,7 +12,7 @@ import { generateFakeContacts } from '@/lib/debug';
 import { supabase } from '@/lib/supabase/client';
 
 interface UseContactImportParams {
-  toast: (message: string, type?: any) => void;
+  toast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
   contacts: Contact[];
   boards: Board[];
 }

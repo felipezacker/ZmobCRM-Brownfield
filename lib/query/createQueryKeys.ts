@@ -98,6 +98,7 @@ export function createQueryKeys<T extends string>(entity: T): QueryKeySet<T> {
  */
 export function createExtendedQueryKeys<
   T extends string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   E extends Record<string, (...args: any[]) => readonly unknown[]>
 >(entity: T, extensions: (base: QueryKeySet<T>) => E): QueryKeySet<T> & E {
   const base = createQueryKeys(entity);

@@ -22,7 +22,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
 
   const [loading, setLoading] = useState(false)
   const [validating, setValidating] = useState(true)
-  const [inviteData, setInviteData] = useState<any>(null)
+  const [inviteData, setInviteData] = useState<Record<string, unknown> | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
@@ -64,7 +64,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
         if (payload.invite?.email) {
           setFormData(prev => ({ ...prev, email: payload.invite.email }))
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('[JoinClient] Error validating token:', err)
         setError(getErrorMessage(err))
       } finally {
@@ -105,7 +105,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
       if (signInError) throw signInError
 
       router.push('/dashboard')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
       setError(getErrorMessage(err))
     } finally {

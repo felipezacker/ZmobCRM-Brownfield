@@ -38,8 +38,8 @@ export interface ToolInvocation {
     state: 'partial-call' | 'call' | 'result';
     toolCallId: string;
     toolName: string;
-    args: any;
-    result?: any;
+    args: unknown;
+    result?: unknown;
 }
 
 // Call options for AI context
@@ -60,9 +60,12 @@ export interface CallOptions {
         name?: string;
         status?: string;
         value?: number;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         metadata?: Record<string, any>;
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     filters?: Record<string, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
 
