@@ -11,7 +11,7 @@ test.describe('Edit Contact -> Data Persists', () => {
 
     // Click the first contact to open its detail/edit
     await contactElements.first().click()
-    await page.waitForTimeout(1_000)
+    await page.waitForLoadState('networkidle')
 
     // Look for an edit button or the contact form modal
     const editButton = page.getByRole('button', { name: /editar/i })
@@ -38,7 +38,7 @@ test.describe('Edit Contact -> Data Persists', () => {
       await saveButton.click()
 
       // Wait for save to complete
-      await page.waitForTimeout(2_000)
+      await page.waitForLoadState('networkidle')
 
       // Reload to verify persistence
       await page.reload()
@@ -48,7 +48,7 @@ test.describe('Edit Contact -> Data Persists', () => {
       const searchInput = page.locator('input[placeholder*="Buscar"], input[type="search"]').first()
       if (await searchInput.isVisible({ timeout: 3_000 }).catch(() => false)) {
         await searchInput.fill(newName)
-        await page.waitForTimeout(2_000)
+        await page.waitForLoadState('networkidle')
       }
 
       // Verify the updated name appears
@@ -56,7 +56,7 @@ test.describe('Edit Contact -> Data Persists', () => {
 
       // Restore original name
       await contactElements.first().click()
-      await page.waitForTimeout(1_000)
+      await page.waitForLoadState('networkidle')
       if (await editButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
         await editButton.click()
       }

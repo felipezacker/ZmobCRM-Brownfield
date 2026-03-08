@@ -28,7 +28,7 @@ test.describe('Move Deal Between Stages', () => {
     await firstDeal.dragTo(targetStage)
 
     // Wait for the update to persist
-    await page.waitForTimeout(2_000)
+    await page.waitForLoadState('networkidle')
 
     // Verify the deal card moved — it should now be inside the target stage
     // Reload and check the deal is in a different position

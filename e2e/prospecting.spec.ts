@@ -14,7 +14,7 @@ test.describe('Prospecting Module -> Queue Loads', () => {
 
     // Click on Fila tab if not already active
     await filaTab.click()
-    await page.waitForTimeout(1_000)
+    await page.waitForLoadState('networkidle')
 
     // The queue section should be visible (contacts list, search, or empty state)
     const queueContent = page.locator('main, [role="main"], [class*="queue"], [class*="Queue"]').first()
@@ -25,9 +25,6 @@ test.describe('Prospecting Module -> Queue Loads', () => {
     if (await metricasTab.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await metricasTab.click()
       await page.waitForLoadState('networkidle')
-
-      // Metrics content should appear (cards, charts, etc.)
-      await page.waitForTimeout(2_000)
     }
 
     // No errors on page

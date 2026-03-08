@@ -1,7 +1,14 @@
 import { test as setup, expect } from '@playwright/test'
 
-const E2E_EMAIL = process.env.E2E_USER_EMAIL || 'zackerfelipe@gmail.com'
-const E2E_PASSWORD = process.env.E2E_USER_PASSWORD || 'Staging@2026'
+const E2E_EMAIL = process.env.E2E_USER_EMAIL
+const E2E_PASSWORD = process.env.E2E_USER_PASSWORD
+
+if (!E2E_EMAIL || !E2E_PASSWORD) {
+  throw new Error(
+    'E2E_USER_EMAIL and E2E_USER_PASSWORD environment variables are required. ' +
+    'Set them in .env.local or export before running E2E tests.'
+  )
+}
 
 setup('authenticate', async ({ page }) => {
   await page.goto('/login')
