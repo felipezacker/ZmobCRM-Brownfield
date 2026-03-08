@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ========================================
  * Tailwind v4 Theme Configuration
  * Migrated from tailwind.config.js
