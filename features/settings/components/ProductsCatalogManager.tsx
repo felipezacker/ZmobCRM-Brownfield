@@ -175,16 +175,19 @@ export const ProductsCatalogManager: React.FC = () => {
   };
 
   const remove = async (p: Product) => {
-    setLoading(true);
-    setError(null);
-    const res = await productsService.delete(p.id);
-    if (res.error) {
-      setError(res.error.message);
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await productsService.delete(p.id);
+      if (res.error) {
+        setError(res.error.message);
+        return;
+      }
+      await load();
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('crm:products-updated'));
+    } finally {
       setLoading(false);
-      return;
     }
-    await load();
-    if (typeof window !== 'undefined') window.dispatchEvent(new Event('crm:products-updated'));
   };
 
   return (
@@ -397,6 +400,7 @@ export const ProductsCatalogManager: React.FC = () => {
         isOpen={!!pendingDelete}
         onClose={() => setPendingDelete(null)}
         onConfirm={() => {
+          setError(null);
           if (pendingDelete) remove(pendingDelete);
           setPendingDelete(null);
         }}
