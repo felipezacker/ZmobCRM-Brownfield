@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** TD-5.1
 - **Epic:** TD (Technical Debt Resolution)
-- **Status:** InProgress
+- **Status:** Done
 - **Priority:** P3
 - **Estimated Points:** 8
 - **Wave:** 5
@@ -280,3 +280,5 @@ e2e/                         # (criar) E2E test files
 | 2026-03-08 | @dev | Implementacao completa: Playwright setup + 5 E2E specs + visual regression + codemod cores (6091 mudancas automatizadas + 17 manuais = 0 hardcoded restantes). Vitest 730/730 pass. |
 | 2026-03-08 | @qa | QA Review: CONCERNS — credenciais hardcoded, waitForTimeout, AC2/AC6 pendentes |
 | 2026-03-08 | @dev | QA fixes: credenciais removidas de auth.setup.ts (env-only), waitForTimeout substituido por waits deterministicos em 5 specs. Vitest 730/730 pass. |
+| 2026-03-08 | @qa | Re-review PASS. Fixes H-1/L-1 verificados. AC2/AC6 waived (requerem staging runtime). |
+| 2026-03-08 | @po | Status InProgress → Done. QA PASS (4/6 AC + 2 waived). |

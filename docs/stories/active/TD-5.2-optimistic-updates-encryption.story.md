@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** TD-5.2
 - **Epic:** TD (Technical Debt Resolution)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P3
 - **Estimated Points:** 8
 - **Wave:** 5
@@ -377,3 +377,4 @@ Todos os 5 ACs atendidos. Encriptacao integrada end-to-end com backwards compati
 | 2026-03-08 | @qa | Re-review FAIL: C-1 (encriptacao nao integrada nos endpoints — encrypt/decrypt nunca chamados) |
 | 2026-03-08 | @dev | Fix C-1: integrou encrypt/decrypt nos 5 endpoints. 730/730 testes, 0 erros lint/typecheck novos. |
 | 2026-03-08 | @qa | Re-review #2 PASS: C-1 fixed, todos os 5 ACs verificados, gate PASS |
+| 2026-03-08 | @po | Status Ready for Review → Done. QA PASS (re-review #2), 5/5 AC. |

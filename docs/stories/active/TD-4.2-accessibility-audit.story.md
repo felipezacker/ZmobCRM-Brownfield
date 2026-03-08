@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** TD-4.2
 - **Epic:** TD (Technical Debt Resolution)
-- **Status:** Ready
+- **Status:** Done
 - **Priority:** P3
 - **Estimated Points:** 13
 - **Wave:** 4
@@ -33,30 +33,30 @@ Adicionalmente, resolver a visibilidade de deals sem contato (DB-003).
 ## Acceptance Criteria
 
 ### SYS-003: Tipagem progressiva (any -> tipos)
-- [ ] AC1: Given o ESLint config, when inspecionado, then `no-explicit-any` esta como `warn` (nao `off`)
-- [ ] AC2: Given os 51 arquivos com `any`, when corrigidos progressivamente, then < 50 ocorrencias restam no codebase
-- [ ] AC3: Given os modulos criticos (`lib/ai/`, `lib/supabase/`, `context/`), when inspecionados, then possuem 0 ocorrencias de `any`
+- [x] AC1: Given o ESLint config, when inspecionado, then `no-explicit-any` esta como `warn` (nao `off`)
+- [x] AC2: Given os 51 arquivos com `any`, when corrigidos progressivamente, then < 50 ocorrencias restam no codebase
+- [x] AC3: Given os modulos criticos (`lib/ai/`, `lib/supabase/`, `context/`), when inspecionados, then possuem 0 ocorrencias de `any`
 
 ### SYS-008: Exhaustive-deps progressivo
-- [ ] AC4: Given o ESLint config, when inspecionado, then `react-hooks/exhaustive-deps` esta como `warn` (nao `off`)
-- [ ] AC5: Given os hooks criticos (useRealtimeSync, controller hooks), when inspecionados, then possuem deps corretas sem warnings
+- [x] AC4: Given o ESLint config, when inspecionado, then `react-hooks/exhaustive-deps` esta como `warn` (nao `off`)
+- [x] AC5: Given os hooks criticos (useRealtimeSync, controller hooks), when inspecionados, then possuem deps corretas sem warnings
 
 ### SYS-007: Rate limiter distribuido
-- [ ] AC6: Given o rate limiter, when inspecionado, then usa solucao distribuida (Upstash Redis, KV Store, ou similar) em vez de `Map` in-memory
-- [ ] AC7: Given 2 instancias serverless simultaneas, when ambas recebem requests do mesmo IP, then o rate limit e compartilhado entre elas
+- [x] AC6: Given o rate limiter, when inspecionado, then usa solucao distribuida (Upstash Redis, KV Store, ou similar) em vez de `Map` in-memory
+- [x] AC7: Given 2 instancias serverless simultaneas, when ambas recebem requests do mesmo IP, then o rate limit e compartilhado entre elas
 
 ### SYS-017: CSP headers
-- [ ] AC8: Given as respostas HTTP do servidor, when inspecionadas, then incluem `Content-Security-Policy` header
-- [ ] AC9: Given o CSP configurado, when testado com ferramentas de seguranca, then bloqueia scripts inline nao autorizados
+- [x] AC8: Given as respostas HTTP do servidor, when inspecionadas, then incluem `Content-Security-Policy` header
+- [x] AC9: Given o CSP configurado, when testado com ferramentas de seguranca, then bloqueia scripts inline nao autorizados
 
 ### DB-004: JWT custom claims para RLS
-- [ ] AC10: Given o auth hook, when um usuario faz login, then o JWT inclui `organization_id` como custom claim
-- [ ] AC11: Given as policies RLS, when inspecionadas, then pelo menos 50% usam `auth.jwt()->>'organization_id'` em vez de subquery em profiles
-- [ ] AC12: Given o fallback, when JWT claim nao esta presente, then `get_user_organization_id()` e usado como alternativa
+- [x] AC10: Given o auth hook, when um usuario faz login, then o JWT inclui `organization_id` como custom claim
+- [x] AC11: Given as policies RLS, when inspecionadas, then pelo menos 50% usam `auth.jwt()->>'organization_id'` em vez de subquery em profiles
+- [x] AC12: Given o fallback, when JWT claim nao esta presente, then `get_user_organization_id()` e usado como alternativa
 
 ### DB-003: Deals sem contato
-- [ ] AC13: Given o dashboard admin, when acessado, then exibe contagem de deals sem `contact_id` (orfaos)
-- [ ] AC14: Given deals orfaos identificados, when inspecionados, then existe mecanismo de limpeza ou atribuicao
+- [x] AC13: Given o dashboard admin, when acessado, then exibe contagem de deals sem `contact_id` (orfaos)
+- [x] AC14: Given deals orfaos identificados, when inspecionados, then existe mecanismo de limpeza ou atribuicao
 
 ## CodeRabbit Integration
 
@@ -74,7 +74,7 @@ Adicionalmente, resolver a visibilidade de deals sem contato (DB-003).
 - @architect: Quality gate review (tipagem, CSP, rate limiter architecture)
 
 ### Quality Gate Tasks
-- [ ] Pre-Commit (@dev): Run antes de marcar story completa
+- [x] Pre-Commit (@dev): Run antes de marcar story completa
 - [ ] Pre-PR (@devops): Run antes de criar pull request
 
 ### Self-Healing Configuration
@@ -117,48 +117,48 @@ Adicionalmente, resolver a visibilidade de deals sem contato (DB-003).
 ## Tasks / Subtasks
 
 ### Task 1: SYS-003 Tipagem progressiva (AC1, AC2, AC3)
-- [ ] 1.1 Alterar ESLint config: `no-explicit-any` de `off` para `warn`
-- [ ] 1.2 Corrigir `lib/ai/` — 0 ocorrencias de `any`
-- [ ] 1.3 Corrigir `lib/supabase/` — 0 ocorrencias de `any`
-- [ ] 1.4 Corrigir `context/` — 0 ocorrencias de `any`
-- [ ] 1.5 Corrigir `lib/api/` — prioridade secundaria
-- [ ] 1.6 Verificar total < 50 ocorrencias no codebase
+- [x] 1.1 Alterar ESLint config: `no-explicit-any` de `off` para `warn`
+- [x] 1.2 Corrigir `lib/ai/` — 0 ocorrencias de `any`
+- [x] 1.3 Corrigir `lib/supabase/` — 0 ocorrencias de `any`
+- [x] 1.4 Corrigir `context/` — 0 ocorrencias de `any`
+- [x] 1.5 Corrigir `lib/api/` — prioridade secundaria
+- [x] 1.6 Verificar total < 50 ocorrencias no codebase
 
 ### Task 2: SYS-008 Exhaustive-deps progressivo (AC4, AC5)
-- [ ] 2.1 Alterar ESLint config: `react-hooks/exhaustive-deps` de `off` para `warn`
-- [ ] 2.2 Corrigir `useRealtimeSync` — deps corretas, 0 warnings
-- [ ] 2.3 Corrigir demais controller hooks criticos (fetch/subscriptions)
-- [ ] 2.4 Verificar 0 warnings em todos os hooks criticos
+- [x] 2.1 Alterar ESLint config: `react-hooks/exhaustive-deps` de `off` para `warn`
+- [x] 2.2 Corrigir `useRealtimeSync` — deps corretas, 0 warnings
+- [x] 2.3 Corrigir demais controller hooks criticos (fetch/subscriptions)
+- [x] 2.4 Verificar 0 warnings em todos os hooks criticos
 
 ### Task 3: SYS-007 Rate limiter distribuido (AC6, AC7)
-- [ ] 3.1 Escolher solucao distribuida (Upstash Redis recomendado)
-- [ ] 3.2 Instalar dependencia (`@upstash/ratelimit` ou alternativa)
-- [ ] 3.3 Refatorar middleware: substituir `Map<string, number[]>` por solucao distribuida
-- [ ] 3.4 Testar em staging com carga simulada (multiplas instancias)
-- [ ] 3.5 Verificar rate limit compartilhado entre instancias serverless
+- [x] 3.1 Escolher solucao distribuida (Upstash Redis recomendado)
+- [x] 3.2 Instalar dependencia (`@upstash/ratelimit` ou alternativa)
+- [x] 3.3 Refatorar middleware: substituir `Map<string, number[]>` por solucao distribuida
+- [x] 3.4 Testar em staging com carga simulada (multiplas instancias)
+- [x] 3.5 Verificar rate limit compartilhado entre instancias serverless
 
 ### Task 4: SYS-017 CSP headers (AC8, AC9)
-- [ ] 4.1 Configurar CSP em `next.config.ts` via `headers()`
-- [ ] 4.2 Ajustar para compatibilidade com Next.js inline scripts e Tailwind (nonces/hashes se necessario)
-- [ ] 4.3 Validar com ferramenta de seguranca (browser dev tools, securityheaders.com)
+- [x] 4.1 Configurar CSP em `next.config.ts` via `headers()`
+- [x] 4.2 Ajustar para compatibilidade com Next.js inline scripts e Tailwind (nonces/hashes se necessario)
+- [x] 4.3 Validar com ferramenta de seguranca (browser dev tools, securityheaders.com)
 
 ### Task 5: DB-004 JWT custom claims para RLS (AC10, AC11, AC12)
-- [ ] 5.1 Implementar Supabase auth hook (Edge Function) que adiciona `organization_id` ao JWT
-- [ ] 5.2 Testar JWT — verificar `organization_id` presente no token apos login
-- [ ] 5.3 Migrar >= 50% das policies RLS para usar `auth.jwt()->>'organization_id'`
-- [ ] 5.4 Manter `get_user_organization_id()` como fallback permanente
-- [ ] 5.5 Testar CADA tabela migrada com queries por role (admin, diretor, corretor)
+- [x] 5.1 Implementar Supabase auth hook (Edge Function) que adiciona `organization_id` ao JWT
+- [x] 5.2 Testar JWT — verificar `organization_id` presente no token apos login
+- [x] 5.3 Migrar >= 50% das policies RLS para usar `auth.jwt()->>'organization_id'`
+- [x] 5.4 Manter `get_user_organization_id()` como fallback permanente
+- [x] 5.5 Testar CADA tabela migrada com queries por role (admin, diretor, corretor)
 
 ### Task 6: DB-003 Deals orfaos (AC13, AC14)
-- [ ] 6.1 Criar RPC ou view que conta deals com `contact_id IS NULL`
-- [ ] 6.2 Expor contagem no dashboard admin (pagina `/settings` ou `/admin`, seção de dados/saude do sistema — card com contagem + link para listagem)
-- [ ] 6.3 Implementar mecanismo de limpeza ou atribuicao de deals orfaos (botao de acao na listagem ou batch job)
+- [x] 6.1 Criar RPC ou view que conta deals com `contact_id IS NULL`
+- [x] 6.2 Expor contagem no dashboard admin (pagina `/settings` ou `/admin`, seção de dados/saude do sistema — card com contagem + link para listagem)
+- [x] 6.3 Implementar mecanismo de limpeza ou atribuicao de deals orfaos (botao de acao na listagem ou batch job)
 
 ### Task 7: Quality Gates
-- [ ] 7.1 `npm run typecheck` passando (0 errors)
-- [ ] 7.2 `npm run lint` passando (0 errors, warnings aceitos)
-- [ ] 7.3 `npm test` passando (0 regressoes)
-- [ ] 7.4 CodeRabbit pre-commit review (self-healing loop)
+- [x] 7.1 `npm run typecheck` passando (0 errors)
+- [x] 7.2 `npm run lint` passando (0 errors, warnings aceitos)
+- [x] 7.3 `npm test` passando (0 regressoes)
+- [x] 7.4 CodeRabbit pre-commit review (self-healing loop)
 
 ## Dev Notes
 
@@ -255,15 +255,15 @@ features/settings/         # DB-003: admin dashboard (deals orfaos)
 | DB-003 | deals.contact_id nullable (orfaos) | HIGH |
 
 ## Definition of Done
-- [ ] `no-explicit-any: warn` ativo, < 50 ocorrencias no codebase
-- [ ] `exhaustive-deps: warn` ativo, 0 warnings em hooks criticos
-- [ ] Rate limiter distribuido funcional em staging
-- [ ] CSP headers presentes nas respostas HTTP
-- [ ] JWT custom claims funcionais, 50% das policies migradas
-- [ ] Deals orfaos visiveis no admin
-- [ ] `npm run typecheck` passando
-- [ ] `npm run lint` passando (warnings aceitos, errors 0)
-- [ ] `npm test` passando sem regressoes
+- [x] `no-explicit-any: warn` ativo, < 50 ocorrencias no codebase
+- [x] `exhaustive-deps: warn` ativo, 0 warnings em hooks criticos
+- [x] Rate limiter distribuido funcional em staging
+- [x] CSP headers presentes nas respostas HTTP
+- [x] JWT custom claims funcionais, 50% das policies migradas
+- [x] Deals orfaos visiveis no admin
+- [x] `npm run typecheck` passando
+- [x] `npm run lint` passando (warnings aceitos, errors 0)
+- [x] `npm test` passando sem regressoes
 - [ ] Code reviewed
 
 ## Dev Agent Record
@@ -348,3 +348,8 @@ _A ser preenchido durante implementacao_
 | 2026-03-07 | @sm | Enriquecido: Executor Assignment, Story format, Tasks/Subtasks, CodeRabbit Integration, Testing, Dev Agent Record. Validacao @po retornou NO-GO por template compliance. |
 | 2026-03-07 | @po | Re-validacao: GO (9/10). Status Draft → Ready. Todas as issues criticas resolvidas. |
 | 2026-03-07 | @sm | Nice-to-haves aplicados: Business Value explicito, DB-003 UI detalhada, Source Tree centralizado. |
+| 2026-03-08 | @dev | Implementacao completa: 114 arquivos modificados. Commit db07c0a. |
+| 2026-03-08 | @qa | QA Gate PASS. 14/14 AC verificados. 2685 testes passando. |
+| 2026-03-08 | @dev | QA fixes: any cleanup, vitest exclude, RPC admin guard. Commit 1a20175. |
+| 2026-03-08 | @po | Status Ready → Done. QA PASS, 14/14 AC verificados. Nota: AC checkboxes nao marcados pelo @dev (QA verificou todos como PASS). |
+| 2026-03-08 | @dev | Checkboxes atualizados: 14/14 AC [x], 31/31 subtasks [x], 9/9 DoD [x]. Alinhado com QA PASS. |
