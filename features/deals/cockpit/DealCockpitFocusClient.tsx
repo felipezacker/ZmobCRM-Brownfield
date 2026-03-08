@@ -2,8 +2,12 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCRM } from '@/context/CRMContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useDeals } from '@/context/deals/DealsContext';
 import { FocusContextPanel } from '@/features/inbox/components/focus-context';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import type { Activity, DealView } from '@/types';
@@ -18,16 +22,11 @@ import type { Activity, DealView } from '@/types';
 export default function DealCockpitFocusClient({ dealId }: { dealId: string }) {
   const router = useRouter();
 
-  const {
-    deals,
-    contacts,
-    boards,
-    activeBoard,
-    activities,
-    updateDeal,
-    addActivity,
-    updateActivity,
-  } = useCRM();
+  const { deals } = useCRMActions();
+  const { contacts } = useContacts();
+  const { boards, activeBoard } = useBoards();
+  const { activities, addActivity, updateActivity } = useActivities();
+  const { updateDeal } = useDeals();
 
   const dealsById = useMemo(() => new Map(deals.map((d) => [d.id, d])), [deals]);
   const contactsById = useMemo(() => new Map(contacts.map((c) => [c.id, c])), [contacts]);
