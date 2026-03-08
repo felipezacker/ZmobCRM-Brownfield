@@ -52,7 +52,7 @@ export const GET = withRateLimit(async function GET(request: Request) {
   const nextCursor = nextOffset < total ? encodeOffsetCursor(nextOffset) : null;
 
   return NextResponse.json({
-    data: (data || []).map((a: any) => ({
+    data: (data || []).map((a) => ({
       id: a.id,
       title: a.title,
       description: a.description ?? null,
@@ -84,10 +84,10 @@ export const POST = withRateLimit(async function POST(request: Request) {
   }
 
   const sb = createStaticAdminClient();
-  const insertPayload: any = {
+  const insertPayload = {
     organization_id: auth.organizationId,
     title: normalizeText(parsed.data.title) || parsed.data.title,
-    description: normalizeText(parsed.data.description),
+    description: normalizeText(parsed.data.description) ?? null,
     type: normalizeText(parsed.data.type) || parsed.data.type,
     date: date.toISOString(),
     completed: false,

@@ -40,7 +40,7 @@ export const GET = withRateLimit(async function GET(request: Request) {
   const nextCursor = nextOffset < total ? encodeOffsetCursor(nextOffset) : null;
 
   return NextResponse.json({
-    data: (data || []).map((b: any) => ({
+    data: (data || []).map((b) => ({
       id: b.id,
       key: b.key ?? null,
       name: b.name,
