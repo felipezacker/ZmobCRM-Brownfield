@@ -1,7 +1,8 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useBoards } from '@/context/boards/BoardsContext';
 import { Deal } from '@/types';
 import { Modal, ModalForm } from '@/components/ui/Modal';
 import { InputField, SubmitButton } from '@/components/ui/FormField';
@@ -20,7 +21,8 @@ interface CreateDealModalV2Props {
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
 export const CreateDealModalV2: React.FC<CreateDealModalV2Props> = ({ isOpen, onClose }) => {
- const { addDeal, activeBoard, activeBoardId } = useCRM();
+ const { addDeal } = useCRMActions();
+ const { activeBoard, activeBoardId } = useBoards();
 
  const form = useForm<DealFormData>({
  // @ts-expect-error - zodResolver type variance with optional value field, safe at runtime

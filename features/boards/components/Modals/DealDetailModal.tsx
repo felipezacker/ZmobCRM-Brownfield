@@ -48,7 +48,7 @@ import { ActivityFormModal } from '@/features/activities/components/ActivityForm
 import { formatPriorityPtBr } from '@/lib/utils/priority';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { useOrganizationMembers } from '@/hooks/useOrganizationMembers';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase/client';
 import { calculateEstimatedCommission } from '@/lib/supabase';
 import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
