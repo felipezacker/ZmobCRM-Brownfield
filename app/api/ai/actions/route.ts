@@ -309,12 +309,14 @@ export async function POST(req: Request) {
 
   // Frontend expects "AI consent required" as a *payload* error.
   const provider: AIProvider = (typedSettings?.ai_provider ?? 'google') as AIProvider;
-  const apiKey: string | null =
+  const rawKey: string | null =
     provider === 'google'
       ? (typedSettings?.ai_google_key ?? null)
       : provider === 'openai'
         ? (typedSettings?.ai_openai_key ?? null)
         : (typedSettings?.ai_anthropic_key ?? null);
+
+  const apiKey = rawKey ? decryptApiKey(rawKey) : null;
 
   if (orgError || !apiKey) {
     return json<AIActionResponse>({ error: 'AI consent required', consentType: 'AI_CONSENT' }, 200);

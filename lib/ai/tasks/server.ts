@@ -3,6 +3,7 @@ import 'server-only';
 import { createClient } from '@/lib/supabase/server';
 import { isAllowedOrigin } from '@/lib/security/sameOrigin';
 import { getModel, type AIProvider } from '@/lib/ai/config';
+import { decryptApiKey } from '@/lib/crypto/encryption';
 
 export type AITaskContext = {
   supabase: Awaited<ReturnType<typeof createClient>>;
@@ -98,12 +99,14 @@ export async function requireAITaskContext(req: Request): Promise<AITaskContext>
 
   const provider: AIProvider = (orgSettings?.ai_provider ?? 'google') as AIProvider;
 
-  const apiKey: string | null =
+  const rawKey: string | null =
     provider === 'google'
       ? (orgSettings?.ai_google_key ?? null)
       : provider === 'openai'
         ? (orgSettings?.ai_openai_key ?? null)
         : (orgSettings?.ai_anthropic_key ?? null);
+
+  const apiKey = rawKey ? decryptApiKey(rawKey) : null;
 
   if (orgError || !apiKey) {
     const providerLabel = provider === 'google' ? 'Google Gemini' : provider === 'openai' ? 'OpenAI' : 'Anthropic';
