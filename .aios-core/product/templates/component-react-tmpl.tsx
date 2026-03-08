@@ -76,7 +76,7 @@ export const {{ComponentName}} = React.forwardRef<{{ElementTag}}, {{ComponentNam
       <Comp
         ref={ref}
         className={cn(
-          {{componentName}}Variants({ variant, size }),
+ {{componentName}}Variants({ variant, size }),
           isLoading && 'pointer-events-none opacity-70',
           className
         )}

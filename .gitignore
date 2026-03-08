@@ -120,3 +120,4 @@ supabase/backups/
 
 # Dashboard app (separate repo)
 apps/
+.aios/handoffs/
