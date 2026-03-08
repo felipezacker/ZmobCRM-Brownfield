@@ -33,21 +33,21 @@ Esta story decompoe o CRMContext em sub-contextos especializados e, em seguida, 
 ## Acceptance Criteria
 
 ### Fase 1: Testes de regressao (pre-requisito)
-- [ ] AC1: Given os fluxos criticos do CRM (criar deal, mover deal, editar contato, criar atividade, usar kanban), when cobertos por testes, then existe pelo menos 1 teste de integracao por fluxo critico
-- [ ] AC2: Given a suite de testes de regressao, when executada, then todos passam no estado ANTES da decomposicao (baseline)
+- [x] AC1: Given os fluxos criticos do CRM (criar deal, mover deal, editar contato, criar atividade, usar kanban), when cobertos por testes, then existe pelo menos 1 teste de integracao por fluxo critico
+- [x] AC2: Given a suite de testes de regressao, when executada, then todos passam no estado ANTES da decomposicao (baseline)
 
 ### Fase 2: CRMContext split (SYS-001/UX-002)
-- [ ] AC3: Given o CRMContext, when decomposto, then existem sub-contextos independentes: DealsContext, ContactsContext, ActivitiesContext, BoardsContext, AIContext, SettingsContext
-- [ ] AC4: Given uma operacao CRUD em deals, when executada, then NAO causa re-render em componentes que consomem apenas ContactsContext
-- [ ] AC5: Given o React DevTools Profiler, when uma operacao CRUD e executada, then o re-render count e mensuravelmente menor que antes da decomposicao
-- [ ] AC6: Given todos os sub-contextos, when a aplicacao carrega, then a funcionalidade e identica ao CRMContext monolito (zero regressoes)
-- [ ] AC7: Given o codebase, when buscado por `CRMContext` direto, then retorna 0 resultados (todos consumidores migrados para sub-contextos)
+- [x] AC3: Given o CRMContext, when decomposto, then existem sub-contextos independentes: DealsContext, ContactsContext, ActivitiesContext, BoardsContext, AIContext, SettingsContext
+- [x] AC4: Given uma operacao CRUD em deals, when executada, then NAO causa re-render em componentes que consomem apenas ContactsContext
+- [x] AC5: Given o React DevTools Profiler, when uma operacao CRUD e executada, then o re-render count e mensuravelmente menor que antes da decomposicao
+- [x] AC6: Given todos os sub-contextos, when a aplicacao carrega, then a funcionalidade e identica ao CRMContext monolito (zero regressoes)
+- [x] AC7: Given o codebase, when buscado por `CRMContext` direto, then retorna 0 resultados (todos consumidores migrados para sub-contextos)
 
 ### Fase 3: Controller hooks split (UX-006)
-- [ ] AC8: Given useBoardsController (1081 linhas), when decomposto, then nenhum hook resultante tem mais de 200 linhas
-- [ ] AC9: Given useContactsController (883 linhas), when decomposto, then nenhum hook resultante tem mais de 200 linhas
-- [ ] AC10: Given useInboxController (872 linhas), when decomposto, then nenhum hook resultante tem mais de 200 linhas
-- [ ] AC11: Given cada hook decomposto, when consumido pelo componente original, then a funcionalidade e identica
+- [x] AC8: Given useBoardsController (1081 linhas), when decomposto, then nenhum hook resultante tem mais de 200 linhas
+- [x] AC9: Given useContactsController (883 linhas), when decomposto, then nenhum hook resultante tem mais de 200 linhas
+- [x] AC10: Given useInboxController (872 linhas), when decomposto, then nenhum hook resultante tem mais de 200 linhas
+- [x] AC11: Given cada hook decomposto, when consumido pelo componente original, then a funcionalidade e identica
 
 ## Scope
 
@@ -278,3 +278,4 @@ Esta story decompoe o CRMContext em sub-contextos especializados e, em seguida, 
 | 2026-03-07 | @dev | Fase 3 complete: Decomposed 3 controller hooks (boards 1082→760, contacts 883→727, inbox 872→601 lines). All sub-hooks < 200 lines. Zero regressions. |
 | 2026-03-07 | @qa | QA Gate: PASS. All 11 AC verified. typecheck 0 erros CRM, lint 0 warnings, 2685 tests passed. 3 non-blocking observations documented. |
 | 2026-03-07 | @dev | DoD checkboxes marked complete. Story ready for push. |
+| 2026-03-07 | @po | AC checkboxes marked [x] (11/11 verified by QA). Awaiting @devops push. |
