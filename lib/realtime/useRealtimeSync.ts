@@ -56,7 +56,8 @@ export function useRealtimeSync(
       return;
     }
 
-    const tableList: RealtimeTable[] = JSON.parse(tablesKey);
+    const parsed = JSON.parse(tablesKey);
+    const tableList: RealtimeTable[] = Array.isArray(parsed) ? parsed : [parsed];
     const channelName = `realtime-sync-${tableList.join('-')}`;
 
     if (channelRef.current) {
