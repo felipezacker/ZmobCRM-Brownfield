@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** TD-4.1
 - **Epic:** TD (Technical Debt Resolution)
-- **Status:** Ready
+- **Status:** Ready for Review
 - **Priority:** P2
 - **Estimated Points:** 13
 - **Wave:** 4
