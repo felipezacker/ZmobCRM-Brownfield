@@ -266,4 +266,32 @@ describe('useProspectingQueue', () => {
     })
     expect(result.current.retryInterval).toBe(7)
   })
+
+  // ── QV-1.7: Queue limit & duplicate validation ──────────
+
+  it('addToQueue bloqueia quando fila tem 100 contatos (limite)', async () => {
+    mockQueueData = Array.from({ length: 100 }, (_, i) =>
+      makeItem({ id: `q-${i}`, contactId: `c-${i}`, position: i })
+    )
+    const { result } = renderHook(() => useProspectingQueue())
+
+    await act(async () => {
+      await result.current.addToQueue('c-new')
+    })
+
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+    expect(mockToast).toHaveBeenCalledWith('Limite de 100 contatos atingido', 'warning')
+  })
+
+  it('addToQueue bloqueia contato duplicado na fila', async () => {
+    mockQueueData = [makeItem({ id: 'q-1', contactId: 'c-existing' })]
+    const { result } = renderHook(() => useProspectingQueue())
+
+    await act(async () => {
+      await result.current.addToQueue('c-existing')
+    })
+
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+    expect(mockToast).toHaveBeenCalledWith('Contato já está na fila', 'warning')
+  })
 })

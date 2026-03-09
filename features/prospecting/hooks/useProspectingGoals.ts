@@ -5,7 +5,7 @@
  * to compute real-time progress toward daily target.
  */
 import { useMemo, useCallback, useState } from 'react'
-import { useMyDailyGoal, useTeamDailyGoals, useUpsertDailyGoal } from '@/lib/query/hooks/useDailyGoalsQuery'
+import { useMyDailyGoal, useDailyGoalByOwner, useTeamDailyGoals, useUpsertDailyGoal } from '@/lib/query/hooks/useDailyGoalsQuery'
 import { useAuth } from '@/context/AuthContext'
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import type { CallActivity } from './useProspectingMetrics'
@@ -20,9 +20,12 @@ export interface GoalProgress {
   isComplete: boolean
 }
 
-export function useProspectingGoals(todayActivities: CallActivity[]) {
+export function useProspectingGoals(todayActivities: CallActivity[], viewOwnerId?: string) {
   const { profile } = useAuth()
-  const goalQuery = useMyDailyGoal()
+  const myGoalQuery = useMyDailyGoal()
+  // QV-1.7 Bug #9: When filtering by a specific broker, fetch that broker's goal
+  const isViewingOther = viewOwnerId && viewOwnerId !== profile?.id
+  const ownerGoalQuery = useDailyGoalByOwner(isViewingOther ? viewOwnerId : undefined)
   const teamGoalsQuery = useTeamDailyGoals()
   const upsertMutation = useUpsertDailyGoal()
 
@@ -32,7 +35,9 @@ export function useProspectingGoals(todayActivities: CallActivity[]) {
 
   const isAdminOrDirector = profile?.role === 'admin' || profile?.role === 'diretor'
 
-  const callsTarget = goalQuery.data?.calls_target ?? DEFAULT_CALLS_TARGET
+  // Use the viewed owner's goal when filtering, otherwise own goal
+  const activeGoal = isViewingOther ? ownerGoalQuery.data : myGoalQuery.data
+  const callsTarget = activeGoal?.calls_target ?? DEFAULT_CALLS_TARGET
 
   const todayCallCount = useMemo(() => {
     const today = new Date().toISOString().split('T')[0]
@@ -62,10 +67,10 @@ export function useProspectingGoals(todayActivities: CallActivity[]) {
   )
 
   return {
-    goal: goalQuery.data,
+    goal: activeGoal,
     teamGoals: teamGoalsQuery.data || [],
     progress,
-    isLoading: goalQuery.isLoading,
+    isLoading: isViewingOther ? ownerGoalQuery.isLoading : myGoalQuery.isLoading,
     isAdminOrDirector,
     showGoalModal,
     setShowGoalModal,

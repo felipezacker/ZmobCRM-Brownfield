@@ -80,8 +80,8 @@ export const ProspectingPage: React.FC = () => {
   const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined)
   const { invalidateMetrics, isAdminOrDirector } = metricsHook
 
-  // CP-2.3: Daily goals + heatmap
-  const goalsHook = useProspectingGoals(metricsHook.activities)
+  // CP-2.3 + QV-1.7 Bug #9: Daily goals + heatmap (pass filtered owner for individual goal view)
+  const goalsHook = useProspectingGoals(metricsHook.activities, metricsFilterOwnerId || undefined)
 
   // CP-2.4: Saved queues + PDF export
   const savedQueuesHook = useSavedQueues()
@@ -223,14 +223,42 @@ export const ProspectingPage: React.FC = () => {
     }
   }, [addBatchMutation, assignToOwnerId, profiles, toast, refetch])
 
-  // CP-2.4: Load saved queue → apply filters
-  const handleLoadSavedQueue = useCallback((queue: import('@/lib/supabase/prospecting-saved-queues').SavedQueue) => {
-    const restored = savedQueuesHook.getFiltersFromSaved(queue)
-    setFilters(restored)
-    setShowFilters(true)
-    filteredContacts.applyFilters(restored)
-    toast(`Fila "${queue.name}" carregada`, 'success')
-  }, [savedQueuesHook, filteredContacts, toast])
+  // CP-2.4 + QV-1.7 Bug #8: Load saved queue → restore contacts if saved, else apply filters
+  // CONCERN-2 fix: use resolvedViewOwnerId as targetOwnerId so loading respects the viewed queue
+  const handleLoadSavedQueue = useCallback(async (savedQueue: import('@/lib/supabase/prospecting-saved-queues').SavedQueue) => {
+    const contactIds = savedQueuesHook.getContactIdsFromSaved(savedQueue)
+
+    if (contactIds.length > 0) {
+      // QV-1.7: Restore contacts from saved IDs (replaces current queue)
+      // CONCERN-1 fix: both operations in same try/catch + refetch on failure
+      const targetOwner = resolvedViewOwnerId === '__all__' ? undefined : resolvedViewOwnerId
+      try {
+        await clearQueue()
+        const result = await addBatchMutation.mutateAsync({
+          contactIds,
+          targetOwnerId: targetOwner,
+        })
+        const filtered = contactIds.length - result.added - result.skipped
+        refetch()
+        if (filtered > 0) {
+          toast(`Fila "${savedQueue.name}" carregada (${result.added} contatos, ${filtered} removidos desde o save)`, 'success')
+        } else {
+          toast(`Fila "${savedQueue.name}" carregada (${result.added} contatos)`, 'success')
+        }
+      } catch {
+        // Refetch to show whatever state we're in after partial failure
+        refetch()
+        toast('Erro ao restaurar contatos da fila salva', 'error')
+      }
+    } else {
+      // Fallback: legacy saved queues without contact_ids — apply filters only
+      const restored = savedQueuesHook.getFiltersFromSaved(savedQueue)
+      setFilters(restored)
+      setShowFilters(true)
+      filteredContacts.applyFilters(restored)
+      toast(`Fila "${savedQueue.name}" carregada (filtros)`, 'success')
+    }
+  }, [savedQueuesHook, filteredContacts, toast, clearQueue, addBatchMutation, refetch, resolvedViewOwnerId])
 
   // CP-2.4: PDF export
   const handleExportPdf = useCallback(async () => {
@@ -714,7 +742,10 @@ export const ProspectingPage: React.FC = () => {
       <SaveQueueModal
         isOpen={showSaveQueueModal}
         onClose={() => setShowSaveQueueModal(false)}
-        onSave={async (name, isShared) => { await savedQueuesHook.saveQueue(name, filters, isShared) }}
+        onSave={async (name, isShared) => {
+          const contactIds = queue.map(item => item.contactId)
+          await savedQueuesHook.saveQueue(name, filters, isShared, contactIds)
+        }}
         isSaving={savedQueuesHook.isSaving}
         isAdminOrDirector={isAdminOrDirector}
       />
