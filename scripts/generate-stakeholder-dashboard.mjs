@@ -1238,10 +1238,10 @@ const html = `<!DOCTYPE html>
       <div class="expect-card short reveal reveal-d1">
         <div class="label">Curto Prazo (1-2 semanas)</div>
         <div class="items">
-          <span>Metas diarias de ligacao com progresso visual</span>
-          <span>Mapa de calor — melhor horario para ligar</span>
-          <span>Filas de prospeccao salvas e reutilizaveis</span>
-          <span>Lead Score com pesos configuraveis</span>
+          <span>IA recomenda quem ligar (Lead Score + Heatmap)</span>
+          <span>Assistente IA conhece suas metas e métricas</span>
+          <span>Sugestão e criação de Scripts de Venda via IA</span>
+          <span>Módulo de Imóveis (Beta): property_ref e buscas</span>
         </div>
       </div>
       <div class="expect-card mid reveal reveal-d2">

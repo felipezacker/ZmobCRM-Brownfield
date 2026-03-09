@@ -17,22 +17,22 @@ export const Reveal = ({ children, delay = 0 }: { children: React.ReactNode; del
 export const MeshBg = () => (
     <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
         <div
-            className="absolute inset-0 opacity-[0.08]"
+            className="absolute inset-0 opacity-[0.05] md:opacity-[0.08]"
             style={{
-                background: 'radial-gradient(circle at var(--mx, 50%) var(--my, 50%), #3b82f6 0%, transparent 50%)'
+                background: 'radial-gradient(circle at var(--mx, 50%) var(--my, 50%), #3b82f6 0%, transparent 60%)'
             }}
         />
-        <div className="absolute inset-0 opacity-[0.03] grain" />
+        <div className="absolute inset-0 opacity-[0.02] md:opacity-[0.03] grain" />
     </div>
 );
 
 export const SectionTitle = ({ number, title, color = '#3b82f6', glow = 'rgba(59, 130, 246, 0.2)' }: { number: string; title: string; color?: string; glow?: string }) => (
     <Reveal>
-        <div className="font-mono text-[11px] text-[#71717a] uppercase tracking-[0.15em] mb-2">
+        <div className="font-mono text-[10px] md:text-[11px] text-[#71717a] uppercase tracking-[0.15em] mb-2">
             <span className="text-[#60a5fa] mr-3">{number}</span>{title.split('—')[0].trim()}
         </div>
-        <h2 className="text-2xl font-bold text-[#f4f4f5] tracking-tight flex items-center gap-3 mb-10">
-            <div className={`w-2 h-2 rounded-full`} style={{ background: color, boxShadow: `0 0 12px ${glow}` }} />
+        <h2 className="text-xl md:text-2xl font-bold text-[#f4f4f5] tracking-tight flex items-center gap-3 mb-6 md:mb-10">
+            <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full`} style={{ background: color, boxShadow: `0 0 12px ${glow}` }} />
             {title}
         </h2>
     </Reveal>
@@ -40,11 +40,11 @@ export const SectionTitle = ({ number, title, color = '#3b82f6', glow = 'rgba(59
 
 export const StatCard = ({ label, value, sub, color, delay }: { label: string; value: string | number; sub: string; color: string; delay?: number }) => (
     <Reveal delay={delay}>
-        <div className="bg-[#18181b]/40 backdrop-blur-md border border-[#ffffff08] rounded-2xl p-7 transition-all hover:translate-y-[-2px] hover:border-[#3b82f626] group relative overflow-hidden h-full">
-            <div className="font-mono text-[10px] text-[#71717a] uppercase tracking-wider mb-3">{label}</div>
-            <div className="text-4xl font-extrabold tracking-tighter transition-all" style={{ color }}>{value}</div>
-            <div className="text-xs text-[#52525b] mt-2">{sub}</div>
-            <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        <div className="bg-[#18181b]/40 backdrop-blur-md border border-[#ffffff08] rounded-2xl p-5 md:p-7 transition-all hover:translate-y-[-2px] hover:border-[#3b82f626] group relative overflow-hidden h-full">
+            <div className="font-mono text-[9px] md:text-[10px] text-[#71717a] uppercase tracking-wider mb-2 md:mb-3">{label}</div>
+            <div className="text-3xl md:text-4xl font-extrabold tracking-tighter transition-all" style={{ color }}>{value}</div>
+            <div className="text-[11px] md:text-xs text-[#52525b] mt-1.5 md:mt-2">{sub}</div>
+            <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block"
                 style={{
                     background: `conic-gradient(from 180deg at 50% 50%, transparent 0%, ${color}1a 25%, transparent 50%, ${color}0d 75%, transparent 100%)`
                 }}
@@ -61,15 +61,15 @@ export const PhaseCard = ({ phase, delay }: { phase: RoadmapPhase; delay: number
                 <div className="font-bold text-lg" style={{ color: phase.color }}>{phase.phase}</div>
                 <span className="font-mono text-[10px] bg-[#27272a] text-[#52525b] px-2 py-0.5 rounded-full">{phase.items.length} itens</span>
             </div>
-            <div className="pl-8 border-l-2 border-[#27272a] ml-1.5 space-y-2">
+            <div className="pl-6 md:pl-8 border-l-2 border-[#27272a] ml-1.5 space-y-2">
                 {phase.items.map((item, i) => (
-                    <div key={i} className="bg-[#18181b] border border-[#27272a] rounded-lg p-3.5 flex items-start gap-3 transition-all hover:bg-[#27272a] hover:border-[#3b82f61f] group">
-                        <div className={`w-5 h-5 rounded-full border-2 border-[#27272a] flex-shrink-0 mt-0.5 flex items-center justify-center transition-all ${phase.phase === 'Concluido' ? 'bg-[#10b981] border-[#10b981]' : ''}`}>
-                            {phase.phase === 'Concluido' && <span className="text-white text-[10px] font-bold">✓</span>}
+                    <div key={i} className="bg-[#18181b] border border-[#27272a] rounded-lg p-3 md:p-3.5 flex items-start gap-2.5 md:gap-3 transition-all hover:bg-[#27272a] hover:border-[#3b82f61f] group">
+                        <div className={`w-4 h-4 md:w-5 md:h-5 rounded-full border-2 border-[#27272a] flex-shrink-0 mt-0.5 flex items-center justify-center transition-all ${phase.phase === 'Concluido' ? 'bg-[#10b981] border-[#10b981]' : ''}`}>
+                            {phase.phase === 'Concluido' && <span className="text-white text-[8px] md:text-[10px] font-bold">✓</span>}
                         </div>
                         <div>
-                            <div className="font-semibold text-[14px] text-[#f4f4f5] tracking-tight">{item.name}</div>
-                            <div className="text-[#a1a1aa] text-[12px] mt-0.5 leading-relaxed">{item.desc}</div>
+                            <div className="font-semibold text-[13px] md:text-[14px] text-[#f4f4f5] tracking-tight">{item.name}</div>
+                            <div className="text-[#a1a1aa] text-[11px] md:text-[12px] mt-0.5 leading-relaxed">{item.desc}</div>
                         </div>
                     </div>
                 ))}
@@ -115,23 +115,23 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
         <div className="min-h-screen bg-[#09090b] text-[#a1a1aa] font-sans selection:bg-[#3b82f633] selection:text-[#3b82f6] pb-20">
             <MeshBg />
 
-            <div className="max-w-5xl mx-auto px-6">
+            <div className="max-w-5xl mx-auto px-4 md:px-6">
                 {/* Header */}
-                <header className="pt-32 pb-12 text-center relative">
+                <header className="pt-20 md:pt-32 pb-8 md:pb-12 text-center relative">
                     <Reveal>
-                        <h1 className="text-5xl font-extrabold tracking-tight text-[#f4f4f5] mb-4 bg-gradient-to-br from-[#60a5fa] via-[#3b82f6] to-[#2563eb] bg-clip-text text-transparent">
+                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#f4f4f5] mb-3 md:mb-4 bg-gradient-to-br from-[#60a5fa] via-[#3b82f6] to-[#2563eb] bg-clip-text text-transparent">
                             ZmobCRM
                         </h1>
-                        <p className="text-xl text-[#71717a] font-medium tracking-tight">{staticBrandVision.tagline}</p>
+                        <p className="text-lg md:text-xl text-[#71717a] font-medium tracking-tight px-4">{staticBrandVision.tagline}</p>
 
-                        <div className="flex justify-center gap-10 mt-10">
-                            <div className="flex items-center gap-2 text-[13px] text-[#52525b]">
+                        <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-8 md:mt-10">
+                            <div className="flex items-center gap-2 text-[12px] md:text-[13px] text-[#52525b]">
                                 Versão <span className="font-mono text-[#f4f4f5] font-semibold">{data.version}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-[13px] text-[#52525b]">
+                            <div className="flex items-center gap-2 text-[12px] md:text-[13px] text-[#52525b]">
                                 Módulos <span className="font-mono text-[#f4f4f5] font-semibold">{data.featureModules.length}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-[13px] text-[#52525b]">
+                            <div className="flex items-center gap-2 text-[12px] md:text-[13px] text-[#52525b]">
                                 Atualizado <span className="font-mono text-[#f4f4f5] font-semibold">{data.generatedAt.split(',')[0]}</span>
                             </div>
                         </div>
@@ -140,14 +140,14 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                 </header>
 
                 {/* Section 01: DNA do Produto */}
-                <section className="py-12">
+                <section className="py-8 md:py-12">
                     <SectionTitle number="01" title="Visao & Posicionamento" />
-                    <div className="text-center bg-[#18181b] border border-[#27272a] rounded-2xl p-10 mb-8 relative overflow-hidden group">
+                    <div className="text-center bg-[#18181b] border border-[#27272a] rounded-2xl p-6 md:p-10 mb-6 md:mb-8 relative overflow-hidden group">
                         <div className="absolute inset-0 bg-radial-gradient(ellipse at 50% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 60%) pointer-events-none" />
-                        <h3 className="text-3xl font-extrabold text-[#f4f4f5] tracking-tighter mb-4 relative z-10 group-hover:scale-[1.02] transition-transform duration-500">
+                        <h3 className="text-2xl md:text-3xl font-extrabold text-[#f4f4f5] tracking-tighter mb-4 relative z-10 group-hover:scale-[1.02] transition-transform duration-500">
                             {data.brandVision.tagline}
                         </h3>
-                        <p className="text-[#a1a1aa] max-w-2xl mx-auto relative z-10 leading-relaxed font-medium">
+                        <p className="text-[#a1a1aa] text-sm md:text-base max-w-2xl mx-auto relative z-10 leading-relaxed font-medium">
                             {data.brandVision.positioning}
                         </p>
                     </div>
@@ -248,16 +248,16 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                 <div className="h-[1px] bg-gradient-to-r from-transparent via-[#27272a] to-transparent my-4" />
 
                 {/* Section 06: Histórico (Atividade Recente) */}
-                <section className="py-12">
+                <section className="py-8 md:py-12">
                     <SectionTitle number="06" title="Atividade Recente" />
-                    <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-6 divide-y divide-[#27272a]">
+                    <div className="bg-[#18181b] border border-[#27272a] rounded-2xl p-4 md:p-6 divide-y divide-[#27272a]">
                         {data.recentCommits.map((c, i) => (
                             <Reveal key={c.hash} delay={0.05 * i}>
-                                <div className="py-4 flex gap-6 items-start hover:pl-2 transition-all group">
-                                    <div className="font-mono text-[11px] text-[#52525b] flex-shrink-0 pt-0.5">
+                                <div className="py-4 flex gap-4 md:gap-6 items-start hover:pl-2 transition-all group">
+                                    <div className="font-mono text-[10px] md:text-[11px] text-[#52525b] flex-shrink-0 pt-0.5">
                                         {new Date(c.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                                     </div>
-                                    <div className="text-[13px] text-[#a1a1aa] leading-relaxed group-hover:text-[#f4f4f5] transition-colors">
+                                    <div className="text-[12px] md:text-[13px] text-[#a1a1aa] leading-relaxed group-hover:text-[#f4f4f5] transition-colors">
                                         {c.message}
                                     </div>
                                 </div>
@@ -275,10 +275,10 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                         <div className="space-y-4">
                             <div className="font-mono text-[10px] text-[#71717a] uppercase tracking-widest pl-1 border-l-2 border-[#f59e0b] mb-4">Curto Prazo (1-2 sem)</div>
                             {[
-                                'Metas diarias de ligacao visual',
-                                'Mapa de calor de ligacoes',
-                                'Filas salvas e reutilizaveis',
-                                'Lead Score configuravel'
+                                'IA recomenda quem ligar (Lead Score + Heatmap)',
+                                'Assistente IA conhece suas metas e métricas',
+                                'Sugestão e criação de Scripts de Venda via IA',
+                                'Módulo de Imóveis (Beta): property_ref e buscas'
                             ].map((item, i) => (
                                 <Reveal key={i} delay={0.1 * i}>
                                     <div className="flex items-center gap-3 text-sm text-[#a1a1aa]">
