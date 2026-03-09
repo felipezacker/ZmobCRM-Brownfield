@@ -25,6 +25,7 @@ vi.mock('@/context/ToastContext', () => ({
 
 vi.mock('@/lib/query/hooks', () => ({
   useMoveDealSimple: () => ({ moveDeal: vi.fn() }),
+  useDeal: () => ({ data: null }),
 }));
 
 vi.mock('@/lib/a11y', () => ({

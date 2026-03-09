@@ -127,7 +127,8 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                             stage: (d.stage as DealRow['stage'])?.name || (d.stage as DealRow['stage'])?.label || 'N/A',
                             contact: (d.contact as DealRow['contact'])?.name || 'N/A',
                             product: items?.[0]?.name || null,
-                            status: d.is_won ? '✅ Ganho' : d.is_lost ? '❌ Perdido' : '🔄 Aberto'
+                            status: d.is_won ? '✅ Ganho' : d.is_lost ? '❌ Perdido' : '🔄 Aberto',
+                            propertyRef: d.property_ref || null
                         };
                     }) || []
                 };
