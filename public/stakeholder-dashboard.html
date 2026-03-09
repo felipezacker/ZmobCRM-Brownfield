@@ -6,7 +6,7 @@
 <title>ZmobCRM — Status do Projeto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
 <style>
   /* === PREMIUM THEME: Zinc Blue (System Match) === */
   :root {
@@ -39,11 +39,12 @@
     --border-subtle: #1e1e21;
 
     /* Typography */
-    --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
     --font-body: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
     /* Effects */
+    --accent-glow: rgba(59, 130, 246, 0.4);
     --glow-color: rgba(59, 130, 246, 0.2);
     --glow-spread: 0 0 40px;
     --glass-bg: rgba(59, 130, 246, 0.04);
@@ -768,6 +769,11 @@
 </head>
 <body>
 
+<!-- Maximum Tier: Cursor + Mesh -->
+<div class="cursor-ring"></div>
+<div class="cursor-dot"></div>
+<div class="mesh-bg"></div>
+
 <!-- Scroll Progress (Enhanced) -->
 <div class="scroll-progress"></div>
 
@@ -778,11 +784,11 @@
 
   <!-- Header -->
   <div class="header reveal">
-    <h1>ZmobCRM</h1>
+    <h1 id="main-header">ZmobCRM</h1>
     <p>CRM Inteligente para o Mercado Imobiliario</p>
     <div class="meta">
       <div class="meta-item">Versao <span class="value">v1.5.1</span></div>
-      <div class="meta-item">Atualizado em <span class="value">08/03/2026, 18:00:00</span></div>
+      <div class="meta-item">Atualizado em <span class="value">09/03/2026, 16:24:24</span></div>
       <div class="meta-item">Modulos <span class="value">14</span></div>
     </div>
   </div>
@@ -815,26 +821,31 @@
     </div>
   </div>
 
-  <!-- Mercado & Tracao -->
+  <!-- Prospeccao Inteligente v2 -->
   <div class="section">
-    <div class="eyebrow reveal"><span class="eyebrow-number">02</span>Mercado</div>
-    <div class="section-title reveal"><span class="dot" style="background: var(--green); box-shadow: 0 0 10px var(--green-glow)"></span> Mercado & Diferencial</div>
-    <div class="market-grid">
-      <div class="market-card reveal reveal-d1">
-        <div class="market-label">Publico-Alvo</div>
-        <div class="market-value">Imobiliarias de medio e alto porte no Brasil</div>
+    <div class="eyebrow reveal"><span class="eyebrow-number">02</span>Módulo Prospeccão</div>
+    <div class="section-title reveal"><span class="dot" style="background: var(--green); box-shadow: 0 0 12px var(--green-glow)"></span> Prospeccão Inteligente v2</div>
+    
+    <div class="feature-grid">
+      <div class="feature-card reveal reveal-d1">
+        <div class="icon">⚡</div>
+        <div class="title">Power Dialer</div>
+        <div class="desc">Fila de ligacao ultraveloz com transicao automatica entre leads e gestao de tempo.</div>
       </div>
-      <div class="market-card reveal reveal-d2">
-        <div class="market-label">Tracao Atual</div>
-        <div class="market-value">3 imobiliarias</div>
+      <div class="feature-card reveal reveal-d2">
+        <div class="icon">📝</div>
+        <div class="title">Scripts de Venda</div>
+        <div class="desc">Roteiros guiados por categoria para garantir a melhor abordagem em cada etapa.</div>
       </div>
-      <div class="market-card reveal reveal-d3">
-        <div class="market-label">Diferencial Competitivo</div>
-        <div class="market-value">IA integrada + Prospeccao ativa — unico CRM imobiliario com Power Dialer e assistente inteligente nativos</div>
+      <div class="feature-card reveal reveal-d3">
+        <div class="icon">📈</div>
+        <div class="title">Metricas de Conversao</div>
+        <div class="desc">Dashboard de produtividade em tempo real com taxa de conexao e ranking de corretor.</div>
       </div>
-      <div class="market-card reveal reveal-d4">
-        <div class="market-label">Equipe</div>
-        <div class="market-value">Equipe enxuta com desenvolvimento acelerado por IA</div>
+      <div class="feature-card reveal reveal-d4">
+        <div class="icon">🔄</div>
+        <div class="title">Recontato Automatico</div>
+        <div class="desc">Algoritmo de retry inteligente que agenda novos contatos para chamadas nao atendidas.</div>
       </div>
     </div>
   </div>
@@ -860,8 +871,12 @@
           <div class="milestone-label">Prospeccao v1<br><small style="color:var(--green)">Completo</small></div>
         </div><div class="milestone-connector done"></div>
         <div class="milestone">
+          <div class="milestone-dot done"></div>
+          <div class="milestone-label">Prospeccao v2<br><small style="color:var(--green)">Completo</small></div>
+        </div><div class="milestone-connector done"></div>
+        <div class="milestone">
           <div class="milestone-dot current"></div>
-          <div class="milestone-label current">Prospeccao v2<br><small>Em andamento</small></div>
+          <div class="milestone-label current">Qualidade & Estabilidade<br><small>Fase QV</small></div>
         </div><div class="milestone-connector"></div>
         <div class="milestone">
           <div class="milestone-dot future"></div>
@@ -882,8 +897,8 @@
       </div>
       <div class="stat-card reveal reveal-d2">
         <div class="label">Entregas Realizadas</div>
-        <div class="number" style="color: var(--accent-soft)">11</div>
-        <div class="sub">de 25 itens no roadmap</div>
+        <div class="number" style="color: var(--accent-soft)">12</div>
+        <div class="sub">de 24 itens no roadmap</div>
       </div>
       <div class="stat-card reveal reveal-d3">
         <div class="label">Evolucoes no Banco</div>
@@ -892,7 +907,7 @@
       </div>
       <div class="stat-card reveal reveal-d4">
         <div class="label">Velocidade (30 dias)</div>
-        <div class="number" style="color: var(--accent-soft)">382</div>
+        <div class="number" style="color: var(--accent-soft)">350</div>
         <div class="sub">entregas no ultimo mes</div>
       </div>
     </div>
@@ -900,10 +915,10 @@
     <div class="progress-container reveal">
       <div class="progress-header">
         <span class="label">Progresso do Roadmap</span>
-        <span class="pct">44%</span>
+        <span class="pct">50%</span>
       </div>
       <div class="progress-bar">
-        <div class="progress-fill" style="width: 44%"></div>
+        <div class="progress-fill" style="width: 50%"></div>
       </div>
     </div>
   </div>
@@ -980,11 +995,141 @@
       
       <div class="roadmap-phase reveal">
         <div class="phase-header">
-          <div class="phase-dot" style="border-color: var(--green); background: var(--green); box-shadow: 0 0 8px var(--green-glow)"></div>
-          <div class="phase-name" style="color: var(--green)">Concluido</div>
-          <span class="phase-count">11 itens</span>
+          <div class="phase-dot" style="border-color: var(--amber)"></div>
+          <div class="phase-name" style="color: var(--amber)">Proximo Passo</div>
+          <span class="phase-count">5 itens</span>
         </div>
         <div class="phase-items">
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">IA Tools Avançadas (QV-1.4)</div>
+              <div class="item-desc">Busca por property_ref, tags e custom fields via IA (Em Desenvolvimento)</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Lead Score Configuravel</div>
+              <div class="item-desc">Sistema de pesos ajustaveis por organizacao — Cada fator com peso proprio (Story TD-5)</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Deal Modal Fixes (QV-1.5)</div>
+              <div class="item-desc">Edicao inline, navegacao direta e criacao de produtos no modal</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Prospecting Fila & Metas (QV-1.7)</div>
+              <div class="item-desc">Validacao de limites, duplicatas e metas individuais por corretor</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Settings & Modais Polish (QV-1.8)</div>
+              <div class="item-desc">Correcoes de z-index (toasts), ESC stack e edicao de tags</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="roadmap-phase reveal">
+        <div class="phase-header">
+          <div class="phase-dot" style="border-color: var(--accent-soft)"></div>
+          <div class="phase-name" style="color: var(--accent-soft)">Planejado</div>
+          <span class="phase-count">7 itens</span>
+        </div>
+        <div class="phase-items">
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Prospeccao com IA v3 (CP-3)</div>
+              <div class="item-desc">IA sugere quem ligar e quando baseado em lead score e heatmap</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Modulo de Imoveis</div>
+              <div class="item-desc">Cadastro completo com matching automatico entre imovel e perfil do cliente</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Permissoes Avancadas</div>
+              <div class="item-desc">Niveis customizaveis de acesso, cadeia de diretores e departamentos</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Dashboard Customizavel</div>
+              <div class="item-desc">Cada nivel com suas proprias metricas (corretor, diretor, master)</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">IA de Perfil de Interesse</div>
+              <div class="item-desc">Campo unico com input natural para a IA criar o perfil de busca</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Integracoes com Portais</div>
+              <div class="item-desc">Conexao direta com Orulo, ChavesNaMao e portais imobiliarios</div>
+            </div>
+          </div>
+          <div class="roadmap-item">
+            <div class="check"></div>
+            <div>
+              <div class="item-name">Calculadora de Comissao</div>
+              <div class="item-desc">Calculo automatico de comissao por deal, produto e corretor</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="roadmap-phase reveal">
+        <div class="phase-header">
+          <div class="phase-dot" style="border-color: var(--green); background: var(--green); box-shadow: 0 0 8px var(--green-glow)"></div>
+          <div class="phase-name" style="color: var(--green)">Concluido</div>
+          <span class="phase-count">12 itens</span>
+        </div>
+        <div class="phase-items">
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Real-time Sync Board (QV-1.1)</div>
+              <div class="item-desc">Sincronizacao em tempo real do kanban, contatos e deals (Bug #1, #17, #18, #19)</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Custom Error Pages (QV-1.2)</div>
+              <div class="item-desc">Paginas de erro 404/500 personalizadas e integradas ao layout global</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Chat IA Mobile Responsivo (QV-1.3)</div>
+              <div class="item-desc">Ajuste de viewport e input acima do BottomNav (Bug #23, #24)</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Blindagem Tecnica & Qualidade II</div>
+              <div class="item-desc">Testes E2E, regressao visual, design tokens e seguranca RLS validados (TD-4.1)</div>
+            </div>
+          </div>
           <div class="roadmap-item done">
             <div class="check done"></div>
             <div>
@@ -1016,29 +1161,8 @@
           <div class="roadmap-item done">
             <div class="check done"></div>
             <div>
-              <div class="item-name">Acoes Rapidas Pos-Chamada</div>
-              <div class="item-desc">Criar negocio, agendar callback e mover etapa em 1 clique</div>
-            </div>
-          </div>
-          <div class="roadmap-item done">
-            <div class="check done"></div>
-            <div>
-              <div class="item-name">Seguranca & Estabilidade</div>
-              <div class="item-desc">RBAC por equipe, correcao de bugs criticos e protecao de dados</div>
-            </div>
-          </div>
-          <div class="roadmap-item done">
-            <div class="check done"></div>
-            <div>
               <div class="item-name">Importacao de Leads</div>
               <div class="item-desc">Importacao em massa com mapeamento de campos e validacao automatica</div>
-            </div>
-          </div>
-          <div class="roadmap-item done">
-            <div class="check done"></div>
-            <div>
-              <div class="item-name">Notificacoes de Release</div>
-              <div class="item-desc">Usuarios recebem aviso automatico sobre novidades a cada atualizacao</div>
             </div>
           </div>
           <div class="roadmap-item done">
@@ -1058,131 +1182,8 @@
           <div class="roadmap-item done">
             <div class="check done"></div>
             <div>
-              <div class="item-name">Blindagem Tecnica & Qualidade</div>
-              <div class="item-desc">Testes E2E, criptografia de API keys, tipagem forte, rate limiter, CSP, RLS com JWT e limpeza estrutural do codigo</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="roadmap-phase reveal">
-        <div class="phase-header">
-          <div class="phase-dot" style="border-color: var(--amber)"></div>
-          <div class="phase-name" style="color: var(--amber)">Proximo Passo</div>
-          <span class="phase-count">4 itens</span>
-        </div>
-        <div class="phase-items">
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Metas Diarias + Heatmap</div>
-              <div class="item-desc">Progresso visual de metas de ligacao e mapa de melhor horario para ligar</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Filas Salvas + PDF</div>
-              <div class="item-desc">Salvar configuracoes de filas de prospeccao e exportar relatorios</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Lead Score Configuravel</div>
-              <div class="item-desc">Sistema de pesos ajustaveis por organizacao — cada fator com peso proprio</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Script no Cockpit</div>
-              <div class="item-desc">Script de ligacao integrado dentro do cockpit de deals</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="roadmap-phase reveal">
-        <div class="phase-header">
-          <div class="phase-dot" style="border-color: var(--accent-soft)"></div>
-          <div class="phase-name" style="color: var(--accent-soft)">Planejado</div>
-          <span class="phase-count">11 itens</span>
-        </div>
-        <div class="phase-items">
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Modulo de Imoveis</div>
-              <div class="item-desc">Cadastro completo com matching automatico entre imovel e perfil do cliente</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Permissoes Avancadas</div>
-              <div class="item-desc">Niveis customizaveis de acesso, cadeia de diretores e departamentos</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Dashboard Customizavel</div>
-              <div class="item-desc">Cada nivel (corretor, diretor, admin) com suas proprias metricas</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Listas de Contatos</div>
-              <div class="item-desc">Organizar leads em listas segmentadas para campanhas e follow-ups</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">IA de Perfil de Interesse</div>
-              <div class="item-desc">Campo unico onde voce descreve o cliente e a IA cria o perfil de busca</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Historico de IA</div>
-              <div class="item-desc">Acesso completo ao historico de conversas com o assistente para analise</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Atividades por Nivel</div>
-              <div class="item-desc">Admin ve tudo, diretor ve equipe, corretor ve so as dele</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Integracoes com Portais</div>
-              <div class="item-desc">Conexao direta com Orulo, ChavesNaMao e portais imobiliarios</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Wizard de Onboarding</div>
-              <div class="item-desc">Guia passo-a-passo para novos usuarios configurarem tudo em minutos</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Calculadora de Comissao</div>
-              <div class="item-desc">Calculo automatico de comissao por deal, produto e corretor</div>
-            </div>
-          </div>
-          <div class="roadmap-item">
-            <div class="check"></div>
-            <div>
-              <div class="item-name">Migracao de Outros CRMs</div>
-              <div class="item-desc">Importacao assistida de dados de sistemas anteriores (DataCrazy, etc)</div>
+              <div class="item-name">Atividades Flexiveis</div>
+              <div class="item-desc">Independencia de negocios, correcoes de selecao e melhoria de fluxo</div>
             </div>
           </div>
         </div>
@@ -1198,44 +1199,36 @@
       <div class="timeline">
         
         <div class="timeline-item">
-          <div class="timeline-date">08 de mar.</div>
-          <div class="timeline-msg">Melhoria: IA agora acessa campos de imovel, metadata e tags nos contatos e negocios</div>
+          <div class="timeline-date">09 de mar.</div>
+          <div class="timeline-msg">Correcao: deal modal editing, inline product creation, and navigation fixes [Story QV-1.5]</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">09 de mar.</div>
+          <div class="timeline-msg">Correcao: add propertyRef filter to searchDeals and make query optional in searchContacts [Story QV-1.4]</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">09 de mar.</div>
+          <div class="timeline-msg">Testes: add unit tests for realtime sync and fix kanban preset [Story QV-1.1]</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">09 de mar.</div>
+          <div class="timeline-msg">Correcao: add custom 404 and error pages for root-level routes [Story QV-1.2]</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">09 de mar.</div>
+          <div class="timeline-msg">Documentacao: add 7 validated Epic QV stories (Draft→Ready) with full rework</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">09 de mar.</div>
+          <div class="timeline-msg">Correcao: resolve realtime sync bugs for board drag-drop and cross-tab updates [Story QV-1.1]</div>
         </div>
         <div class="timeline-item">
           <div class="timeline-date">08 de mar.</div>
-          <div class="timeline-msg">Blindagem: testes E2E, regressao visual e migracao de design tokens</div>
+          <div class="timeline-msg">Correcao: add /roadmap as public route in auth middleware</div>
         </div>
         <div class="timeline-item">
           <div class="timeline-date">08 de mar.</div>
-          <div class="timeline-msg">Seguranca: criptografia de API keys + script de migracao</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">08 de mar.</div>
-          <div class="timeline-msg">Estrutural: tipagem forte, rate limiter, CSP, RLS com JWT e limpeza de deals orfaos</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">08 de mar.</div>
-          <div class="timeline-msg">Modular: OpenAPI refatorado + decomposicao de Layout e Realtime</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">08 de mar.</div>
-          <div class="timeline-msg">Correcao: estabilidade do realtime em contatos, atividades e prospeccao</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">07 de mar.</div>
-          <div class="timeline-msg">QA aprovado: blindagem tecnica TD-4.1 passa no gate de qualidade (11/11 criterios)</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">06 de mar.</div>
-          <div class="timeline-msg">Nova funcionalidade: metas diarias de ligacao + heatmap de conexao</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">05 de mar.</div>
-          <div class="timeline-msg">Melhoria visual: UI de prospeccao unificada com tokens do sistema</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">05 de mar.</div>
-          <div class="timeline-msg">Lancamento: versao v1.5.1 com cockpit de negocios v2</div>
+          <div class="timeline-msg">Nova funcionalidade: add /roadmap route for stakeholder dashboard</div>
         </div>
       </div>
     </div>
@@ -1280,21 +1273,112 @@
 
   <!-- Footer -->
   <div class="footer reveal">
-    ZmobCRM v1.5.1 &mdash; Gerado automaticamente em 08/03/2026, 18:00:00<br>
+    ZmobCRM v1.5.1 &mdash; Gerado automaticamente em 09/03/2026, 16:24:24<br>
     <span style="color: var(--text-dim)">Para atualizar, execute: <code>npm run stakeholder-dashboard</code></span>
   </div>
 
 </div>
 
-<!-- Enhanced Tier: Scroll Reveals + Progress Bar -->
+<!-- Maximum Tier: Interactive Logic -->
 <script>
-  // Scroll Progress Bar
-  window.addEventListener('scroll', () => {
-    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
-    document.querySelector('.scroll-progress').style.width = pct + '%';
+  // 1. Cursor & Mesh Follow
+  const ring = document.querySelector('.cursor-ring');
+  const dot = document.querySelector('.cursor-dot');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+    document.documentElement.style.setProperty('--mx', mx + 'px');
+    document.documentElement.style.setProperty('--my', my + 'px');
   });
 
-  // Cinematic Scroll Reveals
+  function loop() {
+    rx += (mx - rx) * 0.15;
+    ry += (my - ry) * 0.15;
+    if (ring) ring.style.transform = `translate(${rx - 20}px, ${ry - 20}px)`;
+    if (dot) dot.style.transform = `translate(${mx - 2}px, ${my - 2}px)`;
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  document.querySelectorAll('a, button, .stat-card, .feature-card').forEach(el => {
+    el.addEventListener('mouseenter', () => ring.classList.add('hover'));
+    el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+  });
+
+  // 2. Text Split Animation
+  const header = document.getElementById('main-header');
+  if (header) {
+    const text = header.textContent;
+    header.innerHTML = '';
+    text.split('').forEach((char, i) => {
+      const span = document.createElement('span');
+      span.textContent = char;
+      span.className = 'char';
+      span.style.transitionDelay = `${i * 0.05}s`;
+      header.appendChild(span);
+    });
+    setTimeout(() => {
+      document.querySelectorAll('.char').forEach(c => c.classList.add('visible'));
+    }, 500);
+  }
+
+  // 3. Counter Animation
+  const counterObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const targetText = el.textContent.replace(/\D/g, '');
+        const target = parseInt(targetText);
+        if (isNaN(target)) return;
+        let current = 0;
+        const duration = 2000;
+        const start = performance.now();
+        
+        function update(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          el.textContent = Math.floor(progress * target);
+          if (progress < 1) requestAnimationFrame(update);
+          else el.textContent = target;
+        }
+        requestAnimationFrame(update);
+        counterObs.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.number').forEach(n => counterObs.observe(n));
+
+  // 4. Conic Border Angle Animation
+  let angle = 0;
+  function updateAngle() {
+    angle = (angle + 2) % 360;
+    document.documentElement.style.setProperty('--angle', angle + 'deg');
+    requestAnimationFrame(updateAngle);
+  }
+  updateAngle();
+
+  // 5. Magnetic Eyebrows
+  document.querySelectorAll('.eyebrow').forEach(el => {
+    el.classList.add('btn-magnetic');
+    el.addEventListener('mousemove', e => {
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width/2;
+      const y = e.clientY - rect.top - rect.height/2;
+      el.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+    });
+    el.addEventListener('mouseleave', () => {
+      el.style.transform = 'translate(0,0)';
+    });
+  });
+
+  // Enhanced Tier: Scroll Progress & Reveals
+  window.addEventListener('scroll', () => {
+    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    const bar = document.querySelector('.scroll-progress');
+    if (bar) bar.style.width = pct + '%';
+  });
+
   const revealObs = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) entry.target.classList.add('visible');

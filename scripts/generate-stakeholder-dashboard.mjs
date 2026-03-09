@@ -149,48 +149,47 @@ const featureDescriptions = {
 // --- Roadmap data (enriched from Roadmap.md + brand strategy) ---
 const roadmap = [
   {
-    phase: 'Concluido',
-    color: 'var(--green)',
-    items: [
-      { name: 'CRM Base Completo', desc: 'Board de vendas, contatos, atividades, dashboard, negocios — toda a fundacao' },
-      { name: 'Central de Prospeccao', desc: 'Power Dialer com filas de ligacao, scripts guiados e recontato automatico' },
-      { name: 'Metricas de Prospeccao', desc: 'Dashboard de produtividade com visao individual e por equipe' },
-      { name: 'Assistente IA', desc: 'Chat inteligente que conhece seus negocios, contatos e sugere acoes' },
-      { name: 'Acoes Rapidas Pos-Chamada', desc: 'Criar negocio, agendar callback e mover etapa em 1 clique' },
-      { name: 'Seguranca & Estabilidade', desc: 'RBAC por equipe, correcao de bugs criticos e protecao de dados' },
-      { name: 'Importacao de Leads', desc: 'Importacao em massa com mapeamento de campos e validacao automatica' },
-      { name: 'Notificacoes de Release', desc: 'Usuarios recebem aviso automatico sobre novidades a cada atualizacao' },
-      { name: 'Edicao Completa de Contatos', desc: 'Todos os campos editaveis inline com ordenacao por qualquer coluna' },
-      { name: 'Card de Negocio Compacto', desc: 'Redesign do card no board — de 8 linhas para 3, mais limpo e rapido' },
-    ]
-  },
-  {
     phase: 'Proximo Passo',
     color: 'var(--amber)',
     items: [
-      { name: 'Metas Diarias + Heatmap', desc: 'Progresso visual de metas de ligacao e mapa de melhor horario para ligar' },
-      { name: 'Filas Salvas + PDF', desc: 'Salvar configuracoes de filas de prospeccao e exportar relatorios' },
-      { name: 'Lead Score Configuravel', desc: 'Sistema de pesos ajustaveis por organizacao — cada fator com peso proprio' },
-      { name: 'Script no Cockpit', desc: 'Script de ligacao integrado dentro do cockpit de deals' },
+      { name: 'IA Tools Avançadas (QV-1.4)', desc: 'Busca por property_ref, tags e custom fields via IA (Em Desenvolvimento)' },
+      { name: 'Lead Score Configuravel', desc: 'Sistema de pesos ajustaveis por organizacao — Cada fator com peso proprio (Story TD-5)' },
+      { name: 'Deal Modal Fixes (QV-1.5)', desc: 'Edicao inline, navegacao direta e criacao de produtos no modal' },
+      { name: 'Prospecting Fila & Metas (QV-1.7)', desc: 'Validacao de limites, duplicatas e metas individuais por corretor' },
+      { name: 'Settings & Modais Polish (QV-1.8)', desc: 'Correcoes de z-index (toasts), ESC stack e edicao de tags' },
     ]
   },
   {
     phase: 'Planejado',
     color: 'var(--accent-soft)',
     items: [
+      { name: 'Prospeccao com IA v3 (CP-3)', desc: 'IA sugere quem ligar e quando baseado em lead score e heatmap' },
       { name: 'Modulo de Imoveis', desc: 'Cadastro completo com matching automatico entre imovel e perfil do cliente' },
       { name: 'Permissoes Avancadas', desc: 'Niveis customizaveis de acesso, cadeia de diretores e departamentos' },
-      { name: 'Dashboard Customizavel', desc: 'Cada nivel (corretor, diretor, admin) com suas proprias metricas' },
-      { name: 'Listas de Contatos', desc: 'Organizar leads em listas segmentadas para campanhas e follow-ups' },
-      { name: 'IA de Perfil de Interesse', desc: 'Campo unico onde voce descreve o cliente e a IA cria o perfil de busca' },
-      { name: 'Historico de IA', desc: 'Acesso completo ao historico de conversas com o assistente para analise' },
-      { name: 'Atividades por Nivel', desc: 'Admin ve tudo, diretor ve equipe, corretor ve so as dele' },
+      { name: 'Dashboard Customizavel', desc: 'Cada nivel com suas proprias metricas (corretor, diretor, master)' },
+      { name: 'IA de Perfil de Interesse', desc: 'Campo unico com input natural para a IA criar o perfil de busca' },
       { name: 'Integracoes com Portais', desc: 'Conexao direta com Orulo, ChavesNaMao e portais imobiliarios' },
-      { name: 'Wizard de Onboarding', desc: 'Guia passo-a-passo para novos usuarios configurarem tudo em minutos' },
       { name: 'Calculadora de Comissao', desc: 'Calculo automatico de comissao por deal, produto e corretor' },
-      { name: 'Migracao de Outros CRMs', desc: 'Importacao assistida de dados de sistemas anteriores (DataCrazy, etc)' },
     ]
-  }
+  },
+  {
+    phase: 'Concluido',
+    color: 'var(--green)',
+    items: [
+      { name: 'Real-time Sync Board (QV-1.1)', desc: 'Sincronizacao em tempo real do kanban, contatos e deals (Bug #1, #17, #18, #19)' },
+      { name: 'Custom Error Pages (QV-1.2)', desc: 'Paginas de erro 404/500 personalizadas e integradas ao layout global' },
+      { name: 'Chat IA Mobile Responsivo (QV-1.3)', desc: 'Ajuste de viewport e input acima do BottomNav (Bug #23, #24)' },
+      { name: 'Blindagem Tecnica & Qualidade II', desc: 'Testes E2E, regressao visual, design tokens e seguranca RLS validados (TD-4.1)' },
+      { name: 'CRM Base Completo', desc: 'Board de vendas, contatos, atividades, dashboard, negocios — toda a fundacao' },
+      { name: 'Central de Prospeccao', desc: 'Power Dialer com filas de ligacao, scripts guiados e recontato automatico' },
+      { name: 'Metricas de Prospeccao', desc: 'Dashboard de produtividade com visao individual e por equipe' },
+      { name: 'Assistente IA', desc: 'Chat inteligente que conhece seus negocios, contatos e sugere acoes' },
+      { name: 'Importacao de Leads', desc: 'Importacao em massa com mapeamento de campos e validacao automatica' },
+      { name: 'Edicao Completa de Contatos', desc: 'Todos os campos editaveis inline com ordenacao por qualquer coluna' },
+      { name: 'Card de Negocio Compacto', desc: 'Redesign do card no board — de 8 linhas para 3, mais limpo e rapido' },
+      { name: 'Atividades Flexiveis', desc: 'Independencia de negocios, correcoes de selecao e melhoria de fluxo' },
+    ]
+  },
 ];
 
 // --- Milestone track ---
@@ -198,7 +197,8 @@ const milestones = [
   { label: 'CRM Base', status: 'done', sub: 'Completo' },
   { label: 'Seguranca & RBAC', status: 'done', sub: 'Completo' },
   { label: 'Prospeccao v1', status: 'done', sub: 'Completo' },
-  { label: 'Prospeccao v2', status: 'current', sub: 'Em andamento' },
+  { label: 'Prospeccao v2', status: 'done', sub: 'Completo' },
+  { label: 'Qualidade & Estabilidade', status: 'current', sub: 'Fase QV' },
   { label: 'Imoveis', status: 'future', sub: 'Planejado' },
   { label: 'Integracoes', status: 'future', sub: 'Futuro' },
 ];
@@ -216,7 +216,7 @@ const brandVision = {
 };
 
 // --- Status summary ---
-const completedDeliveries = roadmap[0].items.length; // Concluido phase
+const completedDeliveries = roadmap[2].items.length; // Concluido phase
 const totalDeliveries = roadmap.reduce((sum, phase) => sum + phase.items.length, 0);
 const overallProgress = Math.round((completedDeliveries / totalDeliveries) * 100);
 
@@ -335,7 +335,7 @@ const html = `<!DOCTYPE html>
 <title>ZmobCRM — Status do Projeto</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
 <style>
   /* === PREMIUM THEME: Zinc Blue (System Match) === */
   :root {
@@ -368,11 +368,12 @@ const html = `<!DOCTYPE html>
     --border-subtle: #1e1e21;
 
     /* Typography */
-    --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
     --font-body: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
     /* Effects */
+    --accent-glow: rgba(59, 130, 246, 0.4);
     --glow-color: rgba(59, 130, 246, 0.2);
     --glow-spread: 0 0 40px;
     --glass-bg: rgba(59, 130, 246, 0.04);
@@ -1097,6 +1098,11 @@ const html = `<!DOCTYPE html>
 </head>
 <body>
 
+<!-- Maximum Tier: Cursor + Mesh -->
+<div class="cursor-ring"></div>
+<div class="cursor-dot"></div>
+<div class="mesh-bg"></div>
+
 <!-- Scroll Progress (Enhanced) -->
 <div class="scroll-progress"></div>
 
@@ -1107,7 +1113,7 @@ const html = `<!DOCTYPE html>
 
   <!-- Header -->
   <div class="header reveal">
-    <h1>ZmobCRM</h1>
+    <h1 id="main-header">ZmobCRM</h1>
     <p>CRM Inteligente para o Mercado Imobiliario</p>
     <div class="meta">
       <div class="meta-item">Versao <span class="value">v${data.version}</span></div>
@@ -1123,26 +1129,31 @@ const html = `<!DOCTYPE html>
     ${generateBrandVision()}
   </div>
 
-  <!-- Mercado & Tracao -->
+  <!-- Prospeccao Inteligente v2 -->
   <div class="section">
-    <div class="eyebrow reveal"><span class="eyebrow-number">02</span>Mercado</div>
-    <div class="section-title reveal"><span class="dot" style="background: var(--green); box-shadow: 0 0 10px var(--green-glow)"></span> Mercado & Diferencial</div>
-    <div class="market-grid">
-      <div class="market-card reveal reveal-d1">
-        <div class="market-label">Publico-Alvo</div>
-        <div class="market-value">${businessMetrics.targetMarket}</div>
+    <div class="eyebrow reveal"><span class="eyebrow-number">02</span>Módulo Prospeccão</div>
+    <div class="section-title reveal"><span class="dot" style="background: var(--green); box-shadow: 0 0 12px var(--green-glow)"></span> Prospeccão Inteligente v2</div>
+    
+    <div class="feature-grid">
+      <div class="feature-card reveal reveal-d1">
+        <div class="icon">⚡</div>
+        <div class="title">Power Dialer</div>
+        <div class="desc">Fila de ligacao ultraveloz com transicao automatica entre leads e gestao de tempo.</div>
       </div>
-      <div class="market-card reveal reveal-d2">
-        <div class="market-label">Tracao Atual</div>
-        <div class="market-value">${businessMetrics.activeUsers}</div>
+      <div class="feature-card reveal reveal-d2">
+        <div class="icon">📝</div>
+        <div class="title">Scripts de Venda</div>
+        <div class="desc">Roteiros guiados por categoria para garantir a melhor abordagem em cada etapa.</div>
       </div>
-      <div class="market-card reveal reveal-d3">
-        <div class="market-label">Diferencial Competitivo</div>
-        <div class="market-value">${businessMetrics.competitiveEdge}</div>
+      <div class="feature-card reveal reveal-d3">
+        <div class="icon">📈</div>
+        <div class="title">Metricas de Conversao</div>
+        <div class="desc">Dashboard de produtividade em tempo real com taxa de conexao e ranking de corretor.</div>
       </div>
-      <div class="market-card reveal reveal-d4">
-        <div class="market-label">Equipe</div>
-        <div class="market-value">${businessMetrics.teamSize}</div>
+      <div class="feature-card reveal reveal-d4">
+        <div class="icon">🔄</div>
+        <div class="title">Recontato Automatico</div>
+        <div class="desc">Algoritmo de retry inteligente que agenda novos contatos para chamadas nao atendidas.</div>
       </div>
     </div>
   </div>
@@ -1267,15 +1278,106 @@ const html = `<!DOCTYPE html>
 
 </div>
 
-<!-- Enhanced Tier: Scroll Reveals + Progress Bar -->
+<!-- Maximum Tier: Interactive Logic -->
 <script>
-  // Scroll Progress Bar
-  window.addEventListener('scroll', () => {
-    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
-    document.querySelector('.scroll-progress').style.width = pct + '%';
+  // 1. Cursor & Mesh Follow
+  const ring = document.querySelector('.cursor-ring');
+  const dot = document.querySelector('.cursor-dot');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+    document.documentElement.style.setProperty('--mx', mx + 'px');
+    document.documentElement.style.setProperty('--my', my + 'px');
   });
 
-  // Cinematic Scroll Reveals
+  function loop() {
+    rx += (mx - rx) * 0.15;
+    ry += (my - ry) * 0.15;
+    if (ring) ring.style.transform = \`translate(\${rx - 20}px, \${ry - 20}px)\`;
+    if (dot) dot.style.transform = \`translate(\${mx - 2}px, \${my - 2}px)\`;
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  document.querySelectorAll('a, button, .stat-card, .feature-card').forEach(el => {
+    el.addEventListener('mouseenter', () => ring.classList.add('hover'));
+    el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+  });
+
+  // 2. Text Split Animation
+  const header = document.getElementById('main-header');
+  if (header) {
+    const text = header.textContent;
+    header.innerHTML = '';
+    text.split('').forEach((char, i) => {
+      const span = document.createElement('span');
+      span.textContent = char;
+      span.className = 'char';
+      span.style.transitionDelay = \`\${i * 0.05}s\`;
+      header.appendChild(span);
+    });
+    setTimeout(() => {
+      document.querySelectorAll('.char').forEach(c => c.classList.add('visible'));
+    }, 500);
+  }
+
+  // 3. Counter Animation
+  const counterObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const targetText = el.textContent.replace(/\\D/g, '');
+        const target = parseInt(targetText);
+        if (isNaN(target)) return;
+        let current = 0;
+        const duration = 2000;
+        const start = performance.now();
+        
+        function update(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          el.textContent = Math.floor(progress * target);
+          if (progress < 1) requestAnimationFrame(update);
+          else el.textContent = target;
+        }
+        requestAnimationFrame(update);
+        counterObs.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.number').forEach(n => counterObs.observe(n));
+
+  // 4. Conic Border Angle Animation
+  let angle = 0;
+  function updateAngle() {
+    angle = (angle + 2) % 360;
+    document.documentElement.style.setProperty('--angle', angle + 'deg');
+    requestAnimationFrame(updateAngle);
+  }
+  updateAngle();
+
+  // 5. Magnetic Eyebrows
+  document.querySelectorAll('.eyebrow').forEach(el => {
+    el.classList.add('btn-magnetic');
+    el.addEventListener('mousemove', e => {
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width/2;
+      const y = e.clientY - rect.top - rect.height/2;
+      el.style.transform = \`translate(\${x * 0.2}px, \${y * 0.2}px)\`;
+    });
+    el.addEventListener('mouseleave', () => {
+      el.style.transform = 'translate(0,0)';
+    });
+  });
+
+  // Enhanced Tier: Scroll Progress & Reveals
+  window.addEventListener('scroll', () => {
+    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    const bar = document.querySelector('.scroll-progress');
+    if (bar) bar.style.width = pct + '%';
+  });
+
   const revealObs = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) entry.target.classList.add('visible');
