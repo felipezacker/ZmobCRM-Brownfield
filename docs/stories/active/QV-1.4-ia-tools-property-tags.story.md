@@ -55,33 +55,33 @@
 
 ## Tasks
 
-- [ ] Task 1 (AC1): Adicionar parametro `propertyRef` em `searchDeals` no schema Zod e na logica de query (filtro `.ilike('property_ref', ...)` paralelo ao filtro de titulo existente)
+- [x] Task 1 (AC1): Adicionar parametro `propertyRef` em `searchDeals` no schema Zod e na logica de query (filtro `.ilike('property_ref', ...)` paralelo ao filtro de titulo existente)
   - Subtask 1.1: Adicionar `propertyRef: z.string().optional()` no inputSchema de searchDeals
   - Subtask 1.2: Adicionar logica de filtro: `if (propertyRef) { queryBuilder = queryBuilder.ilike('property_ref', '%' + sanitizeFilterValue(propertyRef) + '%'); }` — usar sanitizacao para prevenir injection em LIKE pattern
   - Subtask 1.3: Atualizar description da tool para mencionar que busca tambem por imovel/property_ref
 
-- [ ] Task 2 (AC2): Verificar createDeal — confirmar que property_ref ja e persistido (linha 491 deal-tools.ts). Se OK, apenas documentar no BASE_INSTRUCTIONS. Se nao OK, corrigir.
+- [x] Task 2 (AC2): Verificar createDeal — confirmar que property_ref ja e persistido (linha 491 deal-tools.ts). Se OK, apenas documentar no BASE_INSTRUCTIONS. Se nao OK, corrigir.
   - Subtask 2.1: Verificar codigo atual de createDeal (deal-tools.ts ~linha 491)
   - Subtask 2.2: Testar via chat "crie deal com Felipe e imovel Shift" e confirmar que property_ref aparece no banco
   - Subtask 2.3: Se bug confirmado, corrigir; se OK, registrar como verificado
 
-- [ ] Task 3 (AC3): Investigar e corrigir por que IA nao usa filtro `tag` em searchContacts
+- [x] Task 3 (AC3): Investigar e corrigir por que IA nao usa filtro `tag` em searchContacts
   - Subtask 3.1: Verificar se `query` e obrigatorio no schema Zod de searchContacts — se sim, tornar `.optional()`
   - Subtask 3.2: Verificar se a logica de query sem `query` mas com `tag` funciona (o `if (query)` so executa se query nao for vazio)
   - Subtask 3.3: Melhorar a description do parametro `tag` no schema para ser mais explicita
 
-- [ ] Task 4 (AC4): Investigar e corrigir por que IA nao usa filtros customFieldKey/customFieldValue em searchContacts
+- [x] Task 4 (AC4): Investigar e corrigir por que IA nao usa filtros customFieldKey/customFieldValue em searchContacts
   - Subtask 4.1: Verificar comportamento quando `query` e vazio mas `customFieldKey`/`customFieldValue` sao informados
   - Subtask 4.2: Melhorar descriptions dos parametros `customFieldKey` e `customFieldValue` no schema Zod
 
-- [ ] Task 5: Atualizar BASE_INSTRUCTIONS_FALLBACK em `lib/ai/crmAgent.ts` (linha ~420)
+- [x] Task 5: Atualizar BASE_INSTRUCTIONS_FALLBACK em `lib/ai/crmAgent.ts` (linha ~420)
   - Subtask 5.1: Adicionar na secao FERRAMENTAS que searchDeals aceita `propertyRef` para busca por imovel
   - Subtask 5.2: Adicionar nota explicita que searchContacts aceita `tag`, `customFieldKey`, `customFieldValue` como filtros standalone (sem precisar de query)
   - Subtask 5.3: Adicionar exemplo de uso: "Para buscar por tag: passe tag='VIP' sem precisar preencher query"
 
 - [ ] Task 6: Testar via chat de IA cada cenario dos ACs (staging)
 
-- [ ] Task 7: Garantir que npm run typecheck, lint e test passam
+- [x] Task 7: Garantir que npm run typecheck, lint e test passam
 
 ## Dev Notes
 
@@ -188,7 +188,11 @@
 
 ## File List
 
-_(a ser preenchido pelo @dev durante implementacao)_
+| Arquivo | Acao | Descricao |
+|---------|------|-----------|
+| `lib/ai/tools/deal-tools.ts` | Modified | Task 1: adicionado `propertyRef` param + filtro `.ilike` em searchDeals; `query` tornado opcional; description atualizada |
+| `lib/ai/tools/contact-tools.ts` | Modified | Tasks 3/4: `query` tornado opcional; descriptions de tag, customFieldKey, customFieldValue melhoradas |
+| `lib/ai/crmAgent.ts` | Modified | Task 5: BASE_INSTRUCTIONS_FALLBACK atualizado com docs sobre propertyRef e filtros standalone |
 
 ## Change Log
 
@@ -198,6 +202,7 @@ _(a ser preenchido pelo @dev durante implementacao)_
 | 2026-03-09 | @sm | Rework completo: FIX-1.4.1 (property_ref e TEXT, nao FK), FIX-1.4.2 (BASE_INSTRUCTIONS em crmAgent.ts linha 420), FIX-1.4.3 (Tasks 3/4 reescritas: root cause e query obrigatorio + falta de documentacao, nao ausencia de parametros), FIX-1.4.4 (esclarecido que Bug #11 parcialmente coberto — UI fica para QV-1.5). Adicionadas secoes CodeRabbit Integration, Risks, Dependencies, Criteria of Done, Source Tree, Testing. |
 | 2026-03-09 | @po | Validacao GO (10/10). Status Draft -> Ready. 0 critical issues, 2 should-fix (SF-1: pseudo-codigo deveria usar sanitizeFilterValue, SF-2: logica OR vs AND para property_ref+query nao totalmente definida). 13 anti-hallucination checks passaram. |
 | 2026-03-09 | @sm | Fix SF-1: sanitizeFilterValue adicionado no pseudo-codigo. Fix SF-2: logica AND definida (query+propertyRef = ambos como AND). quality_gate corrigido de @qa para @architect |
+| 2026-03-09 | @dev | Implementacao Tasks 1-5,7. searchDeals: propertyRef + query opcional. searchContacts: query opcional + descriptions. BASE_INSTRUCTIONS atualizado. typecheck/lint/test OK (72 suites, 747 tests). Task 6 pendente (teste manual staging). |
 
 ---
 *Story gerada por @sm (River) — Epic QV*

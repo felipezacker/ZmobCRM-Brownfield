@@ -20,35 +20,40 @@ interface DealRow {
 export function createDealTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
         searchDeals: tool({
-            description: 'Busca deals por título',
+            description: 'Busca deals por título e/ou imóvel (property_ref)',
             inputSchema: z.object({
-                query: z.string().describe('Termo de busca'),
+                query: z.string().optional().describe('Termo de busca por título'),
+                propertyRef: z.string().optional().describe('Buscar por referência do imóvel (código, endereço curto)'),
                 limit: z.number().optional().default(5),
             }),
-            execute: async ({ query, limit }) => {
-                const cleanedQuery = String(query)
-                    .trim()
-                    .replace(/^["'""'']+/, '')
-                    .replace(/["'""'']+$/, '')
-                    .trim();
-
-                const normalizedQuery = cleanedQuery
-                    .replace(/[^\p{L}\p{N}\s.-]+/gu, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-
-                const strippedQuery = normalizedQuery
-                    .replace(/\b(buscar|busque|procure|procurar|encontre|encontrar|mostrar|liste|listar|deal|deals|neg[oó]cio|neg[oó]cios|oportunidade|oportunidades|card|cards)\b/gi, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-
-                const effectiveQuery = strippedQuery || normalizedQuery;
-
-                console.log('[AI] 🔍 searchDeals EXECUTED!', { query, cleanedQuery, effectiveQuery });
-
-                if (!effectiveQuery) {
-                    return { error: 'Informe um termo de busca.' };
+            execute: async ({ query, propertyRef, limit }) => {
+                if (!query && !propertyRef) {
+                    return { error: 'Informe um termo de busca (query) ou referência do imóvel (propertyRef).' };
                 }
+
+                let effectiveQuery: string | undefined;
+
+                if (query) {
+                    const cleanedQuery = String(query)
+                        .trim()
+                        .replace(/^["'""'']+/, '')
+                        .replace(/["'""'']+$/, '')
+                        .trim();
+
+                    const normalizedQuery = cleanedQuery
+                        .replace(/[^\p{L}\p{N}\s.-]+/gu, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    const strippedQuery = normalizedQuery
+                        .replace(/\b(buscar|busque|procure|procurar|encontre|encontrar|mostrar|liste|listar|deal|deals|neg[oó]cio|neg[oó]cios|oportunidade|oportunidades|card|cards)\b/gi, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    effectiveQuery = strippedQuery || normalizedQuery || undefined;
+                }
+
+                console.log('[AI] 🔍 searchDeals EXECUTED!', { query, propertyRef, effectiveQuery });
 
                 let queryBuilder = supabase
                     .from('deals')
@@ -56,17 +61,23 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     .is('deleted_at', null)
                     .limit(limit);
 
-                const terms = effectiveQuery
-                    .split(' ')
-                    .map((t) => t.trim())
-                    .filter(Boolean);
+                if (effectiveQuery) {
+                    const terms = effectiveQuery
+                        .split(' ')
+                        .map((t) => t.trim())
+                        .filter(Boolean);
 
-                if (terms.length <= 1) {
-                    queryBuilder = queryBuilder.ilike('title', `%${effectiveQuery}%`);
-                } else {
-                    queryBuilder = queryBuilder.or(
-                        terms.map((t) => `title.ilike.%${sanitizeFilterValue(t)}%`).join(',')
-                    );
+                    if (terms.length <= 1) {
+                        queryBuilder = queryBuilder.ilike('title', `%${effectiveQuery}%`);
+                    } else {
+                        queryBuilder = queryBuilder.or(
+                            terms.map((t) => `title.ilike.%${sanitizeFilterValue(t)}%`).join(',')
+                        );
+                    }
+                }
+
+                if (propertyRef) {
+                    queryBuilder = queryBuilder.ilike('property_ref', `%${sanitizeFilterValue(propertyRef)}%`);
                 }
 
                 if (context.boardId) {

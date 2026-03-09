@@ -9,10 +9,10 @@ export function createContactTools({ supabase, organizationId, context, userId, 
         searchContacts: tool({
             description: 'Busca contatos por nome, email, tag ou custom field',
             inputSchema: z.object({
-                query: z.string().describe('Termo de busca (nome ou email)'),
-                tag: z.string().optional().describe('Filtrar por tag (ex: "VIP", "Indicação")'),
-                customFieldKey: z.string().optional().describe('Nome do campo custom para filtrar (ex: "origem")'),
-                customFieldValue: z.string().optional().describe('Valor do campo custom (ex: "indicacao")'),
+                query: z.string().optional().describe('Termo de busca por nome ou email (opcional se usar tag ou customField)'),
+                tag: z.string().optional().describe('Filtrar por tag — funciona sozinho sem query (ex: "VIP", "Indicação")'),
+                customFieldKey: z.string().optional().describe('Nome do campo custom para filtrar — funciona sozinho sem query (ex: "origem", "segmento")'),
+                customFieldValue: z.string().optional().describe('Valor do campo custom — usar junto com customFieldKey (ex: "indicacao", "premium")'),
                 limit: z.number().optional().default(5),
             }),
             execute: async ({ query, tag, customFieldKey, customFieldValue, limit }) => {
