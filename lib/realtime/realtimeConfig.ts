@@ -35,7 +35,7 @@ export type RealtimeTable =
 export const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unknown[])[] => {
   const mapping: Record<RealtimeTable, readonly (readonly unknown[])[]> = {
     deals: [queryKeys.deals.all, queryKeys.dashboard.stats],
-    contacts: [queryKeys.contacts.all],
+    contacts: [queryKeys.contacts.all, queryKeys.deals.all],
     activities: [queryKeys.activities.all, queryKeys.prospectingMetrics.all],
     boards: [queryKeys.boards.all],
     board_stages: [queryKeys.boards.all],

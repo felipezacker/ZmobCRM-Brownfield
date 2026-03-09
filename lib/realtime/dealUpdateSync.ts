@@ -58,9 +58,9 @@ export function handleDealUpdate(
             if (incomingUpdatedAt - currentUpdatedAt < -100) {
               return old; // Stale
             }
-          } else if (incomingStatus !== currentStatus) {
-            return old; // Too risky without timestamp
           }
+          // If timestamps unavailable, allow the update through.
+          // Rejecting here blocks legitimate cross-tab sync (Bug #18).
         }
       }
 

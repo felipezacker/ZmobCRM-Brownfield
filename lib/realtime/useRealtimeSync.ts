@@ -76,6 +76,39 @@ export function useRealtimeSync(
           if (DEBUG_REALTIME) console.log(`[Realtime] ${table} ${payload.eventType}:`, payload);
           onchangeRef.current?.(payload);
 
+          // ─── Deal UPDATE: apply directly to cache, skip pending queue ───
+          // Prevents accumulated invalidations from causing stale refetch (Bug #1)
+          if (payload.eventType === 'UPDATE' && table === 'deals') {
+            handleDealUpdate(
+              queryClient,
+              payload.new as Record<string, unknown>,
+              payload.old as Record<string, unknown>,
+            );
+            return;
+          }
+
+          // ─── Deal INSERT: add to cache, refetch only for cross-tab (unenriched) ───
+          if (payload.eventType === 'INSERT' && table === 'deals') {
+            const result = handleDealInsert(queryClient, payload.new as Record<string, unknown>);
+            if (!result || result === 'enriched') return;
+            // Cross-tab insert ('raw'): schedule refetch for complete DealView data (Bug #17)
+            const dealKeys = getTableQueryKeys(table);
+            dealKeys.forEach(key => pendingInvalidationsRef.current.add(key));
+            if (!flushScheduledRef.current) {
+              flushScheduledRef.current = true;
+              queueMicrotask(() => {
+                flushScheduledRef.current = false;
+                const keysToFlush = Array.from(pendingInvalidationsRef.current);
+                pendingInvalidationsRef.current.clear();
+                keysToFlush.forEach(queryKey => {
+                  queryClient.invalidateQueries({ queryKey, exact: false, refetchType: 'all' });
+                });
+              });
+            }
+            return;
+          }
+
+          // ─── Standard handling for all other events ───
           const keys = getTableQueryKeys(table);
 
           if (payload.eventType === 'INSERT' && table === 'board_stages') {
@@ -86,12 +119,6 @@ export function useRealtimeSync(
           }
 
           if (payload.eventType === 'INSERT') {
-            if (table === 'deals') {
-              const processed = handleDealInsert(queryClient, payload.new as Record<string, unknown>);
-              if (!processed) return;
-              return; // Don't invalidate — added directly
-            }
-
             if (!flushScheduledRef.current) {
               flushScheduledRef.current = true;
               queueMicrotask(() => {
@@ -114,14 +141,8 @@ export function useRealtimeSync(
                 });
               });
             }
-          } else if (payload.eventType === 'UPDATE' && table === 'deals') {
-            handleDealUpdate(
-              queryClient,
-              payload.new as Record<string, unknown>,
-              payload.old as Record<string, unknown>,
-            );
           } else {
-            // DELETE or other tables: debounce
+            // DELETE or non-deal UPDATE: debounce
             if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
             debounceTimerRef.current = setTimeout(() => {
               pendingInvalidationsRef.current.forEach(queryKey => {
@@ -173,5 +194,5 @@ export function useRealtimeSyncAll(options: UseRealtimeSyncOptions = {}) {
 
 /** Subscribe to Kanban-related tables */
 export function useRealtimeSyncKanban(options: UseRealtimeSyncOptions = {}) {
-  return useRealtimeSync(['deals', 'board_stages'], options);
+  return useRealtimeSync(['deals', 'board_stages', 'contacts'], options);
 }
