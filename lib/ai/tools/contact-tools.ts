@@ -7,15 +7,19 @@ import { calculateLeadScore } from '@/lib/supabase/lead-scoring';
 export function createContactTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
         searchContacts: tool({
-            description: 'Busca contatos por nome, email, tag ou custom field',
+            description: 'Busca contatos por nome/email (query), tag, ou campo customizado (customFieldKey+customFieldValue). Todos os filtros funcionam sozinhos sem query. Para "campo X = Y", use customFieldKey e customFieldValue.',
             inputSchema: z.object({
-                query: z.string().optional().describe('Termo de busca por nome ou email (opcional se usar tag ou customField)'),
-                tag: z.string().optional().describe('Filtrar por tag — funciona sozinho sem query (ex: "VIP", "Indicação")'),
-                customFieldKey: z.string().optional().describe('Nome do campo custom para filtrar — funciona sozinho sem query (ex: "origem", "segmento")'),
-                customFieldValue: z.string().optional().describe('Valor do campo custom — usar junto com customFieldKey (ex: "indicacao", "premium")'),
+                query: z.string().optional().describe('Busca por nome ou email — NÃO use para tags ou campos custom'),
+                tag: z.string().optional().describe('Filtrar por tag (ex: "VIP"). Funciona sozinho sem query.'),
+                customFieldKey: z.string().optional().describe('Nome do campo custom (ex: "origem", "segmento"). SEMPRE use junto com customFieldValue. Quando o usuário diz "campo X = Y", passe X aqui.'),
+                customFieldValue: z.string().optional().describe('Valor do campo custom (ex: "indicacao", "premium"). SEMPRE use junto com customFieldKey. Quando o usuário diz "campo X = Y", passe Y aqui.'),
                 limit: z.number().optional().default(5),
             }),
             execute: async ({ query, tag, customFieldKey, customFieldValue, limit }) => {
+                if (!query && !tag && !customFieldKey) {
+                    return { error: 'Informe um termo de busca (query), tag ou campo customizado (customFieldKey).' };
+                }
+
                 console.log('[AI] 🔍 searchContacts EXECUTED!', { query, tag, customFieldKey, customFieldValue });
 
                 let q = supabase

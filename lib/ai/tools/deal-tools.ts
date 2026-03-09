@@ -20,15 +20,30 @@ interface DealRow {
 export function createDealTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
         searchDeals: tool({
-            description: 'Busca deals por título (query) e/ou por imóvel/produto (propertyRef). Quando o usuário mencionar imóvel, produto ou empreendimento, use propertyRef.',
+            description: 'Busca deals por título (query) e/ou por imóvel/produto (productName). Quando o usuário mencionar imóvel, produto ou empreendimento, use productName.',
             inputSchema: z.object({
                 query: z.string().optional().describe('Termo de busca por título do deal — NÃO use para imóvel/produto'),
-                propertyRef: z.string().optional().describe('Buscar por imóvel/produto/empreendimento — USE ESTE quando o usuário mencionar imóvel ou produto (ex: "Shift", "Aurora")'),
+                productName: z.string().optional().describe('Buscar por imóvel/produto/empreendimento — USE ESTE quando o usuário mencionar imóvel ou produto (ex: "Shift", "Aurora")'),
+                propertyRef: z.string().optional().describe('Buscar por referência textual de imóvel (campo legado, raramente usado)'),
                 limit: z.number().optional().default(5),
             }),
-            execute: async ({ query, propertyRef, limit }) => {
-                if (!query && !propertyRef) {
-                    return { error: 'Informe um termo de busca (query) ou referência do imóvel (propertyRef).' };
+            execute: async ({ query, productName, propertyRef, limit }) => {
+                if (!query && !productName && !propertyRef) {
+                    return { error: 'Informe um termo de busca (query), produto (productName) ou referência (propertyRef).' };
+                }
+
+                // If searching by product, find deal IDs via deal_items first
+                let productDealIds: string[] | undefined;
+                if (productName) {
+                    const { data: items } = await supabase
+                        .from('deal_items')
+                        .select('deal_id')
+                        .eq('organization_id', organizationId)
+                        .ilike('name', `%${sanitizeFilterValue(productName)}%`);
+                    productDealIds = items?.map((i) => i.deal_id).filter(Boolean) || [];
+                    if (productDealIds.length === 0) {
+                        return { count: 0, deals: [], message: `Nenhum deal encontrado com produto "${productName}".` };
+                    }
                 }
 
                 let effectiveQuery: string | undefined;
@@ -53,13 +68,17 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     effectiveQuery = strippedQuery || normalizedQuery || undefined;
                 }
 
-                console.log('[AI] 🔍 searchDeals EXECUTED!', { query, propertyRef, effectiveQuery });
+                console.log('[AI] 🔍 searchDeals EXECUTED!', { query, productName, propertyRef, effectiveQuery });
 
                 let queryBuilder = supabase
                     .from('deals')
-                    .select('id, title, value, is_won, is_lost, property_ref, stage:board_stages(name, label), contact:contacts(name)')
+                    .select('id, title, value, is_won, is_lost, property_ref, stage:board_stages(name, label), contact:contacts(name), items:deal_items(name)')
                     .is('deleted_at', null)
                     .limit(limit);
+
+                if (productDealIds) {
+                    queryBuilder = queryBuilder.in('id', productDealIds);
+                }
 
                 if (effectiveQuery) {
                     const terms = effectiveQuery
@@ -99,15 +118,18 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
 
                 return {
                     count: deals?.length || 0,
-                    deals: deals?.map((d) => ({
-                        id: d.id,
-                        title: d.title,
-                        value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
-                        stage: (d.stage as DealRow['stage'])?.name || (d.stage as DealRow['stage'])?.label || 'N/A',
-                        contact: (d.contact as DealRow['contact'])?.name || 'N/A',
-                        propertyRef: d.property_ref || null,
-                        status: d.is_won ? '✅ Ganho' : d.is_lost ? '❌ Perdido' : '🔄 Aberto'
-                    })) || []
+                    deals: deals?.map((d) => {
+                        const items = d.items as Array<{ name: string }> | null;
+                        return {
+                            id: d.id,
+                            title: d.title,
+                            value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
+                            stage: (d.stage as DealRow['stage'])?.name || (d.stage as DealRow['stage'])?.label || 'N/A',
+                            contact: (d.contact as DealRow['contact'])?.name || 'N/A',
+                            product: items?.[0]?.name || null,
+                            status: d.is_won ? '✅ Ganho' : d.is_lost ? '❌ Perdido' : '🔄 Aberto'
+                        };
+                    }) || []
                 };
             },
         }),
@@ -435,16 +457,17 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
         }),
 
         createDeal: tool({
-            description: 'Cria um novo deal no board atual (ou informado). SEMPRE passe propertyRef quando o usuário mencionar imóvel/produto. Requer aprovação no card (Aprovar/Negar) — não peça confirmação em texto.',
+            description: 'Cria um novo deal no board atual (ou informado). SEMPRE passe productName quando o usuário mencionar imóvel/produto. Requer aprovação no card (Aprovar/Negar) — não peça confirmação em texto.',
             inputSchema: z.object({
                 title: z.string().min(1).describe('Título do deal'),
                 value: z.number().optional().default(0).describe('Valor do deal em reais'),
                 contactName: z.string().optional().describe('Nome do contato'),
-                propertyRef: z.string().optional().describe('Imóvel/produto do deal — OBRIGATÓRIO quando o usuário mencionar imóvel, produto ou empreendimento'),
+                productName: z.string().optional().describe('Nome do imóvel/produto/empreendimento — OBRIGATÓRIO quando o usuário mencionar imóvel ou produto (ex: "Shift", "Aurora")'),
+                propertyRef: z.string().optional().describe('Referência textual legada (raramente usado)'),
                 boardId: z.string().optional(),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ title, value, contactName, propertyRef, boardId }) => {
+            execute: async ({ title, value, contactName, productName, propertyRef, boardId }) => {
                 const targetBoardId = boardId || context.boardId;
                 console.log('[AI] ➕ createDeal EXECUTED!', title);
 
@@ -492,13 +515,34 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     }
                 }
 
+                // Resolve product from catalog
+                let resolvedProductId: string | null = null;
+                let resolvedProductName: string | null = null;
+                let resolvedProductPrice = 0;
+                if (productName) {
+                    const { data: products } = await supabase
+                        .from('products')
+                        .select('id, name, price')
+                        .eq('organization_id', organizationId)
+                        .ilike('name', `%${sanitizeFilterValue(productName)}%`)
+                        .limit(1);
+
+                    if (products && products.length > 0) {
+                        resolvedProductId = products[0].id;
+                        resolvedProductName = products[0].name;
+                        resolvedProductPrice = products[0].price || 0;
+                    }
+                }
+
+                const dealValue = value || resolvedProductPrice || 0;
+
                 const { data: deal, error } = await supabase
                     .from('deals')
                     .insert({
                         organization_id: organizationId,
                         board_id: targetBoardId,
                         title,
-                        value,
+                        value: dealValue,
                         property_ref: propertyRef || null,
                         contact_id: contactId,
                         stage_id: firstStageId,
@@ -514,14 +558,29 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     return { success: false, error: error?.message ?? 'Falha ao criar deal' };
                 }
 
+                // Link product to deal via deal_items
+                if (resolvedProductId && resolvedProductName) {
+                    await supabase
+                        .from('deal_items')
+                        .insert({
+                            deal_id: deal.id,
+                            product_id: resolvedProductId,
+                            name: resolvedProductName,
+                            quantity: 1,
+                            price: resolvedProductPrice,
+                            organization_id: organizationId,
+                        });
+                }
+
                 return {
                     success: true,
                     deal: {
                         id: deal.id,
                         title: deal.title,
-                        value: `R$ ${(deal.value || 0).toLocaleString('pt-BR')}`
+                        value: `R$ ${(deal.value || 0).toLocaleString('pt-BR')}`,
+                        product: resolvedProductName || null,
                     },
-                    message: `Deal "${title}" criado com sucesso!`
+                    message: `Deal "${title}" criado com sucesso!${resolvedProductName ? ` Produto: ${resolvedProductName}` : ''}`
                 };
             },
         }),
