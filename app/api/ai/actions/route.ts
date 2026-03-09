@@ -188,7 +188,7 @@ const ObjectionResponseSchema = z.array(z.string()).describe('3 respostas difere
 
 const ParsedActionSchema = z.object({
   title: z.string(),
-  type: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK']),
+  type: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP']),
   date: z.string().optional(),
   contactName: z.string().optional(),
   confidence: z.number().min(0).max(1),

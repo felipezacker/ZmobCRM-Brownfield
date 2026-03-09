@@ -266,7 +266,7 @@ export interface Deal {
   };
   ownerId?: string; // ID do usuário responsável
   nextActivity?: {
-    type: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK';
+    type: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'WHATSAPP';
     date: string;
     isOverdue?: boolean;
   };
@@ -305,7 +305,7 @@ export interface Activity {
   /** IDs dos contatos participantes (opcional). */
   participantContactIds?: string[];
   dealTitle: string;
-  type: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'NOTE' | 'STATUS_CHANGE';
+  type: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'WHATSAPP' | 'NOTE' | 'STATUS_CHANGE';
   title: string;
   description?: string;
   date: string;

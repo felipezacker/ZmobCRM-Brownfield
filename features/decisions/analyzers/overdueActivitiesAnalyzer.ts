@@ -16,7 +16,7 @@ export const overdueActivitiesConfig: AnalyzerConfig = {
   enabled: true,
   params: {
     criticalDaysOverdue: 3,
-    includedTypes: ['CALL', 'MEETING', 'EMAIL', 'TASK'],
+    includedTypes: ['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP'],
   },
   maxDecisionsPerRun: 10,
   cooldownDays: 1,
@@ -27,7 +27,8 @@ function generateReasoning(activity: Activity, daysOverdue: number, deal?: DealV
   
   const typeLabel = activity.type === 'CALL' ? 'Ligação' :
                    activity.type === 'MEETING' ? 'Reunião' :
-                   activity.type === 'EMAIL' ? 'Email' : 'Tarefa';
+                   activity.type === 'EMAIL' ? 'Email' :
+                   activity.type === 'WHATSAPP' ? 'WhatsApp' : 'Tarefa';
   
   parts.push(`${typeLabel} "${activity.title}" está ${daysOverdue} ${daysOverdue === 1 ? 'dia' : 'dias'} atrasada.`);
   
@@ -55,8 +56,8 @@ function generateSuggestedActions(activity: Activity, deal?: DealView): {
   tomorrow.setHours(10, 0, 0, 0);
 
   // Cast to valid activity type (exclude NOTE and STATUS_CHANGE)
-  const validType = ['CALL', 'MEETING', 'EMAIL', 'TASK'].includes(activity.type) 
-    ? activity.type as 'CALL' | 'MEETING' | 'EMAIL' | 'TASK'
+  const validType = ['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP'].includes(activity.type)
+    ? activity.type as 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'WHATSAPP'
     : 'TASK';
 
   // Primary action: Complete now or reschedule

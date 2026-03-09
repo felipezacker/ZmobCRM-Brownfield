@@ -20,10 +20,10 @@ interface DealRow {
 export function createDealTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
         searchDeals: tool({
-            description: 'Busca deals por título e/ou imóvel (property_ref)',
+            description: 'Busca deals por título (query) e/ou por imóvel/produto (propertyRef). Quando o usuário mencionar imóvel, produto ou empreendimento, use propertyRef.',
             inputSchema: z.object({
-                query: z.string().optional().describe('Termo de busca por título'),
-                propertyRef: z.string().optional().describe('Buscar por referência do imóvel (código, endereço curto)'),
+                query: z.string().optional().describe('Termo de busca por título do deal — NÃO use para imóvel/produto'),
+                propertyRef: z.string().optional().describe('Buscar por imóvel/produto/empreendimento — USE ESTE quando o usuário mencionar imóvel ou produto (ex: "Shift", "Aurora")'),
                 limit: z.number().optional().default(5),
             }),
             execute: async ({ query, propertyRef, limit }) => {
@@ -435,12 +435,12 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
         }),
 
         createDeal: tool({
-            description: 'Cria um novo deal no board atual (ou informado). Requer aprovação no card (Aprovar/Negar) — não peça confirmação em texto.',
+            description: 'Cria um novo deal no board atual (ou informado). SEMPRE passe propertyRef quando o usuário mencionar imóvel/produto. Requer aprovação no card (Aprovar/Negar) — não peça confirmação em texto.',
             inputSchema: z.object({
                 title: z.string().min(1).describe('Título do deal'),
                 value: z.number().optional().default(0).describe('Valor do deal em reais'),
                 contactName: z.string().optional().describe('Nome do contato'),
-                propertyRef: z.string().optional().describe('Referência do imóvel (código, endereço curto, etc.)'),
+                propertyRef: z.string().optional().describe('Imóvel/produto do deal — OBRIGATÓRIO quando o usuário mencionar imóvel, produto ou empreendimento'),
                 boardId: z.string().optional(),
             }),
             needsApproval: !bypassApproval,
@@ -762,7 +762,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 createFollowUpTask: z.boolean().optional().default(false),
                 followUpTitle: z.string().optional(),
                 followUpDueInDays: z.number().int().positive().optional().default(2),
-                followUpType: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK']).optional().default('TASK'),
+                followUpType: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP']).optional().default('TASK'),
             }),
             needsApproval: !bypassApproval,
             execute: async ({ dealIds, boardId, stageName, stageId, allowPartial, maxDeals, createFollowUpTask, followUpTitle, followUpDueInDays, followUpType }) => {

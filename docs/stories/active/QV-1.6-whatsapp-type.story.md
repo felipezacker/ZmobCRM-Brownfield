@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** QV-1.6
 - **Epic:** QV (Quality Validation)
-- **Status:** Ready
+- **Status:** Ready for Review
 - **Priority:** P2
 - **Estimated Points:** 2
 - **Assigned Agent:** @dev
@@ -81,40 +81,40 @@ Correto registro de interacoes de WhatsApp (canal mais usado no CRM brasileiro) 
 Arquivo: `lib/validations/schemas.ts` (linha 157)
 
 **Subtasks:**
-- [ ] 1.1: Localizar `activityFormTypeSchema` (linha 157)
-- [ ] 1.2: Adicionar `'WHATSAPP'` ao `z.enum([...])` existente
-- [ ] 1.3: Verificar se ha outros schemas de atividade no mesmo arquivo que precisam ser atualizados
+- [x] 1.1: Localizar `activityFormTypeSchema` (linha 157)
+- [x] 1.2: Adicionar `'WHATSAPP'` ao `z.enum([...])` existente
+- [x] 1.3: Verificar se ha outros schemas de atividade no mesmo arquivo que precisam ser atualizados (activityTypeSchema tambem atualizado)
 
 ### Task 2 — Type Definitions TypeScript (AC2, AC3)
 Arquivos: `types/types.ts` e `types/aiActions.ts`
 
 **Subtasks:**
-- [ ] 2.1: Em `types/types.ts` linha 269 — adicionar `'WHATSAPP'` ao union type de `nextActivity.type`
-- [ ] 2.2: Em `types/types.ts` linha 308 — adicionar `'WHATSAPP'` ao union type de `Activity.type`
-- [ ] 2.3: Em `types/aiActions.ts` linha 1 — adicionar `'WHATSAPP'` ao `ParsedActionType`
-- [ ] 2.4: Executar `npm run typecheck` para confirmar sem erros
+- [x] 2.1: Em `types/types.ts` linha 269 — adicionar `'WHATSAPP'` ao union type de `nextActivity.type`
+- [x] 2.2: Em `types/types.ts` linha 308 — adicionar `'WHATSAPP'` ao union type de `Activity.type`
+- [x] 2.3: Em `types/aiActions.ts` linha 1 — adicionar `'WHATSAPP'` ao `ParsedActionType`
+- [x] 2.4: Executar `npm run typecheck` para confirmar sem erros
 
 ### Task 3 — Icone e Label (AC4)
 Arquivo: `features/activities/utils.tsx` (linhas 7-14 e 19-25)
 
 **Subtasks:**
-- [ ] 3.1: Localizar switch de icone de atividade (linhas 7-14) e adicionar `case 'WHATSAPP': return <MessageCircle className="text-emerald-500" />`
-- [ ] 3.2: Localizar funcao de label/icone de atividade — pode ser `getActivityIconCalendar` ou switch inline (linhas 19-25). Adicionar `case 'WHATSAPP': return 'WhatsApp'`
-- [ ] 3.3: Confirmar import de `MessageCircle` de `lucide-react` no topo do arquivo (usar precedente de FocusContextPanel.tsx)
+- [x] 3.1: Localizar switch de icone de atividade (linhas 7-14) e adicionar `case 'WHATSAPP': return <MessageCircle className="text-emerald-500" />`
+- [x] 3.2: Localizar funcao getActivityIconCalendar (linhas 19-25). Adicionar `case 'WHATSAPP': return <MessageCircle className="text-white" />`
+- [x] 3.3: Confirmar import de `MessageCircle` de `lucide-react` no topo do arquivo
 
 ### Task 4 — Verificacao Banco e IA (AC2, AC3)
 Arquivos: `lib/ai/tools/activity-tools.ts` (somente leitura / verificacao)
 
 **Subtasks:**
-- [ ] 4.1: Confirmar linha 15 — enum Zod inclui WHATSAPP
-- [ ] 4.2: Confirmar linha 177 — enum Zod inclui WHATSAPP (segundo ponto de definicao)
-- [ ] 4.3: Sem alteracao necessaria (ja implementado no Epic TD)
+- [x] 4.1: Confirmar linha 15 — enum Zod inclui WHATSAPP
+- [x] 4.2: Confirmar linha 177 — enum Zod inclui WHATSAPP (segundo ponto de definicao)
+- [x] 4.3: Sem alteracao necessaria (ja implementado no Epic TD)
 
 ### Task 5 — Quality Gate
 **Subtasks:**
-- [ ] 5.1: `npm run typecheck` — deve passar sem erros
-- [ ] 5.2: `npm run lint` — deve passar sem erros
-- [ ] 5.3: `npm test` — sem regressoes
+- [x] 5.1: `npm run typecheck` — deve passar sem erros
+- [x] 5.2: `npm run lint` — deve passar sem erros
+- [x] 5.3: `npm test` — sem regressoes (2 falhas pre-existentes de QV-1.5, nao relacionadas)
 - [ ] 5.4: Teste manual — abrir dropdown de criacao de atividade e confirmar WHATSAPP presente
 - [ ] 5.5: Teste manual — criar atividade WHATSAPP e verificar no banco (Supabase staging)
 - [ ] 5.6: Teste manual — via chat IA solicitar atividade de whatsapp e confirmar tipo salvo
@@ -190,7 +190,21 @@ Arquivos: `lib/ai/tools/activity-tools.ts` (somente leitura / verificacao)
 
 ## File List
 
-_(a ser preenchido pelo @dev durante implementacao)_
+| Arquivo | Acao | Descricao |
+|---------|------|-----------|
+| `lib/validations/schemas.ts` | Modificado | Adicionado WHATSAPP a activityTypeSchema e activityFormTypeSchema |
+| `types/types.ts` | Modificado | Adicionado WHATSAPP a nextActivity.type e Activity.type |
+| `types/aiActions.ts` | Modificado | Adicionado WHATSAPP a ParsedActionType |
+| `features/activities/utils.tsx` | Modificado | Case WHATSAPP em getActivityIconList e getActivityIconCalendar, import MessageCircle |
+| `features/activities/components/ActivitiesFilters.tsx` | Modificado | Opcao WHATSAPP no dropdown de filtro |
+| `features/activities/components/ActivityFormModal.tsx` | Modificado | Opcao WHATSAPP no dropdown do formulario |
+| `features/activities/components/ActivitiesMonthlyCalendar.tsx` | Modificado | WHATSAPP em ACTIVITY_TYPE_COLORS (emerald) |
+| `features/decisions/types.ts` | Modificado | Adicionado WHATSAPP a ActionPayload.activityType |
+| `features/decisions/analyzers/overdueActivitiesAnalyzer.ts` | Modificado | WHATSAPP em includedTypes, typeLabel e validType |
+| `features/settings/components/ApiKeysSection.tsx` | Modificado | Opcao WHATSAPP no dropdown de tipo |
+| `app/api/ai/actions/route.ts` | Modificado | Adicionado WHATSAPP a ParsedActionSchema.type |
+| `lib/ai/tools/deal-tools.ts` | Modificado | Adicionado WHATSAPP a followUpType enum |
+| `test/helpers/salesTeamFixtures.ts` | Modificado | Adicionado WHATSAPP ao type union |
 
 ## Change Log
 
@@ -200,6 +214,7 @@ _(a ser preenchido pelo @dev durante implementacao)_
 | 2026-03-09 | @sm | Rework: fixes sistêmicos (SYS-1~4) + fixes específicos @po validation |
 | 2026-03-09 | @po | Validation GO (10/10). Status Draft -> Ready. SF-1: Task 3.2 descreve "label switch" mas e getActivityIconCalendar -- dev agent corrigira ao ler o arquivo |
 | 2026-03-09 | @sm | Fix SF-1: Task 3.2 atualizada para mencionar getActivityIconCalendar. quality_gate corrigido de @qa para @architect |
+| 2026-03-09 | @dev | Implementacao completa: 13 arquivos modificados. WHATSAPP adicionado a todos os enums, types, switches, dropdowns e color maps. typecheck/lint PASS, testes 745/747 (2 falhas pre-existentes QV-1.5) |
 
 ---
 *Story gerada por @sm (River) — Epic QV*

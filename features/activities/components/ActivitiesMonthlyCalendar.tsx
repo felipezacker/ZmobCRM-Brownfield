@@ -45,6 +45,12 @@ const ACTIVITY_TYPE_COLORS: Record<string, { bg: string; dot: string; text: stri
         text: 'text-emerald-400',
         gradient: 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 border-emerald-400',
     },
+    WHATSAPP: {
+        bg: 'bg-emerald-500/20',
+        dot: 'bg-emerald-500',
+        text: 'text-emerald-400',
+        gradient: 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 border-emerald-400',
+    },
     NOTE: {
         bg: 'bg-accent/20',
         dot: 'bg-accent',

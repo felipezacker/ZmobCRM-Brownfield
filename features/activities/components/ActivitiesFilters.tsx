@@ -66,6 +66,7 @@ export const ActivitiesFilters: React.FC<ActivitiesFiltersProps> = ({
             <option value="MEETING">Reuniões</option>
             <option value="EMAIL">Emails</option>
             <option value="TASK">Tarefas</option>
+            <option value="WHATSAPP">WhatsApp</option>
           </select>
         </div>
       )}

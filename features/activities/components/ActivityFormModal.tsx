@@ -97,6 +97,7 @@ export const ActivityFormModal: React.FC<ActivityFormModalProps> = ({
               <option value="MEETING">Reunião</option>
               <option value="EMAIL">Email</option>
               <option value="TASK">Tarefa</option>
+              <option value="WHATSAPP">WhatsApp</option>
             </select>
           </div>
 

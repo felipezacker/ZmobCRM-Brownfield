@@ -730,6 +730,7 @@ export const ApiKeysSection: React.FC = () => {
                   <option value="CALL">Ligação</option>
                   <option value="MEETING">Reunião</option>
                   <option value="EMAIL">Email</option>
+                  <option value="WHATSAPP">WhatsApp</option>
                 </select>
               </div>
               <div>

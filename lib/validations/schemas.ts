@@ -150,11 +150,12 @@ export const activityTypeSchema = z.enum([
   'MEETING',
   'EMAIL',
   'TASK',
+  'WHATSAPP',
   'NOTE',
   'STATUS_CHANGE',
 ]);
 
-export const activityFormTypeSchema = z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK'], {
+export const activityFormTypeSchema = z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP'], {
   message: msg('SELECTION_INVALID'),
 });
 
