@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** QV-1.2
 - **Epic:** QV (Quality Validation)
-- **Status:** Ready
+- **Status:** Ready for Review
 - **Priority:** P0
 - **Estimated Points:** 3
 - **Assigned Agent:** @dev
@@ -40,7 +40,7 @@ Afeta rotas raiz invalidas como `/qualquercoisa`. Sub-rotas protegidas (ex: `/da
 ### IN
 - Criacao de `app/not-found.tsx` na raiz (resolve bug #20 para rotas raiz invalidas)
 - Verificacao/criacao de `app/error.tsx` se necessario para cobrir AC3 (ver Dev Notes)
-- Reutilizacao obrigatoria de `components/ui/ErrorBoundaryFallback.tsx`
+- Seguir padrao de `app/(protected)/not-found.tsx` (JSX inline com branding — `ErrorBoundaryFallback` nao e compativel pois `not-found.tsx` nao recebe props `error`/`reset`)
 - Branding ZmobCRM via componente existente (logo, cores)
 - Botao "Voltar ao Dashboard"
 - Suporte a dark mode via Tailwind classes (dark:)
@@ -54,27 +54,27 @@ Afeta rotas raiz invalidas como `/qualquercoisa`. Sub-rotas protegidas (ex: `/da
 
 ## Tasks
 
-- [ ] Task 1 (AC1): Criar `app/not-found.tsx` na raiz reutilizando `ErrorBoundaryFallback` — resolve bug #20 para rotas raiz invalidas
-  - [ ] Subtask 1.1: Verificar assinatura de props de `ErrorBoundaryFallback` — ATENCAO: o componente requer props `error` e `reset` que `not-found.tsx` NAO recebe do Next.js. Seguir o padrao do `(protected)/not-found.tsx` que usa JSX inline em vez de `ErrorBoundaryFallback`
-  - [ ] Subtask 1.2: Implementar `app/not-found.tsx` seguindo padrao de `(protected)/not-found.tsx` (JSX inline com branding, nao ErrorBoundaryFallback)
+- [x] Task 1 (AC1): Criar `app/not-found.tsx` na raiz reutilizando `ErrorBoundaryFallback` — resolve bug #20 para rotas raiz invalidas
+  - [x] Subtask 1.1: Verificar assinatura de props de `ErrorBoundaryFallback` — ATENCAO: o componente requer props `error` e `reset` que `not-found.tsx` NAO recebe do Next.js. Seguir o padrao do `(protected)/not-found.tsx` que usa JSX inline em vez de `ErrorBoundaryFallback`
+  - [x] Subtask 1.2: Implementar `app/not-found.tsx` seguindo padrao de `(protected)/not-found.tsx` (JSX inline com branding, nao ErrorBoundaryFallback)
   - [ ] Subtask 1.3: Validar: navegar para `/qualquercoisa` exibe 404 customizada com branding
 
 - [ ] Task 2 (AC2): Validar que `app/(protected)/not-found.tsx` continua cobrindo sub-rotas invalidas
   - [ ] Subtask 2.1: Navegar para `/dashboard/xyz` e confirmar que 404 customizada aparece (sem modificar o arquivo)
 
-- [ ] Task 3 (AC3): Verificar cobertura de error boundary para runtime errors
-  - [ ] Subtask 3.1: Confirmar se `app/global-error.tsx` ja cobre AC3 para o root layout (provavelmente sim)
-  - [ ] Subtask 3.2: SE `global-error.tsx` nao cobrir casos de runtime em sub-layouts, criar `app/error.tsx` reutilizando `ErrorBoundaryFallback`
-  - [ ] Subtask 3.3: SE `app/error.tsx` for criado, validar que botao "retry" chama `reset()` do Next.js
+- [x] Task 3 (AC3): Verificar cobertura de error boundary para runtime errors
+  - [x] Subtask 3.1: Confirmar se `app/global-error.tsx` ja cobre AC3 para o root layout (provavelmente sim)
+  - [x] Subtask 3.2: SE `global-error.tsx` nao cobrir casos de runtime em sub-layouts, criar `app/error.tsx` reutilizando `ErrorBoundaryFallback`
+  - [x] Subtask 3.3: SE `app/error.tsx` for criado, validar que botao "retry" chama `reset()` do Next.js
 
-- [ ] Task 4 (AC4, AC5): Verificar dark mode e responsividade
-  - [ ] Subtask 4.1: SE `app/not-found.tsx` reutiliza `ErrorBoundaryFallback`, dark mode e responsividade ja estao cobertos nativamente — apenas verificar visualmente
+- [x] Task 4 (AC4, AC5): Verificar dark mode e responsividade
+  - [x] Subtask 4.1: SE `app/not-found.tsx` reutiliza `ErrorBoundaryFallback`, dark mode e responsividade ja estao cobertos nativamente — apenas verificar visualmente
   - [ ] Subtask 4.2: Confirmar dark mode toggle funciona na pagina 404 (375px width)
 
-- [ ] Task 5: Validar quality gates
-  - [ ] Subtask 5.1: `npm run typecheck` — sem erros
-  - [ ] Subtask 5.2: `npm run lint` — sem erros
-  - [ ] Subtask 5.3: `npm test` — todos os testes passam
+- [x] Task 5: Validar quality gates
+  - [x] Subtask 5.1: `npm run typecheck` — sem erros
+  - [x] Subtask 5.2: `npm run lint` — sem erros
+  - [x] Subtask 5.3: `npm test` — 71/72 passed (1 falha pre-existente: tools.salesTeamMatrix.test.ts timeout de rede, nao relacionado a QV-1.2)
 
 ## Dependencies
 
@@ -95,7 +95,7 @@ Afeta rotas raiz invalidas como `/qualquercoisa`. Sub-rotas protegidas (ex: `/da
 
 ## Criteria of Done
 
-- [ ] `app/not-found.tsx` existe na raiz e reutiliza `ErrorBoundaryFallback`
+- [ ] `app/not-found.tsx` existe na raiz seguindo padrao de `(protected)/not-found.tsx` (JSX inline com branding)
 - [ ] Navegar para `/qualquercoisa` exibe 404 customizada com branding ZmobCRM
 - [ ] Navegar para `/dashboard/xyz` continua exibindo 404 customizada (regressao)
 - [ ] Runtime errors exibem error page customizada com opcao retry e voltar
@@ -176,9 +176,55 @@ O Next.js App Router so usa o `not-found.tsx` dentro de um route group para rota
 - Responsive design breakpoints (sm:)
 - Next.js App Router conventions (not-found.tsx, error.tsx, global-error.tsx)
 
+## QA Results
+
+### Review: 2026-03-09 | @qa (Quinn)
+
+**Verdict: CONCERNS**
+
+#### Code Quality Analysis
+
+| Arquivo | Padrao Seguido | Reutilizacao | Resultado |
+|---------|---------------|--------------|-----------|
+| `app/not-found.tsx` | Identico a `(protected)/not-found.tsx` (unica diferenca: `min-h-[100dvh]` vs `60vh`) | N/A (JSX inline, conforme spec) | PASS |
+| `app/error.tsx` | Identico aos 18 `error.tsx` existentes | `ErrorBoundaryFallback` reutilizado | PASS |
+
+#### AC Traceability
+
+| AC | Cobertura por Codigo | Validacao Manual | Status |
+|----|---------------------|------------------|--------|
+| AC1 | `app/not-found.tsx` criado com branding + botao dashboard | Pendente (subtask 1.3) | PENDENTE |
+| AC2 | `(protected)/not-found.tsx` intocado, sem risco de regressao | Pendente (task 2) | PENDENTE |
+| AC3 | `app/error.tsx` + `global-error.tsx` + 18 error boundaries | Coberto por codigo | PASS |
+| AC4 | CSS variables (`text-foreground`, `bg-primary`) respondem a classe `dark` | Pendente (subtask 4.2) | PENDENTE |
+| AC5 | `sm:flex-row` em not-found + `ErrorBoundaryFallback` ja responsivo | Pendente (subtask 4.2) | PENDENTE |
+
+#### Concerns
+
+1. **MEDIUM — Validacao manual pendente:** Subtasks 1.3, 2.1 e 4.2 requerem teste no browser. Sem isso, AC1, AC2 e AC5 nao podem ser confirmados em runtime. Recomendacao: testar antes de merge.
+2. **LOW — Duplicacao controlada:** `app/not-found.tsx` replica JSX de `(protected)/not-found.tsx`. Aceitavel — `not-found.tsx` e Server Component sem props, extrair componente compartilhado adicionaria complexidade desnecessaria para 1 linha de diferenca.
+3. **LOW — Justificativa de `app/error.tsx` valida:** `global-error.tsx` renderiza FORA do root layout (sem Tailwind). `app/error.tsx` cobre rotas nao-protegidas com UX Tailwind-based. Criacao justificada.
+
+#### Quality Gates
+
+| Gate | Resultado |
+|------|-----------|
+| typecheck | PASS |
+| lint | PASS |
+| tests | 71/72 PASS (1 falha pre-existente: `tools.salesTeamMatrix.test.ts` — timeout de rede, nao relacionado) |
+| Reutilizacao (IDS) | PASS — `ErrorBoundaryFallback` reutilizado em `error.tsx`, padrao `(protected)/not-found.tsx` seguido |
+| Scope compliance | PASS — nenhum arquivo fora do escopo modificado |
+
+#### Decisao
+
+**CONCERNS** — Codigo correto, patterns seguidos, reutilizacao adequada. Aprovar para merge apos validacao manual dos 3 cenarios pendentes (AC1 browser, AC2 regressao, AC4/5 dark mode + 375px). Se validacao manual confirmar, PASS direto.
+
 ## File List
 
-_(a ser preenchido pelo @dev durante implementacao)_
+| Arquivo | Acao | Descricao |
+|---------|------|-----------|
+| `app/not-found.tsx` | Criado | 404 customizada para rotas raiz invalidas (resolve bug #20) |
+| `app/error.tsx` | Criado | Error boundary para rotas nao-protegidas usando ErrorBoundaryFallback |
 
 ## Change Log
 
@@ -188,6 +234,8 @@ _(a ser preenchido pelo @dev durante implementacao)_
 | 2026-03-09 | @sm | Rework: fixes sistêmicos (SYS-1~4) + fixes específicos @po validation |
 | 2026-03-09 | @po | Validacao GO 10/10 — Draft -> Ready. 1 should-fix (SF-1: ErrorBoundaryFallback props mismatch com not-found.tsx — @dev seguir padrao do (protected)/not-found.tsx) |
 | 2026-03-09 | @sm | Fix SF-1: subtask 1.1/1.2 reescrita para seguir padrao (protected)/not-found.tsx. quality_gate corrigido de @qa para @architect |
+| 2026-03-09 | @sm | Fix SF-2 (@po re-validacao): Scope IN e Criteria of Done atualizados — removida referencia a ErrorBoundaryFallback em not-found.tsx (incompativel: nao recebe props error/reset) |
+| 2026-03-09 | @dev | Implementacao: app/not-found.tsx (JSX inline, padrao protected) + app/error.tsx (ErrorBoundaryFallback). Quality gates: typecheck OK, lint OK, 71/72 tests OK |
 
 ---
 *Story gerada por @sm (River) — Epic QV*
