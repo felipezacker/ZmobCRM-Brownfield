@@ -18,8 +18,8 @@ const REALTIME_PRESETS = {
   /** Deals page: deals with contacts */
   deals: ['deals', 'contacts'] as const,
 
-  /** Kanban board: deals and stages */
-  kanban: ['deals', 'board_stages'] as const,
+  /** Kanban board: deals, stages, and contacts (for contact info on deal cards) */
+  kanban: ['deals', 'board_stages', 'contacts'] as const,
 
   /** Activities/Inbox: activities with deals */
   activities: ['activities', 'deals'] as const,

@@ -12,8 +12,8 @@ describe('realtime presets', () => {
     it('has contacts preset', () => {
       expect(REALTIME_PRESETS.contacts).toEqual(['contacts']);
     });
-    it('has kanban preset with deals and stages', () => {
-      expect(REALTIME_PRESETS.kanban).toEqual(['deals', 'board_stages']);
+    it('has kanban preset with deals, stages and contacts', () => {
+      expect(REALTIME_PRESETS.kanban).toEqual(['deals', 'board_stages', 'contacts']);
     });
     it('has all preset', () => {
       expect(REALTIME_PRESETS.all).toContain('deals');

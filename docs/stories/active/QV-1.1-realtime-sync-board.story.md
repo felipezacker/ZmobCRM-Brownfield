@@ -85,10 +85,10 @@
   - [x] 4.1: Verificar handler de contacts UPDATE em `useRealtimeSync.ts`
   - [x] 4.2: Verificar se a invalidacao de cache de contacts propaga para componentes que exibem dados do contato (board cards, modais)
   - [x] 4.3: Fix aplicado e testado: editar contato na aba 1 reflete na aba 2
-- [ ] Task 5: Teste end-to-end com 2 abas abertas
-  - [ ] 5.1: Abrir staging em 2 abas, mesmo usuario
-  - [ ] 5.2: Validar todos os 6 ACs sequencialmente
-  - [ ] 5.3: Validar que drag & drop + realtime nao conflitam (drag na aba 1, observar aba 2)
+- [x] Task 5: Teste end-to-end com 2 abas abertas
+  - [x] 5.1: Abrir staging em 2 abas, mesmo usuario
+  - [x] 5.2: Validar todos os 6 ACs sequencialmente
+  - [x] 5.3: Validar que drag & drop + realtime nao conflitam (drag na aba 1, observar aba 2)
 - [x] Task 6: Quality gates
   - [x] 6.1: `npm run typecheck` — 0 errors
   - [x] 6.2: `npm run lint` — 0 errors
@@ -210,6 +210,10 @@ npm test            # todos passam
 | 2026-03-09 | @po | Validacao NO-GO (7/10): 3 critical + 5 should-fix |
 | 2026-03-09 | @sm | Rework: quality_gate→@architect, +CodeRabbit, +Risks, +Dependencies, +Testing, +DoD, Dev Notes reescritos com file paths verificados |
 | 2026-03-09 | @po | Re-validacao GO (10/10) — Status Draft→Ready |
+| 2026-03-09 | @qa | Review CONCERNS: H1 preset inconsistente, M1 testes ausentes |
+| 2026-03-09 | @dev | Fix H1 (preset kanban) + M1 (14 unit tests para dealInsertSync/dealUpdateSync) |
+| 2026-03-09 | @qa | Re-review PASS — todos issues resolvidos |
+| 2026-03-09 | @dev | Task 5 E2E manual PASS (6/6 ACs), checklist post-td items #1,#17,#18,#19 re-validados |
 
 ---
 *Story gerada por @sm (River) — Epic QV*
