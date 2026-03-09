@@ -9,7 +9,7 @@ import { useSettings } from '@/context/settings/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { dealNotesService, type DealNote } from '@/lib/supabase/dealNotes';
-import { useMoveDealSimple } from '@/lib/query/hooks';
+import { useMoveDealSimple, useDeal } from '@/lib/query/hooks';
 import { Activity } from '@/types';
 import { useResponsiveMode } from '@/hooks/useResponsiveMode';
 import { useRouter } from 'next/navigation';
@@ -43,14 +43,18 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
   const productsById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
   const activitiesById = useMemo(() => new Map(activities.map((a) => [a.id, a])), [activities]);
 
-  const deal = dealId ? dealsById.get(dealId) : undefined;
+  const contextDeal = dealId ? dealsById.get(dealId) : undefined;
+  // Fallback: fetch deal directly from DB if not found in context (e.g. freshly created via AI)
+  const shouldFetchDirect = isOpen && !!dealId && !contextDeal && !dealId.startsWith('temp-');
+  const { data: directDeal } = useDeal(shouldFetchDirect ? dealId : undefined);
+  const deal = contextDeal || directDeal || undefined;
   // Keep a ref to the current deal so effects that should only run on dealId change
   // can read the latest deal data without depending on the deal object identity.
   const dealRef = useRef(deal);
   dealRef.current = deal;
   const { data: contactDirect } = useContactQuery(deal?.contactId || undefined);
   const contact = contactDirect ?? contactsById.get(deal?.contactId ?? '') ?? null;
-  const resolvedContactName = contact?.name || deal?.contactName || 'Sem contato';
+  const resolvedContactName = contact?.name || ('contactName' in (deal ?? {}) ? (deal as unknown as { contactName?: string }).contactName : undefined) || 'Sem contato';
 
   const dealBoardOrNull = deal ? (boardsById.get(deal.boardId) ?? activeBoard) : activeBoard;
   const dealBoard = dealBoardOrNull ?? undefined;

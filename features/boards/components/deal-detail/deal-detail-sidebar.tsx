@@ -48,8 +48,24 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
             {(resolvedContactName || '?').charAt(0)}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-foreground font-medium text-sm flex items-center gap-2">
-              {resolvedContactName}
+            <div className="flex items-center gap-2">
+              {contact ? (
+                <input
+                  key={`name-${contact.id}`}
+                  type="text"
+                  defaultValue={contact.name || ''}
+                  onBlur={e => {
+                    const val = e.target.value.trim();
+                    if (val && val !== contact.name) {
+                      onUpdateContact(contact.id, { name: val });
+                    }
+                  }}
+                  placeholder="Nome do contato"
+                  className="text-foreground font-medium text-sm bg-transparent outline-none w-full placeholder:text-muted-foreground hover:bg-background dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5"
+                />
+              ) : (
+                <span className="text-foreground font-medium text-sm">{resolvedContactName}</span>
+              )}
               {contact?.stage &&
                 (() => {
                   const stage = lifecycleStageById.get(contact.stage);
@@ -60,7 +76,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
                     </span>
                   );
                 })()}
-            </p>
+            </div>
             {/* Phone - editable inline */}
             <div className="flex items-center gap-1 mt-1">
               <Phone size={11} className="text-muted-foreground shrink-0" />

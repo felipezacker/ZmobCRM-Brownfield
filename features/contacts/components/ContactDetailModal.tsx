@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useId, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { X, Phone as PhoneIcon, MessageCircle, Mail } from 'lucide-react';
 import { useContact, useUpdateContact } from '@/lib/query/hooks/useContactsQuery';
@@ -22,6 +21,7 @@ import { ContactCockpitTimeline } from '../cockpit/ContactCockpitTimeline';
 import { ContactCockpitRightRail } from '../cockpit/ContactCockpitRightRail';
 import { ContactCockpitPipelineBar } from '../cockpit/ContactCockpitPipelineBar';
 import { CLASSIFICATION_LABELS, TEMPERATURE_CONFIG, STAGE_LABELS } from '../constants';
+import { DealDetailModal } from '@/features/boards/components/deal-detail';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -49,7 +49,6 @@ export function ContactDetailModal({ contactId, isOpen, onClose }: ContactDetail
 function ContactDetailModalInner({ contactId, onClose }: { contactId: string; onClose: () => void }) {
   const headingId = useId();
   useFocusReturn({ enabled: true });
-  const router = useRouter();
   const { mode } = useResponsiveMode();
   const isMobile = mode === 'mobile';
 
@@ -190,11 +189,11 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
     } catch (e) { console.error('Failed to inline update:', e); }
   }, [contact, refetchContact, updateContactMutation]);
 
-  // ---- Open deal handler ----
+  // ---- Open deal handler (modal filho) ----
+  const [childDealId, setChildDealId] = useState<string | null>(null);
   const handleOpenDeal = useCallback((dealId: string) => {
-    onClose();
-    router.push(`/deals/${dealId}/cockpit`);
-  }, [onClose, router]);
+    setChildDealId(dealId);
+  }, []);
 
   // ---- Timeline entries ----
   const timelineEntries = useMemo(() => {
@@ -448,6 +447,13 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
             </div>
           </div>
         </div>
+
+        {/* Deal detail modal filho */}
+        <DealDetailModal
+          dealId={childDealId}
+          isOpen={!!childDealId}
+          onClose={() => setChildDealId(null)}
+        />
       </div>
     </FocusTrap>
   );

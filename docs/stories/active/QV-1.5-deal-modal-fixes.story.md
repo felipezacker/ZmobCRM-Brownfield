@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** QV-1.5
 - **Epic:** QV (Quality Validation)
-- **Status:** Ready
+- **Status:** InProgress
 - **Priority:** P1
 - **Estimated Points:** 5
 - **Assigned Agent:** @dev
@@ -75,36 +75,36 @@ Usuarios nao conseguem editar informacoes basicas do deal sem fechar o modal e n
 
 ## Tasks
 
-- [ ] Task 0 (Pre-requisito): Identificar qual DealDetailModal.tsx esta ativo no board
-  - [ ] 0.1: Buscar importacoes no board/kanban para determinar qual arquivo e usado: `features/boards/components/Modals/DealDetailModal.tsx` OU `features/boards/components/deal-detail/DealDetailModal.tsx`
-  - [ ] 0.2: Se ambos coexistirem e um for deprecated, documentar no Change Log qual e o ativo e qual o deprecated
-  - [ ] 0.3: Todo trabalho das Tasks 1-4 deve acontecer SOMENTE no arquivo ativo
+- [x] Task 0 (Pre-requisito): Identificar qual DealDetailModal.tsx esta ativo no board
+  - [x] 0.1: Buscar importacoes no board/kanban para determinar qual arquivo e usado: `features/boards/components/Modals/DealDetailModal.tsx` OU `features/boards/components/deal-detail/DealDetailModal.tsx`
+  - [x] 0.2: Se ambos coexistirem e um for deprecated, documentar no Change Log qual e o ativo e qual o deprecated
+  - [x] 0.3: Todo trabalho das Tasks 1-4 deve acontecer SOMENTE no arquivo ativo
 
-- [ ] Task 1 (AC1, AC2): Tornar campos editáveis no DealDetailModal ativo
-  - [ ] 1.1: Tornar nome do contato editavel (atualmente texto estatico) — implementar input com onBlur save
-  - [ ] 1.2: Verificar se telefone ja e editavel no modal ativo (Modals/DealDetailModal.tsx:688-722 ja tem phone/email com onBlur — confirmar se o modal ativo tem o mesmo comportamento)
-  - [ ] 1.3: Verificar se valor do deal e editavel; se nao for, implementar input com onBlur save
-  - [ ] 1.4: Garantir que mutacoes chamam React Query invalidation correta apos save
+- [x] Task 1 (AC1, AC2): Tornar campos editáveis no DealDetailModal ativo
+  - [x] 1.1: Tornar nome do contato editavel (atualmente texto estatico) — implementar input com onBlur save
+  - [x] 1.2: Verificar se telefone ja e editavel no modal ativo (Modals/DealDetailModal.tsx:688-722 ja tem phone/email com onBlur — confirmar se o modal ativo tem o mesmo comportamento)
+  - [x] 1.3: Verificar se valor do deal e editavel; se nao for, implementar input com onBlur save
+  - [x] 1.4: Garantir que mutacoes chamam React Query invalidation correta apos save
 
-- [ ] Task 2 (AC3): Adicionar criacao de produto inline no modal
-  - [ ] 2.1: Localizar a logica de criacao inline no DealCard (linhas 103-120, funcao `handleCreateProduct`)
-  - [ ] 2.2: Extrair ou reutilizar a logica para o select de produtos no DealDetailModal
-  - [ ] 2.3: Testar criacao inline com produto novo e com produto existente (nao deve duplicar)
+- [x] Task 2 (AC3): Adicionar criacao de produto inline no modal
+  - [x] 2.1: Localizar a logica de criacao inline no DealCard (linhas 103-122, funcao `handleCreateProduct`)
+  - [x] 2.2: Extrair ou reutilizar a logica para o select de produtos no DealDetailModal
+  - [x] 2.3: Testar criacao inline com produto novo e com produto existente (nao deve duplicar)
 
-- [ ] Task 3 (AC4): Corrigir navegacao da aba deals do modal do contato
-  - [ ] 3.1: Localizar o componente que renderiza a aba deals no modal do contato
-  - [ ] 3.2: Ao clicar num deal, chamar abertura do DealDetailModal com o dealId correto (nao navegar ao board)
-  - [ ] 3.3: Verificar que o deal clicado tem ID valido (nao temporario)
+- [x] Task 3 (AC4): Corrigir navegacao da aba deals do modal do contato
+  - [x] 3.1: Localizar o componente que renderiza a aba deals no modal do contato
+  - [x] 3.2: Ao clicar num deal, chamar abertura do DealDetailModal com o dealId correto (nao navegar ao board)
+  - [x] 3.3: Verificar que o deal clicado tem ID valido (nao temporario)
 
-- [ ] Task 4 (AC5): Investigar e corrigir deal recem-criado que nao abre
-  - [ ] 4.1: Pre-condicao — verificar se QV-1.1 foi implementada; se sim, testar AC5 antes de codar (pode estar resolvido)
-  - [ ] 4.2: Se AC5 ainda falha: investigar se o ID do deal no board e temporario (otimista) vs ID real do DB
-  - [ ] 4.3: Verificar se o handler de click no DealCard busca o deal pelo ID e falha quando o ID nao existe ainda
-  - [ ] 4.4: Implementar fix (aguardar ID real antes de tornar card clicavel, ou buscar deal com retry)
+- [x] Task 4 (AC5): Investigar e corrigir deal recem-criado que nao abre
+  - [x] 4.1: Pre-condicao — verificar se QV-1.1 foi implementada; se sim, testar AC5 antes de codar (pode estar resolvido)
+  - [x] 4.2: Se AC5 ainda falha: investigar se o ID do deal no board e temporario (otimista) vs ID real do DB
+  - [x] 4.3: Verificar se o handler de click no DealCard busca o deal pelo ID e falha quando o ID nao existe ainda
+  - [x] 4.4: Implementar fix (aguardar ID real antes de tornar card clicavel, ou buscar deal com retry)
 
-- [ ] Task 5: Quality gate
-  - [ ] 5.1: `npm run typecheck` — zero erros
-  - [ ] 5.2: `npm run lint` — zero warnings/errors
+- [x] Task 5: Quality gate
+  - [x] 5.1: `npm run typecheck` — zero erros
+  - [x] 5.2: `npm run lint` — zero warnings/errors
   - [ ] 5.3: Teste manual de todos os ACs no ambiente staging
 
 ## Dev Notes
@@ -181,7 +181,13 @@ O @dev DEVE identificar qual e importado pelo board/kanban antes de qualquer mod
 
 ## File List
 
-_(a ser preenchido pelo @dev durante implementacao)_
+| Arquivo | Mudanca |
+|---------|---------|
+| `features/boards/components/deal-detail/deal-detail-sidebar.tsx` | AC1: Nome do contato agora editavel com input onBlur (era `<p>` estatico) |
+| `features/boards/components/deal-detail/product-picker.tsx` | AC3: Adicionado botao "Criar produto" quando busca nao encontra resultados (replica logica do DealCard) |
+| `features/boards/components/deal-detail/useDealDetail.ts` | AC5: Fallback `useDeal` para buscar deal diretamente do DB quando nao encontrado no contexto |
+| `features/contacts/components/ContactDetailModal.tsx` | AC4: handleOpenDeal agora abre DealDetailModal como modal filho (era router.push para /deals/cockpit) |
+| `docs/stories/active/QV-1.5-deal-modal-fixes.story.md` | Checkboxes, File List, Change Log atualizados |
 
 ## Change Log
 
@@ -191,6 +197,7 @@ _(a ser preenchido pelo @dev durante implementacao)_
 | 2026-03-09 | @sm | Rework completo: FIX-1.5.1 (dois DealDetailModal), FIX-1.5.2 (AC2 investigacao), FIX-1.5.3 (Task 1 decomposta), FIX-1.5.4 (pré-condicao QV-1.1), FIX-1.5.5 (AC4 comportamento definido); adicionadas secoes Risks, Dependencies, Business Value, Criteria of Done, CodeRabbit Integration, Source Tree, Testing |
 | 2026-03-09 | @po | Validacao GO (9/10). Status Draft -> Ready. 0 issues criticas, 3 should-fix (AC2 parcialmente redundante, contagem de linhas imprecisa, QV-1.1 status nao documentado). Anti-hallucination: todos os file paths e claims verificados contra codebase real. |
 | 2026-03-09 | @sm | Fix SF-2: contagem de linhas corrigida (1692, 103-122). Fix SF-3: status QV-1.1 (Ready, nao implementada) documentado em Dependencies. quality_gate corrigido de @qa para @architect |
+| 2026-03-09 | @dev | Implementacao completa: AC1 (nome editavel), AC2 (ja funcional), AC3 (criar produto inline), AC4 (DealDetailModal como modal filho), AC5 (fallback useDeal para deals nao sincronizados). Modal ativo: deal-detail/ (Modals/ e deprecated). typecheck e lint passam. |
 
 ---
 *Story gerada por @sm (River) — Epic QV*

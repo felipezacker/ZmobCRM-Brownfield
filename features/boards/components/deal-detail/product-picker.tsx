@@ -1,7 +1,8 @@
-import React from 'react';
-import { Check, Search } from 'lucide-react';
+import React, { useState } from 'react';
+import { Check, Search, Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BRL_CURRENCY } from '@/features/boards/components/deal-detail/constants';
+import { productsService } from '@/lib/supabase/products';
 import type { Product } from '@/types';
 
 export interface ProductPickerDropdownProps {
@@ -13,6 +14,7 @@ export interface ProductPickerDropdownProps {
   onSearchChange: (value: string) => void;
   onSelect: (id: string) => void;
   onClose: () => void;
+  onProductCreated?: (product: Product) => void;
 }
 
 export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
@@ -24,7 +26,32 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
   onSearchChange,
   onSelect,
   onClose,
-}) => (
+  onProductCreated,
+}) => {
+  const [creatingProduct, setCreatingProduct] = useState(false);
+
+  const handleCreateProduct = async () => {
+    if (!productSearch.trim() || creatingProduct) return;
+    setCreatingProduct(true);
+    try {
+      const { data: newProduct, error } = await productsService.create({
+        name: productSearch.trim(),
+        price: 0,
+      });
+      if (error || !newProduct) {
+        console.error('Falha ao criar produto:', error);
+        return;
+      }
+      window.dispatchEvent(new CustomEvent('crm:products-updated'));
+      onProductCreated?.(newProduct);
+      onSelect(newProduct.id);
+      onClose();
+    } finally {
+      setCreatingProduct(false);
+    }
+  };
+
+  return (
   <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-xl border border-border bg-white dark:bg-background/95 backdrop-blur-xl shadow-2xl shadow-border/30 dark:shadow-black/40">
     <div className="flex items-center gap-2 border-b border-border px-3 py-2">
       <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -43,7 +70,21 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
     </div>
     <div className="max-h-52 overflow-auto py-1">
       {filteredProducts.length === 0 ? (
-        <div className="px-3 py-4 text-center text-xs text-muted-foreground dark:text-secondary-foreground">Nenhum produto encontrado</div>
+        productSearch.trim() ? (
+          <Button
+            variant="unstyled"
+            size="unstyled"
+            type="button"
+            disabled={creatingProduct}
+            onClick={handleCreateProduct}
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-background dark:hover:bg-white/4 text-primary-600 dark:text-primary-400"
+          >
+            {creatingProduct ? <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" /> : <Plus className="h-3.5 w-3.5 shrink-0" />}
+            <span className="text-sm">Criar &quot;{productSearch.trim()}&quot;</span>
+          </Button>
+        ) : (
+          <div className="px-3 py-4 text-center text-xs text-muted-foreground dark:text-secondary-foreground">Nenhum produto encontrado</div>
+        )
       ) : (
         filteredProducts.map((p) => {
           const isCurrent = p.id === selectedProductId;
@@ -76,7 +117,8 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
       <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground">{products.length} produtos no catalogo</span>
     </div>
   </div>
-);
+  );
+};
 
 export interface CustomItemFormProps {
   customItemName: string;
