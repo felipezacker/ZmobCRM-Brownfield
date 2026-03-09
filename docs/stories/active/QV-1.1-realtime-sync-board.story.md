@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** QV-1.1
 - **Epic:** QV (Quality Validation)
-- **Status:** Ready
+- **Status:** Done
 - **Priority:** P0
 - **Estimated Points:** 8
 - **Assigned Agent:** @dev
@@ -33,12 +33,12 @@
 
 ## Acceptance Criteria
 
-- [ ] AC1: Given um deal no board, when arrastado para outro stage, then o deal permanece visualmente no novo stage sem necessidade de refresh
-- [ ] AC2: Given um deal no board, when arrastado para outro stage, then o soft refresh (cmd+r) reflete a mudanca corretamente
-- [ ] AC3: Given 2 abas abertas do CRM, when um deal e criado na aba 1, then aparece na aba 2 com todos os dados (nome, valor, contato)
-- [ ] AC4: Given 2 abas abertas, when um deal e movido de stage na aba 1, then atualiza na aba 2
-- [ ] AC5: Given 2 abas abertas, when um contato e editado na aba 1, then atualiza na aba 2
-- [ ] AC6: Given um deal recem-criado (via UI ou IA), when clicado no board, then abre o modal do deal normalmente
+- [x] AC1: Given um deal no board, when arrastado para outro stage, then o deal permanece visualmente no novo stage sem necessidade de refresh
+- [x] AC2: Given um deal no board, when arrastado para outro stage, then o soft refresh (cmd+r) reflete a mudanca corretamente
+- [x] AC3: Given 2 abas abertas do CRM, when um deal e criado na aba 1, then aparece na aba 2 com todos os dados (nome, valor, contato)
+- [x] AC4: Given 2 abas abertas, when um deal e movido de stage na aba 1, then atualiza na aba 2
+- [x] AC5: Given 2 abas abertas, when um contato e editado na aba 1, then atualiza na aba 2
+- [x] AC6: Given um deal recem-criado (via UI ou IA), when clicado no board, then abre o modal do deal normalmente
 
 ## Scope
 
@@ -201,6 +201,10 @@ npm test            # todos passam
 | `lib/realtime/dealInsertSync.ts` | Bug #17: return type mudou de boolean para 'enriched'/'raw'/false para indicar se enrichment foi aplicado |
 | `lib/realtime/dealUpdateSync.ts` | Bug #18: removido `return old` conservador quando timestamps indisponiveis, permitindo cross-tab sync |
 | `lib/realtime/realtimeConfig.ts` | Bug #19: contacts query keys agora incluem queryKeys.deals.all para propagar contact updates ao deals cache |
+| `lib/realtime/presets.ts` | QA fix: kanban preset atualizado para incluir 'contacts' (consistencia com useRealtimeSyncKanban) |
+| `lib/realtime/__tests__/dealInsertSync.test.ts` | Novo: 6 unit tests para handleDealInsert (dedup, enrichment, cross-tab raw) |
+| `lib/realtime/__tests__/dealUpdateSync.test.ts` | Novo: 8 unit tests para handleDealUpdate (stale detection, cross-tab sync, field merge) |
+| `lib/realtime/__tests__/presets.test.ts` | QA fix: teste do kanban preset atualizado |
 
 ## Change Log
 
@@ -214,6 +218,8 @@ npm test            # todos passam
 | 2026-03-09 | @dev | Fix H1 (preset kanban) + M1 (14 unit tests para dealInsertSync/dealUpdateSync) |
 | 2026-03-09 | @qa | Re-review PASS — todos issues resolvidos |
 | 2026-03-09 | @dev | Task 5 E2E manual PASS (6/6 ACs), checklist post-td items #1,#17,#18,#19 re-validados |
+| 2026-03-09 | @po | ACs marcados [x] (6/6), File List atualizado (+5 arquivos QA), Status Ready→InReview |
+| 2026-03-09 | @po | Status InReview→Done |
 
 ---
 *Story gerada por @sm (River) — Epic QV*

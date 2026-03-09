@@ -85,6 +85,7 @@ svg.lucide {
   --app-safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --app-safe-area-top: env(safe-area-inset-top, 0px);
   --app-bottom-nav-height: 0px;
+  --app-chat-bottom-offset: 0px;
 
   /* shadcn/ui semantic tokens */
   --background: var(--color-bg);

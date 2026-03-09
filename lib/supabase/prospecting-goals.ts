@@ -36,6 +36,18 @@ export const prospectingGoalsService = {
     return { data: data as DbDailyGoal | null, error }
   },
 
+  async getGoalByOwner(ownerId: string) {
+    if (!supabase) return { data: null as DbDailyGoal | null, error: new Error('Supabase not configured') }
+
+    const { data, error } = await supabase
+      .from('prospecting_daily_goals')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .maybeSingle()
+
+    return { data: data as DbDailyGoal | null, error }
+  },
+
   async getTeamGoals() {
     if (!supabase) return { data: null as DbDailyGoal[] | null, error: new Error('Supabase not configured') }
 

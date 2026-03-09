@@ -54,7 +54,7 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
   dealRef.current = deal;
   const { data: contactDirect } = useContactQuery(deal?.contactId || undefined);
   const contact = contactDirect ?? contactsById.get(deal?.contactId ?? '') ?? null;
-  const resolvedContactName = contact?.name || ('contactName' in (deal ?? {}) ? (deal as unknown as { contactName?: string }).contactName : undefined) || 'Sem contato';
+  const resolvedContactName = contact?.name || (deal && 'contactName' in deal ? (deal as Record<string, unknown>).contactName as string : undefined) || 'Sem contato';
 
   const dealBoardOrNull = deal ? (boardsById.get(deal.boardId) ?? activeBoard) : activeBoard;
   const dealBoard = dealBoardOrNull ?? undefined;

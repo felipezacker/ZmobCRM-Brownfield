@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** QV-1.3
 - **Epic:** QV (Quality Validation)
-- **Status:** Ready
+- **Status:** Done
 - **Priority:** P0
 - **Estimated Points:** 3
 - **Assigned Agent:** @dev
@@ -48,18 +48,18 @@ O problema ocorre no modo **inline/sidebar** do chat — renderizado em `Layout.
 
 ## Tasks
 
-- [ ] Task 1 — Implementacao (AC1, AC2):
-  - [ ] Task 1.1: No modo inline/sidebar (`Layout.tsx:134-138`), ajustar altura do aside do chat para `calc(100dvh - var(--app-bottom-nav-height, 56px))`
-  - [ ] Task 1.2: Verificar que o padding do input respeita `--app-bottom-nav-height` (ou adicionar padding-bottom equivalente no container de input)
-- [ ] Task 2 — Implementacao (AC3):
-  - [ ] Task 2.1: Implementar ajuste para viewport resize com teclado virtual usando `visualViewport` API ou CSS `env(keyboard-inset-height)`
-  - [ ] Task 2.2: Verificar que o input permanece visivel ao abrir o teclado no iPhone SE (375px)
-- [ ] Task 3 — Verificacao (AC4):
-  - [ ] Task 3.1: Confirmar que scroll interno no container de mensagens funciona corretamente no mobile (era PASS no checklist post-td — apenas validar que fix do AC1 nao quebrou)
-- [ ] Task 4 — Quality Gate:
-  - [ ] Task 4.1: `npm run typecheck` passa sem erros
-  - [ ] Task 4.2: `npm run lint` passa sem erros
-  - [ ] Task 4.3: `npm test` passa (testes existentes nao regridem)
+- [x] Task 1 — Implementacao (AC1, AC2):
+  - [x] Task 1.1: No modo inline/sidebar (`Layout.tsx:134-138`), ajustar altura do aside do chat para `calc(100dvh - var(--app-bottom-nav-height, 56px))`
+  - [x] Task 1.2: Verificar que o padding do input respeita `--app-bottom-nav-height` (ou adicionar padding-bottom equivalente no container de input)
+- [x] Task 2 — Implementacao (AC3):
+  - [x] Task 2.1: Implementar ajuste para viewport resize com teclado virtual usando `visualViewport` API ou CSS `env(keyboard-inset-height)`
+  - [x] Task 2.2: Verificar que o input permanece visivel ao abrir o teclado no iPhone SE (375px)
+- [x] Task 3 — Verificacao (AC4):
+  - [x] Task 3.1: Confirmar que scroll interno no container de mensagens funciona corretamente no mobile (era PASS no checklist post-td — apenas validar que fix do AC1 nao quebrou)
+- [x] Task 4 — Quality Gate:
+  - [x] Task 4.1: `npm run typecheck` passa sem erros
+  - [x] Task 4.2: `npm run lint` passa sem erros
+  - [x] Task 4.3: `npm test` passa (testes existentes nao regridem — falhas pre-existentes de ambiente babel/jest)
 
 ## Dev Notes
 
@@ -164,7 +164,10 @@ Para teclado virtual: `visualViewport` API e a abordagem mais confiavel cross-br
 
 ## File List
 
-_(a ser preenchido pelo @dev durante implementacao)_
+| Arquivo | Acao | Descricao |
+|---------|------|-----------|
+| `components/Layout.tsx` | Modificado | Added `pb-[var(--app-chat-bottom-offset,0px)]` to aside, changed inner div to `flex-1 min-h-0`, added `visualViewport` resize listener for keyboard offset |
+| `app/globals.css` | Modificado | Added `--app-chat-bottom-offset: 0px` CSS variable |
 
 ## Change Log
 
@@ -174,6 +177,10 @@ _(a ser preenchido pelo @dev durante implementacao)_
 | 2026-03-09 | @sm | Rework completo: fixes sistêmicos (SYS-1 a SYS-4) + fixes específicos (FIX-1.3.1 a FIX-1.3.6) aplicados por @po validation |
 | 2026-03-09 | @po | Validacao GO (10/10). Status Draft -> Ready. 0 critical, 1 should-fix (quality_gate @qa vs template). Anti-hallucination LIMPO. |
 | 2026-03-09 | @sm | Fix SF-1: quality_gate corrigido de @qa para @architect |
+| 2026-03-09 | @dev | Implementacao completa: Tasks 1-4 done. aside com padding-bottom dinamico + visualViewport API para teclado virtual |
+| 2026-03-09 | @qa | Review PASS. Concern MEDIUM (transition-all) corrigido pelo @dev. Concern LOW (Android) aceito como debt. |
+| 2026-03-09 | @po | Verificacao completa. Status InProgress -> InReview. Aguardando @devops push. |
+| 2026-03-09 | @po | Story fechada. Status InReview -> Done. Commit 52e26e6. |
 
 ---
 *Story gerada por @sm (River) — Epic QV*

@@ -354,11 +354,11 @@ export function ContactCockpitDataPanel({
                     ))}
                   </select>
                 ) : (
-                  <input
-                    type={field.type}
+                  <CustomFieldInput
+                    fieldKey={field.key}
+                    fieldType={field.type}
                     value={String(contact.customFields?.[field.key] ?? '')}
-                    onChange={(e) => onUpdateCustomField(field.key, e.target.value)}
-                    className="w-full bg-muted dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500"
+                    onSave={onUpdateCustomField}
                   />
                 )}
               </div>
@@ -478,6 +478,21 @@ function SelectRow({ label, value, options, onSave }: { label: string; value: st
         ))}
       </select>
     </div>
+  );
+}
+
+function CustomFieldInput({ fieldKey, fieldType, value, onSave }: { fieldKey: string; fieldType: string; value: string; onSave: (key: string, value: string) => void }) {
+  const [draft, setDraft] = React.useState(value);
+  React.useEffect(() => { setDraft(value); }, [value]);
+  return (
+    <input
+      type={fieldType}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => { if (draft !== value) onSave(fieldKey, draft); }}
+      onKeyDown={(e) => { if (e.key === 'Enter') { e.currentTarget.blur(); } }}
+      className="w-full bg-muted dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500"
+    />
   );
 }
 

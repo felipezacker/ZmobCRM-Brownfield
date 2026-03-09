@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tag, Plus, X } from 'lucide-react';
+import { Tag, Pencil, Plus, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SettingsSection } from './SettingsSection';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -11,6 +11,7 @@ interface TagsManagerProps {
   setNewTagName: (name: string) => void;
   onAddTag: () => void;
   onRemoveTag: (tag: string) => void;
+  onRenameTag: (oldName: string, newName: string) => void;
 }
 
 export const TagsManager: React.FC<TagsManagerProps> = ({
@@ -19,8 +20,29 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
   setNewTagName,
   onAddTag,
   onRemoveTag,
+  onRenameTag,
 }) => {
   const [pendingRemoveTag, setPendingRemoveTag] = useState<string | null>(null);
+  const [editingTag, setEditingTag] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+
+  const startEdit = (tag: string) => {
+    setEditingTag(tag);
+    setEditValue(tag);
+  };
+
+  const cancelEdit = () => {
+    setEditingTag(null);
+    setEditValue('');
+  };
+
+  const saveEdit = () => {
+    const trimmed = editValue.trim();
+    if (trimmed && editingTag && trimmed !== editingTag) {
+      onRenameTag(editingTag, trimmed);
+    }
+    cancelEdit();
+  };
 
   return (
     <SettingsSection
@@ -56,15 +78,51 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
               key={tag}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground text-sm rounded-full"
             >
-              {tag}
-              <Button
-                type="button"
-                onClick={() => setPendingRemoveTag(tag)}
-                className="text-muted-foreground hover:text-red-500 transition-colors"
-                aria-label={`Remover tag ${tag}`}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
+              {editingTag === tag ? (
+                <>
+                  <input
+                    type="text"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveEdit();
+                      if (e.key === 'Escape') cancelEdit();
+                    }}
+                    onBlur={saveEdit}
+                    autoFocus
+                    className="w-24 px-1 py-0 bg-transparent border-b border-primary-500 text-sm text-foreground outline-none"
+                  />
+                  <Button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={saveEdit}
+                    className="text-primary-600 hover:text-primary-500 transition-colors"
+                    aria-label="Salvar edição"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {tag}
+                  <Button
+                    type="button"
+                    onClick={() => startEdit(tag)}
+                    className="text-muted-foreground hover:text-primary-600 transition-colors"
+                    aria-label={`Editar tag ${tag}`}
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setPendingRemoveTag(tag)}
+                    className="text-muted-foreground hover:text-red-500 transition-colors"
+                    aria-label={`Remover tag ${tag}`}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              )}
             </span>
           ))}
         </div>

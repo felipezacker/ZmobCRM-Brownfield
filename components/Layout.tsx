@@ -58,6 +58,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     document.documentElement.style.setProperty('--app-bottom-nav-height', isMobile ? '56px' : '0px');
   }, [isMobile]);
 
+  // Virtual keyboard + BottomNav offset for chat aside (AC1, AC2, AC3)
+  useEffect(() => {
+    if (typeof document === 'undefined' || !isMobile) {
+      document.documentElement.style.setProperty('--app-chat-bottom-offset', '0px');
+      return;
+    }
+
+    const NAV_HEIGHT = 56;
+
+    const updateOffset = () => {
+      const keyboardOffset = window.visualViewport
+        ? window.innerHeight - window.visualViewport.height
+        : 0;
+      const offset = Math.max(keyboardOffset, NAV_HEIGHT);
+      document.documentElement.style.setProperty('--app-chat-bottom-offset', `${offset}px`);
+    };
+
+    updateOffset();
+
+    window.visualViewport?.addEventListener('resize', updateOffset);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateOffset);
+      document.documentElement.style.setProperty('--app-chat-bottom-offset', '0px');
+    };
+  }, [isMobile]);
+
   useEffect(() => {
     setIsMoreOpen(false);
   }, [pathname]);
@@ -132,9 +158,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <aside
           aria-label="Assistente de IA"
           aria-hidden={!isGlobalAIOpen}
-          className={`border-l border-[var(--color-border)] bg-surface transition-all duration-300 ease-in-out overflow-hidden flex flex-col ${isGlobalAIOpen ? 'w-96 opacity-100' : 'w-0 opacity-0'}`}
+          className={`border-l border-[var(--color-border)] bg-surface transition-[width,opacity] duration-300 ease-in-out overflow-hidden flex flex-col pb-[var(--app-chat-bottom-offset,0px)] ${isGlobalAIOpen ? 'w-96 opacity-100' : 'w-0 opacity-0'}`}
         >
-          <div className="w-96 h-full">
+          <div className="w-96 flex-1 min-h-0">
             {isGlobalAIOpen && <UIChat />}
           </div>
         </aside>

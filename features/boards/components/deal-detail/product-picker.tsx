@@ -14,7 +14,6 @@ export interface ProductPickerDropdownProps {
   onSearchChange: (value: string) => void;
   onSelect: (id: string) => void;
   onClose: () => void;
-  onProductCreated?: (product: Product) => void;
 }
 
 export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
@@ -26,7 +25,6 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
   onSearchChange,
   onSelect,
   onClose,
-  onProductCreated,
 }) => {
   const [creatingProduct, setCreatingProduct] = useState(false);
 
@@ -43,7 +41,6 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
         return;
       }
       window.dispatchEvent(new CustomEvent('crm:products-updated'));
-      onProductCreated?.(newProduct);
       onSelect(newProduct.id);
       onClose();
     } finally {

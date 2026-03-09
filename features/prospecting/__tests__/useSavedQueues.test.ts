@@ -112,6 +112,7 @@ describe('useSavedQueues', () => {
       'Nova fila',
       filters,
       false,
+      undefined,
     )
   })
 

@@ -144,14 +144,14 @@ export const ProductsCatalogManager: React.FC = () => {
 
   const saveEdit = async () => {
     if (!editingId) return;
-    const name = editName.trim();
-    const price = parsePriceValue(editPrice);
+    const trimmedName = editName.trim();
+    const parsedPrice = parsePriceValue(editPrice);
 
-    if (name.length < 2) {
+    if (trimmedName.length < 2) {
       setError('Nome inválido.');
       return;
     }
-    if (price < 0) {
+    if (parsedPrice < 0) {
       setError('Preço inválido.');
       return;
     }
@@ -159,8 +159,8 @@ export const ProductsCatalogManager: React.FC = () => {
     setLoading(true);
     setError(null);
     const res = await productsService.update(editingId, {
-      name,
-      price,
+      name: trimmedName,
+      price: parsedPrice,
       sku: editSku.trim() || undefined,
       description: editDescription.trim() || undefined,
     });
@@ -169,9 +169,18 @@ export const ProductsCatalogManager: React.FC = () => {
       setLoading(false);
       return;
     }
-    await load();
+    // Update local state immediately to avoid stale data from refetch timing
+    const savedId = editingId;
+    setProducts(prev => prev.map(p =>
+      p.id === savedId
+        ? { ...p, name: trimmedName, price: parsedPrice, sku: editSku.trim() || undefined, description: editDescription.trim() || undefined }
+        : p
+    ));
     cancelEdit();
+    setLoading(false);
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('crm:products-updated'));
+    // Background refetch to reconcile local state with DB (handles silent failures)
+    load();
   };
 
   const remove = async (p: Product) => {

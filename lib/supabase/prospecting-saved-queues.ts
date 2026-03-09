@@ -10,7 +10,7 @@ import { supabase } from './client'
 export interface SavedQueue {
   id: string
   name: string
-  filters: { version: string; filters: Record<string, unknown> }
+  filters: { version: string; filters: Record<string, unknown>; contact_ids?: string[] }
   ownerId: string
   organizationId: string
   isShared: boolean
@@ -78,6 +78,7 @@ export const prospectingSavedQueuesService = {
     name: string,
     filters: Record<string, unknown>,
     isShared: boolean,
+    contactIds?: string[],
   ): Promise<{ data: SavedQueue | null; error: Error | null }> {
     try {
       if (!supabase) return { data: null, error: new Error('Supabase não configurado') }
@@ -85,11 +86,16 @@ export const prospectingSavedQueuesService = {
       const ctx = await getOrgAndUser()
       if (!ctx) return { data: null, error: new Error('Usuário não autenticado') }
 
+      const filtersPayload: Record<string, unknown> = { version: 'v1', filters }
+      if (contactIds && contactIds.length > 0) {
+        filtersPayload.contact_ids = contactIds
+      }
+
       const { data, error } = await supabase
         .from('prospecting_saved_queues')
         .insert({
           name,
-          filters: { version: 'v1', filters },
+          filters: filtersPayload,
           owner_id: ctx.userId,
           organization_id: ctx.orgId,
           is_shared: isShared,

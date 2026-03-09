@@ -43,15 +43,18 @@ export function useSavedQueues() {
       name,
       filters,
       isShared,
+      contactIds,
     }: {
       name: string
       filters: ProspectingFiltersState
       isShared: boolean
+      contactIds?: string[]
     }) => {
       const { data, error } = await prospectingSavedQueuesService.create(
         name,
         filters as unknown as Record<string, unknown>,
         isShared,
+        contactIds,
       )
       if (error) throw error
       return data!
@@ -80,8 +83,8 @@ export function useSavedQueues() {
   })
 
   const saveQueue = useCallback(
-    (name: string, filters: ProspectingFiltersState, isShared: boolean) => {
-      return createMutation.mutateAsync({ name, filters, isShared })
+    (name: string, filters: ProspectingFiltersState, isShared: boolean, contactIds?: string[]) => {
+      return createMutation.mutateAsync({ name, filters, isShared, contactIds })
     },
     [createMutation],
   )
@@ -103,6 +106,13 @@ export function useSavedQueues() {
     [],
   )
 
+  const getContactIdsFromSaved = useCallback(
+    (queue: SavedQueue): string[] => {
+      return queue.filters.contact_ids || []
+    },
+    [],
+  )
+
   return {
     savedQueues,
     isLoading,
@@ -111,5 +121,6 @@ export function useSavedQueues() {
     saveQueue,
     deleteQueue,
     getFiltersFromSaved,
+    getContactIdsFromSaved,
   }
 }

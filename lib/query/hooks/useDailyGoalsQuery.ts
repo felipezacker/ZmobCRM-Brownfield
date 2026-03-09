@@ -22,6 +22,22 @@ export const useMyDailyGoal = () => {
   })
 }
 
+export const useDailyGoalByOwner = (ownerId: string | undefined) => {
+  const { user, loading: authLoading } = useAuth()
+
+  return useQuery({
+    queryKey: queryKeys.dailyGoals.detail(ownerId || ''),
+    queryFn: async () => {
+      if (!ownerId) return null
+      const { data, error } = await prospectingGoalsService.getGoalByOwner(ownerId)
+      if (error) throw error
+      return data
+    },
+    enabled: !authLoading && !!user && !!ownerId,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 export const useTeamDailyGoals = () => {
   const { user, loading: authLoading } = useAuth()
 

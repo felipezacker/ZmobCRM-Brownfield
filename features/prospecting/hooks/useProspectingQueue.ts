@@ -20,6 +20,7 @@ import {
 } from '@/lib/query/hooks/useProspectingQueueQuery'
 import type { ProspectingQueueItem } from '@/types'
 
+const QUEUE_LIMIT = 100
 const RETRY_INTERVAL_KEY = 'prospecting_retry_interval'
 const DEFAULT_RETRY_INTERVAL = 3
 
@@ -157,6 +158,18 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
   }, [queue, currentIndex, updateStatusMutation, scheduleRetryMutation, retryInterval, advanceToNext, toast])
 
   const addToQueue = useCallback(async (contactId: string) => {
+    // QV-1.7 Bug #6: Validate queue limit (100)
+    if (queue.length >= QUEUE_LIMIT) {
+      toast('Limite de 100 contatos atingido', 'warning')
+      return
+    }
+
+    // QV-1.7 Bug #7: Validate duplicate
+    if (queue.some(item => item.contactId === contactId)) {
+      toast('Contato já está na fila', 'warning')
+      return
+    }
+
     try {
       await addMutation.mutateAsync({ contactId, sessionId })
       toast('Contato adicionado à fila', 'success')
@@ -165,7 +178,7 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     } catch {
       toast('Erro ao adicionar contato', 'error')
     }
-  }, [addMutation, sessionId, toast, refetch])
+  }, [addMutation, sessionId, toast, refetch, queue])
 
   const removeFromQueue = useCallback(async (id: string) => {
     try {
