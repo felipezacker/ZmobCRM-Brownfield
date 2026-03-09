@@ -1,4 +1,4 @@
-import { getRoadmapData } from '@/lib/roadmap';
+import { getRoadmapData } from '@/lib/roadmap-server';
 import RoadmapClient from './components/RoadmapUI';
 import type { Metadata } from 'next';
 
