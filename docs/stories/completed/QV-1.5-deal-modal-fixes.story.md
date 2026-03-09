@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** QV-1.5
 - **Epic:** QV (Quality Validation)
-- **Status:** InReview
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 5
 - **Assigned Agent:** @dev
@@ -199,6 +199,7 @@ O @dev DEVE identificar qual e importado pelo board/kanban antes de qualquer mod
 | 2026-03-09 | @sm | Fix SF-2: contagem de linhas corrigida (1692, 103-122). Fix SF-3: status QV-1.1 (Ready, nao implementada) documentado em Dependencies. quality_gate corrigido de @qa para @architect |
 | 2026-03-09 | @dev | Implementacao completa: AC1 (nome editavel), AC2 (ja funcional), AC3 (criar produto inline), AC4 (navega para /boards?deal={id}), AC5 (fallback useDeal para deals nao sincronizados). Modal ativo: deal-detail/ (Modals/ e deprecated). typecheck e lint passam. Todos ACs validados manualmente. |
 | 2026-03-09 | @po | Story atualizada: Status Ready for Review → InReview. ACs 1-5 marcados como completos. Criteria of Done verificado (typecheck ✓, lint ✓, modal ativo confirmado). Commits: ff7e09b, 12a50f3. Pendente: 2 arquivos com cleanup nao commitados (product-picker.tsx, useDealDetail.ts). Pre-PR review pendente para @devops. |
+| 2026-03-09 | @po | Story fechada (Done). Cleanup commitado (32ac971). Todos ACs e CoD verificados. Movida para completed/. |
 
 ---
 *Story gerada por @sm (River) — Epic QV*
