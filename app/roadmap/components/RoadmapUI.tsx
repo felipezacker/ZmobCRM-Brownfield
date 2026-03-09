@@ -26,7 +26,7 @@ export const MeshBg = () => (
     </div>
 );
 
-export const StatCard = ({ label, value, sub, color, delay }: any) => (
+export const StatCard = ({ label, value, sub, color, delay }: { label: string; value: string | number; sub: string; color: string; delay?: number }) => (
     <Reveal delay={delay}>
         <div className="bg-[#18181b]/40 backdrop-blur-md border border-[#ffffff08] rounded-2xl p-7 transition-all hover:translate-y-[-2px] hover:border-[#3b82f626] group relative overflow-hidden">
             <div className="font-mono text-[10px] text-[#71717a] uppercase tracking-wider mb-3">{label}</div>
