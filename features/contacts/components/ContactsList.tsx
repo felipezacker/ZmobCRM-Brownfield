@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Users } from 'lucide-react';
 import { Contact, ContactSortableColumn, ContactClassification, ContactTemperature } from '@/types';
 import { StageBadge } from './ContactsStageTabs';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // ============================================
 // Story 3.5 — Source Badge Config
@@ -11,13 +11,13 @@ const SOURCE_CONFIG: Record<string, { label: string; color: string }> = {
     WEBSITE: { label: 'Website', color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' },
     LINKEDIN: { label: 'LinkedIn', color: 'bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20' },
     REFERRAL: { label: 'Indicacao', color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' },
-    MANUAL: { label: 'Manual', color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20' },
+    MANUAL: { label: 'Manual', color: 'bg-muted text-secondary-foreground border-border dark:bg-accent/10 dark:text-muted-foreground dark:border-border/20' },
 };
 
 const SourceBadge: React.FC<{ source?: string }> = ({ source }) => {
-    if (!source) return <span className="text-xs text-slate-400">---</span>;
+    if (!source) return <span className="text-xs text-muted-foreground">---</span>;
     const config = SOURCE_CONFIG[source];
-    if (!config) return <span className="text-xs text-slate-400">{source}</span>;
+    if (!config) return <span className="text-xs text-muted-foreground">{source}</span>;
     return (
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
             {config.label}
@@ -79,9 +79,9 @@ const CLASSIFICATION_CONFIG: Record<ContactClassification, { label: string; colo
 };
 
 const ClassificationBadge: React.FC<{ classification?: ContactClassification }> = ({ classification }) => {
-    if (!classification) return <span className="text-xs text-slate-400">---</span>;
+    if (!classification) return <span className="text-xs text-muted-foreground">---</span>;
     const config = CLASSIFICATION_CONFIG[classification];
-    if (!config) return <span className="text-xs text-slate-400">{classification}</span>;
+    if (!config) return <span className="text-xs text-muted-foreground">{classification}</span>;
     return (
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
             {config.label}
@@ -132,7 +132,7 @@ const SCORE_CONFIG = [
 ] as const;
 
 const LeadScoreBadge: React.FC<{ score?: number }> = ({ score }) => {
-    if (score == null) return <span className="text-xs text-slate-400">---</span>;
+    if (score == null) return <span className="text-xs text-muted-foreground">---</span>;
     const config = SCORE_CONFIG.find(c => score <= c.max) || SCORE_CONFIG[2];
     return (
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
@@ -192,7 +192,7 @@ const StatusDropdown: React.FC<{
                 <div
                     role="listbox"
                     aria-label="Selecionar status"
-                    className="absolute z-50 mt-1 left-0 min-w-[100px] rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 shadow-lg py-1"
+                    className="absolute z-50 mt-1 left-0 min-w-[100px] rounded-lg border border-border bg-white dark:bg-card shadow-lg py-1"
                 >
                     {STATUS_OPTIONS.map(option => (
                         <Button
@@ -204,7 +204,7 @@ const StatusDropdown: React.FC<{
                                 if (option.value !== status) onChange(option.value);
                                 setOpen(false);
                             }}
-                            className={`w-full justify-start px-3 py-1.5 text-xs font-medium transition-colors hover:bg-slate-50 dark:hover:bg-white/5 h-auto rounded-none ${option.value === status ? 'font-bold' : ''}`}
+                            className={`w-full justify-start px-3 py-1.5 text-xs font-medium transition-colors hover:bg-background dark:hover:bg-white/5 h-auto rounded-none ${option.value === status ? 'font-bold' : ''}`}
                         >
                             <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${option.color}`}>
                                 {option.label}
@@ -235,7 +235,7 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentS
         <th scope="col" className={`px-6 py-4 ${className || ''}`}>
             <Button
                 onClick={() => onSort(column)}
-                className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
+                className="flex items-center gap-1.5 font-bold text-secondary-foreground dark:text-muted-foreground font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
                 aria-label={`Ordenar por ${label}`}
             >
                 {label}
@@ -251,11 +251,11 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentS
     );
 };
 
-const HEADER_CLASS = 'px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider';
+const HEADER_CLASS = 'px-6 py-4 font-bold text-secondary-foreground dark:text-muted-foreground font-display text-xs uppercase tracking-wider';
 const STICKY_Z = 'sticky z-20 left-0';
-const STICKY_HEADER_BG = 'bg-slate-50 dark:bg-slate-900';
-const STICKY_ROW_BG = 'bg-white dark:bg-slate-900';
-const STICKY_ROW_SELECTED_BG = 'bg-primary-50 dark:bg-slate-800';
+const STICKY_HEADER_BG = 'bg-background dark:bg-card';
+const STICKY_ROW_BG = 'bg-white dark:bg-card';
+const STICKY_ROW_SELECTED_BG = 'bg-primary-50 dark:bg-card';
 
 interface ContactsListProps {
     filteredContacts: Contact[];
@@ -314,15 +314,15 @@ export const ContactsList: React.FC<ContactsListProps> = ({
 
     if (filteredContacts.length === 0) {
         return (
-            <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+            <div className="glass rounded-xl border border-border shadow-sm overflow-hidden">
                 <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                    <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
-                        <Users size={24} className="text-slate-400" />
+                    <div className="w-14 h-14 rounded-full bg-muted dark:bg-white/5 flex items-center justify-center mb-4">
+                        <Users size={24} className="text-muted-foreground" />
                     </div>
-                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <h3 className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">
                         Nenhum contato encontrado
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground max-w-xs">
                         Tente ajustar os filtros ou crie um novo contato.
                     </p>
                 </div>
@@ -331,18 +331,18 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     }
 
     return (
-        <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden w-full max-w-full">
+        <div className="glass rounded-xl border border-border shadow-sm overflow-hidden w-full max-w-full">
             {/* Story 3.5 — Result count (fixed, not scrollable) */}
             {totalCount !== undefined && (
-                <div className="px-6 py-2 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
-                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                <div className="px-6 py-2 border-b border-border bg-background/50 dark:bg-white/[0.02]">
+                    <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">
                         {totalCount} contato{totalCount !== 1 ? 's' : ''} encontrado{totalCount !== 1 ? 's' : ''}
                     </span>
                 </div>
             )}
             <div className="w-full overflow-x-auto">
                     <table className="min-w-full text-left text-sm">
-                        <thead className="bg-slate-50/80 dark:bg-white/5 border-b border-slate-200 dark:border-white/5">
+                        <thead className="bg-background/80 dark:bg-white/5 border-b border-border">
                             <tr>
                                 <th scope="col" className={`${STICKY_Z} ${STICKY_HEADER_BG} min-w-[250px] px-4 py-4`}>
                                     <div className="flex items-center gap-3">
@@ -352,12 +352,12 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                             ref={(el) => { if (el) el.indeterminate = someSelected; }}
                                             onChange={toggleSelectAll}
                                             aria-label={allSelected ? 'Desmarcar todos os contatos' : 'Selecionar todos os contatos'}
-                                            className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
+                                            className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5"
                                         />
                                         {onSort ? (
                                             <Button
                                                 onClick={() => onSort('name')}
-                                                className="group inline-flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                                                className="group inline-flex items-center gap-1.5 font-bold text-secondary-foreground dark:text-muted-foreground font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                                             >
                                                 Nome
                                                 <span className={`transition-opacity ${sortBy === 'name' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
@@ -369,7 +369,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                                 </span>
                                             </Button>
                                         ) : (
-                                            <span className="font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider">Nome</span>
+                                            <span className="font-bold text-secondary-foreground dark:text-muted-foreground font-display text-xs uppercase tracking-wider">Nome</span>
                                         )}
                                     </div>
                                 </th>
@@ -418,7 +418,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                 <th scope="col" className={HEADER_CLASS}><span className="sr-only">Acoes</span></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                        <tbody className="divide-y divide-border dark:divide-white/5">
                             {filteredContacts.map((contact) => {
                                 const isSelected = selectedIds.has(contact.id);
                                 const stickyBg = isSelected ? STICKY_ROW_SELECTED_BG : STICKY_ROW_BG;
@@ -430,7 +430,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                         if (target.closest('input, button, select, a, [role="listbox"]')) return;
                                         openDetailModal ? openDetailModal(contact.id) : openEditModal(contact);
                                     }}
-                                    className={`transition-colors group cursor-pointer ${isSelected ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-white dark:bg-slate-900'} hover:bg-slate-50 dark:hover:bg-white/5`}
+                                    className={`transition-colors group cursor-pointer ${isSelected ? 'bg-primary-50/50 dark:bg-primary-900/10' : 'bg-white dark:bg-card'} hover:bg-background dark:hover:bg-white/5`}
                                 >
                                     <td className={`${STICKY_Z} ${stickyBg} min-w-[250px] px-4 py-4`}>
                                         <div className="flex items-center gap-3">
@@ -439,7 +439,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                                 checked={isSelected}
                                                 onChange={() => toggleSelect(contact.id)}
                                                 aria-label={`Selecionar ${contact.name}`}
-                                                className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10 flex-shrink-0"
+                                                className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5 flex-shrink-0"
                                             />
                                             <Button
                                                 type="button"
@@ -453,7 +453,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                             <Button
                                                 type="button"
                                                 onClick={() => openDetailModal ? openDetailModal(contact.id) : openEditModal(contact)}
-                                                className="font-semibold text-slate-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left truncate"
+                                                className="font-semibold text-foreground hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left truncate"
                                             >
                                                 {contact.name}
                                             </Button>
@@ -472,10 +472,10 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-xs">
+                                            <div className="flex items-center gap-2 text-secondary-foreground dark:text-muted-foreground text-xs">
                                                 <Mail size={12} /> {contact.email || '---'}
                                             </div>
-                                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-xs">
+                                            <div className="flex items-center gap-2 text-secondary-foreground dark:text-muted-foreground text-xs">
                                                 <Phone size={12} /> {contact.phone || '---'}
                                             </div>
                                         </div>
@@ -489,7 +489,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                             />
                                             <Button
                                                 onClick={() => convertContactToDeal(contact.id)}
-                                                className="p-1 text-slate-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                                                className="p-1 text-muted-foreground hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
                                                 aria-label={`Criar oportunidade para ${contact.name}`}
                                             >
                                                 <Plus size={14} aria-hidden="true" />
@@ -500,15 +500,15 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     <td className="px-6 py-4">
                                         {contact.ownerId && profilesMap.has(contact.ownerId) ? (
                                             <div className="flex items-center gap-2">
-                                                <span className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                                                <span className="w-6 h-6 rounded-full bg-gradient-to-br from-muted to-accent text-secondary-foreground dark:text-muted-foreground flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                                                     {(profilesMap.get(contact.ownerId)!.name || '?').charAt(0).toUpperCase()}
                                                 </span>
-                                                <span className="text-xs text-slate-700 dark:text-slate-300 truncate max-w-[120px]">
+                                                <span className="text-xs text-secondary-foreground dark:text-muted-foreground truncate max-w-[120px]">
                                                     {profilesMap.get(contact.ownerId)!.name}
                                                 </span>
                                             </div>
                                         ) : (
-                                            <span className="text-xs text-slate-400">---</span>
+                                            <span className="text-xs text-muted-foreground">---</span>
                                         )}
                                     </td>
                                     {/* Story 3.5 — Origem */}
@@ -521,10 +521,10 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     </td>
                                     <td className="px-6 py-4">
                                         <div
-                                            className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-xs"
+                                            className="flex items-center gap-2 text-secondary-foreground dark:text-muted-foreground text-xs"
                                             title={contact.createdAt ? PT_BR_DATE_TIME_FORMATTER.format(new Date(contact.createdAt)) : undefined}
                                         >
-                                            <Calendar size={14} className="text-slate-400" />
+                                            <Calendar size={14} className="text-muted-foreground" />
                                             <span>{formatRelativeDate(contact.createdAt, now)}</span>
                                         </div>
                                     </td>
@@ -532,14 +532,14 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                             <Button
                                                 onClick={() => openEditModal(contact)}
-                                                className="p-1.5 text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
+                                                className="p-1.5 text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
                                                 aria-label={`Editar ${contact.name}`}
                                             >
                                                 <Pencil size={16} aria-hidden="true" />
                                             </Button>
                                             <Button
                                                 onClick={() => setDeleteId(contact.id)}
-                                                className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-slate-400 hover:text-red-500 transition-colors"
+                                                className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-muted-foreground hover:text-red-500 transition-colors"
                                                 aria-label={`Excluir ${contact.name}`}
                                             >
                                                 <Trash2 size={16} aria-hidden="true" />

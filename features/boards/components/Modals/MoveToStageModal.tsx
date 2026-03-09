@@ -2,7 +2,7 @@ import React, { useCallback, useId, useMemo } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { BoardStage, DealView } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface MoveToStageModalProps {
   isOpen: boolean;
@@ -61,15 +61,15 @@ export const MoveToStageModal: React.FC<MoveToStageModalProps> = ({
     >
       <div className="space-y-4">
         {/* Current deal info */}
-        <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+        <div className="p-3 bg-background dark:bg-white/5 rounded-lg border border-border">
+          <p className="text-sm text-secondary-foreground dark:text-muted-foreground">
             Movendo o negócio:
           </p>
-          <p className="font-bold text-slate-900 dark:text-white">
+          <p className="font-bold text-foreground">
             {deal.title}
           </p>
           {stageData.currentStage && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
               Estágio atual: <span className="font-medium">{stageData.currentStage.label}</span>
             </p>
           )}
@@ -77,7 +77,7 @@ export const MoveToStageModal: React.FC<MoveToStageModalProps> = ({
 
         {/* Stage options */}
         <div id={headingId}>
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <p className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">
             Selecione o novo estágio:
           </p>
           <div className="space-y-2" role="listbox" aria-label="Estágios disponíveis">
@@ -88,10 +88,10 @@ export const MoveToStageModal: React.FC<MoveToStageModalProps> = ({
                 role="option"
                 aria-selected={false}
                 onClick={() => handleMove(stage.id)}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-white/10 
-                           hover:border-primary-300 dark:hover:border-primary-500/50 
-                           hover:bg-primary-50 dark:hover:bg-primary-900/10
-                           focus-visible-ring transition-all text-left group"
+                className="w-full flex items-center gap-3 p-3 rounded-lg border border-border 
+ hover:border-primary-300 dark:hover:border-primary-500/50 
+ hover:bg-primary-50 dark:hover:bg-primary-900/10
+ focus-visible-ring transition-all text-left group"
                 autoFocus={index === 0}
               >
                 <div 
@@ -99,12 +99,12 @@ export const MoveToStageModal: React.FC<MoveToStageModalProps> = ({
                   style={{ backgroundColor: stage.color || '#3b82f6' }}
                   aria-hidden="true"
                 />
-                <span className="flex-1 font-medium text-slate-700 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400">
+                <span className="flex-1 font-medium text-secondary-foreground dark:text-muted-foreground group-hover:text-primary-600 dark:group-hover:text-primary-400">
                   {stage.label}
                 </span>
                 <ArrowRight 
                   size={16} 
-                  className="text-slate-400 group-hover:text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                  className="text-muted-foreground group-hover:text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity" 
                   aria-hidden="true"
                 />
               </Button>
@@ -116,8 +116,8 @@ export const MoveToStageModal: React.FC<MoveToStageModalProps> = ({
         <Button
           type="button"
           onClick={onClose}
-          className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400
-                     hover:bg-slate-100 dark:hover:bg-white/5 transition-colors focus-visible-ring"
+          className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-secondary-foreground dark:text-muted-foreground
+ hover:bg-muted dark:hover:bg-white/5 transition-colors focus-visible-ring"
         >
           Cancelar
         </Button>

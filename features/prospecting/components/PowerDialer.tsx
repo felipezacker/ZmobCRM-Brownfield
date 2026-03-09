@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { Phone, SkipForward, Square, Flame, Snowflake, Sun, User, Mail, FileText, ChevronDown, Check } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { CallModal, CallLogData } from '@/features/inbox/components/CallModal'
 import { ProspectingScriptGuide } from '@/features/prospecting/components/ProspectingScriptGuide'
 import { ContactHistory } from '@/features/prospecting/components/ContactHistory'
@@ -165,18 +165,18 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     { count: sessionStats.noAnswer, label: 'Não atenderam', color: 'text-red-400 bg-red-500/10' },
     { count: sessionStats.voicemail, label: 'Caixa postal', color: 'text-yellow-400 bg-yellow-500/10' },
     { count: sessionStats.busy, label: 'Ocupados', color: 'text-orange-400 bg-orange-500/10' },
-    { count: sessionStats.skipped, label: 'Pulados', color: 'text-slate-400 bg-slate-500/10' },
+    { count: sessionStats.skipped, label: 'Pulados', color: 'text-muted-foreground bg-accent/10' },
   ].filter(s => s.count > 0) : []
 
   return (
     <div className="space-y-4">
       {/* Progress bar with session stats */}
       <div className="max-w-lg mx-auto space-y-1">
-        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div className="flex items-center justify-between text-xs text-muted-foreground dark:text-muted-foreground">
           <span>Progresso da sessão</span>
           <span>{currentIndex + 1} / {totalCount}</span>
         </div>
-        <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-2 bg-muted dark:bg-card rounded-full overflow-hidden">
           <div
             className="h-full bg-primary-500 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -194,25 +194,25 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
       </div>
 
       {/* Contact card */}
-      <div className="max-w-lg mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl p-5 space-y-4">
+      <div className="max-w-lg mx-auto bg-white dark:bg-card border border-border dark:border-border/50 rounded-xl p-5 space-y-4">
         {/* Contact info */}
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary-500/10 flex items-center justify-center">
             <User size={22} className="text-primary-500" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white truncate">
+            <h2 className="text-lg font-semibold text-foreground truncate">
               {contact.contactName || 'Sem nome'}
             </h2>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
               {contact.contactPhone && (
-                <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <span className="text-sm text-muted-foreground dark:text-muted-foreground flex items-center gap-1">
                   <Phone size={12} />
                   {contact.contactPhone}
                 </span>
               )}
               {contact.contactEmail && (
-                <span className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1 truncate">
+                <span className="text-sm text-muted-foreground dark:text-muted-foreground flex items-center gap-1 truncate">
                   <Mail size={12} />
                   {contact.contactEmail}
                 </span>
@@ -220,12 +220,12 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             </div>
             <div className="flex items-center gap-2 mt-2">
               {contact.contactStage && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground">
                   {contact.contactStage}
                 </span>
               )}
               {temp && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground flex items-center gap-1">
                   {temp.icon}
                   {temp.label}
                 </span>
@@ -244,7 +244,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-colors ${
                 selectedScript
                   ? 'border-purple-500/30 bg-purple-500/5 text-purple-400'
-                  : 'border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                  : 'border-border dark:border-border/50 bg-background dark:bg-card/50 text-muted-foreground dark:text-muted-foreground hover:border-border dark:hover:border-border'
               }`}
             >
               <span className="flex items-center gap-2 truncate">
@@ -256,13 +256,13 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
 
             {/* Script preview */}
             {selectedScript && scriptPreview && !showScriptDropdown && (
-              <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500 leading-relaxed line-clamp-2 px-1">
+              <p className="mt-1.5 text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed line-clamp-2 px-1">
                 {scriptPreview}
               </p>
             )}
 
             {showScriptDropdown && (
-              <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-lg shadow-xl max-h-56 overflow-y-auto">
+              <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-card border border-border dark:border-border/50 rounded-lg shadow-xl max-h-56 overflow-y-auto">
                 {scripts.map((script) => {
                   const isSelected = selectedScript?.id === script.id
                   return (
@@ -274,7 +274,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
                       className={`w-full flex items-center justify-between px-3 py-2.5 text-left text-sm transition-colors ${
                         isSelected
                           ? 'bg-purple-500/10 text-purple-400'
-                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                          : 'text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-card/50'
                       }`}
                     >
                       <span className="truncate">{script.title}</span>
@@ -288,7 +288,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
         )}
 
         {/* Action buttons */}
-        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-slate-200 dark:border-slate-700/50">
+        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-border dark:border-border/50">
           <Button
             variant="unstyled"
             size="unstyled"
@@ -298,7 +298,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             <Phone size={20} />
             <span className="text-xs font-medium">Ligar</span>
             {selectedScript && (
-              <span className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-purple-500 rounded-full border-2 border-white dark:border-slate-900" />
+              <span className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-purple-500 rounded-full border-2 border-white" />
             )}
           </Button>
 
@@ -306,7 +306,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             variant="unstyled"
             size="unstyled"
             onClick={onSkip}
-            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+            className="flex flex-col items-center gap-1.5 py-3 rounded-lg bg-muted dark:bg-card hover:bg-accent dark:hover:bg-accent text-secondary-foreground dark:text-muted-foreground transition-colors"
           >
             <SkipForward size={20} />
             <span className="text-xs font-medium">Pular</span>

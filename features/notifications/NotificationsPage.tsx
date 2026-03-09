@@ -11,7 +11,7 @@ import {
   markAllNotificationsRead,
 } from '@/app/actions/notifications'
 import type { CrmNotification, NotificationType } from '@/types'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import {
   Bell,
   Cake,
@@ -114,10 +114,10 @@ function NotificationCard({
   return (
     <Button
       onClick={handleClick}
-      className={`w-full text-left flex gap-3 p-4 rounded-lg border transition-colors hover:bg-slate-50 dark:hover:bg-white/5 ${
+      className={`w-full text-left flex gap-3 p-4 rounded-lg border transition-colors hover:bg-background dark:hover:bg-white/5 ${
         notification.isRead
-          ? 'opacity-60 border-slate-100 dark:border-white/5'
-          : 'border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800/50'
+          ? 'opacity-60 border-border '
+          : 'border-border  bg-white dark:bg-card/50'
       }`}
     >
       <div className={`mt-0.5 flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${colorClass}`}>
@@ -125,7 +125,7 @@ function NotificationCard({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <p className={`text-sm font-medium ${notification.isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+          <p className={`text-sm font-medium ${notification.isRead ? 'text-muted-foreground dark:text-muted-foreground' : 'text-foreground '}`}>
             {notification.title}
           </p>
           {!notification.isRead && (
@@ -133,12 +133,12 @@ function NotificationCard({
           )}
         </div>
         {notification.description && (
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-0.5 line-clamp-2">
             {notification.description}
           </p>
         )}
         <div className="flex items-center gap-3 mt-1.5">
-          <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
+          <span className="text-xs text-muted-foreground dark:text-muted-foreground flex items-center gap-1">
             <Clock size={12} />
             {getRelativeTime(notification.createdAt)}
           </span>
@@ -226,11 +226,11 @@ export function NotificationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Bell size={24} />
             Notificacoes
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
             Alertas proativos sobre seus contatos e deals
           </p>
         </div>
@@ -240,7 +240,7 @@ export function NotificationsPage() {
             disabled={isPending}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50"
           >
-            <RefreshCw size={16} className={isPending ? 'animate-spin' : ''} />
+            <RefreshCw size={16} className={isPending ?'animate-spin' : ''} />
             Gerar alertas
           </Button>
         </div>
@@ -249,7 +249,7 @@ export function NotificationsPage() {
       {/* Filters */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-1.5">
-          <Filter size={14} className="text-slate-400" />
+          <Filter size={14} className="text-muted-foreground" />
           {TYPE_FILTERS.map(f => (
             <Button
               key={f.value}
@@ -257,7 +257,7 @@ export function NotificationsPage() {
               className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
                 typeFilter === f.value
                   ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
-                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
+                  : 'text-muted-foreground hover:bg-muted dark:hover:bg-white/10'
               }`}
             >
               {f.label}
@@ -271,7 +271,7 @@ export function NotificationsPage() {
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
               readFilter === 'unread'
                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
+                : 'text-muted-foreground hover:bg-muted dark:hover:bg-white/10'
             }`}
           >
             <Eye size={14} />
@@ -282,7 +282,7 @@ export function NotificationsPage() {
             <Button
               onClick={() => markAllMutation.mutate()}
               disabled={markAllMutation.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-secondary-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/10 rounded-full transition-colors"
             >
               <CheckCheck size={14} />
               Marcar todas como lidas
@@ -294,15 +294,15 @@ export function NotificationsPage() {
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <RefreshCw size={24} className="animate-spin text-slate-400" />
+          <RefreshCw size={24} className="animate-spin text-muted-foreground" />
         </div>
       ) : notifications.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-white/10">
-          <Bell size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-          <p className="text-lg font-medium text-slate-900 dark:text-white">
+        <div className="text-center py-20 bg-white dark:bg-card/30 rounded-xl border border-border">
+          <Bell size={48} className="mx-auto text-muted-foreground dark:text-secondary-foreground mb-4" />
+          <p className="text-lg font-medium text-foreground">
             Nenhuma notificacao
           </p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
             Clique em &quot;Gerar alertas&quot; para verificar aniversarios, churn e deals estagnados.
           </p>
         </div>
@@ -313,7 +313,7 @@ export function NotificationsPage() {
             if (!items || items.length === 0) return null
             return (
               <div key={group}>
-                <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
+                <h2 className="text-xs font-semibold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider mb-2">
                   {group}
                 </h2>
                 <div className="space-y-2">

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Key, Copy, ExternalLink, CheckCircle2, Plus, Trash2, ShieldCheck, RefreshCw, TerminalSquare, Play } from 'lucide-react';
 
 import ConfirmModal from '@/components/ConfirmModal';
@@ -7,7 +7,18 @@ import { useBoards } from '@/context/boards/BoardsContext';
 import { supabase } from '@/lib/supabase/client';
 
 import { SettingsSection } from './SettingsSection';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
+
+type ActionType = 'create_lead' | 'create_deal' | 'move_stage' | 'create_activity';
+
+/** Extract error message from unknown catch value */
+const extractErrorMsg = (e: unknown, fallback: string): string => {
+  if (e instanceof Error) return e.message;
+  if (typeof e === 'object' && e !== null && 'message' in e) {
+    return String((e as { message: unknown }).message);
+  }
+  return fallback;
+};
 
 type ApiKeyRow = {
   id: string;
@@ -26,7 +37,7 @@ export const ApiKeysSection: React.FC = () => {
   const { addToast } = useOptionalToast();
   const { boards: boardsFromContext } = useBoards();
 
-  const [action, setAction] = useState<'create_lead' | 'create_deal' | 'move_stage' | 'create_activity'>('create_lead');
+  const [action, setAction] = useState<ActionType>('create_lead');
   const [keys, setKeys] = useState<ApiKeyRow[]>([]);
   const [loadingKeys, setLoadingKeys] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -55,7 +66,7 @@ export const ApiKeysSection: React.FC = () => {
   const [activityType, setActivityType] = useState<string>('NOTE');
   const [activityTitle, setActivityTitle] = useState<string>('Nota via integração');
   const [actionTestLoading, setActionTestLoading] = useState(false);
-  const [actionTestResult, setActionTestResult] = useState<{ ok: boolean; message: string; raw?: any } | null>(null);
+  const [actionTestResult, setActionTestResult] = useState<{ ok: boolean; message: string; raw?: unknown } | null>(null);
 
   const openApiUrl = useMemo(() => '/api/public/v1/openapi.json', []);
   const swaggerUrl = useMemo(() => '/api/public/v1/docs', []);
@@ -73,7 +84,7 @@ export const ApiKeysSection: React.FC = () => {
     }
   };
 
-  const loadKeys = async () => {
+  const loadKeys = useCallback(async () => {
     if (!supabase) {
       addToast('Supabase não configurado neste ambiente.', 'error');
       return;
@@ -86,16 +97,16 @@ export const ApiKeysSection: React.FC = () => {
         .order('created_at', { ascending: false });
       if (error) throw error;
       setKeys((data || []) as ApiKeyRow[]);
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao carregar chaves', 'error');
+    } catch (e: unknown) {
+      addToast(extractErrorMsg(e, 'Erro ao carregar chaves'), 'error');
     } finally {
       setLoadingKeys(false);
     }
-  };
+  }, [addToast]);
 
   useEffect(() => {
     void loadKeys();
-  }, []);
+  }, [loadKeys]);
 
   const createKey = async () => {
     if (!supabase) {
@@ -119,8 +130,8 @@ export const ApiKeysSection: React.FC = () => {
       setApiKeyToken(token);
       addToast('Chave criada. Copie agora — ela aparece só uma vez.', 'success');
       await loadKeys();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao criar chave', 'error');
+    } catch (e: unknown) {
+      addToast(extractErrorMsg(e, 'Erro ao criar chave'), 'error');
     } finally {
       setCreating(false);
     }
@@ -137,8 +148,8 @@ export const ApiKeysSection: React.FC = () => {
       if (error) throw error;
       addToast('Chave revogada.', 'success');
       await loadKeys();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao revogar chave', 'error');
+    } catch (e: unknown) {
+      addToast(extractErrorMsg(e, 'Erro ao revogar chave'), 'error');
     } finally {
       setRevokingId(null);
     }
@@ -160,8 +171,8 @@ export const ApiKeysSection: React.FC = () => {
       if (error) throw error;
       addToast('Chave excluída.', 'success');
       await loadKeys();
-    } catch (e: any) {
-      addToast(e?.message || 'Erro ao excluir chave', 'error');
+    } catch (e: unknown) {
+      addToast(extractErrorMsg(e, 'Erro ao excluir chave'), 'error');
     } finally {
       setDeletingId(null);
     }
@@ -194,8 +205,8 @@ export const ApiKeysSection: React.FC = () => {
         return;
       }
       setTestResult({ ok: true, message: 'OK — API key validada' });
-    } catch (e: any) {
-      setTestResult({ ok: false, message: e?.message || 'Erro no teste' });
+    } catch (e: unknown) {
+      setTestResult({ ok: false, message: extractErrorMsg(e, 'Erro no teste') });
     } finally {
       setTestLoading(false);
     }
@@ -283,7 +294,6 @@ export const ApiKeysSection: React.FC = () => {
     identityMode,
     identityPhone,
     identityEmail,
-    selectedToStageId,
     selectedToStageLabel,
     suggestedMark,
     activityTitle,
@@ -405,8 +415,8 @@ export const ApiKeysSection: React.FC = () => {
         setActionTestResult({ ok: true, message: 'OK (deal movido)', raw: json });
         return;
       }
-    } catch (e: any) {
-      setActionTestResult({ ok: false, message: e?.message || 'Erro no teste' });
+    } catch (e: unknown) {
+      setActionTestResult({ ok: false, message: extractErrorMsg(e, 'Erro no teste') });
     } finally {
       setActionTestLoading(false);
     }
@@ -414,19 +424,19 @@ export const ApiKeysSection: React.FC = () => {
 
   return (
     <SettingsSection title="API (Integrações)" icon={Key}>
-      <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+      <p className="text-sm text-secondary-foreground dark:text-muted-foreground mb-4 leading-relaxed">
         Aqui você conecta n8n/Make sem precisar “entender API”. Escolha o que quer automatizar, copie o que precisa e teste.
         <br />
         A documentação técnica (OpenAPI/Swagger) fica disponível, mas só quando você quiser.
       </p>
 
       <div className="grid grid-cols-1 gap-4">
-        <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 p-4">
-          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-2">
+        <div className="rounded-xl border border-border bg-background dark:bg-black/30 p-4">
+          <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2 flex items-center gap-2">
             <Key className="h-4 w-4" />
             Chave da integração (independente do assistente)
           </div>
-          <div className="text-xs text-slate-600 dark:text-slate-300 mb-3">
+          <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-3">
             A chave é da sua conta. O assistente só usa ela para montar o “copiar/colar” e testar.
           </div>
 
@@ -434,7 +444,7 @@ export const ApiKeysSection: React.FC = () => {
             <input
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Nome (ex: n8n, make, parceiro-x)"
             />
             <Button
@@ -458,7 +468,7 @@ export const ApiKeysSection: React.FC = () => {
                 <input
                   readOnly
                   value={createdToken}
-                  className="w-full px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 text-slate-900 dark:text-white font-mono text-xs"
+                  className="w-full px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 text-foreground font-mono text-xs"
                 />
                 <Button
                   type="button"
@@ -475,22 +485,22 @@ export const ApiKeysSection: React.FC = () => {
             </div>
           )}
 
-          <div className="mt-3 rounded-lg border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-black/20 p-3">
-            <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2">
+          <div className="mt-3 rounded-lg border border-border bg-white/60 dark:bg-black/20 p-3">
+            <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-2">
               Para testar aqui (opcional): cole a API key completa
             </div>
             <div className="flex gap-2">
               <input
                 value={apiKeyToken}
                 onChange={(e) => setApiKeyToken(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white font-mono text-xs"
+                className="w-full px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono text-xs"
                 placeholder="ncrm_… (fica só em memória, não é salvo)"
               />
               <Button
                 type="button"
                 onClick={testMe}
                 disabled={testLoading}
-                className="shrink-0 px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-60 text-slate-800 dark:text-white text-sm font-semibold"
+                className="shrink-0 px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 disabled:opacity-60 text-foreground text-sm font-semibold"
               >
                 {testLoading ? 'Testando…' : 'Testar chave'}
               </Button>
@@ -503,14 +513,14 @@ export const ApiKeysSection: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 p-4">
-          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">
+        <div className="rounded-xl border border-border bg-background dark:bg-black/30 p-4">
+          <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2">
             Passo 1 — O que você quer automatizar?
           </div>
           <select
             value={action}
-            onChange={(e) => setAction(e.target.value as any)}
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            onChange={(e) => setAction(e.target.value as ActionType)}
+            className="w-full px-4 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="create_lead">Criar/Atualizar Lead (Contato)</option>
             <option value="create_deal">Criar Negócio (Deal)</option>
@@ -518,95 +528,95 @@ export const ApiKeysSection: React.FC = () => {
             <option value="create_activity">Criar Atividade (nota/tarefa)</option>
           </select>
 
-          <div className="mt-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground dark:text-muted-foreground">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             <span>Você escolhe o objetivo. O sistema monta o comando final com seus dados.</span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 p-4">
-          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">
+        <div className="rounded-xl border border-border bg-background dark:bg-black/30 p-4">
+          <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2">
             Passo 2 — Configure (dinâmico)
           </div>
-          <div className="text-xs text-slate-600 dark:text-slate-300 mb-3">
+          <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-3">
             Aqui entra o “mágico”: você escolhe e a gente já preenche o comando final.
           </div>
 
           {action === 'create_lead' && (
             <div>
-              <div className="text-xs text-slate-600 dark:text-slate-300 mb-3">
-                <span className="font-semibold text-slate-700 dark:text-slate-200">*</span> Obrigatório: <span className="font-semibold text-slate-700 dark:text-slate-200">Email</span> <span className="font-semibold">ou</span>{' '}
-                <span className="font-semibold text-slate-700 dark:text-slate-200">Telefone</span>. <span className="font-semibold text-slate-700 dark:text-slate-200">Nome</span> é obrigatório apenas ao{' '}
-                <span className="font-semibold text-slate-700 dark:text-slate-200">criar</span> um contato novo.
+              <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-3">
+                <span className="font-semibold text-secondary-foreground dark:text-muted-foreground">*</span> Obrigatório: <span className="font-semibold text-secondary-foreground dark:text-muted-foreground">Email</span> <span className="font-semibold">ou</span>{' '}
+                <span className="font-semibold text-secondary-foreground dark:text-muted-foreground">Telefone</span>. <span className="font-semibold text-secondary-foreground dark:text-muted-foreground">Nome</span> é obrigatório apenas ao{' '}
+                <span className="font-semibold text-secondary-foreground dark:text-muted-foreground">criar</span> um contato novo.
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Nome <span className="text-slate-500 dark:text-slate-400">*</span>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">
+                  Nome <span className="text-muted-foreground dark:text-muted-foreground">*</span>
                 </div>
                 <input
                   value={leadName}
                   onChange={(e) => setLeadName(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="Nome do lead"
                 />
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Source</div>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Source</div>
                 <input
                   value={leadSource}
                   onChange={(e) => setLeadSource(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="n8n / make / webhook"
                 />
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Email <span className="text-slate-500 dark:text-slate-400">*</span>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">
+                  Email <span className="text-muted-foreground dark:text-muted-foreground">*</span>
                 </div>
                 <input
                   value={leadEmail}
                   onChange={(e) => setLeadEmail(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="email@exemplo.com"
                 />
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Telefone (E.164) <span className="text-slate-500 dark:text-slate-400">*</span>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">
+                  Telefone (E.164) <span className="text-muted-foreground dark:text-muted-foreground">*</span>
                 </div>
                 <input
                   value={leadPhone}
                   onChange={(e) => setLeadPhone(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white font-mono"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono"
                   placeholder="+5511999999999"
                 />
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Cargo</div>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Cargo</div>
                 <input
                   value={leadRole}
                   onChange={(e) => setLeadRole(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="Ex: Gerente"
                 />
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Empresa</div>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Empresa</div>
                 <input
                   value={leadCompanyName}
                   onChange={(e) => setLeadCompanyName(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="Nome da Empresa"
                 />
               </div>
               <div className="md:col-span-2">
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Notas</div>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Notas</div>
                 <textarea
                   value={leadNotes}
                   onChange={(e) => setLeadNotes(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white min-h-[92px]"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground min-h-[92px]"
                   placeholder="Opcional"
                 />
               </div>
@@ -617,11 +627,11 @@ export const ApiKeysSection: React.FC = () => {
           {(action === 'create_deal' || action === 'move_stage') && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Pipeline (board)</div>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Pipeline (board)</div>
                 <select
                   value={selectedBoardId}
                   onChange={(e) => setSelectedBoardId(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                 >
                   <option value="">Selecione…</option>
                   {boardsFromContext.map((b) => (
@@ -639,7 +649,7 @@ export const ApiKeysSection: React.FC = () => {
 
               {action === 'move_stage' && (
                 <div>
-                  <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Identidade do lead</div>
+                  <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Identidade do lead</div>
                   <div className="flex items-center gap-2 mb-2">
                     <Button
                       type="button"
@@ -647,7 +657,7 @@ export const ApiKeysSection: React.FC = () => {
                       className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border ${
                         identityMode === 'phone'
                           ? 'border-primary-500/50 bg-primary-500/10 text-primary-700 dark:text-primary-300'
-                          : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10'
+                          : 'border-border  bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10'
                       }`}
                     >
                       Telefone
@@ -658,7 +668,7 @@ export const ApiKeysSection: React.FC = () => {
                       className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border ${
                         identityMode === 'email'
                           ? 'border-primary-500/50 bg-primary-500/10 text-primary-700 dark:text-primary-300'
-                          : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10'
+                          : 'border-border  bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10'
                       }`}
                     >
                       Email
@@ -669,18 +679,18 @@ export const ApiKeysSection: React.FC = () => {
                     <input
                       value={identityPhone}
                       onChange={(e) => setIdentityPhone(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white font-mono text-sm"
+                      className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono text-sm"
                       placeholder="+5511999999999"
                     />
                   ) : (
                     <input
                       value={identityEmail}
                       onChange={(e) => setIdentityEmail(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                      className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                       placeholder="email@exemplo.com"
                     />
                   )}
-                  <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                  <div className="mt-1 text-[11px] text-muted-foreground dark:text-muted-foreground">
                     No board deve existir só 1 deal aberto para essa identidade.
                   </div>
                 </div>
@@ -688,11 +698,11 @@ export const ApiKeysSection: React.FC = () => {
 
               {action === 'move_stage' && (
                 <div className="md:col-span-2">
-                  <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Mover para etapa</div>
+                  <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Mover para etapa</div>
                   <select
                     value={selectedToStageId}
                     onChange={(e) => setSelectedToStageId(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                    className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   >
                     <option value="">Selecione…</option>
                     {stagesForBoard.map((s) => (
@@ -709,25 +719,26 @@ export const ApiKeysSection: React.FC = () => {
           {action === 'create_activity' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Tipo</div>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Tipo</div>
                 <select
                   value={activityType}
                   onChange={(e) => setActivityType(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                 >
                   <option value="NOTE">Nota</option>
                   <option value="TASK">Tarefa</option>
                   <option value="CALL">Ligação</option>
                   <option value="MEETING">Reunião</option>
                   <option value="EMAIL">Email</option>
+                  <option value="WHATSAPP">WhatsApp</option>
                 </select>
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Título</div>
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Título</div>
                 <input
                   value={activityTitle}
                   onChange={(e) => setActivityTitle(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                 />
               </div>
             </div>
@@ -736,11 +747,11 @@ export const ApiKeysSection: React.FC = () => {
 
       </div>
 
-      <div className="mt-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 p-4">
-        <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">
+      <div className="mt-4 rounded-xl border border-border bg-background dark:bg-black/30 p-4">
+        <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2">
           Passo 3 — Copiar e testar
         </div>
-        <div className="text-xs text-slate-600 dark:text-slate-300 mb-3">
+        <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-3">
           Este é o “copiar/colar” que seu usuário precisa. Se funcionar aqui, funciona no n8n.
         </div>
 
@@ -748,7 +759,7 @@ export const ApiKeysSection: React.FC = () => {
           <Button
             type="button"
             onClick={() => copy('cURL', curlExample)}
-            className="px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white text-sm font-semibold inline-flex items-center gap-2"
+            className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 text-foreground text-sm font-semibold inline-flex items-center gap-2"
           >
             <TerminalSquare className="h-4 w-4" />
             Copiar cURL
@@ -764,7 +775,7 @@ export const ApiKeysSection: React.FC = () => {
           </Button>
         </div>
 
-        <pre className="text-xs font-mono whitespace-pre-wrap rounded-lg border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-black/20 p-3 text-slate-800 dark:text-slate-100">
+        <pre className="text-xs font-mono whitespace-pre-wrap rounded-lg border border-border bg-white/70 dark:bg-black/20 p-3 text-foreground dark:text-muted-foreground">
           {curlExample}
         </pre>
 
@@ -775,18 +786,18 @@ export const ApiKeysSection: React.FC = () => {
         )}
       </div>
 
-      <div className="mt-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 p-4">
-        <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-2">
+      <div className="mt-4 rounded-xl border border-border bg-background dark:bg-black/30 p-4">
+        <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2">
           Consulta técnica — OpenAPI
         </div>
-        <div className="text-xs text-slate-600 dark:text-slate-300 mb-3">
+        <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-3">
           Se você (ou o time técnico) precisar, aqui está o OpenAPI para importar em Swagger/Postman e gerar integrações.
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             onClick={() => copy('URL do OpenAPI', openApiUrl)}
-            className="px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white text-sm font-semibold inline-flex items-center gap-2"
+            className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 text-foreground text-sm font-semibold inline-flex items-center gap-2"
           >
             <Copy className="h-4 w-4" />
             Copiar URL
@@ -795,7 +806,7 @@ export const ApiKeysSection: React.FC = () => {
             href={swaggerUrl}
             target="_blank"
             rel="noreferrer"
-            className="px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white text-sm font-semibold inline-flex items-center gap-2"
+            className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 text-foreground text-sm font-semibold inline-flex items-center gap-2"
           >
             <ExternalLink className="h-4 w-4" />
             Abrir Swagger
@@ -804,44 +815,44 @@ export const ApiKeysSection: React.FC = () => {
             href={openApiUrl}
             target="_blank"
             rel="noreferrer"
-            className="px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white text-sm font-semibold inline-flex items-center gap-2"
+            className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 text-foreground text-sm font-semibold inline-flex items-center gap-2"
           >
             <ExternalLink className="h-4 w-4" />
             Abrir OpenAPI (JSON)
           </a>
         </div>
-        <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+        <div className="mt-3 text-xs text-muted-foreground dark:text-muted-foreground">
           Status: <span className="font-mono">{openApiUrl}</span>
         </div>
       </div>
 
       <div className="mt-6">
         <div className="flex items-center justify-between gap-3 mb-2">
-          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+          <div className="text-sm font-semibold text-foreground dark:text-muted-foreground">
             Chaves existentes
           </div>
           <Button
             type="button"
             onClick={loadKeys}
             disabled={loadingKeys}
-            className="px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-800 dark:text-white text-sm font-semibold inline-flex items-center gap-2"
+            className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 text-foreground text-sm font-semibold inline-flex items-center gap-2"
           >
             <RefreshCw className={`h-4 w-4 ${loadingKeys ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
         </div>
 
-        <div className="rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden">
-          <div className="divide-y divide-slate-200 dark:divide-white/10">
+        <div className="rounded-xl border border-border overflow-hidden">
+          <div className="divide-y divide-border dark:divide-white/10">
             {keys.length === 0 ? (
-              <div className="p-4 text-sm text-slate-600 dark:text-slate-300">
+              <div className="p-4 text-sm text-secondary-foreground dark:text-muted-foreground">
                 Nenhuma chave criada ainda.
               </div>
             ) : (
               keys.map((k) => (
                 <div key={k.id} className="p-4 bg-white dark:bg-white/5 flex items-center justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                    <div className="text-sm font-semibold text-foreground truncate">
                       {k.name}
                       {k.revoked_at ? (
                         <span className="ml-2 text-xs font-semibold text-rose-600 dark:text-rose-400">revogada</span>
@@ -849,10 +860,10 @@ export const ApiKeysSection: React.FC = () => {
                         <span className="ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">ativa</span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                    <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1 font-mono">
                       {k.key_prefix}…
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                       Último uso: {k.last_used_at ? new Date(k.last_used_at).toLocaleString('pt-BR') : '—'}
                     </div>
                   </div>
@@ -862,7 +873,7 @@ export const ApiKeysSection: React.FC = () => {
                         type="button"
                         disabled={deletingId === k.id}
                         onClick={() => openDeleteConfirm(k)}
-                        className="px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-60 text-rose-700 dark:text-rose-300 text-sm font-semibold inline-flex items-center gap-2"
+                        className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-60 text-rose-700 dark:text-rose-300 text-sm font-semibold inline-flex items-center gap-2"
                       >
                         <Trash2 className="h-4 w-4" />
                         {deletingId === k.id ? 'Excluindo…' : 'Excluir'}
@@ -872,7 +883,7 @@ export const ApiKeysSection: React.FC = () => {
                         type="button"
                         disabled={revokingId === k.id}
                         onClick={() => revokeKey(k.id)}
-                        className="px-3 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-60 text-rose-700 dark:text-rose-300 text-sm font-semibold inline-flex items-center gap-2"
+                        className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-60 text-rose-700 dark:text-rose-300 text-sm font-semibold inline-flex items-center gap-2"
                       >
                         <Trash2 className="h-4 w-4" />
                         {revokingId === k.id ? 'Revogando…' : 'Revogar'}
@@ -897,7 +908,7 @@ export const ApiKeysSection: React.FC = () => {
         message={
           <div className="space-y-2">
             <div>Essa chave será removida permanentemente.</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">
+            <div className="text-xs text-muted-foreground dark:text-muted-foreground">
               {deleteTarget ? (
                 <>
                   <span className="font-semibold">{deleteTarget.name}</span> — <span className="font-mono">{deleteTarget.key_prefix}…</span>

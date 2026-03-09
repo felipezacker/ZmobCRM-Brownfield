@@ -12,7 +12,8 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Board } from '@/types';
 import { UIChat } from '@/components/ai/UIChat';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 interface AIAssistantProps {
   isOpen: boolean;
@@ -69,7 +70,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           <Button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800/70 text-slate-200 hover:bg-slate-700/70"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-card/70 text-muted-foreground hover:bg-accent/70"
             aria-label="Fechar assistente"
           >
             <X className="h-4 w-4" />
@@ -93,7 +94,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   if (variant === 'sidebar') {
     return (
-      <aside className="h-full w-full border-l border-slate-700/50 bg-slate-900">
+      <aside className="h-full w-full border-l border-border/50 bg-card">
         {content}
       </aside>
     );
@@ -101,14 +102,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm md:p-4 pb-[env(safe-area-inset-bottom)]"
+      className={`${MODAL_OVERLAY_CLASS} md:p-4 pb-[env(safe-area-inset-bottom)]`}
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="h-full md:h-[85vh] w-full md:max-w-3xl overflow-hidden md:rounded-2xl md:border md:border-slate-700/50 bg-slate-900 md:shadow-2xl md:shadow-black/50"
+        className="h-full md:h-[85vh] w-full md:max-w-3xl overflow-hidden md:rounded-2xl md:border md:border-border/50 bg-card md:shadow-2xl md:shadow-black/50"
         onClick={(e) => e.stopPropagation()}
       >
         {content}

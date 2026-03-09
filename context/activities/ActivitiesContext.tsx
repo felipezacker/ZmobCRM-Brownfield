@@ -73,7 +73,7 @@ export const ActivitiesProvider: React.FC<{ children: ReactNode }> = ({ children
 
       return data;
     },
-    [profile?.organization_id, queryClient]
+    [profile, queryClient]
   );
 
   const updateActivity = useCallback(async (id: string, updates: Partial<Activity>) => {

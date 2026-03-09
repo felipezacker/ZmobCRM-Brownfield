@@ -83,7 +83,7 @@ export interface DbContact {
   /** Tags do contato. */
   tags: string[];
   /** Campos customizados (JSONB). */
-  custom_fields: Record<string, any>;
+  custom_fields: Record<string, unknown>;
 }
 
 /** Representação de contact_phones no banco de dados. */
@@ -461,7 +461,7 @@ export const contactsService = {
 
       // organization_id e owner_id são obrigatórios para RLS.
       // Se não vierem no objeto, inferimos do usuário autenticado.
-      let organizationId = sanitizeUUID((contact as any).organizationId);
+      let organizationId = sanitizeUUID((contact as { organizationId?: string }).organizationId);
       let ownerId = sanitizeUUID(contact.ownerId);
 
       if (!organizationId || !ownerId) {
@@ -678,8 +678,8 @@ export const contactPhonesService = {
 
   /**
    * Cria um novo telefone para um contato.
-   * Se is_primary=true, desativa o flag dos demais telefones do mesmo contato.
-   * Sincroniza o campo legacy `phone` em contacts com o telefone primário.
+   * Primary uniqueness e sync com contacts.phone sao gerenciados por DB triggers
+   * (ensure_single_primary_phone + sync_phones_to_contact).
    */
   async create(
     phone: Omit<ContactPhone, 'id' | 'createdAt' | 'updatedAt' | 'organizationId'>
@@ -687,14 +687,6 @@ export const contactPhonesService = {
     try {
       if (!supabase) {
         return { data: null, error: new Error('Supabase não configurado') };
-      }
-
-      // Se este vai ser primário, desativa os demais
-      if (phone.isPrimary) {
-        await supabase
-          .from('contact_phones')
-          .update({ is_primary: false })
-          .eq('contact_id', phone.contactId);
       }
 
       const { data, error } = await supabase
@@ -711,11 +703,6 @@ export const contactPhonesService = {
 
       if (error) return { data: null, error };
 
-      // Sincroniza campo legacy `phone` em contacts
-      if (phone.isPrimary) {
-        await this.syncPrimaryPhone(phone.contactId);
-      }
-
       return { data: transformContactPhone(data as DbContactPhone), error: null };
     } catch (e) {
       return { data: null, error: e as Error };
@@ -724,6 +711,7 @@ export const contactPhonesService = {
 
   /**
    * Atualiza um telefone existente.
+   * Primary uniqueness e sync com contacts.phone sao gerenciados por DB triggers.
    */
   async update(
     id: string,
@@ -732,24 +720,6 @@ export const contactPhonesService = {
     try {
       if (!supabase) {
         return { data: null, error: new Error('Supabase não configurado') };
-      }
-
-      // Se marcando como primário, desativa os demais
-      if (updates.isPrimary) {
-        // Primeiro busca o contact_id
-        const { data: phoneData } = await supabase
-          .from('contact_phones')
-          .select('contact_id')
-          .eq('id', id)
-          .single();
-
-        if (phoneData) {
-          await supabase
-            .from('contact_phones')
-            .update({ is_primary: false })
-            .eq('contact_id', phoneData.contact_id)
-            .neq('id', id);
-        }
       }
 
       const dbUpdates: Record<string, unknown> = {};
@@ -768,14 +738,7 @@ export const contactPhonesService = {
 
       if (error) return { data: null, error };
 
-      const result = transformContactPhone(data as DbContactPhone);
-
-      // Sincroniza campo legacy `phone`
-      if (updates.isPrimary || updates.phoneNumber !== undefined) {
-        await this.syncPrimaryPhone(result.contactId);
-      }
-
-      return { data: result, error: null };
+      return { data: transformContactPhone(data as DbContactPhone), error: null };
     } catch (e) {
       return { data: null, error: e as Error };
     }
@@ -783,19 +746,13 @@ export const contactPhonesService = {
 
   /**
    * Exclui um telefone.
+   * Sync com contacts.phone e gerenciado pelo DB trigger sync_phones_to_contact.
    */
   async delete(id: string): Promise<{ error: Error | null }> {
     try {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
-
-      // Busca dados antes de deletar para sincronizar depois
-      const { data: phoneData } = await supabase
-        .from('contact_phones')
-        .select('contact_id, is_primary')
-        .eq('id', id)
-        .single();
 
       const { error } = await supabase
         .from('contact_phones')
@@ -804,37 +761,9 @@ export const contactPhonesService = {
 
       if (error) return { error };
 
-      // Sincroniza campo legacy `phone` se deletou o primário
-      if (phoneData?.is_primary) {
-        await this.syncPrimaryPhone(phoneData.contact_id);
-      }
-
       return { error: null };
     } catch (e) {
       return { error: e as Error };
     }
-  },
-
-  /**
-   * Sincroniza o campo legacy `phone` em contacts com o telefone primário de contact_phones.
-   * Se não há telefone primário, usa o primeiro disponível; se não há nenhum, seta null.
-   */
-  async syncPrimaryPhone(contactId: string): Promise<void> {
-    if (!supabase) return;
-
-    const { data: phones } = await supabase
-      .from('contact_phones')
-      .select('phone_number, is_primary')
-      .eq('contact_id', contactId)
-      .order('is_primary', { ascending: false })
-      .order('created_at', { ascending: true })
-      .limit(1);
-
-    const primaryNumber = phones?.[0]?.phone_number || null;
-
-    await supabase
-      .from('contacts')
-      .update({ phone: primaryNumber, updated_at: new Date().toISOString() })
-      .eq('id', contactId);
   },
 };

@@ -9,7 +9,7 @@ import React, {
   useRef,
 } from 'react';
 import { usePathname } from 'next/navigation';
-import { LifecycleStage, Product, CustomFieldDefinition, Lead } from '@/types';
+import { LifecycleStage, Product, CustomFieldDefinition, Lead, Contact } from '@/types';
 import { settingsService, lifecycleStagesService, productsService } from '@/lib/supabase';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '../AuthContext';
@@ -21,7 +21,7 @@ const DEFAULT_LIFECYCLE_STAGES: LifecycleStage[] = [
   { id: 'MQL', name: 'MQL', color: 'bg-yellow-500', order: 1, isDefault: true },
   { id: 'PROSPECT', name: 'Oportunidade', color: 'bg-purple-500', order: 2, isDefault: true },
   { id: 'CUSTOMER', name: 'Cliente', color: 'bg-green-500', order: 3, isDefault: true },
-  { id: 'OTHER', name: 'Outros / Perdidos', color: 'bg-slate-500', order: 4, isDefault: true },
+  { id: 'OTHER', name: 'Outros / Perdidos', color: 'bg-accent', order: 4, isDefault: true },
 ];
 
 interface AIConfig {
@@ -42,7 +42,7 @@ interface SettingsContextType {
   lifecycleStages: LifecycleStage[];
   addLifecycleStage: (stage: Omit<LifecycleStage, 'id' | 'order'>) => Promise<LifecycleStage | null>;
   updateLifecycleStage: (id: string, updates: Partial<LifecycleStage>) => Promise<void>;
-  deleteLifecycleStage: (id: string, contacts: any[]) => Promise<void>;
+  deleteLifecycleStage: (id: string, contacts: Contact[]) => Promise<void>;
   reorderLifecycleStages: (newOrder: LifecycleStage[]) => Promise<void>;
 
   // Products (Catálogo)
@@ -284,7 +284,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
 
     setLoading(false);
-  }, [profile, organizationId, supabase]);
+  }, [profile, organizationId, supabase, refreshProducts]);
 
   useEffect(() => {
     fetchSettings();
@@ -307,7 +307,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
           credentials: 'include',
         });
         if (ffRes.ok) {
-          const ffData = (await ffRes.json().catch(() => null)) as any;
+          const ffData = (await ffRes.json().catch(() => null)) as { flags?: Record<string, boolean> } | null;
           setAiFeatureFlags((ffData?.flags as Record<string, boolean>) || {});
         } else {
           console.warn('[Settings] Falha ao carregar flags de IA (features).', { status: ffRes.status });
@@ -328,8 +328,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const handler = () => {
       refreshProducts();
     };
-    window.addEventListener('crm:products-updated', handler as any);
-    return () => window.removeEventListener('crm:products-updated', handler as any);
+    window.addEventListener('crm:products-updated', handler as EventListener);
+    return () => window.removeEventListener('crm:products-updated', handler as EventListener);
   }, [refreshProducts]);
 
   // Lifecycle Stages CRUD
@@ -371,7 +371,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     []
   );
 
-  const deleteLifecycleStage = useCallback(async (id: string, contacts: any[] = []) => {
+  const deleteLifecycleStage = useCallback(async (id: string, contacts: Contact[] = []) => {
     const stageToDelete = lifecycleStages.find(s => s.id === id);
     if (stageToDelete?.isDefault) return;
 
@@ -692,6 +692,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       aiAnthropicCaching,
       setAiAnthropicCaching,
       isGlobalAIOpen,
+      setIsGlobalAIOpen,
       leads,
       setLeads,
       addLead,

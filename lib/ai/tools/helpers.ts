@@ -12,8 +12,9 @@ export function sanitizeFilterValue(value: string): string {
     return value.replace(/[,()\\]/g, '');
 }
 
-export function formatSupabaseFailure(error: any): string {
-    const msg = (error?.message || error?.error_description || String(error || '')).trim();
+export function formatSupabaseFailure(error: unknown): string {
+    const errObj = error as Record<string, unknown> | null | undefined;
+    const msg = (String(errObj?.message || errObj?.error_description || error || '')).trim();
     const normalized = msg.toLowerCase();
 
     const looksLikeAuth =

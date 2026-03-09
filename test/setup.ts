@@ -50,13 +50,13 @@ console.error = (...args: unknown[]) => {
 };
 
 const originalStderrWrite = process.stderr.write.bind(process.stderr);
-process.stderr.write = ((chunk: any, ...rest: any[]) => {
+process.stderr.write = ((chunk: string | Uint8Array, ...rest: unknown[]) => {
   const text = typeof chunk === 'string' ? chunk : Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
   if (SUPPRESSED_STDERR_PATTERNS.some((r) => r.test(text))) {
     return true;
   }
-  return originalStderrWrite(chunk, ...rest);
-}) as any;
+  return originalStderrWrite(chunk, ...(rest as [BufferEncoding?, ((err?: Error) => void)?]));
+}) as typeof process.stderr.write;
 
 // Prefer envs from THIS project folder so crmia-next can be moved to its own repo.
 // (When running inside the monorepo, we keep the old root .env as a fallback.)

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ChevronDown, ChevronRight, ArrowRight } from 'lucide-react';
 import { Activity } from '@/types';
 import { InboxItem } from './InboxItem';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 const MAX_ITEMS = 5;
 
@@ -63,7 +63,7 @@ export const InboxSection: React.FC<InboxSectionProps> = ({
   const colorStyles = {
     red: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20',
     green: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 border-green-100 dark:border-green-500/20',
-    slate: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'
+    slate: 'text-secondary-foreground dark:text-muted-foreground bg-background dark:bg-card border-border dark:border-border'
   };
 
   const visibleActivities = activities.slice(0, MAX_ITEMS);
@@ -76,16 +76,16 @@ export const InboxSection: React.FC<InboxSectionProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 w-full mb-3 group"
       >
-        <div className={`p-1 rounded-md transition-colors ${isOpen ? 'bg-slate-100 dark:bg-white/5' : ''}`}>
-          {isOpen ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronRight size={16} className="text-slate-400" />}
+        <div className={`p-1 rounded-md transition-colors ${isOpen ? 'bg-muted dark:bg-white/5' : ''}`}>
+          {isOpen ? <ChevronDown size={16} className="text-muted-foreground" /> : <ChevronRight size={16} className="text-muted-foreground" />}
         </div>
-        <h2 className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+        <h2 className="text-sm font-bold text-secondary-foreground dark:text-muted-foreground uppercase tracking-wider flex items-center gap-2">
           {title}
           <span className={`text-xs px-2 py-0.5 rounded-full border ${colorStyles[color]}`}>
             {activities.length}
           </span>
         </h2>
-        <div className="flex-1 h-px bg-slate-100 dark:bg-white/5 ml-2 group-hover:bg-slate-200 dark:group-hover:bg-white/10 transition-colors"></div>
+        <div className="flex-1 h-px bg-muted dark:bg-white/5 ml-2 group-hover:bg-accent dark:group-hover:bg-white/10 transition-colors"></div>
       </Button>
 
       {isOpen && (

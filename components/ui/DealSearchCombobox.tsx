@@ -103,16 +103,16 @@ export const DealSearchCombobox: React.FC<DealSearchComboboxProps> = ({
 
   if (selectedDeal) {
     return (
-      <div className="flex items-center gap-2 w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm">
-        <Briefcase size={14} className="text-slate-400 shrink-0" />
-        <span className="text-slate-900 dark:text-white truncate flex-1">
+      <div className="flex items-center gap-2 w-full bg-background dark:bg-black/20 border border-border dark:border-border rounded-lg px-3 py-2 text-sm">
+        <Briefcase size={14} className="text-muted-foreground shrink-0" />
+        <span className="text-foreground truncate flex-1">
           {selectedDeal.title}
         </span>
         <button
           type="button"
           aria-label="Remover negócio selecionado"
           onClick={handleClear}
-          className="text-slate-400 hover:text-slate-600 dark:hover:text-white shrink-0"
+          className="text-muted-foreground hover:text-secondary-foreground dark:hover:text-white shrink-0"
         >
           <X size={14} />
         </button>
@@ -124,7 +124,7 @@ export const DealSearchCombobox: React.FC<DealSearchComboboxProps> = ({
   return (
     <div className="relative">
       <div className="relative">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
           ref={inputRef}
           type="text"
@@ -137,7 +137,7 @@ export const DealSearchCombobox: React.FC<DealSearchComboboxProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           aria-label="Buscar negócio"
-          className="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full pl-8 pr-3 py-2 bg-background dark:bg-black/20 border border-border dark:border-border rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-primary-500"
         />
         {required && !selectedDealId && (
           <input
@@ -155,7 +155,7 @@ export const DealSearchCombobox: React.FC<DealSearchComboboxProps> = ({
       {isOpen && (
         <div
           ref={listRef}
-          className="absolute z-50 w-full mt-1 bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-lg shadow-xl overflow-hidden"
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-dark-card border border-border rounded-lg shadow-xl overflow-hidden"
         >
           {filtered.length > 0 ? (
             <div className="max-h-48 overflow-y-auto">
@@ -167,23 +167,23 @@ export const DealSearchCombobox: React.FC<DealSearchComboboxProps> = ({
                   className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
                     index === highlightedIndex
                       ? 'bg-primary-50 dark:bg-primary-500/10'
-                      : 'hover:bg-slate-50 dark:hover:bg-white/5'
+                      : 'hover:bg-background dark:hover:bg-white/5'
                   }`}
                 >
-                  <Briefcase size={14} className="text-slate-400 shrink-0" />
+                  <Briefcase size={14} className="text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {deal.title}
                     </p>
                     {deal.value > 0 && (
-                      <p className="text-xs text-slate-500">{formatValue(deal.value)}</p>
+                      <p className="text-xs text-muted-foreground">{formatValue(deal.value)}</p>
                     )}
                   </div>
                 </button>
               ))}
             </div>
           ) : (
-            <div className="px-3 py-4 text-sm text-slate-400 text-center">
+            <div className="px-3 py-4 text-sm text-muted-foreground text-center">
               Nenhum negocio encontrado
             </div>
           )}

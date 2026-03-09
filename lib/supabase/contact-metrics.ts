@@ -118,7 +118,7 @@ export async function getContactsBySource(
 
     const grouped: Record<string, number> = {};
     for (const c of data || []) {
-      const src = (c as any).source || 'MANUAL';
+      const src = (c as { source?: string | null }).source || 'MANUAL';
       grouped[src] = (grouped[src] || 0) + 1;
     }
 
@@ -155,7 +155,7 @@ export async function getConversionFunnel(
     if (error) return { data: [], error };
 
     // Collect raw stage values
-    const rawStages: string[] = (data || []).map((c: any) => c.stage || 'LEAD');
+    const rawStages: string[] = (data || []).map((c: { stage?: string | null }) => c.stage || 'LEAD');
 
     // Detect UUID stage values and resolve them via board_stages
     const uuidStages = [...new Set(rawStages.filter(s => UUID_RE.test(s)))];
@@ -169,7 +169,8 @@ export async function getConversionFunnel(
 
       for (const bs of boardStages || []) {
         // Prefer linked_lifecycle_stage (LEAD/MQL/etc.), fallback to label
-        uuidToName[bs.id] = (bs as any).linked_lifecycle_stage || (bs as any).label || bs.id;
+        const bsTyped = bs as { id: string; label?: string | null; linked_lifecycle_stage?: string | null };
+        uuidToName[bs.id] = bsTyped.linked_lifecycle_stage || bsTyped.label || bs.id;
       }
     }
 
@@ -229,8 +230,9 @@ export async function getDistribution(
     const tempGrouped: Record<string, number> = {};
 
     for (const c of data || []) {
-      const cls = (c as any).classification || 'Nao classificado';
-      const temp = (c as any).temperature || 'WARM';
+      const cTyped = c as { classification?: string | null; temperature?: string | null };
+      const cls = cTyped.classification || 'Nao classificado';
+      const temp = cTyped.temperature || 'WARM';
       classGrouped[cls] = (classGrouped[cls] || 0) + 1;
       tempGrouped[temp] = (tempGrouped[temp] || 0) + 1;
     }
@@ -295,7 +297,7 @@ export async function getBrokerPerformance(
     for (const p of profiles || []) {
       brokerMap[p.id] = {
         ownerId: p.id,
-        ownerName: (p as any).full_name || 'Sem nome',
+        ownerName: (p as { id: string; full_name?: string | null }).full_name || 'Sem nome',
         contactCount: 0,
         dealsWon: 0,
         ltvGenerated: 0,
@@ -303,17 +305,18 @@ export async function getBrokerPerformance(
     }
 
     for (const c of contacts || []) {
-      const oid = (c as any).owner_id;
+      const oid = (c as { owner_id?: string | null }).owner_id;
       if (oid && brokerMap[oid]) {
         brokerMap[oid].contactCount++;
       }
     }
 
     for (const d of deals || []) {
-      const oid = (d as any).owner_id;
+      const dTyped = d as { owner_id?: string | null; value?: number | null };
+      const oid = dTyped.owner_id;
       if (oid && brokerMap[oid]) {
         brokerMap[oid].dealsWon++;
-        brokerMap[oid].ltvGenerated += (d as any).value || 0;
+        brokerMap[oid].ltvGenerated += dTyped.value || 0;
       }
     }
 

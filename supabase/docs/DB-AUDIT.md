@@ -1,422 +1,478 @@
-# DB-AUDIT.md - Auditoria do Banco de Dados
+# DB-AUDIT.md - Auditoria Completa do Banco de Dados
 
 > **Projeto:** ZmobCRM (CRM Imobiliario)
-> **Gerado em:** 2026-03-03
-> **Fase:** Brownfield Discovery - Phase 2 (@data-engineer / DB Sage)
-> **Base:** 42 migration files analisados (20251201 a 20260303)
-> **Referencia:** SCHEMA.md (gerado em paralelo)
+> **Gerado em:** 2026-03-06
+> **Fase:** Brownfield Discovery - Phase 2 (@data-engineer Dara)
+> **Banco:** PostgreSQL 17 (Supabase)
+> **Ambientes:** Producao (`fkfqwxjrgfuerysaxayr`), Staging (`xbwbwnevtpmmehgxfvcp`), Local
 
 ---
 
 ## Sumario Executivo
 
-| Categoria | CRITICAL | HIGH | MEDIUM | LOW | Total |
-|-----------|----------|------|--------|-----|-------|
-| Seguranca | 1 | 2 | 3 | 1 | 7 |
-| Performance | 0 | 1 | 3 | 2 | 6 |
-| Integridade de Dados | 1 | 2 | 3 | 1 | 7 |
-| Design do Schema | 0 | 1 | 4 | 3 | 8 |
-| Migrations | 1 | 1 | 1 | 0 | 3 |
-| **Total** | **3** | **7** | **14** | **7** | **31** |
+| Categoria | Status | Debitos Encontrados |
+|-----------|--------|---------------------|
+| Seguranca (RLS) | BOM | 3 debitos (1 HIGH, 2 MEDIUM) |
+| Performance (Indexes) | BOM | 5 debitos (1 HIGH, 3 MEDIUM, 1 LOW) |
+| Integridade de Dados | ATENCAO | 6 debitos (2 HIGH, 4 MEDIUM) |
+| Design de Schema | BOM | 5 debitos (1 HIGH, 3 MEDIUM, 1 LOW) |
+| Migrations | BOM | 2 debitos (2 MEDIUM) |
+| Funcoes e Triggers | ATENCAO | 3 debitos (1 HIGH, 2 MEDIUM) |
+| **TOTAL** | **ATENCAO** | **24 debitos (0 CRITICAL, 6 HIGH, 14 MEDIUM, 4 LOW)** |
 
 ---
 
-## 1. Auditoria de Seguranca
+## 1. Auditoria de Seguranca (RLS)
 
 ### 1.1 Cobertura RLS
 
-**Status Geral: 95% adequada. 100% das tabelas tem RLS ENABLED.**
+**Resultado: 100% de cobertura.** Todas as 39+ tabelas publicas tem `ENABLE ROW LEVEL SECURITY`.
 
-Todas as 36 tabelas ativas possuem `ENABLE ROW LEVEL SECURITY`. A grande maioria foi migrada de policies permissivas (`USING(true)`) para policies restritivas org-scoped entre as migrations 20260220-20260226. O trabalho de hardening foi significativo e bem executado.
+A evolucao da seguranca foi significativa:
+- **Schema init (20251201):** Muitas politicas `USING(true)` (acesso total para authenticated)
+- **Security sprint (20260223):** Reescrita completa para org-scoped + role-based
+- **CodeRabbit PR5 (20260225):** Fix de tenant isolation em profiles e organizations
+- **RLS recursion fix (20260226):** Funcao `get_user_organization_id()` para evitar recursao circular
 
-#### Tabelas com RLS Residual Permissiva
+### 1.2 Vulnerabilidades Encontradas
 
-| ID | Tabela | Problema | Severidade |
-|----|--------|----------|------------|
-| SEC-01 | `ai_suggestion_interactions` | RLS permissiva original (`USING(true)`) nunca foi restringida. Qualquer usuario autenticado pode ver/modificar interacoes de todos os usuarios. | **HIGH** |
-| SEC-02 | `rate_limits` | RLS permissiva (`USING(true)`). Qualquer usuario pode ver todos os rate limits. Risco baixo pois nao contem dados sensiveis, mas permite information disclosure. | **LOW** |
+#### SEC-01: `system_notifications` com RLS permissiva [HIGH]
 
-**Recomendacao SEC-01:** Criar policies restritivas para `ai_suggestion_interactions` baseadas em `user_id = auth.uid()`.
-
-**Recomendacao SEC-02:** Remover policy permissiva de `rate_limits`. Se necessario, adicionar SELECT/INSERT para `authenticated` com restricao por `identifier = auth.uid()::text`.
-
----
-
-### 1.2 Qualidade das Policies
-
-#### SEC-03: notify_deal_stage_changed() referencia tabelas inexistentes [CRITICAL]
-
-A migration `20260225000000_coderabbit_pr5_fixes.sql` reescreveu a funcao `notify_deal_stage_changed()` usando nomes de tabelas que NAO existem no schema:
-
-- `integration_webhook_events` (correto: `webhook_events_out`)
-- `integration_webhook_deliveries` (correto: `webhook_deliveries`)
-
-**Impacto:** Toda vez que um deal muda de stage, o trigger falha silenciosamente (ou lanca erro), impedindo webhooks outbound de funcionar. O erro e capturado pelo `EXCEPTION WHEN OTHERS`, entao o deal update em si nao falha, mas nenhum webhook e disparado.
-
-**Severidade: CRITICAL**
-
-**Correcao:** Reescrever a funcao usando os nomes corretos de tabela (`webhook_events_out`, `webhook_deliveries`) e campos correspondentes.
-
----
-
-#### SEC-04: merge_contacts() como SECURITY DEFINER sem validacao de org [HIGH]
-
-A funcao `merge_contacts()` usa `SECURITY DEFINER`, o que significa que bypassa RLS completamente. Ela nao valida se o usuario chamador pertence a mesma organizacao dos contatos sendo merged. Qualquer usuario autenticado poderia potencialmente fazer merge de contatos de outra organizacao.
-
-**Impacto:** Cross-tenant data manipulation.
-
-**Correcao:** Adicionar validacao de que ambos os contatos pertencem a org do usuario chamador, ou migrar para `SECURITY INVOKER` com RLS.
-
----
-
-#### SEC-05: increment/decrement_contact_ltv() como SECURITY DEFINER sem validacao [MEDIUM]
-
-Ambas funcoes `increment_contact_ltv()` e `decrement_contact_ltv()` usam `SECURITY DEFINER` sem validar se o contato pertence a organizacao do usuario. Qualquer usuario autenticado pode manipular o `total_value` de qualquer contato.
-
-**Impacto:** Cross-tenant data manipulation do campo LTV.
-
-**Correcao:** Adicionar validacao de org ou migrar para `SECURITY INVOKER`.
-
----
-
-#### SEC-06: contact_phones e contact_preferences RLS nao usa get_user_organization_id() [MEDIUM]
-
-As tabelas `contact_phones` e `contact_preferences` usam subquery direta em `profiles` para obter `organization_id`:
+**Tabela:** `system_notifications`
+**Migration:** `20251201000000_schema_init.sql` (linha 1653)
+**Problema:** Policy `USING(true)` para ALL operations. Qualquer usuario autenticado pode ler/escrever/deletar notificacoes de qualquer organizacao.
+**Impacto:** Vazamento de dados entre tenants. Um usuario pode ver notificacoes de outra organizacao.
+**Recomendacao:** Substituir por policy org-scoped:
 ```sql
-organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid())
+DROP POLICY IF EXISTS "Enable all access for authenticated users" ON public.system_notifications;
+CREATE POLICY "system_notifications_select_org" ON public.system_notifications
+  FOR SELECT TO authenticated
+  USING (organization_id = public.get_user_organization_id());
+CREATE POLICY "system_notifications_insert_org" ON public.system_notifications
+  FOR INSERT TO authenticated
+  WITH CHECK (organization_id = public.get_user_organization_id());
 ```
 
-Isso pode causar recursao RLS se a policy de `profiles` for modificada. A funcao `get_user_organization_id()` (SECURITY DEFINER) foi criada especificamente para evitar esse problema.
+#### SEC-02: `rate_limits` com RLS permissiva [MEDIUM]
 
-**Impacto:** Potencial recursao RLS (42P17) se profiles_select mudar.
+**Tabela:** `rate_limits`
+**Migration:** `20251201000000_schema_init.sql` (linha 1654)
+**Problema:** Policy `USING(true)` para ALL. Qualquer usuario pode manipular rate limits de qualquer endpoint/IP.
+**Impacto:** Baixo risco pratico (tabela de infraestrutura), mas permite que um usuario veja padroes de acesso de outros.
+**Recomendacao:** Restringir: INSERT para service_role/DEFINER functions, SELECT admin-only ou nenhum (tabela interna).
 
-**Correcao:** Atualizar policies de `contact_phones`, `contact_preferences`, `notifications`, `lead_score_history` e outras tabelas que ainda usam subquery direta para usar `get_user_organization_id()`.
+#### SEC-03: `activities.client_company_id` - FK orfao [MEDIUM]
 
----
+**Tabela:** `activities`
+**Migration:** `20251201000000_schema_init.sql` (coluna adicionada), `20260220100000` (tabela crm_companies dropada)
+**Problema:** A coluna `client_company_id` referencia `crm_companies(id)`, mas a tabela `crm_companies` foi dropada na migration `20260220100000_remove_companies_and_roles.sql`. A FK em `activities` nao foi removida explicitamente (a migration remove FKs de `deals` e `contacts`, mas nao de `activities`).
+**Impacto:** A coluna pode conter UUIDs que apontam para nada. Inserts com valor nao-nulo falharao se a FK ainda existir.
+**Recomendacao:** Verificar se a FK foi cascadeada pelo DROP TABLE. Se nao, dropar a coluna:
+```sql
+ALTER TABLE public.activities DROP COLUMN IF EXISTS client_company_id;
+```
 
-#### SEC-07: notifications sem DELETE policy [MEDIUM]
+### 1.3 Funcoes SECURITY DEFINER - Analise de Risco
 
-A tabela `notifications` tem policies para SELECT, INSERT e UPDATE, mas nao para DELETE. Isso significa que notificacoes nunca podem ser deletadas por usuarios autenticados (apenas service_role). Se intencional, esta correto; se nao, e um gap funcional.
-
-**Impacto:** Acumulo indefinido de notificacoes, sem possibilidade de cleanup pelo usuario.
-
----
-
-### 1.3 Dados Sensiveis
-
-| ID | Tabela.Coluna | Risco | Mitigacao Atual | Status |
-|----|---------------|-------|-----------------|--------|
-| SEC-08 | organization_settings.ai_*_key | API keys de IA em texto claro | RLS admin-only | Aceitavel para MVP |
-| SEC-09 | user_settings.ai_*_key | API keys de IA por usuario em texto claro | RLS user-only | Aceitavel para MVP |
-| SEC-10 | integration_inbound_sources.secret | Webhook secret em texto claro | RLS admin-only | Deveria usar pgcrypto |
-| SEC-11 | integration_outbound_endpoints.secret | Webhook secret em texto claro | RLS admin-only | Deveria usar pgcrypto |
-| SEC-12 | api_keys.key_hash | Armazenado como SHA-256 hex | Correto | OK |
-| SEC-13 | user_consents.ip_address | IP do usuario (LGPD) | RLS user/admin scoped | OK |
-
-**Recomendacao:** Em uma evolucao futura, considerar usar Supabase Vault para chaves de API ao inves de texto claro nas tabelas.
-
-### 1.4 Qualidade de Integracao com Auth
-
-| Aspecto | Status | Notas |
-|---------|--------|-------|
-| Trigger on_auth_user_created | OK | Cria profile + user_settings |
-| Role injection prevention | OK | Hardcoded 'corretor' (fix 20260223000001) |
-| Org injection prevention | OK | Ignora metadata org_id (fix 20260223000002) |
-| Email sync | OK | Trigger on_auth_user_email_updated |
-| handle_new_user as DEFINER | NECESSARIO | Precisa acessar profiles sem RLS para insert |
+| Funcao | Risco | Status | Notas |
+|--------|-------|--------|-------|
+| `handle_new_user()` | ALTO | MITIGADO | Fix em 20260223000002: ignora metadata org_id e role |
+| `get_singleton_organization_id()` | MEDIO | OK | Retorna apenas org mais antiga, sem dados sensiveis |
+| `get_user_organization_id()` | MEDIO | OK | Necessario para evitar recursao RLS |
+| `is_instance_initialized()` | BAIXO | OK | Apenas booleano |
+| `log_audit_event()` | MEDIO | OK | SET search_path = public |
+| `merge_contacts()` | ALTO | ATENCAO | SECURITY DEFINER sem validacao de org (ver INT-05) |
+| `increment/decrement_contact_ltv()` | MEDIO | ATENCAO | SECURITY DEFINER sem validacao de org (ver INT-06) |
+| `create_api_key/revoke_api_key/validate_api_key` | ALTO | OK | Validacao interna de auth.uid() + role |
+| `_api_key_make_token/_api_key_sha256_hex` | BAIXO | OK | Helpers internos |
 
 ---
 
 ## 2. Auditoria de Performance
 
-### 2.1 Indexes Ausentes
+### 2.1 Cobertura de Indexes
 
-| ID | Tabela | Coluna(s) | Razao | Severidade |
-|----|--------|-----------|-------|------------|
-| PERF-01 | deals | contact_id, board_id (composite) | Queries de kanban que filtram por contato dentro de um board | **MEDIUM** |
-| PERF-02 | activities | organization_id, date DESC | Queries de timeline/agenda com filtro de org e ordenacao por data | **MEDIUM** |
-| PERF-03 | deals | organization_id, is_won, is_lost | Dashboard stats query faz full scan nos flags booleanos com filtro de org | **MEDIUM** |
-| PERF-04 | contacts | organization_id, name | Busca de contatos por nome dentro da org (a GIN trigram existe mas nao e composta com org_id) | **LOW** |
-| PERF-05 | leads | organization_id, status | Listagem de leads por org e status | **LOW** |
+**Resultado: BOA.** A migration `20260205000000_add_performance_indexes.sql` adicionou indexes abrangentes, e migrations subsequentes continuaram o padrao.
 
----
+#### Indexes presentes nas FKs mais criticas:
 
-### 2.2 Patterns N+1 Visiveis no Schema
+| FK Column | Tabela | Index | Status |
+|-----------|--------|-------|--------|
+| deals.board_id | deals | idx_deals_board_id | OK |
+| deals.stage_id | deals | idx_deals_stage_id | OK |
+| deals.contact_id | deals | idx_deals_contact_id | OK |
+| deals.organization_id | deals | idx_deals_organization_id | OK |
+| deals.owner_id | deals | idx_deals_owner_id | OK |
+| activities.deal_id | activities | idx_activities_deal_id | OK |
+| activities.contact_id | activities | idx_activities_contact_id | OK |
+| contacts.organization_id | contacts | idx_contacts_organization_id | OK |
+| contacts.owner_id | contacts | idx_contacts_owner_id | OK |
+| board_stages.board_id | board_stages | idx_board_stages_board_id | OK |
 
-| ID | Padrao | Risco | Severidade |
-|----|--------|-------|------------|
-| PERF-06 | deals -> contact (FK sem eager) | Kanban carrega deals e faz N queries para resolver nomes de contatos | **HIGH** |
-| PERF-07 | deals -> board_stages (FK) | Cada deal precisa do label do stage para exibicao | **MEDIUM** |
+### 2.2 Problemas de Performance Encontrados
 
-**Mitigacao:** PostgREST/Supabase suporta `select=*,contacts(*)` para evitar N+1, mas depende da implementacao frontend.
+#### PERF-01: RLS subqueries em profiles para cada request [HIGH]
 
----
+**Problema:** Praticamente todas as politicas RLS fazem subquery em `profiles`:
+```sql
+organization_id = (SELECT organization_id FROM public.profiles WHERE id = auth.uid())
+```
+Essa subquery e executada para CADA LINHA avaliada pela politica. Embora o Postgres possa cachear o resultado dentro de uma mesma query (via `STABLE`), o padrao se repete em dezenas de politicas.
 
-### 2.3 Funcoes com Potencial Performance Issue
+**Impacto:** Para tabelas com muitas linhas (contacts, deals, activities), cada SELECT paga o custo da subquery. O index `idx_profiles_org_role` ajuda, mas o padrao e inerentemente caro com RLS.
 
-| ID | Funcao | Problema | Severidade |
-|----|--------|----------|------------|
-| PERF-08 | `get_user_organization_id()` | Chamada em TODA policy RLS. E SECURITY DEFINER + STABLE, entao PostgreSQL pode cachear dentro da mesma transacao, mas e chamada repetidamente em cada row evaluation. | **LOW** (design intencional) |
-| PERF-09 | `is_admin_or_director(p_org_id)` | Subquery em profiles para cada row avaliada na policy. O index `idx_profiles_org_role` ajuda, mas em tabelas grandes o overhead e significativo. | **LOW** (design intencional) |
+**Mitigacao atual:** Funcao `get_user_organization_id()` (SECURITY DEFINER, STABLE) reduz o custo em profiles/organizations.
 
----
+**Recomendacao:** Considerar mover organization_id para JWT custom claims (Supabase Dashboard > Auth > JWT > Custom Claims) para evitar a subquery em runtime:
+```sql
+-- Exemplo com JWT claims
+USING (organization_id = (auth.jwt() ->> 'organization_id')::uuid)
+```
 
-### 2.4 Observacoes sobre Denormalizacao
+#### PERF-02: `get_dashboard_stats()` faz 6 COUNT separados [MEDIUM]
 
-| Aspecto | Status | Notas |
-|---------|--------|-------|
-| contacts.total_value | Denormalizado | LTV calculado via RPCs atomicos (increment/decrement). Correto para evitar queries pesadas de SUM. |
-| contacts.lead_score | Denormalizado | Score mantido no contato, historico em lead_score_history. Correto. |
-| deals.title synced com contact.name | Denormalizado | Data migration feita, mas sem trigger automatico para manter sync. Pode ficar desatualizado se contato muda de nome apos criacao do deal. |
+**Funcao:** `get_dashboard_stats(p_organization_id)`
+**Migration:** `20260220100000_remove_companies_and_roles.sql`
+**Problema:** Executa 6 subqueries COUNT independentes contra deals, contacts, activities. Cada uma faz full-index scan.
+**Impacto:** Lento se datasets crescerem (>10k deals). Cada chamada ao dashboard aciona 6 queries.
+**Recomendacao:** Consolidar em CTEs ou materialized view com refresh periodico.
+
+#### PERF-03: `system_notifications` sem index em `organization_id` [MEDIUM]
+
+**Tabela:** `system_notifications`
+**Problema:** Nao tem index em `organization_id`. Quando RLS for corrigida (SEC-01), queries filtradas por org farao full scan.
+**Recomendacao:**
+```sql
+CREATE INDEX idx_system_notifications_org ON public.system_notifications(organization_id);
+```
+
+#### PERF-04: `deals.status` coluna legado sem uso claro [MEDIUM]
+
+**Tabela:** `deals`
+**Problema:** A coluna `status` (TEXT, nullable) coexiste com `is_won`/`is_lost` flags. A aplicacao usa `is_won`/`is_lost` para logica de negocio, mas `status` ainda existe. Queries podem estar consultando ambos, causando confusao e desperdicio de storage.
+**Recomendacao:** Verificar uso no app. Se nao usado, dropar em migration futura. Se usado, documentar semantica vs `is_won`/`is_lost`.
+
+#### PERF-05: Padrao N+1 em useDealsQuery [LOW]
+
+**Arquivo:** `lib/query/hooks/useDealsQuery.ts` (linhas 97, 203)
+**Problema:** Busca deals primeiro, depois faz segunda query para buscar profiles dos owners. Nao e tecnicamente N+1 (e 1+1), mas adiciona latencia extra.
+**Recomendacao:** Usar PostgREST embedded select: `supabase.from('deals').select('*, owner:profiles(id, first_name, last_name)')`.
+
+### 2.3 Padroes de Query na Aplicacao
+
+**Analise de `lib/supabase/*.ts`:**
+
+| Padrao | Frequencia | Avaliacao |
+|--------|------------|-----------|
+| `supabase.from('x').select('*')` | Alta | ATENCAO: select * em tabelas com JSONB e arrays e caro |
+| `getCurrentOrganizationId()` | Toda operacao | OK: cached por user, mas 1 roundtrip extra na primeira chamada |
+| Parallel queries (`Promise.all`) | Moderada | BOM: boards.ts faz boards+stages em paralelo |
+| Batch inserts | Rara | OK quando usado (import de contatos) |
+| N+1 queries | Encontrado | deals.ts busca profiles separadamente apos listar deals |
 
 ---
 
 ## 3. Auditoria de Integridade de Dados
 
-### 3.1 Constraints Ausentes
+### 3.1 Constraints CHECK Presentes
 
-| ID | Tabela.Coluna | Problema | Severidade |
-|----|---------------|----------|------------|
-| INT-01 | deals.board_id | FK sem ON DELETE CASCADE ou SET NULL. Se um board for hard-deleted (nao soft), deals ficam orfaos. | **HIGH** |
-| INT-02 | deals.stage_id | FK sem ON DELETE CASCADE ou SET NULL. Se um stage for removido, deals ficam com referencia invalida. | **HIGH** |
-| INT-03 | deals.contact_id | FK sem ON DELETE action. Contatos soft-deleted manteem referencia, mas se alguma operacao fizer hard delete, deals ficam orfaos. | **MEDIUM** |
-| INT-04 | activities.organization_id | Nullable sem NOT NULL. Dependeu de backfill (migration 20260223200001). Novos registros podem ter NULL se nao fornecerem. | **MEDIUM** |
-| INT-05 | contacts.organization_id | Nullable, deveria ser NOT NULL como deals. | **MEDIUM** |
-| INT-06 | boards.organization_id | Nullable, deveria ser NOT NULL. | **LOW** |
-| INT-07 | products.price | Sem CHECK (>= 0). Deal_items tem, mas products nao. | **LOW** (menor risco) |
+| Tabela | Coluna | Constraint | Migration |
+|--------|--------|------------|-----------|
+| profiles | role | `admin, diretor, corretor` | 20260220000000 |
+| organization_invites | role | `admin, diretor, corretor` | 20260220000000 |
+| contacts | contact_type | `PF, PJ` | 20260226100000 |
+| contacts | classification | 6 valores | 20260226100000 |
+| contacts | temperature | `HOT, WARM, COLD` | 20260226100000 |
+| contacts | lead_score | `0-100` | 20260226200000 |
+| contacts | address_state | `length = 2` | 20260226100000 |
+| deals | deal_type | `VENDA, LOCACAO, PERMUTA` | 20260226100003 |
+| deals | commission_rate | `0-100` | 20260226100003 |
+| deals | is_won/is_lost | NOT NULL DEFAULT false | Inicial |
+| activities | recurrence_type | `daily, weekly, monthly` | 20260226000000 |
+| activities | recurrence constraint cruzada | end_date requer type | 20260226000000 |
+| quick_scripts | category | 6 valores | Inicial |
+| ai_suggestion_interactions | suggestion_type | 4 valores | Inicial |
+| ai_suggestion_interactions | entity_type | `deal, contact` | Inicial |
+| ai_suggestion_interactions | action | 3 valores | Inicial |
+| user_consents | consent_type | 6 valores | Inicial |
+| audit_logs | severity | 5 niveis | Inicial |
+| notifications | type | 4 tipos | 20260226200001 |
+| prospecting_queues | status | 6 valores | 20260304100000 |
+| profiles | commission_rate | `0-100` | 20260226100004 |
+
+### 3.2 Problemas de Integridade
+
+#### INT-01: `activities.client_company_id` referencia tabela inexistente [HIGH]
+
+**Descricao:** Coluna `client_company_id` em `activities` referencava `crm_companies(id)`, mas `crm_companies` foi dropada. A FK pode ter sido removida implicitamente pelo CASCADE do DROP TABLE, mas a coluna permanece.
+**Risco:** Coluna orfao ocupando espaco e causando confusao. Se FK nao foi removida, inserts falharao.
+**Recomendacao:** `ALTER TABLE activities DROP COLUMN IF EXISTS client_company_id;`
+
+#### INT-02: `deals.contact_id` nullable sem validacao [HIGH]
+
+**Descricao:** Um deal pode existir sem contato associado (`contact_id IS NULL`). Isso permite deals "fantasmas" no pipeline sem nenhum contato vinculado.
+**Risco:** Dados inconsistentes no CRM. O trigger `check_deal_duplicate` ja lida com NULL (retorna early), mas deals sem contato podem acumular.
+**Recomendacao:** Avaliar se deals sem contato sao validos para o negocio imobiliario. Se nao, adicionar `NOT NULL` com migration de limpeza.
+
+#### INT-03: `updated_at` trigger ausente em tabelas principais [MEDIUM]
+
+**Descricao:** O trigger `update_updated_at_column()` so esta aplicado em:
+- `deal_notes`
+- `quick_scripts`
+- `contact_phones`
+- `contact_preferences`
+
+Tabelas PRINCIPAIS como `contacts`, `deals`, `boards`, `profiles`, `activities` NAO tem trigger de updated_at. A aplicacao atualiza `updated_at = NOW()` manualmente no codigo TypeScript.
+
+**Risco:** Se algum UPDATE no banco (via RPC, trigger ou admin) esquecer de atualizar `updated_at`, o campo fica desatualizado.
+**Recomendacao:** Aplicar trigger em todas as tabelas com `updated_at`:
+```sql
+CREATE TRIGGER update_contacts_updated_at BEFORE UPDATE ON contacts
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_deals_updated_at BEFORE UPDATE ON deals
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_boards_updated_at BEFORE UPDATE ON boards
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_activities_updated_at BEFORE UPDATE ON activities
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+```
+
+#### INT-04: Soft delete sem index dedicado em `deleted_at` [MEDIUM]
+
+**Descricao:** Tabelas com soft delete (contacts, deals, boards, activities) filtram `WHERE deleted_at IS NULL` constantemente, mas nenhuma tem index parcial dedicado para registros ativos.
+**Risco:** Os indexes compostos existentes (ex: `idx_deals_open`) ja cobrem parte dos casos, mas queries que filtram apenas `deleted_at IS NULL` nao se beneficiam.
+**Recomendacao:** Considerar indexes parciais se queries de "ativos" forem predominantes:
+```sql
+CREATE INDEX idx_contacts_active ON contacts(organization_id, created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX idx_deals_active ON deals(organization_id, created_at DESC) WHERE deleted_at IS NULL;
+```
+
+#### INT-05: `merge_contacts()` SECURITY DEFINER sem validacao de org [MEDIUM]
+
+**Funcao:** `merge_contacts()`
+**Migration:** `20260226100006_merge_contacts_rpc.sql`
+**Problema:** Funcao SECURITY DEFINER que faz UPDATE/DELETE em contacts, deals, phones, preferences sem verificar se os IDs pertencem a mesma organizacao do usuario chamador.
+**Risco:** Um usuario poderia teoricamente chamar a funcao com IDs de contatos de outra org (se conhecesse os UUIDs). Na pratica, o frontend envia IDs validos, mas a defesa nao esta no banco.
+**Recomendacao:** Adicionar validacao de org_id dentro da funcao:
+```sql
+-- Verificar que ambos contatos pertencem a org do caller
+IF v_org_id != (SELECT organization_id FROM contacts WHERE id = p_winner_id) THEN
+  RAISE EXCEPTION 'Unauthorized: contact does not belong to your organization';
+END IF;
+```
+
+#### INT-06: `increment/decrement_contact_ltv()` SECURITY DEFINER sem validacao [MEDIUM]
+
+**Funcoes:** `increment_contact_ltv()`, `decrement_contact_ltv()`
+**Migration:** `20260226200002_epic3_ltv_rpc.sql`
+**Problema:** SECURITY DEFINER sem verificar se o contact_id pertence a org do caller.
+**Recomendacao:** Converter para SECURITY INVOKER (RLS protegera) ou adicionar check de org.
 
 ---
 
-### 3.2 Risco de Registros Orfaos
-
-| Relacao | ON DELETE | Risco |
-|---------|-----------|-------|
-| deals -> boards | (none) | Orfao se board hard-deleted |
-| deals -> board_stages | (none) | Orfao se stage hard-deleted |
-| deals -> contacts | (none) | Orfao se contact hard-deleted |
-| deals -> profiles (owner_id) | (none) | Orfao se profile deletado |
-| contacts -> profiles (owner_id) | (none) | Orfao se profile deletado |
-| boards -> profiles (owner_id) | (none) | Orfao se profile deletado |
-| activities -> profiles (owner_id) | (none) | Orfao se profile deletado |
-| deal_items -> products | (none) | Orfao se product hard-deleted |
-| notifications -> organizations | (none) | Orfao se org deletada |
-| notifications -> profiles (owner_id) | (none) | Orfao se profile deletado |
-| lead_score_history -> organizations | (none) | Orfao se org deletada |
-| leads -> contacts (converted_to) | (none) | Orfao se contact hard-deleted |
-| leads -> profiles (owner_id) | (none) | Orfao se profile deletado |
-
-**Nota:** A maioria dos orfaos e mitigada pelo fato de o sistema usar soft delete (deleted_at) em vez de hard delete para entidades principais. O risco real e baixo para o uso normal, mas existiria se alguem usasse service_role para DELETE direto.
-
-**Recomendacao:** Adicionar `ON DELETE SET NULL` em FKs de owner_id para prevenir erros de constraint ao deletar profiles.
-
----
-
-### 3.3 Defaults Ausentes
-
-| ID | Tabela.Coluna | Problema | Severidade |
-|----|---------------|----------|------------|
-| INT-08 | contacts.status | Default 'ACTIVE' -- OK | -- |
-| INT-09 | contacts.stage | Default 'LEAD' -- OK | -- |
-| INT-10 | activities.type | NOT NULL sem default. Exige valor explicito. | Aceitavel |
-| INT-11 | leads.phone | Coluna nao existe (removida com company_name/role). Nao havia campo phone originalmente. | Funcional (leads usa formularios externos) |
-
----
-
-### 3.4 Consistencia de Dados
-
-| ID | Problema | Severidade |
-|----|----------|------------|
-| INT-12 | `deals.status` e `deals.stage_id` coexistem -- `status` e DEPRECATED mas nao tem constraint ligando ao `stage_id`. Pode ter valores divergentes. | **MEDIUM** |
-| INT-13 | `profiles.name` e `profiles.first_name` coexistem -- `name` e DEPRECATED (DB-014) mas ambos podem ser escritos. Trigger `handle_new_user` escreve apenas `first_name`, mas queries podem ler `name`. | **MEDIUM** (dados legacy) |
-| INT-14 | `profiles.avatar` e `profiles.avatar_url` coexistem -- mesma situacao de `name`/`first_name`. | **LOW** |
-
----
-
-## 4. Auditoria de Design do Schema
+## 4. Auditoria de Design de Schema
 
 ### 4.1 Normalizacao
 
-| ID | Problema | Severidade |
-|----|----------|------------|
-| DES-01 | `contacts.tags` (TEXT[]) e `contacts.custom_fields` (JSONB) -- dados estruturados em colunas EAV-style. Tags poderia referenciar a tabela `tags`. Custom fields usa definicoes de `custom_field_definitions` mas armazena valores inline. Padrao aceitavel para CRM com campos flexiveis. | **LOW** |
-| DES-02 | `deals.metadata` (JSONB) -- bag generico sem schema definido. Aceitavel para dados internos de automacao. | **LOW** |
-| DES-03 | `contacts.profile_data` (JSONB) -- dados complementares sem schema. Documentado via COMMENT. Aceitavel. | **LOW** |
+**Resultado: ADEQUADA para CRM SaaS.** O schema segue 3NF com desnormalizacoes pragmaticas:
+- `contacts.phone` (legado) coexiste com tabela `contact_phones` (correto)
+- `deals.title` duplica `contacts.name` (intencional, migration 20260301)
+- `contacts.tags` e `TEXT[]` inline (pragmatico, evita tabela N:N para volume baixo)
 
----
+### 4.2 Problemas de Design
 
-### 4.2 Consistencia de Nomenclatura
+#### DES-01: `lifecycle_stages` PK tipo TEXT sem FK enforcement [HIGH]
 
-| ID | Problema | Severidade |
-|----|----------|------------|
-| DES-04 | Mistura de naming conventions em tabelas: `board_stages` (snake_case composto) vs `lifecycle_stages` vs `contact_phones` vs `deal_notes`. Consistente dentro do padrao `{entity}_{sub}`. | OK |
-| DES-05 | `quick_scripts` nao segue o padrao de nomenclatura. Poderia ser `script_templates` ou similar. | **LOW** (cosmetic) |
-| DES-06 | Duas tabelas de notificacoes: `system_notifications` (legado) e `notifications` (Epic 3). Sobreposicao funcional. | **MEDIUM** |
-| DES-07 | Tabelas webhook usam dois padroes: `webhook_events_in`/`webhook_events_out`/`webhook_deliveries` (schema init) vs nomes em funcoes `integration_webhook_events`/`integration_webhook_deliveries` (coderabbit fix -- bug). | **HIGH** (ver SEC-03) |
+**Tabela:** `lifecycle_stages`
+**Problema:** PK e TEXT ('LEAD', 'MQL', etc), e `contacts.stage` referencia essa tabela semanticamente mas NAO tinha FK constraint. A migration `20260224000006_db015_fk_contacts_stage.sql` adicionou a FK.
+**Risco:** Se a FK foi criada com sucesso, OK. Verificar estado atual do banco.
+**Recomendacao:** Validar que a constraint existe em producao:
+```sql
+SELECT conname FROM pg_constraint WHERE conrelid = 'contacts'::regclass AND confrelid = 'lifecycle_stages'::regclass;
+```
 
----
+#### DES-02: `contacts.phone` legado vs `contact_phones` [MEDIUM]
 
-### 4.3 Uso de Tipos
+**Problema:** Existem dois locais para telefone: `contacts.phone` (coluna legado TEXT) e `contact_phones` (tabela dedicada com tipo, WhatsApp, primario). O app pode usar ambos inconsistentemente.
+**Recomendacao:** Manter `contacts.phone` como cache do telefone primario (synced via trigger) ou deprecar com timeline. Documentar decisao.
 
-| Aspecto | Status | Notas |
-|---------|--------|-------|
-| UUIDs como PKs | Consistente | Todas as tabelas usam UUID com gen_random_uuid() |
-| TIMESTAMPTZ vs TIMESTAMP | Consistente | Todas usam TIMESTAMPTZ |
-| NUMERIC para valores monetarios | Correto | deals.value, deal_items.price, products.price |
-| TEXT para enums | Consistente | Todas usam CHECK constraints em TEXT (nao ENUM type) |
-| TEXT[] para arrays | Usado em tags, events, regions | Aceitavel para Supabase/PostgREST |
-| JSONB para dados flexiveis | Consistente | messages, profile_data, metadata, custom_fields |
-| VARCHAR vs TEXT | Inconsistente | `security_alerts` usa VARCHAR(50/20/255), todas as outras usam TEXT | **MEDIUM** |
+#### DES-03: `deals.status` TEXT legado vs `is_won`/`is_lost` [MEDIUM]
 
----
+**Problema:** Dois sistemas de status coexistem. `status` TEXT (sem CHECK, sem default claro) e `is_won`/`is_lost` booleans.
+**Recomendacao:** Se `status` nao e usado pelo app, dropar. Se e, definir CHECK constraint e documentar relacao com flags.
 
-### 4.4 Qualidade dos Relacionamentos
+#### DES-04: Tabelas sem `updated_at` [MEDIUM]
 
-| Aspecto | Status |
-|---------|--------|
-| organizations como tenant root | Correto. Todas as tabelas CRM referenciam org_id. |
-| Soft delete pattern | Consistente (deleted_at TIMESTAMPTZ) em entidades principais |
-| Cascade delete em filhas | Correto: deal_notes, deal_files, deal_items, contact_phones, contact_preferences usam ON DELETE CASCADE |
-| Owner_id pattern | Consistente: contacts, deals, activities, boards tem owner_id FK -> profiles |
+**Tabelas afetadas:** `lifecycle_stages`, `board_stages`, `rate_limits`, `ai_audio_notes`, `ai_suggestion_interactions`, `lead_score_history`, `webhook_events_in`, `webhook_events_out`, `webhook_deliveries`, `notifications`
+**Problema:** Nao tem coluna `updated_at`. Para tabelas append-only (audit_logs, lead_score_history) isso e aceitavel, mas para `notifications` (que tem `is_read` mutavel) e `board_stages` (que podem ser reordenadas) e um problema.
+**Recomendacao:** Adicionar `updated_at` em `notifications` e `board_stages` com trigger.
+
+#### DES-05: Mistura VARCHAR e TEXT [LOW]
+
+**Tabelas:** `security_alerts` usa `VARCHAR(50)`, `VARCHAR(20)`, `VARCHAR(255)` enquanto todo o resto do schema usa `TEXT`.
+**Problema:** Inconsistencia de convencao. Em PostgreSQL, VARCHAR e TEXT tem mesma performance.
+**Recomendacao:** Padronizar como TEXT em migration futura (nao e urgente).
 
 ---
 
 ## 5. Auditoria de Migrations
 
-### 5.1 Qualidade das Migrations
+### 5.1 Padroes Observados
 
-| ID | Problema | Severidade |
-|----|----------|------------|
-| MIG-01 | `20260225000000_coderabbit_pr5_fixes.sql` reescreveu `notify_deal_stage_changed()` referenciando tabelas que nao existem (`integration_webhook_events`, `integration_webhook_deliveries`). Isso quebrou o webhook outbound. | **CRITICAL** |
-| MIG-02 | Varias migrations nao sao idempotentes. Ex: `20260226000000_add_recurrence_fields.sql` usa `ALTER TABLE ADD COLUMN` sem `IF NOT EXISTS` para constraints, e `CREATE INDEX` sem `IF NOT EXISTS`. Se rodada duas vezes, falharia. | **HIGH** |
-| MIG-03 | Migration `20260226200001_epic3_notifications.sql` cria tabela `notifications` sem qualificar schema (`public.notifications`). Funciona mas inconsistente com o padrao do projeto. | **MEDIUM** |
+| Padrao | Frequencia | Avaliacao |
+|--------|------------|-----------|
+| `IF NOT EXISTS` / `IF EXISTS` | Alta | BOM: idempotencia |
+| `BEGIN; ... COMMIT;` | Moderada | BOM: transacionalidade |
+| `DROP POLICY IF EXISTS` antes de `CREATE POLICY` | Alta | BOM: re-executavel |
+| Comentarios descritivos | Alta | BOM: documentacao inline |
+| Versionamento por story | Alta | BOM: rastreabilidade |
 
----
+### 5.2 Problemas de Migration
 
-### 5.2 Rollback
+#### MIG-01: Ausencia de rollback scripts [MEDIUM]
 
-| Aspecto | Status |
-|---------|--------|
-| Migrations com BEGIN/COMMIT | Maioria sim (transacionais) |
-| Scripts de rollback | NAO existem. Nenhuma migration tem script de reversao. |
-| Additive vs destructive | Maioria e aditiva (ADD COLUMN, CREATE TABLE). Excecoes: DROP TABLE crm_companies, DROP COLUMN tags/custom_fields de deals. |
+**Problema:** Nenhuma migration tem script de rollback correspondente. Se uma migration falhar parcialmente ou precisar ser revertida, nao ha procedimento documentado.
+**Recomendacao:** Para migrations futuras, incluir bloco de rollback comentado ou arquivo `.rollback.sql`.
 
-**Recomendacao:** Para futuras migrations, incluir script de rollback (mesmo como comentario) ou usar `supabase db diff --linked` para gerar reversos.
+#### MIG-02: Schema init muito grande (1900+ linhas) [MEDIUM]
 
----
-
-### 5.3 Breaking Changes
-
-| Migration | Mudanca | Impacto |
-|-----------|---------|---------|
-| 20260220100000 | DROP TABLE crm_companies | Frontend que referenciava empresas precisou ser atualizado |
-| 20260227220048 | DROP COLUMN deals.tags, deals.custom_fields | Frontend que lia tags/custom_fields de deals precisou migrar para contacts |
-| 20260224000005 | profiles.name -> first_name | Trigger atualizado, mas queries diretas em name podem retornar dados antigos |
+**Arquivo:** `20251201000000_schema_init.sql`
+**Problema:** Arquivo consolidado com 26 tabelas, funcoes, triggers, RLS, seeds. Dificulta auditoria, debugging e rollback parcial.
+**Recomendacao:** Para proxima consolidacao, considerar split por dominio (core, ai, security, integrations).
 
 ---
 
-## 6. Debitos Tecnicos Consolidados
+## 6. Auditoria de Funcoes e Triggers
 
-### CRITICAL (3)
+### 6.1 Funcoes SECURITY DEFINER - Analise de Risco
 
-| ID | Descricao | Tabela/Funcao | Risco |
-|----|-----------|---------------|-------|
-| SEC-03 | `notify_deal_stage_changed()` referencia tabelas inexistentes | Function | Webhooks outbound completamente quebrados |
-| INT-01 | deals.board_id FK sem ON DELETE | deals | Orfaos e erros de integridade |
-| MIG-01 | Migration coderabbit introduziu bug de tabela inexistente | Migration 24 | Mesmo que SEC-03 |
+#### FUNC-01: `merge_contacts()` sem validacao cross-tenant [HIGH]
 
-### HIGH (7)
+**Detalhado em INT-05.** Funcao DEFINER que opera em multiplas tabelas sem verificar ownership.
 
-| ID | Descricao | Tabela/Funcao | Risco |
-|----|-----------|---------------|-------|
-| SEC-01 | `ai_suggestion_interactions` RLS permissiva | ai_suggestion_interactions | Cross-user data access |
-| SEC-04 | `merge_contacts()` DEFINER sem validacao de org | Function | Cross-tenant merge |
-| INT-02 | deals.stage_id FK sem ON DELETE | deals | Orfaos |
-| DES-07 | Naming inconsistente em webhook tables (bug) | Functions | Confusao + SEC-03 |
-| PERF-06 | N+1 deals -> contacts no kanban | Schema design | Performance |
-| MIG-02 | Migrations nao idempotentes | Varias | Re-run failure |
-| DES-06 | Duplicidade system_notifications vs notifications | Schema design | Confusao de dominio |
+#### FUNC-02: `get_dashboard_stats()` performance [MEDIUM]
 
-### MEDIUM (14)
+**Detalhado em PERF-02.** 6 subqueries independentes.
 
-| ID | Descricao | Tabela |
-|----|-----------|--------|
-| SEC-05 | LTV RPCs DEFINER sem validacao | Functions |
-| SEC-06 | RLS subquery direta em vez de helper function | contact_phones, contact_preferences, etc. |
-| SEC-07 | notifications sem DELETE policy | notifications |
-| PERF-01 | Index ausente deals(contact_id, board_id) | deals |
-| PERF-02 | Index ausente activities(org_id, date DESC) | activities |
-| PERF-03 | Index ausente deals(org_id, is_won, is_lost) | deals |
-| PERF-07 | N+1 deals -> board_stages | Schema design |
-| INT-03 | deals.contact_id FK sem ON DELETE | deals |
-| INT-04 | activities.organization_id nullable | activities |
-| INT-05 | contacts.organization_id nullable | contacts |
-| INT-12 | deals.status e stage_id coexistem (deprecated) | deals |
-| INT-13 | profiles.name e first_name coexistem (deprecated) | profiles |
-| DES-08 | VARCHAR vs TEXT inconsistente em security_alerts | security_alerts |
-| MIG-03 | notifications sem schema qualifier | Migration |
+#### FUNC-03: `check_deal_duplicate()` sem indice otimizado [MEDIUM]
 
-### LOW (7)
-
-| ID | Descricao | Tabela |
-|----|-----------|--------|
-| SEC-02 | rate_limits RLS permissiva | rate_limits |
-| INT-06 | boards.organization_id nullable | boards |
-| INT-07 | products.price sem CHECK (>= 0) | products |
-| INT-14 | profiles.avatar e avatar_url coexistem | profiles |
-| DES-01 | contacts.tags como TEXT[] (nao FK) | contacts |
-| DES-05 | quick_scripts naming inconsistente | quick_scripts |
-| PERF-04 | Index ausente contacts(org_id, name) | contacts |
+**Funcao:** `check_deal_duplicate()` (trigger em deals)
+**Problema:** Faz SELECT em `deals` com filtro `contact_id + stage_id + !is_won + !is_lost + !deleted_at`. Nao existe index composto dedicado para essa combinacao especifica.
+**Impacto:** Lento em organizacoes com muitos deals ativos.
+**Recomendacao:**
+```sql
+CREATE INDEX idx_deals_contact_stage_active ON deals(contact_id, stage_id)
+  WHERE is_won = false AND is_lost = false AND deleted_at IS NULL;
+```
 
 ---
 
-## 7. Plano de Acao Recomendado
+## 7. Inventario de Debitos Tecnicos
 
-### Prioridade 1 - Imediata (CRITICAL)
+### 7.1 Priorizacao
 
-1. **Fix notify_deal_stage_changed()** -- Reescrever funcao usando nomes corretos de tabelas (`webhook_events_out`, `webhook_deliveries`) e campos correspondentes. Migration corretiva.
+| ID | Severidade | Categoria | Descricao | Esforco |
+|----|------------|-----------|-----------|---------|
+| SEC-01 | HIGH | Seguranca | `system_notifications` RLS permissiva | Baixo |
+| INT-01 | HIGH | Integridade | `activities.client_company_id` orfao | Baixo |
+| INT-02 | HIGH | Integridade | `deals.contact_id` nullable | Medio |
+| PERF-01 | HIGH | Performance | RLS subqueries em profiles | Alto |
+| DES-01 | HIGH | Design | `lifecycle_stages` FK verificar | Baixo |
+| FUNC-01 | HIGH | Seguranca | `merge_contacts()` cross-tenant | Baixo |
+| SEC-02 | MEDIUM | Seguranca | `rate_limits` RLS permissiva | Baixo |
+| SEC-03 | MEDIUM | Seguranca | FK orfao client_company_id | Baixo |
+| PERF-02 | MEDIUM | Performance | `get_dashboard_stats()` 6 counts | Medio |
+| PERF-03 | MEDIUM | Performance | `system_notifications` sem index org | Baixo |
+| PERF-04 | MEDIUM | Performance | `deals.status` legado | Baixo |
+| INT-03 | MEDIUM | Integridade | `updated_at` trigger ausente em tabelas principais | Baixo |
+| INT-04 | MEDIUM | Integridade | Soft delete sem index `deleted_at` | Baixo |
+| INT-05 | MEDIUM | Integridade | `merge_contacts()` org check | Baixo |
+| INT-06 | MEDIUM | Integridade | LTV RPCs DEFINER sem org check | Baixo |
+| DES-02 | MEDIUM | Design | `contacts.phone` legado vs `contact_phones` | Medio |
+| DES-03 | MEDIUM | Design | `deals.status` vs `is_won/is_lost` | Baixo |
+| DES-04 | MEDIUM | Design | Tabelas sem `updated_at` | Baixo |
+| FUNC-02 | MEDIUM | Performance | Dashboard stats 6 counts | Medio |
+| FUNC-03 | MEDIUM | Performance | Deal duplicate sem index otimizado | Baixo |
+| MIG-01 | MEDIUM | Migrations | Sem rollback scripts | Medio |
+| MIG-02 | MEDIUM | Migrations | Schema init monolitico | Baixo |
+| DES-05 | LOW | Design | VARCHAR vs TEXT inconsistencia | Trivial |
+| PERF-05 | LOW | Performance | N+1 em useDealsQuery (1+1) | Baixo |
 
-2. **Adicionar ON DELETE SET NULL/CASCADE em FKs criticas** -- `deals.board_id` e `deals.stage_id` devem ter ON DELETE SET NULL para prevenir erros de constraint.
+### 7.2 Plano de Acao Recomendado
 
-### Prioridade 2 - Proxima Sprint (HIGH)
+#### Sprint 1 - Quick Wins (esforco baixo, impacto alto)
 
-3. **Restringir RLS de ai_suggestion_interactions** -- Criar policy `user_id = auth.uid()`.
+1. **SEC-01**: Corrigir RLS de `system_notifications` (1 migration, 10 linhas)
+2. **INT-01**: Dropar `activities.client_company_id` (1 ALTER DROP)
+3. **DES-01**: Verificar FK `contacts.stage -> lifecycle_stages.id` em producao
+4. **FUNC-01/INT-05**: Adicionar validacao de org em `merge_contacts()` (5 linhas)
+5. **INT-06**: Converter LTV RPCs para SECURITY INVOKER (2 linhas cada)
+6. **PERF-03**: Adicionar index em `system_notifications.organization_id` (1 linha)
+7. **FUNC-03**: Adicionar index `idx_deals_contact_stage_active` (1 linha)
 
-4. **Validar org em merge_contacts()** -- Adicionar check de que ambos contatos pertencem a org do caller.
+#### Sprint 2 - Melhorias Estruturais (esforco medio)
 
-5. **Unificar system_notifications e notifications** -- Definir qual tabela e a canonica.
+8. **INT-03**: Adicionar triggers `updated_at` em tabelas principais (contacts, deals, boards, profiles, activities)
+9. **DES-02**: Documentar relacao `contacts.phone` vs `contact_phones` e definir estrategia
+10. **DES-03**: Avaliar e limpar `deals.status` (verificar uso no app antes)
+11. **INT-04**: Adicionar indexes parciais para `deleted_at IS NULL`
+12. **DES-04**: Adicionar `updated_at` em `notifications` e `board_stages`
 
-### Prioridade 3 - Backlog (MEDIUM)
+#### Sprint 3 - Otimizacoes (esforco alto)
 
-6. Migrar subqueries diretas para `get_user_organization_id()` em policies.
-7. Adicionar NOT NULL em organization_id das tabelas contacts, activities, boards.
-8. Adicionar indexes MEDIUM listados.
-9. Validar org em increment/decrement_contact_ltv().
-10. Adicionar DELETE policy em notifications (se necessario).
-11. Tornar migrations futuras idempotentes (IF NOT EXISTS).
-
-### Prioridade 4 - Opcional (LOW)
-
-12. Normalizar VARCHAR -> TEXT em security_alerts.
-13. Adicionar CHECK (>= 0) em products.price.
-14. Planejar DROP de colunas deprecated (profiles.name, profiles.avatar, deals.status) com migration segura.
-15. Considerar Supabase Vault para chaves de API.
+13. **PERF-01**: Avaliar JWT custom claims para org_id (requer mudanca em auth + todas as policies)
+14. **PERF-02**: Refatorar `get_dashboard_stats()` com CTEs ou materialized view
+15. **MIG-01**: Estabelecer padrao de rollback scripts para migrations futuras
 
 ---
 
-## 8. Metricas do Schema
+## 8. Incidentes Anteriores
+
+### Incidente: auth.refresh_tokens sequence desync (2026-03-02)
+
+- **Sintoma:** "Database error granting user" no login em producao
+- **Causa raiz:** `auth.refresh_tokens_id_seq` com `last_value=84`, mas `MAX(id)=280` -> PK duplicada
+- **Fix:** `SELECT setval('auth.refresh_tokens_id_seq', (SELECT MAX(id) FROM auth.refresh_tokens));`
+- **Origem:** Copia de dados sem reset de sequence
+- **Prevencao:** Apos importacao de dados em tabelas auth com bigint PKs, sempre executar setval
+
+---
+
+## 9. Metricas do Schema
 
 | Metrica | Valor |
 |---------|-------|
-| Total de tabelas | 36 (excluindo crm_companies removida) |
-| Tabelas com RLS | 36/36 (100%) |
-| Tabelas com soft delete | 8 (organizations, boards, contacts, deals, activities, leads + crm_companies removida) |
-| Total de indexes | ~60+ |
-| Total de functions | ~20 |
-| Total de triggers | 14 |
+| Total de tabelas public | 39 |
+| Tabelas com soft delete | 5 (contacts, deals, boards, activities, organizations) |
+| Tabelas com RLS habilitada | 39/39 (100%) |
+| Funcoes public | ~25 |
+| Triggers | 11 |
+| Indexes (excl. PK) | ~60+ |
+| Migrations | 52 arquivos |
 | Storage buckets | 3 (avatars, audio-notes, deal-files) |
-| Realtime tables | 5 (deals, activities, contacts, board_stages, boards) |
-| SECURITY DEFINER functions | ~12 (helper, auth, api_key, ltv, merge, notify) |
-| SECURITY INVOKER functions | ~8 (deal ops, stage counts, reassign, audit, duplicate check) |
-| CHECK constraints | ~15 |
-| UNIQUE constraints | ~8 |
-| Foreign keys | ~45+ |
+| Tabelas no Realtime | 4 (prospecting_queues, saved_queues, daily_goals, org_settings) |
+| Extensoes | 5 (uuid-ossp, pgcrypto, unaccent, pg_net, pg_trgm) |
+| RBAC roles | 3 (admin > diretor > corretor) |
+
+---
+
+## 10. Conclusao
+
+O banco de dados do ZmobCRM esta em bom estado geral, com uma evolucao clara de seguranca (de politicas permissivas para org-scoped + role-based) ao longo das 52 migrations. Os principais pontos de atencao sao:
+
+1. **Seguranca:** 2 tabelas (`system_notifications`, `rate_limits`) ainda com RLS permissiva do schema original; funcao `merge_contacts()` sem validacao cross-tenant.
+
+2. **Performance:** O padrao de subquery em profiles para RLS e funcional mas nao ideal para escala. JWT custom claims seria a evolucao natural.
+
+3. **Integridade:** Ausencia de triggers `updated_at` em tabelas principais e coluna orfao `activities.client_company_id` sao os itens mais impactantes.
+
+4. **Design:** Schema bem estruturado com normalizacao pragmatica. Debitos legados (`deals.status`, `contacts.phone`) sao conhecidos e gerenciaveis.
+
+Nenhum debito CRITICAL foi encontrado. Os 6 debitos HIGH podem ser resolvidos em 1-2 sprints com esforco baixo a medio.
+
+---
+
+*Documento gerado por @data-engineer (Dara) - Brownfield Discovery Phase 2*
+*Ultima atualizacao: 2026-03-06*

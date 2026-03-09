@@ -27,7 +27,7 @@ export function DonutChart({ items, title }: DonutChartProps) {
   const total = items.reduce((sum, item) => sum + item.count, 0)
 
   if (total === 0) {
-    return <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">Sem dados</p>
+    return <p className="text-sm text-muted-foreground dark:text-muted-foreground py-4 text-center">Sem dados</p>
   }
 
   // Build conic-gradient segments
@@ -46,7 +46,7 @@ export function DonutChart({ items, title }: DonutChartProps) {
   return (
     <div>
       {title && (
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">{title}</p>
+        <p className="text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-3">{title}</p>
       )}
       <div className="flex items-center gap-6">
         <div
@@ -66,10 +66,10 @@ export function DonutChart({ items, title }: DonutChartProps) {
                 className="w-3 h-3 rounded-sm flex-shrink-0"
                 style={{ backgroundColor: s.color }}
               />
-              <span className="text-xs text-slate-600 dark:text-slate-400 truncate" title={s.label}>
+              <span className="text-xs text-secondary-foreground dark:text-muted-foreground truncate" title={s.label}>
                 {s.label}
               </span>
-              <span className="text-xs font-medium text-slate-700 dark:text-slate-300 ml-auto">
+              <span className="text-xs font-medium text-secondary-foreground dark:text-muted-foreground ml-auto">
                 {s.count} ({Math.round(s.pct)}%)
               </span>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, Plus, Settings, Trash2 } from 'lucide-react';
 import { Board } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface BoardSelectorProps {
   boards: Board[];
@@ -46,15 +46,15 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
     <div className="relative">
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-white/5 border border-border hover:bg-background dark:hover:bg-white/10 transition-colors"
       >
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-primary-500" />
-          <span className="font-medium text-slate-900 dark:text-white">
+          <span className="font-medium text-foreground">
             {activeBoard.name}
           </span>
         </div>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={16} className={`text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
 
       {isOpen && (
@@ -63,7 +63,7 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 z-50 w-72 bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden">
+          <div className="absolute top-full left-0 mt-2 z-50 w-72 bg-white dark:bg-dark-card border border-border rounded-xl shadow-xl overflow-hidden">
             {/* Board List */}
             <div className="max-h-80 overflow-y-auto py-1">
               {boards.map(board => (
@@ -72,23 +72,23 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
                   className={`group flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer ${
                     board.id === activeBoard.id
                       ? 'bg-primary-50 dark:bg-primary-500/10'
-                      : 'hover:bg-slate-50 dark:hover:bg-white/5'
+                      : 'hover:bg-background dark:hover:bg-white/5'
                   }`}
                   onClick={() => { onSelectBoard(board.id); setIsOpen(false); }}
                 >
                   <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                    board.id === activeBoard.id ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-600'
+                    board.id === activeBoard.id ? 'bg-primary-500' : 'bg-accent dark:bg-accent'
                   }`} />
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-medium truncate ${
                       board.id === activeBoard.id
                         ? 'text-primary-600 dark:text-primary-400'
-                        : 'text-slate-700 dark:text-slate-200'
+                        : 'text-secondary-foreground dark:text-muted-foreground'
                     }`}>
                       {board.name}
                     </p>
                     {board.description && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate">
                         {board.description}
                       </p>
                     )}
@@ -104,7 +104,7 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
                           onEditBoard(board);
                           setIsOpen(false);
                         }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground hover:bg-accent dark:hover:bg-white/10 transition-colors"
                         title="Editar board"
                       >
                         <Settings size={14} />
@@ -119,7 +119,7 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
                           onDeleteBoard(board.id);
                           setIsOpen(false);
                         }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                         title="Excluir board"
                       >
                         <Trash2 size={14} />
@@ -131,7 +131,7 @@ export const BoardSelector: React.FC<BoardSelectorProps> = ({
             </div>
 
             {/* Create New Board */}
-            <div className="border-t border-slate-200 dark:border-white/10">
+            <div className="border-t border-border">
               <Button
                 type="button"
                 onClick={() => { onCreateBoard(); setIsOpen(false); }}

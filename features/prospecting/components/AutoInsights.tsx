@@ -110,8 +110,8 @@ export function AutoInsights({ metrics, isLoading }: AutoInsightsProps) {
   if (isLoading || insights.length === 0) return null
 
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-5">
-      <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-5">
+      <h3 className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3 flex items-center gap-2">
         <Lightbulb size={16} className="text-amber-500" />
         Insights Automáticos
       </h3>
@@ -123,8 +123,8 @@ export function AutoInsights({ metrics, isLoading }: AutoInsightsProps) {
           >
             <insight.icon size={16} className={`${insight.iconColor} shrink-0 mt-0.5`} />
             <div className="min-w-0">
-              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{insight.title}</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{insight.description}</p>
+              <p className="text-sm font-medium text-foreground dark:text-muted-foreground">{insight.title}</p>
+              <p className="text-xs text-secondary-foreground dark:text-muted-foreground mt-0.5">{insight.description}</p>
             </div>
           </div>
         ))}

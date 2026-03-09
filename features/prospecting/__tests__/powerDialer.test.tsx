@@ -9,7 +9,7 @@ import type { SessionStats } from '../ProspectingPage'
 
 // ── Mocks ──────────────────────────────────────────────
 
-vi.mock('@/app/components/ui/Button', () => ({
+vi.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
     // eslint-disable-next-line no-restricted-syntax -- mock component
     <button {...props}>{children}</button>

@@ -7,7 +7,7 @@ import { QuickActionsPanel } from '../components/QuickActionsPanel'
 
 // ── Mocks ──────────────────────────────────────────────
 
-vi.mock('@/app/components/ui/Button', () => ({
+vi.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
     <button {...props}>{children}</button>
   ),

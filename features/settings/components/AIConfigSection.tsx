@@ -3,7 +3,7 @@ import { useSettings } from '@/context/settings/SettingsContext';
 import { Bot, Key, Cpu, CheckCircle, AlertCircle, Loader2, Save, Trash2, ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Performance: keep provider/model catalog outside the component to avoid reallocations on every render.
 const AI_PROVIDERS = [
@@ -245,7 +245,7 @@ export const AIConfigSection: React.FC = () => {
     useEffect(() => {
         // Keep select in sync when aiModel changes externally (initial load / provider auto-pick / save custom).
         setModelSelectValue(isCatalogModel ? aiModel : 'custom');
-    }, [aiProvider, aiModel]);
+    }, [aiProvider, aiModel, isCatalogModel]);
 
     // UX: for "Outro (Digitar ID)" we keep a local draft and only persist on explicit save.
     // This avoids POST /api/settings/ai failing (aiModel has z.string().min(1)).
@@ -283,32 +283,32 @@ export const AIConfigSection: React.FC = () => {
     };
 
     return (
-        <div id="ai-config" className="mt-6 border-t border-slate-200 dark:border-white/10 pt-6 scroll-mt-8">
+        <div id="ai-config" className="mt-6 border-t border-border pt-6 scroll-mt-8">
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-1.5 bg-purple-100 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
                     <Bot size={24} />
                 </div>
                 <div>
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">Inteligência Artificial</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Configure qual cérebro vai alimentar seu CRM.</p>
+                    <h2 className="text-lg font-bold text-foreground font-display">Inteligência Artificial</h2>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">Configure qual cérebro vai alimentar seu CRM.</p>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm space-y-4">
+            <div className="bg-white dark:bg-card border border-border rounded-xl p-4 shadow-sm space-y-4">
 
                 {/* Non-admin read-only summary */}
                 {!isAdmin && (
-                    <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-lg p-3">
-                        <div className="text-sm text-slate-700 dark:text-slate-200">
+                    <div className="bg-white dark:bg-background border border-border rounded-lg p-3">
+                        <div className="text-sm text-secondary-foreground dark:text-muted-foreground">
                             <span className="font-semibold">Status:</span> Configurado pela organização
                         </div>
-                        <div className="text-sm text-slate-700 dark:text-slate-200 mt-1">
+                        <div className="text-sm text-secondary-foreground dark:text-muted-foreground mt-1">
                             <span className="font-semibold">Provedor:</span> {aiProvider}
                         </div>
-                        <div className="text-sm text-slate-700 dark:text-slate-200 mt-1">
+                        <div className="text-sm text-secondary-foreground dark:text-muted-foreground mt-1">
                             <span className="font-semibold">Modelo:</span> {aiModel}
                         </div>
-                        <div className="text-sm text-slate-700 dark:text-slate-200 mt-1">
+                        <div className="text-sm text-secondary-foreground dark:text-muted-foreground mt-1">
                             <span className="font-semibold">Chave:</span> {aiKeyConfigured ? 'configurada' : 'não configurada'}
                         </div>
                     </div>
@@ -321,7 +321,7 @@ export const AIConfigSection: React.FC = () => {
                 {/* Provider Selection */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label htmlFor="ai-provider-select" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                        <label htmlFor="ai-provider-select" className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground flex items-center gap-2">
                             <Cpu size={14} /> Provedor de IA
                         </label>
                         <div className="relative">
@@ -329,13 +329,13 @@ export const AIConfigSection: React.FC = () => {
                                 id="ai-provider-select"
                                 value={aiProvider}
                                 onChange={handleProviderChange}
-                                className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+                                className="w-full appearance-none bg-background dark:bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
                             >
                                 {AI_PROVIDERS.map(p => (
                                     <option key={p.id} value={p.id}>{p.name}</option>
                                 ))}
                             </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                             </div>
                         </div>
@@ -343,7 +343,7 @@ export const AIConfigSection: React.FC = () => {
 
                     {/* Model Selection */}
                     <div className="space-y-2">
-                        <label htmlFor="ai-model-select" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                        <label htmlFor="ai-model-select" className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground flex items-center gap-2">
                             <Bot size={14} /> Modelo
                         </label>
                         <div className="relative">
@@ -368,7 +368,7 @@ export const AIConfigSection: React.FC = () => {
                                         showToast(err instanceof Error ? err.message : 'Falha ao atualizar modelo', 'error');
                                     }
                                 }}
-                                className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+                                className="w-full appearance-none bg-background dark:bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
                             >
                                 {currentProvider?.models.map(m => (
                                     <option key={m.id} value={m.id}>
@@ -377,7 +377,7 @@ export const AIConfigSection: React.FC = () => {
                                 ))}
                                 <option value="custom">Outro (Digitar ID)</option>
                             </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                             </div>
                         </div>
@@ -392,9 +392,9 @@ export const AIConfigSection: React.FC = () => {
                                         setCustomModelDirty(true);
                                     }}
                                     placeholder="Digite o ID do modelo (ex: gemini-2.5-pro)"
-                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+                                    className="w-full bg-white dark:bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-xs text-muted-foreground mt-1">
                                     Consulte a documentação do provedor para obter o ID correto.
                                 </p>
 
@@ -424,7 +424,7 @@ export const AIConfigSection: React.FC = () => {
                                         }}
                                         disabled={isSavingModel || !customModelDraft.trim()}
                                         className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all ${isSavingModel || !customModelDraft.trim()
-                                            ? 'bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed'
+                                            ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                                             : 'bg-purple-600 hover:bg-purple-700 text-white shadow-sm'
                                             }`}
                                     >
@@ -438,7 +438,7 @@ export const AIConfigSection: React.FC = () => {
                                             setCustomModelDraft(aiModel);
                                             setCustomModelDirty(false);
                                         }}
-                                        className="px-3 py-2 rounded-lg text-sm font-medium bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 transition-colors"
+                                        className="px-3 py-2 rounded-lg text-sm font-medium bg-muted dark:bg-white/5 hover:bg-accent dark:hover:bg-white/10 text-secondary-foreground dark:text-muted-foreground transition-colors"
                                     >
                                         Reset
                                     </Button>
@@ -468,7 +468,7 @@ export const AIConfigSection: React.FC = () => {
                                     className="sr-only peer"
                                     aria-label="Ativar Modo Pensamento"
                                 />
-                                <div className="w-11 h-6 bg-red-500 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 dark:peer-focus:ring-red-800 rounded-full peer dark:bg-red-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-500 dark:peer-checked:bg-green-600"></div>
+                                <div className="w-11 h-6 bg-red-500 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 dark:peer-focus:ring-red-800 rounded-full peer dark:bg-red-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-border peer-checked:bg-green-500 dark:peer-checked:bg-green-600"></div>
                             </label>
                         </div>
                     </div>
@@ -494,7 +494,7 @@ export const AIConfigSection: React.FC = () => {
                                     className="sr-only peer"
                                     aria-label="Ativar Prompt Caching"
                                 />
-                                <div className="w-11 h-6 bg-red-500 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 dark:peer-focus:ring-red-800 rounded-full peer dark:bg-red-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-500 dark:peer-checked:bg-green-600"></div>
+                                <div className="w-11 h-6 bg-red-500 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 dark:peer-focus:ring-red-800 rounded-full peer dark:bg-red-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-border peer-checked:bg-green-500 dark:peer-checked:bg-green-600"></div>
                             </label>
                         </div>
                     </div>
@@ -520,7 +520,7 @@ export const AIConfigSection: React.FC = () => {
                                     className="sr-only peer"
                                     aria-label="Ativar busca na web"
                                 />
-                                <div className="w-11 h-6 bg-red-500 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 dark:peer-focus:ring-red-800 rounded-full peer dark:bg-red-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-500 dark:peer-checked:bg-green-600"></div>
+                                <div className="w-11 h-6 bg-red-500 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 dark:peer-focus:ring-red-800 rounded-full peer dark:bg-red-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-border peer-checked:bg-green-500 dark:peer-checked:bg-green-600"></div>
                             </label>
                         </div>
                     </div>
@@ -528,7 +528,7 @@ export const AIConfigSection: React.FC = () => {
 
                 {/* API Key */}
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                    <label className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground flex items-center gap-2">
                         <Key size={14} /> Chave de API ({AI_PROVIDERS.find(p => p.id === aiProvider)?.name})
                     </label>
                     <div className="flex gap-2">
@@ -538,11 +538,11 @@ export const AIConfigSection: React.FC = () => {
                                 value={localApiKey}
                                 onChange={(e) => handleKeyChange(e.target.value)}
                                 placeholder={`Cole sua chave ${aiProvider === 'google' ? 'AIza...' : 'sk-...'}`}
-                                className={`w-full bg-slate-50 dark:bg-slate-800 border rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-mono ${validationStatus === 'invalid'
+                                className={`w-full bg-background dark:bg-card border rounded-lg px-3 py-2 text-sm text-foreground  focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-mono ${validationStatus === 'invalid'
                                         ? 'border-red-300 dark:border-red-500/50'
                                         : validationStatus === 'valid'
                                             ? 'border-green-300 dark:border-green-500/50'
-                                            : 'border-slate-200 dark:border-white/10'
+                                            : 'border-border '
                                     }`}
                             />
                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -561,7 +561,7 @@ export const AIConfigSection: React.FC = () => {
                             onClick={handleSaveApiKey}
                             disabled={isValidating || !localApiKey.trim() || (!hasUnsavedChanges && validationStatus === 'valid')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all ${isValidating || !localApiKey.trim() || (!hasUnsavedChanges && validationStatus === 'valid')
-                                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                                    ? 'bg-muted dark:bg-card text-muted-foreground cursor-not-allowed'
                                     : 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-600/20'
                                 }`}
                         >
@@ -593,7 +593,7 @@ export const AIConfigSection: React.FC = () => {
                             <AlertCircle size={12} /> {validationError}
                         </p>
                     )}
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                         🔒 Sua chave é validada antes de salvar e armazenada no banco de dados da organização.
                         Trate como segredo e use uma chave com o menor escopo possível.
                     </p>

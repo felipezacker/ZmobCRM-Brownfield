@@ -1,1275 +1,1239 @@
 # SCHEMA.md - Documentacao Completa do Banco de Dados
 
 > **Projeto:** ZmobCRM (CRM Imobiliario)
-> **Gerado em:** 2026-03-03
-> **Fase:** Brownfield Discovery - Phase 2 (@data-engineer / DB Sage)
-> **PostgreSQL:** 17 (Supabase)
-> **Migrations:** 42 arquivos (20251201 a 20260303)
-> **Tabelas ativas:** 36 (crm_companies foi removida)
+> **Gerado em:** 2026-03-06
+> **Fase:** Brownfield Discovery - Phase 2 (@data-engineer Dara)
+> **Banco:** PostgreSQL 17 (Supabase)
+> **Tabelas:** 39 tabelas public + 3 storage buckets
+> **Migrations:** 50 arquivos em `supabase/migrations/`
 
 ---
 
 ## Sumario
 
 1. [Extensoes](#1-extensoes)
-2. [Tabelas Principais](#2-tabelas-principais)
-3. [Tabelas de IA](#3-tabelas-de-ia)
-4. [Tabelas de Seguranca](#4-tabelas-de-seguranca)
-5. [Tabelas de Integracoes/Webhooks](#5-tabelas-de-integracoes-webhooks)
-6. [Tabelas de CRM Imobiliario (Epic 3)](#6-tabelas-de-crm-imobiliario-epic-3)
-7. [Relacionamentos (Foreign Keys)](#7-relacionamentos-foreign-keys)
-8. [Indexes](#8-indexes)
-9. [RLS Policies](#9-rls-policies)
-10. [Functions](#10-functions)
-11. [Triggers](#11-triggers)
-12. [Tipos Customizados e Enums](#12-tipos-customizados-e-enums)
-13. [Storage Buckets](#13-storage-buckets)
-14. [Realtime](#14-realtime)
-15. [Historico de Migrations](#15-historico-de-migrations)
+2. [Tabelas - Dominio Principal](#2-tabelas---dominio-principal)
+3. [Tabelas - IA e Automacao](#3-tabelas---ia-e-automacao)
+4. [Tabelas - Seguranca e Compliance](#4-tabelas---seguranca-e-compliance)
+5. [Tabelas - Integracoes e Webhooks](#5-tabelas---integracoes-e-webhooks)
+6. [Tabelas - Prospeccao](#6-tabelas---prospeccao)
+7. [Views e Funcoes](#7-views-e-funcoes)
+8. [Triggers](#8-triggers)
+9. [Indexes](#9-indexes)
+10. [Politicas RLS](#10-politicas-rls)
+11. [Diagrama de Relacionamentos](#11-diagrama-de-relacionamentos)
+12. [Storage Buckets](#12-storage-buckets)
+13. [Publicacoes Realtime](#13-publicacoes-realtime)
 
 ---
 
 ## 1. Extensoes
 
-| Extensao | Schema | Proposito |
-|----------|--------|-----------|
-| `uuid-ossp` | extensions | Geracao de UUIDs (uuid_generate_v4) |
-| `pgcrypto` | extensions | Funcoes criptograficas (gen_random_bytes, digest) |
-| `unaccent` | public | Remocao de acentos para slugs (boards.key) |
-| `pg_net` | -- | HTTP async para webhooks outbound |
-| `pg_trgm` | public | Busca trigram para nomes de contatos |
+| Extensao | Schema | Finalidade |
+|----------|--------|------------|
+| `uuid-ossp` | extensions | Geracao de UUIDs (v4) |
+| `pgcrypto` | extensions | Funcoes criptograficas (gen_random_uuid, digest) |
+| `unaccent` | public | Remocao de acentos para slugs |
+| `pg_net` | public | HTTP async para webhooks |
+| `pg_trgm` | public | Busca trigram (similaridade textual) |
 
 ---
 
-## 2. Tabelas Principais
+## 2. Tabelas - Dominio Principal
 
-### 2.1 organizations
+### 2.1 `organizations`
 
-Organizacao (tenant). Single-tenant na pratica mas com estrutura multi-tenant.
+Tabela raiz do tenant. Modelo single-tenant (uma org por instancia).
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| name | TEXT | NOT NULL | -- | -- |
-| deleted_at | TIMESTAMPTZ | NULL | NULL | Soft delete |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `name` | TEXT | NOT NULL | - | - |
+| `deleted_at` | TIMESTAMPTZ | NULL | NULL | Soft delete |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-**RLS:** Enabled. SELECT restrito a membros da org. UPDATE restrito a admins. No INSERT/DELETE policy (service_role only).
-
----
-
-### 2.2 organization_settings
-
-Configuracoes globais de IA por organizacao. 1:1 com organizations.
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| organization_id | UUID | NOT NULL | -- | PK, FK -> organizations(id) ON DELETE CASCADE |
-| ai_provider | TEXT | NULL | 'google' | -- |
-| ai_model | TEXT | NULL | 'gemini-2.5-flash' | -- |
-| ai_google_key | TEXT | NULL | -- | SENSITIVE |
-| ai_openai_key | TEXT | NULL | -- | SENSITIVE |
-| ai_anthropic_key | TEXT | NULL | -- | SENSITIVE |
-| ai_enabled | BOOLEAN | NOT NULL | true | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
-
-**RLS:** Enabled. SELECT para membros da org. INSERT/UPDATE/DELETE apenas admin.
+**RLS:** Habilitada. SELECT restrito a membros da org via `get_user_organization_id()`.
+**Trigger:** `on_org_created` -> cria `organization_settings` automaticamente.
 
 ---
 
-### 2.3 profiles
+### 2.2 `organization_settings`
 
-Perfil de usuario. Estende auth.users. 1:1 com auth.users.
+Configuracoes globais de IA por organizacao. PK = `organization_id` (1:1 com organizations).
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | -- | PK, FK -> auth.users(id) ON DELETE CASCADE |
-| email | TEXT | NULL | -- | CHECK (email LIKE '%@%' or null/empty) |
-| name | TEXT | NULL | -- | **DEPRECATED** (usar first_name) |
-| avatar | TEXT | NULL | -- | **DEPRECATED** (usar avatar_url) |
-| role | TEXT | NULL | 'corretor' | CHECK (role IN ('admin','diretor','corretor')) |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| first_name | TEXT | NULL | -- | Canonical (DB-014) |
-| last_name | TEXT | NULL | -- | -- |
-| nickname | TEXT | NULL | -- | -- |
-| phone | TEXT | NULL | -- | -- |
-| avatar_url | TEXT | NULL | -- | Canonical (DB-014) |
-| commission_rate | NUMERIC | NULL | 1.5 | CHECK (0 <= x <= 100) |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `organization_id` | UUID | NOT NULL | - | PK, FK -> organizations(id) CASCADE |
+| `ai_provider` | TEXT | NULL | `'google'` | - |
+| `ai_model` | TEXT | NULL | `'gemini-2.5-flash'` | - |
+| `ai_google_key` | TEXT | NULL | - | Chave API sensivel |
+| `ai_openai_key` | TEXT | NULL | - | Chave API sensivel |
+| `ai_anthropic_key` | TEXT | NULL | - | Chave API sensivel |
+| `ai_enabled` | BOOLEAN | NOT NULL | `true` | Toggle global IA |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-**RLS:** Enabled. SELECT via `get_user_organization_id()` (mesma org). UPDATE apenas o proprio usuario.
+**RLS:** Admin-only para escrita; membros da org podem ler.
+**Realtime:** Adicionada a `supabase_realtime` (migration 20260306500000).
 
 ---
 
-### 2.4 lifecycle_stages
+### 2.3 `profiles`
 
-Estagios do funil de vendas. Tabela global de referencia (nao org-scoped).
+Estende `auth.users` com dados do CRM. 1:1 com auth.users.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | TEXT | NOT NULL | -- | PK |
-| name | TEXT | NOT NULL | -- | -- |
-| color | TEXT | NOT NULL | -- | -- |
-| order | INTEGER | NOT NULL | -- | -- |
-| is_default | BOOLEAN | NULL | false | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | - | PK, FK -> auth.users(id) CASCADE |
+| `email` | TEXT | NULL | - | - |
+| `name` | TEXT | NULL | - | - |
+| `avatar` | TEXT | NULL | - | Legado |
+| `role` | TEXT | NULL | `'corretor'` | CHECK (`admin`, `diretor`, `corretor`) |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
+| `first_name` | TEXT | NULL | - | Consolidado (migration db014) |
+| `last_name` | TEXT | NULL | - | Consolidado (migration db014) |
+| `nickname` | TEXT | NULL | - | - |
+| `phone` | TEXT | NULL | - | - |
+| `avatar_url` | TEXT | NULL | - | Canonic |
+| `commission_rate` | NUMERIC | NULL | `1.5` | CHECK (0-100), taxa padrao corretor |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-**Seed data:** LEAD(0), MQL(1), PROSPECT(2), CUSTOMER(3), OTHER(4)
-
-**RLS:** Enabled. SELECT para todos autenticados. INSERT/UPDATE/DELETE apenas admin.
-
----
-
-### 2.5 boards
-
-Quadros Kanban (pipelines de vendas).
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| key | TEXT | NULL | -- | Slug, UNIQUE per org (active) |
-| name | TEXT | NOT NULL | -- | -- |
-| description | TEXT | NULL | -- | -- |
-| type | TEXT | NULL | 'SALES' | -- |
-| is_default | BOOLEAN | NULL | false | -- |
-| template | TEXT | NULL | -- | -- |
-| linked_lifecycle_stage | TEXT | NULL | -- | -- |
-| next_board_id | UUID | NULL | -- | FK -> boards(id) self-ref |
-| goal_description | TEXT | NULL | -- | -- |
-| goal_kpi | TEXT | NULL | -- | -- |
-| goal_target_value | TEXT | NULL | -- | -- |
-| goal_type | TEXT | NULL | -- | -- |
-| agent_name | TEXT | NULL | -- | AI agent config |
-| agent_role | TEXT | NULL | -- | AI agent config |
-| agent_behavior | TEXT | NULL | -- | AI agent config |
-| entry_trigger | TEXT | NULL | -- | -- |
-| automation_suggestions | TEXT[] | NULL | -- | -- |
-| position | INTEGER | NULL | 0 | -- |
-| default_product_id | UUID | NULL | -- | FK -> products(id) |
-| won_stage_id | UUID | NULL | -- | FK -> board_stages(id) |
-| lost_stage_id | UUID | NULL | -- | FK -> board_stages(id) |
-| won_stay_in_stage | BOOLEAN | NULL | false | -- |
-| lost_stay_in_stage | BOOLEAN | NULL | false | -- |
-| deleted_at | TIMESTAMPTZ | NULL | -- | Soft delete |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| owner_id | UUID | NULL | -- | FK -> profiles(id) |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-
-**RLS:** Enabled. SELECT para membros da org. INSERT para membros da org. UPDATE/DELETE para owner, NULL owner ou admin/diretor.
+**RLS:** SELECT restrito a mesma org via `get_user_organization_id()`. UPDATE somente proprio perfil.
+**Trigger:** `on_auth_user_created` -> cria profile + user_settings automaticamente.
 
 ---
 
-### 2.6 board_stages
+### 2.4 `lifecycle_stages`
 
-Colunas/estagios dos quadros Kanban.
+Estagios globais do funil de vendas. PK tipo TEXT (enum-like).
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| board_id | UUID | NULL | -- | FK -> boards(id) ON DELETE CASCADE |
-| name | TEXT | NOT NULL | -- | -- |
-| label | TEXT | NULL | -- | Display label |
-| color | TEXT | NULL | -- | -- |
-| order | INTEGER | NOT NULL | -- | -- |
-| is_default | BOOLEAN | NULL | false | -- |
-| linked_lifecycle_stage | TEXT | NULL | -- | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | TEXT | NOT NULL | - | PK |
+| `name` | TEXT | NOT NULL | - | - |
+| `color` | TEXT | NOT NULL | - | Classe CSS |
+| `order` | INTEGER | NOT NULL | - | Ordenacao |
+| `is_default` | BOOLEAN | NULL | `false` | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-**RLS:** Enabled. SELECT para membros da org. INSERT/UPDATE/DELETE apenas admin/diretor.
+**Dados seed:** LEAD, MQL, PROSPECT, CUSTOMER, OTHER.
+**RLS:** Org-scoped SELECT.
 
 ---
 
-### 2.7 contacts
+### 2.5 `boards`
 
-Contatos (leads/clientes). Entidade central do CRM.
+Pipelines Kanban. Cada board representa um funil de vendas.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| name | TEXT | NOT NULL | -- | Auto INITCAP via trigger |
-| email | TEXT | NULL | -- | CHECK (email LIKE '%@%' or null/empty) |
-| phone | TEXT | NULL | -- | Legacy (usar contact_phones) |
-| avatar | TEXT | NULL | -- | -- |
-| notes | TEXT | NULL | -- | -- |
-| status | TEXT | NULL | 'ACTIVE' | -- |
-| stage | TEXT | NULL | 'LEAD' | FK -> lifecycle_stages(id) |
-| source | TEXT | NULL | -- | -- |
-| birth_date | DATE | NULL | -- | -- |
-| last_interaction | TIMESTAMPTZ | NULL | -- | -- |
-| last_purchase_date | DATE | NULL | -- | -- |
-| total_value | NUMERIC | NULL | 0 | LTV acumulado |
-| cpf | TEXT | NULL | -- | UNIQUE per org (active) |
-| contact_type | TEXT | NULL | 'PF' | CHECK (IN 'PF','PJ') |
-| classification | TEXT | NULL | -- | CHECK (IN 'COMPRADOR','VENDEDOR','LOCATARIO','LOCADOR','INVESTIDOR','PERMUTANTE') |
-| temperature | TEXT | NULL | 'WARM' | CHECK (IN 'HOT','WARM','COLD') |
-| address_cep | TEXT | NULL | -- | -- |
-| address_city | TEXT | NULL | -- | -- |
-| address_state | TEXT | NULL | -- | CHECK (length = 2) |
-| profile_data | JSONB | NULL | '{}' | Dados complementares |
-| lead_score | INTEGER | NULL | 0 | CHECK (0 <= x <= 100) |
-| tags | TEXT[] | NULL | '{}' | Movido de deals |
-| custom_fields | JSONB | NULL | '{}' | Movido de deals |
-| deleted_at | TIMESTAMPTZ | NULL | -- | Soft delete |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | Auto via trigger |
-| owner_id | UUID | NULL | -- | FK -> profiles(id) |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `key` | TEXT | NULL | - | Slug unico por org (partial unique index) |
+| `name` | TEXT | NOT NULL | - | - |
+| `description` | TEXT | NULL | - | - |
+| `type` | TEXT | NULL | `'SALES'` | - |
+| `is_default` | BOOLEAN | NULL | `false` | - |
+| `template` | TEXT | NULL | - | - |
+| `linked_lifecycle_stage` | TEXT | NULL | - | - |
+| `next_board_id` | UUID | NULL | - | FK -> boards(id) self-ref |
+| `goal_description` | TEXT | NULL | - | Descricao da meta |
+| `goal_kpi` | TEXT | NULL | - | KPI alvo |
+| `goal_target_value` | TEXT | NULL | - | Valor alvo |
+| `goal_type` | TEXT | NULL | - | Tipo de meta |
+| `agent_name` | TEXT | NULL | - | Persona IA |
+| `agent_role` | TEXT | NULL | - | - |
+| `agent_behavior` | TEXT | NULL | - | - |
+| `entry_trigger` | TEXT | NULL | - | - |
+| `automation_suggestions` | TEXT[] | NULL | - | - |
+| `position` | INTEGER | NULL | `0` | Ordem de exibicao |
+| `won_stage_id` | UUID | NULL | - | FK -> board_stages(id) |
+| `lost_stage_id` | UUID | NULL | - | FK -> board_stages(id) |
+| `won_stay_in_stage` | BOOLEAN | NULL | `false` | Manter na coluna ao ganhar |
+| `lost_stay_in_stage` | BOOLEAN | NULL | `false` | Manter na coluna ao perder |
+| `default_product_id` | UUID | NULL | - | FK -> products(id) |
+| `deleted_at` | TIMESTAMPTZ | NULL | - | Soft delete |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `owner_id` | UUID | NULL | - | FK -> profiles(id) |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
 
-**RLS:** Enabled. SELECT/UPDATE/DELETE: owner, NULL owner ou admin/diretor (mesma org). INSERT: membros da org.
-
----
-
-### 2.8 deals
-
-Negocios/Oportunidades. Vinculado a board + stage.
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| title | TEXT | NOT NULL | -- | Sync com contact.name |
-| value | NUMERIC | NULL | 0 | CHECK (>= 0) |
-| probability | INTEGER | NULL | 0 | CHECK (0 <= x <= 100) |
-| status | TEXT | NULL | -- | **DEPRECATED** (usar stage_id) |
-| priority | TEXT | NULL | 'medium' | -- |
-| board_id | UUID | NULL | -- | FK -> boards(id) |
-| stage_id | UUID | NULL | -- | FK -> board_stages(id) |
-| contact_id | UUID | NULL | -- | FK -> contacts(id) |
-| ai_summary | TEXT | NULL | -- | -- |
-| loss_reason | TEXT | NULL | -- | -- |
-| last_stage_change_date | TIMESTAMPTZ | NULL | -- | -- |
-| is_won | BOOLEAN | NOT NULL | false | -- |
-| is_lost | BOOLEAN | NOT NULL | false | -- |
-| closed_at | TIMESTAMPTZ | NULL | -- | -- |
-| deal_type | TEXT | NULL | 'VENDA' | CHECK (IN 'VENDA','LOCACAO','PERMUTA') |
-| expected_close_date | DATE | NULL | -- | Forecast |
-| commission_rate | NUMERIC | NULL | -- | CHECK (0 <= x <= 100), override do corretor |
-| metadata | JSONB | NULL | '{}' | Dados internos (checklist, inbound source) |
-| property_ref | TEXT | NULL | -- | Referencia ao imovel (texto livre) |
-| deleted_at | TIMESTAMPTZ | NULL | -- | Soft delete |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | Auto via trigger |
-| owner_id | UUID | NULL | -- | FK -> profiles(id) |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-
-**Trigger:** `check_deal_duplicate` previne deal duplicado (mesmo contact + stage + open).
-
-**RLS:** Enabled. SELECT/UPDATE/DELETE: owner, NULL owner ou admin/diretor (mesma org). INSERT: membros da org.
+**Indexes:** `idx_boards_org_key_unique` (partial unique WHERE deleted_at IS NULL AND key IS NOT NULL).
+**RLS:** Org-scoped. Update/Delete requer owner ou admin/diretor.
+**Trigger:** `cascade_board_delete` -> soft-delete deals associados.
 
 ---
 
-### 2.9 deal_items
+### 2.6 `board_stages`
 
-Produtos/itens vinculados a deals.
+Colunas dos boards Kanban.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| deal_id | UUID | NULL | -- | FK -> deals(id) ON DELETE CASCADE |
-| product_id | UUID | NULL | -- | FK -> products(id) |
-| name | TEXT | NOT NULL | -- | -- |
-| quantity | INTEGER | NOT NULL | 1 | CHECK (> 0) |
-| price | NUMERIC | NOT NULL | 0 | CHECK (>= 0) |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `board_id` | UUID | NULL | - | FK -> boards(id) CASCADE |
+| `name` | TEXT | NOT NULL | - | - |
+| `label` | TEXT | NULL | - | - |
+| `color` | TEXT | NULL | - | - |
+| `order` | INTEGER | NOT NULL | - | Ordenacao |
+| `is_default` | BOOLEAN | NULL | `false` | - |
+| `linked_lifecycle_stage` | TEXT | NULL | - | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
 
-**RLS:** Enabled. CRUD org-scoped.
-
----
-
-### 2.10 activities
-
-Atividades (tarefas, ligacoes, reunioes, notas).
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| title | TEXT | NOT NULL | -- | -- |
-| description | TEXT | NULL | -- | -- |
-| type | TEXT | NOT NULL | -- | Ex: 'CALL','MEETING','TASK','NOTE' |
-| date | TIMESTAMPTZ | NOT NULL | -- | -- |
-| completed | BOOLEAN | NULL | false | -- |
-| deal_id | UUID | NULL | -- | FK -> deals(id) ON DELETE CASCADE |
-| contact_id | UUID | NULL | -- | FK -> contacts(id) ON DELETE SET NULL |
-| participant_contact_ids | UUID[] | NULL | -- | GIN indexed |
-| recurrence_type | TEXT | NULL | NULL | CHECK (IN 'daily','weekly','monthly') |
-| recurrence_end_date | DATE | NULL | NULL | Requires recurrence_type |
-| deleted_at | TIMESTAMPTZ | NULL | -- | Soft delete |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| owner_id | UUID | NULL | -- | FK -> profiles(id) |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-
-**RLS:** Enabled. SELECT/UPDATE/DELETE: owner, NULL owner ou admin/diretor (mesma org). INSERT: membros da org.
+**RLS:** Org-scoped. Insert/Update/Delete requer admin/diretor.
 
 ---
 
-### 2.11 products
+### 2.7 `contacts`
+
+Contatos do CRM com campos imobiliarios (Epic 3).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `name` | TEXT | NOT NULL | - | Auto-INITCAP via trigger |
+| `email` | TEXT | NULL | - | - |
+| `phone` | TEXT | NULL | - | Telefone primario legado |
+| `avatar` | TEXT | NULL | - | - |
+| `notes` | TEXT | NULL | - | - |
+| `status` | TEXT | NULL | `'ACTIVE'` | - |
+| `stage` | TEXT | NULL | `'LEAD'` | Estagio funil |
+| `source` | TEXT | NULL | - | Origem (hotmart, linkedin, etc) |
+| `birth_date` | DATE | NULL | - | - |
+| `last_interaction` | TIMESTAMPTZ | NULL | - | - |
+| `last_purchase_date` | DATE | NULL | - | - |
+| `total_value` | NUMERIC | NULL | `0` | LTV (atualizado via RPC) |
+| `cpf` | TEXT | NULL | - | Epic 3: CPF (PF) |
+| `contact_type` | TEXT | NULL | `'PF'` | CHECK (`PF`, `PJ`) |
+| `classification` | TEXT | NULL | - | CHECK (COMPRADOR, VENDEDOR, etc) |
+| `temperature` | TEXT | NULL | `'WARM'` | CHECK (HOT, WARM, COLD) |
+| `address_cep` | TEXT | NULL | - | CEP |
+| `address_city` | TEXT | NULL | - | Cidade |
+| `address_state` | TEXT | NULL | - | UF (2 chars) |
+| `profile_data` | JSONB | NULL | `'{}'` | Dados complementares |
+| `lead_score` | INTEGER | NULL | `0` | CHECK (0-100) |
+| `tags` | TEXT[] | NULL | `'{}'` | Migrado de deals (migration 20260227) |
+| `custom_fields` | JSONB | NULL | `'{}'` | Migrado de deals |
+| `deleted_at` | TIMESTAMPTZ | NULL | - | Soft delete |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `owner_id` | UUID | NULL | - | FK -> profiles(id) |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
+
+**Indexes:** `idx_contacts_cpf_org_unique` (partial unique), `idx_contacts_name_trgm` (GIN trigram), `idx_contacts_lead_score_org`, `idx_contacts_email_org`.
+**RLS:** SELECT org-wide. INSERT/UPDATE/DELETE restrito a owner + admin/diretor.
+**Trigger:** `trg_capitalize_contact_name` -> INITCAP automatico. `cascade_contact_delete` -> soft-delete activities.
+
+---
+
+### 2.8 `contact_phones`
+
+Multiplos telefones por contato (Epic 3, Story 3.1).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `contact_id` | UUID | NOT NULL | - | FK -> contacts(id) CASCADE |
+| `phone_number` | TEXT | NOT NULL | - | - |
+| `phone_type` | TEXT | NOT NULL | `'CELULAR'` | CHECK (CELULAR, COMERCIAL, RESIDENCIAL) |
+| `is_whatsapp` | BOOLEAN | NOT NULL | `false` | - |
+| `is_primary` | BOOLEAN | NOT NULL | `false` | - |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+
+**RLS:** Org-scoped via profiles.organization_id.
+
+---
+
+### 2.9 `contact_preferences`
+
+Perfil de interesse imobiliario do contato (Epic 3, Story 3.2).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `contact_id` | UUID | NOT NULL | - | FK -> contacts(id) CASCADE |
+| `property_types` | TEXT[] | NULL | `'{}'` | Tipos de imovel |
+| `purpose` | TEXT | NULL | - | CHECK (MORADIA, INVESTIMENTO, VERANEIO) |
+| `price_min` | NUMERIC | NULL | - | - |
+| `price_max` | NUMERIC | NULL | - | - |
+| `regions` | TEXT[] | NULL | `'{}'` | Regioes de interesse |
+| `bedrooms_min` | INTEGER | NULL | - | - |
+| `parking_min` | INTEGER | NULL | - | - |
+| `area_min` | NUMERIC | NULL | - | - |
+| `accepts_financing` | BOOLEAN | NULL | - | - |
+| `accepts_fgts` | BOOLEAN | NULL | - | - |
+| `urgency` | TEXT | NULL | - | CHECK (IMMEDIATE, 3_MONTHS, 6_MONTHS, 1_YEAR) |
+| `notes` | TEXT | NULL | - | - |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+
+**RLS:** Org-scoped via profiles.organization_id.
+
+---
+
+### 2.10 `deals`
+
+Negocios/oportunidades no pipeline.
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `title` | TEXT | NOT NULL | - | - |
+| `value` | NUMERIC | NULL | `0` | Valor monetario |
+| `probability` | INTEGER | NULL | `0` | Probabilidade (0-100) |
+| `status` | TEXT | NULL | - | Legado |
+| `priority` | TEXT | NULL | `'medium'` | - |
+| `board_id` | UUID | NULL | - | FK -> boards(id) |
+| `stage_id` | UUID | NULL | - | FK -> board_stages(id) |
+| `contact_id` | UUID | NULL | - | FK -> contacts(id) |
+| `ai_summary` | TEXT | NULL | - | Resumo IA |
+| `loss_reason` | TEXT | NULL | - | Motivo de perda |
+| `last_stage_change_date` | TIMESTAMPTZ | NULL | - | - |
+| `is_won` | BOOLEAN | NOT NULL | `false` | Flag de vitoria |
+| `is_lost` | BOOLEAN | NOT NULL | `false` | Flag de perda |
+| `closed_at` | TIMESTAMPTZ | NULL | - | Data de fechamento |
+| `deal_type` | TEXT | NULL | `'VENDA'` | CHECK (VENDA, LOCACAO, PERMUTA) |
+| `expected_close_date` | DATE | NULL | - | Previsao de fechamento |
+| `commission_rate` | NUMERIC | NULL | - | CHECK (0-100), override por deal |
+| `property_ref` | TEXT | NULL | - | Referencia do imovel |
+| `metadata` | JSONB | NULL | `'{}'` | Dados internos (checklist, origem) |
+| `deleted_at` | TIMESTAMPTZ | NULL | - | Soft delete |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `owner_id` | UUID | NULL | - | FK -> profiles(id) |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+
+**Indexes:** `idx_deals_board_id`, `idx_deals_stage_id`, `idx_deals_contact_id`, `idx_deals_board_stage_created`, `idx_deals_open` (partial), `idx_deals_type_org`, `idx_deals_expected_close`.
+**RLS:** Org-scoped. UPDATE protege owner_id (corretor nao pode alterar).
+**Trigger:** `check_deal_duplicate_trigger` -> impede duplicata contact+stage ativo.
+
+---
+
+### 2.11 `deal_items`
+
+Produtos vinculados a deals (N:N via tabela associativa com quantidade).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `deal_id` | UUID | NULL | - | FK -> deals(id) CASCADE |
+| `product_id` | UUID | NULL | - | FK -> products(id) |
+| `name` | TEXT | NOT NULL | - | Nome snapshot |
+| `quantity` | INTEGER | NOT NULL | `1` | - |
+| `price` | NUMERIC | NOT NULL | `0` | Preco snapshot |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
+
+**RLS:** Org-scoped.
+
+---
+
+### 2.12 `deal_notes`
+
+Notas de texto associadas a deals.
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `deal_id` | UUID | NOT NULL | - | FK -> deals(id) CASCADE |
+| `content` | TEXT | NOT NULL | - | - |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `created_by` | UUID | NULL | - | FK -> profiles(id) SET NULL |
+
+**RLS:** Org-scoped. Update/Delete restrito ao criador + admin/diretor.
+**Trigger:** `update_deal_notes_updated_at`.
+
+---
+
+### 2.13 `deal_files`
+
+Arquivos associados a deals (armazenados no bucket `deal-files`).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `deal_id` | UUID | NOT NULL | - | FK -> deals(id) CASCADE |
+| `file_name` | TEXT | NOT NULL | - | - |
+| `file_path` | TEXT | NOT NULL | - | - |
+| `file_size` | INTEGER | NULL | - | Bytes |
+| `mime_type` | TEXT | NULL | - | - |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `created_by` | UUID | NULL | - | FK -> profiles(id) SET NULL |
+
+**RLS:** Org-scoped. Delete restrito ao criador + admin/diretor.
+
+---
+
+### 2.14 `activities`
+
+Atividades (tarefas, ligacoes, reunioes, emails, WhatsApp).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `title` | TEXT | NOT NULL | - | - |
+| `description` | TEXT | NULL | - | - |
+| `type` | TEXT | NOT NULL | - | CALL, MEETING, EMAIL, TASK (+ WHATSAPP no app) |
+| `date` | TIMESTAMPTZ | NOT NULL | - | - |
+| `completed` | BOOLEAN | NULL | `false` | - |
+| `deal_id` | UUID | NULL | - | FK -> deals(id) CASCADE |
+| `contact_id` | UUID | NULL | - | FK -> contacts(id) SET NULL |
+| `client_company_id` | UUID | NULL | - | Legado (coluna orfao pos-drop crm_companies) |
+| `participant_contact_ids` | UUID[] | NULL | - | Array de participantes |
+| `recurrence_type` | TEXT | NULL | - | CHECK (daily, weekly, monthly) |
+| `recurrence_end_date` | DATE | NULL | - | Requer recurrence_type (constraint cruzada) |
+| `metadata` | JSONB | NULL | `'{}'` | Outcome de ligacao (CP-1.1) |
+| `deleted_at` | TIMESTAMPTZ | NULL | - | Soft delete |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `owner_id` | UUID | NULL | - | FK -> profiles(id) |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
+
+**Indexes:** `idx_activities_date`, `idx_activities_deal_id`, `idx_activities_contact_id`, `idx_activities_recurrence` (partial).
+**RLS:** Org-scoped. INSERT/UPDATE/DELETE restrito a owner + admin/diretor.
+**NOTA:** `client_company_id` referencia tabela `crm_companies` que foi dropada (migration 20260220100000). FK pode estar dangling.
+
+---
+
+### 2.15 `products`
 
 Catalogo de produtos/servicos.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| name | TEXT | NOT NULL | -- | -- |
-| description | TEXT | NULL | -- | -- |
-| price | NUMERIC | NOT NULL | 0 | -- |
-| sku | TEXT | NULL | -- | -- |
-| active | BOOLEAN | NULL | true | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| owner_id | UUID | NULL | -- | FK -> profiles(id) |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `name` | TEXT | NOT NULL | - | - |
+| `description` | TEXT | NULL | - | - |
+| `price` | NUMERIC | NOT NULL | `0` | - |
+| `sku` | TEXT | NULL | - | - |
+| `active` | BOOLEAN | NULL | `true` | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `owner_id` | UUID | NULL | - | FK -> profiles(id) |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
 
-**RLS:** Enabled. SELECT para membros da org. INSERT/UPDATE/DELETE apenas admin/diretor.
-
----
-
-### 2.12 tags
-
-Sistema de tags organizacionais.
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| name | TEXT | NOT NULL | -- | UNIQUE(name, organization_id) |
-| color | TEXT | NULL | 'bg-gray-500' | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-
-**RLS:** Enabled. CRUD org-scoped.
+**RLS:** Org-scoped.
 
 ---
 
-### 2.13 custom_field_definitions
+### 2.16 `tags`
+
+Sistema de tags compartilhadas por organizacao.
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `name` | TEXT | NOT NULL | - | UNIQUE(name, organization_id) |
+| `color` | TEXT | NULL | `'bg-gray-500'` | Classe CSS |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
+
+**RLS:** Org-scoped.
+
+---
+
+### 2.17 `custom_field_definitions`
 
 Definicoes de campos personalizados.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| key | TEXT | NOT NULL | -- | UNIQUE(key, organization_id) |
-| label | TEXT | NOT NULL | -- | -- |
-| type | TEXT | NOT NULL | -- | -- |
-| options | TEXT[] | NULL | -- | Para tipos select/radio |
-| entity_type | TEXT | NOT NULL | 'contact' | Originalmente 'deal', migrado para 'contact' |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `key` | TEXT | NOT NULL | - | UNIQUE(key, organization_id) |
+| `label` | TEXT | NOT NULL | - | - |
+| `type` | TEXT | NOT NULL | - | Tipo do campo |
+| `options` | TEXT[] | NULL | - | Opcoes para select |
+| `entity_type` | TEXT | NOT NULL | `'contact'` | Entidade alvo (era 'deal', migrado) |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
 
-**RLS:** Enabled. SELECT para membros da org. INSERT/UPDATE/DELETE apenas admin/diretor.
-
----
-
-### 2.14 leads
-
-Tabela de importacao de leads (staging).
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| name | TEXT | NOT NULL | -- | -- |
-| email | TEXT | NULL | -- | -- |
-| source | TEXT | NULL | -- | -- |
-| status | TEXT | NULL | 'NEW' | -- |
-| notes | TEXT | NULL | -- | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| converted_to_contact_id | UUID | NULL | -- | FK -> contacts(id) |
-| owner_id | UUID | NULL | -- | FK -> profiles(id) |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-
-**Nota:** Colunas `company_name` e `role` foram removidas na migration 20260220100000.
-
-**RLS:** Enabled. SELECT/UPDATE: owner ou admin/diretor. INSERT: owner ou admin/diretor. DELETE: admin only.
+**RLS:** Org-scoped.
 
 ---
 
-### 2.15 deal_notes
+### 2.18 `leads`
 
-Notas por deal.
+Tabela de importacao de leads (pre-conversao a contato).
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| deal_id | UUID | NOT NULL | -- | FK -> deals(id) ON DELETE CASCADE |
-| content | TEXT | NOT NULL | -- | -- |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | Auto via trigger |
-| created_by | UUID | NULL | -- | FK -> profiles(id) ON DELETE SET NULL |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `name` | TEXT | NOT NULL | - | - |
+| `email` | TEXT | NULL | - | - |
+| `source` | TEXT | NULL | - | - |
+| `status` | TEXT | NULL | `'NEW'` | - |
+| `notes` | TEXT | NULL | - | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `converted_to_contact_id` | UUID | NULL | - | FK -> contacts(id) |
+| `owner_id` | UUID | NULL | - | FK -> profiles(id) |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
 
-**RLS:** Enabled. SELECT/INSERT: org-scoped. UPDATE/DELETE: criador ou admin/diretor.
-
----
-
-### 2.16 deal_files
-
-Arquivos por deal.
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| deal_id | UUID | NOT NULL | -- | FK -> deals(id) ON DELETE CASCADE |
-| file_name | TEXT | NOT NULL | -- | -- |
-| file_path | TEXT | NOT NULL | -- | -- |
-| file_size | INTEGER | NULL | -- | -- |
-| mime_type | TEXT | NULL | -- | -- |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| created_by | UUID | NULL | -- | FK -> profiles(id) ON DELETE SET NULL |
-
-**RLS:** Enabled. SELECT/INSERT: org-scoped. UPDATE/DELETE: criador ou admin/diretor.
+**RLS:** Owner-scoped. INSERT requer owner_id = auth.uid() ou admin/diretor.
+**NOTA:** Colunas `company_name` e `role` foram removidas (migration 20260220100000).
 
 ---
 
-### 2.17 quick_scripts
+### 2.19 `user_settings`
 
-Templates de scripts de vendas.
+Configuracoes individuais por usuario.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| title | TEXT | NOT NULL | -- | -- |
-| category | TEXT | NOT NULL | -- | CHECK (IN 'followup','objection','closing','intro','rescue','other') |
-| template | TEXT | NOT NULL | -- | Texto com placeholders {nome} |
-| icon | TEXT | NULL | 'MessageSquare' | Icone Lucide |
-| is_system | BOOLEAN | NULL | false | Scripts do sistema (imutaveis) |
-| user_id | UUID | NULL | -- | FK -> profiles(id) ON DELETE CASCADE |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | Auto via trigger |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `user_id` | UUID | NULL | - | FK -> profiles(id) CASCADE, UNIQUE |
+| `ai_provider` | TEXT | NULL | `'google'` | - |
+| `ai_api_key` | TEXT | NULL | - | Legado |
+| `ai_model` | TEXT | NULL | `'gemini-2.5-flash'` | - |
+| `ai_thinking` | BOOLEAN | NULL | `true` | - |
+| `ai_search` | BOOLEAN | NULL | `true` | - |
+| `ai_anthropic_caching` | BOOLEAN | NULL | `false` | - |
+| `ai_google_key` | TEXT | NULL | - | Chave Google |
+| `ai_openai_key` | TEXT | NULL | - | Chave OpenAI |
+| `ai_anthropic_key` | TEXT | NULL | - | Chave Anthropic |
+| `dark_mode` | BOOLEAN | NULL | `true` | - |
+| `default_route` | TEXT | NULL | `'/boards'` | - |
+| `active_board_id` | UUID | NULL | - | FK -> boards(id) |
+| `inbox_view_mode` | TEXT | NULL | `'list'` | - |
+| `onboarding_completed` | BOOLEAN | NULL | `false` | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-**RLS:** Enabled. SELECT: scripts do sistema + proprios. INSERT/UPDATE/DELETE: apenas proprios (nao system).
-
----
-
-### 2.18 user_settings
-
-Configuracoes por usuario.
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| user_id | UUID | NULL | -- | FK -> profiles(id) ON DELETE CASCADE, UNIQUE |
-| ai_provider | TEXT | NULL | 'google' | -- |
-| ai_api_key | TEXT | NULL | -- | **DEPRECATED** (usar ai_*_key) |
-| ai_model | TEXT | NULL | 'gemini-2.5-flash' | -- |
-| ai_thinking | BOOLEAN | NULL | true | -- |
-| ai_search | BOOLEAN | NULL | true | -- |
-| ai_anthropic_caching | BOOLEAN | NULL | false | -- |
-| ai_google_key | TEXT | NULL | -- | SENSITIVE |
-| ai_openai_key | TEXT | NULL | -- | SENSITIVE |
-| ai_anthropic_key | TEXT | NULL | -- | SENSITIVE |
-| dark_mode | BOOLEAN | NULL | true | -- |
-| default_route | TEXT | NULL | '/boards' | -- |
-| active_board_id | UUID | NULL | -- | FK -> boards(id) |
-| inbox_view_mode | TEXT | NULL | 'list' | -- |
-| onboarding_completed | BOOLEAN | NULL | false | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
-
-**RLS:** Enabled. CRUD apenas para o proprio usuario.
+**RLS:** Isolado por user_id = auth.uid().
 
 ---
 
-### 2.19 organization_invites
+### 2.20 `quick_scripts`
+
+Templates de scripts de vendas (sistema + usuario).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `title` | TEXT | NOT NULL | - | - |
+| `category` | TEXT | NOT NULL | - | CHECK (followup, objection, closing, intro, rescue, other) |
+| `template` | TEXT | NOT NULL | - | Texto com variaveis {nome}, etc |
+| `icon` | TEXT | NULL | `'MessageSquare'` | Nome do icone Lucide |
+| `is_system` | BOOLEAN | NULL | `false` | Scripts do sistema (nao deletaveis) |
+| `user_id` | UUID | NULL | - | FK -> profiles(id) CASCADE |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+
+**RLS:** SELECT: sistema + proprios. INSERT/UPDATE/DELETE: somente proprios + nao-sistema.
+**Seed:** 12 scripts de sistema pré-carregados.
+
+---
+
+### 2.21 `organization_invites`
 
 Convites para novos usuarios.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| email | TEXT | NULL | -- | -- |
-| role | TEXT | NOT NULL | 'corretor' | CHECK (IN 'admin','diretor','corretor') |
-| token | UUID | NOT NULL | gen_random_uuid() | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| expires_at | TIMESTAMPTZ | NULL | -- | -- |
-| used_at | TIMESTAMPTZ | NULL | -- | -- |
-| created_by | UUID | NULL | -- | FK -> profiles(id) |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
+| `email` | TEXT | NULL | - | - |
+| `role` | TEXT | NOT NULL | `'corretor'` | CHECK (admin, diretor, corretor) |
+| `token` | UUID | NOT NULL | `gen_random_uuid()` | Token unico |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `expires_at` | TIMESTAMPTZ | NULL | - | - |
+| `used_at` | TIMESTAMPTZ | NULL | - | - |
+| `created_by` | UUID | NULL | - | FK -> profiles(id) |
 
-**RLS:** Enabled. Admin e diretor podem gerenciar. Membros podem visualizar.
-
----
-
-### 2.20 system_notifications
-
-Notificacoes do sistema.
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| type | TEXT | NOT NULL | -- | -- |
-| title | TEXT | NOT NULL | -- | -- |
-| message | TEXT | NOT NULL | -- | -- |
-| link | TEXT | NULL | -- | -- |
-| severity | TEXT | NULL | 'medium' | CHECK (IN 'high','medium','low') |
-| read_at | TIMESTAMPTZ | NULL | -- | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-
-**RLS:** Enabled. SELECT/UPDATE/DELETE org-scoped. No INSERT policy (server-side only).
+**RLS:** Admin-only para gestao; membros podem visualizar.
 
 ---
 
-## 3. Tabelas de IA
+### 2.22 `notifications`
 
-### 3.1 ai_conversations
+Notificacoes inteligentes do CRM (Epic 3, Story 3.9).
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| user_id | UUID | NULL | -- | FK -> profiles(id) ON DELETE CASCADE |
-| conversation_key | TEXT | NOT NULL | -- | UNIQUE(user_id, conversation_key) |
-| messages | JSONB | NULL | '[]' | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) |
+| `type` | TEXT | NOT NULL | - | CHECK (BIRTHDAY, CHURN_ALERT, DEAL_STAGNANT, SCORE_DROP) |
+| `title` | TEXT | NOT NULL | - | - |
+| `description` | TEXT | NULL | - | - |
+| `contact_id` | UUID | NULL | - | FK -> contacts(id) CASCADE |
+| `deal_id` | UUID | NULL | - | FK -> deals(id) CASCADE |
+| `is_read` | BOOLEAN | NULL | `false` | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `owner_id` | UUID | NULL | - | FK -> profiles(id) |
 
-**RLS:** Enabled. CRUD own. Admin/diretor can SELECT org.
-
----
-
-### 3.2 ai_decisions
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| user_id | UUID | NULL | -- | FK -> profiles(id) ON DELETE CASCADE |
-| deal_id | UUID | NULL | -- | FK -> deals(id) ON DELETE CASCADE |
-| contact_id | UUID | NULL | -- | FK -> contacts(id) ON DELETE SET NULL |
-| decision_type | TEXT | NOT NULL | -- | -- |
-| priority | TEXT | NULL | 'medium' | -- |
-| title | TEXT | NOT NULL | -- | -- |
-| description | TEXT | NULL | -- | -- |
-| suggested_action | JSONB | NULL | -- | -- |
-| status | TEXT | NULL | 'pending' | -- |
-| snoozed_until | TIMESTAMPTZ | NULL | -- | -- |
-| processed_at | TIMESTAMPTZ | NULL | -- | -- |
-| ai_reasoning | TEXT | NULL | -- | -- |
-| confidence_score | NUMERIC(3,2) | NULL | -- | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
-
-**RLS:** Enabled. CRUD own. Admin/diretor can SELECT org.
+**Indexes:** `idx_notifications_org_unread`, `idx_notifications_owner_unread` (parciais).
+**RLS:** Org-scoped.
 
 ---
 
-### 3.3 ai_audio_notes
+### 2.23 `lead_score_history`
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| user_id | UUID | NULL | -- | FK -> profiles(id) ON DELETE CASCADE |
-| deal_id | UUID | NULL | -- | FK -> deals(id) ON DELETE CASCADE |
-| contact_id | UUID | NULL | -- | FK -> contacts(id) ON DELETE SET NULL |
-| audio_url | TEXT | NULL | -- | -- |
-| duration_seconds | INTEGER | NULL | -- | -- |
-| transcription | TEXT | NOT NULL | -- | -- |
-| sentiment | TEXT | NULL | -- | -- |
-| next_action | JSONB | NULL | -- | -- |
-| activity_created_id | UUID | NULL | -- | FK -> activities(id) |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
+Historico de mudancas no lead score.
 
-**RLS:** Enabled. CRUD own. Admin/diretor can SELECT org.
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `contact_id` | UUID | NOT NULL | - | FK -> contacts(id) CASCADE |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) |
+| `old_score` | INTEGER | NOT NULL | - | - |
+| `new_score` | INTEGER | NOT NULL | - | - |
+| `change` | INTEGER | NOT NULL | - | Diferenca (new - old) |
+| `created_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
 
----
-
-### 3.4 ai_suggestion_interactions
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| user_id | UUID | NOT NULL | -- | FK -> auth.users(id) ON DELETE CASCADE |
-| suggestion_type | TEXT | NOT NULL | -- | CHECK (IN 'UPSELL','STALLED','BIRTHDAY','RESCUE') |
-| entity_type | TEXT | NOT NULL | -- | CHECK (IN 'deal','contact') |
-| entity_id | UUID | NOT NULL | -- | -- |
-| action | TEXT | NOT NULL | -- | CHECK (IN 'ACCEPTED','DISMISSED','SNOOZED') |
-| snoozed_until | TIMESTAMPTZ | NULL | -- | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-
-**Unique:** (user_id, suggestion_type, entity_id)
-
-**RLS:** Enabled (permissive from init, no org-scoped rewrite applied).
+**Indexes:** `idx_lead_score_history_contact`, `idx_lead_score_history_org`.
+**RLS:** SELECT org-scoped. INSERT org-scoped.
 
 ---
 
-### 3.5 ai_prompt_templates
+## 3. Tabelas - IA e Automacao
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| key | TEXT | NOT NULL | -- | UNIQUE(org, key, version) |
-| version | INTEGER | NOT NULL | 1 | -- |
-| content | TEXT | NOT NULL | -- | -- |
-| is_active | BOOLEAN | NOT NULL | true | UNIQUE(org, key) WHERE is_active |
-| created_by | UUID | NULL | -- | FK -> profiles(id) ON DELETE SET NULL |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
+### 3.1 `ai_conversations`
 
-**RLS:** Enabled. Admin CRUD. Members SELECT.
+Historico de conversas com IA.
 
----
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `user_id` | UUID | NULL | - | FK -> profiles(id) CASCADE |
+| `conversation_key` | TEXT | NOT NULL | - | UNIQUE(user_id, conversation_key) |
+| `messages` | JSONB | NULL | `'[]'` | Array de mensagens |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-### 3.6 ai_feature_flags
+**RLS:** User-scoped (somente proprias conversas).
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| key | TEXT | NOT NULL | -- | UNIQUE(org, key) |
-| enabled | BOOLEAN | NOT NULL | true | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
+### 3.2 `ai_decisions`
 
-**RLS:** Enabled. Admin CRUD. Members SELECT.
+Fila de decisoes/sugestoes da IA.
 
----
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `user_id` | UUID | NULL | - | FK -> profiles(id) CASCADE |
+| `deal_id` | UUID | NULL | - | FK -> deals(id) CASCADE |
+| `contact_id` | UUID | NULL | - | FK -> contacts(id) SET NULL |
+| `decision_type` | TEXT | NOT NULL | - | - |
+| `priority` | TEXT | NULL | `'medium'` | - |
+| `title` | TEXT | NOT NULL | - | - |
+| `description` | TEXT | NULL | - | - |
+| `suggested_action` | JSONB | NULL | - | - |
+| `status` | TEXT | NULL | `'pending'` | - |
+| `snoozed_until` | TIMESTAMPTZ | NULL | - | - |
+| `processed_at` | TIMESTAMPTZ | NULL | - | - |
+| `ai_reasoning` | TEXT | NULL | - | - |
+| `confidence_score` | NUMERIC(3,2) | NULL | - | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-## 4. Tabelas de Seguranca
+**RLS:** User-scoped.
 
-### 4.1 rate_limits
+### 3.3 `ai_audio_notes`
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| identifier | TEXT | NOT NULL | -- | -- |
-| endpoint | TEXT | NOT NULL | -- | -- |
-| created_at | TIMESTAMPTZ | NOT NULL | NOW() | -- |
+Notas de audio transcritas por IA.
 
-**RLS:** Enabled (permissive from init).
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `user_id` | UUID | NULL | - | FK -> profiles(id) CASCADE |
+| `deal_id` | UUID | NULL | - | FK -> deals(id) CASCADE |
+| `contact_id` | UUID | NULL | - | FK -> contacts(id) SET NULL |
+| `audio_url` | TEXT | NULL | - | - |
+| `duration_seconds` | INTEGER | NULL | - | - |
+| `transcription` | TEXT | NOT NULL | - | - |
+| `sentiment` | TEXT | NULL | - | - |
+| `next_action` | JSONB | NULL | - | - |
+| `activity_created_id` | UUID | NULL | - | FK -> activities(id) |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
----
+**RLS:** User-scoped.
 
-### 4.2 user_consents (LGPD)
+### 3.4 `ai_suggestion_interactions`
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| user_id | UUID | NOT NULL | -- | FK -> auth.users(id) ON DELETE CASCADE |
-| consent_type | TEXT | NOT NULL | -- | CHECK (IN 'terms','privacy','marketing','analytics','data_processing','AI_CONSENT') |
-| version | TEXT | NOT NULL | -- | -- |
-| consented_at | TIMESTAMPTZ | NOT NULL | NOW() | -- |
-| ip_address | TEXT | NULL | -- | -- |
-| user_agent | TEXT | NULL | -- | -- |
-| revoked_at | TIMESTAMPTZ | NULL | -- | -- |
+Rastreamento de interacoes com sugestoes da IA.
 
-**RLS:** Enabled. Users see/manage own. Admin sees org (org-scoped fix applied).
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `user_id` | UUID | NOT NULL | - | FK -> auth.users(id) CASCADE |
+| `suggestion_type` | TEXT | NOT NULL | - | CHECK (UPSELL, STALLED, BIRTHDAY, RESCUE) |
+| `entity_type` | TEXT | NOT NULL | - | CHECK (deal, contact) |
+| `entity_id` | UUID | NOT NULL | - | - |
+| `action` | TEXT | NOT NULL | - | CHECK (ACCEPTED, DISMISSED, SNOOZED) |
+| `snoozed_until` | TIMESTAMPTZ | NULL | - | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
----
+**Constraint:** UNIQUE(user_id, suggestion_type, entity_id).
+**RLS:** User-scoped.
 
-### 4.3 audit_logs
+### 3.5 `ai_prompt_templates`
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| user_id | UUID | NULL | -- | FK -> auth.users(id) ON DELETE SET NULL |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE SET NULL |
-| action | TEXT | NOT NULL | -- | -- |
-| resource_type | TEXT | NOT NULL | -- | -- |
-| resource_id | UUID | NULL | -- | -- |
-| details | JSONB | NULL | '{}' | -- |
-| ip_address | TEXT | NULL | -- | -- |
-| user_agent | TEXT | NULL | -- | -- |
-| created_at | TIMESTAMPTZ | NOT NULL | NOW() | -- |
-| severity | TEXT | NOT NULL | 'info' | CHECK (IN 'debug','info','warning','error','critical') |
+Override/versionamento de prompts de IA por organizacao.
 
-**RLS:** Enabled. SELECT admin only. INSERT own org + own user_id. No UPDATE/DELETE (append-only).
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `key` | TEXT | NOT NULL | - | Chave do template |
+| `version` | INTEGER | NOT NULL | `1` | UNIQUE(org_id, key, version) |
+| `content` | TEXT | NOT NULL | - | Conteudo do prompt |
+| `is_active` | BOOLEAN | NOT NULL | `true` | UNIQUE parcial (org, key) WHERE is_active |
+| `created_by` | UUID | NULL | - | FK -> profiles(id) SET NULL |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
----
+**RLS:** Admin-only escrita; membros leitura.
 
-### 4.4 security_alerts
+### 3.6 `ai_feature_flags`
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| alert_type | VARCHAR(50) | NOT NULL | -- | -- |
-| severity | VARCHAR(20) | NOT NULL | 'warning' | -- |
-| title | VARCHAR(255) | NOT NULL | -- | -- |
-| description | TEXT | NULL | -- | -- |
-| details | JSONB | NULL | -- | -- |
-| user_id | UUID | NULL | -- | FK -> auth.users(id) ON DELETE SET NULL |
-| acknowledged_at | TIMESTAMPTZ | NULL | -- | -- |
-| acknowledged_by | UUID | NULL | -- | FK -> auth.users(id) ON DELETE SET NULL |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
+Feature flags de IA por organizacao.
 
-**RLS:** Enabled. Admin only (CRUD org-scoped).
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `key` | TEXT | NOT NULL | - | UNIQUE(org_id, key) |
+| `enabled` | BOOLEAN | NOT NULL | `true` | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
----
-
-## 5. Tabelas de Integracoes/Webhooks
-
-### 5.1 api_keys
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| name | TEXT | NOT NULL | -- | -- |
-| key_prefix | TEXT | NOT NULL | -- | Primeiros 12 chars |
-| key_hash | TEXT | NOT NULL | -- | SHA-256 hex |
-| created_by | UUID | NULL | -- | FK -> profiles(id) ON DELETE SET NULL |
-| revoked_at | TIMESTAMPTZ | NULL | -- | -- |
-| last_used_at | TIMESTAMPTZ | NULL | -- | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
-
-**RLS:** Enabled. Admin only.
+**RLS:** Admin-only escrita; membros leitura.
 
 ---
 
-### 5.2 integration_inbound_sources
+## 4. Tabelas - Seguranca e Compliance
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| name | TEXT | NOT NULL | 'Entrada de Leads' | -- |
-| entry_board_id | UUID | NOT NULL | -- | FK -> boards(id) |
-| entry_stage_id | UUID | NOT NULL | -- | FK -> board_stages(id) |
-| secret | TEXT | NOT NULL | -- | SENSITIVE |
-| active | BOOLEAN | NOT NULL | true | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
+### 4.1 `rate_limits`
 
-**RLS:** Enabled. Admin only.
+Rate limiting para Edge Functions.
 
----
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `identifier` | TEXT | NOT NULL | - | IP ou user_id |
+| `endpoint` | TEXT | NOT NULL | - | - |
+| `created_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
 
-### 5.3 integration_outbound_endpoints
+**Indexes:** `idx_rate_limits_lookup` (identifier, endpoint, created_at DESC).
+**RLS:** Habilitada (permissive para authenticated).
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| name | TEXT | NOT NULL | 'Follow-up (Webhook)' | -- |
-| url | TEXT | NOT NULL | -- | -- |
-| secret | TEXT | NOT NULL | -- | SENSITIVE |
-| events | TEXT[] | NOT NULL | ARRAY['deal.stage_changed'] | -- |
-| active | BOOLEAN | NOT NULL | true | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | -- |
+### 4.2 `user_consents` (LGPD)
 
-**RLS:** Enabled. Admin only.
+Registro de consentimentos para compliance LGPD.
 
----
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `user_id` | UUID | NOT NULL | - | FK -> auth.users(id) CASCADE |
+| `consent_type` | TEXT | NOT NULL | - | CHECK (terms, privacy, marketing, analytics, data_processing, AI_CONSENT) |
+| `version` | TEXT | NOT NULL | - | Versao do documento |
+| `consented_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
+| `ip_address` | TEXT | NULL | - | - |
+| `user_agent` | TEXT | NULL | - | - |
+| `revoked_at` | TIMESTAMPTZ | NULL | - | - |
 
-### 5.4 webhook_events_in
+**RLS:** User-scoped (proprios). Admin pode ver da mesma org.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| source_id | UUID | NOT NULL | -- | FK -> integration_inbound_sources(id) ON DELETE CASCADE |
-| provider | TEXT | NOT NULL | 'generic' | -- |
-| external_event_id | TEXT | NULL | -- | UNIQUE(source_id, external_event_id) WHERE NOT NULL |
-| payload | JSONB | NOT NULL | '{}' | -- |
-| status | TEXT | NOT NULL | 'received' | -- |
-| error | TEXT | NULL | -- | -- |
-| created_contact_id | UUID | NULL | -- | FK -> contacts(id) ON DELETE SET NULL |
-| created_deal_id | UUID | NULL | -- | FK -> deals(id) ON DELETE SET NULL |
-| received_at | TIMESTAMPTZ | NOT NULL | NOW() | -- |
+### 4.3 `audit_logs`
 
-**RLS:** Enabled. Admin SELECT only.
+Monitoramento de seguranca.
 
----
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `user_id` | UUID | NULL | - | FK -> auth.users(id) SET NULL |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) SET NULL |
+| `action` | TEXT | NOT NULL | - | - |
+| `resource_type` | TEXT | NOT NULL | - | - |
+| `resource_id` | UUID | NULL | - | - |
+| `details` | JSONB | NULL | `'{}'` | - |
+| `ip_address` | TEXT | NULL | - | - |
+| `user_agent` | TEXT | NULL | - | - |
+| `created_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
+| `severity` | TEXT | NOT NULL | `'info'` | CHECK (debug, info, warning, error, critical) |
 
-### 5.5 webhook_events_out
+**RLS:** SELECT admin-only da mesma org. INSERT somente na propria org. Append-only.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| event_type | TEXT | NOT NULL | -- | -- |
-| payload | JSONB | NOT NULL | '{}' | -- |
-| deal_id | UUID | NULL | -- | FK -> deals(id) ON DELETE SET NULL |
-| from_stage_id | UUID | NULL | -- | FK -> board_stages(id) ON DELETE SET NULL |
-| to_stage_id | UUID | NULL | -- | FK -> board_stages(id) ON DELETE SET NULL |
-| created_at | TIMESTAMPTZ | NOT NULL | NOW() | -- |
+### 4.4 `security_alerts`
 
-**RLS:** Enabled. Admin SELECT only.
+Sistema de alertas de seguranca.
 
----
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `organization_id` | UUID | NULL | - | FK -> organizations(id) CASCADE |
+| `alert_type` | VARCHAR(50) | NOT NULL | - | - |
+| `severity` | VARCHAR(20) | NOT NULL | `'warning'` | - |
+| `title` | VARCHAR(255) | NOT NULL | - | - |
+| `description` | TEXT | NULL | - | - |
+| `details` | JSONB | NULL | - | - |
+| `user_id` | UUID | NULL | - | FK -> auth.users(id) SET NULL |
+| `acknowledged_at` | TIMESTAMPTZ | NULL | - | - |
+| `acknowledged_by` | UUID | NULL | - | FK -> auth.users(id) SET NULL |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-### 5.6 webhook_deliveries
-
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| endpoint_id | UUID | NOT NULL | -- | FK -> integration_outbound_endpoints(id) ON DELETE CASCADE |
-| event_id | UUID | NOT NULL | -- | FK -> webhook_events_out(id) ON DELETE CASCADE |
-| request_id | BIGINT | NULL | -- | pg_net request ID |
-| status | TEXT | NOT NULL | 'queued' | -- |
-| attempted_at | TIMESTAMPTZ | NOT NULL | NOW() | -- |
-| response_status | INT | NULL | -- | -- |
-| error | TEXT | NULL | -- | -- |
-
-**RLS:** Enabled. Admin SELECT only.
+**RLS:** Admin-only da mesma org.
 
 ---
 
-## 6. Tabelas de CRM Imobiliario (Epic 3)
+## 5. Tabelas - Integracoes e Webhooks
 
-### 6.1 contact_phones
+### 5.1 `api_keys`
 
-Multiplos telefones por contato.
+Chaves de API para integracoes externas. Token armazenado como hash SHA256.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| contact_id | UUID | NOT NULL | -- | FK -> contacts(id) ON DELETE CASCADE |
-| phone_number | TEXT | NOT NULL | -- | -- |
-| phone_type | TEXT | NOT NULL | 'CELULAR' | CHECK (IN 'CELULAR','COMERCIAL','RESIDENCIAL') |
-| is_whatsapp | BOOLEAN | NOT NULL | false | -- |
-| is_primary | BOOLEAN | NOT NULL | false | UNIQUE per contact WHERE is_primary |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | Auto via trigger |
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `name` | TEXT | NOT NULL | - | - |
+| `key_prefix` | TEXT | NOT NULL | - | Primeiros 12 chars |
+| `key_hash` | TEXT | NOT NULL | - | SHA256 hex |
+| `created_by` | UUID | NULL | - | FK -> profiles(id) SET NULL |
+| `revoked_at` | TIMESTAMPTZ | NULL | - | - |
+| `last_used_at` | TIMESTAMPTZ | NULL | - | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-**RLS:** Enabled. CRUD org-scoped.
+**RLS:** Admin-only.
 
----
+### 5.2 `integration_inbound_sources`
 
-### 6.2 contact_preferences
+Configuracao de fontes de entrada de leads (webhooks).
 
-Perfil de interesse imobiliario do contato.
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `name` | TEXT | NOT NULL | `'Entrada de Leads'` | - |
+| `entry_board_id` | UUID | NOT NULL | - | FK -> boards(id) |
+| `entry_stage_id` | UUID | NOT NULL | - | FK -> board_stages(id) |
+| `secret` | TEXT | NOT NULL | - | Segredo de validacao |
+| `active` | BOOLEAN | NOT NULL | `true` | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| contact_id | UUID | NOT NULL | -- | FK -> contacts(id) ON DELETE CASCADE |
-| property_types | TEXT[] | NULL | '{}' | Valores: APARTAMENTO, CASA, TERRENO, etc. |
-| purpose | TEXT | NULL | -- | CHECK (IN 'MORADIA','INVESTIMENTO','VERANEIO') |
-| price_min | NUMERIC | NULL | -- | CHECK (price_min <= price_max) |
-| price_max | NUMERIC | NULL | -- | -- |
-| regions | TEXT[] | NULL | '{}' | -- |
-| bedrooms_min | INTEGER | NULL | -- | -- |
-| parking_min | INTEGER | NULL | -- | -- |
-| area_min | NUMERIC | NULL | -- | -- |
-| accepts_financing | BOOLEAN | NULL | -- | -- |
-| accepts_fgts | BOOLEAN | NULL | -- | -- |
-| urgency | TEXT | NULL | -- | CHECK (IN 'IMMEDIATE','3_MONTHS','6_MONTHS','1_YEAR') |
-| notes | TEXT | NULL | -- | -- |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) ON DELETE CASCADE |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| updated_at | TIMESTAMPTZ | NULL | NOW() | Auto via trigger |
+**RLS:** Admin-only.
 
-**RLS:** Enabled. CRUD org-scoped.
+### 5.3 `integration_outbound_endpoints`
 
----
+Configuracao de endpoints de saida (webhooks de notificacao).
 
-### 6.3 notifications
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `name` | TEXT | NOT NULL | `'Follow-up (Webhook)'` | - |
+| `url` | TEXT | NOT NULL | - | URL de destino |
+| `secret` | TEXT | NOT NULL | - | HMAC secret |
+| `events` | TEXT[] | NOT NULL | `ARRAY['deal.stage_changed']` | Eventos assinados |
+| `active` | BOOLEAN | NOT NULL | `true` | - |
+| `created_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NULL | `NOW()` | - |
 
-Notificacoes CRM inteligentes.
+**RLS:** Admin-only.
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) |
-| type | TEXT | NOT NULL | -- | CHECK (IN 'BIRTHDAY','CHURN_ALERT','DEAL_STAGNANT','SCORE_DROP') |
-| title | TEXT | NOT NULL | -- | -- |
-| description | TEXT | NULL | -- | -- |
-| contact_id | UUID | NULL | -- | FK -> contacts(id) ON DELETE CASCADE |
-| deal_id | UUID | NULL | -- | FK -> deals(id) ON DELETE CASCADE |
-| is_read | BOOLEAN | NULL | false | -- |
-| created_at | TIMESTAMPTZ | NULL | NOW() | -- |
-| owner_id | UUID | NULL | -- | FK -> profiles(id) |
+### 5.4 `webhook_events_in`
 
-**RLS:** Enabled. SELECT/INSERT/UPDATE org-scoped. No DELETE policy.
+Auditoria de eventos webhook recebidos.
 
----
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `source_id` | UUID | NOT NULL | - | FK -> integration_inbound_sources(id) CASCADE |
+| `provider` | TEXT | NOT NULL | `'generic'` | - |
+| `external_event_id` | TEXT | NULL | - | Dedupe |
+| `payload` | JSONB | NOT NULL | `'{}'` | - |
+| `status` | TEXT | NOT NULL | `'received'` | - |
+| `error` | TEXT | NULL | - | - |
+| `created_contact_id` | UUID | NULL | - | FK -> contacts(id) SET NULL |
+| `created_deal_id` | UUID | NULL | - | FK -> deals(id) SET NULL |
+| `received_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
 
-### 6.4 lead_score_history
+**Index:** `webhook_events_in_dedupe` (partial unique).
+**RLS:** Admin-only leitura.
 
-Historico de mudancas de lead score.
+### 5.5 `webhook_events_out` e `webhook_deliveries`
 
-| Coluna | Tipo | Nullable | Default | Constraints |
-|--------|------|----------|---------|-------------|
-| id | UUID | NOT NULL | gen_random_uuid() | PK |
-| contact_id | UUID | NOT NULL | -- | FK -> contacts(id) ON DELETE CASCADE |
-| organization_id | UUID | NOT NULL | -- | FK -> organizations(id) |
-| old_score | INTEGER | NOT NULL | -- | -- |
-| new_score | INTEGER | NOT NULL | -- | -- |
-| change | INTEGER | NOT NULL | -- | -- |
-| created_at | TIMESTAMPTZ | NOT NULL | NOW() | -- |
+Auditoria de eventos webhook enviados e entregas.
 
-**RLS:** Enabled. SELECT/INSERT org-scoped.
+**RLS:** Admin-only leitura.
 
 ---
 
-## 7. Relacionamentos (Foreign Keys)
+## 6. Tabelas - Prospeccao
 
-### Diagrama Simplificado
+### 6.1 `prospecting_queues`
+
+Fila de prospeccao (call queue) para sessoes de power dialer (Epic CP).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `contact_id` | UUID | NOT NULL | - | FK -> contacts(id) CASCADE |
+| `owner_id` | UUID | NOT NULL | - | FK -> auth.users(id) CASCADE |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `status` | TEXT | NOT NULL | `'pending'` | CHECK (pending, in_progress, completed, skipped, retry_pending, exhausted) |
+| `position` | INT | NOT NULL | `0` | Ordem na fila |
+| `session_id` | UUID | NULL | - | - |
+| `assigned_by` | UUID | NULL | - | FK -> auth.users(id) SET NULL |
+| `retry_at` | TIMESTAMPTZ | NULL | - | Quando pode ser tentado novamente |
+| `retry_count` | INT | NOT NULL | `0` | Tentativas (max 3) |
+| `created_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
+
+**Realtime:** Adicionada a `supabase_realtime`.
+**RLS:** Owner-scoped. Admin/diretor pode ver toda org.
+
+### 6.2 `prospecting_note_templates`
+
+Templates de notas rapidas para prospeccao (CP-2.2).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `outcome` | TEXT | NOT NULL | - | Tipo de resultado |
+| `text` | TEXT | NOT NULL | - | Texto do template |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `created_by` | UUID | NOT NULL | - | FK -> auth.users(id) CASCADE |
+| `created_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
+
+**RLS:** SELECT org-wide. INSERT/UPDATE admin/diretor only.
+
+### 6.3 `prospecting_daily_goals`
+
+Metas diarias de prospeccao (CP-2.3).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `owner_id` | UUID | NOT NULL | - | FK -> auth.users(id) CASCADE, UNIQUE |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `calls_target` | INT | NOT NULL | `30` | - |
+| `connection_rate_target` | DECIMAL | NOT NULL | `0.25` | - |
+| `created_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
+| `updated_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
+
+**Realtime:** Adicionada a `supabase_realtime`.
+**RLS:** Owner-scoped. Admin/diretor pode ver toda org.
+
+### 6.4 `prospecting_saved_queues`
+
+Filas salvas/favoritas de prospeccao (CP-2.4).
+
+| Coluna | Tipo | Nullable | Default | Constraint |
+|--------|------|----------|---------|------------|
+| `id` | UUID | NOT NULL | `gen_random_uuid()` | PK |
+| `name` | TEXT | NOT NULL | - | - |
+| `filters` | JSONB | NOT NULL | - | Filtros salvos |
+| `owner_id` | UUID | NOT NULL | - | FK -> auth.users(id) CASCADE |
+| `organization_id` | UUID | NOT NULL | - | FK -> organizations(id) CASCADE |
+| `is_shared` | BOOLEAN | NOT NULL | `false` | - |
+| `created_at` | TIMESTAMPTZ | NOT NULL | `NOW()` | - |
+
+**Realtime:** Adicionada a `supabase_realtime`.
+**RLS:** Owner-scoped + shared. Admin/diretor vê toda org.
+
+---
+
+## 7. Views e Funcoes
+
+### 7.1 Funcoes de Dominio
+
+| Funcao | Tipo | Security | Descricao |
+|--------|------|----------|-----------|
+| `get_dashboard_stats(p_org_id)` | RETURNS JSONB | INVOKER | Estatisticas gerais do dashboard (org-scoped) |
+| `mark_deal_won(deal_id)` | RETURNS VOID | INVOKER | Marca deal como ganho |
+| `mark_deal_lost(deal_id, reason)` | RETURNS VOID | INVOKER | Marca deal como perdido |
+| `reopen_deal(deal_id)` | RETURNS VOID | INVOKER | Reabre deal fechado |
+| `get_contact_stage_counts(p_org_id)` | RETURNS TABLE | INVOKER | Contagem de contatos por estagio |
+| `reassign_contact_with_deals(...)` | RETURNS JSON | INVOKER | Reatribuicao atomica de contato + deals |
+| `merge_contacts(p_winner, p_loser, ...)` | RETURNS JSONB | DEFINER | Merge de contatos duplicados |
+| `increment_contact_ltv(p_contact_id, p_amount)` | RETURNS VOID | DEFINER | Incrementa LTV atomicamente |
+| `decrement_contact_ltv(p_contact_id, p_amount)` | RETURNS VOID | DEFINER | Decrementa LTV atomicamente |
+| `get_prospecting_filtered_contacts(...)` | RETURNS TABLE | INVOKER | Busca filtrada de contatos para prospeccao |
+
+### 7.2 Funcoes de Infraestrutura
+
+| Funcao | Tipo | Security | Descricao |
+|--------|------|----------|-----------|
+| `is_instance_initialized()` | RETURNS BOOLEAN | DEFINER | Verifica se ha org cadastrada |
+| `get_singleton_organization_id()` | RETURNS UUID | DEFINER | Retorna a unica org ativa |
+| `get_user_organization_id()` | RETURNS UUID | DEFINER | Retorna org do usuario logado (anti-recursao RLS) |
+| `is_admin_or_director(p_org_id)` | RETURNS BOOLEAN | INVOKER | Verifica se usuario é admin ou diretor |
+| `log_audit_event(...)` | RETURNS UUID | DEFINER | Registra evento de auditoria |
+| `cleanup_rate_limits(older_than_minutes)` | RETURNS INTEGER | DEFINER | Limpa rate limits antigos |
+| `update_updated_at_column()` | RETURNS TRIGGER | - | Atualiza updated_at automaticamente |
+| `fn_capitalize_contact_name()` | RETURNS TRIGGER | - | INITCAP no nome do contato |
+
+### 7.3 Funcoes de API Keys
+
+| Funcao | Tipo | Security | Descricao |
+|--------|------|----------|-----------|
+| `create_api_key(p_name)` | RETURNS TABLE | DEFINER | Cria chave API (admin, retorna token uma vez) |
+| `revoke_api_key(p_api_key_id)` | RETURNS VOID | DEFINER | Revoga chave API (admin) |
+| `validate_api_key(p_token)` | RETURNS TABLE | DEFINER | Valida token e retorna org (anon+authenticated) |
+| `_api_key_make_token()` | RETURNS TEXT | DEFINER | Gera token base64url com prefixo `ncrm_` |
+| `_api_key_sha256_hex(token)` | RETURNS TEXT | DEFINER | Hash SHA256 para armazenamento seguro |
+
+---
+
+## 8. Triggers
+
+| Trigger | Tabela | Evento | Funcao | Descricao |
+|---------|--------|--------|--------|-----------|
+| `on_auth_user_created` | auth.users | AFTER INSERT | `handle_new_user()` | Cria profile + settings |
+| `on_auth_user_email_updated` | auth.users | AFTER UPDATE email | `handle_user_email_update()` | Sincroniza email |
+| `on_org_created` | organizations | AFTER INSERT | `handle_new_organization()` | Cria org_settings |
+| `cascade_board_delete` | boards | AFTER UPDATE deleted_at | `cascade_soft_delete_deals()` | Soft delete cascata |
+| `cascade_contact_delete` | contacts | AFTER UPDATE deleted_at | `cascade_soft_delete_activities_by_contact()` | Soft delete cascata |
+| `check_deal_duplicate_trigger` | deals | BEFORE INSERT/UPDATE | `check_deal_duplicate()` | Impede duplicata contact+stage |
+| `update_deal_notes_updated_at` | deal_notes | BEFORE UPDATE | `update_updated_at_column()` | Auto updated_at |
+| `update_quick_scripts_updated_at` | quick_scripts | BEFORE UPDATE | `update_updated_at_column()` | Auto updated_at |
+| `update_contact_phones_updated_at` | contact_phones | BEFORE UPDATE | `update_updated_at_column()` | Auto updated_at |
+| `update_contact_preferences_updated_at` | contact_preferences | BEFORE UPDATE | `update_updated_at_column()` | Auto updated_at |
+| `trg_capitalize_contact_name` | contacts | BEFORE INSERT/UPDATE name | `fn_capitalize_contact_name()` | INITCAP automatico |
+
+---
+
+## 9. Indexes
+
+### 9.1 Indexes de Performance (FK e filtros)
+
+| Index | Tabela | Colunas | Tipo | Parcial |
+|-------|--------|---------|------|---------|
+| `idx_deals_board_id` | deals | board_id | btree | - |
+| `idx_deals_stage_id` | deals | stage_id | btree | - |
+| `idx_deals_contact_id` | deals | contact_id | btree | - |
+| `idx_deals_board_stage_created` | deals | board_id, stage_id, created_at DESC | btree | - |
+| `idx_deals_open` | deals | board_id, stage_id | btree | WHERE is_won=false AND is_lost=false |
+| `idx_deals_type_org` | deals | organization_id, deal_type | btree | - |
+| `idx_deals_expected_close` | deals | organization_id, expected_close_date | btree | WHERE NOT closed |
+| `idx_deals_organization_id` | deals | organization_id | btree | - |
+| `idx_deals_owner_id` | deals | owner_id | btree | - |
+| `idx_deal_items_deal_id` | deal_items | deal_id | btree | - |
+| `idx_deal_items_organization_id` | deal_items | organization_id | btree | - |
+| `idx_contacts_stage` | contacts | stage | btree | - |
+| `idx_contacts_status` | contacts | status | btree | - |
+| `idx_contacts_created_at` | contacts | created_at DESC | btree | - |
+| `idx_contacts_organization_id` | contacts | organization_id | btree | - |
+| `idx_contacts_owner_id` | contacts | owner_id | btree | - |
+| `idx_contacts_cpf_org_unique` | contacts | organization_id, cpf | btree | WHERE cpf NOT NULL AND deleted_at IS NULL |
+| `idx_contacts_name_trgm` | contacts | name | GIN (trigram) | - |
+| `idx_contacts_email_org` | contacts | organization_id, email | btree | WHERE email NOT NULL |
+| `idx_contacts_lead_score_org` | contacts | organization_id, lead_score DESC | btree | WHERE deleted_at IS NULL |
+| `idx_activities_date` | activities | date DESC | btree | - |
+| `idx_activities_deal_id` | activities | deal_id | btree | - |
+| `idx_activities_contact_id` | activities | contact_id | btree | - |
+| `idx_activities_organization_id` | activities | organization_id | btree | - |
+| `idx_activities_owner_id` | activities | owner_id | btree | - |
+| `idx_activities_recurrence` | activities | recurrence_type, recurrence_end_date | btree | WHERE recurrence_type NOT NULL |
+| `idx_board_stages_board_id` | board_stages | board_id | btree | - |
+| `idx_board_stages_organization_id` | board_stages | organization_id | btree | - |
+| `idx_boards_organization_id` | boards | organization_id | btree | - |
+| `idx_boards_owner_id` | boards | owner_id | btree | - |
+| `idx_profiles_org_role` | profiles | organization_id, role | btree | - |
+
+### 9.2 Indexes Unicos e Deduplicacao
+
+| Index | Tabela | Colunas | Tipo |
+|-------|--------|---------|------|
+| `idx_boards_org_key_unique` | boards | organization_id, key | UNIQUE parcial |
+| `ai_prompt_templates_org_key_version_unique` | ai_prompt_templates | org_id, key, version | UNIQUE |
+| `ai_prompt_templates_org_key_active_unique` | ai_prompt_templates | org_id, key | UNIQUE parcial WHERE is_active |
+| `ai_feature_flags_org_key_unique` | ai_feature_flags | org_id, key | UNIQUE |
+| `webhook_events_in_dedupe` | webhook_events_in | source_id, external_event_id | UNIQUE parcial |
+
+---
+
+## 10. Politicas RLS
+
+### Resumo de Cobertura
+
+| Tabela | RLS Habilitada | Padrao de Acesso |
+|--------|----------------|------------------|
+| organizations | Sim | Membros da org (via funcao helper) |
+| organization_settings | Sim | Admin escrita, org leitura |
+| profiles | Sim | Org-scoped leitura, self-update |
+| lifecycle_stages | Sim | Org-scoped leitura |
+| boards | Sim | Org-scoped, owner+admin/diretor escrita |
+| board_stages | Sim | Org-scoped, admin/diretor gestao |
+| contacts | Sim | Org-wide leitura, owner+admin/diretor escrita |
+| contact_phones | Sim | Org-scoped |
+| contact_preferences | Sim | Org-scoped |
+| deals | Sim | Org-scoped, owner_id protegido |
+| deal_items | Sim | Org-scoped |
+| deal_notes | Sim | Org-scoped, criador+admin/diretor gestao |
+| deal_files | Sim | Org-scoped, criador+admin/diretor delete |
+| activities | Sim | Org-scoped, owner+admin/diretor escrita |
+| products | Sim | Org-scoped |
+| tags | Sim | Org-scoped |
+| custom_field_definitions | Sim | Org-scoped |
+| leads | Sim | Owner-scoped, admin/diretor insert |
+| user_settings | Sim | User-scoped (user_id = auth.uid()) |
+| quick_scripts | Sim | Sistema + proprio |
+| organization_invites | Sim | Admin gestao, membros leitura |
+| notifications | Sim | Org-scoped |
+| lead_score_history | Sim | Org-scoped |
+| ai_conversations | Sim | User-scoped |
+| ai_decisions | Sim | User-scoped |
+| ai_audio_notes | Sim | User-scoped |
+| ai_suggestion_interactions | Sim | User-scoped |
+| ai_prompt_templates | Sim | Admin escrita, membros leitura |
+| ai_feature_flags | Sim | Admin escrita, membros leitura |
+| rate_limits | Sim | Authenticated (permissive) |
+| user_consents | Sim | User + admin org-scoped |
+| audit_logs | Sim | Admin leitura, append-only |
+| security_alerts | Sim | Admin-only |
+| api_keys | Sim | Admin-only |
+| integration_inbound_sources | Sim | Admin-only |
+| integration_outbound_endpoints | Sim | Admin-only |
+| webhook_events_in | Sim | Admin leitura |
+| webhook_events_out | Sim | Admin leitura |
+| webhook_deliveries | Sim | Admin leitura |
+| prospecting_queues | Sim | Owner + admin/diretor |
+| prospecting_note_templates | Sim | Org leitura, admin/diretor gestao |
+| prospecting_daily_goals | Sim | Owner + admin/diretor |
+| prospecting_saved_queues | Sim | Owner + shared + admin/diretor |
+| system_notifications | Sim | Authenticated (permissive) |
+
+**Cobertura RLS: 100%** - Todas as tabelas tem RLS habilitada.
+
+---
+
+## 11. Diagrama de Relacionamentos
 
 ```
-auth.users --(1:1)--> profiles --(N:1)--> organizations
-                                              |
-         +------------------------------------+
-         |              |            |
-       boards    contacts        deals
-         |          |    \         /   \
-    board_stages    |   contact_phones  deal_items
-         |          |   contact_prefs   deal_notes
-         |          |                   deal_files
-       deals <------+
-         |
-    activities
+                              auth.users
+                                  |
+                                  | 1:1 (PK=FK)
+                                  v
+                              profiles ----+
+                                  |        |
+                      +-----------+--------+-----------+
+                      |           |                    |
+                      v           v                    v
+              organizations   user_settings    organization_settings
+                      |
+          +-----------+-----------+-----------+-----------+
+          |           |           |           |           |
+          v           v           v           v           v
+       boards     contacts    products    leads    tags
+          |           |           |
+          v           |           v
+    board_stages      |      deal_items
+          |           |           |
+          +-----+-----+-----+----+
+                |
+                v
+              deals ----+----+----+
+                |       |         |
+                v       v         v
+           deal_notes  deal_files  activities
+                                      |
+                                      v
+                              (contact via FK)
+
+    contacts ---+--- contact_phones
+                |--- contact_preferences
+                |--- lead_score_history
+                |--- notifications (contact_id)
+
+    organizations ---+--- api_keys
+                     |--- integration_inbound_sources
+                     |--- integration_outbound_endpoints
+                     |--- webhook_events_in/out
+                     |--- webhook_deliveries
+                     |--- ai_prompt_templates
+                     |--- ai_feature_flags
+                     |--- prospecting_queues
+                     |--- prospecting_note_templates
+                     |--- prospecting_daily_goals
+                     |--- prospecting_saved_queues
+
+    profiles/auth.users ---+--- ai_conversations
+                           |--- ai_decisions
+                           |--- ai_audio_notes
+                           |--- ai_suggestion_interactions
+                           |--- quick_scripts
+                           |--- audit_logs
+                           |--- user_consents
+                           |--- security_alerts
 ```
 
-### Lista Completa de FKs
-
-| Tabela | Coluna | Referencia | ON DELETE |
-|--------|--------|------------|-----------|
-| profiles | id | auth.users(id) | CASCADE |
-| profiles | organization_id | organizations(id) | CASCADE |
-| boards | organization_id | organizations(id) | CASCADE |
-| boards | owner_id | profiles(id) | -- |
-| boards | next_board_id | boards(id) | -- |
-| boards | default_product_id | products(id) | -- |
-| boards | won_stage_id | board_stages(id) | -- |
-| boards | lost_stage_id | board_stages(id) | -- |
-| board_stages | board_id | boards(id) | CASCADE |
-| board_stages | organization_id | organizations(id) | CASCADE |
-| contacts | owner_id | profiles(id) | -- |
-| contacts | organization_id | organizations(id) | CASCADE |
-| contacts | stage | lifecycle_stages(id) | -- |
-| deals | board_id | boards(id) | -- |
-| deals | stage_id | board_stages(id) | -- |
-| deals | contact_id | contacts(id) | -- |
-| deals | owner_id | profiles(id) | -- |
-| deals | organization_id | organizations(id) | CASCADE |
-| deal_items | deal_id | deals(id) | CASCADE |
-| deal_items | product_id | products(id) | -- |
-| deal_items | organization_id | organizations(id) | CASCADE |
-| deal_notes | deal_id | deals(id) | CASCADE |
-| deal_notes | organization_id | organizations(id) | CASCADE |
-| deal_notes | created_by | profiles(id) | SET NULL |
-| deal_files | deal_id | deals(id) | CASCADE |
-| deal_files | organization_id | organizations(id) | CASCADE |
-| deal_files | created_by | profiles(id) | SET NULL |
-| activities | deal_id | deals(id) | CASCADE |
-| activities | contact_id | contacts(id) | SET NULL |
-| activities | owner_id | profiles(id) | -- |
-| activities | organization_id | organizations(id) | CASCADE |
-| contact_phones | contact_id | contacts(id) | CASCADE |
-| contact_phones | organization_id | organizations(id) | CASCADE |
-| contact_preferences | contact_id | contacts(id) | CASCADE |
-| contact_preferences | organization_id | organizations(id) | CASCADE |
-| notifications | organization_id | organizations(id) | -- |
-| notifications | contact_id | contacts(id) | CASCADE |
-| notifications | deal_id | deals(id) | CASCADE |
-| notifications | owner_id | profiles(id) | -- |
-| lead_score_history | contact_id | contacts(id) | CASCADE |
-| lead_score_history | organization_id | organizations(id) | -- |
-| leads | converted_to_contact_id | contacts(id) | -- |
-| leads | owner_id | profiles(id) | -- |
-| leads | organization_id | organizations(id) | CASCADE |
-
 ---
 
-## 8. Indexes
+## 12. Storage Buckets
 
-### Performance Indexes
-
-| Index | Tabela | Colunas | Tipo | Condicao |
-|-------|--------|---------|------|----------|
-| idx_deals_board_id | deals | board_id | btree | -- |
-| idx_deals_stage_id | deals | stage_id | btree | -- |
-| idx_deals_contact_id | deals | contact_id | btree | -- |
-| idx_deals_board_stage_created | deals | board_id, stage_id, created_at DESC | btree | -- |
-| idx_deals_open | deals | board_id, stage_id | btree | WHERE is_won=false AND is_lost=false |
-| idx_deals_organization_id | deals | organization_id | btree | -- |
-| idx_deals_owner_id | deals | owner_id | btree | -- |
-| idx_deals_type_org | deals | organization_id, deal_type | btree | -- |
-| idx_deals_expected_close | deals | organization_id, expected_close_date | btree | WHERE NOT NULL AND open |
-| idx_contacts_stage | contacts | stage | btree | -- |
-| idx_contacts_status | contacts | status | btree | -- |
-| idx_contacts_created_at | contacts | created_at DESC | btree | -- |
-| idx_contacts_organization_id | contacts | organization_id | btree | -- |
-| idx_contacts_owner_id | contacts | owner_id | btree | -- |
-| idx_contacts_name_trgm | contacts | name | GIN (trigram) | -- |
-| idx_contacts_email_org | contacts | organization_id, email | btree | WHERE email NOT NULL |
-| idx_contacts_updated_at | contacts | updated_at DESC | btree | -- |
-| idx_contacts_classification | contacts | organization_id, classification | btree | -- |
-| idx_contacts_temperature | contacts | organization_id, temperature | btree | -- |
-| idx_contacts_contact_type | contacts | organization_id, contact_type | btree | -- |
-| idx_contacts_lead_score_org | contacts | organization_id, lead_score DESC | btree | WHERE deleted_at IS NULL |
-| idx_contacts_cpf_org_unique | contacts | organization_id, cpf | UNIQUE | WHERE cpf NOT NULL AND deleted_at IS NULL |
-| idx_activities_date | activities | date DESC | btree | -- |
-| idx_activities_deal_id | activities | deal_id | btree | -- |
-| idx_activities_contact_id | activities | contact_id | btree | -- |
-| idx_activities_organization_id | activities | organization_id | btree | -- |
-| idx_activities_owner_id | activities | owner_id | btree | -- |
-| idx_activities_recurrence | activities | recurrence_type, recurrence_end_date | btree | WHERE recurrence_type NOT NULL |
-| idx_boards_organization_id | boards | organization_id | btree | -- |
-| idx_boards_owner_id | boards | owner_id | btree | -- |
-| idx_boards_org_key_unique | boards | organization_id, key | UNIQUE | WHERE deleted_at IS NULL AND key NOT NULL |
-| idx_board_stages_board_id | board_stages | board_id | btree | -- |
-| idx_board_stages_organization_id | board_stages | organization_id | btree | -- |
-| idx_deal_notes_deal_id | deal_notes | deal_id | btree | -- |
-| idx_deal_notes_deal_created | deal_notes | deal_id, created_at DESC | btree | -- |
-| idx_deal_notes_org_id | deal_notes | organization_id | btree | -- |
-| idx_deal_files_deal_id | deal_files | deal_id | btree | -- |
-| idx_deal_files_deal_created | deal_files | deal_id, created_at DESC | btree | -- |
-| idx_deal_files_org_id | deal_files | organization_id | btree | -- |
-| idx_deal_items_deal_id | deal_items | deal_id | btree | -- |
-| idx_deal_items_organization_id | deal_items | organization_id | btree | -- |
-| idx_products_organization_id | products | organization_id | btree | -- |
-| idx_tags_organization_id | tags | organization_id | btree | -- |
-| idx_custom_field_definitions_organization_id | custom_field_definitions | organization_id | btree | -- |
-| idx_profiles_org_role | profiles | organization_id, role | btree | -- |
-| idx_contact_phones_contact_id | contact_phones | contact_id | btree | -- |
-| idx_contact_phones_org_id | contact_phones | organization_id | btree | -- |
-| idx_contact_phones_number_org | contact_phones | organization_id, phone_number | btree | -- |
-| idx_contact_phones_primary_unique | contact_phones | contact_id | UNIQUE | WHERE is_primary = true |
-| idx_contact_prefs_contact_id | contact_preferences | contact_id | btree | -- |
-| idx_contact_prefs_org_id | contact_preferences | organization_id | btree | -- |
-| idx_contact_prefs_price_range | contact_preferences | organization_id, price_min, price_max | btree | WHERE price range NOT NULL |
-| idx_notifications_org_unread | notifications | organization_id, is_read | btree | WHERE is_read = false |
-| idx_notifications_owner_unread | notifications | owner_id, is_read, created_at DESC | btree | WHERE is_read = false |
-| idx_lead_score_history_contact | lead_score_history | contact_id, created_at DESC | btree | -- |
-| idx_lead_score_history_org | lead_score_history | organization_id | btree | -- |
-| idx_rate_limits_lookup | rate_limits | identifier, endpoint, created_at DESC | btree | -- |
-
----
-
-## 9. RLS Policies
-
-### Modelo RBAC: admin > diretor > corretor
-
-- **admin:** CRUD completo em toda a org
-- **diretor:** Visualiza tudo na org, gerencia recursos proprios e compartilhados
-- **corretor:** CRUD apenas nos proprios registros (owner_id = auth.uid())
-
-### Helper Functions para RLS
-
-| Funcao | Tipo | Proposito |
-|--------|------|-----------|
-| `is_admin_or_director(p_org_id)` | SECURITY INVOKER | Verifica se usuario e admin/diretor na org |
-| `get_user_organization_id()` | SECURITY DEFINER | Retorna org_id do usuario (evita recursao RLS) |
-
-### Resumo de Cobertura RLS
-
-| Tabela | RLS Enabled | Padrao |
-|--------|-------------|--------|
-| organizations | YES | SELECT: membro. UPDATE: admin. No INSERT/DELETE |
-| organization_settings | YES | SELECT: membro. Modify: admin |
-| profiles | YES | SELECT: mesma org. UPDATE: self only |
-| lifecycle_stages | YES | SELECT: all auth. Modify: admin |
-| boards | YES | SELECT/INSERT: org. UPDATE/DELETE: owner/null/admin |
-| board_stages | YES | SELECT: org. Modify: admin/diretor |
-| contacts | YES | SELECT/UPDATE/DELETE: owner/null/admin. INSERT: org |
-| deals | YES | SELECT/UPDATE/DELETE: owner/null/admin. INSERT: org |
-| deal_items | YES | CRUD: org-scoped |
-| deal_notes | YES | SELECT/INSERT: org. UPDATE/DELETE: creator/admin |
-| deal_files | YES | SELECT/INSERT: org. UPDATE/DELETE: creator/admin |
-| activities | YES | SELECT/UPDATE/DELETE: owner/null/admin. INSERT: org |
-| products | YES | SELECT: org. Modify: admin/diretor |
-| tags | YES | CRUD: org-scoped |
-| custom_field_definitions | YES | SELECT: org. Modify: admin/diretor |
-| leads | YES | SELECT/UPDATE: owner/admin. INSERT: owner/admin. DELETE: admin |
-| user_settings | YES | CRUD: self only |
-| quick_scripts | YES | SELECT: system + own. Modify: own non-system |
-| ai_conversations | YES | CRUD own. Admin/diretor SELECT org |
-| ai_decisions | YES | CRUD own. Admin/diretor SELECT org |
-| ai_audio_notes | YES | CRUD own. Admin/diretor SELECT org |
-| ai_suggestion_interactions | YES | Permissive (USING true) -- NOT ORG-SCOPED |
-| ai_prompt_templates | YES | Admin CRUD. Members SELECT |
-| ai_feature_flags | YES | Admin CRUD. Members SELECT |
-| organization_invites | YES | Admin/diretor manage. Members SELECT |
-| system_notifications | YES | SELECT/UPDATE/DELETE: org. No INSERT |
-| rate_limits | YES | Permissive (USING true) |
-| user_consents | YES | Own + admin org-scoped |
-| audit_logs | YES | SELECT: admin. INSERT: own org. Append-only |
-| security_alerts | YES | Admin only |
-| api_keys | YES | Admin only |
-| integration_inbound_sources | YES | Admin only |
-| integration_outbound_endpoints | YES | Admin only |
-| webhook_events_in | YES | Admin SELECT only |
-| webhook_events_out | YES | Admin SELECT only |
-| webhook_deliveries | YES | Admin SELECT only |
-| contact_phones | YES | CRUD: org-scoped |
-| contact_preferences | YES | CRUD: org-scoped |
-| notifications | YES | SELECT/INSERT/UPDATE: org. No DELETE |
-| lead_score_history | YES | SELECT/INSERT: org |
-
----
-
-## 10. Functions
-
-### Business Logic
-
-| Funcao | Security | Retorno | Descricao |
-|--------|----------|---------|-----------|
-| `get_dashboard_stats(p_org_id)` | DEFINER | JSONB | Stats do dashboard (total contacts, deals, pipeline value) |
-| `mark_deal_won(deal_id)` | INVOKER | VOID | Marca deal como ganho |
-| `mark_deal_lost(deal_id, reason)` | INVOKER | VOID | Marca deal como perdido |
-| `reopen_deal(deal_id)` | INVOKER | VOID | Reabre deal |
-| `get_contact_stage_counts(p_org_id)` | INVOKER | TABLE | Contagem de contatos por estagio (exclui deleted) |
-| `reassign_contact_with_deals(...)` | INVOKER | JSON | Reatribuicao cascata de contato + deals |
-| `merge_contacts(winner, loser, ...)` | DEFINER | JSONB | Unifica dois contatos (deals, phones, prefs) |
-| `increment_contact_ltv(id, amount)` | DEFINER | VOID | Incremento atomico de LTV |
-| `decrement_contact_ltv(id, amount)` | DEFINER | VOID | Decremento atomico de LTV (floor 0) |
-| `check_deal_duplicate()` | INVOKER | TRIGGER | Previne deal duplicado (contact + stage + open) |
-
-### Infrastructure
-
-| Funcao | Security | Retorno | Descricao |
-|--------|----------|---------|-----------|
-| `handle_new_user()` | DEFINER | TRIGGER | Cria profile + user_settings ao registrar |
-| `handle_new_organization()` | DEFINER | TRIGGER | Cria organization_settings automaticamente |
-| `handle_user_email_update()` | DEFINER | TRIGGER | Sincroniza email de auth.users para profiles |
-| `is_instance_initialized()` | DEFINER | BOOLEAN | Verifica se org existe |
-| `get_singleton_organization_id()` | DEFINER | UUID | Retorna primeira org ativa |
-| `get_user_organization_id()` | DEFINER | UUID | Retorna org_id do usuario (RLS helper) |
-| `is_admin_or_director(p_org_id)` | INVOKER | BOOLEAN | Verifica role (RLS helper) |
-| `log_audit_event(...)` | INVOKER | UUID | Cria entrada no audit_logs |
-| `cleanup_rate_limits(minutes)` | DEFINER | INTEGER | Remove rate limits antigos |
-| `update_updated_at_column()` | -- | TRIGGER | Auto-update updated_at |
-| `fn_capitalize_contact_name()` | -- | TRIGGER | INITCAP no nome do contato |
-| `notify_deal_stage_changed()` | DEFINER | TRIGGER | Webhook outbound ao mudar stage |
-| `cascade_soft_delete_deals()` | -- | TRIGGER | Cascade soft delete boards -> deals |
-| `cascade_soft_delete_activities_by_contact()` | -- | TRIGGER | Cascade soft delete contacts -> activities |
-
-### API Key Management
-
-| Funcao | Security | Retorno | Descricao |
-|--------|----------|---------|-----------|
-| `create_api_key(name)` | DEFINER | TABLE | Cria chave API (admin only) |
-| `revoke_api_key(id)` | DEFINER | VOID | Revoga chave API (admin only) |
-| `validate_api_key(token)` | DEFINER | TABLE | Valida chave (anon + auth) |
-| `_api_key_make_token()` | DEFINER | TEXT | Gera token base64url |
-| `_api_key_sha256_hex(token)` | DEFINER | TEXT | Hash SHA-256 |
-
----
-
-## 11. Triggers
-
-| Trigger | Tabela | Evento | Funcao |
-|---------|--------|--------|--------|
-| on_auth_user_created | auth.users | AFTER INSERT | handle_new_user() |
-| on_auth_user_email_updated | auth.users | AFTER UPDATE OF email | handle_user_email_update() |
-| on_org_created | organizations | AFTER INSERT | handle_new_organization() |
-| trg_notify_deal_stage_changed | deals | AFTER UPDATE OF stage_id | notify_deal_stage_changed() |
-| check_deal_duplicate_trigger | deals | BEFORE INSERT OR UPDATE | check_deal_duplicate() |
-| cascade_board_delete | boards | AFTER UPDATE OF deleted_at | cascade_soft_delete_deals() |
-| cascade_contact_delete | contacts | AFTER UPDATE OF deleted_at | cascade_soft_delete_activities_by_contact() |
-| update_deal_notes_updated_at | deal_notes | BEFORE UPDATE | update_updated_at_column() |
-| update_quick_scripts_updated_at | quick_scripts | BEFORE UPDATE | update_updated_at_column() |
-| update_contacts_updated_at | contacts | BEFORE UPDATE | update_updated_at_column() |
-| update_deals_updated_at | deals | BEFORE UPDATE | update_updated_at_column() |
-| update_contact_phones_updated_at | contact_phones | BEFORE UPDATE | update_updated_at_column() |
-| update_contact_preferences_updated_at | contact_preferences | BEFORE UPDATE | update_updated_at_column() |
-| trg_capitalize_contact_name | contacts | BEFORE INSERT OR UPDATE OF name | fn_capitalize_contact_name() |
-
----
-
-## 12. Tipos Customizados e Enums
-
-Nao ha tipos customizados (ENUMs PostgreSQL) definidos. Todos os "enums" sao implementados via CHECK constraints em colunas TEXT.
-
-### CHECK Constraints como Enums
-
-| Tabela.Coluna | Valores Permitidos |
-|---------------|--------------------|
-| profiles.role | 'admin', 'diretor', 'corretor' |
-| organization_invites.role | 'admin', 'diretor', 'corretor' |
-| contacts.contact_type | 'PF', 'PJ' |
-| contacts.classification | 'COMPRADOR', 'VENDEDOR', 'LOCATARIO', 'LOCADOR', 'INVESTIDOR', 'PERMUTANTE' |
-| contacts.temperature | 'HOT', 'WARM', 'COLD' |
-| deals.deal_type | 'VENDA', 'LOCACAO', 'PERMUTA' |
-| activities.recurrence_type | 'daily', 'weekly', 'monthly' |
-| quick_scripts.category | 'followup', 'objection', 'closing', 'intro', 'rescue', 'other' |
-| system_notifications.severity | 'high', 'medium', 'low' |
-| audit_logs.severity | 'debug', 'info', 'warning', 'error', 'critical' |
-| user_consents.consent_type | 'terms', 'privacy', 'marketing', 'analytics', 'data_processing', 'AI_CONSENT' |
-| ai_suggestion_interactions.suggestion_type | 'UPSELL', 'STALLED', 'BIRTHDAY', 'RESCUE' |
-| ai_suggestion_interactions.entity_type | 'deal', 'contact' |
-| ai_suggestion_interactions.action | 'ACCEPTED', 'DISMISSED', 'SNOOZED' |
-| notifications.type | 'BIRTHDAY', 'CHURN_ALERT', 'DEAL_STAGNANT', 'SCORE_DROP' |
-| contact_phones.phone_type | 'CELULAR', 'COMERCIAL', 'RESIDENCIAL' |
-| contact_preferences.purpose | 'MORADIA', 'INVESTIMENTO', 'VERANEIO' |
-| contact_preferences.urgency | 'IMMEDIATE', '3_MONTHS', '6_MONTHS', '1_YEAR' |
-
----
-
-## 13. Storage Buckets
-
-| Bucket | Publico | Limite | Proposito |
+| Bucket | Publico | Limite | Descricao |
 |--------|---------|--------|-----------|
-| avatars | true | -- | Fotos de perfil |
-| audio-notes | false | -- | Audios de notas de IA |
-| deal-files | false | 10MB | Arquivos anexados a deals |
+| `avatars` | Sim | 50MB global | Fotos de perfil |
+| `audio-notes` | Nao | 50MB global | Gravacoes de audio transcritas |
+| `deal-files` | Nao | 10MB por arquivo | Documentos associados a deals |
 
-### Storage RLS (deal-files)
-
-- SELECT/INSERT/UPDATE: membros da org (via deals.organization_id extraido do path)
-- DELETE: owner do deal ou admin/diretor
+**Policies de storage** (bucket `deal-files`): Org-scoped via deal ownership. Delete restrito a owner do deal + admin/diretor.
 
 ---
 
-## 14. Realtime
+## 13. Publicacoes Realtime
 
-Tabelas publicadas no `supabase_realtime`:
-
-- deals
-- activities
-- contacts
-- board_stages
-- boards
-
-**Nota:** `crm_companies` foi removida do realtime na migration 20260220100000.
+| Tabela | Migration |
+|--------|-----------|
+| `prospecting_queues` | 20260306400000 |
+| `prospecting_saved_queues` | 20260306400000 |
+| `prospecting_daily_goals` | 20260306400000 |
+| `organization_settings` | 20260306500000 |
 
 ---
 
-## 15. Historico de Migrations
+## Historico de Migrations
 
-| # | Timestamp | Nome | Descricao |
-|---|-----------|------|-----------|
-| 1 | 20251201000000 | schema_init | Schema consolidado completo (26 tabelas, triggers, functions, RLS, storage, realtime) |
-| 2 | 20260205000000 | add_performance_indexes | Indexes para deals, contacts, activities, board_stages |
-| 3 | 20260220000000 | rbac_corretor_diretor | RBAC 3-tier: vendedor->corretor, add diretor |
-| 4 | 20260220100000 | remove_companies_and_roles | Drop crm_companies, remove company_name/role columns |
-| 5 | 20260220100001 | rls_protect_owner_id | Protejer owner_id contra mudanca por corretor |
-| 6 | 20260220200000 | rpc_reassign_contact_with_deals | RPC cascata reatribuicao contato+deals |
-| 7 | 20260223000000 | security_rls_critical | RLS restritiva em 9 tabelas criticas + helper is_admin_or_director |
-| 8 | 20260223000001 | security_functions_fix | Migrar deal functions para INVOKER, fix role injection |
-| 9 | 20260223000002 | security_qa_fixes | Fix cross-tenant leaks (consents, handle_new_user, stage_counts) |
-| 10 | 20260223000003 | security_constraints | CHECK profiles.role, fix leads_insert policy |
-| 11 | 20260223100000 | rls_remaining_tables | RLS restritiva para 12+ tabelas restantes |
-| 12 | 20260223100001 | storage_policies | Storage policies restritivas para deal-files |
-| 13 | 20260223200000 | fix_activities_rls | Fix activities com owner_id NULL |
-| 14 | 20260223200001 | fix_activities_org_id | Backfill organization_id em activities |
-| 15 | 20260223200002 | fix_null_owners_all_tables | Backfill NULL owner_id + fix policies |
-| 16 | 20260224000000 | db012_check_constraints | CHECK constraints em deals, deal_items, contacts, profiles |
-| 17 | 20260224000001 | db017_optimize_trigger | Otimizar trigger deal stage change |
-| 18 | 20260224000002 | db025_composite_indexes | Indexes compostos deal_notes e deal_files |
-| 19 | 20260224000003 | db026_check_deal_duplicate_invoker | check_deal_duplicate -> SECURITY INVOKER |
-| 20 | 20260224000004 | db027_restrict_insert_organizations | Restringir INSERT em organizations |
-| 21 | 20260224000005 | db014_consolidate_profiles_columns | Consolidar avatar->avatar_url, name->first_name |
-| 22 | 20260224000006 | db015_fk_contacts_stage | FK contacts.stage -> lifecycle_stages.id |
-| 23 | 20260224000007 | db019_document_deals_status | Documentar deals.status como DEPRECATED |
-| 24 | 20260225000000 | coderabbit_pr5_fixes | Fix org_select, profiles_select, notify cross-tenant |
-| 25 | 20260226000000 | add_recurrence_fields | Campos de recorrencia em activities |
-| 26 | 20260226000001 | fix_rls_recursion | Fix recursao RLS com get_user_organization_id() |
-| 27 | 20260226100000 | epic3_contacts_imob_fields | Campos imobiliarios em contacts (cpf, type, classification, temperature, address, profile_data) |
-| 28 | 20260226100001 | epic3_contact_phones | Tabela contact_phones (multiplos telefones) |
-| 29 | 20260226100002 | epic3_contact_preferences | Tabela contact_preferences (preferencias imobiliarias) |
-| 30 | 20260226100003 | epic3_deals_imob_fields | Campos imobiliarios em deals (deal_type, expected_close, commission_rate) |
-| 31 | 20260226100004 | epic3_profiles_commission | commission_rate em profiles |
-| 32 | 20260226100005 | epic3_tech_debt_org_id | organization_id em deal_notes e deal_files + RLS |
-| 33 | 20260226100006 | merge_contacts_rpc | RPC merge_contacts() |
-| 34 | 20260226200000 | epic3_lead_score | lead_score em contacts |
-| 35 | 20260226200001 | epic3_notifications | Tabela notifications |
-| 36 | 20260226200002 | epic3_ltv_rpc | RPCs increment/decrement_contact_ltv |
-| 37 | 20260227220048 | move_tags_custom_fields_to_contacts | Mover tags e custom_fields de deals para contacts |
-| 38 | 20260227223316 | add_metadata_to_deals | Coluna metadata JSONB em deals |
-| 39 | 20260228160135 | lead_score_history | Tabela lead_score_history |
-| 40 | 20260228190051 | fix_stage_counts_exclude_deleted | Fix get_contact_stage_counts (excluir deleted) |
-| 41 | 20260228200001 | lead_score_history_org_index | Index organization_id em lead_score_history |
-| 42 | 20260301185436 | sync_deal_titles_with_contact_names | Sincronizar titulos de deals com nomes de contatos |
-| 43 | 20260301200000 | auto_capitalize_contact_names | Trigger INITCAP para nomes de contatos |
-| 44 | 20260303120000 | add_property_ref_to_deals | Coluna property_ref TEXT em deals |
+| # | Arquivo | Descricao Resumida |
+|---|---------|-------------------|
+| 1 | `20251201000000_schema_init.sql` | Schema consolidado inicial (26 tabelas, RLS, triggers, functions) |
+| 2 | `20260205000000_add_performance_indexes.sql` | ~20 indexes de performance |
+| 3 | `20260220000000_rbac_corretor_diretor.sql` | RBAC 3-tier (admin > diretor > corretor) |
+| 4 | `20260220100000_remove_companies_and_roles.sql` | Remove crm_companies, company_name, role |
+| 5 | `20260220100001_rls_protect_owner_id.sql` | Protege owner_id de corretor |
+| 6 | `20260220200000_rpc_reassign_contact_with_deals.sql` | RPC reassign atomico |
+| 7 | `20260223000000_security_rls_critical.sql` | RLS restritiva em 9 tabelas criticas |
+| 8 | `20260223000001_security_functions_fix.sql` | Fix cross-tenant em funcoes |
+| 9 | `20260223000002_security_qa_fixes.sql` | Fix QA: LGPD, handle_new_user, stage_counts |
+| 10 | `20260223000003_security_constraints.sql` | CHECK constraint profiles.role + leads_insert RLS |
+| 11 | `20260223100000_rls_remaining_tables.sql` | RLS restritiva em ~12 tabelas restantes |
+| 12 | `20260223100001_storage_policies.sql` | Storage policies org-scoped para deal-files |
+| 13-16 | `20260223200000-20260224000002` | Fixes activities RLS, org_id, null owners, check constraints |
+| 17 | `20260224000001_db017_optimize_trigger_deal_stage.sql` | Trigger notificacao deal stage change |
+| 18-22 | `20260224000002-20260224000007` | Composite indexes, deal duplicate check, restrict insert org, consolidate profiles, FK contacts-stage, document deals status |
+| 23 | `20260225000000_coderabbit_pr5_fixes.sql` | 5 fixes de CodeRabbit (tenant isolation, RLS) |
+| 24 | `20260226000000_add_recurrence_fields.sql` | Campos de recorrencia em activities |
+| 25 | `20260226000001_fix_rls_recursion.sql` | Fix recursao circular RLS profiles/organizations |
+| 26-31 | `20260226100000-20260226100006` | Epic 3: campos imob, phones, preferences, deals imob, commission, tech debt org_id, merge contacts |
+| 32-34 | `20260226200000-20260226200002` | Lead score, notifications, LTV RPCs |
+| 35 | `20260227220048_move_tags_custom_fields_to_contacts.sql` | Migra tags/custom_fields de deals para contacts |
+| 36 | `20260227223316_add_metadata_to_deals.sql` | Metadata JSONB em deals |
+| 37-38 | `20260228160135-20260228200001` | Lead score history + org index |
+| 39 | `20260228190051_fix_stage_counts_exclude_deleted.sql` | Fix contagem com soft-deleted |
+| 40-41 | `20260301185436-20260301200000` | Sync deal titles, auto-capitalize names |
+| 42 | `20260303120000_add_property_ref_to_deals.sql` | property_ref em deals |
+| 43 | `20260303130000_add_metadata_to_activities.sql` | Metadata JSONB em activities |
+| 44 | `20260303130001_create_prospecting_queues.sql` | Tabela prospecting_queues |
+| 45 | `20260303201001_rls_contacts_select_org_wide.sql` | Fix contacts SELECT org-wide |
+| 46 | `20260303210000_rpc_prospecting_filtered_contacts.sql` | RPC filtro prospeccao |
+| 47 | `20260304100000_add_retry_fields_prospecting_queues.sql` | Retry fields prospecting |
+| 48 | `20260304200000_create_prospecting_note_templates.sql` | Templates de notas |
+| 49 | `20260306100000_create_prospecting_daily_goals.sql` | Metas diarias |
+| 50 | `20260306200000_create_prospecting_saved_queues.sql` | Filas salvas |
+| 51 | `20260306400000_add_prospecting_tables_to_realtime.sql` | Realtime prospeccao |
+| 52 | `20260306500000_add_org_settings_to_realtime.sql` | Realtime org_settings |
+
+---
+
+*Documento gerado por @data-engineer (Dara) - Brownfield Discovery Phase 2*
+*Ultima atualizacao: 2026-03-06*

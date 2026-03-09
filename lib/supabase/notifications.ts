@@ -108,7 +108,7 @@ export async function generateBirthdayNotifications(
 
     // Filtra contatos cujo birth_date cai hoje (MM-DD) via date parsing
     const birthdayContacts = (contacts || []).filter(c => {
-      const bd = (c as any).birth_date;
+      const bd = (c as { birth_date?: string | null }).birth_date;
       if (!bd) return false;
       const bdDate = new Date(bd);
       if (isNaN(bdDate.getTime())) return false;

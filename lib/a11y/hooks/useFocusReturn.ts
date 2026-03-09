@@ -34,10 +34,13 @@ export function useFocusReturn(options: UseFocusReturnOptions = {}): void {
     // Save the currently focused element
     previousFocus.current = document.activeElement as HTMLElement;
 
+    // Copy ref value so cleanup uses the value captured at effect time
+    const returnToElement = returnTo?.current;
+
     return () => {
       // On unmount, restore focus
-      const elementToFocus = returnTo?.current || previousFocus.current;
-      
+      const elementToFocus = returnToElement || previousFocus.current;
+
       if (elementToFocus && typeof elementToFocus.focus === 'function') {
         // Use requestAnimationFrame to ensure DOM has updated
         requestAnimationFrame(() => {

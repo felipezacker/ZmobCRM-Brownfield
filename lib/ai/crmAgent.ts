@@ -2,10 +2,12 @@ import { ToolLoopAgent, stepCountIs } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { CRMCallOptionsSchema, type CRMCallOptions } from '@/types/ai';
 import { createCRMTools } from './tools';
 import { formatPriorityPtBr } from '@/lib/utils/priority';
 import { AI_DEFAULT_MODELS, AI_DEFAULT_PROVIDER } from './defaults';
+import { getResolvedPrompt } from './prompts/server';
 
 type AIProvider = 'google' | 'openai' | 'anthropic';
 
@@ -21,70 +23,79 @@ function clampText(v: unknown, max = 240): string | undefined {
     return s.slice(0, max - 1) + '…';
 }
 
-function formatCockpitSnapshotForPrompt(snapshot: any): string[] {
+type AnyObj = Record<string, unknown>;
+
+function formatCockpitSnapshotForPrompt(snapshot: Record<string, unknown>): string[] {
     if (!snapshot || typeof snapshot !== 'object') return [];
 
     const lines: string[] = [];
 
     const deal = snapshot.deal;
     if (deal && typeof deal === 'object') {
-        const title = clampText(deal.title, 120) || clampText(deal.name, 120);
-        const value = typeof deal.value === 'number' ? deal.value : undefined;
-        const probability = typeof deal.probability === 'number' ? deal.probability : undefined;
-        const priority = clampText(deal.priority, 30);
-        const status = clampText(deal.status, 80);
+        const d = deal as AnyObj;
+        const title = clampText(d.title, 120) || clampText(d.name, 120);
+        const value = typeof d.value === 'number' ? d.value : undefined;
+        const probability = typeof d.probability === 'number' ? d.probability : undefined;
+        const priority = clampText(d.priority, 30);
+        const status = clampText(d.status, 80);
         lines.push(`🧾 Deal (cockpit): ${title ?? '(sem título)'}${value != null ? ` — R$ ${value.toLocaleString('pt-BR')}` : ''}`);
         if (probability != null) lines.push(`   - Probabilidade: ${probability}%`);
         if (priority) lines.push(`   - Prioridade: ${formatPriorityPtBr(priority)}`);
         if (status) lines.push(`   - Status/Stage ID: ${status}`);
-        const lossReason = clampText(deal.lossReason, 200);
+        const lossReason = clampText(d.lossReason, 200);
         if (lossReason) lines.push(`   - Motivo perda: ${lossReason}`);
     }
 
     const stage = snapshot.stage;
     if (stage && typeof stage === 'object') {
-        const label = clampText(stage.label, 80);
+        const label = clampText((stage as AnyObj).label, 80);
         if (label) lines.push(`🏷️ Estágio atual (label): ${label}`);
     }
 
     const contact = snapshot.contact;
     if (contact && typeof contact === 'object') {
-        const name = clampText(contact.name, 80);
-        const email = clampText(contact.email, 120);
-        const phone = clampText(contact.phone, 60);
+        const c = contact as AnyObj;
+        const name = clampText(c.name, 80);
+        const email = clampText(c.email, 120);
+        const phone = clampText(c.phone, 60);
         lines.push(`👤 Contato (cockpit): ${name ?? '(sem nome)'}`);
         if (email) lines.push(`   - Email: ${email}`);
         if (phone) lines.push(`   - Telefone: ${phone}`);
-        const notes = clampText(contact.notes, 220);
+        const notes = clampText(c.notes, 220);
         if (notes) lines.push(`   - Notas do contato: ${notes}`);
     }
 
     const signals = snapshot.cockpitSignals;
     if (signals && typeof signals === 'object') {
-        if (typeof signals.daysInStage === 'number') {
-            lines.push(`⏱️ Dias no estágio: ${signals.daysInStage}`);
+        const sig = signals as AnyObj;
+        if (typeof sig.daysInStage === 'number') {
+            lines.push(`⏱️ Dias no estágio: ${sig.daysInStage}`);
         }
 
-        const nba = signals.nextBestAction;
+        const nba = sig.nextBestAction;
         if (nba && typeof nba === 'object') {
-            const action = clampText(nba.action, 120);
-            const reason = clampText(nba.reason, 160);
+            const n = nba as AnyObj;
+            const action = clampText(n.action, 120);
+            const reason = clampText(n.reason, 160);
             if (action) lines.push(`👉 Próxima melhor ação (cockpit): ${action}${reason ? ` — ${reason}` : ''}`);
         }
 
-        const ai = signals.aiAnalysis;
+        const ai = sig.aiAnalysis;
         if (ai && typeof ai === 'object') {
-            const action = clampText(ai.action, 120);
-            const reason = clampText(ai.reason, 180);
+            const a = ai as AnyObj;
+            const action = clampText(a.action, 120);
+            const reason = clampText(a.reason, 180);
             if (action) lines.push(`🤖 Sinal da IA (cockpit): ${action}${reason ? ` — ${reason}` : ''}`);
         }
     }
 
     const lists = snapshot.lists;
     if (lists && typeof lists === 'object') {
-        const activitiesTotal = lists.activities?.total;
+        const l = lists as AnyObj;
+        const activitiesObj = l.activities as AnyObj | undefined;
+        const activitiesTotal = activitiesObj?.total;
         if (typeof activitiesTotal === 'number') {
-            const preview = Array.isArray(lists.activities?.preview) ? lists.activities.preview.slice(0, 6) : [];
+            const preview = Array.isArray(activitiesObj?.preview) ? (activitiesObj.preview as AnyObj[]).slice(0, 6) : [];
             lines.push(`🗂️ Atividades no cockpit: ${activitiesTotal}`);
             for (const a of preview) {
                 const t = clampText(a?.type, 30);
@@ -94,19 +105,22 @@ function formatCockpitSnapshotForPrompt(snapshot: any): string[] {
             }
         }
 
-        const notesTotal = lists.notes?.total;
+        const notesObj = l.notes as AnyObj | undefined;
+        const notesTotal = notesObj?.total;
         if (typeof notesTotal === 'number') {
             lines.push(`📝 Notas no cockpit: ${notesTotal}`);
         }
 
-        const filesTotal = lists.files?.total;
+        const filesObj = l.files as AnyObj | undefined;
+        const filesTotal = filesObj?.total;
         if (typeof filesTotal === 'number') {
             lines.push(`📎 Arquivos no cockpit: ${filesTotal}`);
         }
 
-        const scriptsTotal = lists.scripts?.total;
+        const scriptsObj = l.scripts as AnyObj | undefined;
+        const scriptsTotal = scriptsObj?.total;
         if (typeof scriptsTotal === 'number') {
-            const preview = Array.isArray(lists.scripts?.preview) ? lists.scripts.preview.slice(0, 6) : [];
+            const preview = Array.isArray(scriptsObj?.preview) ? (scriptsObj.preview as AnyObj[]).slice(0, 6) : [];
             lines.push(`💬 Scripts no cockpit: ${scriptsTotal}`);
             for (const s of preview) {
                 const title = clampText(s?.title, 80);
@@ -198,7 +212,7 @@ function createRetryingFetch(
         );
     };
 
-    const canRetryBody = (body: any): boolean => {
+    const canRetryBody = (body: unknown): boolean => {
         // Evitar retries quando o body é stream não-reutilizável.
         // Strings/ArrayBuffer/Uint8Array/etc são OK.
         if (body == null) return true;
@@ -284,7 +298,7 @@ function createRetryingFetch(
                 const rewritten = maybeRewriteModelInBody(bufferedFromRequest.jsonBodyText, attempt, lastStatus);
                 const nextInit: RequestInit = {
                     ...bufferedFromRequest.init,
-                    body: rewritten as any,
+                    body: rewritten as BodyInit,
                     signal: getSignal(),
                 };
 
@@ -292,7 +306,7 @@ function createRetryingFetch(
             }
 
             const rewrittenBody = maybeRewriteModelInBody(init?.body, attempt, lastStatus);
-            const nextInit: RequestInit = rewrittenBody === init?.body ? init ?? {} : { ...(init ?? {}), body: rewrittenBody as any };
+            const nextInit: RequestInit = rewrittenBody === init?.body ? init ?? {} : { ...(init ?? {}), body: rewrittenBody as BodyInit };
             return new Request(input, nextInit);
         };
 
@@ -324,7 +338,7 @@ function createRetryingFetch(
                     requestId,
                 });
                 await sleep(delay + jitter);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (attempt === retries) throw err;
 
                 const delay = Math.min(maxDelayMs, baseDelayMs * Math.pow(2, attempt));
@@ -333,7 +347,7 @@ function createRetryingFetch(
                     attempt: attempt + 1,
                     retries,
                     delayMs: delay + jitter,
-                    message: String(err?.message || err),
+                    message: err instanceof Error ? err.message : String(err),
                 });
                 await sleep(delay + jitter);
             }
@@ -384,8 +398,8 @@ function buildContextPrompt(options: CRMCallOptions): string {
         parts.push(`👋 Usuário: ${options.userName}`);
     }
 
-    if ((options as any).cockpitSnapshot) {
-        const lines = formatCockpitSnapshotForPrompt((options as any).cockpitSnapshot);
+    if (options.cockpitSnapshot) {
+        const lines = formatCockpitSnapshotForPrompt(options.cockpitSnapshot as Record<string, unknown>);
         if (lines.length > 0) {
             parts.push('');
             parts.push('====== CONTEXTO DO COCKPIT ======');
@@ -399,9 +413,11 @@ function buildContextPrompt(options: CRMCallOptions): string {
 }
 
 /**
- * Base instructions for the CRM Agent
+ * Fallback base instructions used when the prompt catalog is unavailable.
+ * The full system prompt is resolved dynamically via getResolvedPrompt()
+ * so admin edits in ai_prompt_templates take effect on next request.
  */
-const BASE_INSTRUCTIONS = `Você é o ZmobCRM Pilot, um assistente de vendas inteligente. 🚀
+const BASE_INSTRUCTIONS_FALLBACK = `Você é o ZmobCRM Pilot, um assistente de vendas inteligente. 🚀
 
 PERSONALIDADE:
 - Seja proativo, amigável e analítico
@@ -409,24 +425,40 @@ PERSONALIDADE:
 - Respostas naturais (evite listas robóticas)
 - Máximo 2 parágrafos por resposta
 
-FERRAMENTAS (15 disponíveis):
+FERRAMENTAS (36 disponíveis):
 📊 ANÁLISE: analyzePipeline, getBoardMetrics
-🔍 BUSCA: searchDeals, searchContacts, listDealsByStage, listStagnantDeals, listOverdueDeals, getDealDetails
-⚡ AÇÕES: moveDeal, createDeal, updateDeal, markDealAsWon, markDealAsLost, assignDeal, createTask
+🔍 BUSCA: searchDeals (aceita query por título E/OU productName por imóvel/produto), searchContacts (aceita query, tag, customFieldKey+customFieldValue — todos opcionais, funcionam sozinhos), listDealsByStage, listStagnantDeals, listOverdueDeals, getDealDetails, getContactDetails
+🏷️ PIPELINE: listStages, updateStage, reorderStages
+⚡ AÇÕES: moveDeal, createDeal, updateDeal, markDealAsWon, markDealAsLost, assignDeal, moveDealsBulk
+📝 NOTAS: addDealNote, listDealNotes
+📞 ATIVIDADES: createTask, listActivities, completeActivity, rescheduleActivity, logActivity
+👤 CONTATOS: createContact, updateContact, linkDealToContact, getLeadScore
+🎯 PROSPECÇÃO: listProspectingQueues, getProspectingMetrics, getProspectingGoals, listQuickScripts, createQuickScript, generateAndSaveScript
 
 MEMÓRIA DA CONVERSA (MUITO IMPORTANTE):
 - USE as informações das mensagens anteriores! Se você já buscou deals antes, use esses IDs.
-- Quando o usuário diz "esse deal", "ele", "o único", "o que acabei de ver" - use o ID do deal mencionado antes.
+- Quando o usuário diz “esse deal”, “ele”, “o único”, “o que acabei de ver” - use o ID do deal mencionado antes.
 - NÃO busque novamente se você já tem as informações na conversa.
 - Se a última busca retornou 1 deal, use o ID dele automaticamente.
 - Para markDealAsWon/Lost: passe o dealId que você já conhece da conversa.
 - Para moveDeal: use o dealId do deal que o usuário está se referindo.
 
+LEAD SCORE:
+- Quando o usuário perguntar sobre score, qualidade ou temperatura de um lead/contato, use a tool getLeadScore proativamente.
+- O score vai de 0 a 100: Frio (<31), Morno (31-60), Quente (>60).
+
 REGRAS:
 - Sempre explique os resultados das ferramentas
 - Se der erro, informe de forma amigável
 - Use o boardId do contexto automaticamente quando disponível
-- Para buscas (deals/contatos): ao chamar ferramentas de busca, passe APENAS o termo (ex.: "Nike"), sem frases como "buscar deal Nike".
+- Para buscas (deals/contatos): ao chamar ferramentas de busca, passe APENAS o termo (ex.: “Nike”), sem frases como “buscar deal Nike”.
+- IMÓVEL / PRODUTO: Quando o usuário menciona “imóvel”, “produto”, “empreendimento”, sempre use o campo productName (NUNCA query). Exemplos:
+    - “busque deals com imóvel Shift” → searchDeals(productName=”Shift”) — NÃO use query
+    - “crie um deal com imóvel Aurora” → createDeal(productName=”Aurora”) — SEMPRE passe productName
+    - “deals do produto Ondular” → searchDeals(productName=”Ondular”)
+- searchContacts aceita tag, customFieldKey e customFieldValue como filtros standalone (sem query):
+    - “contatos com tag VIP” → searchContacts(tag=”VIP”)
+    - “contatos com campo origem = indicacao” → searchContacts(customFieldKey=”origem”, customFieldValue=”indicacao”) — passe os DOIS parâmetros
 - Para ações que alteram dados (criar, mover, marcar, atualizar, atribuir, criar tarefa):
     - NÃO peça confirmação em texto (não peça “sim/não”, “você confirma?”, etc.)
     - Chame a ferramenta diretamente; a UI já vai mostrar um card único de Aprovar/Negar
@@ -434,9 +466,30 @@ REGRAS:
 - PRIORIZE usar IDs que você já conhece antes de buscar novamente
 
 APRESENTAÇÃO (MUITO IMPORTANTE):
-- NÃO mostre IDs/UUIDs para o usuário final (ex.: "(ID: ...)")
-- NÃO cite nomes internos de tools (ex.: "listStagnantDeals", "markDealAsWon")
+- NÃO mostre IDs/UUIDs para o usuário final (ex.: “(ID: ...)”)
+- NÃO cite nomes internos de tools (ex.: “listStagnantDeals”, “markDealAsWon”)
 - Sempre prefira: título do deal (nome do card) + contato + valor + estágio (quando fizer sentido)`;
+
+/**
+ * Resolves the system prompt from the ai_prompt_templates catalog.
+ * Falls back to BASE_INSTRUCTIONS_FALLBACK if catalog is unavailable.
+ */
+async function resolveBaseInstructions(
+    supabaseClient: SupabaseClient,
+    organizationId: string,
+): Promise<string> {
+    try {
+        const resolved = await getResolvedPrompt(supabaseClient, organizationId, 'agent_crm_base_instructions');
+        if (resolved?.content) {
+            return resolved.content;
+        }
+    } catch (err) {
+        console.warn('[CRMAgent] Failed to resolve prompt from catalog, using fallback.', {
+            message: err instanceof Error ? err.message : String(err),
+        });
+    }
+    return BASE_INSTRUCTIONS_FALLBACK;
+}
 
 /**
  * Factory function to create a CRM Agent with dynamic context
@@ -452,7 +505,7 @@ export async function createCRMAgent(
     apiKey: string,
     modelId: string = AI_DEFAULT_MODELS.google,
     provider: AIProvider = AI_DEFAULT_PROVIDER,
-    supabaseClient?: any
+    supabaseClient?: SupabaseClient
 ) {
     console.log('[CRMAgent] 🤖 Creating agent with context:', {
         boardId: context.boardId,
@@ -507,14 +560,18 @@ export async function createCRMAgent(
     const tools = createCRMTools(context, userId, supabaseClient);
 
     console.log('[CRMAgent] 🛠️ Tools created. Checking markDealAsWon config:', {
-        needsApproval: (tools.markDealAsWon as any).needsApproval,
+        needsApproval: (tools.markDealAsWon as Record<string, unknown>).needsApproval,
         description: tools.markDealAsWon.description
     });
+
+    // Resolve system prompt from catalog (with fallback)
+    const effectiveSupabase = supabaseClient ?? (await import('@/lib/supabase/staticAdminClient')).createStaticAdminClient();
+    const instructions = await resolveBaseInstructions(effectiveSupabase, context.organizationId);
 
     return new ToolLoopAgent({
         model,
         callOptionsSchema: CRMCallOptionsSchema,
-        instructions: BASE_INSTRUCTIONS,
+        instructions,
         // prepareCall runs ONCE at the start - injects initial context
         prepareCall: ({ options, ...settings }) => {
             return {
@@ -532,20 +589,25 @@ export async function createCRMAgent(
                 // Check tool results for deal information
                 if (step.toolResults) {
                     for (const result of step.toolResults) {
-                        const data = ((result as any).result ?? (result as any).output ?? (result as any).data ?? result) as any;
+                        const r = result as Record<string, unknown>;
+                        const data = (r.result ?? r.output ?? r.data ?? result) as Record<string, unknown>;
                         // Extract deals from listDealsByStage, searchDeals, etc.
                         if (data?.deals && Array.isArray(data.deals)) {
-                            for (const deal of data.deals) {
-                                if (deal.id && !foundDealIds.includes(deal.id)) {
-                                    foundDealIds.push(deal.id);
-                                    foundDeals.push({ id: deal.id, title: deal.title || 'Unknown' });
+                            for (const deal of data.deals as Array<Record<string, unknown>>) {
+                                const dealId = deal.id as string | undefined;
+                                const dealTitle = (deal.title as string) || 'Unknown';
+                                if (dealId && !foundDealIds.includes(dealId)) {
+                                    foundDealIds.push(dealId);
+                                    foundDeals.push({ id: dealId, title: dealTitle });
                                 }
                             }
                         }
                         // Extract single deal from getDealDetails
-                        if (data?.id && data?.title && !foundDealIds.includes(data.id)) {
-                            foundDealIds.push(data.id);
-                            foundDeals.push({ id: data.id, title: data.title });
+                        const dataId = data?.id as string | undefined;
+                        const dataTitle = data?.title as string | undefined;
+                        if (dataId && dataTitle && !foundDealIds.includes(dataId)) {
+                            foundDealIds.push(dataId);
+                            foundDeals.push({ id: dataId, title: dataTitle });
                         }
                     }
                 }

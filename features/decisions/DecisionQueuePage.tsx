@@ -16,7 +16,7 @@ import {
   Inbox,
   Zap,
 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { DecisionCard } from './components/DecisionCard';
 import { useDecisionQueue } from './hooks/useDecisionQueue';
@@ -83,11 +83,11 @@ export const DecisionQueuePage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Zap className="text-primary-500" size={28} />
             Central de Decisões
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
             Decisões proativas para você tomar ação rapidamente
           </p>
         </div>
@@ -111,7 +111,7 @@ export const DecisionQueuePage: React.FC = () => {
               variant="ghost"
               size="icon"
               onClick={clearAll}
-              className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+              className="p-2 text-muted-foreground hover:text-red-600 dark:text-muted-foreground dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
               title="Limpar tudo"
             >
               <Trash2 size={18} />
@@ -122,17 +122,17 @@ export const DecisionQueuePage: React.FC = () => {
 
       {/* Stats Bar */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl p-4">
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
+        <div className="bg-white dark:bg-dark-card border border-border rounded-xl p-4">
+          <div className="flex items-center gap-2 text-muted-foreground dark:text-muted-foreground mb-1">
             <Inbox size={16} />
             <span className="text-xs font-medium">Total</span>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white">
+          <div className="text-2xl font-bold text-foreground">
             {stats.total}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-dark-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 text-red-500 mb-1">
             <AlertTriangle size={16} />
             <span className="text-xs font-medium">Crítico</span>
@@ -142,7 +142,7 @@ export const DecisionQueuePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-dark-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 text-orange-500 mb-1">
             <TrendingUp size={16} />
             <span className="text-xs font-medium">Importante</span>
@@ -152,7 +152,7 @@ export const DecisionQueuePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-dark-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-2 text-yellow-500 mb-1">
             <Clock size={16} />
             <span className="text-xs font-medium">Moderado</span>
@@ -162,19 +162,19 @@ export const DecisionQueuePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl p-4">
-          <div className="flex items-center gap-2 text-slate-400 mb-1">
+        <div className="bg-white dark:bg-dark-card border border-border rounded-xl p-4">
+          <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <CheckCircle2 size={16} />
             <span className="text-xs font-medium">Baixo</span>
           </div>
-          <div className="text-2xl font-bold text-slate-600 dark:text-slate-400">
+          <div className="text-2xl font-bold text-secondary-foreground dark:text-muted-foreground">
             {stats.low}
           </div>
         </div>
       </div>
 
       {/* Last analyzed info */}
-      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+      <div className="flex items-center justify-between text-xs text-muted-foreground dark:text-muted-foreground">
         <span>Última análise: {lastAnalyzedLabel}</span>
         {decisions.length > 0 && (
           <Button
@@ -269,7 +269,7 @@ export const DecisionQueuePage: React.FC = () => {
 
       {grouped.low.length > 0 && (
         <section>
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground dark:text-muted-foreground mb-3">
             <CheckCircle2 size={16} />
             {PRIORITY_LABELS.low.toUpperCase()} ({grouped.low.length})
           </h2>

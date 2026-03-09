@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { isE164, normalizePhoneE164 } from '@/lib/phone';
 import { Loader2, User, Mail, Shield, Calendar, Key, Check, Eye, EyeOff, Phone, Pencil, Save, Camera, X } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Componente React `ProfilePage`.
@@ -104,11 +104,11 @@ export const ProfilePage: React.FC = () => {
     if (!sb) {
         return (
             <div className="p-6">
-                <div className="max-w-xl mx-auto bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl p-6">
-                    <h1 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                <div className="max-w-xl mx-auto bg-white dark:bg-dark-card border border-border rounded-2xl p-6">
+                    <h1 className="text-lg font-bold text-foreground mb-2">
                         Configuração incompleta
                     </h1>
-                    <p className="text-slate-600 dark:text-slate-300">
+                    <p className="text-secondary-foreground dark:text-muted-foreground">
                         O Supabase não está configurado neste ambiente. Verifique as variáveis de ambiente
                         (URL e ANON KEY) para usar a página de perfil.
                     </p>
@@ -168,7 +168,7 @@ export const ProfilePage: React.FC = () => {
             setAvatarUrl(urlWithTimestamp);
             if (refreshProfile) await refreshProfile();
             setMessage({ type: 'success', text: 'Foto atualizada!' });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Upload error:', err);
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
@@ -200,7 +200,7 @@ export const ProfilePage: React.FC = () => {
             setAvatarUrl(null);
             if (refreshProfile) await refreshProfile();
             setMessage({ type: 'success', text: 'Foto removida!' });
-        } catch (err: any) {
+        } catch (err: unknown) {
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
             setUploadingAvatar(false);
@@ -235,7 +235,7 @@ export const ProfilePage: React.FC = () => {
                 }
             }
 
-            const updatePayload: Record<string, any> = {
+            const updatePayload: Record<string, string | number | null> = {
                 first_name: firstName.trim() || null,
                 last_name: lastName.trim() || null,
                 nickname: nickname.trim() || null,
@@ -257,7 +257,7 @@ export const ProfilePage: React.FC = () => {
 
             setMessage({ type: 'success', text: 'Perfil atualizado com sucesso!' });
             setIsEditingProfile(false);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
             setSavingProfile(false);
@@ -291,7 +291,7 @@ export const ProfilePage: React.FC = () => {
             setIsChangingPassword(false);
             setNewPassword('');
             setConfirmPassword('');
-        } catch (err: any) {
+        } catch (err: unknown) {
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
             setLoading(false);
@@ -311,7 +311,7 @@ export const ProfilePage: React.FC = () => {
             setMessage({ type: 'success', text: 'E-mail de confirmação enviado para o novo endereço!' });
             setIsChangingEmail(false);
             setNewEmail('');
-        } catch (err: any) {
+        } catch (err: unknown) {
             setMessage({ type: 'error', text: getErrorMessage(err) });
         } finally {
             setLoading(false);
@@ -322,10 +322,10 @@ export const ProfilePage: React.FC = () => {
         <div className="max-w-2xl mx-auto pb-10">
             {/* Header */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">
+                <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">
                     Meu Perfil
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-2">
+                <p className="text-muted-foreground dark:text-muted-foreground mt-2">
                     Gerencie suas informações pessoais e segurança.
                 </p>
             </div>
@@ -342,7 +342,7 @@ export const ProfilePage: React.FC = () => {
             )}
 
             {/* Profile Card */}
-            <div className="bg-white dark:bg-white/3 border border-slate-200 dark:border-white/10 rounded-2xl p-8 mb-6">
+            <div className="bg-white dark:bg-white/3 border border-border rounded-2xl p-8 mb-6">
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-6">
                         {/* Avatar Grande com Upload */}
@@ -399,11 +399,11 @@ export const ProfilePage: React.FC = () => {
 
                         {/* Info resumida */}
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                            <h2 className="text-2xl font-bold text-foreground">
                                 {displayName}
                             </h2>
                             {fullName && (
-                                <p className="text-slate-500 dark:text-slate-400 mt-0.5">
+                                <p className="text-muted-foreground dark:text-muted-foreground mt-0.5">
                                     {fullName}
                                 </p>
                             )}
@@ -432,59 +432,59 @@ export const ProfilePage: React.FC = () => {
 
                 {/* Modo de edição */}
                 {isEditingProfile ? (
-                    <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                    <div className="space-y-4 pt-4 border-t border-border">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">
                                     Nome
                                 </label>
                                 <input
                                     type="text"
                                     value={firstName}
                                     onChange={(e) => setFirstName(e.target.value)}
-                                    className="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-500 transition-all"
+                                    className="w-full px-4 py-2.5 border-2 border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-500 transition-all"
                                     placeholder="Seu nome"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">
                                     Sobrenome
                                 </label>
                                 <input
                                     type="text"
                                     value={lastName}
                                     onChange={(e) => setLastName(e.target.value)}
-                                    className="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-500 transition-all"
+                                    className="w-full px-4 py-2.5 border-2 border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-500 transition-all"
                                     placeholder="Seu sobrenome"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">
                                 Apelido
-                                <span className="text-slate-400 font-medium ml-1">(como gostaria de ser chamado)</span>
+                                <span className="text-muted-foreground font-medium ml-1">(como gostaria de ser chamado)</span>
                             </label>
                             <input
                                 type="text"
                                 value={nickname}
                                 onChange={(e) => setNickname(e.target.value)}
-                                className="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-500 transition-all"
+                                className="w-full px-4 py-2.5 border-2 border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-500 transition-all"
                                 placeholder="Seu apelido"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">
                                 Telefone
                             </label>
                             <div className="relative">
-                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <input
                                     type="tel"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-500 transition-all"
+                                    className="w-full pl-11 pr-4 py-2.5 border-2 border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-500 transition-all"
                                     placeholder="+5511999999999"
                                 />
                             </div>
@@ -493,9 +493,9 @@ export const ProfilePage: React.FC = () => {
                         {/* Taxa de Comissão (apenas admin/diretor) */}
                         {(profile?.role === 'admin' || profile?.role === 'diretor') && (
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">
                                     Taxa de Comissão (%)
-                                    <span className="text-slate-400 font-medium ml-1">(padrão para novos deals)</span>
+                                    <span className="text-muted-foreground font-medium ml-1">(padrão para novos deals)</span>
                                 </label>
                                 <input
                                     type="number"
@@ -504,10 +504,10 @@ export const ProfilePage: React.FC = () => {
                                     step="0.1"
                                     value={commissionRate}
                                     onChange={(e) => setCommissionRate(e.target.value)}
-                                    className="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-500 transition-all"
+                                    className="w-full px-4 py-2.5 border-2 border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-500 transition-all"
                                     placeholder="1.5"
                                 />
-                                <p className="mt-1 text-xs text-slate-400">
+                                <p className="mt-1 text-xs text-muted-foreground">
                                     Valor entre 0 e 100. Usado como fallback quando o deal não possui taxa específica.
                                 </p>
                             </div>
@@ -526,7 +526,7 @@ export const ProfilePage: React.FC = () => {
                                     setCommissionRate(profile?.commission_rate != null ? String(profile.commission_rate) : '');
                                     setMessage(null);
                                 }}
-                                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-xl transition-colors"
                             >
                                 Cancelar
                             </Button>
@@ -548,11 +548,11 @@ export const ProfilePage: React.FC = () => {
                     </div>
                 ) : (
                     /* Modo de visualização */
-                    <div className="grid gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                    <div className="grid gap-4 pt-4 border-t border-border">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3 text-sm">
-                                <Mail className="w-4 h-4 text-slate-400" />
-                                <span className="text-slate-600 dark:text-slate-300">{profile?.email}</span>
+                                <Mail className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-secondary-foreground dark:text-muted-foreground">{profile?.email}</span>
                             </div>
                             {!isChangingEmail && (
                                 <Button
@@ -566,15 +566,15 @@ export const ProfilePage: React.FC = () => {
 
                         {/* Alterar email form */}
                         {isChangingEmail && (
-                            <form onSubmit={handleChangeEmail} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl space-y-3">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                            <form onSubmit={handleChangeEmail} className="bg-background dark:bg-card/50 p-4 rounded-xl space-y-3">
+                                <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground">
                                     Novo E-mail
                                 </label>
                                 <input
                                     type="email"
                                     value={newEmail}
                                     onChange={(e) => setNewEmail(e.target.value)}
-                                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:border-primary-500"
+                                    className="w-full px-4 py-2 border border-border dark:border-border rounded-lg bg-white dark:bg-card text-foreground focus:outline-none focus:border-primary-500"
                                     placeholder="seu@novoemail.com"
                                     required
                                 />
@@ -585,7 +585,7 @@ export const ProfilePage: React.FC = () => {
                                             setIsChangingEmail(false);
                                             setNewEmail('');
                                         }}
-                                        className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                                        className="px-3 py-1.5 text-sm text-secondary-foreground dark:text-muted-foreground hover:text-foreground"
                                     >
                                         Cancelar
                                     </Button>
@@ -602,20 +602,20 @@ export const ProfilePage: React.FC = () => {
 
                         {phone && (
                             <div className="flex items-center gap-3 text-sm">
-                                <Phone className="w-4 h-4 text-slate-400" />
-                                <span className="text-slate-600 dark:text-slate-300">{phone}</span>
+                                <Phone className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-secondary-foreground dark:text-muted-foreground">{phone}</span>
                             </div>
                         )}
                         <div className="flex items-center gap-3 text-sm">
-                            <Calendar className="w-4 h-4 text-slate-400" />
-                            <span className="text-slate-500 dark:text-slate-400">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-muted-foreground dark:text-muted-foreground">
                                 Membro desde {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : '-'}
                             </span>
                         </div>
                         {profile?.commission_rate != null && (
                             <div className="flex items-center gap-3 text-sm">
-                                <span className="w-4 h-4 text-slate-400 flex items-center justify-center text-xs font-bold">%</span>
-                                <span className="text-slate-600 dark:text-slate-300">
+                                <span className="w-4 h-4 text-muted-foreground flex items-center justify-center text-xs font-bold">%</span>
+                                <span className="text-secondary-foreground dark:text-muted-foreground">
                                     Comissão: {profile.commission_rate}%
                                 </span>
                             </div>
@@ -625,14 +625,14 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             {/* Security Section */}
-            <div className="bg-white dark:bg-white/3 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
+            <div className="bg-white dark:bg-white/3 border border-border rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                            <Key className="w-5 h-5 text-slate-400" />
+                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                            <Key className="w-5 h-5 text-muted-foreground" />
                             Segurança
                         </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
                             Gerencie sua senha de acesso.
                         </p>
                     </div>
@@ -649,7 +649,7 @@ export const ProfilePage: React.FC = () => {
                 {isChangingPassword && (
                     <form onSubmit={handleChangePassword} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">
                                 Nova Senha
                             </label>
                             <div className="relative">
@@ -657,7 +657,7 @@ export const ProfilePage: React.FC = () => {
                                     type={showPasswords ? 'text' : 'password'}
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full px-4 py-2.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-500 transition-all pr-10"
+                                    className="w-full px-4 py-2.5 border-2 border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-500 transition-all pr-10"
                                     placeholder="Mínimo 6 caracteres"
                                     required
                                     minLength={6}
@@ -665,7 +665,7 @@ export const ProfilePage: React.FC = () => {
                                 <Button
                                     type="button"
                                     onClick={() => setShowPasswords(!showPasswords)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground"
                                 >
                                     {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 </Button>
@@ -674,18 +674,18 @@ export const ProfilePage: React.FC = () => {
                             {/* Password Requirements */}
                             {newPassword.length > 0 && (
                                 <div className="mt-2 space-y-1">
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">Requisitos:</p>
+                                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">Requisitos:</p>
                                     <div className="grid grid-cols-2 gap-1 text-xs">
-                                        <span className={passwordRequirements.minLength ? 'text-green-500' : 'text-slate-400'}>
+                                        <span className={passwordRequirements.minLength ?'text-green-500' : 'text-muted-foreground'}>
                                             {passwordRequirements.minLength ? '✓' : '○'} Mínimo 6 caracteres
                                         </span>
-                                        <span className={passwordRequirements.hasLowercase ? 'text-green-500' : 'text-slate-400'}>
+                                        <span className={passwordRequirements.hasLowercase ?'text-green-500' : 'text-muted-foreground'}>
                                             {passwordRequirements.hasLowercase ? '✓' : '○'} Letra minúscula
                                         </span>
-                                        <span className={passwordRequirements.hasUppercase ? 'text-green-500' : 'text-slate-400'}>
+                                        <span className={passwordRequirements.hasUppercase ?'text-green-500' : 'text-muted-foreground'}>
                                             {passwordRequirements.hasUppercase ? '✓' : '○'} Letra maiúscula
                                         </span>
-                                        <span className={passwordRequirements.hasDigit ? 'text-green-500' : 'text-slate-400'}>
+                                        <span className={passwordRequirements.hasDigit ?'text-green-500' : 'text-muted-foreground'}>
                                             {passwordRequirements.hasDigit ? '✓' : '○'} Número
                                         </span>
                                     </div>
@@ -694,18 +694,18 @@ export const ProfilePage: React.FC = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">
                                 Confirmar Nova Senha
                             </label>
                             <input
                                 type={showPasswords ? 'text' : 'password'}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className={`w-full px-4 py-2.5 border-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all ${confirmPassword.length > 0
+                                className={`w-full px-4 py-2.5 border-2 rounded-xl bg-background dark:bg-card/50 text-foreground  placeholder:text-muted-foreground focus:outline-none transition-all ${confirmPassword.length > 0
                                     ? (newPassword === confirmPassword && confirmPassword.length > 0)
                                         ? 'border-green-500 focus:border-green-500'
                                         : 'border-red-500 focus:border-red-500'
-                                    : 'border-slate-200 dark:border-slate-700 focus:border-primary-500'
+                                    : 'border-border dark:border-border focus:border-primary-500'
                                     }`}
                                 placeholder="Digite novamente"
                                 required
@@ -737,7 +737,7 @@ export const ProfilePage: React.FC = () => {
                                     setConfirmPassword('');
                                     setMessage(null);
                                 }}
-                                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                                className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-xl transition-colors"
                             >
                                 Cancelar
                             </Button>
@@ -760,7 +760,7 @@ export const ProfilePage: React.FC = () => {
                 )}
 
                 {!isChangingPassword && (
-                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                    <div className="text-sm text-muted-foreground dark:text-muted-foreground">
                         Sua senha está configurada. Clique em "Alterar Senha" para modificá-la.
                     </div>
                 )}

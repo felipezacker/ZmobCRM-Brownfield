@@ -1,9 +1,9 @@
 import React, { useCallback, useId, useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { DealView, BoardStage } from '@/types';
 import { DealCard } from './DealCard';
-import { isDealRotting, getActivityStatus } from '@/features/boards/hooks/useBoardsController';
+import { isDealRotting, getActivityStatus } from '@/features/boards/hooks/boardUtils';
 import { MoveToStageModal } from '../Modals/MoveToStageModal';
 import ConfirmModal from '@/components/ConfirmModal';
 import { useKanbanKeyboard } from '@/features/boards/hooks/useKanbanKeyboard';
@@ -294,17 +294,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             className={`group/col min-w-[20rem] flex-1 flex flex-col rounded-xl border-2 overflow-visible h-full max-h-full transition-all duration-200
                             ${isOver
                 ? `${dropHighlightClasses(stage.color)} scale-[1.02]`
-                : 'border-slate-200/50 dark:border-white/10 glass'
+                : 'border-border/50  glass'
               }
                         `}
           >
             <div className={`h-1.5 w-full ${stage.color}`}></div>
 
             <div
-              className={`p-3 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 shrink-0`}
+              className={`p-3 border-b border-border  bg-background/50 dark:bg-white/5 shrink-0`}
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-slate-700 dark:text-slate-200 font-display text-sm tracking-wide uppercase">
+                <span className="font-bold text-secondary-foreground dark:text-muted-foreground font-display text-sm tracking-wide uppercase">
                   {stage.label}
                 </span>
                 <div className="flex items-center gap-1">
@@ -313,12 +313,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       type="button"
                       onClick={() => onAddDealToStage(stage.id)}
                       title={`Novo negócio em ${stage.label}`}
-                      className="opacity-60 md:opacity-0 md:group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                      className="opacity-60 md:opacity-0 md:group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                     >
                       <Plus size={14} />
                     </Button>
                   )}
-                  <span className="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">
+                  <span className="text-xs font-bold bg-white dark:bg-card border border-border dark:border-border px-2 py-0.5 rounded text-secondary-foreground dark:text-muted-foreground">
                     {stageDeals.length}
                   </span>
                 </div>
@@ -338,9 +338,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 )}
               </div>
 
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium text-right">
+              <div className="text-xs text-muted-foreground dark:text-muted-foreground font-medium text-right">
                 Total:{' '}
-                <span className="text-slate-900 dark:text-white font-mono">
+                <span className="text-foreground font-mono">
                   ${stageValue.toLocaleString()}
                 </span>
               </div>
@@ -350,10 +350,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               role="group"
               aria-label={`Coluna ${stage.label}, ${stageDeals.length} negócio${stageDeals.length !== 1 ? 's' : ''}`}
               aria-describedby={instructionsId}
-              className={`flex-1 p-2 overflow-y-auto space-y-2 bg-slate-100/50 dark:bg-black/20 scrollbar-thin min-h-[100px]`}
+              className={`flex-1 p-2 overflow-y-auto space-y-2 bg-muted/50 dark:bg-black/20 scrollbar-thin min-h-[100px]`}
             >
               {stageDeals.length === 0 && !draggingId && (
-                <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-600 text-sm py-8">
+                <div className="h-full flex items-center justify-center text-muted-foreground dark:text-secondary-foreground text-sm py-8">
                   Sem negócios
                 </div>
               )}

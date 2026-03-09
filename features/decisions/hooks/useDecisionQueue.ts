@@ -112,7 +112,7 @@ export function useDecisionQueue() {
 
         case 'move_deal': {
           if (decision.dealId && payload.newStage) {
-            updateDeal(decision.dealId, { status: payload.newStage as any });
+            updateDeal(decision.dealId, { status: payload.newStage as string });
             return true;
           }
           break;

@@ -1,0 +1,49 @@
+paths:
+  /openapi.json:
+    get:
+      tags: [Meta]
+      summary: OpenAPI document (JSON)
+      description: Documento OpenAPI 3.1.2 desta API.
+      responses:
+        '200':
+          description: OpenAPI document
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /me:
+    get:
+      tags: [Meta]
+      summary: Identidade da API key
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      organization_id:
+                        type: string
+                      organization_name:
+                        type: string
+                      api_key_prefix:
+                        type: string
+                    required: [organization_id, organization_name, api_key_prefix]
+                required: [data]
+              examples:
+                ok:
+                  value:
+                    data:
+                      organization_id: '00000000-0000-0000-0000-000000000000'
+                      organization_name: Minha Empresa
+                      api_key_prefix: ncrm_abc123
+        '401':
+          $ref: 'openapi.yaml#/components/responses/Unauthorized'

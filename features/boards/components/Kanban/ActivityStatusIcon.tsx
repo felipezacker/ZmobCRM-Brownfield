@@ -1,7 +1,7 @@
 import React, { useRef, useState, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft, Trophy, XCircle, Trash2 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface ActivityStatusIconProps {
     status: string;
@@ -89,7 +89,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
             break;
         default:
             content = (
-                <div className="w-5 h-5 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-white ring-1 ring-white dark:ring-dark-card" aria-hidden="true">
+                <div className="w-5 h-5 rounded-full bg-accent dark:bg-accent flex items-center justify-center text-white ring-1 ring-white dark:ring-dark-card" aria-hidden="true">
                     <Icon size={10} strokeWidth={3} />
                 </div>
             );
@@ -126,14 +126,14 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                 <div
                     role="menu"
                     aria-label="Agendar atividade rápida"
-                    className="fixed w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-white/10 z-50 overflow-hidden animate-in zoom-in-95 duration-100"
+                    className="fixed w-48 bg-white dark:bg-card rounded-lg shadow-xl border border-border z-50 overflow-hidden animate-in zoom-in-95 duration-100"
                     style={{ top: menuPos.top, left: menuPos.left, transform: 'translateY(-100%)' }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Resultado — top section, only for open deals */}
                     {!isClosed && (onWinDeal || onLoseDeal) && (
-                        <div className="p-1 border-b border-slate-100 dark:border-white/5" role="group">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Resultado</p>
+                        <div className="p-1 border-b border-border" role="group">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase px-3 py-1">Resultado</p>
                             {onWinDeal && (
                                 <Button
                                     type="button"
@@ -164,8 +164,8 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                     )}
 
                     {/* Agendar */}
-                    <div className="p-1 border-b border-slate-100 dark:border-white/5" role="group">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Agendar</p>
+                    <div className="p-1 border-b border-border" role="group">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase px-3 py-1">Agendar</p>
                         <Button
                             type="button"
                             role="menuitem"
@@ -173,7 +173,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                 onQuickAdd('CALL');
                                 onRequestClose?.();
                             }}
-                            className="w-full justify-start px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                            className="w-full justify-start px-3 py-2 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Phone size={14} className="text-blue-500" aria-hidden="true" /> Ligar amanhã
                         </Button>
@@ -184,7 +184,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                 onQuickAdd('MEETING');
                                 onRequestClose?.();
                             }}
-                            className="w-full justify-start px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                            className="w-full justify-start px-3 py-2 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Calendar size={14} className="text-orange-500" aria-hidden="true" /> Reunião amanhã
                         </Button>
@@ -192,7 +192,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
 
                     {/* Ações Rápidas — bottom section */}
                     <div className="p-1" role="group">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase px-3 py-1">Ações Rápidas</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase px-3 py-1">Ações Rápidas</p>
                         {onMoveToStage && (
                             <Button
                                 type="button"
@@ -201,7 +201,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                                     onMoveToStage();
                                     onRequestClose?.();
                                 }}
-                                className="w-full justify-start px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                                className="w-full justify-start px-3 py-2 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                             >
                                 <ArrowRightLeft size={14} className="text-green-500" aria-hidden="true" /> Mover para estágio...
                             </Button>

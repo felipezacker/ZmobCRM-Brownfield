@@ -13,7 +13,32 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    // CSP directives — restrictive baseline for Next.js + Supabase
+    const csp = [
+      "default-src 'self'",
+      // Next.js requires 'unsafe-inline' for hydration scripts; 'unsafe-eval' for dev HMR
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: *.supabase.co *.supabase.in",
+      "connect-src 'self' *.supabase.co *.supabase.in wss://*.supabase.co *.sentry.io *.ingest.sentry.io *.openai.com *.anthropic.com",
+      "font-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join('; ');
+
     return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "Content-Security-Policy", value: csp },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
       {
         source: "/sw.js",
         headers: [

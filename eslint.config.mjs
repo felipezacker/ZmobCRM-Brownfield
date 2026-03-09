@@ -1,5 +1,7 @@
 import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsparser from '@typescript-eslint/parser';
 import reactHooks from 'eslint-plugin-react-hooks';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -36,6 +38,7 @@ const eslintConfig = [
       '.claude/hooks/**',
       '.claude/worktrees/**',
       'squads/**',
+      'apps/**',
     ],
   },
 
@@ -51,15 +54,31 @@ const eslintConfig = [
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     plugins: {
+      '@typescript-eslint': tseslint,
       'react-hooks': reactHooks,
     },
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': 'off',
       'prefer-const': 'error',
       'react/no-unescaped-entities': 'off',
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'off',
+      'react-hooks/exhaustive-deps': 'warn',
+    },
+  },
+
+  // Test files: allow `as any` for mocks (PO decision on AC3 scope)
+  {
+    files: ['**/__tests__/**/*.ts', '**/__tests__/**/*.tsx', '**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 

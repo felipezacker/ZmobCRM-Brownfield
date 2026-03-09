@@ -116,7 +116,7 @@ export async function POST(req: Request) {
 
     // Compat: deals legados podem ter is_won/is_lost = NULL.
     // Considera NULL como "aberto".
-    const openDeals = (deals || []).filter((d: any) => !d.is_won && !d.is_lost).slice(0, 10);
+    const openDeals = (deals || []).filter((d) => !d.is_won && !d.is_lost).slice(0, 10);
 
     return NextResponse.json({
         success: true,

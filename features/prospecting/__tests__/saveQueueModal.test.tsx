@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { SaveQueueModal } from '../components/SaveQueueModal'
 
-vi.mock('@/app/components/ui/Button', () => ({
+vi.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
     <button {...props}>{children}</button>
   ),

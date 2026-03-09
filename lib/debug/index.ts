@@ -46,9 +46,9 @@ export const disableDebugMode = (): void => {
 
 // Expõe no window para fácil acesso via console
 if (typeof window !== 'undefined') {
-  (window as any).enableDebugMode = enableDebugMode;
-  (window as any).disableDebugMode = disableDebugMode;
-  (window as any).isDebugMode = isDebugMode;
+  (window as unknown as Record<string, unknown>).enableDebugMode = enableDebugMode;
+  (window as unknown as Record<string, unknown>).disableDebugMode = disableDebugMode;
+  (window as unknown as Record<string, unknown>).isDebugMode = isDebugMode;
 }
 
 // ============================================
@@ -119,7 +119,7 @@ export const fakeActivity = () => ({
     'Alinhar expectativas',
   ]),
   description: faker.lorem.sentence(),
-  type: faker.helpers.arrayElement(['CALL', 'MEETING', 'TASK', 'EMAIL'] as const),
+  type: faker.helpers.arrayElement(['CALL', 'MEETING', 'TASK', 'EMAIL', 'WHATSAPP'] as const),
   date: faker.date.soon({ days: 14 }).toISOString(),
 });
 
@@ -164,6 +164,6 @@ export const generateFakeDeals = (count: number = 5) => {
 export const debugButtonStyles = {
   base: 'inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded border transition-colors',
   primary: 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700 dark:hover:bg-purple-800/40',
-  secondary: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700',
+  secondary: 'bg-muted text-secondary-foreground border-border hover:bg-accent dark:bg-card dark:text-muted-foreground dark:border-border dark:hover:bg-accent',
   danger: 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700 dark:hover:bg-red-800/40',
 };

@@ -37,7 +37,7 @@ export const GET = withRateLimit(async function GET(request: Request, ctx: { par
   if (error) return NextResponse.json({ error: error.message, code: 'DB_ERROR' }, { status: 500 });
 
   return NextResponse.json({
-    data: (data || []).map((s: any) => ({
+    data: (data || []).map((s) => ({
       id: s.id,
       label: s.label || s.name,
       color: s.color ?? null,

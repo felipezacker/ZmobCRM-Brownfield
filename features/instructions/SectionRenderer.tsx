@@ -28,7 +28,7 @@ const colorMap: Record<string, { bg: string; darkBg: string; text: string; darkT
   rose: { bg: 'bg-rose-50', darkBg: 'dark:bg-rose-900/20', text: 'text-rose-700', darkText: 'dark:text-rose-300', border: 'border-rose-200', darkBorder: 'dark:border-rose-800' },
   pink: { bg: 'bg-pink-50', darkBg: 'dark:bg-pink-900/20', text: 'text-pink-700', darkText: 'dark:text-pink-300', border: 'border-pink-200', darkBorder: 'dark:border-pink-800' },
   orange: { bg: 'bg-orange-50', darkBg: 'dark:bg-orange-900/20', text: 'text-orange-700', darkText: 'dark:text-orange-300', border: 'border-orange-200', darkBorder: 'dark:border-orange-800' },
-  slate: { bg: 'bg-slate-50', darkBg: 'dark:bg-white/5', text: 'text-slate-800', darkText: 'dark:text-slate-200', border: 'border-slate-200', darkBorder: 'dark:border-slate-700' },
+  slate: { bg: 'bg-background', darkBg: 'dark:bg-white/5', text: 'text-foreground', darkText: 'dark:text-muted-foreground', border: 'border-border', darkBorder: 'dark:border-border' },
   teal: { bg: 'bg-teal-50', darkBg: 'dark:bg-teal-900/20', text: 'text-teal-700', darkText: 'dark:text-teal-300', border: 'border-teal-200', darkBorder: 'dark:border-teal-800' },
   cyan: { bg: 'bg-cyan-50', darkBg: 'dark:bg-cyan-900/20', text: 'text-cyan-700', darkText: 'dark:text-cyan-300', border: 'border-cyan-200', darkBorder: 'dark:border-cyan-800' },
   indigo: { bg: 'bg-indigo-50', darkBg: 'dark:bg-indigo-900/20', text: 'text-indigo-700', darkText: 'dark:text-indigo-300', border: 'border-indigo-200', darkBorder: 'dark:border-indigo-800' },
@@ -43,7 +43,7 @@ function getColor(color: string) {
 function RenderFeatureGrid({ block }: { block: FeatureGridBlock }) {
   return (
     <>
-      <p className="font-medium text-slate-800 dark:text-slate-200">{block.title}</p>
+      <p className="font-medium text-foreground dark:text-muted-foreground">{block.title}</p>
       <div className={`grid grid-cols-${block.cols} gap-2 text-xs`}>
         {block.items.map((item, i) => {
           const c = item.color ? getColor(item.color) : getColor('slate');
@@ -54,7 +54,7 @@ function RenderFeatureGrid({ block }: { block: FeatureGridBlock }) {
             >
               <span className={`font-semibold ${c.text} ${c.darkText}`}>{item.label}</span>
               {item.description && (
-                <p className={`${item.color ? `${c.text} ${c.darkText}` : `text-slate-500 dark:text-slate-400`} mt-0.5`}>
+                <p className={`${item.color ? `${c.text} ${c.darkText}` : `text-muted-foreground dark:text-muted-foreground`} mt-0.5`}>
                   {item.description}
                 </p>
               )}
@@ -69,7 +69,7 @@ function RenderFeatureGrid({ block }: { block: FeatureGridBlock }) {
 function RenderFeatureList({ block }: { block: FeatureListBlock }) {
   return (
     <>
-      <p className="font-medium text-slate-800 dark:text-slate-200">{block.title}</p>
+      <p className="font-medium text-foreground dark:text-muted-foreground">{block.title}</p>
       <ul className="list-disc list-inside space-y-1 ml-1">
         {block.items.map((item, i) => (
           <li key={i}>
@@ -103,7 +103,7 @@ function RenderInfoBox({ block }: { block: InfoBoxBlock }) {
 function RenderActionGrid({ block }: { block: ActionGridBlock }) {
   return (
     <>
-      <p className="font-medium text-slate-800 dark:text-slate-200">{block.title}</p>
+      <p className="font-medium text-foreground dark:text-muted-foreground">{block.title}</p>
       <div className={`grid grid-cols-${block.cols} gap-2 text-xs`}>
         {block.items.map((item, i) => {
           const c = getColor(item.color);
@@ -132,7 +132,7 @@ function RenderSpecialComponent({ block }: { block: { component: string; title?:
   return (
     <>
       {block.title && (
-        <p className="font-medium text-slate-800 dark:text-slate-200">{block.title}</p>
+        <p className="font-medium text-foreground dark:text-muted-foreground">{block.title}</p>
       )}
       <Component />
     </>
@@ -160,7 +160,7 @@ export function SectionRenderer({ blocks }: { blocks: ContentBlock[] }) {
 
           case 'tip':
             return (
-              <p key={i} className="text-xs text-slate-500 dark:text-slate-500 italic">
+              <p key={i} className="text-xs text-muted-foreground dark:text-muted-foreground italic">
                 {parseText(block.text)}
               </p>
             );

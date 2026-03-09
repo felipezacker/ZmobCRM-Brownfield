@@ -75,7 +75,7 @@ export const GET = withRateLimit(async function GET(request: Request) {
   const nextCursor = nextOffset < total ? encodeOffsetCursor(nextOffset) : null;
 
   return NextResponse.json({
-    data: (data || []).map((d: any) => ({
+    data: (data || []).map((d) => ({
       id: d.id,
       title: d.title,
       value: Number(d.value ?? 0),
@@ -118,7 +118,7 @@ async function upsertContactForDeal(opts: {
   if (existing.error) throw existing.error;
 
   const now = new Date().toISOString();
-  const base: any = {
+  const base: Record<string, unknown> = {
     organization_id: opts.organizationId,
     email,
     phone,
@@ -177,8 +177,8 @@ export const POST = withRateLimit(async function POST(request: Request) {
   if (!contactId && parsed.data.contact) {
     try {
       contactId = await upsertContactForDeal({ organizationId: auth.organizationId, contact: parsed.data.contact });
-    } catch (e: any) {
-      return NextResponse.json({ error: e?.message || 'Invalid contact', code: 'VALIDATION_ERROR' }, { status: 422 });
+    } catch (e: unknown) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : 'Invalid contact', code: 'VALIDATION_ERROR' }, { status: 422 });
     }
   }
   if (!contactId) {
@@ -187,7 +187,7 @@ export const POST = withRateLimit(async function POST(request: Request) {
 
   const now = new Date().toISOString();
   const value = Number(parsed.data.value ?? 0);
-  const insertPayload: any = {
+  const insertPayload: Record<string, unknown> = {
     organization_id: auth.organizationId,
     title: parsed.data.title.trim(),
     value,

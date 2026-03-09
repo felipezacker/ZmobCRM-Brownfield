@@ -1,5 +1,6 @@
-@config "../tailwind.config.js";
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ========================================
  * Tailwind v4 Theme Configuration
@@ -9,7 +10,6 @@
   /* Font Families */
   --font-sans: 'Inter', var(--font-inter), sans-serif;
   --font-display: 'Space Grotesk', sans-serif;
-  --font-serif: 'Cinzel', serif;
 
   /* Primary Colors */
   --color-primary-50: #f0f9ff;
@@ -72,6 +72,15 @@ svg.lucide {
   /* App Shell: sidebar width (used by modals/overlays to avoid covering navigation on desktop) */
   --app-sidebar-width: 0px;
 
+  /* Z-Index Scale — semantic layering tokens (TD-2.1 UX-027) */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 300;
+  --z-popover: 400;
+  --z-tooltip: 500;
+  --z-toast: 600;
+
   /* Safe area + app shell sizing */
   --app-safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --app-safe-area-top: env(safe-area-inset-top, 0px);
@@ -98,6 +107,21 @@ svg.lucide {
   --input: var(--color-border);
   --ring: oklch(55% 0.20 240);
   --radius: 0.5rem;
+
+  /* Chart Colors (TD-3.1 UX-009) */
+  --chart-blue: oklch(62% 0.21 255);
+  --chart-green: oklch(64% 0.18 155);
+  --chart-yellow: oklch(80% 0.16 90);
+  --chart-orange: oklch(72% 0.19 55);
+  --chart-red: oklch(63% 0.24 25);
+  --chart-purple: oklch(60% 0.23 300);
+  --chart-pink: oklch(65% 0.22 340);
+  --chart-indigo: oklch(55% 0.22 275);
+  --chart-teal: oklch(63% 0.13 185);
+  --chart-slate: oklch(55% 0.02 265);
+  --chart-cyan: oklch(68% 0.14 215);
+  --chart-amber: oklch(78% 0.16 75);
+  --chart-emerald: oklch(64% 0.17 165);
 
   /* Light Mode - Soft Cream (OKLCH) */
   --color-bg: oklch(97% 0.005 90);
@@ -160,6 +184,21 @@ html, body {
 }
 
 .dark {
+  /* Chart Colors - Dark (brighter for dark backgrounds) */
+  --chart-blue: oklch(68% 0.19 255);
+  --chart-green: oklch(70% 0.17 155);
+  --chart-yellow: oklch(84% 0.14 90);
+  --chart-orange: oklch(76% 0.17 55);
+  --chart-red: oklch(68% 0.22 25);
+  --chart-purple: oklch(66% 0.21 300);
+  --chart-pink: oklch(70% 0.20 340);
+  --chart-indigo: oklch(62% 0.20 275);
+  --chart-teal: oklch(68% 0.12 185);
+  --chart-slate: oklch(60% 0.02 265);
+  --chart-cyan: oklch(72% 0.13 215);
+  --chart-amber: oklch(82% 0.14 75);
+  --chart-emerald: oklch(70% 0.16 165);
+
   /* Dark Mode - Deep Slate (OKLCH) */
   --color-bg: oklch(11% 0.025 260);
   --color-surface: oklch(15% 0.02 260);
@@ -276,36 +315,7 @@ body {
   75% { background-position: -40px 80px; }
 }
 
-/* ========================================
- * Custom Scrollbar
- * ======================================== */
-@utility scrollbar-custom {
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
-}
-
-.dark .scrollbar-custom::-webkit-scrollbar-thumb {
-  background: #334155;
-}
-
-.dark .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
+/* scrollbar-custom utility removed — global scrollbar styling below handles all elements */
 
 /* ========================================
  * Accessibility Utilities
@@ -358,7 +368,7 @@ body {
 .skip-link {
   position: absolute;
   left: -9999px;
-  z-index: 9999;
+  z-index: var(--z-toast);
   padding: 0.75rem 1.5rem;
   background-color: #1e40af;
   color: #ffffff;
@@ -443,7 +453,7 @@ body {
  * Exemplo de uso:
  * <tr className="cv-auto cv-row-md">...</tr>
  */
-/* Global scrollbar styling — uses existing semantic tokens */
+/* Global scrollbar styling — single definition, OKLCH tokens */
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -454,12 +464,12 @@ body {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: oklch(80% 0.01 260);
   border-radius: 4px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: oklch(68% 0.01 260);
 }
 
 .dark *::-webkit-scrollbar-thumb {

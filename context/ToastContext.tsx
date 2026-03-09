@@ -40,7 +40,7 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /** Tipos de notificação toast */
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
@@ -85,6 +85,10 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [toasts, setToasts] = useState<Toast[]>([]);
 
+    const removeToast = useCallback((id: string) => {
+        setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, []);
+
     const addToast = useCallback((message: string, type: ToastType = 'info') => {
         const id = Math.random().toString(36).substr(2, 9);
         setToasts((prev) => [...prev, { id, message, type }]);
@@ -93,11 +97,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setTimeout(() => {
             removeToast(id);
         }, 3000);
-    }, []);
-
-    const removeToast = useCallback((id: string) => {
-        setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, []);
+    }, [removeToast]);
 
     // Get accessible role based on toast type
     const getToastRole = (type: ToastType): 'alert' | 'status' => {

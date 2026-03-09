@@ -7,7 +7,7 @@ import { Copy, Loader2, Pencil, RotateCcw, SlidersHorizontal, ToggleLeft, Toggle
 import { useToast } from '@/context/ToastContext';
 import { Modal } from '@/components/ui/Modal';
 import { getPromptCatalogMap } from '@/lib/ai/prompts/catalog';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 type FeatureItem = {
   key: string;
@@ -54,8 +54,8 @@ export const AIFeaturesSection: React.FC = () => {
     try {
       await setAIFeatureFlag(key, enabled);
       showToast(enabled ? 'Função ativada' : 'Função desativada', 'success');
-    } catch (e: any) {
-      showToast(e?.message || 'Falha ao salvar', 'error');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Falha ao salvar', 'error');
     } finally {
       setSavingKey(null);
     }
@@ -88,8 +88,8 @@ export const AIFeaturesSection: React.FC = () => {
       const fallbackDefault = catalogMap?.[feature.promptKey]?.defaultTemplate || '';
       const next = activeContent.trim().length > 0 ? activeContent : fallbackDefault;
       setPromptDraft(next || '');
-    } catch (e: any) {
-      showToast(e?.message || 'Falha ao carregar prompt', 'error');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Falha ao carregar prompt', 'error');
       setPromptDraft('');
     } finally {
       setPromptLoading(false);
@@ -126,8 +126,8 @@ export const AIFeaturesSection: React.FC = () => {
       if (!res.ok) throw new Error(data?.error || `Falha ao salvar prompt (HTTP ${res.status})`);
       showToast('Prompt salvo!', 'success');
       closePromptEditor();
-    } catch (e: any) {
-      showToast(e?.message || 'Falha ao salvar prompt', 'error');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Falha ao salvar prompt', 'error');
     } finally {
       setPromptSaving(false);
     }
@@ -146,8 +146,8 @@ export const AIFeaturesSection: React.FC = () => {
       if (!res.ok) throw new Error(data?.error || `Falha ao resetar prompt (HTTP ${res.status})`);
       showToast('Prompt resetado (voltou ao padrão)', 'success');
       closePromptEditor();
-    } catch (e: any) {
-      showToast(e?.message || 'Falha ao resetar prompt', 'error');
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : 'Falha ao resetar prompt', 'error');
     } finally {
       setPromptResetting(false);
     }
@@ -155,25 +155,25 @@ export const AIFeaturesSection: React.FC = () => {
 
   return (
     <div id="ai-features" className="mb-12 scroll-mt-8">
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6">
+      <div className="bg-white dark:bg-white/5 border border-border rounded-2xl p-6">
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
               <SlidersHorizontal className="h-5 w-5" /> Funções de IA
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">
               Toggle + prompt no mesmo lugar (mais simples de entender e de gravar).
             </p>
           </div>
         </div>
 
         {!isAdmin && (
-          <div className="mt-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
+          <div className="mt-4 rounded-xl border border-border bg-background dark:bg-white/5 px-4 py-3 text-sm text-secondary-foreground dark:text-muted-foreground">
             Apenas administradores podem configurar as funções de IA.
           </div>
         )}
 
-        <div className="mt-6 border-t border-slate-200 dark:border-white/10 pt-4">
+        <div className="mt-6 border-t border-border pt-4">
           <div className="space-y-2">
             {items.map((f) => {
               const enabled = getEnabled(f.key);
@@ -181,33 +181,33 @@ export const AIFeaturesSection: React.FC = () => {
               return (
                 <div
                   key={f.key}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/3 px-4 py-3"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/60 dark:bg-white/3 px-4 py-3"
                 >
                   <div className="min-w-0">
-                    <div className="font-semibold text-slate-900 dark:text-white truncate">{f.title}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{f.description}</div>
+                    <div className="font-semibold text-foreground truncate">{f.title}</div>
+                    <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-0.5 truncate">{f.description}</div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
 
                     {f.promptKey ? (
                       <Button
                         type="button"
                         onClick={() => openPromptEditor(f)}
                         disabled={!isAdmin || saving}
-                        className="px-2 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-2 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Editar prompt"
                         aria-label="Editar prompt"
                       >
-                        <Pencil className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                        <Pencil className="h-4 w-4 text-secondary-foreground dark:text-muted-foreground" />
                       </Button>
                     ) : null}
 
                     <Button
                       type="button"
                       onClick={() => toggle(f.key, !enabled)}
-                      className="px-2 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-2 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                       title={enabled ? 'Desativar' : 'Ativar'}
                       aria-label={enabled ? `Desativar ${f.title}` : `Ativar ${f.title}`}
                       disabled={!isAdmin || saving}
@@ -235,12 +235,12 @@ export const AIFeaturesSection: React.FC = () => {
       >
         {editingFeature?.promptKey ? (
           <>
-            <div className="flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground dark:text-muted-foreground">
               <div className="font-mono truncate">key: {editingFeature.promptKey}</div>
               <Button
                 type="button"
                 onClick={() => copyToClipboard(editingFeature.promptKey!)}
-                className="h-8 w-8 rounded-lg border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 inline-flex items-center justify-center"
+                className="h-8 w-8 rounded-lg border border-border text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10 inline-flex items-center justify-center"
                 title="Copiar key"
                 aria-label="Copiar key"
               >
@@ -249,7 +249,7 @@ export const AIFeaturesSection: React.FC = () => {
             </div>
 
             {promptLoading ? (
-              <div className="min-h-[280px] flex items-center justify-center text-slate-500 dark:text-slate-400">
+              <div className="min-h-[280px] flex items-center justify-center text-muted-foreground dark:text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   Carregando prompt...
@@ -260,7 +260,7 @@ export const AIFeaturesSection: React.FC = () => {
                 value={promptDraft}
                 onChange={(e) => setPromptDraft(e.target.value)}
                 placeholder="Cole/edite o prompt aqui…"
-                className="w-full min-h-[280px] resize-y bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none"
+                className="w-full min-h-[280px] resize-y bg-white dark:bg-background border border-border rounded-xl p-4 text-sm text-foreground font-mono focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none"
               />
             )}
 
@@ -271,8 +271,8 @@ export const AIFeaturesSection: React.FC = () => {
                 disabled={!isAdmin || promptResetting || promptSaving}
                 className={`px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-2 border ${
                   !isAdmin || promptResetting || promptSaving
-                    ? 'border-slate-200 dark:border-white/10 text-slate-400 cursor-not-allowed'
-                    : 'border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5'
+                    ? 'border-border  text-muted-foreground cursor-not-allowed'
+                    : 'border-border  text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-white/5'
                 }`}
               >
                 {promptResetting ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
@@ -284,7 +284,7 @@ export const AIFeaturesSection: React.FC = () => {
                   type="button"
                   onClick={closePromptEditor}
                   disabled={promptSaving}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-60"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 disabled:opacity-60"
                 >
                   Fechar
                 </Button>
@@ -294,7 +294,7 @@ export const AIFeaturesSection: React.FC = () => {
                   disabled={!isAdmin || promptSaving || promptLoading || !promptDraft.trim()}
                   className={`px-4 py-2 rounded-lg text-sm font-medium text-white inline-flex items-center gap-2 ${
                     !isAdmin || promptSaving || promptLoading || !promptDraft.trim()
-                      ? 'bg-slate-300 dark:bg-white/10 cursor-not-allowed'
+                      ? 'bg-accent dark:bg-white/10 cursor-not-allowed'
                       : 'bg-primary-600 hover:bg-primary-700'
                   }`}
                 >

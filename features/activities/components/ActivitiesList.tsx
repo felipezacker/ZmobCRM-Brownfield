@@ -56,7 +56,7 @@ export const ActivitiesList: React.FC<ActivitiesListProps> = ({
     if (activities.length === 0) {
         return (
             <EmptyState
-                icon={<CalendarPlus size={28} className="text-slate-400" />}
+                icon={<CalendarPlus size={28} className="text-muted-foreground" />}
                 title="Nenhuma atividade encontrada"
                 description={onNewActivity ? 'Crie sua primeira atividade para começar a organizar suas tarefas.' : undefined}
                 action={onNewActivity ? { label: 'Criar Atividade', onClick: onNewActivity } : undefined}
@@ -68,13 +68,13 @@ export const ActivitiesList: React.FC<ActivitiesListProps> = ({
     return (
         <div className="space-y-3">
             {onSelectActivity && (
-                <label className="flex items-center gap-3 px-4 py-3 text-sm text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg transition-colors select-none w-full">
+                <label className="flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground dark:text-muted-foreground cursor-pointer hover:text-secondary-foreground dark:hover:text-muted-foreground hover:bg-background dark:hover:bg-white/5 rounded-lg transition-colors select-none w-full">
                     <input
                         type="checkbox"
                         checked={allSelected}
                         ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
                         onChange={handleSelectAll}
-                        className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                        className="w-4 h-4 text-primary-600 bg-muted border-border rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-accent dark:border-border cursor-pointer"
                     />
                     Selecionar todas ({activities.length})
                 </label>

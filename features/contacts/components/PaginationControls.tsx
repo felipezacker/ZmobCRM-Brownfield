@@ -11,7 +11,7 @@ import React from 'react';
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { PaginationState } from '@/types';
 import { PAGE_SIZE_OPTIONS, DEFAULT_PAGE_SIZE } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export interface PaginationControlsProps {
   /** Estado atual de paginação { pageIndex, pageSize }. */
@@ -109,21 +109,21 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   `;
   
   const buttonEnabledClass = `
-    text-gray-600 hover:bg-gray-100 hover:text-gray-900
-    dark:text-gray-400 dark:hover:bg-dark-hover dark:hover:text-gray-200
+    text-secondary-foreground hover:bg-muted hover:text-foreground
+    dark:text-muted-foreground dark:hover:bg-dark-hover dark:hover:text-muted-foreground
   `;
   
   const buttonDisabledClass = `
-    text-gray-300 cursor-not-allowed
-    dark:text-gray-600
+    text-muted-foreground cursor-not-allowed
+    dark:text-secondary-foreground
   `;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-gray-200 dark:border-dark-border bg-white dark:bg-dark-card">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-border dark:border-dark-border bg-white dark:bg-dark-card">
       {/* Left: Info and page size selector (T024, T026) */}
-      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+      <div className="flex items-center gap-4 text-sm text-secondary-foreground dark:text-muted-foreground">
         {/* T026: Mostrando X-Y de Z */}
-        <span className={isFetching ? 'animate-pulse' : ''}>
+        <span className={isFetching ?'animate-pulse' : ''}>
           Mostrando {totalCount > 0 ? from : 0}-{to} de {totalCount.toLocaleString('pt-BR')} contatos
         </span>
         
@@ -137,12 +137,10 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
             value={pageSize}
             onChange={handlePageSizeChange}
             disabled={isFetching}
-            className="
-              px-2 py-1 text-sm rounded-md border border-gray-200
-              bg-white dark:bg-dark-card dark:border-dark-border
-              focus:outline-none focus:ring-2 focus:ring-primary-500
-              disabled:opacity-50 disabled:cursor-not-allowed
-            "
+            className="px-2 py-1 text-sm rounded-md border border-border
+ bg-white dark:bg-dark-card dark:border-dark-border
+ focus:outline-none focus:ring-2 focus:ring-primary-500
+ disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Selecionar quantidade de itens por página"
           >
             {PAGE_SIZE_OPTIONS.map(size => (
@@ -158,7 +156,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
       <div className="flex items-center gap-2">
         {/* T036: Go to page input */}
         <div className="hidden sm:flex items-center gap-2 mr-4">
-          <label htmlFor="goto-page" className="text-sm text-gray-600 dark:text-gray-400">
+          <label htmlFor="goto-page" className="text-sm text-secondary-foreground dark:text-muted-foreground">
             Ir para:
           </label>
           <input
@@ -169,19 +167,17 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
             placeholder={String(pageIndex + 1)}
             onKeyDown={handleGoToPage}
             disabled={isFetching || pageCount <= 1}
-            className="
-              w-16 px-2 py-1 text-sm text-center rounded-md border border-gray-200
-              bg-white dark:bg-dark-card dark:border-dark-border
-              focus:outline-none focus:ring-2 focus:ring-primary-500
-              disabled:opacity-50 disabled:cursor-not-allowed
-              [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-            "
+            className="w-16 px-2 py-1 text-sm text-center rounded-md border border-border
+ bg-white dark:bg-dark-card dark:border-dark-border
+ focus:outline-none focus:ring-2 focus:ring-primary-500
+ disabled:opacity-50 disabled:cursor-not-allowed
+ [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             aria-label="Ir para página específica"
           />
         </div>
 
         {/* Page indicator */}
-        <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[80px] text-center">
+        <span className="text-sm text-secondary-foreground dark:text-muted-foreground min-w-[80px] text-center">
           Página {pageIndex + 1} de {pageCount || 1}
         </span>
 

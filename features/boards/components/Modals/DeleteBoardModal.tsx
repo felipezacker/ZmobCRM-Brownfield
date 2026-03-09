@@ -1,7 +1,8 @@
 import React from 'react';
 import { X, AlertTriangle, ChevronDown, Trash2, FolderOutput } from 'lucide-react';
 import { Board } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 
 interface DeleteBoardModalProps {
   isOpen: boolean;
@@ -56,7 +57,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className={MODAL_OVERLAY_CLASS}
       onClick={(e) => {
         // Close only when clicking the backdrop (outside the panel).
         if (e.target === e.currentTarget) onClose();
@@ -67,20 +68,20 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-dark-border">
+        <div className="flex items-center justify-between p-6 border-b border-border dark:border-dark-border">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-xl">
               <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+            <h2 className="text-lg font-semibold text-foreground">
               Excluir Board
             </h2>
           </div>
           <Button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-dark-hover rounded-lg transition-colors"
+            className="p-2 hover:bg-muted dark:hover:bg-dark-hover rounded-lg transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </Button>
         </div>
 
@@ -98,7 +99,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
               {hasOtherBoards ? (
                 <>
                   <div className="space-y-3">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground">
                       O que fazer com os negócios?
                     </label>
                     
@@ -111,18 +112,18 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
                           className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
                             selectedTargetBoardId === board.id
                               ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10'
-                              : 'border-slate-200 dark:border-dark-border hover:border-slate-300 dark:hover:border-slate-600'
+                              : 'border-border dark:border-dark-border hover:border-border dark:hover:border-border'
                           }`}
                         >
                           <FolderOutput className={`w-5 h-5 flex-shrink-0 ${
                             selectedTargetBoardId === board.id
                               ? 'text-primary-600 dark:text-primary-400'
-                              : 'text-slate-400'
+                              : 'text-muted-foreground'
                           }`} />
                           <span className={`text-sm ${
                             selectedTargetBoardId === board.id
                               ? 'text-primary-700 dark:text-primary-300 font-medium'
-                              : 'text-slate-700 dark:text-slate-300'
+                              : 'text-secondary-foreground dark:text-muted-foreground'
                           }`}>
                             Mover para "{board.name}"
                           </span>
@@ -135,18 +136,18 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
                         className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
                           selectedTargetBoardId === '__DELETE__'
                             ? 'border-red-500 bg-red-50 dark:bg-red-500/10'
-                            : 'border-slate-200 dark:border-dark-border hover:border-red-300 dark:hover:border-red-800'
+                            : 'border-border dark:border-dark-border hover:border-red-300 dark:hover:border-red-800'
                         }`}
                       >
                         <Trash2 className={`w-5 h-5 flex-shrink-0 ${
                           selectedTargetBoardId === '__DELETE__'
                             ? 'text-red-600 dark:text-red-400'
-                            : 'text-slate-400'
+                            : 'text-muted-foreground'
                         }`} />
                         <span className={`text-sm ${
                           selectedTargetBoardId === '__DELETE__'
                             ? 'text-red-700 dark:text-red-300 font-medium'
-                            : 'text-slate-700 dark:text-slate-300'
+                            : 'text-secondary-foreground dark:text-muted-foreground'
                         }`}>
                           Excluir negócios também
                         </span>
@@ -155,7 +156,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
                   </div>
 
                   {selectedTargetBoardId && selectedTargetBoardId !== '__DELETE__' && (
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                       Os negócios serão movidos para o primeiro estágio do board selecionado.
                     </p>
                   )}
@@ -169,7 +170,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
               ) : (
                 // Só tem 1 board - oferece apenas excluir os deals
                 <>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <p className="text-sm text-secondary-foreground dark:text-muted-foreground">
                     Este é o único board. Para excluí-lo, os negócios também serão removidos.
                   </p>
                   <Button
@@ -177,7 +178,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
                     className={`w-full p-3 rounded-xl border-2 transition-colors flex items-center justify-center gap-2 ${
                       selectedTargetBoardId === '__DELETE__'
                         ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                        : 'border-slate-200 dark:border-dark-border hover:border-red-300'
+                        : 'border-border dark:border-dark-border hover:border-red-300'
                     }`}
                   >
                     <Trash2 className="w-4 h-4" />
@@ -187,7 +188,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
               )}
             </>
           ) : (
-            <p className="text-slate-600 dark:text-slate-400">
+            <p className="text-secondary-foreground dark:text-muted-foreground">
               Tem certeza que deseja excluir o board <strong>"{boardName}"</strong>?
               Esta ação não pode ser desfeita.
             </p>
@@ -195,10 +196,10 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 p-6 border-t border-slate-200 dark:border-dark-border">
+        <div className="flex gap-3 p-6 border-t border-border dark:border-dark-border">
           <Button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-hover rounded-xl font-medium transition-colors"
+            className="flex-1 px-4 py-2.5 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-dark-hover rounded-xl font-medium transition-colors"
           >
             Cancelar
           </Button>
@@ -208,7 +209,7 @@ export const DeleteBoardModal: React.FC<DeleteBoardModalProps> = ({
             className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition-colors ${
               canDelete
                 ? 'bg-red-600 hover:bg-red-700 text-white'
-                : 'bg-slate-200 dark:bg-dark-hover text-slate-400 cursor-not-allowed'
+                : 'bg-accent dark:bg-dark-hover text-muted-foreground cursor-not-allowed'
             }`}
           >
             {selectedTargetBoardId === '__DELETE__' 

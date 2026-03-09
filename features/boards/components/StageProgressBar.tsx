@@ -1,6 +1,6 @@
 import React from 'react';
 import { BoardStage } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface StageProgressBarProps {
     stages: BoardStage[];
@@ -71,19 +71,19 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
                                 const dotClass = isCurrent
                                     ? `${dotSize} ${currentDotColor} shadow-sm shadow-black/10`
                                     : isPast
-                                        ? `${dotSize} bg-slate-400/80 dark:bg-white/20`
-                                        : `${dotSize} bg-slate-300/70 dark:bg-white/10`;
+                                        ? `${dotSize} bg-accent/80 dark:bg-white/20`
+                                        : `${dotSize} bg-accent/70 dark:bg-white/10`;
 
                                 const labelClass = isCurrent
-                                    ? 'text-slate-900 dark:text-white font-semibold'
+                                    ? 'text-foreground  font-semibold'
                                     : isPast
-                                        ? 'text-slate-600 dark:text-slate-300 font-medium'
-                                        : 'text-slate-500 dark:text-slate-400 font-medium';
+                                        ? 'text-secondary-foreground dark:text-muted-foreground font-medium'
+                                        : 'text-muted-foreground dark:text-muted-foreground font-medium';
 
                                 // Neutral connectors (past slightly stronger, but never colored).
                                 const connectorClass = index < currentIndex
-                                    ? 'bg-slate-300 dark:bg-white/15'
-                                    : 'bg-slate-200 dark:bg-white/10';
+                                    ? 'bg-accent dark:bg-white/15'
+                                    : 'bg-accent dark:bg-white/10';
 
                                 return (
                                     <React.Fragment key={stage.id}>
@@ -121,7 +121,7 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
 
     // Default (legacy): segmented bar (more "menu-like")
     return (
-        <div className={`flex items-center w-full overflow-hidden rounded-lg border border-slate-200 dark:border-white/10 ${className ?? ''}`}>
+        <div className={`flex items-center w-full overflow-hidden rounded-lg border border-border  ${className ?? ''}`}>
             {stages.map((stage, index, arr) => {
                 const isCurrent = currentStatus === stage.id;
                 const isPast = currentIndex > index;
@@ -131,7 +131,7 @@ export const StageProgressBar: React.FC<StageProgressBarProps> = ({
                 // Determine colors based on stage type
                 let activeColor = 'bg-green-500 text-white';
                 let inactiveColor =
-                    'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600';
+                    'bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent';
 
                 if (isWonStage) {
                     activeColor = 'bg-green-500 text-white';

@@ -8,7 +8,7 @@ import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { debugButtonStyles } from '@/lib/debug';
 import { useDebugMode } from '@/lib/debug/useDebugMode';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface DebugFillButtonProps {
   onClick: () => void;

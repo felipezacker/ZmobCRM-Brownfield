@@ -169,7 +169,7 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         return null;
       }
     },
-    [addItemMutation.mutateAsync]
+    [addItemMutation]
   );
 
   const removeItemFromDeal = useCallback(async (dealId: string, itemId: string) => {
@@ -178,7 +178,7 @@ export const DealsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } catch {
       // onError da mutation já faz rollback do cache
     }
-  }, [removeItemMutation.mutateAsync]);
+  }, [removeItemMutation]);
 
   const value = useMemo(
     () => ({

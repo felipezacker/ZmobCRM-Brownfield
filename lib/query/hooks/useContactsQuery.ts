@@ -275,7 +275,7 @@ export const useCreateContact = () => {
     },
     onSuccess: (data, _newContact, context) => {
       // Replace temp contact in any paginated caches we touched
-      const tempId = (context as any)?.tempId as string | undefined;
+      const tempId = (context as { tempId?: string } | undefined)?.tempId;
       if (!tempId) return;
 
       const queries = queryClient.getQueriesData<PaginatedResponse<Contact>>({

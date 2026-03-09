@@ -49,7 +49,7 @@ export const consentsService = {
 
       return { data: data as UserConsent | null, error: null };
     } catch (e) {
-      return { data: null, error: e as Error };
+      return { data: null, error: e instanceof Error ? e : new Error(String(e)) };
     }
   },
 
@@ -97,7 +97,7 @@ export const consentsService = {
       if (error) return { data: null, error };
       return { data: data as UserConsent, error: null };
     } catch (e) {
-      return { data: null, error: e as Error };
+      return { data: null, error: e instanceof Error ? e : new Error(String(e)) };
     }
   },
 
@@ -159,7 +159,7 @@ export const consentsService = {
 
       return { error: null };
     } catch (e) {
-      return { error: e as Error };
+      return { error: e instanceof Error ? e : new Error(String(e)) };
     }
   },
 
@@ -195,7 +195,7 @@ export const consentsService = {
 
       return { error: null };
     } catch (e) {
-      return { error: e as Error };
+      return { error: e instanceof Error ? e : new Error(String(e)) };
     }
   },
 
@@ -242,7 +242,7 @@ export const consentsService = {
       if (error) return { data: null, error };
       return { data: data as UserConsent[], error: null };
     } catch (e) {
-      return { data: null, error: e as Error };
+      return { data: null, error: e instanceof Error ? e : new Error(String(e)) };
     }
   },
 };

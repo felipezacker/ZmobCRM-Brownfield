@@ -40,8 +40,9 @@ export function createPipelineTools({ supabase, organizationId, context, bypassA
                     : 0;
 
                 const stageMap = new Map<string, { count: number; value: number }>();
-                openDeals.forEach((deal: any) => {
-                    const stageName = deal.stage?.name || deal.stage?.label || 'Sem estágio';
+                openDeals.forEach((deal) => {
+                    const stageInfo = deal.stage as { name?: string; label?: string } | null;
+                    const stageName = stageInfo?.name || stageInfo?.label || 'Sem estágio';
                     const existing = stageMap.get(stageName) || { count: 0, value: 0 };
                     stageMap.set(stageName, {
                         count: existing.count + 1,
@@ -184,7 +185,7 @@ export function createPipelineTools({ supabase, organizationId, context, bypassA
                     .in('id', orderedStageIds);
 
                 if (stError) return { error: formatSupabaseFailure(stError) };
-                const found = new Set((stages || []).map((s: any) => s.id));
+                const found = new Set((stages || []).map((s: { id: string }) => s.id));
                 const missing = orderedStageIds.filter((id) => !found.has(id));
                 if (missing.length) return { error: 'Alguns estágios não pertencem a este board/organização.' };
 

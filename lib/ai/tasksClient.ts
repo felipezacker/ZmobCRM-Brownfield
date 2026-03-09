@@ -169,14 +169,14 @@ export async function generateBoardStrategy(boardData: {
  * @param {GeneratedBoard} currentBoard - Parâmetro `currentBoard`.
  * @param {string} userInstruction - Parâmetro `userInstruction`.
  * @param {{ role: "user" | "ai"; content: string; }[] | undefined} chatHistory - Parâmetro `chatHistory`.
- * @returns {Promise<{ message: string; board: any; }>} Retorna um valor do tipo `Promise<{ message: string; board: any; }>`.
+ * @returns {Promise<{ message: string; board: GeneratedBoard | null; }>} Retorna um valor do tipo `Promise<{ message: string; board: GeneratedBoard | null; }>`.
  */
 export async function refineBoardWithAI(
   currentBoard: GeneratedBoard,
   userInstruction: string,
   chatHistory?: { role: 'user' | 'ai'; content: string }[]
-): Promise<{ message: string; board: any | null }> {
-  const result = await postTask<{ message: string; board: any | null }>('/api/ai/tasks/boards/refine', {
+): Promise<{ message: string; board: GeneratedBoard | null }> {
+  const result = await postTask<{ message: string; board: GeneratedBoard | null }>('/api/ai/tasks/boards/refine', {
     currentBoard,
     userInstruction,
     chatHistory,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, Calendar, Clock, CheckCircle } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
 
 export type ScheduleType = 'CALL' | 'MEETING' | 'TASK';
 
@@ -142,26 +143,26 @@ export function ScheduleModal({
     const config = typeConfig[type];
 
     return (
-        <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center">
+        <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                className={`absolute inset-0 ${MODAL_BACKDROP_CLASS}`}
                 onClick={onClose}
             />
 
             {/* Modal */}
-            <div className="relative bg-slate-900 border border-slate-700 rounded-xl w-full max-w-xl mx-4 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="relative bg-card border border-border rounded-xl w-full max-w-xl mx-4 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-800 shrink-0">
+                <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
                     <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                         <Calendar size={20} className="text-primary-400" />
                         Agendar Atividade
                     </h2>
                     <Button
                         onClick={onClose}
-                        className="p-1 hover:bg-slate-800 rounded-lg transition-colors"
+                        className="p-1 hover:bg-card rounded-lg transition-colors"
                     >
-                        <X size={20} className="text-slate-400" />
+                        <X size={20} className="text-muted-foreground" />
                     </Button>
                 </div>
 
@@ -169,7 +170,7 @@ export function ScheduleModal({
                 <div className="p-4 space-y-4 overflow-y-auto">
                     {/* Type selector */}
                     <div>
-                        <label className="block text-xs font-medium text-slate-400 mb-2">Tipo</label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-2">Tipo</label>
                         <div className="grid grid-cols-3 gap-2">
                             {(Object.keys(typeConfig) as ScheduleType[]).map((t) => {
                                 const cfg = typeConfig[t];
@@ -181,7 +182,7 @@ export function ScheduleModal({
                                         onClick={() => setType(t)}
                                         className={`p-3 rounded-lg border flex flex-col items-center gap-1 transition-all ${isSelected
                                                 ? `border-${cfg.color}-500 bg-${cfg.color}-500/10 text-${cfg.color}-400`
-                                                : 'border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-600'
+                                                : 'border-border bg-card/50 text-muted-foreground hover:border-border'
                                             }`}
                                         style={isSelected ? {
                                             borderColor: cfg.color === 'blue' ? '#3b82f6' : cfg.color === 'purple' ? '#a855f7' : '#f97316',
@@ -199,7 +200,7 @@ export function ScheduleModal({
 
                     {/* Title */}
                     <div>
-                        <label className="block text-xs font-medium text-slate-400 mb-2">Título</label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-2">Título</label>
                         <input
                             type="text"
                             value={title}
@@ -207,7 +208,7 @@ export function ScheduleModal({
                                 setTitleTouched(true);
                                 setTitle(e.target.value);
                             }}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-primary-500"
+                            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary-500"
                             placeholder="Ex: Ligar para João"
                         />
                     </div>
@@ -215,22 +216,22 @@ export function ScheduleModal({
                     {/* Date and Time */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-medium text-slate-400 mb-2">Data</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-2">Data</label>
                             <input
                                 type="date"
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
                                 min={new Date().toISOString().split('T')[0]}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary-500"
+                                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-slate-400 mb-2">Horário</label>
+                            <label className="block text-xs font-medium text-muted-foreground mb-2">Horário</label>
                             <input
                                 type="time"
                                 value={time}
                                 onChange={(e) => setTime(e.target.value)}
-                                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary-500"
+                                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary-500"
                             />
                         </div>
                     </div>
@@ -248,7 +249,7 @@ export function ScheduleModal({
                                     onClick={() => setDate(dateStr)}
                                     className={`px-3 py-1 text-xs rounded-full transition-colors ${date === dateStr
                                             ? 'bg-primary-500 text-white'
-                                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                                            : 'bg-card text-muted-foreground hover:bg-accent'
                                         }`}
                                 >
                                     {label}
@@ -259,22 +260,22 @@ export function ScheduleModal({
 
                     {/* Description */}
                     <div>
-                        <label className="block text-xs font-medium text-slate-400 mb-2">Descrição (opcional)</label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-2">Descrição (opcional)</label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={4}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-primary-500 resize-y min-h-[120px] max-h-[40vh]"
+                            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary-500 resize-y min-h-[120px] max-h-[40vh]"
                             placeholder="Notas adicionais..."
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="flex gap-3 p-4 border-t border-slate-800 shrink-0">
+                <div className="flex gap-3 p-4 border-t border-border shrink-0">
                     <Button
                         onClick={onClose}
-                        className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                        className="flex-1 px-4 py-2 bg-card hover:bg-accent text-muted-foreground text-sm font-medium rounded-lg transition-colors"
                     >
                         Cancelar
                     </Button>

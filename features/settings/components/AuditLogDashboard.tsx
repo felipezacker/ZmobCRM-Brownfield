@@ -6,7 +6,7 @@
  * Displays security audit logs for admin users.
  * Shows cross-tenant attempts, suspicious activities, and data exports.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Shield,
   AlertTriangle,
@@ -25,7 +25,7 @@ import {
 import { EmptyState } from '@/components/ui/EmptyState';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 // Performance: reuse Intl formatter to avoid allocating options objects for every log row.
 const PT_BR_DATE_TIME_FORMATTER = new Intl.DateTimeFormat('pt-BR', {
@@ -147,7 +147,7 @@ export const AuditLogDashboard: React.FC = () => {
 
   const isAdmin = profile?.role === 'admin';
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     if (!isAdmin) return;
 
     if (!sb) {
@@ -157,10 +157,10 @@ export const AuditLogDashboard: React.FC = () => {
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Calculate date filter
       const nowTs = Date.now();
@@ -219,21 +219,21 @@ export const AuditLogDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin, sb, severityFilter, actionFilter, timeFilter]);
 
   useEffect(() => {
     fetchLogs();
-  }, [severityFilter, actionFilter, timeFilter, isAdmin]);
+  }, [fetchLogs]);
 
   if (!isAdmin) {
     return (
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-8">
+      <div className="bg-white dark:bg-white/5 border border-border rounded-2xl p-8">
         <div className="flex flex-col items-center justify-center text-center">
-          <Shield className="w-12 h-12 text-slate-400 mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+          <Shield className="w-12 h-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">
             Acesso Restrito
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Apenas administradores podem visualizar os logs de auditoria.
           </p>
         </div>
@@ -249,11 +249,11 @@ export const AuditLogDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
             <Shield className="w-6 h-6 text-primary-500" />
             Logs de Auditoria
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">
             Monitore atividades de segurança e tentativas de acesso não autorizado
           </p>
         </div>
@@ -269,14 +269,14 @@ export const AuditLogDashboard: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+        <div className="bg-white dark:bg-white/5 border border-border rounded-xl p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-slate-100 dark:bg-white/10 rounded-lg">
-              <Activity className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            <div className="p-2 bg-muted dark:bg-white/10 rounded-lg">
+              <Activity className="w-5 h-5 text-secondary-foreground dark:text-muted-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Total</p>
+              <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">Total</p>
             </div>
           </div>
         </div>
@@ -288,7 +288,7 @@ export const AuditLogDashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.critical}</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Críticos</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">Críticos</p>
             </div>
           </div>
         </div>
@@ -300,7 +300,7 @@ export const AuditLogDashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.warning}</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Alertas</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">Alertas</p>
             </div>
           </div>
         </div>
@@ -312,24 +312,24 @@ export const AuditLogDashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.info}</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Informativos</p>
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">Informativos</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl p-4">
+      <div className="bg-white dark:bg-white/5 border border-border rounded-xl p-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Filtros:</span>
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground">Filtros:</span>
           </div>
 
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-1.5 bg-background dark:bg-black/20 border border-border rounded-lg text-sm text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">Todas Severidades</option>
             <option value="critical">Crítico</option>
@@ -340,7 +340,7 @@ export const AuditLogDashboard: React.FC = () => {
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-1.5 bg-background dark:bg-black/20 border border-border rounded-lg text-sm text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">Todas Ações</option>
             <option value="CROSS_TENANT_ATTEMPT">Cross-Tenant</option>
@@ -352,7 +352,7 @@ export const AuditLogDashboard: React.FC = () => {
           <select
             value={timeFilter}
             onChange={(e) => setTimeFilter(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-1.5 bg-background dark:bg-black/20 border border-border rounded-lg text-sm text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="24h">Últimas 24h</option>
             <option value="7d">Últimos 7 dias</option>
@@ -370,20 +370,20 @@ export const AuditLogDashboard: React.FC = () => {
       )}
 
       {/* Logs List */}
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden">
+      <div className="bg-white dark:bg-white/5 border border-border rounded-2xl overflow-hidden">
         {loading ? (
           <div className="p-8 text-center">
-            <RefreshCw className="w-8 h-8 text-slate-400 animate-spin mx-auto mb-3" />
-            <p className="text-slate-500 dark:text-slate-400">Carregando logs...</p>
+            <RefreshCw className="w-8 h-8 text-muted-foreground animate-spin mx-auto mb-3" />
+            <p className="text-muted-foreground dark:text-muted-foreground">Carregando logs...</p>
           </div>
         ) : logs.length === 0 ? (
           <EmptyState
-            icon={<Shield className="w-6 h-6 text-slate-400 dark:text-slate-500" />}
+            icon={<Shield className="w-6 h-6 text-muted-foreground dark:text-muted-foreground" />}
             title="Nenhum log encontrado para os filtros selecionados"
             size="md"
           />
         ) : (
-          <div className="divide-y divide-slate-200 dark:divide-white/10">
+          <div className="divide-y divide-border dark:divide-white/10">
             {logs.map((log) => {
               const config = SEVERITY_CONFIG[log.severity];
               const Icon = config.icon;
@@ -392,7 +392,7 @@ export const AuditLogDashboard: React.FC = () => {
               return (
                 <div
                   key={log.id}
-                  className={`p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer ${config.bgColor}`}
+                  className={`p-4 hover:bg-background dark:hover:bg-white/5 transition-colors cursor-pointer ${config.bgColor}`}
                   onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
                 >
                   <div className="flex items-start gap-4">
@@ -405,12 +405,12 @@ export const AuditLogDashboard: React.FC = () => {
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${config.bgColor} ${config.textColor} border ${config.borderColor}`}>
                           {config.label}
                         </span>
-                        <span className="text-sm font-medium text-slate-900 dark:text-white">
+                        <span className="text-sm font-medium text-foreground">
                           {ACTION_LABELS[log.action] || log.action}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground dark:text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
                           {formatRelative(log.created_at, nowTs)}
@@ -420,7 +420,7 @@ export const AuditLogDashboard: React.FC = () => {
                           {log.user_id.slice(0, 8)}...
                         </span>
                         {log.resource_type && (
-                          <span className="text-slate-400">
+                          <span className="text-muted-foreground">
                             {log.resource_type}
                             {log.resource_id && ` → ${log.resource_id.slice(0, 8)}...`}
                           </span>
@@ -429,30 +429,30 @@ export const AuditLogDashboard: React.FC = () => {
 
                       {/* Expanded Details */}
                       {isExpanded && (
-                        <div className="mt-4 p-4 bg-slate-50 dark:bg-black/20 rounded-lg text-sm space-y-2">
+                        <div className="mt-4 p-4 bg-background dark:bg-black/20 rounded-lg text-sm space-y-2">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <span className="text-slate-500 dark:text-slate-400">Data/Hora:</span>
-                              <p className="text-slate-700 dark:text-slate-300">
+                              <span className="text-muted-foreground dark:text-muted-foreground">Data/Hora:</span>
+                              <p className="text-secondary-foreground dark:text-muted-foreground">
                                 {formatDate(log.created_at)}
                               </p>
                             </div>
                             <div>
-                              <span className="text-slate-500 dark:text-slate-400">User ID:</span>
-                              <p className="text-slate-700 dark:text-slate-300 font-mono text-xs">
+                              <span className="text-muted-foreground dark:text-muted-foreground">User ID:</span>
+                              <p className="text-secondary-foreground dark:text-muted-foreground font-mono text-xs">
                                 {log.user_id}
                               </p>
                             </div>
                             {log.ip_address && (
                               <div>
-                                <span className="text-slate-500 dark:text-slate-400">IP:</span>
-                                <p className="text-slate-700 dark:text-slate-300">{log.ip_address}</p>
+                                <span className="text-muted-foreground dark:text-muted-foreground">IP:</span>
+                                <p className="text-secondary-foreground dark:text-muted-foreground">{log.ip_address}</p>
                               </div>
                             )}
                             {log.user_agent && (
                               <div className="col-span-2">
-                                <span className="text-slate-500 dark:text-slate-400">User Agent:</span>
-                                <p className="text-slate-700 dark:text-slate-300 text-xs truncate">
+                                <span className="text-muted-foreground dark:text-muted-foreground">User Agent:</span>
+                                <p className="text-secondary-foreground dark:text-muted-foreground text-xs truncate">
                                   {log.user_agent}
                                 </p>
                               </div>
@@ -460,9 +460,9 @@ export const AuditLogDashboard: React.FC = () => {
                           </div>
 
                           {log.details && Object.keys(log.details).length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-slate-200 dark:border-white/10">
-                              <span className="text-slate-500 dark:text-slate-400">Detalhes:</span>
-                              <pre className="mt-1 p-2 bg-slate-100 dark:bg-black/30 rounded text-xs overflow-x-auto">
+                            <div className="mt-3 pt-3 border-t border-border">
+                              <span className="text-muted-foreground dark:text-muted-foreground">Detalhes:</span>
+                              <pre className="mt-1 p-2 bg-muted dark:bg-black/30 rounded text-xs overflow-x-auto">
                                 {JSON.stringify(log.details, null, 2)}
                               </pre>
                             </div>
@@ -471,7 +471,7 @@ export const AuditLogDashboard: React.FC = () => {
                       )}
                     </div>
 
-                    <Button className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <Button className="p-1 text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground">
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5" />
                       ) : (

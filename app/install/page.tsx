@@ -49,7 +49,7 @@ export default function InstallEntryPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-dark-bg flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-background dark:bg-dark-bg flex items-center justify-center relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         {/* Vignette */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06)_0%,rgba(2,6,23,0)_42%,rgba(2,6,23,0.88)_100%)] dark:opacity-100 opacity-0" />
@@ -72,7 +72,7 @@ export default function InstallEntryPage() {
         className="relative z-10 flex flex-col items-center gap-3"
       >
         <Loader2 className="w-6 h-6 text-cyan-300 animate-spin" />
-        <div className="text-xs text-slate-500 dark:text-slate-400">
+        <div className="text-xs text-muted-foreground dark:text-muted-foreground">
           Preparando a rota…
         </div>
       </motion.div>

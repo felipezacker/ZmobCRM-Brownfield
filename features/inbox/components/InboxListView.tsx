@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Activity } from '@/types';
 import { AISuggestion } from '../hooks/useInboxController';
@@ -59,7 +59,7 @@ const SuggestionRow: React.FC<{
       case 'UPSELL':
         return <TrendingUp size={16} className="text-green-500" />;
       default:
-        return <AlertTriangle size={16} className="text-slate-500" />;
+        return <AlertTriangle size={16} className="text-muted-foreground" />;
     }
   };
 
@@ -80,7 +80,7 @@ const SuggestionRow: React.FC<{
   };
 
   return (
-    <div className="group flex items-center gap-3 py-3 px-4 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg transition-colors">
+    <div className="group flex items-center gap-3 py-3 px-4 hover:bg-background dark:hover:bg-white/5 rounded-lg transition-colors">
       <div className="shrink-0">{getIcon()}</div>
 
       {/* Clickable area for navigation */}
@@ -89,7 +89,7 @@ const SuggestionRow: React.FC<{
         disabled={!navigationTarget}
         className="flex-1 min-w-0 text-left hover:text-primary-600 dark:hover:text-primary-400 transition-colors disabled:opacity-60 disabled:hover:text-inherit"
       >
-        <p className="text-sm text-slate-700 dark:text-slate-200 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400">
+        <p className="text-sm text-secondary-foreground dark:text-muted-foreground truncate group-hover:text-primary-600 dark:group-hover:text-primary-400">
           {suggestion.description}
         </p>
       </Button>
@@ -104,7 +104,7 @@ const SuggestionRow: React.FC<{
       <div className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           onClick={onAccept}
-          className="p-1.5 text-slate-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-md transition-colors"
+          className="p-1.5 text-muted-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-md transition-colors"
           aria-label="Aplicar sugestão"
           title="Aplicar"
         >
@@ -112,7 +112,7 @@ const SuggestionRow: React.FC<{
         </Button>
         <Button
           onClick={onSnooze}
-          className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-md transition-colors"
+          className="p-1.5 text-muted-foreground hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-md transition-colors"
           aria-label="Adiar sugestão"
           title="Adiar"
         >
@@ -120,7 +120,7 @@ const SuggestionRow: React.FC<{
         </Button>
         <Button
           onClick={onDismiss}
-          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
+          className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
           aria-label="Descartar sugestão"
           title="Descartar"
         >
@@ -128,7 +128,7 @@ const SuggestionRow: React.FC<{
         </Button>
         <Button
           onClick={handleNavigate}
-          className="p-1.5 text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-md transition-colors"
+          className="p-1.5 text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-md transition-colors"
           aria-label={navigationTarget?.label || 'Abrir'}
           title={navigationTarget?.label || 'Abrir'}
           disabled={!navigationTarget}
@@ -187,15 +187,15 @@ const AISuggestionsCard: React.FC<{
         <div className="p-1.5 rounded-lg bg-primary-100 dark:bg-primary-500/20">
           <Sparkles size={16} className="text-primary-600 dark:text-primary-400" />
         </div>
-        <span className="font-semibold text-slate-900 dark:text-white">Sugestões da IA</span>
+        <span className="font-semibold text-foreground">Sugestões da IA</span>
         <span className="text-xs px-2 py-0.5 rounded-full bg-primary-200 dark:bg-primary-500/30 text-primary-700 dark:text-primary-300">
           {suggestions.length}
         </span>
         <div className="flex-1" />
         {isOpen ? (
-          <ChevronDown size={18} className="text-slate-400" />
+          <ChevronDown size={18} className="text-muted-foreground" />
         ) : (
-          <ChevronRight size={18} className="text-slate-400" />
+          <ChevronRight size={18} className="text-muted-foreground" />
         )}
       </Button>
 
@@ -223,7 +223,7 @@ const AISuggestionsCard: React.FC<{
           {showAll && hasMore && (
             <Button
               onClick={() => setShowAll(false)}
-              className="w-full py-3 px-4 text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+              className="w-full py-3 px-4 text-sm font-medium text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 transition-colors"
             >
               Mostrar menos
             </Button>

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PenTool, Pencil, Check, Plus, List, Tag, Trash2 } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import ConfirmModal from '@/components/ConfirmModal';
 import { SettingsSection } from './SettingsSection';
 import { CustomFieldDefinition, CustomFieldType } from '@/types';
 
@@ -66,13 +67,16 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
   onSaveField,
   onRemoveField
 }) => {
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
+  const pendingField = customFieldDefinitions.find(f => f.id === pendingRemoveId);
+
   return (
     <SettingsSection title="Campos Personalizados" icon={PenTool}>
-      <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+      <p className="text-sm text-secondary-foreground dark:text-muted-foreground mb-4 leading-relaxed">
         Crie campos específicos para o seu negócio (ex: CNPJ, Data de Contrato, Origem). Eles aparecerão no cockpit do contato.
       </p>
 
-      <div className={`p-4 rounded-xl border transition-all mb-6 ${editingId ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-500/20' : 'bg-slate-50 dark:bg-black/20 border-slate-200 dark:border-white/5'}`}>
+      <div className={`p-4 rounded-xl border transition-all mb-6 ${editingId ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-500/20' : 'bg-background dark:bg-black/20 border-border '}`}>
         {editingId && (
           <div className="flex items-center gap-2 mb-3 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-wider">
             <Pencil size={12} /> Editando Campo
@@ -80,22 +84,22 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
         )}
         <div className="flex gap-3 items-end mb-3">
           <div className="flex-1">
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Campo</label>
+            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Nome do Campo</label>
             <input
               type="text"
               value={newFieldLabel}
               onChange={(e) => setNewFieldLabel(e.target.value)}
               placeholder="Ex: Data de Validade"
-              className="w-full bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+              className="w-full bg-white dark:bg-black/30 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div className="w-40">
-            <label htmlFor="custom-field-type" className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label>
+            <label htmlFor="custom-field-type" className="block text-xs font-bold text-muted-foreground uppercase mb-1">Tipo</label>
             <select
               id="custom-field-type"
               value={newFieldType}
               onChange={(e) => setNewFieldType(e.target.value as CustomFieldType)}
-              className="w-full bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+              className="w-full bg-white dark:bg-black/30 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="text">Texto</option>
               <option value="number">Número</option>
@@ -107,7 +111,7 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
             {editingId && (
               <Button
                 onClick={onCancelEditing}
-                className="bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 px-3 py-2 rounded-lg text-sm font-bold transition-colors h-[38px] border border-slate-200 dark:border-white/10"
+                className="bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 text-muted-foreground px-3 py-2 rounded-lg text-sm font-bold transition-colors h-[38px] border border-border"
               >
                 Cancelar
               </Button>
@@ -125,7 +129,7 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
 
         {newFieldType === 'select' && (
           <div className="animate-in slide-in-from-top-2 fade-in duration-200">
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-2">
+            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1 flex items-center gap-2">
               <List size={12} /> Opções (Separadas por vírgula)
             </label>
             <input
@@ -133,29 +137,29 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
               value={newFieldOptions}
               onChange={(e) => setNewFieldOptions(e.target.value)}
               placeholder="Ex: Google, Facebook, Instagram, Indicação"
-              className="w-full bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 dark:text-white"
+              className="w-full bg-white dark:bg-black/30 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
             />
-            <p className="text-[10px] text-slate-400 mt-1">Essas opções aparecerão em um menu dropdown no detalhe do negócio.</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Essas opções aparecerão em um menu dropdown no detalhe do negócio.</p>
           </div>
         )}
       </div>
 
       <div className="space-y-2">
         {customFieldDefinitions.map(field => (
-          <div key={field.id} className={`flex items-center justify-between p-3 bg-white dark:bg-white/5 border rounded-lg group transition-colors ${editingId === field.id ? 'border-amber-400 dark:border-amber-500/50 ring-1 ring-amber-400/30' : 'border-slate-200 dark:border-white/10 hover:border-primary-300 dark:hover:border-primary-500/50'}`}>
+          <div key={field.id} className={`flex items-center justify-between p-3 bg-white dark:bg-white/5 border rounded-lg group transition-colors ${editingId === field.id ? 'border-amber-400 dark:border-amber-500/50 ring-1 ring-amber-400/30' : 'border-border  hover:border-primary-300 dark:hover:border-primary-500/50'}`}>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400">
+              <div className="w-8 h-8 rounded bg-muted dark:bg-white/10 flex items-center justify-center text-muted-foreground dark:text-muted-foreground">
                 <Tag size={14} />
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">{field.label}</p>
-                <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5">
+                <p className="text-sm font-bold text-foreground">{field.label}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono mt-0.5">
                   <span>{field.key}</span>
-                  <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                  <span className="w-1 h-1 bg-accent rounded-full"></span>
                   <span className="uppercase">{field.type}</span>
                   {field.options && (
                     <>
-                      <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                      <span className="w-1 h-1 bg-accent rounded-full"></span>
                       <span className="text-primary-500">{field.options.length} opções</span>
                     </>
                   )}
@@ -165,14 +169,14 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
             <div className="flex gap-1">
               <Button
                 onClick={() => onStartEditing(field)}
-                className="text-slate-400 hover:text-amber-500 p-2 rounded hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                className="text-muted-foreground hover:text-amber-500 p-2 rounded hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
                 title="Editar campo"
               >
                 <Pencil size={16} />
               </Button>
               <Button
-                onClick={() => onRemoveField(field.id)}
-                className="text-slate-400 hover:text-red-500 p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                onClick={() => setPendingRemoveId(field.id)}
+                className="text-muted-foreground hover:text-red-500 p-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 title="Remover campo"
               >
                 <Trash2 size={16} />
@@ -184,6 +188,19 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
           <EmptyState title="Nenhum campo personalizado criado." size="sm" />
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!pendingRemoveId}
+        onClose={() => setPendingRemoveId(null)}
+        onConfirm={() => {
+          if (pendingRemoveId) onRemoveField(pendingRemoveId);
+          setPendingRemoveId(null);
+        }}
+        title="Remover campo personalizado"
+        message={`Remover o campo "${pendingField?.label || ''}"? Dados existentes neste campo serão perdidos.`}
+        confirmText="Remover"
+        variant="danger"
+      />
     </SettingsSection>
   );
 };

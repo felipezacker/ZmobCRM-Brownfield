@@ -7,6 +7,7 @@ import { createDealTools } from './tools/deal-tools';
 import { createContactTools } from './tools/contact-tools';
 import { createActivityTools } from './tools/activity-tools';
 import { createNoteTools } from './tools/note-tools';
+import { createProspectingTools } from './tools/prospecting-tools';
 
 /**
  * Creates all CRM tools with context injection.
@@ -32,24 +33,26 @@ export function createCRMTools(context: CRMCallOptions, userId: string, supabase
         ...createContactTools(toolContext),
         ...createActivityTools(toolContext),
         ...createNoteTools(toolContext),
-    } as Record<string, any>;
+        ...createProspectingTools(toolContext),
+    };
 
     // Debug/diagnóstico (scripts): registra chamadas de tools.
     if (String(process.env.AI_TOOL_CALLS_DEBUG || '').toLowerCase() === 'true') {
-        const g = globalThis as any;
+        const g = globalThis as unknown as Record<string, unknown>;
         if (!Array.isArray(g.__AI_TOOL_CALLS__)) g.__AI_TOOL_CALLS__ = [];
 
-        for (const [name, t] of Object.entries(tools)) {
-            const original = (t as any)?.execute;
+        type ToolEntry = { execute?: (...args: unknown[]) => Promise<unknown>; [key: string]: unknown };
+        for (const [name, t] of Object.entries(tools) as Array<[string, ToolEntry]>) {
+            const original = t?.execute;
             if (typeof original !== 'function') continue;
 
-            (t as any).execute = async (args: any) => {
+            t.execute = async (...args: unknown[]) => {
                 try {
-                    g.__AI_TOOL_CALLS__.push(name);
+                    (g.__AI_TOOL_CALLS__ as string[]).push(name);
                 } catch {
                     // ignore
                 }
-                return await original(args);
+                return await original(...args);
             };
         }
     }

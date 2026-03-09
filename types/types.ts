@@ -195,7 +195,7 @@ export interface Contact {
 
   // Tags & Custom Fields (migrado de Deal para Contact)
   tags?: string[];
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
 }
 
 // Telefone de contato (tabela contact_phones)
@@ -266,7 +266,7 @@ export interface Deal {
   };
   ownerId?: string; // ID do usuário responsável
   nextActivity?: {
-    type: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK';
+    type: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'WHATSAPP';
     date: string;
     isOverdue?: boolean;
   };
@@ -290,7 +290,7 @@ export interface DealView extends Deal {
   /** Tags do contato vinculado (read-only no deal). */
   contactTags: string[];
   /** Campos customizados do contato vinculado (read-only no deal). */
-  contactCustomFields: Record<string, any>;
+  contactCustomFields: Record<string, unknown>;
   /** Nome/label do estágio atual (resolvido a partir do status UUID) */
   stageLabel: string;
 }
@@ -305,7 +305,7 @@ export interface Activity {
   /** IDs dos contatos participantes (opcional). */
   participantContactIds?: string[];
   dealTitle: string;
-  type: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'NOTE' | 'STATUS_CHANGE';
+  type: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'WHATSAPP' | 'NOTE' | 'STATUS_CHANGE';
   title: string;
   description?: string;
   date: string;

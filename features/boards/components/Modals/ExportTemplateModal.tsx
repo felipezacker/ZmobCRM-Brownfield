@@ -4,7 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import type { Board, BoardStage, JourneyDefinition } from '@/types';
 import { useToast } from '@/context/ToastContext';
 import { z } from 'zod';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 function slugify(input: string) {
   // NOTE: avoid Unicode property escapes (\p{L}) for broader browser compatibility (Safari).
@@ -198,7 +198,7 @@ export function ExportTemplateModal(props: {
   useEffect(() => {
     if (journeyNameDirty) return;
     setJourneyName(buildDefaultJourneyName(selectedBoards));
-  }, [selectedBoards]);
+  }, [selectedBoards, journeyNameDirty]);
 
   const journeyJson = useMemo(() => {
     return buildJourneyFromBoards({
@@ -350,11 +350,15 @@ export function ExportTemplateModal(props: {
         const stages: BoardStage[] = b.columns.map((c) => ({
           id: crypto.randomUUID(),
           label: c.name,
-          color: c.color || 'bg-slate-500',
+          color: c.color || 'bg-accent',
           linkedLifecycleStage: c.linkedLifecycleStage,
         }));
         const guessed = guessWonLostStageIds(stages);
 
+        const rawPersona = b.strategy?.agentPersona;
+        const agentPersona = rawPersona
+          ? { name: rawPersona.name ?? '', role: rawPersona.role ?? '', behavior: rawPersona.behavior ?? '' }
+          : undefined;
         await onCreateBoardAsync({
           name: b.name,
           description: `Parte da jornada: Sim`,
@@ -364,10 +368,10 @@ export function ExportTemplateModal(props: {
           isDefault: false,
           wonStageId: guessed.wonStageId,
           lostStageId: guessed.lostStageId,
-          agentPersona: b.strategy?.agentPersona,
+          agentPersona,
           goal: b.strategy?.goal,
           entryTrigger: b.strategy?.entryTrigger,
-        } as any);
+        });
       }
 
       addToast('Jornada importada com sucesso!', 'success');
@@ -399,8 +403,8 @@ export function ExportTemplateModal(props: {
             type="button"
             onClick={() => setPanel('export')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${panel === 'export'
-              ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white'
-              : 'bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10'
+              ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+              : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
               }`}
           >
             Exportar
@@ -409,8 +413,8 @@ export function ExportTemplateModal(props: {
             type="button"
             onClick={() => setPanel('import')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${panel === 'import'
-              ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white'
-              : 'bg-white dark:bg-white/5 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10'
+              ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+              : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
               }`}
           >
             Importar JSON
@@ -419,10 +423,10 @@ export function ExportTemplateModal(props: {
       </div>
 
       {panel === 'import' && (
-        <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5 space-y-4">
+        <div className="rounded-xl border border-border p-4 bg-background/50 dark:bg-white/5 space-y-4">
           <div>
-            <div className="text-sm font-bold text-slate-900 dark:text-white">Importar template (arquivo JSON)</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <div className="text-sm font-bold text-foreground">Importar template (arquivo JSON)</div>
+            <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
               Faça upload do arquivo exportado e clique em <b>Instalar</b>.
             </div>
           </div>
@@ -431,13 +435,13 @@ export function ExportTemplateModal(props: {
             type="file"
             accept=".json,application/json"
             onChange={e => void handleImportFile(e.target.files?.[0] ?? null)}
-            className="block w-full text-sm text-slate-600 dark:text-slate-300"
+            className="block w-full text-sm text-secondary-foreground dark:text-muted-foreground"
           />
 
           <Button
             type="button"
             onClick={() => setShowPasteImport(v => !v)}
-            className="text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors w-fit"
+            className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors w-fit"
           >
             {showPasteImport ? 'Ocultar opção de colar JSON' : 'Colar JSON manualmente (avançado)'}
           </Button>
@@ -447,7 +451,7 @@ export function ExportTemplateModal(props: {
               value={importText}
               onChange={e => parseImport(e.target.value)}
               placeholder="Cole o conteúdo do arquivo JSON aqui…"
-              className="w-full min-h-44 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-black/30 px-3 py-2 text-xs font-mono"
+              className="w-full min-h-44 rounded-lg border border-border bg-white dark:bg-black/30 px-3 py-2 text-xs font-mono"
             />
           )}
 
@@ -456,7 +460,7 @@ export function ExportTemplateModal(props: {
           )}
 
           {importJourney && (
-            <div className="text-xs text-slate-600 dark:text-slate-300">
+            <div className="text-xs text-secondary-foreground dark:text-muted-foreground">
               <b>Detectado:</b> {importJourney.boards.length} board(s){importJourney.name ? ` • ${importJourney.name}` : ''}
             </div>
           )}
@@ -467,7 +471,7 @@ export function ExportTemplateModal(props: {
               onClick={() => void handleInstallImportedJourney()}
               disabled={!importJourney || isImporting}
               className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${(!importJourney || isImporting)
-                ? 'bg-slate-200 dark:bg-white/10 text-slate-400 cursor-not-allowed'
+                ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                 : 'bg-primary-600 hover:bg-primary-700 text-white'
                 }`}
             >
@@ -479,10 +483,10 @@ export function ExportTemplateModal(props: {
 
       {panel === 'export' && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-sm font-semibold text-slate-900 dark:text-white">
+          <div className="text-sm font-semibold text-foreground">
             Exportar template
           </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">
+          <div className="text-xs text-muted-foreground dark:text-muted-foreground">
             Selecione 1 board (template simples) ou vários (jornada).
           </div>
         </div>
@@ -491,35 +495,35 @@ export function ExportTemplateModal(props: {
       {panel === 'export' && (
       <div className="grid grid-cols-1 gap-6">
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200 dark:border-white/10 p-4 bg-slate-50/50 dark:bg-white/5">
-            <div className="text-sm font-bold text-slate-900 dark:text-white">1) Baixar arquivo do template</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <div className="rounded-xl border border-border p-4 bg-background/50 dark:bg-white/5">
+            <div className="text-sm font-bold text-foreground">1) Baixar arquivo do template</div>
+            <div className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
               Esse arquivo é o que você vai guardar/publicar na comunidade.
             </div>
 
             <div className="mt-4">
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">
                 Nome (aparece na comunidade)
               </label>
               <input
                 value={journeyName}
                 onChange={e => { setJourneyName(e.target.value); setJourneyNameDirty(true); }}
-                className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-border bg-white dark:bg-white/5 px-3 py-2 text-sm"
               />
             </div>
 
             <div className="mt-4">
-              <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">boards da jornada (ordem importa)</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+              <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-2">boards da jornada (ordem importa)</div>
+              <div className="text-xs text-muted-foreground dark:text-muted-foreground mb-2">
                 <b>Ordem que será exportada:</b> {selectedBoards.map(b => b.name).join(' → ') || '(nenhum)'}
               </div>
-              <div className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-2 max-h-64 overflow-auto space-y-1">
+              <div className="rounded-lg border border-border bg-white dark:bg-white/5 p-2 max-h-64 overflow-auto space-y-1">
                 {boards.map(b => {
                   const checked = selectedBoardIds.includes(b.id);
                   const isSelected = checked;
                   return (
-                    <div key={b.id} className="flex items-center justify-between gap-2 px-2 py-1 rounded-md hover:bg-slate-50 dark:hover:bg-white/10">
-                      <label className="flex items-center gap-2 text-sm text-slate-800 dark:text-slate-200 cursor-pointer">
+                    <div key={b.id} className="flex items-center justify-between gap-2 px-2 py-1 rounded-md hover:bg-background dark:hover:bg-white/10">
+                      <label className="flex items-center gap-2 text-sm text-foreground dark:text-muted-foreground cursor-pointer">
                         <input
                           type="checkbox"
                           checked={checked}
@@ -532,7 +536,7 @@ export function ExportTemplateModal(props: {
                           <Button
                             type="button"
                             onClick={() => moveSelected(b.id, -1)}
-                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-white/10"
+                            className="p-1 rounded hover:bg-muted dark:hover:bg-white/10"
                             aria-label="Mover para cima"
                           >
                             <ArrowUp size={14} />
@@ -540,7 +544,7 @@ export function ExportTemplateModal(props: {
                           <Button
                             type="button"
                             onClick={() => moveSelected(b.id, 1)}
-                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-white/10"
+                            className="p-1 rounded hover:bg-muted dark:hover:bg-white/10"
                             aria-label="Mover para baixo"
                           >
                             <ArrowDown size={14} />
@@ -564,7 +568,7 @@ export function ExportTemplateModal(props: {
               <Button
                 type="button"
                 onClick={handleCopyJourneyJson}
-                className="px-4 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold flex items-center gap-2"
+                className="px-4 py-2 rounded-lg bg-card dark:bg-white text-white dark:text-foreground text-sm font-semibold flex items-center gap-2"
               >
                 <Copy size={16} /> Copiar arquivo (texto)
               </Button>
@@ -573,7 +577,7 @@ export function ExportTemplateModal(props: {
             <Button
               type="button"
               onClick={() => setShowTechnicalDetails(v => !v)}
-              className="mt-3 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+              className="mt-3 text-xs font-semibold text-secondary-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors"
             >
               {showTechnicalDetails ? 'Ocultar detalhes técnicos' : 'Mostrar detalhes técnicos'}
             </Button>
@@ -582,27 +586,27 @@ export function ExportTemplateModal(props: {
               <div className="mt-3 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">schemaVersion</label>
+                    <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">schemaVersion</label>
                     <input
                       value={schemaVersion}
                       onChange={e => setSchemaVersion(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-border bg-white dark:bg-white/5 px-3 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">slug prefix (opcional)</label>
+                    <label className="block text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">slug prefix (opcional)</label>
                     <input
                       value={slugPrefix}
                       onChange={e => setSlugPrefix(e.target.value)}
                       placeholder="ex: sales"
-                      className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-border bg-white dark:bg-white/5 px-3 py-2 text-sm"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">Preview (JSON)</div>
-                  <pre className="text-xs whitespace-pre-wrap rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-black/30 p-3 max-h-56 overflow-auto">
+                  <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-2">Preview (JSON)</div>
+                  <pre className="text-xs whitespace-pre-wrap rounded-lg border border-border bg-white dark:bg-black/30 p-3 max-h-56 overflow-auto">
                     {journeyJsonText}
                   </pre>
                 </div>

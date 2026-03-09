@@ -2,9 +2,14 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCRM } from '@/context/CRMContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
-import { FocusContextPanel } from '@/features/inbox/components/FocusContextPanel';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useDeals } from '@/context/deals/DealsContext';
+import { FocusContextPanel } from '@/features/inbox/components/focus-context';
+import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import type { Activity, DealView } from '@/types';
 
 /**
@@ -17,16 +22,11 @@ import type { Activity, DealView } from '@/types';
 export default function DealCockpitFocusClient({ dealId }: { dealId: string }) {
   const router = useRouter();
 
-  const {
-    deals,
-    contacts,
-    boards,
-    activeBoard,
-    activities,
-    updateDeal,
-    addActivity,
-    updateActivity,
-  } = useCRM();
+  const { deals } = useCRMActions();
+  const { contacts } = useContacts();
+  const { boards, activeBoard } = useBoards();
+  const { activities, addActivity, updateActivity } = useActivities();
+  const { updateDeal } = useDeals();
 
   const dealsById = useMemo(() => new Map(deals.map((d) => [d.id, d])), [deals]);
   const contactsById = useMemo(() => new Map(contacts.map((c) => [c.id, c])), [contacts]);
@@ -65,7 +65,7 @@ export default function DealCockpitFocusClient({ dealId }: { dealId: string }) {
   if (!deal) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="text-sm text-slate-500 dark:text-slate-400">
+        <div className="text-sm text-muted-foreground dark:text-muted-foreground">
           Negócio não encontrado. Volte e tente novamente.
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function DealCockpitFocusClient({ dealId }: { dealId: string }) {
 
   return (
     <div
-      className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] bg-black/50 backdrop-blur-sm"
+      className={MODAL_OVERLAY_CLASS}
     >
       <FocusContextPanel
         className="h-full w-full"

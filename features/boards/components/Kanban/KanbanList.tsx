@@ -2,9 +2,9 @@ import React, { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { DealView, CustomFieldDefinition, BoardStage, DealSortableColumn } from '@/types';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
-import { getActivityStatus } from '@/features/boards/hooks/useBoardsController';
+import { getActivityStatus } from '@/features/boards/hooks/boardUtils';
 import { MoveToStageModal } from '../Modals/MoveToStageModal';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import {
   Mail,
   Phone,
@@ -76,7 +76,7 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentS
     <th scope="col" className={`px-6 py-4 ${className || ''}`}>
       <Button
         onClick={() => onSort(column)}
-        className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
+        className="flex items-center gap-1.5 font-bold text-secondary-foreground dark:text-muted-foreground font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors group"
         aria-label={`Ordenar por ${label}`}
       >
         {label}
@@ -92,11 +92,11 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({ label, column, currentS
   );
 };
 
-const HEADER_CLASS = 'px-6 py-4 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider';
+const HEADER_CLASS = 'px-6 py-4 font-bold text-secondary-foreground dark:text-muted-foreground font-display text-xs uppercase tracking-wider';
 const STICKY_Z = 'sticky z-20 left-0';
-const STICKY_HEADER_BG = 'bg-slate-50 dark:bg-slate-900';
-const STICKY_ROW_BG = 'bg-white dark:bg-slate-900';
-const STICKY_ROW_SELECTED_BG = 'bg-primary-50 dark:bg-slate-800';
+const STICKY_HEADER_BG = 'bg-background dark:bg-card';
+const STICKY_ROW_BG = 'bg-white dark:bg-card';
+const STICKY_ROW_SELECTED_BG = 'bg-primary-50 dark:bg-card';
 
 // ============================================
 // KanbanListRow
@@ -151,8 +151,8 @@ const KanbanListRow = React.memo(function KanbanListRow({
         className={`transition-colors group cursor-pointer ${
           isSelected
             ? 'bg-primary-50/50 dark:bg-primary-900/10'
-            : 'bg-white dark:bg-slate-900'
-        } hover:bg-slate-50 dark:hover:bg-white/5`}
+            : 'bg-white dark:bg-card'
+        } hover:bg-background dark:hover:bg-white/5`}
       >
         {/* Col 1: Checkbox + Activity + Negocio (sticky) */}
         <td
@@ -166,7 +166,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
               onClick={(e) => e.stopPropagation()}
               onChange={() => onToggleCheck(deal.id)}
               aria-label={`Selecionar ${deal.title}`}
-              className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10 flex-shrink-0"
+              className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5 flex-shrink-0"
             />
             <ActivityStatusIcon
               status={getActivityStatus(deal)}
@@ -182,7 +182,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
               <Button
                 type="button"
                 onClick={() => onSelect(deal.id)}
-                className="font-bold text-slate-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left truncate block text-sm"
+                className="font-bold text-foreground hover:text-primary-600 dark:hover:text-primary-400 transition-colors text-left truncate block text-sm"
               >
                 {deal.contactName || 'Sem contato'}
               </Button>
@@ -193,10 +193,10 @@ const KanbanListRow = React.memo(function KanbanListRow({
         {/* Col 2: Contato (email + phone) */}
         <td className="px-6 py-3">
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-xs">
+            <div className="flex items-center gap-2 text-secondary-foreground dark:text-muted-foreground text-xs">
               <Mail size={12} /> {deal.contactEmail || '---'}
             </div>
-            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-xs">
+            <div className="flex items-center gap-2 text-secondary-foreground dark:text-muted-foreground text-xs">
               <Phone size={12} /> {deal.contactPhone || '---'}
             </div>
           </div>
@@ -216,7 +216,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
                   ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300'
                   : deal.isLost
                     ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
-                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'bg-muted text-secondary-foreground dark:bg-card dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent'
               }`}
               aria-label="Mover estagio"
               title="Mover estagio"
@@ -230,7 +230,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
                   ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300'
                   : deal.isLost
                     ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
-                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                    : 'bg-muted text-secondary-foreground dark:bg-card dark:text-muted-foreground'
               }`}
             >
               {stageLabel}
@@ -239,7 +239,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
         </td>
 
         {/* Col 4: Valor */}
-        <td className="px-6 py-3 font-mono text-slate-700 dark:text-slate-200 text-sm">
+        <td className="px-6 py-3 font-mono text-secondary-foreground dark:text-muted-foreground text-sm">
           {formatCurrency(deal.value)}
         </td>
 
@@ -250,14 +250,14 @@ const KanbanListRow = React.memo(function KanbanListRow({
               {corretorAvatar ? (
                 <Image src={corretorAvatar} alt="" width={20} height={20} className="w-5 h-5 rounded-full" unoptimized />
               ) : (
-                <span className="w-5 h-5 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                <span className="w-5 h-5 rounded-full bg-gradient-to-br from-muted to-accent text-secondary-foreground dark:text-muted-foreground flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                   {corretorName.charAt(0).toUpperCase()}
                 </span>
               )}
-              <span className="text-xs text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{corretorName}</span>
+              <span className="text-xs text-secondary-foreground dark:text-muted-foreground truncate max-w-[120px]">{corretorName}</span>
             </div>
           ) : (
-            <span className="text-xs text-slate-400">Não atribuído</span>
+            <span className="text-xs text-muted-foreground">Não atribuído</span>
           )}
         </td>
 
@@ -268,33 +268,33 @@ const KanbanListRow = React.memo(function KanbanListRow({
               className={`flex items-center gap-2 text-xs ${
                 isOverdue
                   ? 'text-red-600 dark:text-red-400 font-semibold'
-                  : 'text-slate-600 dark:text-slate-400'
+                  : 'text-secondary-foreground dark:text-muted-foreground'
               }`}
               title={deal.nextActivity.date ? PT_BR_DATE_TIME_FORMATTER.format(new Date(deal.nextActivity.date)) : undefined}
             >
-              <Calendar size={14} className={isOverdue ? 'text-red-500' : 'text-slate-400'} />
+              <Calendar size={14} className={isOverdue ?'text-red-500' : 'text-muted-foreground'} />
               <span>{formatRelativeDate(deal.nextActivity.date, now)}</span>
             </div>
           ) : (
-            <span className="text-xs text-slate-400">---</span>
+            <span className="text-xs text-muted-foreground">---</span>
           )}
         </td>
 
         {/* Col 7: Criado */}
         <td className="px-6 py-3">
           <div
-            className="flex items-center gap-2 text-slate-600 dark:text-slate-400 text-xs"
+            className="flex items-center gap-2 text-secondary-foreground dark:text-muted-foreground text-xs"
             title={deal.createdAt ? PT_BR_DATE_TIME_FORMATTER.format(new Date(deal.createdAt)) : undefined}
           >
-            <Calendar size={14} className="text-slate-400" />
+            <Calendar size={14} className="text-muted-foreground" />
             <span>{formatRelativeDate(deal.createdAt, now)}</span>
           </div>
         </td>
 
         {/* Custom Fields */}
         {customFieldDefinitions.map((field) => (
-          <td key={field.id} className="px-6 py-3 text-right text-slate-600 dark:text-slate-300 text-sm">
-            {deal.contactCustomFields?.[field.key] || '-'}
+          <td key={field.id} className="px-6 py-3 text-right text-secondary-foreground dark:text-muted-foreground text-sm">
+            {String(deal.contactCustomFields?.[field.key] ?? '') || '-'}
           </td>
         ))}
 
@@ -306,7 +306,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
                 e.stopPropagation();
                 onSelect(deal.id);
               }}
-              className="p-1.5 text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
+              className="p-1.5 text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
               aria-label={`Editar ${deal.title}`}
             >
               <Pencil size={16} aria-hidden="true" />
@@ -317,7 +317,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
                   e.stopPropagation();
                   setConfirmDeleteOpen(true);
                 }}
-                className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-slate-400 hover:text-red-500 transition-colors"
+                className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-muted-foreground hover:text-red-500 transition-colors"
                 aria-label={`Excluir ${deal.title}`}
               >
                 <Trash2 size={16} aria-hidden="true" />
@@ -451,15 +451,15 @@ export const KanbanList: React.FC<KanbanListProps> = ({
   // Empty state
   if (filteredDeals.length === 0) {
     return (
-      <div className="glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+      <div className="glass rounded-xl border border-border shadow-sm overflow-hidden">
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-          <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
-            <Briefcase size={24} className="text-slate-400" />
+          <div className="w-14 h-14 rounded-full bg-muted dark:bg-white/5 flex items-center justify-center mb-4">
+            <Briefcase size={24} className="text-muted-foreground" />
           </div>
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <h3 className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">
             Nenhum negocio encontrado
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs">
+          <p className="text-xs text-muted-foreground dark:text-muted-foreground max-w-xs">
             Tente ajustar os filtros ou crie um novo negocio.
           </p>
         </div>
@@ -468,17 +468,17 @@ export const KanbanList: React.FC<KanbanListProps> = ({
   }
 
   return (
-    <div className="h-full glass rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden flex flex-col">
+    <div className="h-full glass rounded-xl border border-border shadow-sm overflow-hidden flex flex-col">
       {/* Result count */}
-      <div className="px-6 py-2 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+      <div className="px-6 py-2 border-b border-border bg-background/50 dark:bg-white/[0.02]">
+        <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">
           {totalCount} negocio{totalCount !== 1 ? 's' : ''} encontrado{totalCount !== 1 ? 's' : ''}
         </span>
       </div>
 
       <div className="flex-1 overflow-auto">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50/80 dark:bg-white/5 border-b border-slate-200 dark:border-white/5 sticky top-0 z-10 backdrop-blur-sm">
+          <thead className="bg-background/80 dark:bg-white/5 border-b border-border sticky top-0 z-10 backdrop-blur-sm">
             <tr>
               {/* Sticky header: Checkbox + Negocio */}
               <th
@@ -493,11 +493,11 @@ export const KanbanList: React.FC<KanbanListProps> = ({
                     ref={(el) => { if (el) el.indeterminate = someSelected; }}
                     onChange={() => toggleDealSelectAll(allIds)}
                     aria-label={allSelected ? 'Desmarcar todos os negocios' : 'Selecionar todos os negocios'}
-                    className="rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:bg-white/5 dark:border-white/10"
+                    className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5"
                   />
                   <Button
                     onClick={() => onSort('title')}
-                    className="group inline-flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200 font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    className="group inline-flex items-center gap-1.5 font-bold text-secondary-foreground dark:text-muted-foreground font-display text-xs uppercase tracking-wider hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                   >
                     Contato
                     <span className={`transition-opacity ${sortBy === 'title' ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}>
@@ -519,7 +519,7 @@ export const KanbanList: React.FC<KanbanListProps> = ({
               {customFieldDefinitions.map(field => (
                 <th
                   key={field.id}
-                  className="px-6 py-4 font-bold text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right"
+                  className="px-6 py-4 font-bold text-xs text-muted-foreground dark:text-muted-foreground uppercase tracking-wider text-right"
                 >
                   {field.label}
                 </th>
@@ -527,7 +527,7 @@ export const KanbanList: React.FC<KanbanListProps> = ({
               <th scope="col" className={HEADER_CLASS}><span className="sr-only">Acoes</span></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+          <tbody className="divide-y divide-border dark:divide-white/5">
             {filteredDeals.map((deal) => {
               const member = deal.ownerId ? membersById.get(deal.ownerId) : undefined;
               return (

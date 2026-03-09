@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink } from 'lucide-react';
 import { normalizePhoneE164 } from '@/lib/phone';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
 import { NoteTemplates } from '@/features/prospecting/components/NoteTemplates';
 
 interface CallModalProps {
@@ -151,30 +152,30 @@ export const CallModal: React.FC<CallModalProps> = ({
         { id: 'connected', label: 'Atendeu', icon: Check, color: 'bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30' },
         { id: 'no_answer', label: 'Não atendeu', icon: XCircle, color: 'bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30' },
         { id: 'voicemail', label: 'Caixa postal', icon: Voicemail, color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/30' },
-        { id: 'busy', label: 'Ocupado', icon: PhoneOff, color: 'bg-slate-500/20 text-slate-400 border-slate-500/30 hover:bg-slate-500/30' },
+        { id: 'busy', label: 'Ocupado', icon: PhoneOff, color: 'bg-accent/20 text-muted-foreground border-border/30 hover:bg-accent/30' },
     ] as const;
 
     return (
-        <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center">
+        <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleDiscard} />
+            <div className={`absolute inset-0 ${MODAL_BACKDROP_CLASS}`} onClick={handleDiscard} />
 
             {/* Container: side-by-side on desktop when sideContent provided */}
             <div className={`relative flex ${sideContent ? 'gap-4' : ''} mx-4 max-h-[90vh]`}>
 
             {/* Modal */}
-            <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="relative bg-white dark:bg-card border border-border dark:border-border/50 rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className="bg-linear-to-r from-yellow-500/10 to-orange-500/10 p-4 border-b border-slate-200 dark:border-slate-700/50 shrink-0">
+                <div className="bg-linear-to-r from-yellow-500/10 to-orange-500/10 p-4 border-b border-border dark:border-border/50 shrink-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-yellow-500/20 rounded-xl">
                                 <Phone size={20} className="text-yellow-400" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-slate-900 dark:text-white">{contactName}</h3>
+                                <h3 className="font-semibold text-foreground">{contactName}</h3>
                                 <div className="mt-0.5 flex items-center gap-2">
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{phone || ''}</p>
+                                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">{phone || ''}</p>
                                     {phone && (
                                         <>
                                             <Button
@@ -182,7 +183,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                                 size="unstyled"
                                                 type="button"
                                                 onClick={handleCopyPhone}
-                                                className="p-1 rounded-md hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                                className="p-1 rounded-md hover:bg-white/10 text-muted-foreground hover:text-white transition-colors"
                                                 title={copied ? 'Copiado' : 'Copiar número'}
                                                 aria-label={copied ? 'Copiado' : 'Copiar número'}
                                             >
@@ -193,7 +194,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                                 size="unstyled"
                                                 type="button"
                                                 onClick={handleOpenPhoneApp}
-                                                className="p-1 rounded-md hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                                                className="p-1 rounded-md hover:bg-white/10 text-muted-foreground hover:text-white transition-colors"
                                                 title="Abrir no discador"
                                                 aria-label="Abrir no discador"
                                             >
@@ -213,7 +214,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                     type="button"
                                     aria-label="Ver script"
                                     onClick={() => setShowMobileScript(prev => !prev)}
-                                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors lg:hidden flex items-center gap-1.5 ${showMobileScript ? 'bg-purple-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors lg:hidden flex items-center gap-1.5 ${showMobileScript ? 'bg-purple-500 text-white' : 'bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent'}`}
                                 >
                                     <FileText size={14} />
                                     Script
@@ -225,7 +226,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                 type="button"
                                 aria-label="Fechar modal"
                                 onClick={handleDiscard}
-                                className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                                className="p-1.5 hover:bg-muted dark:hover:bg-white/10 rounded-lg transition-colors text-muted-foreground hover:text-secondary-foreground dark:hover:text-white"
                             >
                                 <X size={18} />
                             </Button>
@@ -234,15 +235,15 @@ export const CallModal: React.FC<CallModalProps> = ({
                 </div>
 
                 {/* Timer */}
-                <div className="flex items-center justify-center py-6 bg-slate-50 dark:bg-slate-800/50 shrink-0">
-                    <div className="flex flex-col items-center gap-2 px-6 py-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700/50">
+                <div className="flex items-center justify-center py-6 bg-background dark:bg-card/50 shrink-0">
+                    <div className="flex flex-col items-center gap-2 px-6 py-3 bg-white dark:bg-card rounded-xl border border-border dark:border-border/50">
                         <div className="flex items-center gap-3">
                             <Clock size={18} className="text-yellow-400" />
-                            <span className="text-2xl font-mono font-bold text-slate-900 dark:text-white tracking-wider">
+                            <span className="text-2xl font-mono font-bold text-foreground tracking-wider">
                                 {formatTime(dialerOpenedAt ? elapsedTime : 0)}
                             </span>
                         </div>
-                        <div className="text-[11px] text-slate-400 text-center">
+                        <div className="text-[11px] text-muted-foreground text-center">
                             {!phone ? (
                                 'Sem número de telefone para discar.'
                             ) : dialerOpenedAt ? (
@@ -258,7 +259,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                 <div className="p-4 space-y-4 overflow-y-auto">
                     {/* Outcome Selection */}
                     <div>
-                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
+                        <label className="text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider mb-2 block">
                             Resultado da ligação
                         </label>
                         <div className="grid grid-cols-2 gap-2">
@@ -270,7 +271,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                     onClick={() => setOutcome(id)}
                                     className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-all text-sm font-medium ${outcome === id
                                             ? color + ' ring-2 ring-current'
-                                            : 'bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/50 hover:border-slate-400 dark:hover:border-slate-600'
+                                            : 'bg-muted dark:bg-card/50 text-muted-foreground dark:text-muted-foreground border-border dark:border-border/50 hover:border-border dark:hover:border-border'
                                         }`}
                                 >
                                     <Icon size={16} />
@@ -282,21 +283,21 @@ export const CallModal: React.FC<CallModalProps> = ({
 
                     {/* Title */}
                     <div>
-                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">
+                        <label className="text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider mb-2 block">
                             Título da atividade
                         </label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm"
+                            className="w-full px-3 py-2 bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-lg text-foreground placeholder-muted-foreground dark:placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm"
                             placeholder="Ex: Ligação de follow-up"
                         />
                     </div>
 
                     {/* Notes */}
                     <div>
-                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <label className="text-xs font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
                             <FileText size={12} />
                             Notas da ligação
                         </label>
@@ -304,7 +305,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="O que foi discutido? Próximos passos?"
-                            className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-24 max-h-[30vh] break-words [overflow-wrap:anywhere]"
+                            className="w-full px-3 py-2 bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-lg text-foreground placeholder-muted-foreground dark:placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 text-sm resize-y min-h-24 max-h-[30vh] break-words [overflow-wrap:anywhere]"
                             rows={3}
                         />
                         {isProspecting && outcome && (
@@ -322,18 +323,18 @@ export const CallModal: React.FC<CallModalProps> = ({
 
                 {/* Mobile script overlay (inside modal) */}
                 {sideContent && showMobileScript && (
-                    <div className="lg:hidden overflow-y-auto border-t border-slate-200 dark:border-slate-700/50">
+                    <div className="lg:hidden overflow-y-auto border-t border-border dark:border-border/50">
                         {sideContent}
                     </div>
                 )}
 
                 {/* Footer */}
-                <div className="p-4 border-t border-slate-200 dark:border-slate-700/50 grid grid-cols-2 gap-2 shrink-0">
+                <div className="p-4 border-t border-border dark:border-border/50 grid grid-cols-2 gap-2 shrink-0">
                     <Button
                         variant="unstyled"
                         size="unstyled"
                         onClick={handleDiscard}
-                        className="py-2.5 px-3 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-center"
+                        className="py-2.5 px-3 rounded-lg text-sm font-medium text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-card transition-colors text-center"
                     >
                         Descartar
                     </Button>
@@ -343,7 +344,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                         type="button"
                         onClick={handleCopyPhone}
                         disabled={!phone}
-                        className="py-2.5 px-3 rounded-lg text-sm font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="py-2.5 px-3 rounded-lg text-sm font-semibold bg-accent dark:bg-card hover:bg-accent dark:hover:bg-accent text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         title={copied ? 'Copiado' : 'Copiar número'}
                     >
                         <Copy size={14} />
@@ -366,7 +367,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                         size="unstyled"
                         onClick={handleSave}
                         disabled={!outcome}
-                        className="py-2.5 px-3 rounded-lg text-sm font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="py-2.5 px-3 rounded-lg text-sm font-semibold bg-accent dark:bg-card hover:bg-accent dark:hover:bg-accent text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         <Check size={14} />
                         Salvar Log
@@ -376,7 +377,7 @@ export const CallModal: React.FC<CallModalProps> = ({
 
             {/* Side content panel (script guide) — desktop only */}
             {sideContent && (
-                <div className="hidden lg:flex relative w-80 xl:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]">
+                <div className="hidden lg:flex relative w-80 xl:w-96 bg-white dark:bg-card border border-border dark:border-border/50 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]">
                     {sideContent}
                 </div>
             )}

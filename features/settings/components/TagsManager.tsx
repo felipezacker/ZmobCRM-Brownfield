@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tag, Plus, X } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { SettingsSection } from './SettingsSection';
 import { EmptyState } from '@/components/ui/EmptyState';
+import ConfirmModal from '@/components/ConfirmModal';
 
 interface TagsManagerProps {
   availableTags: string[];
@@ -19,6 +20,8 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
   onAddTag,
   onRemoveTag,
 }) => {
+  const [pendingRemoveTag, setPendingRemoveTag] = useState<string | null>(null);
+
   return (
     <SettingsSection
       title="Tags"
@@ -31,7 +34,7 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
           onChange={(e) => setNewTagName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && onAddTag()}
           placeholder="Nova tag..."
-          className="flex-1 max-w-xs px-3 py-2 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="flex-1 max-w-xs px-3 py-2 bg-background dark:bg-black/20 border border-border rounded-xl text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
         <Button
           type="button"
@@ -51,13 +54,13 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
           {availableTags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 text-sm rounded-full"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground text-sm rounded-full"
             >
               {tag}
               <Button
                 type="button"
-                onClick={() => onRemoveTag(tag)}
-                className="text-slate-400 hover:text-red-500 transition-colors"
+                onClick={() => setPendingRemoveTag(tag)}
+                className="text-muted-foreground hover:text-red-500 transition-colors"
                 aria-label={`Remover tag ${tag}`}
               >
                 <X className="h-3.5 w-3.5" />
@@ -66,6 +69,19 @@ export const TagsManager: React.FC<TagsManagerProps> = ({
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!pendingRemoveTag}
+        onClose={() => setPendingRemoveTag(null)}
+        onConfirm={() => {
+          if (pendingRemoveTag) onRemoveTag(pendingRemoveTag);
+          setPendingRemoveTag(null);
+        }}
+        title="Remover tag"
+        message={`Remover a tag "${pendingRemoveTag || ''}"? Contatos que usam esta tag serão atualizados.`}
+        confirmText="Remover"
+        variant="danger"
+      />
     </SettingsSection>
   );
 };

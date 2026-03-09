@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react'
 import { Copy, Check, ChevronLeft, ChevronRight, AlertTriangle, FileText } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { useToast } from '@/context/ToastContext'
 import { parseScriptSections, substituteVariables, cleanUnresolvedVariables, buildContactVariables } from '@/features/prospecting/utils/scriptParser'
 import type { ScriptSection } from '@/features/prospecting/utils/scriptParser'
@@ -88,8 +88,8 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
   if (sections.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-        <FileText size={32} className="text-slate-400 mb-3" />
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <FileText size={32} className="text-muted-foreground mb-3" />
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">
           Script vazio
         </p>
       </div>
@@ -99,12 +99,12 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
   return (
     <div className="flex flex-col h-full">
       {/* Header with section tabs */}
-      <div className="shrink-0 border-b border-slate-200 dark:border-slate-700/50 px-4 py-3">
+      <div className="shrink-0 border-b border-border dark:border-border/50 px-4 py-3">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+          <h3 className="text-sm font-semibold text-foreground truncate">
             {script.title}
           </h3>
-          <span className="text-[10px] text-slate-400 shrink-0">
+          <span className="text-[10px] text-muted-foreground shrink-0">
             {currentSectionIndex + 1}/{sections.length}
           </span>
         </div>
@@ -121,7 +121,7 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
                 className={`shrink-0 text-[11px] px-2.5 py-1 rounded-full transition-colors ${
                   idx === currentSectionIndex
                     ? 'bg-primary-500 text-white font-medium'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent'
                 }`}
               >
                 {section.title}
@@ -136,14 +136,14 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
         {currentSection && (
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-2">
-              <h4 className="text-sm font-medium text-slate-900 dark:text-white">
+              <h4 className="text-sm font-medium text-foreground">
                 {currentSection.title}
               </h4>
               <Button
                 variant="unstyled"
                 size="unstyled"
                 onClick={() => handleCopySection(currentSection)}
-                className="shrink-0 p-1.5 rounded-md text-slate-400 hover:text-primary-500 hover:bg-primary-500/10 transition-colors"
+                className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-primary-500 hover:bg-primary-500/10 transition-colors"
                 title="Copiar trecho"
               >
                 {copiedSection === currentSection.id ? (
@@ -154,17 +154,17 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
               </Button>
             </div>
 
-            <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
+            <div className="text-sm text-secondary-foreground dark:text-muted-foreground whitespace-pre-wrap leading-relaxed bg-background dark:bg-card/50 rounded-lg p-3">
               {currentSection.content}
             </div>
           </div>
         )}
 
         {/* Objections section */}
-        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700/50">
+        <div className="mt-4 pt-4 border-t border-border dark:border-border/50">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle size={14} className="text-orange-400" />
-            <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <h4 className="text-xs font-semibold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
               Objeções Ouvidas
             </h4>
           </div>
@@ -182,8 +182,8 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
                     isMarked
                       ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
                       : isPrioritized
-                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                        ? 'bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border dark:hover:border-border'
+                        : 'bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border dark:hover:border-border'
                   }`}
                 >
                   {isMarked && <Check size={10} className="inline mr-1" />}
@@ -197,13 +197,13 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
 
       {/* Navigation footer */}
       {sections.length > 1 && (
-        <div className="shrink-0 flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-700/50">
+        <div className="shrink-0 flex items-center justify-between px-4 py-3 border-t border-border dark:border-border/50">
           <Button
             variant="unstyled"
             size="unstyled"
             onClick={goToPrev}
             disabled={currentSectionIndex === 0}
-            className="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1 text-xs font-medium text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft size={14} />
             Anterior
@@ -213,7 +213,7 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
             size="unstyled"
             onClick={goToNext}
             disabled={currentSectionIndex === sections.length - 1}
-            className="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1 text-xs font-medium text-muted-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             Próximo
             <ChevronRight size={14} />

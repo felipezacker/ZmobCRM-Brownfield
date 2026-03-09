@@ -9,19 +9,19 @@
  */
 import React, { useId } from 'react';
 import { UseFormRegisterReturn, FieldError } from 'react-hook-form';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 // ============ BASE STYLES ============
 
 const baseInputStyles = cn(
-  'w-full bg-muted dark:bg-black/20',
-  'border border-border dark:border-border',
-  'rounded-lg px-3 py-2 text-sm',
-  'text-foreground dark:text-white',
-  'outline-none focus:ring-2 focus:ring-primary-500',
-  'transition-all duration-200',
-  'placeholder:text-muted-foreground'
+ 'w-full bg-muted dark:bg-black/20',
+ 'border border-border dark:border-border',
+ 'rounded-lg px-3 py-2 text-sm',
+ 'text-foreground ',
+ 'outline-none focus:ring-2 focus:ring-primary-500',
+ 'transition-all duration-200',
+ 'placeholder:text-muted-foreground'
 );
 
 const errorInputStyles =
@@ -111,7 +111,7 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <div className={className}>
-      <label htmlFor={fieldId} className={cn(labelStyles, error && 'text-destructive')}>
+      <label htmlFor={fieldId} className={cn(labelStyles, error &&'text-destructive')}>
         {label}
         {required && <span className="text-destructive ml-0.5">*</span>}
       </label>
@@ -119,7 +119,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       {/* Clone children to add ARIA attributes */}
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement<any>, {
+          return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
             id: fieldId,
             'aria-invalid': error ? 'true' : undefined,
             'aria-describedby': cn(error && errorId, hint && !error && hintId) || undefined,
@@ -227,11 +227,11 @@ export const InputField: React.FC<InputFieldProps> = ({
     >
       <input
         className={cn(
-          baseInputStyles,
-          validationState === 'invalid' && errorInputStyles,
-          validationState === 'valid' && showSuccessState && successInputStyles,
-          inputClassName
-        )}
+ baseInputStyles,
+ validationState ==='invalid' && errorInputStyles,
+ validationState === 'valid' && showSuccessState && successInputStyles,
+ inputClassName
+ )}
         {...registration}
         {...props}
       />
@@ -296,11 +296,10 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
   >
     <textarea
       className={cn(
-        baseInputStyles,
-        'min-h-[80px] resize-y',
-        error && errorInputStyles,
-        textareaClassName
-      )}
+ baseInputStyles,'min-h-[80px] resize-y',
+ error && errorInputStyles,
+ textareaClassName
+ )}
       {...registration}
       {...props}
     />
@@ -445,12 +444,11 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
         <input
           type="checkbox"
           id={id}
-          className={cn(
-            'w-4 h-4 rounded border-border',
-            'text-primary focus:ring-primary',
-            'dark:bg-background',
-            error && 'border-destructive'
-          )}
+          className={cn('w-4 h-4 rounded border-border',
+ 'text-primary focus:ring-primary',
+ 'dark:bg-background',
+ error && 'border-destructive'
+ )}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? errorId : undefined}
           {...registration}
@@ -477,7 +475,7 @@ interface SubmitButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
   variant?: 'primary' | 'secondary' | 'danger';
 }
 
-const buttonVariants = {
+const submitButtonVariants = {
   primary: 'bg-primary-600 hover:bg-primary-500 shadow-primary-600/20',
   secondary: 'bg-secondary hover:bg-secondary/90 shadow-secondary/20',
   danger: 'bg-destructive hover:bg-destructive/90 shadow-destructive/20',
@@ -518,14 +516,13 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
     type="submit"
     disabled={disabled || isLoading}
     aria-busy={isLoading}
-    className={cn(
-      'w-full text-white font-bold py-2.5 rounded-lg',
-      'shadow-lg transition-all duration-200',
-      'disabled:opacity-50 disabled:cursor-not-allowed',
-      'focus:outline-none focus:ring-2 focus:ring-offset-2',
-      buttonVariants[variant],
-      className
-    )}
+    className={cn('w-full text-white font-bold py-2.5 rounded-lg',
+ 'shadow-lg transition-all duration-200',
+ 'disabled:opacity-50 disabled:cursor-not-allowed',
+ 'focus:outline-none focus:ring-2 focus:ring-offset-2',
+ submitButtonVariants[variant],
+ className
+ )}
     {...props}
   >
     {isLoading ? (
@@ -576,11 +573,10 @@ export const FormErrorSummary: React.FC<FormErrorSummaryProps> = ({ errors, clas
 
   return (
     <div
-      className={cn(
-        'bg-destructive/5 dark:bg-destructive/20 border border-destructive/30 dark:border-destructive/50',
-        'rounded-lg p-3 mb-4',
-        className
-      )}
+      className={cn('bg-destructive/5 dark:bg-destructive/20 border border-destructive/30 dark:border-destructive/50',
+ 'rounded-lg p-3 mb-4',
+ className
+ )}
       role="alert"
       aria-labelledby="form-errors-heading"
     >

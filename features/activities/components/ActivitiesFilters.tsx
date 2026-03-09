@@ -7,7 +7,7 @@ import type { DatePreset, SortOrder } from '@/features/activities/types';
 export type { DatePreset, SortOrder };
 
 const selectClass =
-  'bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white';
+  'bg-white dark:bg-dark-card border border-border  rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary-500 text-foreground ';
 
 interface ActivitiesFiltersProps {
   searchTerm: string;
@@ -43,18 +43,18 @@ export const ActivitiesFilters: React.FC<ActivitiesFiltersProps> = ({
   return (
     <div className="flex flex-wrap gap-4 mb-6">
       <div className="flex-1 min-w-[200px] relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
         <input
           type="text"
           placeholder="Buscar atividades..."
-          className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
+          className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-dark-card border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-foreground"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
         />
       </div>
       {showTypeFilter && (
         <div className="flex items-center gap-2">
-          <Filter size={20} className="text-slate-400" />
+          <Filter size={20} className="text-muted-foreground" />
           <select
             aria-label="Tipo de atividade"
             className={selectClass}
@@ -66,6 +66,7 @@ export const ActivitiesFilters: React.FC<ActivitiesFiltersProps> = ({
             <option value="MEETING">Reuniões</option>
             <option value="EMAIL">Emails</option>
             <option value="TASK">Tarefas</option>
+            <option value="WHATSAPP">WhatsApp</option>
           </select>
         </div>
       )}
@@ -83,7 +84,7 @@ export const ActivitiesFilters: React.FC<ActivitiesFiltersProps> = ({
         </select>
       )}
       <div className="flex items-center gap-2">
-        <Calendar size={20} className="text-slate-400" />
+        <Calendar size={20} className="text-muted-foreground" />
         <select
           aria-label="Período"
           className={selectClass}

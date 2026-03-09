@@ -86,7 +86,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
  * ```tsx
  * function Header() {
  *   const { darkMode } = useTheme();
- *   return <header className={darkMode ? 'bg-slate-900' : 'bg-white'}>...</header>;
+ *   return <header className={darkMode ?'bg-card' : 'bg-white'}>...</header>;
  * }
  * ```
  */

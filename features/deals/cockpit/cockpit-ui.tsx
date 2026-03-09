@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export function Chip({
   children,
@@ -15,7 +15,7 @@ export function Chip({
       ? 'inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-200 ring-1 ring-emerald-500/20'
       : tone === 'danger'
         ? 'inline-flex items-center rounded-full bg-rose-500/15 px-2.5 py-1 text-[11px] font-semibold text-rose-700 dark:text-rose-200 ring-1 ring-rose-500/20'
-        : 'inline-flex items-center rounded-full bg-slate-200/60 dark:bg-white/8 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 ring-1 ring-slate-300 dark:ring-white/10';
+        : 'inline-flex items-center rounded-full bg-accent/60 dark:bg-white/8 px-2.5 py-1 text-[11px] font-semibold text-secondary-foreground dark:text-muted-foreground ring-1 ring-ring dark:ring-white/10';
   return <span className={cls}>{children}</span>;
 }
 
@@ -35,11 +35,11 @@ export function Panel({
   bodyClassName?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/3 ${className}`}>
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 px-4 py-3">
+    <div className={`rounded-2xl border border-border  bg-white dark:bg-white/3 ${className}`}>
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
           {icon}
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{title}</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-muted-foreground">{title}</div>
         </div>
         {right}
       </div>
@@ -62,10 +62,9 @@ export function TabButton({
   return (
     <Button
       type="button"
-      className={
-        active
-          ? 'border-b-2 border-cyan-500 dark:border-cyan-400 px-3 py-3 text-xs font-semibold text-cyan-600 dark:text-cyan-200'
-          : 'border-b-2 border-transparent px-3 py-3 text-xs font-semibold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+      className={active
+ ?'border-b-2 border-cyan-500 dark:border-cyan-400 px-3 py-3 text-xs font-semibold text-cyan-600 dark:text-cyan-200'
+          : 'border-b-2 border-transparent px-3 py-3 text-xs font-semibold text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
       }
       onClick={onClick}
     >
@@ -74,7 +73,7 @@ export function TabButton({
         <span className={`ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold ${
           active
             ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-200'
-            : 'bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400'
+            : 'bg-accent dark:bg-white/10 text-muted-foreground dark:text-muted-foreground'
         }`}>
           {count}
         </span>

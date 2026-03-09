@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Bell, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 import { useSystemNotifications, SystemNotification } from '@/hooks/useSystemNotifications';
 import Link from 'next/link';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 const getTimeAgo = (date: Date) => {
     const now = new Date();
@@ -74,7 +74,7 @@ export const NotificationPopover = () => {
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
                 aria-label={`Notificações: ${count} novas`}
-                className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full relative transition-colors focus-visible-ring"
+                className="p-2 text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/10 rounded-full relative transition-colors focus-visible-ring"
             >
                 <Bell size={20} aria-hidden="true" />
                 {count > 0 && (
@@ -88,17 +88,17 @@ export const NotificationPopover = () => {
 
             {isOpen && (
                 <div
-                    className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+                    className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-card rounded-xl shadow-xl border border-border dark:border-border overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
                     role="dialog"
                     aria-label="Central de Notificações"
                 >
-                    <div className="p-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
-                        <h3 className="font-semibold text-slate-900 dark:text-white">Notificações</h3>
+                    <div className="p-4 border-b border-border flex items-center justify-between bg-background/50 dark:bg-white/5">
+                        <h3 className="font-semibold text-foreground">Notificações</h3>
                         <div className="flex items-center gap-2">
                             {count > 0 && (
                                 <Button
                                     onClick={() => markAllAsRead()}
-                                    className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+                                    className="text-xs text-muted-foreground hover:text-primary-600 transition-colors"
                                 >
                                     Marcar todas como lidas
                                 </Button>
@@ -113,38 +113,38 @@ export const NotificationPopover = () => {
 
                     <div className="max-h-[70vh] overflow-y-auto">
                         {notifications.length === 0 ? (
-                            <div className="p-8 text-center flex flex-col items-center text-slate-500 dark:text-slate-400">
-                                <div className="w-12 h-12 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-3">
+                            <div className="p-8 text-center flex flex-col items-center text-muted-foreground dark:text-muted-foreground">
+                                <div className="w-12 h-12 bg-muted dark:bg-white/5 rounded-full flex items-center justify-center mb-3">
                                     <CheckCircle2 className="w-6 h-6 text-green-500" />
                                 </div>
-                                <p className="font-medium text-slate-900 dark:text-white">Tudo limpo!</p>
+                                <p className="font-medium text-foreground">Tudo limpo!</p>
                                 <p className="text-sm">Você não tem notificações.</p>
                             </div>
                         ) : (
-                            <ul className="divide-y divide-slate-100 dark:divide-white/5">
+                            <ul className="divide-y divide-border dark:divide-white/5">
                                 {notifications.map((notification) => (
-                                    <li key={notification.id} className={notification.readAt ? 'opacity-60 bg-slate-50/30 dark:bg-white/5' : ''}>
+                                    <li key={notification.id} className={notification.readAt ?'opacity-60 bg-background/30 dark:bg-white/5' : ''}>
                                         <Link
                                             href={notification.actionLink || '#'}
                                             onClick={() => handleNotificationClick(notification.id)}
-                                            className="flex gap-4 p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group"
+                                            className="flex gap-4 p-4 hover:bg-background dark:hover:bg-white/5 transition-colors group"
                                         >
                                             <div className={`mt-1 flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${getBgColor(notification.type)}`}>
                                                 {getIcon(notification.type)}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start">
-                                                    <p className={`text-sm font-medium group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors ${notification.readAt ? 'text-slate-600 dark:text-slate-300' : 'text-slate-900 dark:text-white'}`}>
+                                                    <p className={`text-sm font-medium group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors ${notification.readAt ? 'text-secondary-foreground dark:text-muted-foreground' : 'text-foreground '}`}>
                                                         {notification.title}
                                                     </p>
                                                     {!notification.readAt && (
                                                         <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+                                                <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-0.5 line-clamp-2">
                                                     {notification.message}
                                                 </p>
-                                                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1">
+                                                <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1.5 flex items-center gap-1">
                                                     <Clock size={12} />
                                                     {getTimeAgo(notification.timestamp)}
                                                 </p>
@@ -156,11 +156,11 @@ export const NotificationPopover = () => {
                         )}
                     </div>
 
-                    <div className="p-3 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 text-center">
+                    <div className="p-3 border-t border-border bg-background/50 dark:bg-white/5 text-center">
                         <Link
                             href="/notifications"
                             onClick={() => setIsOpen(false)}
-                            className="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                            className="text-xs font-medium text-secondary-foreground dark:text-muted-foreground hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                         >
                             Ver Todas as Notificações
                         </Link>

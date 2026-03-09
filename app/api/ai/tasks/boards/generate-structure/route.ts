@@ -24,7 +24,7 @@ function json(body: unknown, status = 200): Response {
 export async function POST(req: Request) {
   try {
     const { model, supabase, organizationId } = await requireAITaskContext(req);
-    const enabled = await isAIFeatureEnabled(supabase as any, organizationId, 'ai_board_generate_structure');
+    const enabled = await isAIFeatureEnabled(supabase, organizationId, 'ai_board_generate_structure');
     if (!enabled) {
       return json({ error: { code: 'AI_FEATURE_DISABLED', message: 'Função de IA desativada: Gerar estrutura de board.' } }, 403);
     }

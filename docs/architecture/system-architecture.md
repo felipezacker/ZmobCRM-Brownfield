@@ -1,39 +1,42 @@
 # Arquitetura do Sistema - ZmobCRM (Brownfield Discovery Phase 1)
 
-**Data:** 2026-03-03
+**Data:** 2026-03-06
 **Agente:** @architect (Aria)
-**Fase:** Brownfield Discovery - Phase 1 (Revisao Completa)
+**Fase:** Brownfield Discovery - Phase 1 (Revisao Completa v2)
 **Status:** Completo
-**Versao do Projeto:** 1.4.3
+**Versao do Projeto:** 1.5.1
+**Branch:** develop
 
 ---
 
-## 1. Visao Geral
+## 1. Sumario Executivo
 
-O ZmobCRM e um CRM de vendas SaaS com foco no mercado imobiliario brasileiro. Construido como uma Single-Page Application sobre Next.js 15 (App Router) com Supabase como backend completo (auth, PostgreSQL, RLS, Realtime). Possui agente conversacional de IA com multi-provider, API publica RESTful versionada, e suporte PWA para uso mobile. O sistema opera como single-tenant por instancia (cada organizacao tem sua propria instalacao).
+O ZmobCRM e um CRM de vendas SaaS voltado ao mercado imobiliario brasileiro. Construido como uma aplicacao Next.js 15 (App Router) com Supabase como backend completo (autenticacao, PostgreSQL com RLS, Realtime, Storage). Inclui um agente conversacional de IA multi-provider (Google Gemini, OpenAI, Anthropic), API publica RESTful, modulo de prospeccao com power dialer, e suporte PWA para uso mobile. Opera como single-tenant por instancia.
 
 ### 1.1 Proposito
 
 CRM inteligente para gestao de vendas imobiliarias com:
-- Kanban boards configuravies para pipelines de vendas
-- Cockpit detalhado de contatos e negocios
-- Agente de IA conversacional com 25+ ferramentas de CRM
+- Kanban boards configuraveis para pipelines de vendas
+- Cockpit detalhado por deal com sinais de IA e proxima melhor acao
+- Modulo de prospeccao com power dialer, filas, metas diarias e scripts
+- Agente de IA conversacional com 27+ ferramentas de CRM
 - API publica RESTful para integracoes externas
-- Suporte offline-first via PWA
+- Suporte offline-first via PWA (Service Worker + Install Banner)
+- RBAC com 3 papeis: admin > diretor > corretor
 
-### 1.2 Numeros-Chave
+### 1.2 Numeros-Chave (2026-03-06)
 
 | Metrica | Valor |
 |---------|-------|
-| Linhas de codigo (TS/TSX) | ~93.759 |
-| Arquivos fonte (TS/TSX) | 438 |
-| Arquivos de teste | 51 (~11.6% cobertura de arquivos) |
-| Paginas (App Router) | 29 |
-| API Routes | 69 |
-| Migrations Supabase | 44 |
-| React Contexts | 11 |
-| Zustand Stores | 3 |
-| Feature Modules | 13 |
+| Arquivos de teste | 65 |
+| Paginas protegidas (App Router) | 18 |
+| API Routes | 68 |
+| Migrations Supabase | 54 |
+| React Contexts | 11 (Auth, CRM, AI, AICHat, Theme, Toast, Boards, Contacts, Activities, Deals, Settings) |
+| Zustand Stores | 3 (UI, Form, Notification) |
+| Feature Modules | 16 (activities, ai-hub, boards, contacts, dashboard, deals, decisions, inbox, instructions, notifications, profile, prospecting, reports, settings + sub-features) |
+| React Query hooks | 14 (useDealsQuery, useContactsQuery, useBoardsQuery, useActivitiesQuery, useMoveDeal, useAISuggestionsQuery, useProspectingQueueQuery, useProspectingContactsQuery, useDailyGoalsQuery, useNoteTemplatesQuery, useSavedQueuesQuery + 3 internos) |
+| Supabase service modules | 13 (boards, contacts, deals, activities, prospecting-queues, prospecting-contacts, prospecting-filtered-contacts, prospecting-goals, prospecting-saved-queues, products, settings, noteTemplates, contact-metrics) |
 
 ---
 
@@ -43,7 +46,7 @@ CRM inteligente para gestao de vendas imobiliarias com:
 
 | Tecnologia | Versao | Papel |
 |------------|--------|-------|
-| Next.js | ^15.5.12 | Framework fullstack (App Router, RSC, Route Handlers, Turbopack) |
+| Next.js | ^15.5.12 | Framework fullstack (App Router, RSC, Route Handlers, Turbopack dev) |
 | React | 19.2.1 (fixo) | Biblioteca de UI (React 19 estavel) |
 | React DOM | 19.2.1 (fixo) | Renderizacao DOM |
 | TypeScript | ^5 | Tipagem estatica |
@@ -54,984 +57,875 @@ CRM inteligente para gestao de vendas imobiliarias com:
 
 | Tecnologia | Versao | Papel |
 |------------|--------|-------|
-| Tailwind CSS | ^4 | Estilizacao utility-first (v4 com `@theme` em CSS) |
-| Radix UI | v1-v2 (13 pacotes) | Componentes headless acessiveis (accordion, avatar, checkbox, dialog, dropdown-menu, label, popover, scroll-area, select, separator, slider, slot, switch, tabs, tooltip) |
+| Tailwind CSS | ^4 | Estilizacao utility-first (v4 com `@theme` em CSS, PostCSS via `@tailwindcss/postcss`) |
+| Radix UI | v1-v2 (15 pacotes) | Componentes headless acessiveis (accordion, avatar, checkbox, dialog, dropdown-menu, label, popover, scroll-area, select, separator, slider, slot, switch, tabs, tooltip) |
 | Lucide React | ^0.560.0 | Icones (1500+ icones, tree-shaken via `optimizePackageImports`) |
 | Framer Motion | ^12.23.26 | Animacoes e transicoes |
-| Recharts | ^3.5.1 | Graficos e dashboards |
-| class-variance-authority | ^0.7.1 | Variantes de componentes CSS |
-| clsx | ^2.1.1 | Composicao condicional de classes |
-| tailwind-merge | ^3.4.0 | Merge inteligente de classes Tailwind |
-| focus-trap-react | ^11.0.4 | Trap de foco em modais (acessibilidade) |
+| class-variance-authority | ^0.7.1 | Variantes de componentes |
+| clsx + tailwind-merge | ^2.1.1 + ^3.4.0 | Merge de classes CSS |
+| focus-trap-react | ^11.0.4 | Trap de foco para modais (acessibilidade) |
+| react-markdown + remark-gfm | ^10.1.0 + ^4.0.1 | Renderizacao de Markdown |
+| recharts | ^3.5.1 | Graficos e visualizacoes de dados |
+| jspdf + jspdf-autotable | ^4.1.0 + ^5.0.2 | Geracao de PDFs (relatorios de prospeccao) |
 
-### 2.3 Formularios & Validacao
+### 2.3 Estado & Data Fetching
 
 | Tecnologia | Versao | Papel |
 |------------|--------|-------|
-| React Hook Form | ^7.68.0 | Gerenciamento de formularios |
-| @hookform/resolvers | ^5.2.2 | Integracao RHF + Zod |
-| Zod | ^4.1.13 | Validacao de schemas (nota: v4, nao v3) |
+| TanStack React Query | ^5.90.12 | Server state, cache, mutations, invalidacao seletiva |
+| Zustand | ^5.0.9 | Client state (UI, forms, notifications) com devtools + persist + subscribeWithSelector |
+| React Context | nativo | Dominio (CRM, Auth, Theme, Toast, AI) - camada de compatibilidade |
+| Immer | ^11.0.1 | Mutations imutaveis (integrado ao Zustand) |
+
+### 2.4 Backend & Database
+
+| Tecnologia | Versao | Papel |
+|------------|--------|-------|
+| Supabase JS | ^2.87.1 | Cliente principal (queries, auth, realtime, storage) |
+| Supabase SSR | ^0.8.0 | Integracao server-side (cookies, middleware) |
+| PostgreSQL | 15 (Supabase) | Banco de dados relacional com RLS 100% |
+| pg | ^8.16.3 | Cliente PostgreSQL direto (usado em public-api) |
+
+### 2.5 IA & LLM
+
+| Tecnologia | Versao | Papel |
+|------------|--------|-------|
+| AI SDK (Vercel) | ^6.0.72 | Framework de IA unificado (ToolLoopAgent, streaming) |
+| @ai-sdk/google | ^3.0.21 | Provider Google (Gemini 2.5 Flash default) |
+| @ai-sdk/openai | ^3.0.25 | Provider OpenAI (GPT-4o default, com retry e model fallback) |
+| @ai-sdk/anthropic | ^3.0.37 | Provider Anthropic (Claude Sonnet 4.6 default) |
+| @ai-sdk/react | ^3.0.74 | Hooks React para IA (useChat, useAssistant) |
+
+### 2.6 Formularios & Validacao
+
+| Tecnologia | Versao | Papel |
+|------------|--------|-------|
+| React Hook Form | ^7.68.0 | Formularios performaticos |
+| Zod | ^4.1.13 | Validacao de schemas (Zod v4!) |
+| @hookform/resolvers | ^5.2.2 | Bridge RHF <-> Zod |
 | libphonenumber-js | ^1.12.33 | Validacao e formatacao de telefones |
 
-### 2.4 Estado & Data Fetching
+### 2.7 Monitoramento & Erros
 
 | Tecnologia | Versao | Papel |
 |------------|--------|-------|
-| Zustand | ^5.0.9 | Stores globais (UI, Forms, Notifications) com devtools, persist, subscribeWithSelector |
-| TanStack React Query | ^5.90.12 | Cache de dados servidor, fetching, mutations, invalidacao |
-| Immer | ^11.0.1 | Atualizacoes imutaveis de estado |
-| React Context | nativo | Contextos de dominio (Auth, CRM, AI, Theme, Toast) |
+| Sentry (Next.js) | ^10.39.0 | Error tracking, session replay, tracing |
 
-### 2.5 Backend / BaaS
+**Configuracao Sentry:** Condicional via `NEXT_PUBLIC_SENTRY_DSN`. Em producao: `tracesSampleRate: 0.1`, `replaysSessionSampleRate: 0.1`, `replaysOnErrorSampleRate: 1.0`.
 
-| Tecnologia | Versao | Papel |
-|------------|--------|-------|
-| @supabase/supabase-js | ^2.87.1 | Cliente Supabase (auth, DB, realtime, storage) |
-| @supabase/ssr | ^0.8.0 | Integracao SSR (cookies, middleware, Server Components) |
-| PostgreSQL (Supabase) | via Supabase | Banco de dados com RLS, triggers, RPCs |
-| pg | ^8.16.3 | Driver PostgreSQL direto (usado pelo installer e AI tools) |
-| server-only | ^0.0.1 | Guardrail para modulos exclusivamente server-side |
-
-### 2.6 Inteligencia Artificial
+### 2.8 Testes & Quality
 
 | Tecnologia | Versao | Papel |
 |------------|--------|-------|
-| ai (Vercel AI SDK) | ^6.0.72 | Framework de agentes IA (tool calling, streaming) |
-| @ai-sdk/anthropic | ^3.0.37 | Provider Anthropic Claude |
-| @ai-sdk/google | ^3.0.21 | Provider Google Gemini |
-| @ai-sdk/openai | ^3.0.25 | Provider OpenAI |
-| @ai-sdk/react | ^3.0.74 | Hooks React para chat UI (useChat) |
-
-### 2.7 Utilidades
-
-| Tecnologia | Versao | Papel |
-|------------|--------|-------|
-| date-fns | ^4.1.0 | Manipulacao de datas |
-| jsPDF | ^4.1.0 | Geracao de PDF |
-| jspdf-autotable | ^5.0.2 | Tabelas em PDF |
-| react-markdown | ^10.1.0 | Renderizacao de Markdown |
-| remark-gfm | ^4.0.1 | GitHub Flavored Markdown |
-
-### 2.8 Monitoring & Error Tracking
-
-| Tecnologia | Versao | Papel |
-|------------|--------|-------|
-| @sentry/nextjs | ^10.39.0 | Error tracking e performance monitoring |
-
-Sentry esta integrado com:
-- `sentry.client.config.ts` - Client-side com Replay (10% session, 100% on error)
-- `sentry.server.config.ts` - Server-side
-- `sentry.edge.config.ts` - Edge runtime
-- `app/global-error.tsx` - Error boundary global que captura via `Sentry.captureException`
-- Condicionalmente habilitado: so inicializa se `NEXT_PUBLIC_SENTRY_DSN` estiver definido
-
-### 2.9 Dev / Build / Testes
-
-| Tecnologia | Versao | Papel |
-|------------|--------|-------|
-| Vitest | ^4.0.0 | Runner de testes |
-| @vitejs/plugin-react | ^5.0.4 | Plugin React para Vite/Vitest |
-| Vite | ^7.1.3 | Build engine (usado pelo Vitest) |
-| @testing-library/react | ^16.3.0 | Testes de componentes React |
-| @testing-library/jest-dom | ^6.8.0 | Matchers DOM customizados |
-| @testing-library/user-event | ^14.6.1 | Simulacao de eventos de usuario |
+| Vitest | ^4.0.0 | Test runner (compativel Vite) |
+| Vite | ^7.1.3 | Build tool (usado pelo Vitest) |
+| @vitejs/plugin-react | ^5.0.4 | Plugin JSX para Vitest |
+| @testing-library/react | ^16.3.0 | Testes de componente |
+| @testing-library/jest-dom | ^6.8.0 | Matchers DOM |
+| @testing-library/user-event | ^14.6.1 | Simulacao de eventos |
+| happy-dom | ^20.0.11 | Ambiente DOM para testes |
 | @vitest/coverage-v8 | ^4.0.18 | Cobertura de codigo |
-| axe-core | ^4.10.3 | Testes de acessibilidade automatizados |
-| vitest-axe | ^0.1.0 | Integracao axe + Vitest |
-| happy-dom | ^20.0.11 | Ambiente DOM leve para testes |
-| @faker-js/faker | ^10.1.0 | Geracao de dados fake (devDependency) |
-| ESLint | ^9 | Linting (flat config) |
-| eslint-config-next | ^15.5.12 | Regras ESLint para Next.js |
+| axe-core + vitest-axe | ^4.10.3 + ^0.1.0 | Testes de acessibilidade |
+| @faker-js/faker | ^10.1.0 | Dados de teste |
+| ESLint | ^9 (flat config) | Linting com eslint-config-next |
 
-### 2.10 CI/CD & Deploy
+### 2.9 Deploy & Infraestrutura
 
-| Tecnologia | Versao | Papel |
-|------------|--------|-------|
-| GitHub Actions | - | CI (lint, typecheck, test, build) |
-| Vercel | - | Deploy (preview + production) |
-| Supabase CLI | - | Migrations e gerenciamento de banco |
+| Tecnologia | Plataforma | Papel |
+|------------|------------|-------|
+| Vercel | Cloud | Deploy automatico (preview por branch, producao em main) |
+| Supabase Cloud | Oregon (prod) / Sao Paulo (staging) | BaaS (auth, DB, RLS, Realtime, Storage, Edge Functions) |
+| GitHub Actions | CI | 4 jobs: lint, typecheck, test, build (Node 20) |
 
 ---
 
-## 3. Estrutura de Pastas
+## 3. Estrutura do Projeto
 
 ```
-ZmobCRM-Brownfield/                  # Raiz do projeto Next.js
-|
-|-- app/                             # Next.js App Router (pages + API)
-|   |-- (protected)/                 # Route group: todas as rotas autenticadas
-|   |   |-- layout.tsx               # Client-side layout com Providers
-|   |   |-- providers.tsx            # Composicao de providers (composeProviders)
-|   |   |-- page.tsx                 # Pagina raiz protegida (redirect para dashboard)
-|   |   |-- dashboard/page.tsx       # Dashboard principal
-|   |   |-- boards/                  # Kanban boards (page + loading)
-|   |   |-- contacts/                # Contatos (page + loading + duplicates/ + metrics/)
-|   |   |-- deals/[dealId]/cockpit/  # Cockpit de deal
-|   |   |-- inbox/                   # Inbox de vendas (page + loading)
-|   |   |-- activities/page.tsx      # Atividades
-|   |   |-- notifications/page.tsx   # Central de notificacoes
-|   |   |-- instructions/page.tsx    # Instrucoes configuravies
-|   |   |-- ai/page.tsx              # Chat IA standalone
-|   |   |-- ai-test/page.tsx         # Teste de IA (dev only)
-|   |   |-- decisions/page.tsx       # Decisoes
-|   |   |-- pipeline/page.tsx        # Pipeline view
-|   |   |-- reports/page.tsx         # Relatorios
-|   |   |-- profile/page.tsx         # Perfil do usuario
-|   |   |-- settings/               # Configuracoes (geral, produtos, integracoes, AI)
-|   |   |-- setup/page.tsx          # Setup inicial pos-instalacao
-|   |   |-- labs/                   # Features experimentais (mock cockpits)
-|   |
-|   |-- api/                        # Route Handlers (69 endpoints)
-|   |   |-- admin/                  # Endpoints administrativos
-|   |   |   |-- backfill-scores/    # Backfill de lead scores
-|   |   |   |-- invites/            # Gerenciamento de convites
-|   |   |   |-- users/              # Gerenciamento de usuarios
-|   |   |-- ai/                     # Endpoints de IA
-|   |   |   |-- chat/               # Chat principal (streaming)
-|   |   |   |-- actions/            # Acoes de IA (tool calling)
-|   |   |   |-- tasks/              # Tasks pre-configuradas
-|   |   |   |   |-- boards/         # Gerar estrategia, estrutura, refinar
-|   |   |   |   |-- deals/          # Analisar, email draft, objecoes
-|   |   |   |   |-- inbox/          # Daily briefing, sales script
-|   |   |   |-- test/               # Teste de IA (dev only)
-|   |   |-- boards/                 # CRUD de boards
-|   |   |-- chat/                   # Re-export de /api/ai/chat
-|   |   |-- contacts/               # Import/export de contatos
-|   |   |-- custom-fields/          # Campos customizados
-|   |   |-- installer/              # Wizard de instalacao (13 endpoints)
-|   |   |-- invites/                # Aceitar/validar convites
-|   |   |-- mcp/                    # MCP endpoint
-|   |   |-- settings/               # Settings API (AI, cockpit, prompts)
-|   |   |-- setup-instance/         # Setup da instancia
-|   |   |-- public/v1/              # API publica versionada (REST)
-|   |       |-- contacts/           # CRUD contatos
-|   |       |-- deals/              # CRUD deals + mark-won/lost + move-stage
-|   |       |-- boards/             # Boards + stages
-|   |       |-- activities/         # Atividades
-|   |       |-- companies/          # Empresas
-|   |       |-- me/                 # Perfil autenticado
-|   |       |-- docs/               # Documentacao da API
-|   |       |-- openapi.json/       # Spec OpenAPI auto-gerada
-|   |
-|   |-- auth/                       # Callback OAuth Supabase
-|   |-- install/                    # Wizard de instalacao
-|   |-- join/                       # Convite para organizacao
-|   |-- login/                      # Pagina de login
-|   |-- components/                 # Componentes locais do app
-|   |   |-- ui/ErrorBoundary.tsx    # Error boundary reutilizavel
-|   |-- actions/                    # Server Actions (contacts, deals, notifications, contact-metrics)
-|   |-- layout.tsx                  # Root layout (html, body, fonts, PWA)
-|   |-- globals.css                 # CSS global + Tailwind v4 @theme
-|   |-- manifest.ts                 # PWA manifest
-|   |-- global-error.tsx            # Global error handler (Sentry)
-|
-|-- components/                     # Componentes compartilhados
-|   |-- ui/                         # Design system (23 componentes)
-|   |   |-- ActionSheet.tsx         # Sheet de acoes mobile
-|   |   |-- alert.tsx               # Alert
-|   |   |-- AudioPlayer.tsx         # Player de audio
-|   |   |-- avatar.tsx              # Avatar
-|   |   |-- badge.tsx               # Badge
-|   |   |-- button.tsx              # Button (base do design system)
-|   |   |-- card.tsx                # Card
-|   |   |-- ContactSearchCombobox   # Combobox de busca de contatos
-|   |   |-- CorretorSelect          # Select de corretor
-|   |   |-- date-range-picker.tsx   # Date range picker
-|   |   |-- DealSearchCombobox      # Combobox de busca de deals
-|   |   |-- EmptyState.tsx          # Estado vazio
-|   |   |-- FormField.tsx           # Campo de formulario generico
-|   |   |-- FullscreenSheet.tsx     # Sheet fullscreen mobile
-|   |   |-- LossReasonModal.tsx     # Modal de motivo de perda
-|   |   |-- Modal.tsx               # Modal base
-|   |   |-- modalStyles.ts          # Estilos de modal compartilhados
-|   |   |-- popover.tsx             # Popover (Radix)
-|   |   |-- Sheet.tsx               # Sheet (bottom sheet mobile)
-|   |   |-- tabs.tsx                # Tabs (Radix)
-|   |   |-- tooltip.tsx             # Tooltip (Radix)
-|   |-- ai/                         # Componentes de chat IA (UIChat, RSCChat)
-|   |-- navigation/                 # Navegacao
-|   |   |-- BottomNav.tsx           # Barra inferior mobile
-|   |   |-- NavigationRail.tsx      # Rail lateral desktop
-|   |   |-- MoreMenuSheet.tsx       # Menu "mais" mobile
-|   |   |-- navConfig.ts            # Configuracao de navegacao
-|   |-- charts/                     # Componentes de graficos
-|   |-- notifications/              # Popover de notificacoes
-|   |-- pwa/                        # Service Worker + Install Banner
-|   |-- filters/                    # Filtros (PeriodFilterSelect)
-|   |-- debug/                      # Componentes de debug
-|   |-- Layout.tsx                  # Shell principal (sidebar + header + content)
-|   |-- AIAssistant.tsx             # Assistente IA flutuante
-|   |-- ConfirmModal.tsx            # Modal de confirmacao
-|   |-- ConsentModal.tsx            # Modal LGPD/consent
-|   |-- OnboardingModal.tsx         # Onboarding
-|   |-- PageLoader.tsx              # Loader de pagina
-|   |-- MaintenanceBanner.tsx       # Banner de manutencao
-|
-|-- features/                       # Feature modules (dominio)
-|   |-- activities/                 # Feature atividades (components/, hooks/)
-|   |-- ai-hub/                     # Hub de IA
-|   |-- boards/                     # Feature boards/kanban
-|   |   |-- BoardsPage.tsx          # Pagina principal
-|   |   |-- components/
-|   |   |   |-- BoardCreationWizard.tsx  # Wizard de criacao (75KB - maior arquivo)
-|   |   |   |-- PipelineView.tsx    # Vista de pipeline
-|   |   |   |-- Kanban/             # KanbanBoard, KanbanList, DealCard, KanbanHeader
-|   |   |   |-- Modals/             # DealDetailModal, etc.
-|   |   |-- hooks/                  # Hooks especificos de boards
-|   |-- contacts/                   # Feature contatos
-|   |   |-- ContactsPage.tsx        # Pagina principal
-|   |   |-- cockpit/                # Cockpit de contato (DataPanel, RightRail, Timeline, PipelineBar)
-|   |   |-- components/             # ContactFormModal, ContactDetailModal, ContactMergeModal, etc.
-|   |-- dashboard/                  # Feature dashboard
-|   |-- deals/                      # Feature deals
-|   |   |-- cockpit/                # Cockpit de deal
-|   |-- decisions/                  # Feature decisoes
-|   |-- inbox/                      # Feature inbox
-|   |-- instructions/               # Feature instrucoes
-|   |-- notifications/              # Feature notificacoes
-|   |-- profile/                    # Feature perfil
-|   |-- reports/                    # Feature relatorios
-|   |-- settings/                   # Feature configuracoes
-|
-|-- context/                        # React Contexts (11 contextos)
-|   |-- AuthContext.tsx              # Autenticacao Supabase (session, user, profile)
-|   |-- CRMContext.tsx               # Contexto unificado LEGADO (agrega todos os sub-contextos)
-|   |-- AIContext.tsx                # Estado do AI assistant
-|   |-- AIChatContext.tsx            # Estado do chat IA
-|   |-- ThemeContext.tsx             # Tema dark/light
-|   |-- ToastContext.tsx             # Sistema de toasts
-|   |-- index.ts                    # Re-exports
-|   |-- deals/DealsContext.tsx       # Contexto de deals
-|   |-- contacts/ContactsContext.tsx # Contexto de contatos
-|   |-- boards/BoardsContext.tsx     # Contexto de boards
-|   |-- activities/ActivitiesContext.tsx  # Contexto de atividades
-|   |-- settings/SettingsContext.tsx  # Contexto de configuracoes + AI config
-|
-|-- hooks/                          # Hooks compartilhados (12 hooks)
-|   |-- useCRMActions.ts            # Acoes CRM unificadas
-|   |-- useAIEnabled.ts             # Toggle AI habilitado
-|   |-- useConsent.ts               # LGPD consent
-|   |-- useFirstVisit.ts            # Primeira visita
-|   |-- useIdleTimeout.ts           # Timeout de inatividade
-|   |-- useOrganizationMembers.ts   # Membros da organizacao
-|   |-- usePersistedState.ts        # Estado persistido em localStorage
-|   |-- useReassignContactWithDeals.ts  # Reatribuicao de contato
-|   |-- useResponsiveMode.ts        # Mobile/desktop detection
-|   |-- useSpeechRecognition.ts     # Reconhecimento de voz
-|   |-- useSystemNotifications.ts   # Notificacoes do sistema
-|   |-- useTags.ts                  # Gerenciamento de tags
-|
-|-- lib/                            # Bibliotecas e utilidades
-|   |-- supabase/                   # Clientes Supabase (25 arquivos de servico)
-|   |   |-- client.ts               # Singleton browser (createBrowserClient)
-|   |   |-- server.ts               # Server client + admin client + static admin
-|   |   |-- middleware.ts            # Middleware de sessao
-|   |   |-- index.ts                # Re-exports de servicos
-|   |   |-- boards.ts               # Servico de boards (924 linhas)
-|   |   |-- contacts.ts             # Servico de contatos (814 linhas)
-|   |   |-- deals.ts                # Servico de deals (757 linhas)
-|   |   |-- activities.ts           # Servico de atividades
-|   |   |-- settings.ts             # Servico de configuracoes
-|   |   |-- products.ts             # Servico de produtos
-|   |   |-- notifications.ts        # Servico de notificacoes
-|   |   |-- contact-dedup.ts        # Deduplicacao de contatos
-|   |   |-- contact-metrics.ts      # Metricas de contatos
-|   |   |-- contact-preferences.ts  # Preferencias de contato
-|   |   |-- lead-scoring.ts         # Lead scoring
-|   |   |-- dealNotes.ts            # Notas de deals
-|   |   |-- dealFiles.ts            # Arquivos de deals
-|   |   |-- consent.ts / consents.ts  # LGPD consent
-|   |   |-- ai-proxy.ts             # Proxy de IA
-|   |   |-- aiSuggestions.ts        # Sugestoes de IA
-|   |   |-- quickScripts.ts         # Scripts rapidos
-|   |   |-- utils.ts                # Utilidades Supabase
-|   |   |-- staticAdminClient.ts    # Admin client sem cookies
-|   |-- ai/                         # Inteligencia Artificial
-|   |   |-- config.ts               # Configuracao de providers IA
-|   |   |-- defaults.ts             # Defaults de IA
-|   |   |-- crmAgent.ts             # Agente CRM principal (24KB)
-|   |   |-- tools.ts                # Definicoes de tools
-|   |   |-- actionsClient.ts        # Client de acoes IA
-|   |   |-- tasksClient.ts          # Client de tasks IA
-|   |   |-- provider.ts             # Provider factory
-|   |   |-- actions.tsx              # Server actions de IA
-|   |   |-- prompts/                # Prompts do agente
-|   |   |-- tools/                  # Tools individuais
-|   |   |-- tasks/                  # Tasks pre-configuradas
-|   |   |-- features/               # Feature flags IA
-|   |-- auth/roles.ts               # Autorizacao baseada em roles (admin, diretor, corretor)
-|   |-- security/sameOrigin.ts      # Verificacao de same-origin
-|   |-- public-api/                 # Logica da API publica
-|   |   |-- openapi.ts              # Spec OpenAPI (27KB)
-|   |   |-- auth.ts                 # Autenticacao da API publica
-|   |   |-- cursor.ts               # Paginacao cursor-based
-|   |   |-- sanitize.ts             # Sanitizacao de input
-|   |   |-- resolve.ts              # Resolucao de entidades
-|   |   |-- dealsMoveStage.ts       # Logica de mover deal entre estagios
-|   |-- realtime/                   # Supabase Realtime
-|   |   |-- useRealtimeSync.ts      # Hook principal (27KB) com deduplicacao global
-|   |   |-- presets.ts              # Presets de tabelas monitoradas
-|   |-- stores/index.ts             # Zustand stores (UIState, FormState, NotificationState)
-|   |-- query/                      # TanStack React Query
-|   |   |-- index.tsx               # Provider + QueryClient config
-|   |   |-- queryKeys.ts            # Query keys centralizadas
-|   |   |-- createQueryKeys.ts      # Factory de query keys
-|   |   |-- hooks/                  # Hooks de query
-|   |       |-- useDealsQuery.ts    # Deals query + mutations (24KB)
-|   |       |-- useContactsQuery.ts # Contacts query + mutations (21KB)
-|   |       |-- useMoveDeal.ts      # Move deal entre estagios (12KB)
-|   |       |-- useBoardsQuery.ts   # Boards query
-|   |       |-- useActivitiesQuery.ts  # Activities query
-|   |       |-- useAISuggestionsQuery.ts  # AI suggestions query
-|   |-- validations/                # Schemas Zod
-|   |   |-- schemas.ts              # Schemas de validacao
-|   |   |-- cpf-cep.ts              # Validacao CPF/CEP brasileiro
-|   |   |-- errorCodes.ts           # Codigos de erro centralizados
-|   |-- a11y/                       # Acessibilidade
-|   |   |-- index.ts                # API principal de a11y
-|   |   |-- overlay.ts              # Overlay de acessibilidade
-|   |   |-- components/             # Componentes a11y
-|   |   |-- hooks/                  # Hooks a11y
-|   |   |-- test/                   # Utilidades de teste a11y
-|   |-- fetch/safeFetch.ts          # Fetch wrapper com tratamento de erros
-|   |-- installer/                  # Logica de instalacao (Supabase, Vercel, migrations)
-|   |-- mcp/                        # MCP integration (registry, tool catalog, zodToJsonSchema)
-|   |-- utils/                      # Utilidades gerais
-|   |   |-- cn.ts                   # Class name utility (clsx + tailwind-merge)
-|   |   |-- csv.ts                  # Import/export CSV
-|   |   |-- errorUtils.ts           # Utilidades de erro
-|   |   |-- activitySort.ts         # Ordenacao de atividades
-|   |   |-- migrateLocalStorage.ts  # Migracao de localStorage
-|   |   |-- priority.ts             # Logica de prioridade
-|   |   |-- responsive.ts           # Breakpoints responsivos
-|   |   |-- slugify.ts              # Slugificacao de strings
-|   |   |-- isMobile.ts             # Deteccao mobile
-|   |-- phone.ts                    # Formatacao de telefone (libphonenumber-js)
-|   |-- prefetch.ts                 # Prefetch de dados
-|   |-- rate-limit.ts               # Rate limiting (token bucket)
-|
-|-- types/                          # Tipos TypeScript centrais
-|   |-- types.ts                    # Tipos do CRM (Deal, Contact, Board, Activity, etc.)
-|   |-- ai.ts                       # Tipos de IA (AITool, AIConfig, etc.)
-|   |-- aiActions.ts                # Tipos de acoes IA
-|   |-- index.ts                    # Re-exports
-|
-|-- supabase/                       # Supabase local
-|   |-- config.toml                 # Configuracao do Supabase CLI
-|   |-- migrations/ (44 arquivos)   # Migrations SQL
-|   |-- functions/                  # Edge Functions (diretorio presente)
-|   |-- backups/                    # Backups do banco
-|   |-- reset.sql                   # Script de reset
-|
-|-- test/                           # Testes
-|   |-- helpers/                    # Fixtures, env, harness, admin client
-|   |-- stories/                    # Testes de user stories
-|   |-- setup.ts                    # Setup base
-|   |-- setup.dom.ts                # Setup DOM (happy-dom)
-|
-|-- public/                         # Assets estaticos
-|   |-- icons/                      # Icones PWA
-|   |-- sw.js                       # Service Worker
-|
-|-- .github/workflows/              # CI/CD
-|   |-- ci.yml                      # Pipeline CI (lint, typecheck, test, build)
-|   |-- pr-automation.yml           # Automacao de PRs
-|   |-- release.yml                 # Release automation
+ZmobCRM-Brownfield/
+├── app/                          # Next.js App Router
+│   ├── (protected)/              # Route group autenticado
+│   │   ├── activities/           #   Pagina de atividades
+│   │   ├── ai/                   #   Chat IA
+│   │   ├── ai-test/              #   Teste de IA (dev only)
+│   │   ├── boards/               #   Kanban boards
+│   │   ├── contacts/             #   Contatos + duplicatas + metricas
+│   │   ├── dashboard/            #   Dashboard principal
+│   │   ├── deals/                #   Deals
+│   │   ├── decisions/            #   Decisoes
+│   │   ├── inbox/                #   Caixa de entrada
+│   │   ├── instructions/         #   Instrucoes/scripts
+│   │   ├── labs/                 #   Laboratorio (dev only)
+│   │   ├── notifications/        #   Notificacoes
+│   │   ├── pipeline/             #   Pipeline de vendas
+│   │   ├── profile/              #   Perfil do usuario
+│   │   ├── prospecting/          #   Prospeccao (power dialer, filas, metas)
+│   │   ├── reports/              #   Relatorios
+│   │   ├── settings/             #   Configuracoes
+│   │   ├── setup/                #   Setup inicial
+│   │   ├── layout.tsx            #   Protected layout (wraps providers)
+│   │   └── providers.tsx         #   Provider composition (10 providers)
+│   ├── actions/                  # Server Actions (contacts, deals, notifications, contact-metrics)
+│   ├── api/                      # API Routes (68 endpoints)
+│   │   ├── admin/                #   Admin (backfill-scores, invites, users)
+│   │   ├── ai/                   #   AI endpoints (chat, tasks, suggestions)
+│   │   ├── boards/               #   Board CRUD
+│   │   ├── chat/                 #   Chat endpoint
+│   │   ├── contacts/             #   Contact endpoints
+│   │   ├── custom-fields/        #   Custom fields CRUD
+│   │   ├── installer/            #   Installer wizard (13 endpoints)
+│   │   ├── invites/              #   Invitation system
+│   │   ├── mcp/                  #   MCP integration
+│   │   ├── public/               #   Public API (v1, keys, deals)
+│   │   ├── settings/             #   Settings CRUD
+│   │   └── setup-instance/       #   Instance setup
+│   ├── auth/                     # Auth callback
+│   ├── install/                  # Installer UI
+│   ├── join/                     # Join via invite
+│   ├── login/                    # Login page
+│   ├── lp/, lp2/                 # Landing pages
+│   ├── layout.tsx                # Root layout (Inter font, PWA, dark mode)
+│   ├── globals.css               # Tailwind @theme, CSS variables
+│   └── manifest.ts               # PWA manifest
+│
+├── components/                   # Componentes compartilhados
+│   ├── ai/                       #   Componentes de IA
+│   ├── charts/                   #   Graficos reutilizaveis
+│   ├── debug/                    #   Debug UI
+│   ├── filters/                  #   Filtros genericos
+│   ├── navigation/               #   Sidebar, navigation
+│   ├── notifications/            #   Notification bell
+│   ├── pwa/                      #   ServiceWorkerRegister, InstallBanner
+│   ├── ui/                       #   Design system (24 componentes: Button, Modal, FormField, Sheet, etc.)
+│   ├── AIAssistant.tsx           #   Painel de chat IA
+│   ├── ConfirmModal.tsx          #   Modal de confirmacao
+│   ├── ConsentModal.tsx          #   LGPD consent
+│   ├── Layout.tsx                #   Layout principal (505 linhas)
+│   ├── MaintenanceBanner.tsx     #   Banner de manutencao
+│   ├── OnboardingModal.tsx       #   Onboarding wizard
+│   └── PageLoader.tsx            #   Skeleton de carregamento
+│
+├── context/                      # React Contexts (estado de dominio)
+│   ├── activities/               #   ActivitiesContext
+│   ├── boards/                   #   BoardsContext
+│   ├── contacts/                 #   ContactsContext
+│   ├── deals/                    #   DealsContext
+│   ├── settings/                 #   SettingsContext
+│   ├── AIChatContext.tsx          #   Chat IA state
+│   ├── AIContext.tsx              #   IA config state
+│   ├── AuthContext.tsx            #   Autenticacao + perfil
+│   ├── CRMContext.tsx             #   Contexto legado unificado (930 linhas)
+│   ├── ThemeContext.tsx           #   Dark/light mode
+│   └── ToastContext.tsx           #   Sistema de toasts
+│
+├── features/                     # Feature modules (dominio de negocio)
+│   ├── activities/               #   Gerenciamento de atividades
+│   ├── ai-hub/                   #   Hub de IA (teste de prompts, config)
+│   ├── boards/                   #   Boards kanban
+│   ├── contacts/                 #   Contatos (lista, detalhe, dedup)
+│   ├── dashboard/                #   Dashboard com metricas
+│   ├── deals/                    #   Deals + cockpit
+│   ├── decisions/                #   Decisoes de negocio
+│   ├── inbox/                    #   Inbox com CallModal
+│   ├── instructions/             #   Scripts de instrucao
+│   ├── notifications/            #   Gerenciamento de notificacoes
+│   ├── profile/                  #   Perfil do usuario
+│   ├── prospecting/              #   Prospeccao (24 componentes, 7 hooks, 3 utils, 25 testes)
+│   ├── reports/                  #   Relatorios
+│   └── settings/                 #   Configuracoes
+│
+├── hooks/                        # Hooks globais reutilizaveis
+│   ├── useAIEnabled.ts            #   Verifica se IA esta habilitada
+│   ├── useConsent.ts              #   Consentimento LGPD
+│   ├── useCRMActions.ts           #   Acoes CRM com guards (14.9KB)
+│   ├── useFirstVisit.ts           #   Deteccao de primeira visita
+│   ├── useIdleTimeout.ts          #   Timeout por inatividade
+│   ├── useOrganizationMembers.ts  #   Lista membros da org
+│   ├── usePersistedState.ts       #   State persistido em localStorage
+│   ├── useReassignContactWithDeals.ts # Reatribuicao de contatos
+│   ├── useResponsiveMode.ts       #   Deteccao mobile/desktop
+│   ├── useSpeechRecognition.ts    #   Reconhecimento de voz (IA)
+│   ├── useSystemNotifications.ts  #   Notificacoes do navegador
+│   └── useTags.ts                 #   Gerenciamento de tags
+│
+├── lib/                          # Bibliotecas e servicos
+│   ├── a11y/                     #   Acessibilidade (4 componentes, 4 hooks, testes axe)
+│   ├── ai/                       #   Motor de IA
+│   │   ├── crmAgent.ts           #     ToolLoopAgent (589 linhas, retry, model fallback)
+│   │   ├── config.ts             #     Factory de providers
+│   │   ├── defaults.ts           #     Defaults: Gemini 2.5 Flash, GPT-4o, Claude Sonnet 4.6
+│   │   ├── tools/                #     27 ferramentas: deal, contact, activity, pipeline, note
+│   │   ├── prompts/              #     Catalogo de prompts (catalog.ts, render.ts, server.ts)
+│   │   ├── tasks/                #     Schemas e server-side tasks
+│   │   ├── features/             #     Feature flags de IA
+│   │   ├── actionsClient.ts      #     Acoes client-side
+│   │   └── tasksClient.ts        #     Tasks client-side
+│   ├── auth/                     #   Roles e permissoes
+│   ├── consent/                  #   Servico LGPD
+│   ├── debug/                    #   Utilidades de debug
+│   ├── fetch/                    #   SafeFetch wrapper
+│   ├── forms/                    #   Utilidades de formularios
+│   ├── installer/                #   Wizard de instalacao (Supabase + Vercel)
+│   ├── mcp/                      #   MCP registry e Zod-to-JSON schema
+│   ├── prefetch.ts               #   Prefetch de dados (SSR)
+│   ├── public-api/               #   API publica v1 (OpenAPI, cursor, auth, sanitize, dealsMoveStage)
+│   ├── query/                    #   React Query (provider, queryKeys factory, 14 hooks)
+│   ├── rate-limit.ts             #   Rate limiter in-memory (60 req/min por IP)
+│   ├── realtime/                 #   Supabase Realtime (useRealtimeSync, presets, 590 linhas)
+│   ├── security/                 #   sameOrigin check
+│   ├── stores/                   #   Zustand stores (UI, Form, Notification)
+│   ├── supabase/                 #   Camada de acesso a dados (13 service modules, 31 arquivos)
+│   ├── templates/                #   Templates de boards e journeys
+│   ├── utils/                    #   Utilidades gerais
+│   └── validations/              #   Schemas de validacao Zod
+│
+├── types/                        # Tipos TypeScript centralizados
+│   ├── types.ts                  #   Tipos de dominio (Deal, Contact, Board, Activity, etc.)
+│   ├── ai.ts                    #   Tipos de IA (CRMCallOptions, schemas)
+│   └── index.ts                 #   Re-exports
+│
+├── supabase/                     # Configuracao Supabase
+│   ├── migrations/ (54)          #   Migrations SQL sequenciais
+│   ├── config.toml               #   Configuracao local
+│   ├── reset.sql                 #   Script de reset
+│   ├── functions/                #   Edge Functions
+│   └── docs/                     #   Documentacao de schema
+│
+├── test/                         # Testes globais e fixtures
+│   ├── helpers/                  #   Fixtures, env, supabaseAdmin, toolHarness
+│   ├── stories/                  #   User story tests (US-001, US-create-deal)
+│   ├── setup.ts                  #   Setup global de testes
+│   └── setup.dom.ts              #   Setup DOM (happy-dom)
+│
+├── middleware.ts                 # Middleware Next.js (auth refresh, redirects)
+├── next.config.ts                # Config Next.js (optimizePackageImports, Sentry, SW headers)
+├── vitest.config.ts              # Config Vitest (happy-dom, setupFiles, timeouts)
+├── eslint.config.mjs             # ESLint flat config (next/core-web-vitals)
+├── tailwind.config.js            # Tailwind v4 config (darkMode: 'class')
+├── postcss.config.mjs            # PostCSS (@tailwindcss/postcss)
+├── sentry.*.config.ts            # Sentry (client, server, edge)
+└── package.json                  # Versao 1.5.1
 ```
 
 ---
 
-## 4. Padroes Arquiteturais
+## 4. Padroes de Arquitetura
 
-### 4.1 Arquitetura de Componentes
+### 4.1 Padrao de Camadas
 
-**Padrao Feature-based:** Cada dominio (boards, contacts, deals, inbox, settings, etc.) tem pasta propria em `features/` contendo:
-- Componente de pagina principal (ex: `BoardsPage.tsx`, `ContactsPage.tsx`)
-- Subpasta `components/` com componentes especificos
-- Subpasta `hooks/` com hooks especificos
-- Subpasta `cockpit/` para views detalhadas (quando aplicavel)
-- Arquivo `utils.ts` ou `constants.ts` (quando necessario)
-
-**Client vs Server Components:**
-- O route group `(protected)` usa `'use client'` no layout, forcando todas as sub-paginas a serem client components
-- Paginas publicas (`login`, `join`, `install`) nao usam o protected layout
-- Server Actions existem em `app/actions/` (contacts, deals, notifications, contact-metrics) mas sao usadas de forma limitada
-- A maior parte da comunicacao server-side usa Route Handlers (`app/api/`)
-
-**Composicao de Providers:** O arquivo `app/(protected)/providers.tsx` usa o padrao `composeProviders()` para empilhar 10 providers de forma declarativa:
 ```
-QueryProvider > ToastProvider > ThemeProvider > AuthProvider > SettingsProvider >
-BoardsProvider > ContactsProvider > ActivitiesProvider > DealsProvider > AIProvider
+[Browser] <-> [Next.js App Router] <-> [Supabase (PostgreSQL + RLS)]
+                    |                          |
+              [API Routes]              [Supabase Realtime]
+                    |                          |
+             [AI Agent Layer]          [Service Workers]
 ```
 
-### 4.2 Gerenciamento de Estado (3 Camadas)
+**Camada de Apresentacao:**
+- App Router com route groups (`(protected)`)
+- Feature modules com componentes, hooks e utilidades co-localizados
+- Provider composition pattern (10 providers aninhados via `composeProviders`)
 
-| Camada | Tecnologia | Proposito | Arquivos |
-|--------|-----------|-----------|----------|
-| **Server State** | TanStack React Query | Cache de dados do Supabase, invalidacao, mutations, optimistic updates | `lib/query/` |
-| **Domain State** | React Context | Estado de dominio (Deals, Contacts, Boards, Activities, Settings, Auth, AI) | `context/` |
-| **UI State** | Zustand | Estado efemero de UI (sidebar, modais, busca, loading) | `lib/stores/` |
+**Camada de Estado:**
+- React Query para server state (cache, mutations, invalidacao)
+- Zustand para client state (UI, formularios, notificacoes)
+- React Context para dominio (legado, gradualmente migrando para React Query + Zustand)
 
-**CRMContext (Legacy):** O arquivo `context/CRMContext.tsx` (~930 linhas) atua como camada de compatibilidade que:
-- Agrega todos os sub-contextos especializados
-- Expoe uma API unificada `useCRM()` para codigo legado
-- Contem logica de negocio complexa (addDeal com optimistic updates, checkWalletHealth, checkStagnantDeals)
-- Projeta views denormalizadas (DealView com contactName, stageLabel)
-- Novos desenvolvimentos devem usar hooks especificos diretamente (`useDeals()`, `useContacts()`, etc.)
+**Camada de Acesso a Dados:**
+- Service modules em `lib/supabase/` (funcoes puras que recebem client Supabase)
+- Server Actions em `app/actions/` (operacoes server-side com revalidation)
+- Route Handlers em `app/api/` (REST endpoints)
 
-**Query Keys:** Sistema centralizado em `lib/query/queryKeys.ts` com factory pattern (`createQueryKeys.ts`). Keys organizadas por entidade: `queryKeys.deals`, `queryKeys.contacts`, `queryKeys.boards`, etc.
+**Camada de Integracao:**
+- AI SDK com ToolLoopAgent (agent com tool loop, 10 steps max)
+- Supabase Realtime com deduplicacao de eventos
+- Public API RESTful com OpenAPI spec e rate limiting
 
-**Optimistic Updates:** Implementados diretamente no CRMContext via `queryClient.setQueryData()` para operacoes de criacao de deals (inserir deal temporario no cache, substituir pelo real apos server response).
+### 4.2 Autenticacao & Autorizacao
 
-### 4.3 Padrao de Servicos Supabase
+```
+[Browser] -> [Middleware] -> [Supabase Auth (getUser)] -> [RLS]
+                                                            |
+                              [Profile + Role] -----> [RBAC Filter]
+```
 
-Cada entidade do dominio tem um arquivo de servico em `lib/supabase/`:
-- Funcoes puras que recebem o Supabase client e parametros
-- Queries tipadas com `.select()`, `.eq()`, `.order()`
-- Retorno padronizado `{ data, error }` do Supabase
-- Servicos maiores: `boards.ts` (924 LOC), `contacts.ts` (814 LOC), `deals.ts` (757 LOC)
+- **Middleware** (`middleware.ts`): Refresh de sessao Supabase SSR, redirect para `/login` em rotas protegidas
+- **AuthContext**: Gerencia sessao, usuario, perfil (role: admin/diretor/corretor) e organizationId
+- **RLS 100%**: Todas as tabelas possuem Row Level Security baseado em `organization_id`
+- **RBAC**: 3 niveis (admin > diretor > corretor), implementado no DB e validado na UI
 
-**Tres tipos de cliente Supabase:**
-1. **Browser client** (`lib/supabase/client.ts`): Singleton, usa anon key, respeita RLS
-2. **Server client** (`lib/supabase/server.ts`): Usa cookies, para Route Handlers e RSC
-3. **Admin client** (`lib/supabase/server.ts > createStaticAdminClient`): Service role key, bypassa RLS, usado por AI tools
+### 4.3 Composicao de Providers
 
-### 4.4 Padrao de Realtime
+```tsx
+// app/(protected)/providers.tsx
+const ComposedProviders = composeProviders(
+    QueryProvider,      // React Query
+    ToastProvider,      // Notificacoes toast
+    ThemeProvider,      // Dark/light mode
+    AuthProvider,       // Autenticacao Supabase
+    SettingsProvider,   // Configuracoes da org
+    BoardsProvider,     // Boards/pipelines
+    ContactsProvider,   // Contatos
+    ActivitiesProvider, // Atividades
+    DealsProvider,      // Deals
+    AIProvider,         // Configuracao IA
+)
+```
 
-O hook `useRealtimeSync` (`lib/realtime/useRealtimeSync.ts`, 27KB) implementa:
-- Subscricao a mudancas PostgreSQL via Supabase Realtime
-- Deduplicacao global de eventos INSERT (usando `Map` com TTL de 5s)
-- Invalidacao automatica de React Query caches por tabela
-- Suporte a multiplas tabelas simultaneas (`useRealtimeSyncAll`)
-- Tratamento especial para Kanban (`useRealtimeSyncKanban`) com merge de DealView
+A funcao `composeProviders` cria um pipeline de providers sem aninhamento manual, com `displayName` para debug.
 
-### 4.5 Padrao de IA
+### 4.4 Padrao de Estado Hibrido
 
-**Agente CRM** (`lib/ai/crmAgent.ts`):
-- Baseado no Vercel AI SDK v6 com tool calling
-- Multi-provider: Google Gemini (default), OpenAI, Anthropic
-- 25+ ferramentas de CRM: pipeline analysis, deal CRUD, contact CRUD, activities, stages, email drafts, objecoes
-- Tool approval: acoes destrutivas requerem aprovacao do usuario
-- Streaming via `createAgentUIStreamResponse`
+O sistema usa um padrao hibrido de gerenciamento de estado:
 
-**API de IA:**
-- `POST /api/ai/chat` - Chat principal (streaming)
-- `POST /api/ai/actions` - Acoes de IA (tool calling com approval)
-- `GET/POST /api/ai/tasks/*` - Tasks pre-configuradas (briefing, script, analyze, email)
+| Tipo de Estado | Solucao | Quando Usar |
+|----------------|---------|-------------|
+| Server state (dados do DB) | React Query | Deals, contacts, boards, activities |
+| Client state (UI) | Zustand | Sidebar, modais, busca, loading |
+| Dominio compartilhado | React Context | Auth, theme, AI config |
+| Formularios | React Hook Form + Zod | Create/edit forms |
+| Compatibilidade legado | CRMContext (930 linhas) | Codigo antigo que usa `useCRM()` |
 
-### 4.6 API Publica
+**Direcao de migracao:** CRMContext -> hooks especializados (useDeals, useContacts, etc.)
 
-- **Versionada**: `/api/public/v1/`
-- **RESTful**: CRUD completo para contacts, deals, boards, stages, activities, companies
-- **Autenticacao**: Via `lib/public-api/auth.ts` (API key ou session)
-- **Paginacao**: Cursor-based (`lib/public-api/cursor.ts`)
-- **OpenAPI**: Spec auto-gerada em `/api/public/v1/openapi.json`
-- **Sanitizacao**: Input sanitization via `lib/public-api/sanitize.ts`
-- **Rate Limiting**: Implementado via `lib/rate-limit.ts` (token bucket algorithm)
+### 4.5 Padrao de Data Fetching
+
+```
+[Componente] -> [useXxxQuery hook] -> [React Query] -> [lib/supabase/xxx.ts] -> [Supabase]
+                                            |
+                                     [Cache + Stale]
+                                            |
+                                [Realtime Invalidation]
+```
+
+- Query keys centralizadas em `lib/query/queryKeys.ts` usando factory pattern (`createQueryKeys`)
+- Invalidacao seletiva via Supabase Realtime (`useRealtimeSync`)
+- Mutations otimistas com rollback automatico
+- Prefetch via `lib/prefetch.ts` para SSR
+
+### 4.6 Padrao de IA (Agent)
+
+```
+[Chat UI] -> [POST /api/ai/chat] -> [createCRMAgent()] -> [ToolLoopAgent]
+                                          |                      |
+                                   [Provider Factory]     [27 CRM Tools]
+                                          |                      |
+                                   [Google/OpenAI/Anthropic]  [Supabase]
+```
+
+- **ToolLoopAgent**: Agent com loop de ferramentas (maximo 10 steps)
+- **prepareCall**: Injeta contexto inicial (board, deal, contato, metricas)
+- **prepareStep**: Injeta contexto dinamico (IDs de deals encontrados, memoria da conversa)
+- **Retry com fallback**: OpenAI tem retry com fallback de modelo em 429/5xx
+- **Multi-provider**: Configuravel por organizacao (stored em `organization_settings`)
+- **Defaults**: Gemini 2.5 Flash (Google), GPT-4o (OpenAI), Claude Sonnet 4.6 (Anthropic)
+
+### 4.7 Padrao de Realtime
+
+```
+[Supabase Realtime] -> [useRealtimeSync hook] -> [React Query Invalidation]
+                              |
+                    [Deduplicacao global]
+                    [Map<key, timestamp>]
+                    [TTL: 5 segundos]
+```
+
+Tabelas com realtime: `deals`, `contacts`, `activities`, `boards`, `board_stages`, `prospecting_queues`, `prospecting_saved_queues`, `prospecting_daily_goals`, `organization_settings`.
 
 ---
 
-## 5. Autenticacao & Seguranca
+## 5. Analise de Dependencias
 
-### 5.1 Fluxo de Autenticacao
+### 5.1 Dependencias de Producao (35 pacotes)
 
-```
-Browser Request
-    |
-    v
-middleware.ts (raiz)
-    |
-    v
-lib/supabase/middleware.ts
-    |-- 1. Skip /api/* (Route Handlers tratam auth propria)
-    |-- 2. Verificar Supabase configurado
-    |-- 3. createServerClient (cookies)
-    |-- 4. supabase.auth.getUser() (refresh token)
-    |-- 5. Guard: is_instance_initialized() -> /setup
-    |-- 6. Se nao autenticado + rota protegida -> /login
-    |-- 7. Se autenticado + rota de auth -> /dashboard
-    v
-Response (com cookies atualizados)
-```
+**Core Framework:**
+- `next: ^15.5.12` - Framework fullstack
+- `react: 19.2.1` / `react-dom: 19.2.1` - Versoes fixas (sem ^)
+- `typescript: ^5` - Tipagem
 
-### 5.2 RBAC
+**UI:**
+- 15 pacotes Radix UI (componentes headless)
+- `lucide-react`, `framer-motion`, `class-variance-authority`, `clsx`, `tailwind-merge`
+- `recharts` (graficos), `jspdf` (PDFs), `react-markdown`
 
-Sistema de roles em `lib/auth/roles.ts`:
-- **admin**: Acesso total
-- **diretor**: Acesso a equipe/organizacao
-- **corretor**: Acesso ao proprio portfolio
+**Estado:**
+- `@tanstack/react-query: ^5.90.12`, `zustand: ^5.0.9`, `immer: ^11.0.1`
 
-RLS no PostgreSQL filtra dados por `organization_id` e `owner_id` dependendo do role.
+**Backend:**
+- `@supabase/supabase-js: ^2.87.1`, `@supabase/ssr: ^0.8.0`, `pg: ^8.16.3`
 
-### 5.3 Pontos de Seguranca
+**IA:**
+- `ai: ^6.0.72`, `@ai-sdk/google`, `@ai-sdk/openai`, `@ai-sdk/anthropic`, `@ai-sdk/react`
 
-| Aspecto | Implementacao | Localizacao |
-|---------|--------------|-------------|
-| Autenticacao | Supabase Auth (JWT) | `middleware.ts` |
-| Autorizacao | RLS + RBAC (admin/diretor/corretor) | PostgreSQL policies + `lib/auth/roles.ts` |
-| Same-Origin | Verificacao em API routes | `lib/security/sameOrigin.ts` |
-| LGPD/Consent | Modal de consentimento + tracking | `lib/consent/`, `hooks/useConsent.ts` |
-| AI Tool Approval | Acoes destrutivas requerem confirmacao | `lib/ai/tools.ts` |
-| Rate Limiting | Token bucket na API publica | `lib/rate-limit.ts` |
-| Input Sanitization | Sanitizacao de input na API publica | `lib/public-api/sanitize.ts` |
+**Formularios:**
+- `react-hook-form: ^7.68.0`, `@hookform/resolvers: ^5.2.2`, `zod: ^4.1.13`
 
----
+**Outros:**
+- `@sentry/nextjs: ^10.39.0`, `date-fns: ^4.1.0`, `libphonenumber-js`, `focus-trap-react`, `server-only`
 
-## 6. Modelo de Dados
+### 5.2 Dependencias de Desenvolvimento (15 pacotes)
 
-### 6.1 Tabelas Principais (44 migrations)
+- Vitest + @vitejs/plugin-react + @vitest/coverage-v8
+- Testing Library (react, jest-dom, user-event)
+- ESLint + eslint-config-next
+- Tailwind CSS + PostCSS
+- @faker-js/faker, happy-dom, axe-core, vitest-axe
 
-| Tabela | Descricao | RLS |
-|--------|-----------|-----|
-| `organizations` | Organizacoes (tenant - quem paga o SaaS) | Sim |
-| `organization_settings` | Config por org (AI provider, keys, feature flags) | Sim |
-| `profiles` | Perfis de usuario (estende auth.users, com role, org_id) | Sim |
-| `boards` | Boards/pipelines kanban | Sim |
-| `board_stages` | Estagios de cada board (com linkedLifecycleStage) | Sim |
-| `contacts` | Contatos/leads (com campos imobiliarios: cpf, birth_date, etc.) | Sim |
-| `contact_phones` | Telefones de contatos (multi-phone) | Sim |
-| `contact_preferences` | Preferencias de contato (imobiliarias) | Sim |
-| `deals` | Negocios/oportunidades (com property_ref, metadata JSONB) | Sim |
-| `deal_items` | Itens/produtos de um deal | Sim |
-| `deal_notes` | Notas em deals | Sim |
-| `deal_files` | Arquivos em deals (Supabase Storage) | Sim |
-| `activities` | Atividades (calls, meetings, emails, tasks, status_change) | Sim |
-| `lifecycle_stages` | Estagios de lifecycle dinamicos (lead, mql, prospect, customer) | Sim |
-| `products` | Catalogo de produtos | Sim |
-| `quick_scripts` | Scripts rapidos de vendas | Sim |
-| `notifications` | Sistema de notificacoes | Sim |
-| `lead_score_history` | Historico de lead scoring | Sim |
-| `consents` | Registros LGPD | Sim |
+### 5.3 Alertas de Dependencias
 
-### 6.2 Extensoes PostgreSQL
-
-- `uuid-ossp` - Geracao de UUIDs
-- `pgcrypto` - Criptografia
-- `unaccent` - Busca sem acentos
-- `pg_net` - Webhooks async
-
-### 6.3 RPCs Notaveis
-
-| RPC | Proposito |
-|-----|-----------|
-| `is_instance_initialized` | Guard de setup (usado no middleware) |
-| `reassign_contact_with_deals` | Reatribuicao de contato para outro corretor |
-| `merge_contacts` | Merge de contatos duplicados |
-| `calculate_ltv` | Calculo de LTV de contato |
+| Pacote | Status | Risco | Acao Recomendada |
+|--------|--------|-------|------------------|
+| `zod: ^4.1.13` | Zod v4 (recem-lancado) | MEDIO | Monitorar breaking changes; v4 tem API diferente de v3 |
+| `ai: ^6.0.72` | Atualizavel para ^6.0.111 | BAIXO | Atualizar para ultima minor |
+| `@ai-sdk/google: ^3.0.21` | Atualizavel para ^3.0.37 | BAIXO | Atualizar |
+| `@ai-sdk/openai: ^3.0.25` | Atualizavel para ^3.0.39 | BAIXO | Atualizar |
+| `@ai-sdk/anthropic: ^3.0.37` | Atualizavel para ^3.0.54 | BAIXO | Atualizar |
+| `@ai-sdk/react: ^3.0.74` | Atualizavel para ^3.0.113 | BAIXO | Atualizar |
+| `@sentry/nextjs: ^10.39.0` | v10 (major recente) | BAIXO | Verificar changelog |
+| `react: 19.2.1` (fixo) | Sem ^ (versao pinada) | INFO | Intencional para estabilidade |
 
 ---
 
-## 7. Build, Deploy & CI/CD
+## 6. Pontos de Integracao
 
-### 7.1 Build Configuration
+### 6.1 Supabase (Principal)
 
-**Next.js (`next.config.ts`):**
-- Turbopack habilitado (`next dev --turbopack`)
-- `optimizePackageImports`: lucide-react, recharts, date-fns (reduz bundle 15-25KB)
-- Sentry condicionalmente habilitado (wraps config se `NEXT_PUBLIC_SENTRY_DSN` existe)
-- Custom headers para Service Worker (no-cache)
+| Servico | Uso | Arquivos-Chave |
+|---------|-----|----------------|
+| Auth | Login/logout, sessao, refresh via middleware | `lib/supabase/client.ts`, `lib/supabase/server.ts`, `lib/supabase/middleware.ts` |
+| Database (PostgreSQL) | CRUD completo, RLS, RPCs | `lib/supabase/*.ts` (13 service modules) |
+| Realtime | Sync multi-usuario | `lib/realtime/useRealtimeSync.ts` |
+| Storage | Arquivos de deals | `lib/supabase/dealFiles.ts` |
+| Edge Functions | Funcoes serverless | `supabase/functions/` |
 
-**TypeScript (`tsconfig.json`):**
-- Target: ES2022
-- Module: ESNext com bundler resolution
-- `strict: true` habilitado
-- `incremental: true` com buildinfo
-- Path alias `@/*` mapeando para raiz
-- Excludes: node_modules, test, **/*.test.*, supabase/functions
+**Ambientes:**
+- Producao: `fkfqwxjrgfuerysaxayr` (Oregon)
+- Staging: `xbwbwnevtpmmehgxfvcp` (Sao Paulo)
+- Local: `localhost:54321`
 
-**Vitest (`vitest.config.ts`):**
-- Environment: happy-dom (DOM leve)
-- Setup files: `test/setup.ts` + `test/setup.dom.ts`
-- Include: `**/*.{test,spec}.{ts,tsx}`
-- Timeout: 60s (test + hook)
-- Coverage via v8
+### 6.2 Provedores de IA
 
-**ESLint (`eslint.config.mjs`):**
-- Flat config (ESLint v9)
-- Extends: next/core-web-vitals
-- `@typescript-eslint/no-explicit-any`: off
-- `@typescript-eslint/no-unused-vars`: off
-- `react-hooks/exhaustive-deps`: off
-- Custom rule: ban raw `<button>` em favor de `<Button>` do design system
-- Ignores: .next, .aios-core, .antigravity, .gemini, squads, coverage
+| Provider | Default Model | Fallback | Config |
+|----------|--------------|----------|--------|
+| Google (Gemini) | gemini-2.5-flash | N/A | API key em `organization_settings` |
+| OpenAI | gpt-4o | Retry com fallback em 429/5xx | API key em `organization_settings` |
+| Anthropic | claude-sonnet-4-6 | N/A | API key em `organization_settings` |
 
-### 7.2 CI Pipeline (GitHub Actions)
+**Nota:** O provider e modelo sao configuraveis por organizacao via `organization_settings` no Supabase.
 
+### 6.3 Vercel
+
+- Deploy automatico via Git push
+- Preview deployments por branch (usa staging Supabase)
+- Producao em merge para `main` (usa producao Supabase)
+- Environment variables gerenciadas no Vercel dashboard
+
+### 6.4 Sentry
+
+- Error tracking condicional (so ativa se `NEXT_PUBLIC_SENTRY_DSN` esta definido)
+- Client, server e edge configs separados
+- Session replay para debug em producao
+
+### 6.5 GitHub Actions (CI)
+
+4 jobs paralelos com dependencia:
 ```
-on: push/PR to main/develop
-    |
-    |--> lint (ESLint, max-warnings 0)
-    |--> typecheck (tsc --noEmit)
-    |--> test (vitest run)
-    |
-    v (all pass)
-    build (next build)
+lint ─────┐
+typecheck ─┤─→ build
+test ──────┘
 ```
 
-- Concurrency: cancela runs anteriores do mesmo branch
-- Node.js 20 com npm cache
-- Build depende de lint + typecheck + test passarem
+### 6.6 API Publica
 
-### 7.3 Deploy (Vercel)
-
-| Ambiente | Branch | Supabase |
-|----------|--------|----------|
-| Preview | qualquer branch != main | Staging (`xbwbwnevtpmmehgxfvcp`, Sao Paulo) |
-| Production | main | Producao (`fkfqwxjrgfuerysaxayr`, Oregon) |
-
-- `.vercel/project.json` configurado
-- Env vars separadas por scope na Vercel
-- Migrations: `supabase db push` (staging por default, producao requer `--db-url` explicito)
-
-### 7.4 PWA
-
-- Service Worker registrado via `components/pwa/ServiceWorkerRegister.tsx`
-- Install Banner via `components/pwa/InstallBanner.tsx`
-- Manifest gerado em `app/manifest.ts` com icones SVG + PNG
-- `display: 'standalone'`, start_url: `/boards`
-- Headers customizados para `sw.js`: no-cache
+- REST API em `/api/public/v1/`
+- Autenticacao via API key
+- Rate limiting: 60 req/min por IP (in-memory sliding window)
+- OpenAPI spec em `lib/public-api/openapi.ts` (27K linhas)
+- Cursor-based pagination
+- Input sanitization
 
 ---
 
-## 8. Variaveis de Ambiente
+## 7. Configuracao
 
-### 8.1 Obrigatorias
+### 7.1 Variaveis de Ambiente
 
-| Variavel | Escopo | Proposito |
-|----------|--------|-----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Client + Server | URL do projeto Supabase |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client + Server | Chave publica (ou fallback `NEXT_PUBLIC_SUPABASE_ANON_KEY`) |
-| `SUPABASE_SECRET_KEY` | Server only | Service role key (ou fallback `SUPABASE_SERVICE_ROLE_KEY`) |
+**Obrigatorias:**
+- `NEXT_PUBLIC_SUPABASE_URL` - URL do projeto Supabase
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (ou `NEXT_PUBLIC_SUPABASE_ANON_KEY`) - Chave publica
+- `SUPABASE_SECRET_KEY` (ou `SUPABASE_SERVICE_ROLE_KEY`) - Chave de servico (server-only)
 
-### 8.2 Opcionais
+**Opcionais:**
+- `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT` - Sentry
+- `INSTALLER_ENABLED`, `INSTALLER_TOKEN` - Wizard de instalacao
+- `ALLOW_AI_TEST_ROUTE` - Habilita rota de teste IA
+- `ALLOW_UI_MOCKS_ROUTE` - Habilita paginas mock (labs)
+- `AI_TOOL_APPROVAL_BYPASS` - Bypass aprovacao de tools IA
+- `AI_TOOL_CALLS_DEBUG` - Log de tool calls IA
+- `NEXT_PUBLIC_DEBUG_REALTIME` - Log de eventos realtime
 
-| Variavel | Escopo | Proposito |
-|----------|--------|-----------|
-| `NEXT_PUBLIC_SENTRY_DSN` | Client + Server | DSN do Sentry (habilita error tracking) |
-| `SENTRY_ORG` | Build time | Organizacao Sentry (sourcemaps upload) |
-| `SENTRY_PROJECT` | Build time | Projeto Sentry (sourcemaps upload) |
-| `INSTALLER_ENABLED` | Server | Habilita wizard de instalacao |
-| `INSTALLER_TOKEN` | Server | Token para wizard |
-| `ALLOW_AI_TEST_ROUTE` | Server | Habilita `/api/ai/test` e `/ai-test` |
-| `ALLOW_UI_MOCKS_ROUTE` | Server | Habilita `/labs/*` mock pages |
-| `AI_TOOL_APPROVAL_BYPASS` | Server | Bypass de aprovacao de tools IA |
-| `AI_TOOL_CALLS_DEBUG` | Server | Log de chamadas de tools IA |
-| `NEXT_PUBLIC_DEBUG_REALTIME` | Client | Log de eventos realtime |
+### 7.2 Configuracoes de Build
 
-### 8.3 Configuracao de AI (via Banco)
-
-API keys de AI providers sao armazenadas na tabela `organization_settings`, nao em env vars. Cada organizacao configura seu proprio provider (Google, OpenAI, Anthropic) e chave.
+- **next.config.ts**: `optimizePackageImports` para lucide-react, recharts, date-fns
+- **Turbopack**: Habilitado para dev (`next dev --turbopack`)
+- **ESLint**: `@typescript-eslint/no-explicit-any: off`, `react-hooks/exhaustive-deps: off`, ban `<button>` em favor de `<Button>`
+- **Vitest**: `happy-dom` environment, 60s timeout, `@/` path alias
 
 ---
 
-## 9. Testes
+## 8. Inventario de Debito Tecnico
 
-### 9.1 Distribuicao de Testes
+### 8.1 CRITICO
 
-| Categoria | Arquivos | Localizacao |
-|-----------|----------|-------------|
-| Unitarios - Utils | 9 | `lib/utils/__tests__/`, `lib/utils/csv.test.ts` |
-| Unitarios - Services | 4 | `lib/supabase/__tests__/`, `lib/stores/__tests__/` |
-| Unitarios - Query | 1 | `lib/query/__tests__/cache-integrity.test.ts` |
-| Unitarios - Security | 3 | `lib/security/__tests__/`, `lib/auth/__tests__/`, `lib/public-api/__tests__/` |
-| Unitarios - Validations | 1 | `lib/validations/__tests__/` |
-| Unitarios - AI | 2 | `lib/ai/__tests__/` |
-| Unitarios - A11y | 4 | `lib/a11y/__tests__/`, `lib/a11y/test/` |
-| Unitarios - Realtime | 1 | `lib/realtime/__tests__/` |
-| Componentes UI | 3 | `components/ui/FormField.test.tsx`, `Modal.test.tsx`, `ConfirmModal.test.tsx` |
-| Componentes Feature | 3 | `features/boards/`, `features/deals/`, `features/inbox/`, `features/settings/` |
-| Hooks | 1 | `hooks/__tests__/useCRMActions.guard.test.ts` |
-| Integracao | 6 | `test/` (rate-limit, middleware, RBAC, multi-tenant, salesTeam, publicAPI) |
-| User Stories | 1 | `test/stories/US-001-abrir-deal-no-boards.test.tsx` |
-| AIOS Framework | 9 | `.aios-core/` (permissions, workflow-intelligence, infrastructure) |
-| **Total** | **~51** | |
+#### DT-001: CRMContext Monolito (930 linhas)
 
-### 9.2 Cobertura
+**Arquivo:** `context/CRMContext.tsx`
+**Descricao:** Contexto monolitico que agrega deals, contacts, activities, boards, AI config, settings, custom fields, tags, e estado de UI em uma unica interface de ~180 propriedades. Qualquer mudanca causa re-render em todos os consumidores.
+**Impacto:** Performance (re-renders desnecessarios), manutenibilidade (arquivo enorme), acoplamento alto.
+**Mitigacao em andamento:** Contexts especializados ja existem (DealsContext, ContactsContext, etc.) mas CRMContext ainda e amplamente usado como camada de compatibilidade.
+**Recomendacao:** Migrar consumidores restantes para hooks especializados (useDeals, useContacts, etc.) e eventualmente remover CRMContext.
 
-- Ratio arquivo/teste: ~11.6% (51 testes / 438 arquivos fonte)
-- Areas com ZERO cobertura: maioria dos features/, contexts/, API routes, AI agent
-- Areas com boa cobertura: lib/utils/, lib/security/, lib/a11y/
+#### DT-002: BASE_INSTRUCTIONS Hardcoded no crmAgent.ts
 
-### 9.3 Configuracao de Testes
+**Arquivo:** `lib/ai/crmAgent.ts:404-439`
+**Descricao:** O system prompt do agente de IA e um template literal hardcoded que lista "15 ferramentas disponiveis" quando na verdade existem 27. O prompt ignora completamente o catalogo de prompts em `lib/ai/prompts/catalog.ts` e a tabela `ai_prompt_templates` no banco. Editar prompts no admin nao tem efeito no agente.
+**Impacto:** IA desatualizada (nao conhece 12 tools), configuracao de prompts via admin nao funciona.
+**Recomendacao:** Refatorar para usar `getResolvedPrompt('agent_crm_base_instructions')` do catalogo, e gerar lista de ferramentas dinamicamente a partir de `createCRMTools()`.
 
-- Runner: Vitest v4 com happy-dom
-- Setup: `test/setup.ts` (mocks globais) + `test/setup.dom.ts` (DOM helpers)
-- Accessibility: axe-core + vitest-axe
-- Fixtures: `test/helpers/fixtures.ts`, `test/helpers/salesTeamFixtures.ts`
-- Timeout: 60 segundos
+#### DT-003: ESLint `no-explicit-any: off`
 
----
+**Arquivo:** `eslint.config.mjs:57`
+**Descricao:** Regra `@typescript-eslint/no-explicit-any` desabilitada globalmente. Existem 209 ocorrencias de `any` em 51 arquivos dentro de `lib/`.
+**Impacto:** Seguranca de tipos comprometida, bugs em runtime que TypeScript deveria pegar.
+**Recomendacao:** Habilitar como `warn`, corrigir progressivamente, priorizar `lib/supabase/` e `lib/ai/`.
 
-## 10. Fluxos Arquiteturais
+### 8.2 ALTO
 
-### 10.1 Autenticacao
+#### DT-004: Modulo de Prospeccao Invisivel para a IA
 
-```
-Browser ---> middleware.ts ---> lib/supabase/middleware.ts
-                                    |
-                                    |-- Skip /api/*
-                                    |-- createServerClient (cookies)
-                                    |-- auth.getUser() (refresh)
-                                    |-- Guard: is_instance_initialized() -> /setup
-                                    |-- Not auth + protected -> /login
-                                    |-- Auth + login -> /dashboard
-                                    v
-                                Response (cookies updated)
-```
+**Descricao:** O modulo de prospeccao (`features/prospecting/` com 24 componentes, 7 hooks) nao possui nenhuma ferramenta de IA correspondente. O agente nao consegue interagir com filas de prospeccao, power dialer, metas diarias, scripts ou metricas.
+**Arquivos afetados:** `lib/ai/tools/` (falta: prospecting-tools.ts), `lib/ai/crmAgent.ts`
+**Impacto:** Funcionalidade de IA incompleta para o modulo mais ativo do sistema.
+**Recomendacao:** Criar `lib/ai/tools/prospecting-tools.ts` com ferramentas para filas, metas, scripts e metricas.
 
-### 10.2 Data Flow (Read)
+#### DT-005: `property_ref` e `metadata` Invisiveis nas Tools
 
-```
-Component
-    |-- useContacts() / useDeals() / useBoards()  [React Context hooks]
-    |       |
-    |       v
-    |   Context Provider (DealsContext, ContactsContext, etc.)
-    |       |-- useDealsQuery() / useContactsQuery()  [TanStack Query hooks]
-    |       |       |
-    |       |       v
-    |       |   QueryClient (cache, stale time 5min, GC 30min)
-    |       |       |
-    |       |       v
-    |       |   lib/supabase/deals.ts (service)
-    |       |       |
-    |       |       v
-    |       |   Supabase JS Client -> PostgreSQL (RLS applied)
-    |       |
-    |       |-- useRealtimeSync('deals')  [Realtime subscription]
-    |               |
-    |               v
-    |           Supabase Realtime Channel
-    |               |-- INSERT/UPDATE/DELETE event
-    |               v
-    |           queryClient.invalidateQueries()
-    |
-    v
-UI renders with cached data
-```
+**Descricao:** Campos adicionados em migrations recentes (`property_ref` em deals - migration 20260303120000, `metadata` JSONB em activities - migration 20260303130000) nao estao expostos nas ferramentas de IA nem nas interfaces de busca/criacao.
+**Impacto:** Dados existem no DB mas nao sao acessiveis via IA ou busca.
+**Recomendacao:** Expor `property_ref` em deal-tools.ts e `metadata` em activity-tools.ts.
 
-### 10.3 Data Flow (Write - Optimistic)
+#### DT-006: Tipagem `any` no Supabase Client Export
 
-```
-User Action (ex: criar deal)
-    |
-    v
-CRMContext.addDeal()
-    |-- 1. Optimistic insert (temp ID) via queryClient.setQueryData()
-    |-- 2. Contact resolution (find existing or create new)
-    |-- 3. Server call: addDealState() -> dealsService.createDeal()
-    |-- 4. Replace temp deal with real deal in cache
-    |-- 5. Create "Deal Criado" activity
-    v
-UI already showed deal (step 1), now confirmed
-```
+**Arquivo:** `lib/supabase/client.ts:40`
+**Descricao:** `export const supabase: SupabaseClient = createClient() as SupabaseClient` - cast para non-null de algo que pode ser null em dev sem `.env`. Se `createClient()` retorna null (env nao configurado), o cast silencia o erro e causa crash em runtime.
+**Impacto:** Crash silencioso em ambientes sem configuracao Supabase.
+**Recomendacao:** Manter o cast mas adicionar um assertion guard no topo dos service modules.
 
-### 10.4 AI Agent Flow
+#### DT-007: Rate Limiter In-Memory
 
-```
-UIChat Component (client)
-    |
-    v
-POST /api/ai/chat
-    |-- 1. Auth check (Supabase session)
-    |-- 2. Load profile + organization_settings
-    |-- 3. getModel(provider, apiKey, modelId) [multi-provider]
-    |-- 4. createCRMAgent(context, tools)
-    |-- 5. Stream response via createAgentUIStreamResponse
-    |       |
-    |       |-- Tool call detected
-    |       |       |
-    |       |       v
-    |       |   Tool execution (staticAdminClient - service role)
-    |       |   (se destructive: return pending approval)
-    |       |
-    |       v
-    |   Stream tokens to client
-    v
-UIChat renders markdown + tool results
-```
+**Arquivo:** `lib/rate-limit.ts`
+**Descricao:** Rate limiter usa `Map<string, number[]>` in-memory. Em deploy serverless (Vercel), cada invocacao pode ter uma instancia separada, tornando o rate limiting ineficaz.
+**Impacto:** Rate limiting nao funciona de forma consistente em producao serverless.
+**Recomendacao:** Migrar para rate limiting baseado em Redis/Upstash ou usar Vercel Edge Middleware com KV.
 
-### 10.5 Hierarquia de Providers
+#### DT-008: `exhaustive-deps` Desabilitado
 
-```
-<html> (RootLayout)
-  <body>
-    <ServiceWorkerRegister />
-    <InstallBanner />
-    {children}  <-- Router decides:
-      |
-      |-- Public routes: /login, /join, /install
-      |       (no providers, no shell)
-      |
-      |-- Protected routes: /(protected)/*
-              |
-              v
-          <Providers>  (composeProviders)
-            <QueryProvider>        [1. TanStack Query]
-              <ToastProvider>      [2. Toast notifications]
-                <ThemeProvider>    [3. Dark/light theme]
-                  <AuthProvider>   [4. Supabase auth]
-                    <SettingsProvider>  [5. Org settings]
-                      <BoardsProvider>   [6. Boards/pipelines]
-                        <ContactsProvider>  [7. Contacts]
-                          <ActivitiesProvider>  [8. Activities]
-                            <DealsProvider>   [9. Deals]
-                              <AIProvider>   [10. AI state]
-                                <Layout>     [App shell: sidebar + header]
-                                  {children}
-```
+**Arquivo:** `eslint.config.mjs:63`
+**Descricao:** `react-hooks/exhaustive-deps: off` desabilitado globalmente.
+**Impacto:** Hooks com dependencias faltantes podem causar bugs de stale closure, re-renders infinitos ou efeitos que nao re-executam quando deveriam.
+**Recomendacao:** Habilitar como `warn`, revisar e corrigir os casos existentes.
 
----
+### 8.3 MEDIO
 
-## 11. Debitos Tecnicos
+#### DT-009: Layout.tsx (505 linhas)
 
-### 11.1 CRITICO
+**Arquivo:** `components/Layout.tsx`
+**Descricao:** Componente de layout principal com 505 linhas que inclui sidebar, navigation, e logica de responsividade misturados.
+**Impacto:** Dificil de manter e testar.
+**Recomendacao:** Extrair para componentes menores: Sidebar, TopBar, MobileNav.
 
-| ID | Debito | Impacto | Localizacao |
-|----|--------|---------|-------------|
-| TD-001 | **Admin client (service role) bypassa RLS para AI tools** | Qualquer bug nas AI tools pode vazar dados entre organizacoes. O `createStaticAdminClient()` usa service role key sem nenhum filtro adicional de tenant, dependendo inteiramente da logica do tool para filtrar por `organization_id`. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/lib/supabase/server.ts` (createStaticAdminClient), `lib/ai/tools/` |
-| TD-002 | **AI API keys armazenadas como texto plano no banco** | Chaves de API de providers IA (OpenAI, Google, Anthropic) sao armazenadas como texto plano na tabela `organization_settings`. Sem criptografia em repouso. Se o banco for comprometido, todas as keys ficam expostas. | Tabela `organization_settings`, `lib/supabase/settings.ts` |
-| TD-003 | **Debug logging com endpoint externo em producao** | `CRMContext.tsx` contem multiplos blocos de debug que fazem `fetch('http://127.0.0.1:7242/ingest/...')`. Embora protegidos por `NODE_ENV !== 'production'`, os blocos adicionam ~150 linhas de codigo morto e o UUID do endpoint esta hardcoded. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/context/CRMContext.tsx` (linhas 358-538) |
+#### DT-010: useRealtimeSync.ts (590 linhas)
 
-### 11.2 ALTO
+**Arquivo:** `lib/realtime/useRealtimeSync.ts`
+**Descricao:** Hook monolitico que gerencia subscricoes Realtime para 9 tabelas com logica de deduplicacao, query invalidation, e logging de debug.
+**Impacto:** Complexo de debugar e testar (apenas 1 teste para presets).
+**Recomendacao:** Extrair logica de deduplicacao e invalidacao para funcoes puras testadas separadamente.
 
-| ID | Debito | Impacto | Localizacao |
-|----|--------|---------|-------------|
-| TD-004 | **Cobertura de testes baixa (11.6%)** | 51 arquivos de teste para 438 arquivos fonte. Areas criticas com ZERO testes: maioria dos features/, todos os contexts/, todos os API routes, AI agent, middleware de auth. Risco alto de regressoes nao detectadas. | Projeto inteiro |
-| TD-005 | **CRMContext como "God Context" (930 linhas)** | Agrega 5 sub-contextos, contem logica de negocio complexa (addDeal com optimistic updates, contact resolution, wallet health, stagnant deals), projeta views denormalizadas. Qualquer mudanca pode causar re-renders em cascata em toda a aplicacao. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/context/CRMContext.tsx` |
-| TD-006 | **Duplicacao de estado: Context API + Zustand** | O sistema usa Context API para estado de dominio E Zustand para estado de UI, com sobreposicao (ex: `isGlobalAIOpen` existe em ambos). `CRMContext` depende de 5 sub-contextos que por sua vez dependem de React Query. Complexidade excessiva. | `context/`, `lib/stores/` |
-| TD-007 | **Todas as paginas protegidas sao client components** | O layout `(protected)/layout.tsx` chama `<Providers>` que e `'use client'`, forcando toda a sub-arvore a ser client-rendered. Perde beneficios de Server Components, streaming, e Suspense boundaries nativas do App Router. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/app/(protected)/providers.tsx` |
-| TD-008 | **BoardCreationWizard.tsx com 75KB** | Maior arquivo do projeto. Componente monolitico que deveria ser decomposto em steps menores. Dificil de testar, manter e fazer code review. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/features/boards/components/BoardCreationWizard.tsx` |
-| TD-009 | **Nenhum error.tsx em route segments** | O App Router suporta `error.tsx` por segmento de rota para error boundaries granulares. O projeto so tem `global-error.tsx` (raiz) e um `ErrorBoundary` generico em `app/components/ui/`. Erros em features individuais propagam ate o topo. | `app/(protected)/` (nenhum error.tsx encontrado) |
-| TD-010 | **Nenhum not-found.tsx** | O App Router suporta `not-found.tsx` por segmento. O projeto nao tem nenhum, resultando na pagina 404 default do Next.js. | `app/` (nenhum not-found.tsx encontrado) |
-| TD-011 | **ESLint rules desabilitadas** | `@typescript-eslint/no-explicit-any: off` e `@typescript-eslint/no-unused-vars: off` desabilitam protecoes importantes. `react-hooks/exhaustive-deps: off` permite bugs de stale closures silenciosos. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/eslint.config.mjs` |
+#### DT-011: Enum WHATSAPP Faltando nas Activity Tools
 
-### 11.3 MEDIO
+**Arquivo:** `lib/ai/tools/activity-tools.ts`
+**Descricao:** O enum de tipos de atividade no AI tools lista `['CALL','MEETING','EMAIL','TASK']` mas o sistema aceita `WHATSAPP` (usado no prompt e nos clientes).
+**Impacto:** IA nao consegue criar ou buscar atividades do tipo WHATSAPP.
+**Recomendacao:** Adicionar `'WHATSAPP'` ao schema da ferramenta.
 
-| ID | Debito | Impacto | Localizacao |
-|----|--------|---------|-------------|
-| TD-012 | **Endpoint /api/chat e re-export vazio** | `app/api/chat/route.ts` contem apenas uma linha re-exportando de `/api/ai/chat`. Rota duplicada sem proposito claro, potencial confusao. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/app/api/chat/route.ts` |
-| TD-013 | **Labs com mocks acessiveis em producao** | Diretorio `app/(protected)/labs/` contem mock cockpits que sao acessiveis em qualquer deploy. Deveria ser protegido por feature flag ou removido em producao. | `app/(protected)/labs/` |
-| TD-014 | **useRealtimeSync.ts com 27KB** | Hook monolitico com deduplicacao global, tratamento especial para Kanban, e multiplas variantes. Deveria ser decomposto em hooks menores e mais focados. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/lib/realtime/useRealtimeSync.ts` |
-| TD-015 | **Loading states apenas em 4 paginas** | So `boards`, `contacts`, `inbox` e `deals/cockpit` tem `loading.tsx`. Dashboard, activities, reports, settings e outras paginas nao tem, resultando em tela branca durante carregamento. | `app/(protected)/` |
-| TD-016 | **Sem internationalizacao (i18n)** | Todo o UI esta hardcoded em portugues brasileiro. Zero arquivos de traducao ou uso de bibliotecas i18n. Strings de UI espalhadas por dezenas de componentes. Bloqueio para mercados internacionais. | Projeto inteiro |
-| TD-017 | **Supabase client pode ser null** | `lib/supabase/client.ts` retorna `SupabaseClient | null` mas faz cast para `SupabaseClient` na exportacao. Se env vars nao estiverem configuradas, causa crash em runtime sem mensagem clara. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/lib/supabase/client.ts` (linha 40) |
-| TD-018 | **Provider nesting profundo (10 niveis)** | O `composeProviders` empilha 10 providers. Embora otimizado com composicao, cada provider adiciona overhead e complexidade de debug quando algo falha. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/app/(protected)/providers.tsx` |
-| TD-019 | **Installer endpoint complex (13 routes)** | O sistema de instalacao tem 13 API routes para gerenciar Supabase, Vercel, migrations, bootstrap, etc. Complexidade significativa que so roda uma vez por instancia. | `app/api/installer/` |
-| TD-020 | **pg em dependencies** | Driver PostgreSQL direto (`pg`) como dependencia em producao. Supabase JS ja abstrai o acesso ao banco. O `pg` parece ser usado apenas pelo installer e possivelmente AI tools. | `package.json` |
+#### DT-012: Quick Scripts Desconectados da IA
 
-### 11.4 BAIXO
+**Arquivo:** `lib/supabase/quickScripts.ts`, `lib/ai/tools/`
+**Descricao:** Tabela `quick_scripts` existe com 6 categorias (followup, objection, closing, intro, rescue, other) mas nao ha ferramentas de IA para listar, sugerir ou usar scripts. `generateSalesScript` gera texto solto que nao persiste.
+**Impacto:** IA nao consegue ajudar com scripts de vendas.
+**Recomendacao:** Criar ferramenta IA para listagem e sugestao de scripts.
 
-| ID | Debito | Impacto | Localizacao |
-|----|--------|---------|-------------|
-| TD-021 | **Tailwind config JS com Tailwind v4** | `tailwind.config.js` mantido para content scanning, mas Tailwind v4 usa CSS `@theme` em `globals.css`. Potencial conflito de configuracao ou duplicacao. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/tailwind.config.js` |
-| TD-022 | **.DS_Store commitados** | Artefatos macOS presentes em `context/` e `app/`. Deveria estar no `.gitignore`. | `context/.DS_Store`, `app/.DS_Store` |
-| TD-023 | **ErrorBoundary em localizacao nao-padrao** | O `ErrorBoundary` esta em `app/components/ui/` em vez de `components/ui/` ou `components/`. Importacoes usam `@/app/components/ui/ErrorBoundary` que e incomum. | `/Users/felipezacker/Desktop/code/ZmobCRM-Brownfield/app/components/ui/ErrorBoundary.tsx` |
-| TD-024 | **Button importado de dois locais** | `ErrorBoundary` importa `Button` de `@/app/components/ui/Button`, mas o design system principal tem `button.tsx` em `components/ui/`. Dois Buttons potencialmente diferentes. | `app/components/ui/`, `components/ui/button.tsx` |
-| TD-025 | **hardcoded avatar URLs** | `'https://i.pravatar.cc/150?u=me'` e `'Eu'` hardcoded em varios locais como fallback de owner. | `context/CRMContext.tsx` |
+#### DT-013: Tags/Custom Fields em Contacts Sem Exposure nas Tools
+
+**Descricao:** Tags e custom fields foram movidos de deals para contacts (migration 20260227220048) mas as tools de IA nao aceitam esses campos como input/filtro.
+**Impacto:** IA nao pode filtrar contatos por tags ou campos customizados.
+**Recomendacao:** Expor em contact-tools.ts.
+
+#### DT-014: Lead Score Tool Existente mas Nao Mencionada no Prompt
+
+**Descricao:** Tool `getLeadScore` existe mas o BASE_INSTRUCTIONS nao a menciona, entao o agente nao sabe que pode usar.
+**Impacto:** Funcionalidade de lead scoring subutilizada.
+**Recomendacao:** Incluir no prompt (ver DT-002).
+
+#### DT-015: Pacotes AI SDK Desatualizados
+
+**Descricao:** 6 pacotes AI SDK estao atras das ultimas versoes (incrementos minor).
+**Impacto:** Potenciais bug fixes e melhorias nao aproveitados.
+**Recomendacao:** Atualizar para ultimas minor versions.
+
+#### DT-016: OpenAPI Spec Monolitica
+
+**Arquivo:** `lib/public-api/openapi.ts` (27.7K linhas)
+**Descricao:** Especificacao OpenAPI como um unico objeto TypeScript de 27K+ linhas.
+**Impacto:** Extremamente dificil de manter e revisar.
+**Recomendacao:** Separar em modulos por recurso (deals, contacts, boards) e compor.
+
+### 8.4 BAIXO
+
+#### DT-017: ProspectingPage.tsx (32K)
+
+**Arquivo:** `features/prospecting/ProspectingPage.tsx`
+**Descricao:** Componente de pagina com 32KB que orquestra 24 sub-componentes. Embora delegue bem para componentes filhos, e um arquivo grande.
+**Impacto:** Complexidade visual alta.
+**Recomendacao:** Extrair logica de orquestracao para um hook `useProspectingPage`.
+
+#### DT-018: boards.ts Service Module (924 linhas)
+
+**Arquivo:** `lib/supabase/boards.ts`
+**Descricao:** Service module com 924 linhas contendo 209 ocorrencias de `any` e logica complexa de boards, stages, deal filtering e ordenacao.
+**Impacto:** Tipagem fraca, logica complexa num unico arquivo.
+**Recomendacao:** Separar em `boards-service.ts`, `stages-service.ts`, e melhorar tipagem.
+
+#### DT-019: Sem Testes E2E
+
+**Descricao:** Nao ha testes E2E (Playwright ou Cypress). O `.playwright-mcp/` existe para MCP browser automation mas nao para testes automatizados.
+**Impacto:** Fluxos criticos (login, criar deal, mover no kanban) nao sao testados end-to-end.
+**Recomendacao:** Implementar testes E2E para os 5 fluxos criticos.
+
+#### DT-020: Dark Mode via Script Inline + Class Toggle
+
+**Arquivo:** `app/layout.tsx:32-39`
+**Descricao:** Dark mode implementado via script inline no `<head>` que le localStorage e remove classe `dark`. Funcional mas fragil e nao-padronizado.
+**Impacto:** Flash de tema incorreto possivel, duplicacao de logica com ThemeContext.
+**Recomendacao:** Consolidar via `next-themes` ou cookie-based theme detection.
+
+#### DT-021: Deprecacoes Legado Acumuladas
+
+**Arquivo:** `types/types.ts`
+**Descricao:** Multiplos tipos marcados como `@deprecated`: `DealStatus` enum, `ContactStage` enum, `Lead` interface, `OrganizationId` type alias. O sistema migrou para modelos mais flexiveis (lifecycle stages, deal.isWon/isLost) mas os tipos antigos permanecem.
+**Impacto:** Confusao para novos desenvolvedores, imports desnecessarios.
+**Recomendacao:** Remover tipos deprecated em uma major version.
+
+#### DT-022: Tailwind Config Residual
+
+**Arquivo:** `tailwind.config.js`
+**Descricao:** Config JS existe mas esta praticamente vazio (tema em `globals.css` via `@theme`). O sistema usa Tailwind v4 com config via CSS, tornando o arquivo JS redundante.
+**Impacto:** Confusao sobre onde configurar Tailwind.
+**Recomendacao:** Verificar se pode ser removido completamente (Tailwind v4 pode nao precisar dele).
 
 ---
 
-## 12. Recomendacoes Prioritarias
+## 9. Mapeamento de Testes
 
-### Prioridade 1 (Critico - Fazer Agora)
+### 9.1 Distribuicao de Testes (65 arquivos)
 
-1. **Eliminar debug logging do CRMContext** - Remover todos os blocos `#region agent log` que fazem fetch para `http://127.0.0.1:7242`. Sao ~150 linhas de codigo morto com UUID hardcoded.
+| Area | Arquivos | Cobertura |
+|------|----------|-----------|
+| `features/prospecting/` | 25 | Excelente (componentes, hooks, utils) |
+| `lib/` (a11y, ai, auth, public-api, query, realtime, security, stores, supabase, utils, validations) | 25 | Moderada (utilitarios cobertos, services parcial) |
+| `test/` (globais) | 9 | Integracao (RBAC, multiTenant, rate-limit, middleware, salesTeamMatrix, publicApi, user stories) |
+| `components/ui/` | 3 | Baixa (apenas ConfirmModal, FormField, Modal) |
+| `hooks/` | 1 | Muito baixa (apenas useCRMActions guard) |
+| `context/` | 1 | Muito baixa (apenas ToastContext) |
+| `features/` (outros) | 1 | Muito baixa (apenas SettingsPage RBAC, DealDetailModal, cockpit-utils) |
 
-2. **Proteger AI tools com filtro de tenant explicito** - Criar um wrapper que injete `organization_id` em todas as queries do admin client, evitando bypass acidental de RLS. Alternativa: usar client autenticado (com RLS) e conceder permissoes especificas via roles PostgreSQL.
+### 9.2 Gaps de Teste Criticos
 
-3. **Criptografar API keys no banco** - Usar Supabase Vault ou `pgcrypto` para criptografar chaves de AI providers em `organization_settings`. Keys devem ser decriptadas apenas server-side no momento do uso.
-
-### Prioridade 2 (Alto - Proximo Sprint)
-
-4. **Decompor CRMContext** - Extrair logica de negocio (optimistic updates, wallet health, stagnant deals) para hooks dedicados. Manter CRMContext apenas como thin wrapper de compatibilidade, com deprecation notice.
-
-5. **Adicionar error.tsx e not-found.tsx** - Criar error boundaries por segmento de rota para melhor UX em caso de falhas. Pelo menos `(protected)/error.tsx` e `(protected)/not-found.tsx`.
-
-6. **Habilitar ESLint rules** - Reabilitar `no-explicit-any` (pelo menos como warn) e `no-unused-vars`. Corrigir violacoes gradualmente. `exhaustive-deps` pode ficar como warn.
-
-7. **Adicionar testes para areas criticas** - Priorizar testes para: API routes (especialmente `public/v1/`), AI agent tools, middleware de autenticacao, CRMContext (optimistic updates).
-
-### Prioridade 3 (Medio - Roadmap)
-
-8. **Decompor BoardCreationWizard** - Extrair em componentes menores por step do wizard. Objetivo: nenhum componente acima de 500 linhas.
-
-9. **Adicionar loading.tsx para todas as paginas** - Dashboard, activities, reports, settings, profile, notifications devem ter loading states.
-
-10. **Investigar SSR para paginas protegidas** - Avaliar se e possivel mover providers para server-side ou usar interleaved pattern (RSC + Client) para melhorar performance de primeiro load.
-
-11. **Consolidar sistema de estado** - Definir claramente fronteiras: Zustand para UI, React Query para server state. Eliminar duplicacao entre Context e Zustand (ex: `isGlobalAIOpen`).
+| Gap | Severidade | Descricao |
+|-----|-----------|-----------|
+| CRMContext | CRITICO | Contexto de 930 linhas sem nenhum teste |
+| AuthContext | ALTO | Fluxos de autenticacao nao testados |
+| useRealtimeSync | ALTO | Hook de 590 linhas com apenas 1 teste (presets) |
+| crmAgent.ts | ALTO | Agent de IA sem testes unitarios (apenas integracao) |
+| Layout.tsx | MEDIO | Componente de 505 linhas sem teste |
+| Dashboard hooks | MEDIO | useDashboardMetrics sem teste |
+| Server Actions | MEDIO | 4 server actions sem testes |
+| Contacts feature | MEDIO | Feature complexa com 0 testes de componente |
 
 ---
 
-## 13. Diagramas de Dependencia
+## 10. Seguranca
 
-### 13.1 Mapa de Dependencias entre Modulos
+### 10.1 Pontos Fortes
+
+- **RLS 100%**: Todas as tabelas protegidas por Row Level Security no PostgreSQL
+- **RBAC 3-tier**: admin > diretor > corretor com enforcement no DB
+- **Middleware de autenticacao**: Refresh automatico de sessao, redirect para login
+- **Setup guard**: Redireciona para `/setup` se instancia nao inicializada
+- **sameOrigin check**: Validacao de origem para APIs internas
+- **Rate limiting**: 60 req/min por IP na API publica
+- **Input sanitization**: Sanitizacao na API publica
+- **Server-only imports**: Uso de `server-only` para prevenir vazamento de credenciais
+
+### 10.2 Preocupacoes
+
+| Item | Severidade | Descricao |
+|------|-----------|-----------|
+| Rate limiter in-memory | ALTO | Ineficaz em serverless (DT-007) |
+| API keys em organization_settings | MEDIO | Keys de IA armazenadas no Supabase sem encriptacao (protegidas por RLS) |
+| `as SupabaseClient` cast | MEDIO | Cast unsafe pode causar crash (DT-006) |
+| CSP headers ausentes | MEDIO | Nao ha Content-Security-Policy headers configurados |
+| CORS nao explicitamente configurado | BAIXO | Next.js default CORS (same-origin); API publica pode precisar de headers CORS explicitos |
+
+---
+
+## 11. Performance
+
+### 11.1 Otimizacoes Existentes
+
+- **Turbopack**: Dev server com hot reload rapido
+- **optimizePackageImports**: lucide-react, recharts, date-fns (economiza 15-25KB)
+- **React Query cache**: Evita refetch desnecessario
+- **Zustand selectors**: Re-render seletivo por slice de estado
+- **Realtime deduplicacao**: Evita processamento duplicado de eventos
+- **queryKeys factory**: Chaves de cache granulares para invalidacao seletiva
+- **Sentry sourcemap deletion**: Sourcemaps deletados apos upload
+
+### 11.2 Preocupacoes de Performance
+
+| Item | Severidade | Descricao |
+|------|-----------|-----------|
+| CRMContext re-renders | ALTO | Contexto monolitico causa re-render em cascata (DT-001) |
+| 10 providers aninhados | MEDIO | Cada provider pode causar re-render; porem usando `composeProviders` mitiga parcialmente |
+| boards.ts queries complexas | MEDIO | Queries com joins em 924 linhas de service module |
+| useRealtimeSync global | BAIXO | Subscricao unica para 9 tabelas; eficiente mas pode gerar eventos desnecessarios |
+
+---
+
+## 12. Recomendacoes
+
+### 12.1 Prioridade Imediata (Sprint 1-2)
+
+1. **[DT-002] Corrigir BASE_INSTRUCTIONS**: Integrar com catalogo de prompts, gerar lista de ferramentas dinamicamente, sincronizar com as 27 tools reais.
+2. **[DT-004] Criar tools de IA para prospeccao**: O modulo mais ativo do sistema esta completamente invisivel para o agente.
+3. **[DT-005] Expor property_ref e metadata**: Campos no DB que nao sao acessiveis via IA.
+4. **[DT-015] Atualizar pacotes AI SDK**: Atualizacao segura (minor versions).
+
+### 12.2 Prioridade Alta (Sprint 3-4)
+
+5. **[DT-001] Planejar migracao do CRMContext**: Mapear consumidores, migrar para hooks especializados, medir impacto de performance.
+6. **[DT-003] Habilitar no-explicit-any como warn**: Corrigir progressivamente, priorizar lib/supabase/.
+7. **[DT-007] Migrar rate limiter**: Implementar rate limiting distribuido (Upstash/Redis).
+8. **[DT-008] Habilitar exhaustive-deps como warn**: Revisar e corrigir hooks com dependencias faltantes.
+
+### 12.3 Prioridade Media (Sprint 5-8)
+
+9. **[DT-009] Refatorar Layout.tsx**: Extrair Sidebar, TopBar, MobileNav.
+10. **[DT-010] Refatorar useRealtimeSync**: Extrair logica em funcoes puras testadas.
+11. **[DT-011, DT-012, DT-013, DT-014] Completar exposure de features na IA**: WHATSAPP, quick scripts, tags/custom fields, lead score.
+12. **[DT-016] Modularizar OpenAPI spec**: Separar por recurso.
+13. **Aumentar cobertura de testes**: Priorizar CRMContext, AuthContext, crmAgent.ts, useRealtimeSync.
+
+### 12.4 Prioridade Baixa (Backlog)
+
+14. **[DT-019] Implementar testes E2E**: Playwright para fluxos criticos.
+15. **[DT-020] Consolidar dark mode**: Usar `next-themes` ou cookie-based.
+16. **[DT-021] Remover tipos deprecated**: Em proxima major version.
+17. **[DT-022] Limpar tailwind.config.js residual**.
+18. **CSP headers**: Implementar Content-Security-Policy.
+
+---
+
+## 13. Diagrama de Fluxo de Dados
 
 ```
-app/ (pages + API)
-  |-- components/ (shared UI)
-  |-- features/ (domain modules)
-  |      |-- uses --> components/ui/
-  |      |-- uses --> context/
-  |      |-- uses --> hooks/
-  |      |-- uses --> lib/supabase/
-  |      |-- uses --> types/
-  |
-  |-- context/
-  |      |-- uses --> lib/supabase/ (services)
-  |      |-- uses --> lib/query/ (React Query)
-  |      |-- uses --> types/
-  |
-  |-- hooks/
-  |      |-- uses --> context/
-  |      |-- uses --> lib/supabase/
-  |      |-- uses --> lib/query/
-  |
-  |-- lib/
-  |      |-- supabase/ (data layer)
-  |      |-- query/ (cache layer)
-  |      |-- ai/ (AI agent)
-  |      |      |-- uses --> lib/supabase/ (via admin client)
-  |      |-- realtime/ (live sync)
-  |      |      |-- uses --> lib/query/ (invalidation)
-  |      |-- stores/ (UI state)
-  |      |-- validations/ (schemas)
-  |      |-- public-api/ (REST API logic)
-  |
-  |-- types/ (shared type definitions)
-```
-
-### 13.2 Fluxo de Dados End-to-End
-
-```
-                          [Supabase PostgreSQL]
-                                  |
-                    +-------------+-------------+
-                    |             |             |
-              [Supabase JS]  [Realtime]   [pg driver]
-                    |             |             |
-              [lib/supabase/]    |        [lib/ai/tools]
-              [services]         |             |
-                    |             |             |
-              [lib/query/]       |        [AI Agent]
-              [hooks]            |             |
-                    |             |             |
-              [context/]    [lib/realtime/]     |
-              [providers]   [useRealtimeSync]   |
-                    |             |             |
-                    +------+------+             |
-                           |                    |
-                    [components/]          [API Routes]
-                    [features/]            /api/ai/chat
-                           |               /api/public/v1/*
-                           |                    |
-                    +------+------+-------------+
-                           |
-                      [Browser UI]
+                    ┌─────────────────────────────────────────────┐
+                    │              BROWSER (PWA)                  │
+                    │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+                    │  │ Features │  │ AI Chat  │  │ Kanban   │  │
+                    │  └────┬─────┘  └────┬─────┘  └────┬─────┘  │
+                    │       │             │             │         │
+                    │  ┌────▼─────────────▼─────────────▼─────┐  │
+                    │  │     React Query + Zustand + Context    │  │
+                    │  └────┬──────────────────────────┬──────┘  │
+                    │       │                          │         │
+                    │  ┌────▼──────┐          ┌───────▼──────┐  │
+                    │  │ Realtime  │          │ Service      │  │
+                    │  │ Sync      │          │ Workers      │  │
+                    │  └────┬──────┘          └──────────────┘  │
+                    └───────┼────────────────────────────────────┘
+                            │
+              ┌─────────────┼─────────────────────┐
+              │             │                     │
+    ┌─────────▼──────┐ ┌────▼──────┐  ┌──────────▼──────┐
+    │  Supabase      │ │ Next.js   │  │  Server Actions  │
+    │  Realtime      │ │ API Routes│  │  (app/actions/)  │
+    │  (WebSocket)   │ │ (68 endp) │  │  (4 modules)     │
+    └────────────────┘ └────┬──────┘  └────────┬─────────┘
+                            │                   │
+                  ┌─────────▼───────────────────▼──────────┐
+                  │              Supabase                    │
+                  │  ┌──────┐  ┌──────┐  ┌──────┐  ┌─────┐│
+                  │  │ Auth │  │ DB   │  │ RLS  │  │Store││
+                  │  │      │  │ (PG) │  │100%  │  │ age ││
+                  │  └──────┘  └──────┘  └──────┘  └─────┘│
+                  │       54 migrations, 39+ tabelas       │
+                  └────────────────────────────────────────┘
+                            │
+              ┌─────────────┼─────────────────────┐
+              │             │                     │
+    ┌─────────▼──────┐ ┌────▼──────┐  ┌──────────▼──────┐
+    │  Google AI     │ │  OpenAI   │  │  Anthropic      │
+    │  (Gemini)      │ │  (GPT)   │  │  (Claude)       │
+    └────────────────┘ └───────────┘  └─────────────────┘
 ```
 
 ---
 
-*Documento gerado por @architect (Aria) - Brownfield Discovery Phase 1*
-*ZmobCRM v1.4.3 | 2026-03-03 | Synkra AIOS*
+## 14. Apendice: Ambiente de Desenvolvimento
+
+### 14.1 Comandos Essenciais
+
+```bash
+npm run dev              # Dev server (Turbopack)
+npm run build            # Build producao
+npm test                 # Vitest (watch mode)
+npm run test:run         # Vitest (single run)
+npm run lint             # ESLint
+npm run typecheck        # TypeScript check
+npm run precheck         # lint + typecheck + test + build
+npm run precheck:fast    # lint + typecheck + test (sem build)
+```
+
+### 14.2 Fluxo de Deploy
+
+```
+[Codigo] -> [Push branch] -> [Vercel Preview (staging DB)]
+                                      |
+                              [PR para main]
+                                      |
+                              [Merge] -> [Vercel Production (prod DB)]
+```
+
+### 14.3 Fluxo de Migrations
+
+```
+[Criar migration local] -> [supabase db push] -> [Staging DB]
+                                                       |
+                    [Validar] -> [supabase db push --db-url "prod_url"] -> [Prod DB]
+```
+
+---
+
+*Documento gerado por @architect (Aria) - Brownfield Discovery Phase 1 v2*
+*Arquitetando o futuro*

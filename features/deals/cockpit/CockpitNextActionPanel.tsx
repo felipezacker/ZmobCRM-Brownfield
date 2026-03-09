@@ -15,7 +15,7 @@ import type { NextBestAction, TemplatePickerMode } from './cockpit-types';
 import type { MessageChannel } from '@/features/inbox/components/MessageComposerModal';
 import type { MessageLogContext } from './cockpit-types';
 import type { ScheduleType } from '@/features/inbox/components/ScheduleModal';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CockpitNextActionPanelProps {
   nextBestAction: NextBestAction;
@@ -53,9 +53,9 @@ export function CockpitNextActionPanel({
 
   return (
     <Panel title="Próxima ação" icon={<BadgeCheck className="h-4 w-4 text-cyan-300" />} className="shrink-0">
-      <div className="text-sm font-semibold text-slate-100">{nextBestAction.action}</div>
-      <div className="mt-1 text-xs text-slate-400">{nextBestAction.reason}</div>
-      <div className="mt-2 text-[11px] text-slate-500">
+      <div className="text-sm font-semibold text-muted-foreground">{nextBestAction.action}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{nextBestAction.reason}</div>
+      <div className="mt-2 text-[11px] text-muted-foreground">
         Aqui EXECUTA (e tenta registrar o que dá). No rodapé da timeline você REGISTRA atividades rápidas que aconteceram fora do CRM.
       </div>
 
@@ -77,8 +77,8 @@ export function CockpitNextActionPanel({
             aria-label="Ligar"
             onClick={() => onCall('Ligação')}
           >
-            <Phone className="h-4 w-4 text-slate-200" />
-            <span className="text-[10px] font-semibold text-slate-300">Ligar</span>
+            <Phone className="h-4 w-4 text-muted-foreground" />
+            <span className="text-[10px] font-semibold text-muted-foreground">Ligar</span>
           </Button>
 
           <Button
@@ -88,8 +88,8 @@ export function CockpitNextActionPanel({
             aria-label="Preparar WhatsApp"
             onClick={() => onOpenMessageComposer('WHATSAPP', { message: buildWhatsAppMessage() }, aiCtx)}
           >
-            <Sparkles className="h-4 w-4 text-slate-200" />
-            <span className="text-[10px] font-semibold text-slate-300">Gerar WA</span>
+            <Sparkles className="h-4 w-4 text-muted-foreground" />
+            <span className="text-[10px] font-semibold text-muted-foreground">Gerar WA</span>
           </Button>
 
           <Button
@@ -101,8 +101,8 @@ export function CockpitNextActionPanel({
               onOpenMessageComposer('EMAIL', { subject: `Sobre ${dealTitle}`, message: buildEmailBody() }, aiCtx)
             }
           >
-            <Inbox className="h-4 w-4 text-slate-200" />
-            <span className="text-[10px] font-semibold text-slate-300">E-mail</span>
+            <Inbox className="h-4 w-4 text-muted-foreground" />
+            <span className="text-[10px] font-semibold text-muted-foreground">E-mail</span>
           </Button>
 
           <Button
@@ -112,15 +112,15 @@ export function CockpitNextActionPanel({
             aria-label="Agendar"
             onClick={() => onOpenScheduleModal({ type: 'TASK', title: 'Agendar próximo passo', description: 'Criado no cockpit.' })}
           >
-            <CalendarClock className="h-4 w-4 text-slate-200" />
-            <span className="text-[10px] font-semibold text-slate-300">Agendar</span>
+            <CalendarClock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-[10px] font-semibold text-muted-foreground">Agendar</span>
           </Button>
         </div>
 
         <div className="grid w-full grid-cols-2 gap-2">
           <Button
             type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-white/5 disabled:opacity-50"
             title="Usar um template persistido (Quick Scripts)"
             onClick={() => onOpenTemplatePicker('WHATSAPP')}
             disabled={isScriptsLoading || scriptsCount === 0}
@@ -131,7 +131,7 @@ export function CockpitNextActionPanel({
 
           <Button
             type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-white/5 disabled:opacity-50"
             title="Usar um template persistido (Quick Scripts)"
             onClick={() => onOpenTemplatePicker('EMAIL')}
             disabled={isScriptsLoading || scriptsCount === 0}

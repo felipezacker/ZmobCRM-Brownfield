@@ -782,7 +782,7 @@
     <p>CRM Inteligente para o Mercado Imobiliario</p>
     <div class="meta">
       <div class="meta-item">Versao <span class="value">v1.5.1</span></div>
-      <div class="meta-item">Atualizado em <span class="value">06/03/2026, 10:52:41</span></div>
+      <div class="meta-item">Atualizado em <span class="value">08/03/2026, 18:00:00</span></div>
       <div class="meta-item">Modulos <span class="value">14</span></div>
     </div>
   </div>
@@ -882,17 +882,17 @@
       </div>
       <div class="stat-card reveal reveal-d2">
         <div class="label">Entregas Realizadas</div>
-        <div class="number" style="color: var(--accent-soft)">10</div>
+        <div class="number" style="color: var(--accent-soft)">11</div>
         <div class="sub">de 25 itens no roadmap</div>
       </div>
       <div class="stat-card reveal reveal-d3">
         <div class="label">Evolucoes no Banco</div>
-        <div class="number" style="color: var(--amber)">57</div>
+        <div class="number" style="color: var(--amber)">63</div>
         <div class="sub">melhorias na base de dados</div>
       </div>
       <div class="stat-card reveal reveal-d4">
         <div class="label">Velocidade (30 dias)</div>
-        <div class="number" style="color: var(--accent-soft)">295</div>
+        <div class="number" style="color: var(--accent-soft)">382</div>
         <div class="sub">entregas no ultimo mes</div>
       </div>
     </div>
@@ -900,10 +900,10 @@
     <div class="progress-container reveal">
       <div class="progress-header">
         <span class="label">Progresso do Roadmap</span>
-        <span class="pct">40%</span>
+        <span class="pct">44%</span>
       </div>
       <div class="progress-bar">
-        <div class="progress-fill" style="width: 40%"></div>
+        <div class="progress-fill" style="width: 44%"></div>
       </div>
     </div>
   </div>
@@ -982,7 +982,7 @@
         <div class="phase-header">
           <div class="phase-dot" style="border-color: var(--green); background: var(--green); box-shadow: 0 0 8px var(--green-glow)"></div>
           <div class="phase-name" style="color: var(--green)">Concluido</div>
-          <span class="phase-count">10 itens</span>
+          <span class="phase-count">11 itens</span>
         </div>
         <div class="phase-items">
           <div class="roadmap-item done">
@@ -1053,6 +1053,13 @@
             <div>
               <div class="item-name">Card de Negocio Compacto</div>
               <div class="item-desc">Redesign do card no board — de 8 linhas para 3, mais limpo e rapido</div>
+            </div>
+          </div>
+          <div class="roadmap-item done">
+            <div class="check done"></div>
+            <div>
+              <div class="item-name">Blindagem Tecnica & Qualidade</div>
+              <div class="item-desc">Testes E2E, criptografia de API keys, tipagem forte, rate limiter, CSP, RLS com JWT e limpeza estrutural do codigo</div>
             </div>
           </div>
         </div>
@@ -1191,36 +1198,44 @@
       <div class="timeline">
         
         <div class="timeline-item">
+          <div class="timeline-date">08 de mar.</div>
+          <div class="timeline-msg">Melhoria: IA agora acessa campos de imovel, metadata e tags nos contatos e negocios</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">08 de mar.</div>
+          <div class="timeline-msg">Blindagem: testes E2E, regressao visual e migracao de design tokens</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">08 de mar.</div>
+          <div class="timeline-msg">Seguranca: criptografia de API keys + script de migracao</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">08 de mar.</div>
+          <div class="timeline-msg">Estrutural: tipagem forte, rate limiter, CSP, RLS com JWT e limpeza de deals orfaos</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">08 de mar.</div>
+          <div class="timeline-msg">Modular: OpenAPI refatorado + decomposicao de Layout e Realtime</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">08 de mar.</div>
+          <div class="timeline-msg">Correcao: estabilidade do realtime em contatos, atividades e prospeccao</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">07 de mar.</div>
+          <div class="timeline-msg">QA aprovado: blindagem tecnica TD-4.1 passa no gate de qualidade (11/11 criterios)</div>
+        </div>
+        <div class="timeline-item">
           <div class="timeline-date">06 de mar.</div>
-          <div class="timeline-msg">Nova funcionalidade: implement daily goals + connection heatmap [CP-2.3]</div>
+          <div class="timeline-msg">Nova funcionalidade: metas diarias de ligacao + heatmap de conexao</div>
         </div>
         <div class="timeline-item">
           <div class="timeline-date">05 de mar.</div>
-          <div class="timeline-msg">Melhoria visual: unify Prospecting UI with system primary blue tokens (#25)</div>
+          <div class="timeline-msg">Melhoria visual: UI de prospeccao unificada com tokens do sistema</div>
         </div>
         <div class="timeline-item">
           <div class="timeline-date">05 de mar.</div>
-          <div class="timeline-msg">Melhoria visual: unify Prospecting UI with system primary blue tokens</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">05 de mar.</div>
-          <div class="timeline-msg">Lancamento: bump version to v1.5.1</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">05 de mar.</div>
-          <div class="timeline-msg">fix(types): resolves type errors in DealCockpitV2 and CreateDealModalV2</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">05 de mar.</div>
-          <div class="timeline-msg">Nova funcionalidade: add design squad agents, update AIOS configs, and deal cockpit v2</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">05 de mar.</div>
-          <div class="timeline-msg">style(ui): clean background architecture and standardize design tokens</div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-date">04 de mar.</div>
-          <div class="timeline-msg">fix(prospecting): fallback para telefone legado na fila</div>
+          <div class="timeline-msg">Lancamento: versao v1.5.1 com cockpit de negocios v2</div>
         </div>
       </div>
     </div>
@@ -1265,7 +1280,7 @@
 
   <!-- Footer -->
   <div class="footer reveal">
-    ZmobCRM v1.5.1 &mdash; Gerado automaticamente em 06/03/2026, 10:52:41<br>
+    ZmobCRM v1.5.1 &mdash; Gerado automaticamente em 08/03/2026, 18:00:00<br>
     <span style="color: var(--text-dim)">Para atualizar, execute: <code>npm run stakeholder-dashboard</code></span>
   </div>
 

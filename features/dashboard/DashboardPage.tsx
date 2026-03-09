@@ -12,7 +12,7 @@ import { PipelineAlertsModal } from './components/PipelineAlertsModal';
 import { useDashboardMetrics, PeriodFilter, COMPARISON_LABELS } from './hooks/useDashboardMetrics';
 import { PeriodFilterSelect } from '@/components/filters/PeriodFilterSelect';
 import { LazyFunnelChart, ChartWrapper } from '@/components/charts';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 
 /**
@@ -102,10 +102,10 @@ const DashboardPage: React.FC = () => {
     <div className="flex flex-col h-[calc(100vh-7rem)] space-y-4">
       <div className="flex justify-between items-center shrink-0">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight">
+          <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">
             Visão Geral
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground dark:text-muted-foreground text-sm mt-1">
             O pulso do seu negócio em tempo real.
           </p>
         </div>
@@ -114,7 +114,7 @@ const DashboardPage: React.FC = () => {
             value={selectedBoardId}
             onChange={(e) => setSelectedBoardId(e.target.value)}
             aria-label="Selecionar Pipeline de Vendas"
-            className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-2 bg-white dark:bg-card border border-border dark:border-border rounded-lg text-sm font-medium text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             {boards.map(board => (
               <option key={board.id} value={board.id}>{board.name}</option>
@@ -127,13 +127,13 @@ const DashboardPage: React.FC = () => {
             onClick={() => setShowPipelineAlerts(true)}
             className={`p-2 rounded-lg border transition-colors relative ${(riskyCount > 0 || stagnantDealsCount > 0)
               ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/30 text-amber-600 dark:text-amber-400'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-700'
+              : 'bg-white dark:bg-card border-border dark:border-border text-muted-foreground hover:text-secondary-foreground'
               }`}
             title="Alertas de Pipeline"
           >
             <AlertTriangle size={20} />
             {(riskyCount > 0 || stagnantDealsCount > 0) && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
             )}
             <span className="sr-only">Alertas de Pipeline</span>
           </Button>
@@ -188,25 +188,25 @@ const DashboardPage: React.FC = () => {
 
       {/* Wallet Health Section - Compact */}
       <div className="space-y-3 shrink-0">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
+        <h2 className="text-lg font-bold text-foreground font-display flex items-center gap-2">
           <Users className="text-primary-500" size={20} />
           Saúde da Carteira
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div
-            className="glass p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm cursor-pointer hover:border-primary-500/50 transition-colors"
+            className="glass p-5 rounded-xl border border-border shadow-sm cursor-pointer hover:border-primary-500/50 transition-colors"
             onClick={() => router.push('/contacts')}
           >
-            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-2">
               Distribuição da Carteira
             </h3>
             <div className="flex items-end gap-2 mb-2">
-              <span className="text-2xl font-bold text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold text-foreground">
                 {activePercent}%
               </span>
               <span className="text-xs text-green-500 font-bold mb-1">Ativos</span>
             </div>
-            <div className="w-full bg-slate-100 dark:bg-white/10 rounded-full h-2 overflow-hidden flex">
+            <div className="w-full bg-muted dark:bg-white/10 rounded-full h-2 overflow-hidden flex">
               <div
                 className="bg-green-500 h-full"
                 style={{ width: `${activePercent}%` }}
@@ -223,7 +223,7 @@ const DashboardPage: React.FC = () => {
                 title="Churn"
               ></div>
             </div>
-            <div className="flex justify-between mt-2 text-xs text-slate-500">
+            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div> Ativos (
                 {activeContacts.length})
@@ -240,39 +240,39 @@ const DashboardPage: React.FC = () => {
           </div>
 
           <div
-            className="glass p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm cursor-pointer hover:border-amber-500/50 transition-colors"
+            className="glass p-5 rounded-xl border border-border shadow-sm cursor-pointer hover:border-amber-500/50 transition-colors"
             onClick={() => setShowPipelineAlerts(true)}
           >
-            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-2">
               Negócios Parados
             </h3>
             <div className="flex items-end gap-2">
-              <span className="text-2xl font-bold text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold text-foreground">
                 {stagnantDealsCount} Deals
               </span>
               <span className={`text-xs font-bold mb-1 ${stagnantDealsCount > 0 ? 'text-amber-500' : 'text-green-500'}`}>
                 {stagnantDealsCount > 0 ? 'Atenção' : 'OK'}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Sem mudança de estágio há +10 dias.
             </p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               ${stagnantDealsValue.toLocaleString()} em risco
             </p>
           </div>
 
-          <div className="glass p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
-            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+          <div className="glass p-5 rounded-xl border border-border shadow-sm">
+            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-2">
               LTV Médio
             </h3>
             <div className="flex items-end gap-2">
-              <span className="text-2xl font-bold text-slate-900 dark:text-white">
+              <span className="text-2xl font-bold text-foreground">
                 ${(avgLTV / 1000).toFixed(1)}k
               </span>
               <span className="text-xs text-green-500 font-bold mb-1">Médio</span>
             </div>
-            <p className="text-xs text-slate-500 mt-2">Valor médio vitalício por cliente ativo.</p>
+            <p className="text-xs text-muted-foreground mt-2">Valor médio vitalício por cliente ativo.</p>
           </div>
         </div>
       </div>
@@ -280,9 +280,9 @@ const DashboardPage: React.FC = () => {
       {/* Auto-Resize Bottom Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-[300px]">
         {/* Funnel */}
-        <div className="glass p-5 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm flex flex-col h-full">
+        <div className="glass p-5 rounded-xl border border-border shadow-sm flex flex-col h-full">
           <div className="flex justify-between items-center mb-2 shrink-0">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">
+            <h2 className="text-lg font-bold text-foreground font-display">
               Funil
             </h2>
           </div>
@@ -296,10 +296,10 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Activity Feed - Expanded */}
-        <div className="lg:col-span-2 glass flex flex-col rounded-xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden h-full">
-          <div className="p-5 border-b border-slate-100 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 rounded-t-xl backdrop-blur-sm z-10 shrink-0">
+        <div className="lg:col-span-2 glass flex flex-col rounded-xl border border-border shadow-sm overflow-hidden h-full">
+          <div className="p-5 border-b border-border bg-white/50 dark:bg-card/50 rounded-t-xl backdrop-blur-sm z-10 shrink-0">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white font-display">
+              <h2 className="text-lg font-bold text-foreground font-display">
                 Atividades Recentes
               </h2>
             </div>
@@ -312,7 +312,7 @@ const DashboardPage: React.FC = () => {
                   <ActivityFeedItem key={activity.id} activity={activity} />
                 ))
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-slate-500 py-8">
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-8">
                   <Clock size={32} className="mb-2 opacity-50" />
                   <p className="text-sm">Nenhuma atividade recente.</p>
                 </div>

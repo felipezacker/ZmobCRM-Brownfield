@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react'
 import { Flame, Info } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { CallActivity } from '../hooks/useProspectingMetrics'
 
 interface ConnectionHeatmapProps {
@@ -36,7 +36,7 @@ function getCellColor(rate: number): string {
   if (rate >= 0.3) return 'bg-orange-400 dark:bg-orange-500'
   if (rate >= 0.2) return 'bg-amber-400 dark:bg-amber-500'
   if (rate >= 0.1) return 'bg-amber-200 dark:bg-amber-300/30'
-  return 'bg-slate-100 dark:bg-slate-800'
+  return 'bg-muted dark:bg-card'
 }
 
 interface HeatmapCell {
@@ -108,22 +108,22 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm animate-pulse">
-        <div className="h-4 w-48 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
-        <div className="h-48 bg-slate-200 dark:bg-slate-700 rounded" />
+      <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4 shadow-sm animate-pulse">
+        <div className="h-4 w-48 bg-accent dark:bg-accent rounded mb-4" />
+        <div className="h-48 bg-accent dark:bg-accent rounded" />
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Flame size={16} className="text-orange-500" />
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Melhor Horario para Ligar</h3>
+          <h3 className="text-sm font-semibold text-foreground">Melhor Horario para Ligar</h3>
         </div>
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/10 rounded-lg p-0.5">
+        <div className="flex items-center gap-1 bg-muted dark:bg-white/10 rounded-lg p-0.5">
           {PERIODS.map(p => (
             <Button
               key={p.value}
@@ -132,8 +132,8 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
               onClick={() => setPeriod(p.value)}
               className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
                 period === p.value
-                  ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  ? 'bg-white dark:bg-white/15 text-foreground  shadow-sm'
+                  : 'text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
               }`}
             >
               {p.label}
@@ -144,9 +144,9 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
 
       {!hasEnoughData ? (
         <div className="flex flex-col items-center justify-center py-10 text-center">
-          <Info size={32} className="text-slate-300 dark:text-slate-600 mb-3" />
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Dados insuficientes</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+          <Info size={32} className="text-muted-foreground dark:text-secondary-foreground mb-3" />
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground font-medium">Dados insuficientes</p>
+          <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
             {totalCalls}/{MIN_CALLS} chamadas nos ultimos {period} dias. Continue prospectando!
           </p>
         </div>
@@ -157,7 +157,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
             {/* Header row — time labels */}
             <div />
             {TIME_LABELS.map(label => (
-              <div key={label} className="text-[10px] text-slate-400 dark:text-slate-500 text-center font-medium pb-1 min-w-[48px]">
+              <div key={label} className="text-[10px] text-muted-foreground dark:text-muted-foreground text-center font-medium pb-1 min-w-[48px]">
                 {label}
               </div>
             ))}
@@ -165,7 +165,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
             {/* Data rows */}
             {DAYS.map(day => (
               <React.Fragment key={day}>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium pr-2 flex items-center">
+                <div className="text-[11px] text-muted-foreground dark:text-muted-foreground font-medium pr-2 flex items-center">
                   {day}
                 </div>
                 {TIME_SLOTS.map(slot => {
@@ -213,10 +213,10 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-3 mt-3 text-[10px] text-slate-400 dark:text-slate-500">
+          <div className="flex items-center gap-3 mt-3 text-[10px] text-muted-foreground dark:text-muted-foreground">
             <span>Menor</span>
             <div className="flex gap-0.5">
-              {['bg-slate-100 dark:bg-slate-800', 'bg-amber-200 dark:bg-amber-300/30', 'bg-amber-400 dark:bg-amber-500', 'bg-orange-400 dark:bg-orange-500', 'bg-emerald-500 dark:bg-emerald-600'].map((c, i) => (
+              {['bg-muted dark:bg-card', 'bg-amber-200 dark:bg-amber-300/30', 'bg-amber-400 dark:bg-amber-500', 'bg-orange-400 dark:bg-orange-500', 'bg-emerald-500 dark:bg-emerald-600'].map((c, i) => (
                 <div key={i} className={`w-5 h-3 rounded-sm ${c}`} />
               ))}
             </div>
@@ -226,7 +226,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
           {/* Tooltip */}
           {tooltip && (
             <div
-              className="fixed z-50 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white text-xs rounded-lg shadow-lg pointer-events-none -translate-x-1/2 -translate-y-full"
+              className="fixed z-50 px-3 py-2 bg-card dark:bg-accent text-white text-xs rounded-lg shadow-lg pointer-events-none -translate-x-1/2 -translate-y-full"
               style={{ left: tooltip.x, top: tooltip.y }}
             >
               <p className="font-medium">{tooltip.day} {tooltip.time}</p>

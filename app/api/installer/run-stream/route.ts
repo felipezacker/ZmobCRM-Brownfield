@@ -164,7 +164,7 @@ async function verifyPasswordLogin(params: {
 
     if (res.ok) return { ok: true };
 
-    const data = (await res.json().catch(() => null)) as any;
+    const data = (await res.json().catch(() => null)) as Record<string, unknown> | null;
     const msg =
       data?.error_description ||
       data?.msg ||

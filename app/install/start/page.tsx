@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, ExternalLink, Loader2, User, Rocket, Database, Eye, EyeOff } from 'lucide-react';
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'framer-motion';
 import { validateInstallerPassword } from '@/lib/installer/passwordPolicy';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 type InstallerMeta = { enabled: boolean; requiresToken: boolean };
 
@@ -288,22 +288,22 @@ export default function InstallStartPage() {
     setScreen('vercel');
   };
   
-  const handleVercelSubmit = async () => {
+  const handleVercelSubmit = useCallback(async () => {
     const t = vercelToken.trim();
     if (!t || t.length < 20) {
       setError('Token inválido');
       return;
     }
-    
+
     if (meta?.requiresToken && !installerToken.trim()) {
       setError('Installer token obrigatório');
       return;
     }
-    
+
     setError('');
     setIsLoading(true);
     setScreen('validating');
-    
+
     try {
       const res = await fetch('/api/installer/bootstrap', {
         method: 'POST',
@@ -316,11 +316,11 @@ export default function InstallStartPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Erro ao validar token');
-      
+
       localStorage.setItem(STORAGE_TOKEN, t);
       localStorage.setItem(STORAGE_PROJECT, JSON.stringify(data.project));
       if (installerToken.trim()) localStorage.setItem(STORAGE_INSTALLER_TOKEN, installerToken.trim());
-      
+
       setScreen('supabase');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao validar token');
@@ -328,21 +328,21 @@ export default function InstallStartPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [vercelToken, meta?.requiresToken, installerToken]);
   
-  const handleSupabaseSubmit = () => {
+  const handleSupabaseSubmit = useCallback(() => {
     const t = supabaseToken.trim();
     if (!t || !t.startsWith('sbp_')) {
       setError('Token Supabase inválido (deve começar com sbp_)');
       return;
     }
-    
+
     setError('');
     localStorage.setItem('crm_install_supabase_token', t);
     setScreen('ready');
-    
+
     setTimeout(() => router.push('/install/wizard'), 1200);
-  };
+  }, [supabaseToken, router]);
   
   // Auto-submit quando cola token
   useEffect(() => {
@@ -350,14 +350,14 @@ export default function InstallStartPage() {
       const handle = setTimeout(() => void handleVercelSubmit(), 800);
       return () => clearTimeout(handle);
     }
-  }, [vercelToken, screen, isLoading, error]);
+  }, [vercelToken, screen, isLoading, error, handleVercelSubmit]);
   
   useEffect(() => {
     if (screen === 'supabase' && supabaseToken.trim().startsWith('sbp_') && supabaseToken.trim().length >= 30) {
       const handle = setTimeout(() => void handleSupabaseSubmit(), 800);
       return () => clearTimeout(handle);
     }
-  }, [supabaseToken, screen]);
+  }, [supabaseToken, screen, handleSupabaseSubmit]);
   
   const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
     if (e.key === 'Enter') {
@@ -372,10 +372,10 @@ export default function InstallStartPage() {
   
   if (!meta && !metaError) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
           <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-4" />
-          <p className="text-slate-500 text-sm">Iniciando sistemas...</p>
+          <p className="text-muted-foreground text-sm">Iniciando sistemas...</p>
         </motion.div>
       </div>
     );
@@ -383,13 +383,13 @@ export default function InstallStartPage() {
   
   if (unlockingInstaller) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center max-w-md w-full">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-6">
             <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Destravando instalador…</h1>
-          <p className="text-slate-400">Ajustando variáveis e preparando o redeploy na Vercel.</p>
+          <p className="text-muted-foreground">Ajustando variáveis e preparando o redeploy na Vercel.</p>
           {unlockError && (
             <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm">
               {unlockError}
@@ -402,13 +402,13 @@ export default function InstallStartPage() {
 
   if (metaError || (meta && !meta.enabled)) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 mb-6">
             <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Missão cancelada</h1>
-          <p className="text-slate-400">{metaError || 'Base de lançamento indisponível.'}</p>
+          <p className="text-muted-foreground">{metaError || 'Base de lançamento indisponível.'}</p>
         </div>
       </div>
     );
@@ -416,7 +416,7 @@ export default function InstallStartPage() {
   
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-slate-950 relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden"
       onMouseMove={handleMouseMove}
       onMouseLeave={() => { mx.set(0); my.set(0); }}
     >
@@ -458,7 +458,7 @@ export default function InstallStartPage() {
               </div>
               
               <h1 className="text-3xl font-bold text-white mb-3">Sessão protegida</h1>
-              <p className="text-slate-400 mb-8">Digite sua senha para continuar de onde parou.</p>
+              <p className="text-muted-foreground mb-8">Digite sua senha para continuar de onde parou.</p>
               
               <input
                 ref={inputRef}
@@ -466,7 +466,7 @@ export default function InstallStartPage() {
                 value={unlockPassword}
                 onChange={(e) => setUnlockPassword(e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, handleUnlock)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-lg placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-transparent mb-4"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-center text-lg placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-transparent mb-4"
                 placeholder="Sua senha"
                 autoFocus
               />
@@ -533,7 +533,7 @@ export default function InstallStartPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.25 }}
-                className="text-slate-400 text-center mb-8"
+                className="text-muted-foreground text-center mb-8"
               >
                 Antes de explorar novos mundos, precisamos saber quem está no comando.
               </motion.p>
@@ -551,7 +551,7 @@ export default function InstallStartPage() {
                     type="text"
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent"
                     placeholder="Seu nome"
                     autoFocus
                   />
@@ -562,7 +562,7 @@ export default function InstallStartPage() {
                     type="email"
                     value={userEmail}
                     onChange={(e) => setUserEmail(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent"
                     placeholder="Seu e-mail"
                   />
                 </div>
@@ -572,13 +572,13 @@ export default function InstallStartPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={userPassword}
                     onChange={(e) => setUserPassword(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 pr-12 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 pr-12 text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent"
                     placeholder="Crie uma senha"
                   />
                   <Button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </Button>
@@ -608,13 +608,13 @@ export default function InstallStartPage() {
                         // noop
                       }
                     }}
-                    className="text-slate-400 hover:text-slate-200"
+                    className="text-muted-foreground hover:text-muted-foreground"
                   >
                     Copiar
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-400">
+                <div className="grid grid-cols-3 gap-2 text-[11px] text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: passwordChecks.minLen ? 'rgba(16,185,129,0.9)' : 'rgba(148,163,184,0.5)' }} />
                     <span>8+ caracteres</span>
@@ -635,7 +635,7 @@ export default function InstallStartPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, handleIdentitySubmit)}
-                    className={`w-full bg-white/5 border rounded-2xl px-5 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent ${
+                    className={`w-full bg-white/5 border rounded-2xl px-5 py-4 text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent ${
                       confirmPassword && confirmPassword !== userPassword 
                         ? 'border-red-500/50' 
                         : confirmPassword && confirmPassword === userPassword 
@@ -711,7 +711,7 @@ export default function InstallStartPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.25 }}
-                className="text-slate-400 text-center mb-8"
+                className="text-muted-foreground text-center mb-8"
               >
                 Conecte com a Vercel para preparar sua nave.
               </motion.p>
@@ -728,7 +728,7 @@ export default function InstallStartPage() {
                     type="password"
                     value={installerToken}
                     onChange={(e) => setInstallerToken(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent"
                     placeholder="Installer token"
                   />
                 )}
@@ -738,7 +738,7 @@ export default function InstallStartPage() {
                   type="password"
                   value={vercelToken}
                   onChange={(e) => { setVercelToken(e.target.value); setError(''); }}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent text-center"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-transparent text-center"
                   placeholder="Cole seu token da Vercel"
                   autoFocus
                 />
@@ -765,7 +765,7 @@ export default function InstallStartPage() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
                 onClick={() => setScreen('identity')} 
-                className="mt-6 w-full text-slate-500 hover:text-slate-300 text-sm transition-colors"
+                className="mt-6 w-full text-muted-foreground hover:text-muted-foreground text-sm transition-colors"
               >
                 ← Voltar
               </motion.button>
@@ -792,7 +792,7 @@ export default function InstallStartPage() {
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">Verificando conexão</h2>
-              <p className="text-slate-400">Conectando com a Vercel...</p>
+              <p className="text-muted-foreground">Conectando com a Vercel...</p>
             </motion.div>
           )}
           
@@ -854,7 +854,7 @@ export default function InstallStartPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.25 }}
-                className="text-slate-400 text-center mb-8"
+                className="text-muted-foreground text-center mb-8"
               >
                 Último passo! Conecte com o Supabase.
               </motion.p>
@@ -871,7 +871,7 @@ export default function InstallStartPage() {
                   type="password"
                   value={supabaseToken}
                   onChange={(e) => { setSupabaseToken(e.target.value); setError(''); }}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent text-center"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent text-center"
                   placeholder="Cole seu token do Supabase"
                   autoFocus
                 />
@@ -914,7 +914,7 @@ export default function InstallStartPage() {
               </motion.div>
               
               <h1 className="text-3xl font-bold text-white mb-3">Tudo pronto, {firstName}!</h1>
-              <p className="text-slate-400 mb-4">Preparando a sequência de lançamento...</p>
+              <p className="text-muted-foreground mb-4">Preparando a sequência de lançamento...</p>
               
               <div className="flex items-center justify-center gap-1">
                 {[0, 1, 2].map((i) => (

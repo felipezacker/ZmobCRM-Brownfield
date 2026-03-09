@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Save, Users } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/Modal'
 import type { DbDailyGoal } from '@/lib/supabase/prospecting-goals'
 
@@ -66,7 +66,7 @@ export function GoalConfigModal({
       <div className="space-y-4">
         {/* My goal */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+          <label className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground">
             Minha meta de ligacoes/dia
           </label>
           <div className="flex items-center gap-3">
@@ -76,7 +76,7 @@ export function GoalConfigModal({
               max={200}
               value={myTarget}
               onChange={e => setMyTarget(Math.max(1, parseInt(e.target.value) || 1))}
-              className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-primary-500"
+              className="flex-1 px-3 py-2 border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 text-foreground text-sm outline-none focus:ring-2 focus:ring-primary-500"
             />
             <Button
               variant="unstyled"
@@ -93,10 +93,10 @@ export function GoalConfigModal({
 
         {/* Team goals — director/admin only */}
         {isAdminOrDirector && (
-          <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700">
+          <div className="space-y-3 pt-2 border-t border-border dark:border-border">
             <div className="flex items-center gap-2">
-              <Users size={14} className="text-slate-400" />
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Metas dos Corretores</span>
+              <Users size={14} className="text-muted-foreground" />
+              <span className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground">Metas dos Corretores</span>
             </div>
 
             {profiles
@@ -105,10 +105,10 @@ export function GoalConfigModal({
                 const currentVal = teamEdits[p.id] ?? 30
                 return (
                   <div key={p.id} className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 shrink-0">
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground shrink-0">
                       {p.name.charAt(0).toUpperCase()}
                     </span>
-                    <span className="text-sm text-slate-600 dark:text-slate-300 flex-1 truncate">
+                    <span className="text-sm text-secondary-foreground dark:text-muted-foreground flex-1 truncate">
                       {p.name.split(' ')[0]}
                     </span>
                     <input
@@ -122,7 +122,7 @@ export function GoalConfigModal({
                           [p.id]: Math.max(1, parseInt(e.target.value) || 1),
                         }))
                       }
-                      className="w-20 px-2 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm text-center outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-20 px-2 py-1.5 border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 text-foreground text-sm text-center outline-none focus:ring-2 focus:ring-primary-500"
                     />
                     <Button
                       variant="unstyled"

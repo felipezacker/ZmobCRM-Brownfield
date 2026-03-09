@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   rateLimit,
   getClientIp,
@@ -9,9 +9,8 @@ import {
 import { withRateLimit } from '@/app/api/public/v1/with-rate-limit';
 
 /**
- * We need to reset the in-memory store between tests. The simplest way is to
- * re-import the module fresh. Instead, we'll use unique IPs per test to avoid
- * cross-test pollution, and use the max-size guard for the reset test.
+ * Tests use the in-memory fallback (no UPSTASH env vars in test).
+ * Unique IPs per test avoid cross-test pollution.
  */
 
 let testIpCounter = 0;
@@ -20,42 +19,42 @@ function uniqueIp(): string {
 }
 
 // ---------------------------------------------------------------------------
-// rateLimit()
+// rateLimit() — now async
 // ---------------------------------------------------------------------------
 describe('rateLimit', () => {
-  it('should allow requests under the limit', () => {
+  it('should allow requests under the limit', async () => {
     const ip = uniqueIp();
-    const result = rateLimit(ip);
+    const result = await rateLimit(ip);
     expect(result.success).toBe(true);
     expect(result.remaining).toBe(59);
     expect(result.reset).toBeGreaterThan(0);
   });
 
-  it('should block after 60 requests', () => {
+  it('should block after 60 requests', async () => {
     const ip = uniqueIp();
     for (let i = 0; i < 60; i++) {
-      const r = rateLimit(ip);
+      const r = await rateLimit(ip);
       expect(r.success).toBe(true);
     }
-    const blocked = rateLimit(ip);
+    const blocked = await rateLimit(ip);
     expect(blocked.success).toBe(false);
     expect(blocked.remaining).toBe(0);
   });
 
-  it('should reset after window expires', () => {
+  it('should reset after window expires', async () => {
     const ip = uniqueIp();
 
     // Exhaust the limit
     for (let i = 0; i < 60; i++) {
-      rateLimit(ip);
+      await rateLimit(ip);
     }
-    expect(rateLimit(ip).success).toBe(false);
+    expect((await rateLimit(ip)).success).toBe(false);
 
     // Advance time past the 60s window
     vi.useFakeTimers();
     vi.advanceTimersByTime(61_000);
 
-    const afterReset = rateLimit(ip);
+    const afterReset = await rateLimit(ip);
     expect(afterReset.success).toBe(true);
     expect(afterReset.remaining).toBe(59);
 
@@ -103,7 +102,6 @@ describe('getClientIp', () => {
 describe('rateLimitResponse', () => {
   it('should return proper headers on allowed result', () => {
     const result: RateLimitResult = { success: true, remaining: 55, reset: 1700000000 };
-    // rateLimitResponse is for blocked requests, but let's verify headers via buildRateLimitHeaders
     const headers = buildRateLimitHeaders(result, false);
     expect((headers as Record<string, string>)['X-RateLimit-Remaining']).toBe('55');
     expect((headers as Record<string, string>)['Retry-After']).toBeUndefined();
@@ -174,7 +172,7 @@ describe('withRateLimit', () => {
 
     // Exhaust limit
     for (let i = 0; i < 60; i++) {
-      rateLimit(ip);
+      await rateLimit(ip);
     }
 
     const req = new Request('http://localhost/test', {

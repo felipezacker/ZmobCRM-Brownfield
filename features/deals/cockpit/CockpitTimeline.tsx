@@ -14,7 +14,7 @@ import { Chip } from './cockpit-ui';
 import type { TimelineItem, Actor } from './cockpit-types';
 import type { Activity } from '@/types';
 import { buildExecutionHeader, errorMessage, formatAtISO } from './cockpit-utils';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CockpitTimelineProps {
   timelineItems: TimelineItem[];
@@ -110,10 +110,9 @@ export function CockpitTimeline({
             <Button
               key={chip.key}
               type="button"
-              className={
-                (chip.key === 'all' ? kindFilter === 'all' : kindFilter === chip.key)
+              className={(chip.key ==='all' ? kindFilter === 'all' : kindFilter === chip.key)
                   ? 'rounded-full bg-cyan-500/15 px-3 py-1.5 text-xs font-semibold text-cyan-700 dark:text-cyan-100 ring-1 ring-cyan-500/20'
-                  : 'rounded-full bg-slate-50 dark:bg-white/3 px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 ring-1 ring-slate-300 dark:ring-white/10 hover:bg-slate-100 dark:hover:bg-white/5'
+                  : 'rounded-full bg-background dark:bg-white/3 px-3 py-1.5 text-xs font-semibold text-muted-foreground dark:text-muted-foreground ring-1 ring-ring dark:ring-white/10 hover:bg-muted dark:hover:bg-white/5'
               }
               onClick={() => setKindFilter(chip.key === 'all' ? 'all' : chip.key)}
             >
@@ -122,10 +121,9 @@ export function CockpitTimeline({
           ))}
           <Button
             type="button"
-            className={
-              showSystemEvents
-                ? 'rounded-full bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-100 ring-1 ring-amber-500/20'
-                : 'rounded-full bg-slate-50 dark:bg-white/3 px-3 py-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 ring-1 ring-slate-300 dark:ring-white/10 hover:bg-slate-100 dark:hover:bg-white/5'
+            className={showSystemEvents
+ ?'rounded-full bg-amber-500/15 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-100 ring-1 ring-amber-500/20'
+                : 'rounded-full bg-background dark:bg-white/3 px-3 py-1.5 text-xs font-semibold text-muted-foreground dark:text-muted-foreground ring-1 ring-ring dark:ring-white/10 hover:bg-muted dark:hover:bg-white/5'
             }
             onClick={() => setShowSystemEvents((v) => !v)}
             title="Eventos de sistema"
@@ -134,26 +132,26 @@ export function CockpitTimeline({
           </Button>
         </div>
 
-        <div className="ml-auto flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/3 px-2 py-1.5">
-          <Search className="h-3.5 w-3.5 text-slate-500" />
+        <div className="ml-auto flex items-center gap-1.5 rounded-lg border border-border bg-background dark:bg-white/3 px-2 py-1.5">
+          <Search className="h-3.5 w-3.5 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar..."
-            className="w-28 bg-transparent text-[11px] text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
+            className="w-28 bg-transparent text-[11px] text-secondary-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-secondary-foreground"
           />
         </div>
       </div>
 
       {/* Timeline feed */}
-      <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/3">
-        <div className="flex-1 min-h-0 overflow-auto divide-y divide-slate-200 dark:divide-white/10">
+      <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-background dark:bg-white/3">
+        <div className="flex-1 min-h-0 overflow-auto divide-y divide-border dark:divide-white/10">
           {filteredTimelineItems.length === 0 ? (
             <div className="px-4 py-8 text-center">
-              <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+              <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
                 {unifiedItems.length === 0 ? 'Sem atividades ainda' : 'Sem resultados'}
               </div>
-              <div className="mt-1 text-[11px] text-slate-500">
+              <div className="mt-1 text-[11px] text-muted-foreground">
                 {unifiedItems.length === 0
                   ? 'Registre uma nota, ligação ou mude a etapa.'
                   : 'Limpe filtros para ver tudo.'}
@@ -161,7 +159,7 @@ export function CockpitTimeline({
               {unifiedItems.length !== 0 ? (
                 <Button
                   type="button"
-                  className="mt-3 rounded-lg bg-slate-200 dark:bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-white/15"
+                  className="mt-3 rounded-lg bg-accent dark:bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15"
                   onClick={() => {
                     setQuery('');
                     setKindFilter('all');
@@ -181,21 +179,21 @@ export function CockpitTimeline({
                       {t.kind === 'deal_note' ? (
                         <StickyNote className="h-3 w-3 shrink-0 text-amber-400" />
                       ) : null}
-                      <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">{t.title}</span>
+                      <span className="text-[11px] font-semibold text-secondary-foreground dark:text-muted-foreground">{t.title}</span>
                       {t.subtitle ? (
                         t.title === 'Moveu para' ? (
                           <Chip tone={t.tone === 'success' ? 'success' : t.tone === 'danger' ? 'danger' : 'neutral'}>{t.subtitle}</Chip>
                         ) : t.kind === 'deal_note' ? null : (
-                          <span className="truncate text-[11px] text-slate-500">{t.subtitle}</span>
+                          <span className="truncate text-[11px] text-muted-foreground">{t.subtitle}</span>
                         )
                       ) : null}
                     </div>
                     {/* Deal note content rendered below title */}
                     {t.kind === 'deal_note' && t.subtitle ? (
-                      <div className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 whitespace-pre-wrap line-clamp-2">{t.subtitle}</div>
+                      <div className="mt-0.5 text-[11px] text-muted-foreground dark:text-muted-foreground whitespace-pre-wrap line-clamp-2">{t.subtitle}</div>
                     ) : null}
                   </div>
-                  <div className="shrink-0 text-[10px] text-slate-400 dark:text-slate-600">{t.at}</div>
+                  <div className="shrink-0 text-[10px] text-muted-foreground dark:text-secondary-foreground">{t.at}</div>
                 </div>
               </div>
             ))
@@ -203,32 +201,32 @@ export function CockpitTimeline({
         </div>
 
         {/* Compact "Registrar fora" — icons only */}
-        <div className="border-t border-slate-200 dark:border-white/10 px-3 py-2 shrink-0">
-          <div className="flex items-center gap-3 text-slate-500">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-600 shrink-0">Fora do CRM:</span>
-            <Button type="button" className="hover:text-slate-800 dark:hover:text-slate-200" title="WhatsApp"
+        <div className="border-t border-border px-3 py-2 shrink-0">
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground dark:text-secondary-foreground shrink-0">Fora do CRM:</span>
+            <Button type="button" className="hover:text-foreground dark:hover:text-muted-foreground" title="WhatsApp"
               onClick={() => {
                 const header = buildExecutionHeader({ channel: 'WHATSAPP', context: { source: 'manual', origin: 'quickAction' }, outsideCRM: true });
                 void logOutsideCRM('NOTE', 'WhatsApp', `${header}\n\n---\n\nMensagem enviada (registrado fora do CRM).`);
               }}>
               <MessageCircle className="h-3.5 w-3.5" />
             </Button>
-            <Button type="button" className="hover:text-slate-800 dark:hover:text-slate-200" title="Email"
+            <Button type="button" className="hover:text-foreground dark:hover:text-muted-foreground" title="Email"
               onClick={() => {
                 const header = buildExecutionHeader({ channel: 'EMAIL', context: { source: 'manual', origin: 'quickAction' }, outsideCRM: true });
                 void logOutsideCRM('EMAIL', 'Email', `${header}\nAssunto: Email\n\n---\n\nEnviado (registrado fora do CRM).`);
               }}>
               <Inbox className="h-3.5 w-3.5" />
             </Button>
-            <Button type="button" className="hover:text-slate-800 dark:hover:text-slate-200" title="Ligacao"
+            <Button type="button" className="hover:text-foreground dark:hover:text-muted-foreground" title="Ligacao"
               onClick={() => void logOutsideCRM('CALL', 'Ligação', 'Fonte: Cockpit\nFora do CRM: sim\n\n---\n\nRealizada (registrado fora do CRM).')}>
               <Phone className="h-3.5 w-3.5" />
             </Button>
-            <Button type="button" className="hover:text-slate-800 dark:hover:text-slate-200" title="Reuniao"
+            <Button type="button" className="hover:text-foreground dark:hover:text-muted-foreground" title="Reuniao"
               onClick={() => void logOutsideCRM('MEETING', 'Reunião', 'Fonte: Cockpit\nFora do CRM: sim\n\n---\n\nRegistrada fora do CRM.')}>
               <CalendarClock className="h-3.5 w-3.5" />
             </Button>
-            <Button type="button" className="hover:text-slate-800 dark:hover:text-slate-200" title="Tarefa"
+            <Button type="button" className="hover:text-foreground dark:hover:text-muted-foreground" title="Tarefa"
               onClick={() => void logOutsideCRM('TASK', 'Tarefa', 'Fonte: Cockpit\nFora do CRM: sim\n\n---\n\nCriada (registrado fora do CRM).')}>
               <ActivityIcon className="h-3.5 w-3.5" />
             </Button>

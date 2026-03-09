@@ -32,7 +32,7 @@ async function getCurrentOrganizationId(): Promise<string | null> {
 
   if (error) return null;
 
-  const orgId = sanitizeUUID((profile as any)?.organization_id);
+  const orgId = sanitizeUUID((profile as { organization_id?: string } | null)?.organization_id);
   cachedOrgUserId = user.id;
   cachedOrgId = orgId;
   return orgId;

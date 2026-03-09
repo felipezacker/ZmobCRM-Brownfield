@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { FileText, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { CallActivity } from '../hooks/useProspectingMetrics'
 import { formatDuration } from '../utils/formatDuration'
 
@@ -18,7 +18,7 @@ const OUTCOME_LABELS: Record<string, { label: string; color: string }> = {
   connected: { label: 'Atendeu', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' },
   no_answer: { label: 'Não Atendeu', color: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400' },
   voicemail: { label: 'Correio de Voz', color: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' },
-  busy: { label: 'Ocupado', color: 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400' },
+  busy: { label: 'Ocupado', color: 'bg-muted text-secondary-foreground dark:bg-accent/20 dark:text-muted-foreground' },
 }
 
 function getOutcomeBadge(outcome?: string) {
@@ -43,11 +43,11 @@ function formatDateTime(dateStr: string): string {
 
 function TableSkeleton() {
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-5 animate-pulse">
-      <div className="h-5 w-52 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
+    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-5 animate-pulse">
+      <div className="h-5 w-52 bg-accent dark:bg-accent rounded mb-4" />
       <div className="space-y-2">
         {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="h-10 bg-slate-100 dark:bg-slate-800 rounded" />
+          <div key={i} className="h-10 bg-muted dark:bg-card rounded" />
         ))}
       </div>
     </div>
@@ -68,12 +68,12 @@ export function CallDetailsTable({ activities, profiles, isLoading }: CallDetail
 
   if (activities.length === 0) {
     return (
-      <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-5">
-        <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-          <FileText size={16} className="text-slate-500" />
+      <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-5">
+        <h3 className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3 flex items-center gap-2">
+          <FileText size={16} className="text-muted-foreground" />
           Detalhes das Prospecções
         </h3>
-        <p className="text-sm text-slate-400 dark:text-slate-500 py-8 text-center">
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground py-8 text-center">
           Nenhuma ligação registrada no período
         </p>
       </div>
@@ -81,13 +81,13 @@ export function CallDetailsTable({ activities, profiles, isLoading }: CallDetail
   }
 
   return (
-    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl p-5">
+    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-          <FileText size={16} className="text-slate-500" />
+        <h3 className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground flex items-center gap-2">
+          <FileText size={16} className="text-muted-foreground" />
           Detalhes das Prospecções
         </h3>
-        <span className="text-xs text-slate-400 dark:text-slate-500">
+        <span className="text-xs text-muted-foreground dark:text-muted-foreground">
           {activities.length} registro{activities.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -95,33 +95,33 @@ export function CallDetailsTable({ activities, profiles, isLoading }: CallDetail
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-700">
-              <th className="text-left py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Data</th>
-              <th className="text-left py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Corretor</th>
-              <th className="text-left py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Contato</th>
-              <th className="text-left py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Status</th>
-              <th className="text-right py-2 px-2 text-xs font-medium text-slate-500 dark:text-slate-400">Duração</th>
+            <tr className="border-b border-border dark:border-border">
+              <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Data</th>
+              <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Corretor</th>
+              <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Contato</th>
+              <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Status</th>
+              <th className="text-right py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Duração</th>
             </tr>
           </thead>
           <tbody>
             {pageData.map(activity => (
               <tr
                 key={activity.id}
-                className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                className="border-b border-border dark:border-border hover:bg-background dark:hover:bg-white/5 transition-colors"
               >
-                <td className="py-2.5 px-2 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <td className="py-2.5 px-2 text-xs text-muted-foreground dark:text-muted-foreground whitespace-nowrap">
                   {formatDateTime(activity.date)}
                 </td>
-                <td className="py-2.5 px-2 text-slate-700 dark:text-slate-300 truncate max-w-[160px]">
+                <td className="py-2.5 px-2 text-secondary-foreground dark:text-muted-foreground truncate max-w-[160px]">
                   {activity.owner_id ? profileMap.get(activity.owner_id) || 'Desconhecido' : '—'}
                 </td>
-                <td className="py-2.5 px-2 text-slate-700 dark:text-slate-300 truncate max-w-[180px]">
+                <td className="py-2.5 px-2 text-secondary-foreground dark:text-muted-foreground truncate max-w-[180px]">
                   {(Array.isArray(activity.contacts) ? activity.contacts[0]?.name : activity.contacts?.name) || '—'}
                 </td>
                 <td className="py-2.5 px-2">
                   {getOutcomeBadge(activity.metadata?.outcome)}
                 </td>
-                <td className="py-2.5 px-2 text-right text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <td className="py-2.5 px-2 text-right text-xs text-muted-foreground dark:text-muted-foreground whitespace-nowrap">
                   {activity.metadata?.duration_seconds
                     ? formatDuration(activity.metadata.duration_seconds)
                     : '—'}
@@ -134,8 +134,8 @@ export function CallDetailsTable({ activities, profiles, isLoading }: CallDetail
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-          <span className="text-xs text-slate-400 dark:text-slate-500">
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-border dark:border-border">
+          <span className="text-xs text-muted-foreground dark:text-muted-foreground">
             Página {page + 1} de {totalPages}
           </span>
           <div className="flex items-center gap-1">
@@ -145,7 +145,7 @@ export function CallDetailsTable({ activities, profiles, isLoading }: CallDetail
               type="button"
               onClick={() => setPage(p => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15 disabled:opacity-40 transition-colors"
+              className="p-1.5 rounded-lg bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15 disabled:opacity-40 transition-colors"
             >
               <ChevronLeft size={14} />
             </Button>
@@ -155,7 +155,7 @@ export function CallDetailsTable({ activities, profiles, isLoading }: CallDetail
               type="button"
               onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15 disabled:opacity-40 transition-colors"
+              className="p-1.5 rounded-lg bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15 disabled:opacity-40 transition-colors"
             >
               <ChevronRight size={14} />
             </Button>

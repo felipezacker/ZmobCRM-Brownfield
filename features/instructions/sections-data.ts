@@ -589,7 +589,7 @@ export const sections: InstructionSection[] = [
     id: 'settings',
     title: 'Configurações',
     icon: Settings,
-    color: 'bg-slate-500',
+    color: 'bg-accent',
     roles: ['admin', 'diretor'],
     content: [
       {

@@ -108,10 +108,11 @@ export const useCreateBoard = () => {
       const previousBoards = queryClient.getQueryData<Board[]>(queryKeys.boards.lists());
 
       const tempId = clientTempId || `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const boardAsRecord = board as unknown as Record<string, unknown>;
       const tempBoard: Board = {
-        ...(board as any),
-        stages: (board as any)?.stages ?? [],
-        isDefault: (board as any)?.isDefault ?? false,
+        ...boardAsRecord,
+        stages: boardAsRecord?.stages ?? [],
+        isDefault: boardAsRecord?.isDefault ?? false,
         id: tempId,
         createdAt: new Date().toISOString(),
       } as Board;
@@ -126,7 +127,7 @@ export const useCreateBoard = () => {
       }
     },
     onSuccess: (data, _vars, context) => {
-      const tempId = (context as any)?.tempId as string | undefined;
+      const tempId = (context as { tempId?: string } | undefined)?.tempId;
       if (!tempId) return;
 
       queryClient.setQueryData<Board[]>(queryKeys.boards.lists(), (old = []) => {

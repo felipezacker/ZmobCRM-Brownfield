@@ -24,7 +24,7 @@ interface FunnelChartProps {
 export const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+      <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
         Sem dados
       </div>
     );

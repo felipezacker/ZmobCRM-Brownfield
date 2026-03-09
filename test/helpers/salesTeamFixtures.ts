@@ -252,7 +252,7 @@ async function createActivity(params: {
   title: string;
   date: string;
   completed: boolean;
-  type?: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK';
+  type?: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'WHATSAPP';
 }): Promise<string> {
   const supabase = getSupabaseAdminClient();
 

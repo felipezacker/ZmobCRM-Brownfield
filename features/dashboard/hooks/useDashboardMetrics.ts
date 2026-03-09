@@ -287,25 +287,26 @@ export const useDashboardMetrics = (period: PeriodFilter = 'this_month', boardId
 
     const stages = selectedBoard?.stages || [];
 
+    // Chart tokens (TD-3.1 UX-009) — auto-adapt to dark mode via CSS custom properties
     const COLOR_MAP: Record<string, string> = {
-      'bg-blue-500': '#3b82f6',
-      'bg-green-500': '#22c55e',
-      'bg-yellow-500': '#eab308',
-      'bg-orange-500': '#f97316',
-      'bg-red-500': '#ef4444',
-      'bg-purple-500': '#a855f7',
-      'bg-pink-500': '#ec4899',
-      'bg-indigo-500': '#6366f1',
-      'bg-teal-500': '#14b8a6',
-      'bg-slate-500': '#64748b',
+      'bg-blue-500': 'var(--chart-blue)',
+      'bg-green-500': 'var(--chart-green)',
+      'bg-yellow-500': 'var(--chart-yellow)',
+      'bg-orange-500': 'var(--chart-orange)',
+      'bg-red-500': 'var(--chart-red)',
+      'bg-purple-500': 'var(--chart-purple)',
+      'bg-pink-500': 'var(--chart-pink)',
+      'bg-indigo-500': 'var(--chart-indigo)',
+      'bg-teal-500': 'var(--chart-teal)',
+      'bg-accent': 'var(--chart-slate)',
     };
 
     if (stages.length === 0) {
       // Fallback simples se não tiver stages
       return [
-        { name: 'Em aberto', count: deals.filter(d => !d.isWon && !d.isLost).length, fill: '#3b82f6' },
-        { name: 'Ganho', count: deals.filter(d => d.isWon).length, fill: '#22c55e' },
-        { name: 'Perdido', count: deals.filter(d => d.isLost).length, fill: '#ef4444' },
+        { name: 'Em aberto', count: deals.filter(d => !d.isWon && !d.isLost).length, fill: 'var(--chart-blue)' },
+        { name: 'Ganho', count: deals.filter(d => d.isWon).length, fill: 'var(--chart-green)' },
+        { name: 'Perdido', count: deals.filter(d => d.isLost).length, fill: 'var(--chart-red)' },
       ];
     }
 
@@ -314,9 +315,9 @@ export const useDashboardMetrics = (period: PeriodFilter = 'this_month', boardId
     return stages.map(stage => ({
       name: stage.label,
       count: activeSnapshotDeals.filter(d => d.status === stage.id).length,
-      fill: COLOR_MAP[stage.color] || '#3b82f6', // Fallback to blue
+      fill: COLOR_MAP[stage.color] || 'var(--chart-blue)',
     }));
-  }, [activeSnapshotDeals, defaultBoard, boards, boardId]);
+  }, [activeSnapshotDeals, defaultBoard, boards, boardId, deals]);
 
   // Mock Trend Data
   // Real Trend Data (Last 6 Months)

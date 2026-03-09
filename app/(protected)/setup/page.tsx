@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { getErrorMessage } from '@/lib/utils/errorUtils'
 import { useAuth } from '@/context/AuthContext'
 import { Loader2, Building2, User, Lock, ArrowRight } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Componente React `SetupPage`.
@@ -122,7 +122,7 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-dark-bg relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-background dark:bg-dark-bg relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-primary-500/20 rounded-full blur-[120px]" />
         <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] bg-purple-500/20 rounded-full blur-[100px]" />
@@ -130,27 +130,27 @@ export default function SetupPage() {
 
       <div className="max-w-md w-full relative z-10 px-4">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight mb-2">
+          <h1 className="text-4xl font-bold text-foreground font-display tracking-tight mb-2">
             Bem-vindo ao ZmobCRM
           </h1>
-          <p className="text-slate-500 dark:text-slate-400">Vamos preparar seu ambiente de trabalho.</p>
+          <p className="text-muted-foreground dark:text-muted-foreground">Vamos preparar seu ambiente de trabalho.</p>
         </div>
 
-        <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl p-8 backdrop-blur-sm">
+        <div className="bg-white dark:bg-dark-card border border-border rounded-2xl shadow-xl p-8 backdrop-blur-sm">
           {checkingInit ? (
-            <div className="flex items-center justify-center py-10 text-slate-600 dark:text-slate-300">
+            <div className="flex items-center justify-center py-10 text-secondary-foreground dark:text-muted-foreground">
               <Loader2 className="animate-spin h-5 w-5 mr-2" />
               Verificando configuração…
             </div>
           ) : (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="company-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                <label htmlFor="company-name" className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-1.5">
                   Nome da Empresa
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Building2 className="h-5 w-5 text-slate-400" />
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <input
                     id="company-name"
@@ -158,7 +158,7 @@ export default function SetupPage() {
                     type="text"
                     required
                     aria-required="true"
-                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
                     placeholder="Ex: Acme Corp"
                     value={companyName}
                     onChange={e => setCompanyName(e.target.value)}
@@ -167,12 +167,12 @@ export default function SetupPage() {
               </div>
 
               <div>
-                <label htmlFor="email-address" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                <label htmlFor="email-address" className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-1.5">
                   Email do Administrador
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-slate-400" />
+                    <User className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <input
                     id="email-address"
@@ -181,7 +181,7 @@ export default function SetupPage() {
                     autoComplete="email"
                     required
                     aria-required="true"
-                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
                     placeholder="admin@empresa.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
@@ -190,12 +190,12 @@ export default function SetupPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                <label htmlFor="password" className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-1.5">
                   Senha
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-slate-400" />
+                    <Lock className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <input
                     id="password"
@@ -205,7 +205,7 @@ export default function SetupPage() {
                     required
                     aria-required="true"
                     aria-describedby="password-requirements"
-                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                    className="block w-full pl-10 pr-3 py-2.5 border border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
                     placeholder="••••••••"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
@@ -214,18 +214,18 @@ export default function SetupPage() {
 
                 {password.length > 0 && (
                   <div id="password-requirements" className="mt-2 space-y-1">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Requisitos:</p>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">Requisitos:</p>
                     <div className="grid grid-cols-2 gap-1 text-xs">
-                      <span className={passwordRequirements.minLength ? 'text-green-500' : 'text-slate-400'}>
+                      <span className={passwordRequirements.minLength ?'text-green-500' : 'text-muted-foreground'}>
                         {passwordRequirements.minLength ? '✓' : '○'} Mínimo 6 caracteres
                       </span>
-                      <span className={passwordRequirements.hasLowercase ? 'text-green-500' : 'text-slate-400'}>
+                      <span className={passwordRequirements.hasLowercase ?'text-green-500' : 'text-muted-foreground'}>
                         {passwordRequirements.hasLowercase ? '✓' : '○'} Letra minúscula
                       </span>
-                      <span className={passwordRequirements.hasUppercase ? 'text-green-500' : 'text-slate-400'}>
+                      <span className={passwordRequirements.hasUppercase ?'text-green-500' : 'text-muted-foreground'}>
                         {passwordRequirements.hasUppercase ? '✓' : '○'} Letra maiúscula
                       </span>
-                      <span className={passwordRequirements.hasDigit ? 'text-green-500' : 'text-slate-400'}>
+                      <span className={passwordRequirements.hasDigit ?'text-green-500' : 'text-muted-foreground'}>
                         {passwordRequirements.hasDigit ? '✓' : '○'} Número
                       </span>
                     </div>
@@ -234,12 +234,12 @@ export default function SetupPage() {
               </div>
 
               <div>
-                <label htmlFor="confirm-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                <label htmlFor="confirm-password" className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-1.5">
                   Confirmar Senha
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-slate-400" />
+                    <Lock className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <input
                     id="confirm-password"
@@ -249,11 +249,11 @@ export default function SetupPage() {
                     required
                     aria-required="true"
                     aria-invalid={confirmPassword.length > 0 && !passwordsMatch ? 'true' : undefined}
-                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all sm:text-sm ${confirmPassword.length > 0
+                    className={`block w-full pl-10 pr-3 py-2.5 border rounded-xl bg-background dark:bg-card/50 text-foreground  placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all sm:text-sm ${confirmPassword.length > 0
                         ? passwordsMatch
                           ? 'border-green-500 focus:border-green-500'
                           : 'border-red-500 focus:border-red-500'
-                        : 'border-slate-300 dark:border-slate-700 focus:border-primary-500'
+                        : 'border-border dark:border-border focus:border-primary-500'
                       }`}
                     placeholder="••••••••"
                     value={confirmPassword}
@@ -295,7 +295,7 @@ export default function SetupPage() {
           )}
         </div>
 
-        <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
+        <p className="mt-8 text-center text-xs text-muted-foreground dark:text-muted-foreground">
           &copy; {new Date().getFullYear()} ZmobCRM. Todos os direitos reservados.
         </p>
       </div>

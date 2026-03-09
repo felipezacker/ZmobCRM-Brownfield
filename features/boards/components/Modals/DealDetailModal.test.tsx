@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, act } from '@testing-library/react';
 
-import { DealDetailModal } from './DealDetailModal';
+import { DealDetailModal } from '@/features/boards/components/deal-detail';
 
 // Keep this test focused: we only want to ensure opening/closing the modal
 // never crashes due to hook-order issues (React error #310).
@@ -25,6 +25,7 @@ vi.mock('@/context/ToastContext', () => ({
 
 vi.mock('@/lib/query/hooks', () => ({
   useMoveDealSimple: () => ({ moveDeal: vi.fn() }),
+  useDeal: () => ({ data: null }),
 }));
 
 vi.mock('@/lib/a11y', () => ({

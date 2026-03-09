@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { DealView, Product } from '@/types';
 import type { OrgMember } from '@/hooks/useOrganizationMembers';
 import { Check, Hourglass, Loader2, Plus, Search, Trophy, XCircle } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { productsService } from '@/lib/supabase/products';
 import { ActivityStatusIcon } from './ActivityStatusIcon';
@@ -169,15 +169,15 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     // Cards com ID temporário (ainda salvando) ficam levemente opacos e sem cursor de drag
     if (deal.id.startsWith('temp-')) {
       return `${baseClasses}
-        border-slate-200 dark:border-white/5
-        bg-white dark:bg-slate-800/80
+        border-border 
+        bg-white dark:bg-card/80
         opacity-60 cursor-default pointer-events-none
       `;
     }
 
     return `${baseClasses}
-      border-slate-200 dark:border-white/5
-      ${localDragging || isDragging ? 'bg-green-100 dark:bg-green-900 opacity-50 rotate-2 scale-95' : 'bg-white dark:bg-slate-800/80'}
+      border-border 
+      ${localDragging || isDragging ? 'bg-green-100 dark:bg-green-900 opacity-50 rotate-2 scale-95' : 'bg-white dark:bg-card/80'}
       ${isRotting ? 'opacity-80 saturate-50 border-dashed' : ''}
     `;
   };
@@ -271,7 +271,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     >
       {/* Saving Badge — card ainda com ID temporário */}
       {deal.id.startsWith('temp-') && (
-        <div className="absolute -top-2 -right-2 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 p-1 rounded-full shadow-sm z-10" aria-label="Salvando...">
+        <div className="absolute -top-2 -right-2 bg-muted dark:bg-accent text-muted-foreground dark:text-muted-foreground p-1 rounded-full shadow-sm z-10" aria-label="Salvando...">
           <Loader2 size={12} className="animate-spin" aria-hidden="true" />
         </div>
       )}
@@ -302,10 +302,10 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex items-center justify-center text-[10px] font-bold shrink-0">
           {getInitials(deal.contactName || deal.title || 'SN')}
         </div>
-        <span className="text-sm font-semibold text-slate-900 dark:text-white truncate flex-1">
+        <span className="text-sm font-semibold text-foreground truncate flex-1">
           {deal.contactName || 'Sem Nome'}
         </span>
-        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 shrink-0 tabular-nums">
+        <span className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground shrink-0 tabular-nums">
           {BRL_CURRENCY.format(deal.value)}
         </span>
       </div>
@@ -327,17 +327,17 @@ const DealCardComponent: React.FC<DealCardProps> = ({
           <PopoverContent
             align="start"
             sideOffset={6}
-            className="w-56 p-0 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 rounded-lg shadow-xl"
+            className="w-56 p-0 border border-border bg-white dark:bg-card rounded-lg shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 px-2.5 py-2 border-b border-slate-100 dark:border-white/10">
-              <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+            <div className="flex items-center gap-2 px-2.5 py-2 border-b border-border">
+              <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <input
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 placeholder="Buscar produto..."
                 aria-label="Buscar produto"
-                className="flex-1 bg-transparent text-xs text-slate-900 dark:text-slate-200 outline-none placeholder:text-slate-400"
+                className="flex-1 bg-transparent text-xs text-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground"
                 autoFocus
               />
             </div>
@@ -347,7 +347,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                 size="unstyled"
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onProductChange(deal.id, null); setProductPickerOpen(false); }}
-                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors ${!productName ? 'text-amber-500 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}
+                className={`w-full text-left px-3 py-1.5 text-xs hover:bg-muted dark:hover:bg-white/5 transition-colors ${!productName ? 'text-amber-500 font-semibold' : 'text-muted-foreground dark:text-muted-foreground'}`}
               >
                 Sem produto
               </Button>
@@ -358,10 +358,10 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                   key={p.id}
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onProductChange(deal.id, p); setProductPickerOpen(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-2 ${deal.items?.[0]?.productId === p.id ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-slate-700 dark:text-slate-300'}`}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-muted dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-2 ${deal.items?.[0]?.productId === p.id ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-secondary-foreground dark:text-muted-foreground'}`}
                 >
                   <span className="truncate">{p.name}</span>
-                  <span className="text-[10px] text-slate-400 shrink-0 tabular-nums">
+                  <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">
                     {BRL_CURRENCY.format(p.price)}
                   </span>
                 </Button>
@@ -374,13 +374,13 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                     type="button"
                     disabled={creatingProduct}
                     onClick={(e) => { e.stopPropagation(); handleCreateProduct(); }}
-                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-primary-500 dark:text-primary-400 flex items-center gap-1.5"
+                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-muted dark:hover:bg-white/5 transition-colors text-primary-500 dark:text-primary-400 flex items-center gap-1.5"
                   >
                     {creatingProduct ? <Loader2 className="h-3 w-3 animate-spin shrink-0" /> : <Plus className="h-3 w-3 shrink-0" />}
                     <span className="truncate">Criar &quot;{productSearch.trim()}&quot;</span>
                   </Button>
                 ) : (
-                  <div className="px-3 py-2 text-xs text-slate-400">Nenhum produto encontrado</div>
+                  <div className="px-3 py-2 text-xs text-muted-foreground">Nenhum produto encontrado</div>
                 )
               )}
             </div>
@@ -404,7 +404,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                   <span className="w-4 h-4 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 flex items-center justify-center text-[8px] font-bold shrink-0 ring-1 ring-blue-200/50 dark:ring-blue-700/30">
                     {getInitials(deal.owner.name)}
                   </span>
-                  <span className="truncate text-slate-500 dark:text-slate-400 group-hover/owner:text-slate-800 dark:group-hover/owner:text-slate-200 transition-colors">
+                  <span className="truncate text-muted-foreground dark:text-muted-foreground group-hover/owner:text-foreground dark:group-hover/owner:text-muted-foreground transition-colors">
                     {deal.owner.name}
                   </span>
                 </>
@@ -423,17 +423,17 @@ const DealCardComponent: React.FC<DealCardProps> = ({
           <PopoverContent
             align="start"
             sideOffset={6}
-            className="w-60 p-0 border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 rounded-lg shadow-xl"
+            className="w-60 p-0 border border-border bg-white dark:bg-card rounded-lg shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 px-2.5 py-2 border-b border-slate-100 dark:border-white/10">
-              <Search className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+            <div className="flex items-center gap-2 px-2.5 py-2 border-b border-border">
+              <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <input
                 value={ownerSearch}
                 onChange={(e) => setOwnerSearch(e.target.value)}
                 placeholder="Buscar corretor..."
                 aria-label="Buscar corretor"
-                className="flex-1 bg-transparent text-xs text-slate-900 dark:text-slate-200 outline-none placeholder:text-slate-400"
+                className="flex-1 bg-transparent text-xs text-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground"
                 autoFocus
               />
             </div>
@@ -443,12 +443,12 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                 size="unstyled"
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onOwnerChange(deal.id, null); setOwnerPickerOpen(false); }}
-                className={`w-full text-left px-2.5 py-1.5 text-xs hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2 ${!deal.ownerId ? 'bg-slate-50 dark:bg-white/5' : ''}`}
+                className={`w-full text-left px-2.5 py-1.5 text-xs hover:bg-background dark:hover:bg-white/5 transition-colors flex items-center gap-2 ${!deal.ownerId ? 'bg-background dark:bg-white/5' : ''}`}
               >
-                <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-400 flex items-center justify-center text-[9px] shrink-0">
+                <span className="w-5 h-5 rounded-full bg-muted dark:bg-white/10 text-muted-foreground flex items-center justify-center text-[9px] shrink-0">
                   —
                 </span>
-                <span className={`flex-1 ${!deal.ownerId ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                <span className={`flex-1 ${!deal.ownerId ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-muted-foreground dark:text-muted-foreground'}`}>
                   Sem dono
                 </span>
                 {!deal.ownerId && <Check className="h-3 w-3 text-amber-500 shrink-0" />}
@@ -462,20 +462,20 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                     key={m.id}
                     type="button"
                     onClick={(e) => { e.stopPropagation(); onOwnerChange(deal.id, m); setOwnerPickerOpen(false); }}
-                    className={`w-full text-left px-2.5 py-1.5 text-xs hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2 ${isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                    className={`w-full text-left px-2.5 py-1.5 text-xs hover:bg-background dark:hover:bg-white/5 transition-colors flex items-center gap-2 ${isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                   >
                     <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${isSelected
                         ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 ring-1 ring-blue-300/50 dark:ring-blue-600/30'
-                        : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'
+                        : 'bg-muted dark:bg-white/10 text-muted-foreground dark:text-muted-foreground'
                       }`}>
                       {getInitials(m.name)}
                     </span>
-                    <span className={`flex-1 truncate ${isSelected ? 'text-blue-700 dark:text-blue-300 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>
+                    <span className={`flex-1 truncate ${isSelected ? 'text-blue-700 dark:text-blue-300 font-medium' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
                       {m.name}
                     </span>
                     <span className={`text-[9px] px-1 py-0.5 rounded ${m.role === 'admin' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-500 dark:text-purple-400' :
                         m.role === 'diretor' ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-500 dark:text-sky-400' :
-                          'bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-slate-500'
+                          'bg-background dark:bg-white/5 text-muted-foreground dark:text-muted-foreground'
                       }`}>
                       {m.role}
                     </span>
@@ -484,7 +484,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
                 );
               })}
               {filteredMembers.length === 0 && (
-                <div className="px-3 py-3 text-xs text-slate-400 text-center">Nenhum corretor encontrado</div>
+                <div className="px-3 py-3 text-xs text-muted-foreground text-center">Nenhum corretor encontrado</div>
               )}
             </div>
           </PopoverContent>
@@ -501,14 +501,14 @@ const DealCardComponent: React.FC<DealCardProps> = ({
             <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-red-100 dark:bg-red-800/40 text-red-700 dark:text-red-300 shrink-0">PERDIDO</span>
           )}
           {visibleTags.map((tag, index) => (
-            <span key={`${deal.id}-tag-${index}`} className="text-[9px] font-medium px-1 py-0.5 rounded bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 truncate max-w-[60px]">{tag}</span>
+            <span key={`${deal.id}-tag-${index}`} className="text-[9px] font-medium px-1 py-0.5 rounded bg-muted dark:bg-white/5 text-muted-foreground dark:text-muted-foreground truncate max-w-[60px]">{tag}</span>
           ))}
           {extraTagCount > 0 && (
-            <span className="text-[9px] text-slate-400 dark:text-slate-500 shrink-0">+{extraTagCount}</span>
+            <span className="text-[9px] text-muted-foreground dark:text-muted-foreground shrink-0">+{extraTagCount}</span>
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums">{formatDate(deal.createdAt)}</span>
+          <span className="text-[10px] text-muted-foreground dark:text-muted-foreground tabular-nums">{formatDate(deal.createdAt)}</span>
           <ActivityStatusIcon
             status={activityStatus}
             type={deal.nextActivity?.type}

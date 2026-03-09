@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { CallQueue } from './components/CallQueue'
 import { PowerDialer } from './components/PowerDialer'
 import { SessionSummary } from './components/SessionSummary'
@@ -261,15 +261,15 @@ export const ProspectingPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="border-b border-slate-200 dark:border-slate-700/50 shrink-0">
+      <div className="border-b border-border dark:border-border/50 shrink-0">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary-500/10 rounded-xl">
               <PhoneOutgoing size={20} className="text-primary-500" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Prospecção</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <h1 className="text-lg font-semibold text-foreground">Prospecção</h1>
+              <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                 {queue.length} contato{queue.length !== 1 ? 's' : ''} na fila
                 {sessionActive && ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''}`}
               </p>
@@ -278,15 +278,15 @@ export const ProspectingPage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             {!sessionActive && !showSummary && (
-              <div className="flex items-center bg-slate-100 dark:bg-white/10 rounded-lg p-0.5 mr-1">
+              <div className="flex items-center bg-muted dark:bg-white/10 rounded-lg p-0.5 mr-1">
                 <Button
                   variant="unstyled"
                   size="unstyled"
                   onClick={() => setActiveTab('queue')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                     activeTab === 'queue'
-                      ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-sm'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                      ? 'bg-white dark:bg-white/15 text-foreground  shadow-sm'
+                      : 'text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
                   }`}
                 >
                   <ListChecks size={13} />
@@ -298,8 +298,8 @@ export const ProspectingPage: React.FC = () => {
                   onClick={() => setActiveTab('metrics')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                     activeTab === 'metrics'
-                      ? 'bg-white dark:bg-white/15 text-slate-900 dark:text-white shadow-sm'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                      ? 'bg-white dark:bg-white/15 text-foreground  shadow-sm'
+                      : 'text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
                   }`}
                 >
                   <BarChart3 size={13} />
@@ -312,11 +312,11 @@ export const ProspectingPage: React.FC = () => {
               <>
                 {/* CP-2.1: Retry interval selector */}
                 <div className="flex items-center gap-1.5">
-                  <RotateCcw size={13} className="text-slate-400 dark:text-slate-500" />
+                  <RotateCcw size={13} className="text-muted-foreground dark:text-muted-foreground" />
                   <select
                     value={retryInterval}
                     onChange={(e) => setRetryInterval(Number(e.target.value))}
-                    className="bg-slate-100 dark:bg-white/10 border-0 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                    className="bg-muted dark:bg-white/10 border-0 rounded-lg px-2 py-1.5 text-xs font-medium text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
                   >
                     <option value={3}>Retry: 3 dias</option>
                     <option value={5}>Retry: 5 dias</option>
@@ -331,7 +331,7 @@ export const ProspectingPage: React.FC = () => {
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     showFilters
                       ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/15'
+                      : 'bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15'
                   }`}
                 >
                   <Filter size={14} />
@@ -395,7 +395,7 @@ export const ProspectingPage: React.FC = () => {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                 !viewQueueOwnerId
                   ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
+                  : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
               }`}
             >
               Minha fila
@@ -408,13 +408,13 @@ export const ProspectingPage: React.FC = () => {
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                 isViewingAll
                   ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
+                  : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
               }`}
             >
               <Users size={12} />
               Todos
             </Button>
-            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 shrink-0 mx-0.5" />
+            <div className="w-px h-4 bg-accent dark:bg-accent shrink-0 mx-0.5" />
             {profiles.map(p => (
               <Button
                 key={p.id}
@@ -425,13 +425,13 @@ export const ProspectingPage: React.FC = () => {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                   viewQueueOwnerId === p.id
                     ? 'bg-primary-500 text-white shadow-sm'
-                    : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
+                    : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
                 }`}
               >
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
                   viewQueueOwnerId === p.id
                     ? 'bg-white/20 text-white'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                    : 'bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground'
                 }`}>
                   {p.name.charAt(0).toUpperCase()}
                 </span>
@@ -485,13 +485,13 @@ export const ProspectingPage: React.FC = () => {
 
             {/* CP-2.4: PDF export button */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Dashboard de Métricas</span>
+              <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">Dashboard de Métricas</span>
               <Button
                 variant="unstyled"
                 size="unstyled"
                 onClick={handleExportPdf}
                 disabled={isGeneratingPdf || metricsHook.isLoading || !metricsHook.metrics}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/15 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors disabled:opacity-50"
               >
                 <FileDown size={14} />
                 {isGeneratingPdf ? 'Gerando PDF...' : 'Exportar PDF'}
@@ -513,7 +513,7 @@ export const ProspectingPage: React.FC = () => {
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     metricsPeriod === key && !customRange
                       ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-400 dark:hover:bg-white/15'
+                      : 'bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15'
                   }`}
                 >
                   {label}
@@ -522,7 +522,7 @@ export const ProspectingPage: React.FC = () => {
               <div className="flex items-center gap-1.5 ml-1">
                 <input
                   type="date"
-                  className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                  className="px-2 py-1 text-xs border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500"
                   onChange={(e) => {
                     if (e.target.value) {
                       const newStart = e.target.value
@@ -535,10 +535,10 @@ export const ProspectingPage: React.FC = () => {
                   }}
                   value={customRange?.start || ''}
                 />
-                <span className="text-slate-400 text-xs">-</span>
+                <span className="text-muted-foreground text-xs">-</span>
                 <input
                   type="date"
-                  className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-white/5 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
+                  className="px-2 py-1 text-xs border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500"
                   onChange={(e) => {
                     if (e.target.value) {
                       const newEnd = e.target.value
@@ -553,7 +553,7 @@ export const ProspectingPage: React.FC = () => {
                 />
               </div>
               {metricsHook.isFetching && !metricsHook.isLoading && (
-                <span className="text-xs text-slate-400 dark:text-slate-500 animate-pulse">Atualizando...</span>
+                <span className="text-xs text-muted-foreground dark:text-muted-foreground animate-pulse">Atualizando...</span>
               )}
             </div>
 
@@ -568,7 +568,7 @@ export const ProspectingPage: React.FC = () => {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                     !metricsFilterOwnerId
                       ? 'bg-primary-500 text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
+                      : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
                   }`}
                 >
                   <Users size={12} />
@@ -584,13 +584,13 @@ export const ProspectingPage: React.FC = () => {
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                       metricsFilterOwnerId === p.id
                         ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/15'
+                        : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
                     }`}
                   >
                     <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
                       metricsFilterOwnerId === p.id
                         ? 'bg-white/20 text-white'
-                        : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                        : 'bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground'
                     }`}>
                       {p.name.charAt(0).toUpperCase()}
                     </span>
@@ -663,7 +663,7 @@ export const ProspectingPage: React.FC = () => {
                       Atribuir fila para:
                     </span>
                     <select
-                      className="bg-white dark:bg-black/20 border border-blue-200 dark:border-blue-500/20 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                      className="bg-white dark:bg-black/20 border border-blue-200 dark:border-blue-500/20 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       value={assignToOwnerId}
                       onChange={(e) => setAssignToOwnerId(e.target.value)}
                     >

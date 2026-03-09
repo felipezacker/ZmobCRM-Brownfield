@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 import { PRIMARY_NAV, SECONDARY_NAV } from './navConfig';
 
 export interface NavigationRailProps {
@@ -20,11 +20,10 @@ export function NavigationRail({ onOpenMore }: NavigationRailProps) {
   return (
     <nav
       aria-label="Navegação principal (tablet)"
-      className={cn(
-        'flex',
-        'flex-col justify-between',
-        'w-20 shrink-0',
-        'glass border-r border-[var(--color-border-subtle)]'
+      className={cn('flex',
+ 'flex-col justify-between',
+ 'w-20 shrink-0',
+ 'glass border-r border-[var(--color-border-subtle)]'
       )}
     >
       <div className="flex flex-col items-center gap-2 py-4">
@@ -33,7 +32,7 @@ export function NavigationRail({ onOpenMore }: NavigationRailProps) {
         </div>
       </div>
 
-      <div className="flex-1 px-3 py-2 overflow-y-auto scrollbar-custom">
+      <div className="flex-1 px-3 py-2 overflow-y-auto">
         <div className="space-y-2">
           {PRIMARY_NAV.filter((i) => i.id !== 'more').map((item) => {
             const Icon = item.icon;
@@ -43,12 +42,11 @@ export function NavigationRail({ onOpenMore }: NavigationRailProps) {
               <Link
                 key={item.id}
                 href={item.href!}
-                className={cn(
-                  'w-full h-12 rounded-xl flex items-center justify-center transition-colors focus-visible-ring',
-                  isActive
-                    ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900/50'
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
-                )}
+                className={cn('w-full h-12 rounded-xl flex items-center justify-center transition-colors focus-visible-ring',
+ isActive
+ ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900/50'
+ : 'text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 hover:text-foreground dark:hover:text-white'
+ )}
                 aria-current={isActive ? 'page' : undefined}
                 title={item.label}
                 aria-label={item.label}
@@ -59,7 +57,7 @@ export function NavigationRail({ onOpenMore }: NavigationRailProps) {
           })}
         </div>
 
-        <div className="my-3 h-px bg-slate-200/60 dark:bg-white/10" />
+        <div className="my-3 h-px bg-accent/60 dark:bg-white/10" />
 
         <div className="space-y-2">
           {SECONDARY_NAV.map((item) => {
@@ -69,12 +67,11 @@ export function NavigationRail({ onOpenMore }: NavigationRailProps) {
               <Link
                 key={item.id}
                 href={item.href}
-                className={cn(
-                  'w-full h-12 rounded-xl flex items-center justify-center transition-colors focus-visible-ring',
-                  isActive
-                    ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900/50'
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
-                )}
+                className={cn('w-full h-12 rounded-xl flex items-center justify-center transition-colors focus-visible-ring',
+ isActive
+ ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900/50'
+ : 'text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 hover:text-foreground dark:hover:text-white'
+ )}
                 aria-current={isActive ? 'page' : undefined}
                 title={item.label}
                 aria-label={item.label}

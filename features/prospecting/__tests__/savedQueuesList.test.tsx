@@ -6,7 +6,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { SavedQueuesList } from '../components/SavedQueuesList'
 import type { SavedQueue } from '@/lib/supabase/prospecting-saved-queues'
 
-vi.mock('@/app/components/ui/Button', () => ({
+vi.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
     <button {...props}>{children}</button>
   ),

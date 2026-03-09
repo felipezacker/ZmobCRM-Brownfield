@@ -3,7 +3,7 @@
 import React from 'react';
 import { HeartPulse, Sparkles } from 'lucide-react';
 import { Chip, Panel } from './cockpit-ui';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CockpitHealthPanelProps {
   health: { score: number; status: 'excellent' | 'good' | 'warning' | 'critical' };
@@ -34,10 +34,10 @@ export function CockpitHealthPanel({ health, aiLoading, onRefetchAI }: CockpitHe
         />
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <div className="text-[11px] text-slate-500">IA + probabilidade do deal.</div>
+        <div className="text-[11px] text-muted-foreground">IA + probabilidade do deal.</div>
         <Button
           type="button"
-          className="rounded-xl border border-white/10 bg-white/3 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:bg-white/5"
+          className="rounded-xl border border-white/10 bg-white/3 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-white/5"
           onClick={onRefetchAI}
           title="Reanalisar com IA"
         >

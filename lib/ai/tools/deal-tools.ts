@@ -3,56 +3,100 @@ import { z } from 'zod';
 import type { ToolContext } from './types';
 import { formatSupabaseFailure, sanitizeFilterValue, ensureBoardBelongsToOrganization, ensureDealBelongsToOrganization, resolveStageIdForBoard } from './helpers';
 
+interface DealRow {
+    id: string;
+    title: string;
+    value: number | null;
+    is_won: boolean;
+    is_lost: boolean;
+    property_ref?: string | null;
+    updated_at?: string;
+    board_id?: string;
+    stage?: { name?: string; label?: string } | null;
+    contact?: { name?: string; email?: string; phone?: string } | null;
+    activities?: Array<{ id: string; type: string; title: string; completed: boolean; date: string }>;
+}
+
 export function createDealTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
         searchDeals: tool({
-            description: 'Busca deals por título',
+            description: 'Busca deals por título (query) e/ou por imóvel/produto (productName). Quando o usuário mencionar imóvel, produto ou empreendimento, use productName.',
             inputSchema: z.object({
-                query: z.string().describe('Termo de busca'),
+                query: z.string().optional().describe('Termo de busca por título do deal — NÃO use para imóvel/produto'),
+                productName: z.string().optional().describe('Buscar por imóvel/produto/empreendimento — USE ESTE quando o usuário mencionar imóvel ou produto (ex: "Shift", "Aurora")'),
+                propertyRef: z.string().optional().describe('Buscar por referência textual de imóvel (campo legado, raramente usado)'),
                 limit: z.number().optional().default(5),
             }),
-            execute: async ({ query, limit }) => {
-                const cleanedQuery = String(query)
-                    .trim()
-                    .replace(/^["'""'']+/, '')
-                    .replace(/["'""'']+$/, '')
-                    .trim();
-
-                const normalizedQuery = cleanedQuery
-                    .replace(/[^\p{L}\p{N}\s.-]+/gu, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-
-                const strippedQuery = normalizedQuery
-                    .replace(/\b(buscar|busque|procure|procurar|encontre|encontrar|mostrar|liste|listar|deal|deals|neg[oó]cio|neg[oó]cios|oportunidade|oportunidades|card|cards)\b/gi, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-
-                const effectiveQuery = strippedQuery || normalizedQuery;
-
-                console.log('[AI] 🔍 searchDeals EXECUTED!', { query, cleanedQuery, effectiveQuery });
-
-                if (!effectiveQuery) {
-                    return { error: 'Informe um termo de busca.' };
+            execute: async ({ query, productName, propertyRef, limit }) => {
+                if (!query && !productName && !propertyRef) {
+                    return { error: 'Informe um termo de busca (query), produto (productName) ou referência (propertyRef).' };
                 }
+
+                // If searching by product, find deal IDs via deal_items first
+                let productDealIds: string[] | undefined;
+                if (productName) {
+                    const { data: items } = await supabase
+                        .from('deal_items')
+                        .select('deal_id')
+                        .eq('organization_id', organizationId)
+                        .ilike('name', `%${sanitizeFilterValue(productName)}%`);
+                    productDealIds = items?.map((i) => i.deal_id).filter(Boolean) || [];
+                    if (productDealIds.length === 0) {
+                        return { count: 0, deals: [], message: `Nenhum deal encontrado com produto "${productName}".` };
+                    }
+                }
+
+                let effectiveQuery: string | undefined;
+
+                if (query) {
+                    const cleanedQuery = String(query)
+                        .trim()
+                        .replace(/^["'""'']+/, '')
+                        .replace(/["'""'']+$/, '')
+                        .trim();
+
+                    const normalizedQuery = cleanedQuery
+                        .replace(/[^\p{L}\p{N}\s.-]+/gu, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    const strippedQuery = normalizedQuery
+                        .replace(/\b(buscar|busque|procure|procurar|encontre|encontrar|mostrar|liste|listar|deal|deals|neg[oó]cio|neg[oó]cios|oportunidade|oportunidades|card|cards)\b/gi, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    effectiveQuery = strippedQuery || normalizedQuery || undefined;
+                }
+
+                console.log('[AI] 🔍 searchDeals EXECUTED!', { query, productName, propertyRef, effectiveQuery });
 
                 let queryBuilder = supabase
                     .from('deals')
-                    .select('id, title, value, is_won, is_lost, stage:board_stages(name, label), contact:contacts(name)')
+                    .select('id, title, value, is_won, is_lost, property_ref, stage:board_stages(name, label), contact:contacts(name), items:deal_items(name)')
                     .is('deleted_at', null)
                     .limit(limit);
 
-                const terms = effectiveQuery
-                    .split(' ')
-                    .map((t) => t.trim())
-                    .filter(Boolean);
+                if (productDealIds) {
+                    queryBuilder = queryBuilder.in('id', productDealIds);
+                }
 
-                if (terms.length <= 1) {
-                    queryBuilder = queryBuilder.ilike('title', `%${effectiveQuery}%`);
-                } else {
-                    queryBuilder = queryBuilder.or(
-                        terms.map((t) => `title.ilike.%${sanitizeFilterValue(t)}%`).join(',')
-                    );
+                if (effectiveQuery) {
+                    const terms = effectiveQuery
+                        .split(' ')
+                        .map((t) => t.trim())
+                        .filter(Boolean);
+
+                    if (terms.length <= 1) {
+                        queryBuilder = queryBuilder.ilike('title', `%${effectiveQuery}%`);
+                    } else {
+                        queryBuilder = queryBuilder.or(
+                            terms.map((t) => `title.ilike.%${sanitizeFilterValue(t)}%`).join(',')
+                        );
+                    }
+                }
+
+                if (propertyRef) {
+                    queryBuilder = queryBuilder.ilike('property_ref', `%${sanitizeFilterValue(propertyRef)}%`);
                 }
 
                 if (context.boardId) {
@@ -74,14 +118,19 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
 
                 return {
                     count: deals?.length || 0,
-                    deals: deals?.map((d: any) => ({
-                        id: d.id,
-                        title: d.title,
-                        value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
-                        stage: d.stage?.name || d.stage?.label || 'N/A',
-                        contact: d.contact?.name || 'N/A',
-                        status: d.is_won ? '✅ Ganho' : d.is_lost ? '❌ Perdido' : '🔄 Aberto'
-                    })) || []
+                    deals: deals?.map((d) => {
+                        const items = d.items as Array<{ name: string }> | null;
+                        return {
+                            id: d.id,
+                            title: d.title,
+                            value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
+                            stage: (d.stage as DealRow['stage'])?.name || (d.stage as DealRow['stage'])?.label || 'N/A',
+                            contact: (d.contact as DealRow['contact'])?.name || 'N/A',
+                            product: items?.[0]?.name || null,
+                            status: d.is_won ? '✅ Ganho' : d.is_lost ? '❌ Perdido' : '🔄 Aberto',
+                            propertyRef: d.property_ref || null
+                        };
+                    }) || []
                 };
             },
         }),
@@ -174,18 +223,18 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     return { error: formatSupabaseFailure(dealsError) };
                 }
 
-                const openDeals = (deals || []).filter((d: any) => !d.is_won && !d.is_lost);
+                const openDeals = (deals || []).filter((d) => !d.is_won && !d.is_lost);
                 const finalDeals = openDeals.slice(0, limit);
-                const totalValue = finalDeals.reduce((s: number, d: any) => s + (d.value || 0), 0) || 0;
+                const totalValue = finalDeals.reduce((s: number, d) => s + (d.value || 0), 0) || 0;
 
                 return {
                     count: finalDeals.length || 0,
                     totalValue: `R$ ${totalValue.toLocaleString('pt-BR')}`,
-                    deals: finalDeals.map((d: any) => ({
+                    deals: finalDeals.map((d) => ({
                         id: d.id,
                         title: d.title,
                         value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
-                        contact: d.contact?.name || 'N/A'
+                        contact: (d.contact as DealRow['contact'])?.name || 'N/A'
                     })) || []
                 };
             },
@@ -222,20 +271,20 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     .order('updated_at', { ascending: true })
                     .limit(Math.max(limit * 5, 50));
 
-                const openDeals = (deals || []).filter((d: any) => !d.is_won && !d.is_lost);
+                const openDeals = (deals || []).filter((d) => !d.is_won && !d.is_lost);
                 const finalDeals = openDeals.slice(0, limit);
 
                 return {
                     count: finalDeals.length || 0,
                     message: `${finalDeals.length || 0} deals parados há mais de ${daysStagnant} dias`,
-                    deals: finalDeals.map((d: any) => {
+                    deals: finalDeals.map((d) => {
                         const days = Math.floor((Date.now() - new Date(d.updated_at).getTime()) / (1000 * 60 * 60 * 24));
                         return {
                             id: d.id,
                             title: d.title,
                             diasParado: days,
                             value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
-                            contact: d.contact?.name || 'N/A'
+                            contact: (d.contact as DealRow['contact'])?.name || 'N/A'
                         };
                     }) || []
                 };
@@ -283,11 +332,11 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 return {
                     count: deals?.length || 0,
                     message: `⚠️ ${deals?.length || 0} deals com atividades atrasadas`,
-                    deals: deals?.map((d: any) => ({
+                    deals: deals?.map((d) => ({
                         id: d.id,
                         title: d.title,
                         value: `R$ ${(d.value || 0).toLocaleString('pt-BR')}`,
-                        contact: d.contact?.name || 'N/A',
+                        contact: (d.contact as DealRow['contact'])?.name || 'N/A',
                         overdueCount: overdueActivities.filter(a => a.deal_id === d.id).length
                     })) || []
                 };
@@ -323,17 +372,21 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     return { error: 'Deal não encontrado.' };
                 }
 
-                const pendingActivities = deal.activities?.filter((a: any) => !a.completed) || [];
+                const activities = deal.activities as DealRow['activities'] | undefined;
+                const pendingActivities = activities?.filter((a) => !a.completed) || [];
+                const stageData = deal.stage as DealRow['stage'];
+                const contactData = deal.contact as DealRow['contact'];
 
                 return {
                     id: deal.id,
                     title: deal.title,
                     value: `R$ ${(deal.value || 0).toLocaleString('pt-BR')}`,
                     status: deal.is_won ? '✅ Ganho' : deal.is_lost ? '❌ Perdido' : '🔄 Aberto',
-                    stage: (deal.stage as any)?.name || (deal.stage as any)?.label || 'N/A',
+                    stage: stageData?.name || stageData?.label || 'N/A',
                     priority: deal.priority || 'medium',
-                    contact: (deal.contact as any)?.name || 'N/A',
-                    contactEmail: (deal.contact as any)?.email || 'N/A',
+                    propertyRef: deal.property_ref || null,
+                    contact: contactData?.name || 'N/A',
+                    contactEmail: contactData?.email || 'N/A',
                     pendingActivities: pendingActivities.length,
                     createdAt: deal.created_at
                 };
@@ -405,15 +458,17 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
         }),
 
         createDeal: tool({
-            description: 'Cria um novo deal no board atual (ou informado). Requer aprovação no card (Aprovar/Negar) — não peça confirmação em texto.',
+            description: 'Cria um novo deal no board atual (ou informado). SEMPRE passe productName quando o usuário mencionar imóvel/produto. Requer aprovação no card (Aprovar/Negar) — não peça confirmação em texto.',
             inputSchema: z.object({
                 title: z.string().min(1).describe('Título do deal'),
                 value: z.number().optional().default(0).describe('Valor do deal em reais'),
                 contactName: z.string().optional().describe('Nome do contato'),
+                productName: z.string().optional().describe('Nome do imóvel/produto/empreendimento — OBRIGATÓRIO quando o usuário mencionar imóvel ou produto (ex: "Shift", "Aurora")'),
+                propertyRef: z.string().optional().describe('Referência textual legada (raramente usado)'),
                 boardId: z.string().optional(),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ title, value, contactName, boardId }) => {
+            execute: async ({ title, value, contactName, productName, propertyRef, boardId }) => {
                 const targetBoardId = boardId || context.boardId;
                 console.log('[AI] ➕ createDeal EXECUTED!', title);
 
@@ -461,13 +516,35 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     }
                 }
 
+                // Resolve product from catalog
+                let resolvedProductId: string | null = null;
+                let resolvedProductName: string | null = null;
+                let resolvedProductPrice = 0;
+                if (productName) {
+                    const { data: products } = await supabase
+                        .from('products')
+                        .select('id, name, price')
+                        .eq('organization_id', organizationId)
+                        .ilike('name', `%${sanitizeFilterValue(productName)}%`)
+                        .limit(1);
+
+                    if (products && products.length > 0) {
+                        resolvedProductId = products[0].id;
+                        resolvedProductName = products[0].name;
+                        resolvedProductPrice = products[0].price || 0;
+                    }
+                }
+
+                const dealValue = value || resolvedProductPrice || 0;
+
                 const { data: deal, error } = await supabase
                     .from('deals')
                     .insert({
                         organization_id: organizationId,
                         board_id: targetBoardId,
                         title,
-                        value,
+                        value: dealValue,
+                        property_ref: propertyRef || null,
                         contact_id: contactId,
                         stage_id: firstStageId,
                         priority: 'medium',
@@ -482,14 +559,29 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     return { success: false, error: error?.message ?? 'Falha ao criar deal' };
                 }
 
+                // Link product to deal via deal_items
+                if (resolvedProductId && resolvedProductName) {
+                    await supabase
+                        .from('deal_items')
+                        .insert({
+                            deal_id: deal.id,
+                            product_id: resolvedProductId,
+                            name: resolvedProductName,
+                            quantity: 1,
+                            price: resolvedProductPrice,
+                            organization_id: organizationId,
+                        });
+                }
+
                 return {
                     success: true,
                     deal: {
                         id: deal.id,
                         title: deal.title,
-                        value: `R$ ${(deal.value || 0).toLocaleString('pt-BR')}`
+                        value: `R$ ${(deal.value || 0).toLocaleString('pt-BR')}`,
+                        product: resolvedProductName || null,
                     },
-                    message: `Deal "${title}" criado com sucesso!`
+                    message: `Deal "${title}" criado com sucesso!${resolvedProductName ? ` Produto: ${resolvedProductName}` : ''}`
                 };
             },
         }),
@@ -501,9 +593,10 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 title: z.string().optional().describe('Novo título'),
                 value: z.number().optional().describe('Novo valor'),
                 priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+                propertyRef: z.string().optional().describe('Referência do imóvel'),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ dealId, title, value, priority }) => {
+            execute: async ({ dealId, title, value, priority, propertyRef }) => {
                 const targetDealId = dealId || context.dealId;
                 console.log('[AI] ✏️ updateDeal EXECUTED!');
 
@@ -515,6 +608,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 if (title) updateData.title = title;
                 if (value !== undefined) updateData.value = value;
                 if (priority) updateData.priority = priority;
+                if (propertyRef !== undefined) updateData.property_ref = propertyRef;
 
                 const { error } = await supabase
                     .from('deals')
@@ -558,24 +652,24 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     }
 
                     const { data: foundDeals } = await query.limit(20);
-                    const openFoundDeals = (foundDeals || []).filter((d: any) => !d.is_won && !d.is_lost);
+                    const openFoundDeals = (foundDeals || []).filter((d) => !d.is_won && !d.is_lost);
 
                     if (stageName && openFoundDeals) {
-                        const filtered = openFoundDeals.filter((d: any) =>
-                            d.stage?.name?.toLowerCase().includes(stageName.toLowerCase())
+                        const filtered = openFoundDeals.filter((d) =>
+                            (d.stage as DealRow['stage'])?.name?.toLowerCase().includes(stageName.toLowerCase())
                         );
                         if (filtered.length === 1) {
                             targetDealId = filtered[0].id;
                         } else if (filtered.length > 1) {
                             return {
-                                error: `Encontrei ${filtered.length} deals em "${stageName}". Especifique qual: ${filtered.map((d: any) => d.title).join(', ')}`
+                                error: `Encontrei ${filtered.length} deals em "${stageName}". Especifique qual: ${filtered.map((d) => d.title).join(', ')}`
                             };
                         }
                     } else if (openFoundDeals.length === 1) {
                         targetDealId = openFoundDeals[0].id;
                     } else if (dealTitle && openFoundDeals.length > 0) {
                         return {
-                            error: `Encontrei ${openFoundDeals.length} deals com "${dealTitle}". Especifique qual: ${openFoundDeals.map((d: any) => d.title).join(', ')}`
+                            error: `Encontrei ${openFoundDeals.length} deals com "${dealTitle}". Especifique qual: ${openFoundDeals.map((d) => d.title).join(', ')}`
                         };
                     }
                 }
@@ -601,7 +695,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     }
                 }
 
-                const updateData: any = {
+                const updateData: Record<string, unknown> = {
                     is_won: true,
                     is_lost: false,
                     closed_at: new Date().toISOString(),
@@ -728,7 +822,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 createFollowUpTask: z.boolean().optional().default(false),
                 followUpTitle: z.string().optional(),
                 followUpDueInDays: z.number().int().positive().optional().default(2),
-                followUpType: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK']).optional().default('TASK'),
+                followUpType: z.enum(['CALL', 'MEETING', 'EMAIL', 'TASK', 'WHATSAPP']).optional().default('TASK'),
             }),
             needsApproval: !bypassApproval,
             execute: async ({ dealIds, boardId, stageName, stageId, allowPartial, maxDeals, createFollowUpTask, followUpTitle, followUpDueInDays, followUpType }) => {
@@ -756,7 +850,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
 
                 if (dealsError) return { error: formatSupabaseFailure(dealsError) };
 
-                const foundIds = new Set((deals || []).map((d: any) => d.id));
+                const foundIds = new Set((deals || []).map((d) => d.id));
                 const missingIds = unique.filter((id) => !foundIds.has(id));
 
                 if (missingIds.length > 0 && !allowPartial) {
@@ -766,7 +860,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                 const stageRes = await resolveStageIdForBoard(supabase, organizationId, { boardId: targetBoardId, stageId, stageName });
                 if (!stageRes.ok) return { error: stageRes.error };
 
-                const idsToMove = (deals || []).map((d: any) => d.id);
+                const idsToMove = (deals || []).map((d) => d.id);
                 if (idsToMove.length === 0) {
                     return { error: 'Nenhum deal válido encontrado para mover (cheque board/organização).' };
                 }
@@ -809,7 +903,7 @@ export function createDealTools({ supabase, organizationId, context, userId, byp
                     movedCount: idsToMove.length,
                     skippedCount: missingIds.length,
                     followUpCreated,
-                    deals: (deals || []).map((d: any) => ({ id: d.id, title: d.title })),
+                    deals: (deals || []).map((d) => ({ id: d.id, title: d.title })),
                     message:
                         `Movi ${idsToMove.length} deal(s) com sucesso.` +
                         (missingIds.length ? ` (${missingIds.length} ignorado(s) por não pertencerem ao board/organização.)` : '') +

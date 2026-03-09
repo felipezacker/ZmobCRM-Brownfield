@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 
 /**
  * Função pública `createClient` do projeto.
- * @returns {Promise<SupabaseClient<any, "public", "public", any, any>>} Retorna um valor do tipo `Promise<SupabaseClient<any, "public", "public", any, any>>`.
+ * @returns {Promise<SupabaseClient>} Cliente Supabase server-side.
  */
 export async function createClient() {
     const cookieStore = await cookies()
@@ -40,7 +40,7 @@ export async function createClient() {
 // Admin client for server-side operations with service role (requires request context)
 /**
  * Função pública `createAdminClient` do projeto.
- * @returns {Promise<SupabaseClient<any, "public", "public", any, any>>} Retorna um valor do tipo `Promise<SupabaseClient<any, "public", "public", any, any>>`.
+ * @returns {Promise<SupabaseClient>} Cliente Supabase admin server-side.
  */
 export async function createAdminClient() {
     const cookieStore = await cookies()
@@ -78,7 +78,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Função pública `createStaticAdminClient` do projeto.
- * @returns {SupabaseClient<any, "public", "public", any, any>} Retorna um valor do tipo `SupabaseClient<any, "public", "public", any, any>`.
+ * @returns {SupabaseClient} Cliente Supabase admin estatico (sem contexto de request).
  */
 export function createStaticAdminClient() {
     // Prefer new key formats, fallback to legacy

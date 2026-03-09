@@ -7,29 +7,50 @@ import { calculateLeadScore } from '@/lib/supabase/lead-scoring';
 export function createContactTools({ supabase, organizationId, context, userId, bypassApproval }: ToolContext) {
     return {
         searchContacts: tool({
-            description: 'Busca contatos por nome ou email',
+            description: 'Busca contatos por nome/email (query), tag, ou campo customizado (customFieldKey+customFieldValue). Todos os filtros funcionam sozinhos sem query. Para "campo X = Y", use customFieldKey e customFieldValue.',
             inputSchema: z.object({
-                query: z.string().describe('Termo de busca'),
+                query: z.string().optional().describe('Busca por nome ou email — NÃO use para tags ou campos custom'),
+                tag: z.string().optional().describe('Filtrar por tag (ex: "VIP"). Funciona sozinho sem query.'),
+                customFieldKey: z.string().optional().describe('Nome do campo custom (ex: "origem", "segmento"). SEMPRE use junto com customFieldValue. Quando o usuário diz "campo X = Y", passe X aqui.'),
+                customFieldValue: z.string().optional().describe('Valor do campo custom (ex: "indicacao", "premium"). SEMPRE use junto com customFieldKey. Quando o usuário diz "campo X = Y", passe Y aqui.'),
                 limit: z.number().optional().default(5),
             }),
-            execute: async ({ query, limit }) => {
-                console.log('[AI] 🔍 searchContacts EXECUTED!', query);
+            execute: async ({ query, tag, customFieldKey, customFieldValue, limit }) => {
+                if (!query && !tag && !customFieldKey) {
+                    return { error: 'Informe um termo de busca (query), tag ou campo customizado (customFieldKey).' };
+                }
 
-                const { data: contacts } = await supabase
+                console.log('[AI] 🔍 searchContacts EXECUTED!', { query, tag, customFieldKey, customFieldValue });
+
+                let q = supabase
                     .from('contacts')
-                    .select('id, name, email, phone')
+                    .select('id, name, email, phone, tags, custom_fields')
                     .eq('organization_id', organizationId)
-                    .is('deleted_at', null)
-                    .or(`name.ilike.%${sanitizeFilterValue(query)}%,email.ilike.%${sanitizeFilterValue(query)}%`)
-                    .limit(limit);
+                    .is('deleted_at', null);
+
+                if (query) {
+                    q = q.or(`name.ilike.%${sanitizeFilterValue(query)}%,email.ilike.%${sanitizeFilterValue(query)}%`);
+                }
+
+                if (tag) {
+                    q = q.contains('tags', [tag]);
+                }
+
+                if (customFieldKey && customFieldValue) {
+                    q = q.contains('custom_fields', { [customFieldKey]: customFieldValue });
+                }
+
+                const { data: contacts } = await q.limit(limit);
 
                 return {
                     count: contacts?.length || 0,
-                    contacts: contacts?.map(c => ({
+                    contacts: contacts?.map((c: { id: string; name: string; email: string | null; phone: string | null; tags: string[] | null; custom_fields: Record<string, unknown> | null }) => ({
                         id: c.id,
                         name: c.name,
                         email: c.email || 'N/A',
                         phone: c.phone || 'N/A',
+                        tags: c.tags || [],
+                        customFields: c.custom_fields || {},
                     })) || []
                 };
             },
@@ -45,9 +66,11 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                 status: z.string().optional().default('ACTIVE'),
                 stage: z.string().optional().default('LEAD'),
                 source: z.string().optional(),
+                tags: z.array(z.string()).optional().describe('Tags do contato (ex: ["VIP", "Indicação"])'),
+                customFields: z.record(z.string(), z.string()).optional().describe('Campos customizados (ex: {"origem": "site", "segmento": "premium"})'),
             }),
             needsApproval: !bypassApproval,
-            execute: async ({ name, email, phone, notes, status, stage, source }) => {
+            execute: async ({ name, email, phone, notes, status, stage, source, tags, customFields }) => {
                 const { data, error } = await supabase
                     .from('contacts')
                     .insert({
@@ -59,6 +82,8 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                         status,
                         stage,
                         source: source || null,
+                        tags: tags || null,
+                        custom_fields: customFields || null,
                         owner_id: userId,
                         updated_at: new Date().toISOString(),
                     })
@@ -80,6 +105,8 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                 status: z.string().optional(),
                 stage: z.string().optional(),
                 source: z.string().optional(),
+                tags: z.array(z.string()).optional().describe('Substituir tags do contato'),
+                customFields: z.record(z.string(), z.string()).optional().describe('Substituir campos customizados'),
             }),
             needsApproval: !bypassApproval,
             execute: async ({ contactId, ...patch }) => {
@@ -91,6 +118,8 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                 if (patch.status !== undefined) updateData.status = patch.status;
                 if (patch.stage !== undefined) updateData.stage = patch.stage;
                 if (patch.source !== undefined) updateData.source = patch.source;
+                if (patch.tags !== undefined) updateData.tags = patch.tags;
+                if (patch.customFields !== undefined) updateData.custom_fields = patch.customFields;
 
                 const { data, error } = await supabase
                     .from('contacts')
@@ -106,21 +135,26 @@ export function createContactTools({ supabase, organizationId, context, userId, 
         }),
 
         getContactDetails: tool({
-            description: 'Mostra detalhes de um contato.',
+            description: 'Mostra detalhes de um contato, incluindo tags e campos customizados.',
             inputSchema: z.object({
                 contactId: z.string(),
             }),
             execute: async ({ contactId }) => {
                 const { data, error } = await supabase
                     .from('contacts')
-                    .select('id, name, email, phone, notes, status, stage, source, created_at, updated_at')
+                    .select('id, name, email, phone, notes, status, stage, source, tags, custom_fields, created_at, updated_at')
                     .eq('organization_id', organizationId)
                     .eq('id', contactId)
                     .is('deleted_at', null)
                     .maybeSingle();
                 if (error) return { error: formatSupabaseFailure(error) };
                 if (!data) return { error: 'Contato não encontrado nesta organização.' };
-                return data;
+                const row = data as typeof data & { tags?: string[] | null; custom_fields?: Record<string, unknown> | null };
+                return {
+                    ...data,
+                    tags: row.tags || [],
+                    customFields: row.custom_fields || {},
+                };
             },
         }),
 

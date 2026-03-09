@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import { useContactActivities } from '@/lib/query/hooks/useActivitiesQuery'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { Activity } from '@/types'
 
 interface ContactHistoryProps {
@@ -14,7 +14,7 @@ const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
   EMAIL: <Mail size={14} className="text-green-500" />,
   MEETING: <Calendar size={14} className="text-purple-500" />,
   NOTE: <FileText size={14} className="text-amber-500" />,
-  TASK: <Clock size={14} className="text-slate-500" />,
+  TASK: <Clock size={14} className="text-muted-foreground" />,
 }
 
 const OUTCOME_BADGES: Record<string, { label: string; className: string }> = {
@@ -44,13 +44,13 @@ const ActivityItem: React.FC<{ activity: Activity }> = ({ activity }) => {
     : null
 
   return (
-    <div className="flex items-start gap-3 py-2.5 border-b border-slate-100 dark:border-slate-800 last:border-0">
+    <div className="flex items-start gap-3 py-2.5 border-b border-border dark:border-border last:border-0">
       <div className="mt-0.5 shrink-0">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+          <span className="text-xs font-medium text-secondary-foreground dark:text-muted-foreground truncate">
             {activity.title}
           </span>
           {outcome && (
@@ -60,11 +60,11 @@ const ActivityItem: React.FC<{ activity: Activity }> = ({ activity }) => {
           )}
         </div>
         {activity.description && (
-          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 line-clamp-1">
+          <p className="text-[11px] text-muted-foreground dark:text-muted-foreground mt-0.5 line-clamp-1">
             {activity.description}
           </p>
         )}
-        <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 block">
+        <span className="text-[10px] text-muted-foreground dark:text-muted-foreground mt-0.5 block">
           {formatDate(activity.date)}
         </span>
       </div>
@@ -77,18 +77,18 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
   const { data: activities = [], isLoading } = useContactActivities(contactId)
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-xl overflow-hidden">
+    <div className="bg-white dark:bg-card border border-border dark:border-border/50 rounded-xl overflow-hidden">
       <Button
         variant="unstyled"
         size="unstyled"
         onClick={() => setIsOpen(prev => !prev)}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-card/50 transition-colors"
       >
         <span className="flex items-center gap-2">
           <Clock size={14} />
           Histórico
           {activities.length > 0 && (
-            <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full">
+            <span className="text-[10px] bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground px-1.5 py-0.5 rounded-full">
               {activities.length}
             </span>
           )}
@@ -102,16 +102,16 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
             <div className="space-y-3 py-2">
               {[1, 2, 3].map(i => (
                 <div key={i} className="flex items-start gap-3 animate-pulse">
-                  <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-700 mt-0.5" />
+                  <div className="w-4 h-4 rounded bg-accent dark:bg-accent mt-0.5" />
                   <div className="flex-1 space-y-1.5">
-                    <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
-                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+                    <div className="h-3 bg-accent dark:bg-accent rounded w-3/4" />
+                    <div className="h-2 bg-muted dark:bg-card rounded w-1/2" />
                   </div>
                 </div>
               ))}
             </div>
           ) : activities.length === 0 ? (
-            <p className="text-xs text-slate-400 dark:text-slate-500 py-3 text-center">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground py-3 text-center">
               Nenhuma interação registrada
             </p>
           ) : (

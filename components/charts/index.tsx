@@ -9,10 +9,10 @@ import React, { Suspense, lazy } from 'react';
  */
 export const ChartSkeleton: React.FC<{ height?: number | string }> = ({ height = 320 }) => (
   <div
-    className="animate-pulse bg-slate-100 dark:bg-slate-800 rounded-lg w-full flex items-center justify-center"
+    className="animate-pulse bg-muted dark:bg-card rounded-lg w-full flex items-center justify-center"
     style={{ height }}
   >
-    <div className="text-slate-400 dark:text-slate-500 text-sm">Carregando gráfico...</div>
+    <div className="text-muted-foreground dark:text-muted-foreground text-sm">Carregando gráfico...</div>
   </div>
 );
 

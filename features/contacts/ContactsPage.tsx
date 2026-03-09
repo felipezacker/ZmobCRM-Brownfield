@@ -16,7 +16,7 @@ import { ContactsImportExportModal } from './components/ContactsImportExportModa
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 import { exportContactsCsv } from './utils/exportCsv';
 import ConfirmModal from '@/components/ConfirmModal';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Componente React `ContactsPage`.
@@ -198,7 +198,7 @@ export const ContactsPage: React.FC = () => {
                 message={
                     <div className="space-y-3">
                         <p>Este contato possui {controller.deleteWithDeals?.dealCount || 0} negocio(s) vinculado(s):</p>
-                        <ul className="text-left bg-slate-100 dark:bg-slate-800/50 rounded-lg p-3 space-y-1 max-h-32 overflow-y-auto">
+                        <ul className="text-left bg-muted dark:bg-card/50 rounded-lg p-3 space-y-1 max-h-32 overflow-y-auto">
                             {controller.deleteWithDeals?.deals.map((deal) => (
                                 <li key={deal.id} className="text-sm">
                                     <Button
@@ -239,7 +239,7 @@ export const ContactsPage: React.FC = () => {
 
             {/* Story 3.5 — Sticky Bulk Actions Bar (bottom) */}
             {controller.selectedIds.size > 0 && (
-                <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shadow-[0_-4px_12px_rgba(0,0,0,0.1)] px-8 py-3">
+                <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-white/95 dark:bg-card/95 backdrop-blur-sm shadow-[0_-4px_12px_rgba(0,0,0,0.1)] px-8 py-3">
                     <div className="max-w-[1600px] mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <span className="text-sm font-medium text-primary-700 dark:text-primary-300">

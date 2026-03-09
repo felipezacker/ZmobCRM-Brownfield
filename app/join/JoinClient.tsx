@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getErrorMessage } from '@/lib/utils/errorUtils'
 import { Loader2, Mail, Lock, User, ArrowRight, AlertCircle } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Componente React `JoinClient`.
@@ -22,7 +22,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
 
   const [loading, setLoading] = useState(false)
   const [validating, setValidating] = useState(true)
-  const [inviteData, setInviteData] = useState<any>(null)
+  const [inviteData, setInviteData] = useState<Record<string, unknown> | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
@@ -64,7 +64,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
         if (payload.invite?.email) {
           setFormData(prev => ({ ...prev, email: payload.invite.email }))
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('[JoinClient] Error validating token:', err)
         setError(getErrorMessage(err))
       } finally {
@@ -105,7 +105,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
       if (signInError) throw signInError
 
       router.push('/dashboard')
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
       setError(getErrorMessage(err))
     } finally {
@@ -115,7 +115,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
 
   if (validating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-dark-bg">
+      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-dark-bg">
         <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
       </div>
     )
@@ -123,16 +123,16 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-dark-bg p-4">
-        <div className="max-w-md w-full bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl p-8 text-center shadow-xl">
+      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-dark-bg p-4">
+        <div className="max-w-md w-full bg-white dark:bg-dark-card border border-border rounded-2xl p-8 text-center shadow-xl">
           <div className="h-16 w-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="h-8 w-8 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Convite Inválido</h2>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">{error}</p>
+          <h2 className="text-xl font-bold text-foreground mb-2">Convite Inválido</h2>
+          <p className="text-muted-foreground dark:text-muted-foreground mb-6">{error}</p>
           <Button
             onClick={() => router.push('/login')}
-            className="w-full py-3 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            className="w-full py-3 px-4 bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground rounded-xl font-medium hover:bg-accent dark:hover:bg-accent transition-colors"
           >
             Voltar para Login
           </Button>
@@ -142,7 +142,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-dark-bg relative overflow-hidden p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background dark:bg-dark-bg relative overflow-hidden p-4">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] bg-primary-500/20 rounded-full blur-[120px]" />
         <div className="absolute top-[40%] -left-[10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[100px]" />
@@ -150,28 +150,28 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
 
       <div className="max-w-md w-full relative z-10">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-display tracking-tight mb-2">
+          <h1 className="text-3xl font-bold text-foreground font-display tracking-tight mb-2">
             Aceitar Convite
           </h1>
-          <p className="text-slate-500 dark:text-slate-400">Crie sua conta para se juntar à equipe.</p>
+          <p className="text-muted-foreground dark:text-muted-foreground">Crie sua conta para se juntar à equipe.</p>
         </div>
 
-        <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl p-8 backdrop-blur-sm">
+        <div className="bg-white dark:bg-dark-card border border-border rounded-2xl shadow-xl p-8 backdrop-blur-sm">
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="join-name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <label htmlFor="join-name" className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-1.5">
                 Nome Completo
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-slate-400" />
+                  <User className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <input
                   id="join-name"
                   type="text"
                   required
                   aria-required="true"
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
                   placeholder="Seu nome"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -180,12 +180,12 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
             </div>
 
             <div>
-              <label htmlFor="join-email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <label htmlFor="join-email" className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-1.5">
                 Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-slate-400" />
+                  <Mail className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <input
                   id="join-email"
@@ -193,7 +193,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
                   required
                   aria-required="true"
                   disabled={!!inviteData?.email}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="seu@email.com"
                   value={formData.email}
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
@@ -202,12 +202,12 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
             </div>
 
             <div>
-              <label htmlFor="join-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <label htmlFor="join-password" className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-1.5">
                 Senha
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
+                  <Lock className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <input
                   id="join-password"
@@ -215,7 +215,7 @@ export function JoinClient({ token: tokenProp }: { token?: string | null }) {
                   required
                   aria-required="true"
                   minLength={6}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={e => setFormData({ ...formData, password: e.target.value })}

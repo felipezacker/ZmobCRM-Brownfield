@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Clock, Trash2, Edit2, CheckCircle2, Circle, Users, Copy, Repeat } from 'lucide-react';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { Activity, Deal, Contact } from '@/types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { getActivityIconList } from '../utils';
 
 interface ActivityRowProps {
@@ -84,7 +84,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
             const status = title.replace('Moveu para ', '');
             return (
                 <span>
-                    Movido para <span className="font-bold text-slate-700 dark:text-slate-200">{translateStatus(status)}</span>
+                    Movido para <span className="font-bold text-secondary-foreground dark:text-muted-foreground">{translateStatus(status)}</span>
                 </span>
             );
         }
@@ -100,17 +100,17 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
             <div className="group flex gap-4 px-4 py-2 items-center">
                 {/* Timeline Line/Dot */}
                 <div className="flex-shrink-0 w-6 flex justify-center">
-                    <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600 ring-4 ring-white dark:ring-dark-card" />
+                    <div className="w-2 h-2 rounded-full bg-accent dark:bg-accent ring-4 ring-white dark:ring-dark-card" />
                 </div>
 
                 <div className="flex-1 flex items-center justify-between min-w-0">
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                        <span className="text-sm text-secondary-foreground dark:text-muted-foreground">
                             {formatTitle(activity.title)}
                         </span>
                     </div>
 
-                    <span className="text-xs text-slate-400 whitespace-nowrap ml-4">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
                         {formatRelativeTime(activity.date)}
                     </span>
                 </div>
@@ -119,13 +119,13 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
     }
 
     return (
-        <div className={`group flex items-center gap-4 p-4 bg-white dark:bg-dark-card border border-slate-200 dark:border-white/5 rounded-xl hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all ${activity.completed ? 'opacity-60' : ''} ${isSelected ? 'border-primary-500 dark:border-primary-500 bg-primary-50/50 dark:bg-primary-500/10' : ''}`}>
+        <div className={`group flex items-center gap-4 p-4 bg-white dark:bg-dark-card border border-border  rounded-xl hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all ${activity.completed ? 'opacity-60' : ''} ${isSelected ? 'border-primary-500 dark:border-primary-500 bg-primary-50/50 dark:bg-primary-500/10' : ''}`}>
             {onSelect && (
                 <input
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) => onSelect(activity.id, e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                    className="w-4 h-4 text-primary-600 bg-muted border-border rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-accent dark:border-border cursor-pointer"
                 />
             )}
 
@@ -133,7 +133,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                 onClick={() => onToggleComplete(activity.id)}
                 className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${activity.completed
                     ? 'bg-green-500 border-green-500 text-white'
-                    : 'border-slate-300 dark:border-slate-600 hover:border-green-500 text-transparent hover:text-green-500'
+                    : 'border-border dark:border-border hover:border-green-500 text-transparent hover:text-green-500'
                     }`}
             >
                 <CheckCircle2 size={14} fill="currentColor" />
@@ -141,10 +141,10 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
 
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                    <span className="p-1.5 bg-slate-100 dark:bg-white/5 rounded-lg">
+                    <span className="p-1.5 bg-muted dark:bg-white/5 rounded-lg">
                         {getActivityIconList(activity.type)}
                     </span>
-                    <h3 className={`font-medium text-slate-900 dark:text-white truncate ${activity.completed ? 'line-through text-slate-500' : ''}`}>
+                    <h3 className={`font-medium text-foreground  truncate ${activity.completed ? 'line-through text-muted-foreground' : ''}`}>
                         {formatTitle(activity.title)}
                     </h3>
                     {activity.recurrenceType && (
@@ -160,9 +160,9 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                     )}
                 </div>
                 {activity.description && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate mt-0.5 mb-1">{activity.description}</p>
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate mt-0.5 mb-1">{activity.description}</p>
                 )}
-                <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground dark:text-muted-foreground">
                     {deal && (
                         <Link
                             href={`/deals/${deal.id}`}
@@ -193,7 +193,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                 <Button
                     onClick={() => onEdit(activity)}
-                    className="p-2 text-slate-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-colors"
+                    className="p-2 text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-colors"
                     title="Editar"
                 >
                     <Edit2 size={16} />
@@ -201,7 +201,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                 {onDuplicate && (
                     <Button
                         onClick={() => onDuplicate(activity)}
-                        className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
                         title="Duplicar"
                         aria-label="Duplicar atividade"
                     >
@@ -210,7 +210,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                 )}
                 <Button
                     onClick={() => onDelete(activity.id)}
-                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                    className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                     title="Excluir"
                 >
                     <Trash2 size={16} />

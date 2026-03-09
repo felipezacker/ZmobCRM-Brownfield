@@ -21,7 +21,11 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
-import { useCRM } from '@/context/CRMContext';
+import { useCRMActions } from '@/hooks/useCRMActions';
+import { useContacts } from '@/context/contacts/ContactsContext';
+import { useBoards } from '@/context/boards/BoardsContext';
+import { useActivities } from '@/context/activities/ActivitiesContext';
+import { useDeals } from '@/context/deals/DealsContext';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 import { normalizePhoneE164 } from '@/lib/phone';
 
@@ -30,7 +34,8 @@ import { useDealNotes } from '@/features/inbox/hooks/useDealNotes';
 import { useDealFiles } from '@/features/inbox/hooks/useDealFiles';
 import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts';
 
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
+import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
 import { UIChat } from '@/components/ai/UIChat';
 import { CallModal, type CallLogData } from '@/features/inbox/components/CallModal';
 import { MessageComposerModal, type MessageChannel, type MessageExecutedEvent } from '@/features/inbox/components/MessageComposerModal';
@@ -188,17 +193,17 @@ function TemplatePickerModal({
   ];
 
   return (
-    <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[9999] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-3xl mx-4 rounded-2xl border border-white/10 bg-slate-950 shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-[var(--z-modal)] flex items-center justify-center">
+      <div className={`absolute inset-0 ${MODAL_BACKDROP_CLASS}`} onClick={onClose} />
+      <div className="relative w-full max-w-3xl mx-4 rounded-2xl border border-white/10 bg-background shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-slate-100 truncate">{title}</div>
-            <div className="text-[11px] text-slate-500">Escolha um script persistido e eu preencho a mensagem com variáveis do deal/contato.</div>
+            <div className="text-sm font-semibold text-muted-foreground truncate">{title}</div>
+            <div className="text-[11px] text-muted-foreground">Escolha um script persistido e eu preencho a mensagem com variáveis do deal/contato.</div>
           </div>
           <Button
             type="button"
-            className="rounded-xl border border-white/10 bg-white/3 p-2 text-slate-300 hover:bg-white/5"
+            className="rounded-xl border border-white/10 bg-white/3 p-2 text-muted-foreground hover:bg-white/5"
             aria-label="Fechar"
             onClick={onClose}
           >
@@ -210,12 +215,12 @@ function TemplatePickerModal({
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="relative w-full sm:max-w-md">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar por título ou texto…"
-                  className="w-full rounded-xl border border-white/10 bg-white/3 px-9 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+                  className="w-full rounded-xl border border-white/10 bg-white/3 px-9 py-2 text-sm text-muted-foreground placeholder:text-secondary-foreground focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
                 />
               </div>
 
@@ -225,10 +230,9 @@ function TemplatePickerModal({
                     key={c.key}
                     type="button"
                     onClick={() => setCategory(c.key)}
-                    className={
-                      category === c.key
-                        ? 'rounded-full bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-500/20 px-2.5 py-1 text-[11px] font-semibold'
-                        : 'rounded-full bg-white/5 text-slate-300 ring-1 ring-white/10 px-2.5 py-1 text-[11px] font-semibold hover:bg-white/10'
+                    className={category === c.key
+ ?'rounded-full bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-500/20 px-2.5 py-1 text-[11px] font-semibold'
+                        : 'rounded-full bg-white/5 text-muted-foreground ring-1 ring-white/10 px-2.5 py-1 text-[11px] font-semibold hover:bg-white/10'
                     }
                   >
                     {c.label}
@@ -237,16 +241,16 @@ function TemplatePickerModal({
               </div>
             </div>
 
-            <div className="text-[11px] text-slate-500">
+            <div className="text-[11px] text-muted-foreground">
               Variáveis: <span className="font-mono">{'{nome}'}</span>, <span className="font-mono">{'{empresa}'}</span>,{' '}
               <span className="font-mono">{'{valor}'}</span>, <span className="font-mono">{'{produto}'}</span>
             </div>
 
             <div className="h-105 overflow-auto rounded-2xl border border-white/10 bg-white/2">
               {isLoading ? (
-                <div className="p-4 text-sm text-slate-400">Carregando scripts…</div>
+                <div className="p-4 text-sm text-muted-foreground">Carregando scripts…</div>
               ) : filtered.length === 0 ? (
-                <div className="p-4 text-sm text-slate-400">Nenhum template encontrado.</div>
+                <div className="p-4 text-sm text-muted-foreground">Nenhum template encontrado.</div>
               ) : (
                 <div className="divide-y divide-white/5">
                   {filtered.map((s) => {
@@ -263,10 +267,10 @@ function TemplatePickerModal({
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>{info.label}</span>
-                              <span className="truncate text-sm font-semibold text-slate-100">{s.title}</span>
-                              {s.is_system ? <span className="text-[10px] text-slate-500">Sistema</span> : null}
+                              <span className="truncate text-sm font-semibold text-muted-foreground">{s.title}</span>
+                              {s.is_system ? <span className="text-[10px] text-muted-foreground">Sistema</span> : null}
                             </div>
-                            <div className="mt-2 text-xs text-slate-400 line-clamp-3 whitespace-pre-wrap">{preview}</div>
+                            <div className="mt-2 text-xs text-muted-foreground line-clamp-3 whitespace-pre-wrap">{preview}</div>
                           </div>
                           <div className="shrink-0 text-[11px] font-semibold text-cyan-200">Usar</div>
                         </div>
@@ -297,7 +301,7 @@ function scriptCategoryChipClass(color: string): string {
     case 'yellow':
       return 'bg-amber-500/15 text-amber-200 ring-1 ring-amber-500/20';
     default:
-      return 'bg-slate-500/15 text-slate-200 ring-1 ring-slate-500/20';
+      return 'bg-accent/15 text-muted-foreground ring-1 ring-ring/20';
   }
 }
 
@@ -344,7 +348,7 @@ function toneToBg(tone: StageTone): string {
     case 'green':
       return 'bg-emerald-500';
     default:
-      return 'bg-slate-600';
+      return 'bg-accent';
   }
 }
 
@@ -360,7 +364,7 @@ function Chip({
       ? 'bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-500/20'
       : tone === 'danger'
         ? 'bg-rose-500/15 text-rose-200 ring-1 ring-rose-500/20'
-        : 'bg-white/5 text-slate-200 ring-1 ring-white/10';
+        : 'bg-white/5 text-muted-foreground ring-1 ring-white/10';
 
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${cls}`}>{children}</span>
@@ -385,9 +389,9 @@ function Panel({
   return (
     <div className={`rounded-2xl border border-white/10 bg-white/3 ${className ?? ''}`}>
       <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
           {icon}
-          <span className="uppercase tracking-wide text-slate-400">{title}</span>
+          <span className="uppercase tracking-wide text-muted-foreground">{title}</span>
         </div>
         {right}
       </div>
@@ -409,10 +413,9 @@ function TabButton({
     <Button
       type="button"
       onClick={onClick}
-      className={
-        active
-          ? 'text-slate-100 border-b-2 border-cyan-400'
-          : 'text-slate-400 hover:text-slate-200 border-b-2 border-transparent'
+      className={active
+ ?'text-muted-foreground border-b-2 border-cyan-400'
+          : 'text-muted-foreground hover:text-muted-foreground border-b-2 border-transparent'
       }
     >
       <span className="px-2 py-2 text-xs font-semibold uppercase tracking-wide">{children}</span>
@@ -567,12 +570,11 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
   const {
     deals,
-    contacts,
-    boards,
-    activities,
-    addActivity,
-    updateDeal,
-  } = useCRM();
+  } = useCRMActions();
+  const { contacts } = useContacts();
+  const { boards } = useBoards();
+  const { activities, addActivity } = useActivities();
+  const { updateDeal } = useDeals();
 
   const [tab, setTab] = useState<Tab>('chat');
   const [query, setQuery] = useState('');
@@ -1012,7 +1014,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
       const items: ChecklistItem[] = [];
       for (const it of raw) {
         if (!it || typeof it !== 'object') continue;
-        const anyIt = it as any;
+        const anyIt = it as Record<string, unknown>;
         const id = typeof anyIt.id === 'string' && anyIt.id ? anyIt.id : uid('chk');
         const text = typeof anyIt.text === 'string' ? anyIt.text.trim() : '';
         const done = Boolean(anyIt.done);
@@ -1025,7 +1027,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
   );
 
   const loadChecklistFromDeal = useCallback(() => {
-    const raw = (selectedDeal?.metadata as any)?.cockpitChecklist;
+    const raw = (selectedDeal?.metadata as Record<string, unknown> | null | undefined)?.cockpitChecklist;
     const parsed = normalizeChecklist(raw);
     setChecklist(parsed ?? defaultChecklist);
     setChecklistDraft('');
@@ -1245,16 +1247,16 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
   if (!selectedDeal || !selectedBoard) {
     return (
-      <div className="h-dvh bg-slate-950 text-slate-100 flex items-center justify-center p-8">
+      <div className="h-dvh bg-background text-muted-foreground flex items-center justify-center p-8">
         <div className="max-w-xl w-full rounded-2xl border border-white/10 bg-white/3 p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="text-lg font-semibold">Cockpit (real)</div>
-            <div className="text-xs text-slate-400">/labs/deal-cockpit-mock</div>
+            <div className="text-xs text-muted-foreground">/labs/deal-cockpit-mock</div>
           </div>
-          <div className="mt-3 text-sm text-slate-300">
+          <div className="mt-3 text-sm text-muted-foreground">
             Não encontrei nenhum deal carregado no contexto.
           </div>
-          <div className="mt-2 text-xs text-slate-500">
+          <div className="mt-2 text-xs text-muted-foreground">
             Dica: abra o app normal (Boards) para carregar dados. Quando houver deals carregados, você consegue trocar aqui mesmo pelo seletor no topo.
           </div>
         </div>
@@ -1271,16 +1273,15 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
   const phoneE164 = normalizePhoneE164(contact?.phone);
 
   return (
-    <div className="h-dvh overflow-hidden bg-slate-950 text-slate-100">
+    <div className="h-dvh overflow-hidden bg-background text-muted-foreground">
       {toast ? (
         <div className="fixed right-6 top-6 z-50">
           <div
-            className={
-              toast.tone === 'success'
+            className={toast.tone ==='success'
                 ? 'flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100 shadow-xl shadow-black/30'
                 : toast.tone === 'danger'
                   ? 'flex items-center gap-2 rounded-2xl border border-rose-500/20 bg-rose-500/15 px-4 py-3 text-sm text-rose-100 shadow-xl shadow-black/30'
-                  : 'flex items-center gap-2 rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm text-slate-100 shadow-xl shadow-black/30'
+                  : 'flex items-center gap-2 rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm text-muted-foreground shadow-xl shadow-black/30'
             }
             role="status"
             aria-live="polite"
@@ -1298,29 +1299,29 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <select
-                  className="max-w-90 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-100 outline-none hover:bg-white/8 focus:ring-2 focus:ring-cyan-400/30"
+                  className="max-w-90 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-muted-foreground outline-none hover:bg-white/8 focus:ring-2 focus:ring-cyan-400/30"
                   value={deal.id}
                   onChange={(e) => setDealInUrl(e.target.value)}
                   aria-label="Selecionar deal"
                 >
                   {sortedDeals.map((d) => {
                     return (
-                      <option key={d.id} value={d.id} className="bg-slate-950">
+                      <option key={d.id} value={d.id} className="bg-background">
                         {d.title}
                       </option>
                     );
                   })}
                 </select>
-                <div className="text-xs text-slate-500">|</div>
-                <div className="truncate text-xs text-slate-400">{companyName}</div>
+                <div className="text-xs text-muted-foreground">|</div>
+                <div className="truncate text-xs text-muted-foreground">{companyName}</div>
               </div>
-              <div className="mt-1 text-[11px] text-slate-600">{board.name ?? 'Pipeline'}</div>
+              <div className="mt-1 text-[11px] text-secondary-foreground">{board.name ?? 'Pipeline'}</div>
             </div>
 
             <div className="shrink-0 text-right">
               <div className="text-sm font-semibold text-emerald-300">{formatCurrencyBRL(deal.value ?? 0)}</div>
-              <div className="mt-0.5 text-[11px] text-slate-500">
-                Etapa: <span className="font-semibold text-slate-300">{activeStage?.label ?? '—'}</span>
+              <div className="mt-0.5 text-[11px] text-muted-foreground">
+                Etapa: <span className="font-semibold text-muted-foreground">{activeStage?.label ?? '—'}</span>
               </div>
             </div>
           </div>
@@ -1341,13 +1342,13 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     <div className={`h-1.5 flex-1 rounded-full ${isDone || isActive ? toneToBg(s.tone) : 'bg-white/10'}`} />
                     <div className={`h-2 w-2 rounded-full ${isActive ? toneToBg(s.tone) : isDone ? 'bg-white/30' : 'bg-white/10'}`} />
                   </div>
-                  <div className={`mt-1 text-[11px] ${isActive ? 'text-slate-200' : 'text-slate-500'}`}>{s.label}</div>
+                  <div className={`mt-1 text-[11px] ${isActive ? 'text-muted-foreground' : 'text-muted-foreground'}`}>{s.label}</div>
                 </Button>
               );
             })}
           </div>
 
-          <div className="ml-8 hidden text-[11px] text-slate-600 xl:block">Clique nas etapas para mover o deal (real)</div>
+          <div className="ml-8 hidden text-[11px] text-secondary-foreground xl:block">Clique nas etapas para mover o deal (real)</div>
         </div>
       </div>
 
@@ -1369,10 +1370,10 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                 />
               </div>
               <div className="mt-2 flex items-center justify-between gap-2">
-                <div className="text-[11px] text-slate-500">IA + probabilidade do deal.</div>
+                <div className="text-[11px] text-muted-foreground">IA + probabilidade do deal.</div>
                 <Button
                   type="button"
-                  className="rounded-xl border border-white/10 bg-white/3 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:bg-white/5"
+                  className="rounded-xl border border-white/10 bg-white/3 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-white/5"
                   onClick={() => void refetchAI()}
                   title="Reanalisar com IA"
                 >
@@ -1385,9 +1386,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
             </Panel>
 
             <Panel title="Próxima ação" icon={<BadgeCheck className="h-4 w-4 text-cyan-300" />} className="shrink-0">
-              <div className="text-sm font-semibold text-slate-100">{nextBestAction.action}</div>
-              <div className="mt-1 text-xs text-slate-400">{nextBestAction.reason}</div>
-              <div className="mt-2 text-[11px] text-slate-500">
+              <div className="text-sm font-semibold text-muted-foreground">{nextBestAction.action}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{nextBestAction.reason}</div>
+              <div className="mt-2 text-[11px] text-muted-foreground">
                 Aqui EXECUTA (e tenta registrar o que dá). No rodapé da timeline você REGISTRA atividades rápidas que aconteceram fora do CRM.
               </div>
 
@@ -1409,8 +1410,8 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     aria-label="Ligar"
                     onClick={() => handleCall('Ligação')}
                   >
-                    <Phone className="h-4 w-4 text-slate-200" />
-                    <span className="text-[10px] font-semibold text-slate-300">Ligar</span>
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-[10px] font-semibold text-muted-foreground">Ligar</span>
                   </Button>
 
                   <Button
@@ -1430,8 +1431,8 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                       }, { source: 'generated', origin: 'nextBestAction', aiSuggested: nextBestAction.isAI, aiActionType: nextBestAction.actionType })
                     }
                   >
-                    <Sparkles className="h-4 w-4 text-slate-200" />
-                    <span className="text-[10px] font-semibold text-slate-300">Gerar WA</span>
+                    <Sparkles className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-[10px] font-semibold text-muted-foreground">Gerar WA</span>
                   </Button>
 
                   <Button
@@ -1452,8 +1453,8 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                       }, { source: 'generated', origin: 'nextBestAction', aiSuggested: nextBestAction.isAI, aiActionType: nextBestAction.actionType })
                     }
                   >
-                    <Inbox className="h-4 w-4 text-slate-200" />
-                    <span className="text-[10px] font-semibold text-slate-300">E-mail</span>
+                    <Inbox className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-[10px] font-semibold text-muted-foreground">E-mail</span>
                   </Button>
 
                   <Button
@@ -1463,15 +1464,15 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     aria-label="Agendar"
                     onClick={() => openScheduleModal({ type: 'TASK', title: 'Agendar próximo passo', description: 'Criado no cockpit (labs).' })}
                   >
-                    <CalendarClock className="h-4 w-4 text-slate-200" />
-                    <span className="text-[10px] font-semibold text-slate-300">Agendar</span>
+                    <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-[10px] font-semibold text-muted-foreground">Agendar</span>
                   </Button>
                 </div>
 
                 <div className="grid w-full grid-cols-2 gap-2">
                   <Button
                     type="button"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-white/5 disabled:opacity-50"
                     title="Usar um template persistido (Quick Scripts)"
                     onClick={() => openTemplatePicker('WHATSAPP')}
                     disabled={isScriptsLoading || scripts.length === 0}
@@ -1482,7 +1483,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
                   <Button
                     type="button"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-[11px] font-semibold text-muted-foreground hover:bg-white/5 disabled:opacity-50"
                     title="Usar um template persistido (Quick Scripts)"
                     onClick={() => openTemplatePicker('EMAIL')}
                     disabled={isScriptsLoading || scripts.length === 0}
@@ -1496,21 +1497,21 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
             <Panel
               title="Dados"
-              icon={<FileText className="h-4 w-4 text-slate-300" />}
+              icon={<FileText className="h-4 w-4 text-muted-foreground" />}
               className="flex min-h-0 flex-1 flex-col"
               bodyClassName="min-h-0 flex-1 overflow-auto"
             >
               <div className="flex min-h-0 flex-col gap-3">
                 <div>
-                  <div className="text-sm font-semibold text-slate-100">{contact?.name ?? '—'}</div>
+                  <div className="text-sm font-semibold text-muted-foreground">{contact?.name ?? '—'}</div>
                   <div className="mt-3 space-y-2 text-xs">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500">Tel</span>
+                      <span className="text-muted-foreground">Tel</span>
                       <span className="flex items-center gap-2">
-                        <span className="font-mono text-slate-200">{phoneE164 ?? ''}</span>
+                        <span className="font-mono text-muted-foreground">{phoneE164 ?? ''}</span>
                         <Button
                           type="button"
-                          className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
+                          className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-muted-foreground hover:bg-white/5"
                           title="Copiar telefone"
                           onClick={() => phoneE164 && void copyToClipboard('Telefone', phoneE164)}
                           disabled={!phoneE164}
@@ -1520,12 +1521,12 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500">Email</span>
+                      <span className="text-muted-foreground">Email</span>
                       <span className="flex items-center gap-2 min-w-0">
-                        <span className="truncate text-slate-200">{contact?.email ?? ''}</span>
+                        <span className="truncate text-muted-foreground">{contact?.email ?? ''}</span>
                         <Button
                           type="button"
-                          className="shrink-0 rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
+                          className="shrink-0 rounded-lg border border-white/10 bg-white/2 p-1.5 text-muted-foreground hover:bg-white/5"
                           title="Copiar email"
                           onClick={() => contact?.email && void copyToClipboard('Email', contact.email)}
                           disabled={!contact?.email}
@@ -1535,54 +1536,54 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500">Origem</span>
-                      <span className="text-slate-200">{contact?.source ?? '—'}</span>
+                      <span className="text-muted-foreground">Origem</span>
+                      <span className="text-muted-foreground">{contact?.source ?? '—'}</span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500">Status</span>
-                      <span className="text-slate-200">{contact?.status ?? '—'}</span>
+                      <span className="text-muted-foreground">Status</span>
+                      <span className="text-muted-foreground">{contact?.status ?? '—'}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-white/10 bg-white/2 p-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Sinais</div>
-                  <div className="mt-2 space-y-1 text-xs text-slate-300">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Sinais</div>
+                  <div className="mt-2 space-y-1 text-xs text-muted-foreground">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-slate-500">Último evento</span>
-                      <span className="truncate text-slate-200">
+                      <span className="text-muted-foreground">Último evento</span>
+                      <span className="truncate text-muted-foreground">
                         {latestNonSystem ? `${latestNonSystem.title}${latestNonSystem.subtitle ? ` — ${latestNonSystem.subtitle}` : ''}` : '—'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-slate-500">Última ligação</span>
-                      <span className="truncate text-slate-200">{latestCall ? latestCall.at : '—'}</span>
+                      <span className="text-muted-foreground">Última ligação</span>
+                      <span className="truncate text-muted-foreground">{latestCall ? latestCall.at : '—'}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-slate-500">Etapa</span>
-                      <span className="text-slate-200">{activeStage?.label ?? '—'}</span>
+                      <span className="text-muted-foreground">Etapa</span>
+                      <span className="text-muted-foreground">{activeStage?.label ?? '—'}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-white/10 bg-white/2 p-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Resumo</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Resumo</div>
                   <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                     <div className="rounded-lg border border-white/10 bg-white/2 p-2">
-                      <div className="text-slate-500">Valor</div>
-                      <div className="mt-0.5 font-semibold text-slate-100">{formatCurrencyBRL(deal.value ?? 0)}</div>
+                      <div className="text-muted-foreground">Valor</div>
+                      <div className="mt-0.5 font-semibold text-muted-foreground">{formatCurrencyBRL(deal.value ?? 0)}</div>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-white/2 p-2">
-                      <div className="text-slate-500">Probabilidade</div>
-                      <div className="mt-0.5 font-semibold text-slate-100">{deal.probability ?? 50}%</div>
+                      <div className="text-muted-foreground">Probabilidade</div>
+                      <div className="mt-0.5 font-semibold text-muted-foreground">{deal.probability ?? 50}%</div>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-white/2 p-2">
-                      <div className="text-slate-500">Dono</div>
-                      <div className="mt-0.5 font-semibold text-slate-100">{deal.owner?.name ?? '—'}</div>
+                      <div className="text-muted-foreground">Dono</div>
+                      <div className="mt-0.5 font-semibold text-muted-foreground">{deal.owner?.name ?? '—'}</div>
                     </div>
                     <div className="rounded-lg border border-white/10 bg-white/2 p-2">
-                      <div className="text-slate-500">Última mudança</div>
-                      <div className="mt-0.5 truncate font-semibold text-slate-100">{latestMove ? latestMove.at : formatAtISO(deal.updatedAt)}</div>
+                      <div className="text-muted-foreground">Última mudança</div>
+                      <div className="mt-0.5 truncate font-semibold text-muted-foreground">{latestMove ? latestMove.at : formatAtISO(deal.updatedAt)}</div>
                     </div>
                   </div>
                 </div>
@@ -1594,14 +1595,13 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
           <div className="flex min-h-0 flex-col gap-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-slate-100">Atividades</div>
+                <div className="text-sm font-semibold text-muted-foreground">Atividades</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <Button
                     type="button"
-                    className={
-                      kindFilter === 'all'
-                        ? 'rounded-full bg-white/8 px-3 py-1.5 text-[11px] font-semibold text-slate-100 ring-1 ring-white/10'
-                        : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-slate-300 ring-1 ring-white/10 hover:bg-white/5'
+                    className={kindFilter ==='all'
+                        ? 'rounded-full bg-white/8 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10'
+                        : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
                     }
                     onClick={() => setKindFilter('all')}
                   >
@@ -1611,10 +1611,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     <Button
                       key={k}
                       type="button"
-                      className={
-                        kindFilter === k
-                          ? 'rounded-full bg-cyan-500/15 px-3 py-1.5 text-[11px] font-semibold text-cyan-100 ring-1 ring-cyan-500/20'
-                          : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-slate-300 ring-1 ring-white/10 hover:bg-white/5'
+                      className={kindFilter === k
+ ?'rounded-full bg-cyan-500/15 px-3 py-1.5 text-[11px] font-semibold text-cyan-100 ring-1 ring-cyan-500/20'
+                          : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
                       }
                       onClick={() => setKindFilter(k)}
                     >
@@ -1624,10 +1623,9 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
                   <Button
                     type="button"
-                    className={
-                      showSystemEvents
-                        ? 'rounded-full bg-amber-500/15 px-3 py-1.5 text-[11px] font-semibold text-amber-100 ring-1 ring-amber-500/20'
-                        : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-slate-300 ring-1 ring-white/10 hover:bg-white/5'
+                    className={showSystemEvents
+ ?'rounded-full bg-amber-500/15 px-3 py-1.5 text-[11px] font-semibold text-amber-100 ring-1 ring-amber-500/20'
+                        : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
                     }
                     onClick={() => setShowSystemEvents((v) => !v)}
                     title="System events (hoje: quase tudo vem de Activity)"
@@ -1639,12 +1637,12 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/3 px-3 py-2">
-                  <Search className="h-4 w-4 text-slate-400" />
+                  <Search className="h-4 w-4 text-muted-foreground" />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Buscar"
-                    className="w-44 bg-transparent text-xs text-slate-200 outline-none placeholder:text-slate-600"
+                    className="w-44 bg-transparent text-xs text-muted-foreground outline-none placeholder:text-secondary-foreground"
                   />
                 </div>
                 <Button
@@ -1653,7 +1651,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   title="Filtros"
                   onClick={() => pushToast('Use os chips para filtrar', 'neutral')}
                 >
-                  <Filter className="h-4 w-4 text-slate-200" />
+                  <Filter className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </div>
             </div>
@@ -1673,29 +1671,29 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-slate-200">{t.title}</span>
+                            <span className="text-xs font-semibold text-muted-foreground">{t.title}</span>
                             {t.subtitle ? (
                               t.title === 'Moveu para' ? (
                                 <Chip tone={t.tone === 'success' ? 'success' : t.tone === 'danger' ? 'danger' : 'neutral'}>{t.subtitle}</Chip>
                               ) : (
-                                <span className="truncate text-xs text-slate-400">{t.subtitle}</span>
+                                <span className="truncate text-xs text-muted-foreground">{t.subtitle}</span>
                               )
                             ) : null}
                           </div>
                           {t.title !== 'Moveu para' && t.subtitle ? (
-                            <div className="mt-0.5 text-[11px] text-slate-500">{t.subtitle}</div>
+                            <div className="mt-0.5 text-[11px] text-muted-foreground">{t.subtitle}</div>
                           ) : null}
                         </div>
-                        <div className="shrink-0 text-[11px] text-slate-500">{t.at}</div>
+                        <div className="shrink-0 text-[11px] text-muted-foreground">{t.at}</div>
                       </div>
                     </div>
                   ))}
               </div>
 
               <div className="border-t border-white/10 px-4 py-3">
-                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <span
-                    className="text-[11px] font-semibold uppercase tracking-wide text-slate-600"
+                    className="text-[11px] font-semibold uppercase tracking-wide text-secondary-foreground"
                     title="Use quando a atividade aconteceu fora do CRM"
                   >
                     Registrar (fora do CRM):
@@ -1703,7 +1701,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
                   <Button
                     type="button"
-                    className="inline-flex items-center gap-2 hover:text-slate-200"
+                    className="inline-flex items-center gap-2 hover:text-muted-foreground"
                     onClick={async () => {
                       const header = buildExecutionHeader({
                         channel: 'WHATSAPP',
@@ -1728,7 +1726,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
                   <Button
                     type="button"
-                    className="inline-flex items-center gap-2 hover:text-slate-200"
+                    className="inline-flex items-center gap-2 hover:text-muted-foreground"
                     onClick={async () => {
                       const header = buildExecutionHeader({
                         channel: 'EMAIL',
@@ -1753,7 +1751,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
                   <Button
                     type="button"
-                    className="inline-flex items-center gap-2 hover:text-slate-200"
+                    className="inline-flex items-center gap-2 hover:text-muted-foreground"
                     onClick={async () => {
                       await addActivity({
                         dealId: deal.id,
@@ -1773,7 +1771,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
                   <Button
                     type="button"
-                    className="inline-flex items-center gap-2 hover:text-slate-200"
+                    className="inline-flex items-center gap-2 hover:text-muted-foreground"
                     onClick={async () => {
                       await addActivity({
                         dealId: deal.id,
@@ -1793,7 +1791,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
                   <Button
                     type="button"
-                    className="inline-flex items-center gap-2 hover:text-slate-200"
+                    className="inline-flex items-center gap-2 hover:text-muted-foreground"
                     onClick={async () => {
                       await addActivity({
                         dealId: deal.id,
@@ -1817,18 +1815,18 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
             {/* Bottom row: nota + (placeholder) */}
             <div className="grid min-h-0 gap-4 lg:grid-cols-2 lg:max-h-[30dvh]">
               <div className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-white/3 p-4">
-                <label className="block text-xs font-semibold text-slate-400">Escreva…</label>
+                <label className="block text-xs font-semibold text-muted-foreground">Escreva…</label>
                 <textarea
                   value={noteDraftTimeline}
                   onChange={(e) => setNoteDraftTimeline(e.target.value)}
-                  className="mt-2 min-h-0 flex-1 w-full resize-none rounded-xl border border-white/10 bg-white/2 p-3 text-sm text-slate-200 outline-none placeholder:text-slate-600"
+                  className="mt-2 min-h-0 flex-1 w-full resize-none rounded-xl border border-white/10 bg-white/2 p-3 text-sm text-muted-foreground outline-none placeholder:text-secondary-foreground"
                   placeholder="Notas, resumo da call, próximos passos…"
                 />
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="text-[11px] text-slate-500">Isso vira uma Activity NOTE (log do deal).</div>
+                  <div className="text-[11px] text-muted-foreground">Isso vira uma Activity NOTE (log do deal).</div>
                   <Button
                     type="button"
-                    className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100"
+                    className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted"
                     onClick={async () => {
                       const text = noteDraftTimeline.trim();
                       if (!text) {
@@ -1864,10 +1862,10 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                 bodyClassName="min-h-0 flex-1 overflow-auto"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-[11px] text-slate-500">Checklist persistido por deal (salvo em customFields).</div>
+                  <div className="text-[11px] text-muted-foreground">Checklist persistido por deal (salvo em customFields).</div>
                   <Button
                     type="button"
-                    className="rounded-lg border border-white/10 bg-white/2 px-2.5 py-1.5 text-[11px] font-semibold text-slate-200 hover:bg-white/5"
+                    className="rounded-lg border border-white/10 bg-white/2 px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground hover:bg-white/5"
                     onClick={loadChecklistFromDeal}
                     title="Recarregar do deal"
                   >
@@ -1877,16 +1875,15 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
                 <div className="mt-3 space-y-2">
                   {checklist.length === 0 ? (
-                    <div className="text-sm text-slate-400">Sem itens. Adicione abaixo.</div>
+                    <div className="text-sm text-muted-foreground">Sem itens. Adicione abaixo.</div>
                   ) : (
                     checklist.map((it) => (
                       <div key={it.id} className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/2 p-2.5">
                         <Button
                           type="button"
-                          className={
-                            it.done
-                              ? 'mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md bg-emerald-500 text-slate-950'
-                              : 'mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md border border-white/15 bg-white/3 text-slate-200 hover:bg-white/5'
+                          className={it.done
+ ?'mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md bg-emerald-500 text-foreground'
+                              : 'mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md border border-white/15 bg-white/3 text-muted-foreground hover:bg-white/5'
                           }
                           aria-label={it.done ? 'Marcar como não feito' : 'Marcar como feito'}
                           onClick={() => {
@@ -1896,12 +1893,12 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                         >
                           {it.done ? <Check className="h-3.5 w-3.5" /> : null}
                         </Button>
-                        <div className={it.done ? 'flex-1 text-sm text-slate-500 line-through' : 'flex-1 text-sm text-slate-200'}>
+                        <div className={it.done ?'flex-1 text-sm text-muted-foreground line-through' : 'flex-1 text-sm text-muted-foreground'}>
                           {it.text}
                         </div>
                         <Button
                           type="button"
-                          className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
+                          className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-muted-foreground hover:bg-white/5"
                           title="Remover"
                           onClick={() => {
                             const next = checklist.filter((x) => x.id !== it.id);
@@ -1920,11 +1917,11 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     value={checklistDraft}
                     onChange={(e) => setChecklistDraft(e.target.value)}
                     placeholder="Adicionar item…"
-                    className="h-10 flex-1 rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-slate-200 outline-none placeholder:text-slate-600"
+                    className="h-10 flex-1 rounded-xl border border-white/10 bg-white/2 px-3 text-sm text-muted-foreground outline-none placeholder:text-secondary-foreground"
                   />
                   <Button
                     type="button"
-                    className="h-10 rounded-xl bg-white px-4 text-xs font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-50"
+                    className="h-10 rounded-xl bg-white px-4 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50"
                     disabled={!checklistDraft.trim()}
                     onClick={() => {
                       const text = checklistDraft.trim();
@@ -1938,7 +1935,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   </Button>
                 </div>
 
-                <div className="mt-2 text-[11px] text-slate-600">Dica: isso fica no deal atual e aparece igual quando você trocar de deal.</div>
+                <div className="mt-2 text-[11px] text-secondary-foreground">Dica: isso fica no deal atual e aparece igual quando você trocar de deal.</div>
               </Panel>
             </div>
           </div>
@@ -1952,8 +1949,8 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                     <Sparkles className="h-4 w-4 text-cyan-300" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-slate-100">ZmobCRM Pilot</div>
-                    <div className="text-[11px] text-slate-500">Deal: {deal.title}</div>
+                    <div className="text-sm font-semibold text-muted-foreground">ZmobCRM Pilot</div>
+                    <div className="text-[11px] text-muted-foreground">Deal: {deal.title}</div>
                   </div>
                 </div>
                 <Chip tone="success">Real</Chip>
@@ -1981,7 +1978,7 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                   </div>
                 ) : tab === 'notas' ? (
                   <div className="h-full min-h-0 rounded-2xl border border-white/10 bg-white/2 p-4 overflow-auto">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                       <StickyNote className="h-4 w-4" />
                       Notas do deal (persistidas)
                     </div>
@@ -1990,14 +1987,14 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                       <textarea
                         value={dealNoteDraft}
                         onChange={(e) => setDealNoteDraft(e.target.value)}
-                        className="w-full min-h-27.5 resize-none rounded-xl border border-white/10 bg-white/3 p-3 text-sm text-slate-200 outline-none placeholder:text-slate-600"
+                        className="w-full min-h-27.5 resize-none rounded-xl border border-white/10 bg-white/3 p-3 text-sm text-muted-foreground outline-none placeholder:text-secondary-foreground"
                         placeholder="Escreva uma nota persistida…"
                       />
                       <div className="mt-2 flex items-center justify-between gap-2">
-                        <div className="text-[11px] text-slate-500">Salva em deal_notes.</div>
+                        <div className="text-[11px] text-muted-foreground">Salva em deal_notes.</div>
                         <Button
                           type="button"
-                          className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-50"
+                          className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50"
                           disabled={!dealNoteDraft.trim() || createNote.isPending}
                           onClick={async () => {
                             const content = dealNoteDraft.trim();
@@ -2014,20 +2011,20 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
 
                     <div className="mt-4">
                       {isNotesLoading ? (
-                        <div className="text-sm text-slate-400">Carregando…</div>
+                        <div className="text-sm text-muted-foreground">Carregando…</div>
                       ) : notes.length === 0 ? (
-                        <div className="text-sm text-slate-400">Sem notas ainda.</div>
+                        <div className="text-sm text-muted-foreground">Sem notas ainda.</div>
                       ) : (
                         <div className="space-y-2">
                           {notes.map((n) => (
                             <div key={n.id} className="rounded-2xl border border-white/10 bg-white/3 p-3">
-                              <div className="whitespace-pre-wrap text-sm text-slate-200">{n.content}</div>
+                              <div className="whitespace-pre-wrap text-sm text-muted-foreground">{n.content}</div>
                               <div className="mt-2 flex items-center justify-between gap-2">
-                                <div className="text-[11px] text-slate-500">{formatAtISO(n.created_at)}</div>
+                                <div className="text-[11px] text-muted-foreground">{formatAtISO(n.created_at)}</div>
                                 <div className="flex items-center gap-2">
                                   <Button
                                     type="button"
-                                    className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-slate-300 hover:bg-white/5"
+                                    className="rounded-lg border border-white/10 bg-white/2 p-1.5 text-muted-foreground hover:bg-white/5"
                                     title="Copiar nota"
                                     onClick={() => void copyToClipboard('Nota', n.content)}
                                   >
@@ -2052,10 +2049,10 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                 ) : tab === 'scripts' ? (
                   <div className="h-full min-h-0 rounded-2xl border border-white/10 bg-white/2 p-4 overflow-auto">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                         <FileText className="h-4 w-4" /> Scripts (persistidos)
                       </div>
-                      <div className="text-[11px] text-slate-500">{isScriptsLoading ? 'Carregando…' : `${scripts.length} itens`}</div>
+                      <div className="text-[11px] text-muted-foreground">{isScriptsLoading ? 'Carregando…' : `${scripts.length} itens`}</div>
                     </div>
 
                     <div className="mt-3 space-y-2">
@@ -2070,13 +2067,13 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>
                                     {info.label}
                                   </span>
-                                  <div className="truncate text-sm font-semibold text-slate-100">{s.title}</div>
+                                  <div className="truncate text-sm font-semibold text-muted-foreground">{s.title}</div>
                                 </div>
-                                <div className="mt-1 line-clamp-3 text-xs text-slate-400 whitespace-pre-wrap">{preview}</div>
+                                <div className="mt-1 line-clamp-3 text-xs text-muted-foreground whitespace-pre-wrap">{preview}</div>
                               </div>
                               <Button
                                 type="button"
-                                className="shrink-0 rounded-lg border border-white/10 bg-white/2 p-2 text-slate-200 hover:bg-white/5"
+                                className="shrink-0 rounded-lg border border-white/10 bg-white/2 p-2 text-muted-foreground hover:bg-white/5"
                                 title="Copiar"
                                 onClick={() => void copyToClipboard('Script', preview)}
                               >
@@ -2091,10 +2088,10 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                 ) : (
                   <div className="h-full min-h-0 rounded-2xl border border-white/10 bg-white/2 p-4 overflow-auto">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-300">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                         <Inbox className="h-4 w-4" /> Arquivos (storage)
                       </div>
-                      <div className="text-[11px] text-slate-500">{isFilesLoading ? 'Carregando…' : `${files.length} itens`}</div>
+                      <div className="text-[11px] text-muted-foreground">{isFilesLoading ? 'Carregando…' : `${files.length} itens`}</div>
                     </div>
 
                     <div className="mt-3">
@@ -2107,27 +2104,27 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
                           e.currentTarget.value = '';
                           pushToast('Arquivo enviado', 'success');
                         }}
-                        className="block w-full text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-100 hover:file:bg-white/15"
+                        className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-muted-foreground hover:file:bg-white/15"
                       />
                     </div>
 
                     <div className="mt-3 space-y-2">
                       {files.length === 0 && !isFilesLoading ? (
-                        <div className="text-sm text-slate-400">Nenhum arquivo.</div>
+                        <div className="text-sm text-muted-foreground">Nenhum arquivo.</div>
                       ) : (
                         files.map((f) => (
                           <div key={f.id} className="rounded-2xl border border-white/10 bg-white/3 p-3">
                             <div className="flex items-center justify-between gap-3">
                               <div className="min-w-0">
-                                <div className="truncate text-sm font-semibold text-slate-100">{f.file_name}</div>
-                                <div className="mt-1 text-xs text-slate-400">
+                                <div className="truncate text-sm font-semibold text-muted-foreground">{f.file_name}</div>
+                                <div className="mt-1 text-xs text-muted-foreground">
                                   {formatFileSize(f.file_size)} • {formatAtISO(f.created_at)}
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Button
                                   type="button"
-                                  className="rounded-lg border border-white/10 bg-white/2 p-2 text-slate-200 hover:bg-white/5"
+                                  className="rounded-lg border border-white/10 bg-white/2 p-2 text-muted-foreground hover:bg-white/5"
                                   onClick={() => downloadFile(f)}
                                   title="Download"
                                 >
@@ -2153,10 +2150,10 @@ export default function DealCockpitRealClient({ dealId }: { dealId?: string }) {
             </div>
 
             <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/3 px-4 py-3 shrink-0">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                 Cockpit
               </div>
-              <div className="text-[11px] font-semibold text-slate-500">Padrões hardcoded no código</div>
+              <div className="text-[11px] font-semibold text-muted-foreground">Padrões hardcoded no código</div>
             </div>
           </div>
         </div>

@@ -1,400 +1,68 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { DealView, Board, CustomFieldDefinition, DealSortableColumn } from '@/types';
-import {
-  useBoards,
-  useDefaultBoard,
-  useCreateBoard,
-  useUpdateBoard,
-  useDeleteBoard,
-  useDeleteBoardWithMove,
-  useCanDeleteBoard,
-} from '@/lib/query/hooks/useBoardsQuery';
-import {
-  useDealsByBoard,
-  useDeleteDeal,
-} from '@/lib/query/hooks/useDealsQuery';
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useBoards, useDefaultBoard } from '@/lib/query/hooks/useBoardsQuery';
+import { useDealsByBoard, useDeleteDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useMoveDeal } from '@/lib/query/hooks/useMoveDeal';
-import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useRealtimeSyncKanban } from '@/lib/realtime/useRealtimeSync';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/settings/SettingsContext';
-import { useAI } from '@/context/AIContext';
 import { useOrganizationMembers } from '@/hooks/useOrganizationMembers';
+import { useBoardCRUD } from './useBoardCRUD';
+import { useBoardFilters } from './useBoardFilters';
+import { useBoardDragDrop } from './useBoardDragDrop';
+import { useBoardView } from './useBoardView';
 
-/**
- * Função pública `isDealRotting` do projeto.
- *
- * @param {DealView} deal - Parâmetro `deal`.
- * @returns {boolean} Retorna um valor do tipo `boolean`.
- */
-export const isDealRotting = (deal: DealView) => {
-  const dateToCheck = deal.lastStageChangeDate || deal.updatedAt;
-  const diff = new Date().getTime() - new Date(dateToCheck).getTime();
-  const days = diff / (1000 * 3600 * 24);
-  return days > 10;
-};
+// Re-export utilities for backward compatibility
+export { isDealRotting, getActivityStatus } from './boardUtils';
 
-/**
- * Função pública `getActivityStatus` do projeto.
- *
- * @param {DealView} deal - Parâmetro `deal`.
- * @returns {"yellow" | "red" | "green" | "gray"} Retorna um valor do tipo `"yellow" | "red" | "green" | "gray"`.
- */
-export const getActivityStatus = (deal: DealView) => {
-  if (!deal.nextActivity) return 'yellow';
-  if (deal.nextActivity.isOverdue) return 'red';
-  const activityDate = new Date(deal.nextActivity.date);
-  const today = new Date();
-  if (activityDate.toDateString() === today.toDateString()) return 'green';
-  return 'gray';
-};
-
-/**
- * Hook React `useBoardsController` que encapsula uma lógica reutilizável.
- * @returns {{ boards: Board[]; boardsLoading: boolean; boardsFetched: boolean; activeBoard: Board | null; activeBoardId: string | null; handleSelectBoard: (boardId: string) => void; ... 45 more ...; handleLossReasonClose: () => void; }} Retorna um valor do tipo `{ boards: Board[]; boardsLoading: boolean; boardsFetched: boolean; activeBoard: Board | null; activeBoardId: string | null; handleSelectBoard: (boardId: string) => void; ... 45 more ...; handleLossReasonClose: () => void; }`.
- */
 export const useBoardsController = () => {
-
-  // Toast for feedback
   const { addToast } = useToast();
-  const { profile, organizationId } = useAuth();
+  const { profile } = useAuth();
+  const { lifecycleStages } = useSettings();
   const searchParams = useSearchParams();
-  const router = useRouter();
 
-  // AI Context
-  const { setContext, clearContext } = useAI();
-
-  // TanStack Query hooks
+  // Board data queries
   const {
-    data: boards = [],
-    isLoading: boardsLoading,
-    isFetched: boardsFetched,
-    isFetching: boardsFetching,
-    dataUpdatedAt: boardsUpdatedAt,
+    data: boards = [], isLoading: boardsLoading,
+    isFetched: boardsFetched, isFetching: boardsFetching, dataUpdatedAt: boardsUpdatedAt,
   } = useBoards();
   const { data: defaultBoard } = useDefaultBoard();
-  const createBoardMutation = useCreateBoard();
-  const updateBoardMutation = useUpdateBoard();
-  const deleteBoardMutation = useDeleteBoard();
-  const deleteBoardWithMoveMutation = useDeleteBoardWithMove();
 
   // Active board state (persisted)
-  const [activeBoardId, setActiveBoardId] = usePersistedState<string | null>(
-    'crm_active_board_id',
-    null
-  );
+  const [activeBoardId, setActiveBoardId] = usePersistedState<string | null>('crm_active_board_id', null);
 
-  // Set default board when boards load OR when active board doesn't exist anymore
   useEffect(() => {
-    // Se não há activeBoardId, usa o default
-    if (!activeBoardId && defaultBoard) {
-      setActiveBoardId(defaultBoard.id);
-      return;
-    }
-
-    // Se o activeBoardId não existe mais nos boards carregados, limpa e usa default
+    if (!activeBoardId && defaultBoard) { setActiveBoardId(defaultBoard.id); return; }
     if (activeBoardId && boards.length > 0) {
-      const boardExists = boards.some(b => b.id === activeBoardId);
-      if (!boardExists) {
-        const newActiveId = defaultBoard?.id || boards[0]?.id || null;
-        setActiveBoardId(newActiveId);
+      if (!boards.some(b => b.id === activeBoardId)) {
+        setActiveBoardId(defaultBoard?.id || boards[0]?.id || null);
       }
     }
   }, [activeBoardId, defaultBoard, boards, setActiveBoardId]);
 
-  // Get active board - SEMPRE sincronizado com activeBoardId válido
   const activeBoard = useMemo(() => {
-    const found = boards.find(b => b.id === activeBoardId);
-    // Se não encontrou, retorna o default (mas o useEffect acima vai corrigir o ID)
-    return found || defaultBoard || null;
+    return boards.find(b => b.id === activeBoardId) || defaultBoard || null;
   }, [boards, activeBoardId, defaultBoard]);
-
-  // ID efetivo - garante que é sempre do board que está sendo exibido
   const effectiveActiveBoardId = activeBoard?.id || null;
 
   // Deals for active board
-  // Perf-first: use the persisted activeBoardId to start fetching deals immediately on hard refresh,
-  // without waiting for boards list to resolve `activeBoard`.
-  // Safety: if the ID is stale (board deleted), the boards effect below will correct activeBoardId
-  // and we'll naturally refetch deals for the corrected board.
-  const dealsBoardId = activeBoardId || '';
-  const { data: deals = [], isLoading: dealsLoading } = useDealsByBoard(dealsBoardId);
+  const { data: deals = [] } = useDealsByBoard(activeBoardId || '');
   const moveDealMutation = useMoveDeal();
   const deleteDealMutation = useDeleteDeal();
-  const createActivityMutation = useCreateActivity();
 
-  // Filter State (declared before AI context useEffect that uses them)
-  const [searchTerm, setSearchTerm] = useState('');
-  const [ownerFilter, setOwnerFilter] = useState<'all' | 'mine'>('all');
-  const [statusFilter, setStatusFilter] = useState<'open' | 'won' | 'lost' | 'all'>('open');
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
-
-  // Track last context signature to avoid unnecessary setContext calls
-  const lastContextSignatureRef = useRef<string | null>(null);
-
-  // Set AI Context for Board (FULL CONTEXT)
-  useEffect(() => {
-    // Performance: noisy logging and object allocation isn't useful in production.
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[BoardsController] useEffect running:', {
-        hasActiveBoard: !!activeBoard,
-        activeBoardId: activeBoard?.id,
-        activeBoardName: activeBoard?.name,
-        dealsCount: deals.length,
-        isTempId: activeBoard?.id?.startsWith('temp-'),
-      });
-    }
-
-    // Guard: don't set context for temp boards (they'll be replaced soon)
-    if (!activeBoard || activeBoard.id.startsWith('temp-')) {
-      return;
-    }
-
-    // Performance: avoid O(S*N) by indexing stages once and scanning deals once.
-    const stageIdToLabel = new Map<string, string>();
-    const dealsPerStage: Record<string, number> = {};
-    for (const stage of activeBoard.stages) {
-      stageIdToLabel.set(stage.id, stage.label);
-      dealsPerStage[stage.label] = 0;
-    }
-
-    let pipelineValue = 0;
-    let stagnantDeals = 0;
-    let overdueDeals = 0;
-
-    for (const d of deals) {
-      pipelineValue += d.value ?? 0;
-      if (isDealRotting(d)) stagnantDeals += 1;
-      if (d.nextActivity?.isOverdue) overdueDeals += 1;
-
-      const label = stageIdToLabel.get(d.status);
-      if (label) dealsPerStage[label] = (dealsPerStage[label] ?? 0) + 1;
-    }
-
-    // Performance: avoid `find` for won/lost labels.
-    const wonStageLabel = activeBoard.wonStageId ? stageIdToLabel.get(activeBoard.wonStageId) : undefined;
-    const lostStageLabel = activeBoard.lostStageId ? stageIdToLabel.get(activeBoard.lostStageId) : undefined;
-
-    // Compute signature BEFORE calling setContext to avoid unnecessary calls
-    // This matches the signature logic in AIContext.tsx
-    const contextSignature = [
-      activeBoard.id,
-      statusFilter,
-      ownerFilter,
-      searchTerm || '',
-      dateRange.start || '',
-      dateRange.end || '',
-      String(deals.length),
-      String(pipelineValue),
-      String(stagnantDeals),
-      String(overdueDeals),
-    ].join('|');
-
-    // Guard: only call setContext if signature actually changed
-    if (lastContextSignatureRef.current === contextSignature) {
-      return;
-    }
-
-    lastContextSignatureRef.current = contextSignature;
-
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[BoardsController] 🎯 Setting AI Context for board:', activeBoard.id, activeBoard.name);
-    }
-
-    setContext({
-      view: { type: 'kanban', name: activeBoard.name, url: `/boards/${activeBoard.id}` },
-      activeObject: {
-        type: 'board',
-        id: activeBoard.id,
-        name: activeBoard.name,
-        metadata: {
-          // Basic Info - Include boardId explicitly for tool usage
-          boardId: activeBoard.id, // <-- Explicit for AI to use in tool calls
-          description: activeBoard.description,
-          goal: activeBoard.goal,
-          columns: activeBoard.stages.map(s => s.label).join(', '),
-
-          // Full stage info for AI to use in tool calls
-          stages: activeBoard.stages.map(s => ({
-            id: s.id,
-            name: s.label,
-          })),
-
-          // Metrics
-          dealCount: deals.length,
-          pipelineValue,
-          dealsPerStage,
-          stagnantDeals,
-          overdueDeals,
-
-          // Board Config
-          wonStage: wonStageLabel,
-          lostStage: lostStageLabel,
-          linkedLifecycleStage: activeBoard.linkedLifecycleStage,
-
-          // AI Strategy
-          agentPersona: activeBoard.agentPersona,
-          entryTrigger: activeBoard.entryTrigger,
-          automationSuggestions: activeBoard.automationSuggestions,
-        }
-      },
-      // Active Filters
-      filters: {
-        status: statusFilter,
-        owner: ownerFilter,
-        search: searchTerm || undefined,
-        dateRange: (dateRange.start || dateRange.end) ? dateRange : undefined,
-      }
-    });
-    // Note: Removed setContext from dependencies - it has internal guards to prevent loops
-    // Note: Removed clearContext cleanup to prevent infinite loop with AIContext default setter
-    // Dependencies usam primitivos para evitar re-execução quando objeto muda mas valores são iguais
-  }, [activeBoard, deals, statusFilter, ownerFilter, searchTerm, dateRange.start, dateRange.end]);
-
-  // Get lifecycle stages from CRM context for automations
-  const { lifecycleStages } = useSettings();
-
-  // Enable realtime sync for Kanban
   useRealtimeSyncKanban();
 
-  // Custom field definitions (TODO: migrate to query)
-  const customFieldDefinitions: CustomFieldDefinition[] = [];
-
-  //View State
+  // View mode (lifted here to avoid circular dep between filters and view)
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
-
-  const [isCreateBoardModalOpen, setIsCreateBoardModalOpen] = useState(false);
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [editingBoard, setEditingBoard] = useState<Board | null>(null);
-  const [boardCreateOverlay, setBoardCreateOverlay] = useState<{
-    title: string;
-    subtitle?: string;
-  } | null>(null);
-  const [boardToDelete, setBoardToDelete] = useState<{
-    id: string;
-    name: string;
-    dealCount: number;
-    targetBoardId?: string;
-  } | null>(null);
-
-  // Initialize filters from URL
   useEffect(() => {
     if (!searchParams) return;
     const viewParam = searchParams.get('view');
-    if (viewParam === 'list' || viewParam === 'kanban') {
-      setViewMode(viewParam);
-    }
-
-    const statusParam = searchParams.get('status');
-    if (statusParam === 'open' || statusParam === 'won' || statusParam === 'lost' || statusParam === 'all') {
-      setStatusFilter(statusParam);
-    }
+    if (viewParam === 'list' || viewParam === 'kanban') setViewMode(viewParam);
   }, [searchParams]);
 
-  // Interaction State
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [openActivityMenuId, setOpenActivityMenuId] = useState<string | null>(null);
-
-  // Loss Reason Modal State
-  const [lossReasonModal, setLossReasonModal] = useState<{
-    isOpen: boolean;
-    dealId: string;
-    dealTitle: string;
-    stageId: string;
-  } | null>(null);
-
-  // Deal Selection State (list view)
-  const [selectedDealIds, setSelectedDealIds] = useState<Set<string>>(new Set());
-
-  const toggleDealSelect = useCallback((dealId: string) => {
-    setSelectedDealIds(prev => {
-      const next = new Set(prev);
-      if (next.has(dealId)) next.delete(dealId);
-      else next.add(dealId);
-      return next;
-    });
-  }, []);
-
-  const toggleDealSelectAll = useCallback((allIds: string[]) => {
-    setSelectedDealIds(prev => {
-      if (prev.size === allIds.length) return new Set();
-      return new Set(allIds);
-    });
-  }, []);
-
-  const clearDealSelection = useCallback(() => {
-    setSelectedDealIds(new Set());
-  }, []);
-
-  // Deal Sort State (list view)
-  const [dealSortBy, setDealSortBy] = useState<DealSortableColumn>('createdAt');
-  const [dealSortOrder, setDealSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  const handleDealSort = useCallback((column: DealSortableColumn) => {
-    setDealSortBy(prev => {
-      if (prev === column) {
-        setDealSortOrder(o => (o === 'asc' ? 'desc' : 'asc'));
-        return prev;
-      }
-      setDealSortOrder('desc');
-      return column;
-    });
-  }, []);
-
-  // Clear selection when switching boards
-  const handleSelectBoardWithClear = useCallback((boardId: string) => {
-    clearDealSelection();
-    setActiveBoardId(boardId);
-  }, [clearDealSelection, setActiveBoardId]);
-
-  // Clear selection when switching view modes
-  useEffect(() => {
-    clearDealSelection();
-  }, [viewMode, clearDealSelection]);
-
-  // Open deal from URL param (e.g., /boards?deal=xxx)
-  // Sem guard em selectedDealId: se um deal já está aberto, substitui pelo da URL
-  useEffect(() => {
-    if (!searchParams) return;
-    const dealIdFromUrl = searchParams.get('deal');
-    if (dealIdFromUrl) {
-      setSelectedDealId(dealIdFromUrl);
-      // Clear the param from URL using router
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('deal');
-      router.replace(`?${params.toString()}`, { scroll: false });
-    }
-  }, [searchParams, router]);
-
-  // Fallback for drag issues
-  const lastMouseDownDealId = React.useRef<string | null>(null);
-  const setLastMouseDownDealId = (id: string | null) => {
-    lastMouseDownDealId.current = id;
-  };
-
-  // Combined loading state
-  // Avoid full-page "blink": dealsLoading can briefly flip to true when switching
-  // from temp board id -> real board id. Keep the page rendered and let deals load in-place.
-  // Also avoid the "empty state flash" on hard refresh: hold the loader until the FIRST successful
-  // boards fetch happened (dataUpdatedAt>0). This is more robust than relying solely on `isFetched`,
-  // which can be true via cache/hydration even when the live fetch hasn't run yet.
-  const hasEverLoadedBoards = boardsUpdatedAt > 0;
-  const isLoading = (boardsLoading || boardsFetching || !hasEverLoadedBoards) && boards.length === 0;
-
-  useEffect(() => {
-    const handleClickOutside = () => setOpenActivityMenuId(null);
-    if (openActivityMenuId) {
-      document.addEventListener('click', handleClickOutside);
-    }
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [openActivityMenuId]);
-
-  // Organization members — usado tanto para enriquecimento de owner quanto para sort/display
+  // Organization members
   const { members: orgMembers } = useOrganizationMembers();
   const orgMembersById = useMemo(() => {
     const map = new Map<string, { name: string; avatar: string }>();
@@ -402,678 +70,48 @@ export const useBoardsController = () => {
     return map;
   }, [orgMembers]);
 
-  // Filtering Logic
-  const filteredDeals = useMemo(() => {
-    // Pre-compute valores fora do loop para evitar recriação a cada iteração
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - 30);
-    const cutoffTime = cutoffDate.getTime();
+  // Compose sub-hooks
+  const filters = useBoardFilters({
+    deals, profileId: profile?.id, profileNickname: profile?.nickname,
+    profileFirstName: profile?.first_name, profileAvatarUrl: profile?.avatar_url,
+    orgMembersById, viewMode,
+  });
 
-    // Cache do searchTerm em lowercase (evita toLowerCase() 2x por deal)
-    const searchLower = searchTerm.toLowerCase();
+  const view = useBoardView({
+    activeBoard, deals,
+    searchTerm: filters.searchTerm, ownerFilter: filters.ownerFilter,
+    statusFilter: filters.statusFilter, dateRange: filters.dateRange,
+    boardsLoading, boardsFetching, boardsUpdatedAt, boardsCount: boards.length,
+    moveDealMutation, deleteDealMutation, lifecycleStages,
+    clearDealSelectionTrigger: viewMode,
+  });
 
-    // Parse das datas do filtro uma única vez (antes era new Date() por deal)
-    const startTime = dateRange.start ? new Date(dateRange.start).getTime() : null;
-    let endTime: number | null = null;
-    if (dateRange.end) {
-      const endDate = new Date(dateRange.end);
-      endDate.setHours(23, 59, 59, 999);
-      endTime = endDate.getTime();
-    }
+  const crud = useBoardCRUD({
+    boards, activeBoard, activeBoardId, setActiveBoardId, defaultBoard, addToast,
+  });
 
-    return deals.filter(l => {
-      // Search: usa searchLower pré-computado
-      const matchesSearch =
-        (l.title || '').toLowerCase().includes(searchLower);
+  const dragDrop = useBoardDragDrop({
+    deals, activeBoard, lifecycleStages, addToast,
+    selectedDealId: view.selectedDealId, setSelectedDealId: view.setSelectedDealId,
+  });
 
-      const matchesOwner =
-        ownerFilter === 'all' || l.ownerId === profile?.id;
-
-      // Date: usa timestamps pré-computados (comparação numérica é mais rápida)
-      let matchesDate = true;
-      if (startTime !== null) {
-        matchesDate = new Date(l.createdAt).getTime() >= startTime;
-      }
-      if (matchesDate && endTime !== null) {
-        matchesDate = new Date(l.createdAt).getTime() <= endTime;
-      }
-
-      // Status Filter Logic
-      let matchesStatus = true;
-      if (statusFilter === 'open') {
-        matchesStatus = !l.isWon && !l.isLost;
-      } else if (statusFilter === 'won') {
-        matchesStatus = l.isWon;
-      } else if (statusFilter === 'lost') {
-        matchesStatus = l.isLost;
-      }
-
-      let matchesRecent = true;
-      if (statusFilter === 'open' || statusFilter === 'all') {
-        if (l.isWon || l.isLost) {
-          // Usa cutoffTime pré-computado
-          if (new Date(l.updatedAt).getTime() < cutoffTime) {
-            matchesRecent = false;
-          }
-        }
-      }
-
-      return matchesSearch && matchesOwner && matchesDate && matchesStatus && matchesRecent;
-    }).map(deal => {
-      // Enrich owner info: prioriza dados ao vivo do orgMembersById sobre o JSON armazenado no deal.
-      // Isso garante que mudanças de nome/avatar de membros (ou remoção da org) sejam refletidas
-      // sem depender do campo owner JSON que pode ficar desatualizado.
-      if (deal.ownerId === profile?.id || deal.ownerId === (profile as any)?.user_id) {
-        return {
-          ...deal,
-          owner: {
-            name: profile?.nickname || profile?.first_name || 'Eu',
-            avatar: profile?.avatar_url || ''
-          }
-        };
-      }
-      const liveMember = deal.ownerId ? orgMembersById.get(deal.ownerId) : undefined;
-      if (liveMember) {
-        return { ...deal, owner: { name: liveMember.name, avatar: liveMember.avatar } };
-      }
-      return deal;
-    });
-  // Dependencies usam primitivos específicos ao invés de objetos completos
-  // Isso evita re-execução quando propriedades não-utilizadas mudam
-  }, [
-    deals,
-    searchTerm,
-    ownerFilter,
-    dateRange.start,
-    dateRange.end,
-    statusFilter,
-    profile?.id,
-    profile?.nickname,
-    profile?.first_name,
-    profile?.avatar_url,
-    orgMembersById,
-  ]);
-
-  // Conta deals ganhos/perdidos ocultos pelo recent filter (> 30 dias)
-  // Só aplica quando statusFilter é 'open' ou 'all' — os únicos modos com recent filter ativo
-  const hiddenByRecentCount = useMemo(() => {
-    if (statusFilter !== 'open' && statusFilter !== 'all') return 0;
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - 30);
-    const cutoffTime = cutoffDate.getTime();
-    return deals.filter(
-      d => (d.isWon || d.isLost) && new Date(d.closedAt || d.updatedAt).getTime() < cutoffTime
-    ).length;
-  }, [deals, statusFilter]);
-
-  // Sorted deals (only when list view — avoids sorting overhead for kanban)
-  const sortedDeals = useMemo(() => {
-    if (viewMode !== 'list') return filteredDeals;
-
-    const sorted = [...filteredDeals];
-    const dir = dealSortOrder === 'asc' ? 1 : -1;
-    const collator = new Intl.Collator('pt-BR', { sensitivity: 'base' });
-
-    sorted.sort((a, b) => {
-      switch (dealSortBy) {
-        case 'title':
-          return dir * collator.compare(a.title || '', b.title || '');
-        case 'stageLabel':
-          return dir * collator.compare(a.stageLabel || '', b.stageLabel || '');
-        case 'value':
-          return dir * ((a.value ?? 0) - (b.value ?? 0));
-        case 'owner': {
-          const aName = (a.ownerId ? orgMembersById.get(a.ownerId)?.name : undefined) || a.owner?.name || '';
-          const bName = (b.ownerId ? orgMembersById.get(b.ownerId)?.name : undefined) || b.owner?.name || '';
-          return dir * collator.compare(aName, bName);
-        }
-        case 'nextActivity': {
-          const aDate = a.nextActivity?.date ? new Date(a.nextActivity.date).getTime() : 0;
-          const bDate = b.nextActivity?.date ? new Date(b.nextActivity.date).getTime() : 0;
-          return dir * (aDate - bDate);
-        }
-        case 'createdAt':
-        default:
-          return dir * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      }
-    });
-
-    return sorted;
-  }, [filteredDeals, viewMode, dealSortBy, dealSortOrder, orgMembersById]);
-
-  // Bulk action handlers (list view)
-  const handleBulkMoveDealToStage = useCallback((targetStageId: string) => {
-    if (!activeBoard) return;
-    const dealsToMove = deals.filter(d => selectedDealIds.has(d.id) && !d.id.startsWith('temp-'));
-    for (const deal of dealsToMove) {
-      moveDealMutation.mutate({
-        dealId: deal.id,
-        targetStageId,
-        deal,
-        board: activeBoard,
-        lifecycleStages,
-      });
-    }
-    clearDealSelection();
-  }, [activeBoard, deals, selectedDealIds, moveDealMutation, lifecycleStages, clearDealSelection]);
-
-  const handleBulkDeleteDeals = useCallback(() => {
-    for (const dealId of selectedDealIds) {
-      if (!dealId.startsWith('temp-')) {
-        deleteDealMutation.mutate(dealId);
-      }
-    }
-    clearDealSelection();
-  }, [selectedDealIds, deleteDealMutation, clearDealSelection]);
-
-  // Drag & Drop Handlers
-  const handleDragStart = (e: React.DragEvent, id: string, title: string) => {
-    setDraggingId(id);
-    e.dataTransfer.setData('dealId', id);
-    // Fallback when optimistic temp id gets replaced mid-drag (avoid logging title).
-    e.dataTransfer.setData('dealTitle', title || '');
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleDrop = (e: React.DragEvent, stageId: string) => {
-    e.preventDefault();
-    const dealId = e.dataTransfer.getData('dealId') || lastMouseDownDealId.current;
-    const dealTitle = e.dataTransfer.getData('dealTitle') || '';
-    if (dealId && activeBoard) {
-      let deal = deals.find(d => d.id === dealId);
-      // If the optimistic temp deal ID was replaced by a refetch during drag, try resolving by title.
-      if (!deal && dealTitle) {
-        const candidates = deals.filter(d => (d.title || '') === dealTitle);
-        if (candidates.length === 1) {
-          deal = candidates[0];
-        } else {
-          if (candidates.length > 1) {
-            addToast('Não foi possível mover: existem múltiplos negócios com o mesmo título. Aguarde salvar e tente novamente.', 'info');
-          }
-        }
-      }
-      if (!deal) {
-        setDraggingId(null);
-        return;
-      }
-
-      // Guard: never send temp-* ids to the backend. This happens when user drags immediately after creating a deal.
-      if (deal.id.startsWith('temp-')) {
-        addToast('Aguarde o negócio salvar para mover (1s) e tente novamente.', 'info');
-        setDraggingId(null);
-        return;
-      }
-
-      // Find the target stage to check if it's a won/lost stage
-      const targetStage = activeBoard.stages.find(s => s.id === stageId);
-
-      // Check linkedLifecycleStage to determine won/lost status
-      if (targetStage?.linkedLifecycleStage === 'OTHER') {
-        // Dropping into LOST stage - open modal to ask for reason
-        setLossReasonModal({
-          isOpen: true,
-          dealId,
-          dealTitle: deal.title,
-          stageId,
-        });
-      } else {
-        // Use unified moveDeal for all other cases (WON or regular stages)
-        moveDealMutation.mutate({
-          dealId,
-          targetStageId: stageId,
-          deal,
-          board: activeBoard,
-          lifecycleStages,
-        });
-      }
-    }
-    setDraggingId(null);
-  };
-
-  // Handler for loss reason modal confirmation
-  const handleLossReasonConfirm = (reason: string) => {
-    if (lossReasonModal && activeBoard) {
-      const deal = deals.find(d => d.id === lossReasonModal.dealId);
-      if (deal) {
-        moveDealMutation.mutate({
-          dealId: lossReasonModal.dealId,
-          targetStageId: lossReasonModal.stageId,
-          lossReason: reason,
-          deal,
-          board: activeBoard,
-          lifecycleStages,
-        });
-      }
-      setLossReasonModal(null);
-    }
-  };
-
-  const handleLossReasonClose = () => {
-    // User cancelled - don't move the deal
-    setLossReasonModal(null);
-  };
-
-  /**
-   * Keyboard-accessible handler to move a deal to a new stage.
-   * This is the accessibility alternative to drag-and-drop.
-   */
-  const handleMoveDealToStage = (dealId: string, newStageId: string) => {
-    if (!activeBoard) return;
-
-    const deal = deals.find(d => d.id === dealId);
-    if (!deal) {
-      return;
-    }
-    if (deal.id.startsWith('temp-')) {
-      addToast('Aguarde o negócio salvar para mover (1s) e tente novamente.', 'info');
-      return;
-    }
-
-    // Find the target stage to check if it's a lost stage
-    const targetStage = activeBoard.stages.find(s => s.id === newStageId);
-
-    // Check linkedLifecycleStage to determine if this is a loss stage
-    if (targetStage?.linkedLifecycleStage === 'OTHER') {
-      // Opening a lost stage - need to ask for reason via modal
-      setLossReasonModal({
-        isOpen: true,
-        dealId,
-        dealTitle: deal.title,
-        stageId: newStageId,
-      });
-    } else {
-      // Regular move or WON stage
-      moveDealMutation.mutate({
-        dealId,
-        targetStageId: newStageId,
-        deal,
-        board: activeBoard,
-        lifecycleStages,
-      });
-    }
-  };
-
-  const handleQuickAddActivity = (
-    dealId: string,
-    type: 'CALL' | 'MEETING' | 'EMAIL',
-    dealTitle: string
-  ) => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(10, 0, 0, 0);
-
-    const titles = {
-      CALL: 'Ligar para Cliente',
-      MEETING: 'Reunião de Acompanhamento',
-      EMAIL: 'Enviar Email de Follow-up',
-    };
-
-    createActivityMutation.mutate(
-      {
-        activity: {
-          dealId,
-          dealTitle,
-          type,
-          title: titles[type],
-          description: 'Agendado via Acesso Rápido',
-          date: tomorrow.toISOString(),
-          completed: false,
-          user: { name: 'Eu', avatar: '' },
-        },
-      },
-      {}
-    );
-    setOpenActivityMenuId(null);
-  };
-
-  // Quick Actions: Win / Lose / Delete
-  const handleWinDeal = (dealId: string) => {
-    if (!activeBoard?.wonStageId) {
-      addToast('Este board não tem estágio de ganho configurado', 'info');
-      return;
-    }
-    const deal = deals.find(d => d.id === dealId);
-    if (!deal) return;
-    moveDealMutation.mutate({
-      dealId,
-      targetStageId: activeBoard.wonStageId,
-      deal,
-      board: activeBoard,
-      lifecycleStages,
-    });
-  };
-
-  const handleLoseDeal = (dealId: string, dealTitle: string) => {
-    if (!activeBoard?.lostStageId) {
-      addToast('Este board não tem estágio de perda configurado', 'info');
-      return;
-    }
-    setLossReasonModal({
-      isOpen: true,
-      dealId,
-      dealTitle,
-      stageId: activeBoard.lostStageId,
-    });
-  };
-
-  const handleDeleteDeal = (dealId: string) => {
-    deleteDealMutation.mutate(dealId, {
-      onSuccess: () => {
-        addToast('Negócio excluído', 'success');
-        if (selectedDealId === dealId) setSelectedDealId(null);
-      },
-      onError: (error: Error) => {
-        addToast(error.message || 'Erro ao excluir negócio', 'error');
-      },
-    });
-  };
-
-  // Board Management Handlers
   const handleSelectBoard = (boardId: string) => {
+    view.clearDealSelection();
     setActiveBoardId(boardId);
   };
 
-  const makeTempId = () => {
-    try {
-      if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-        return `temp-${crypto.randomUUID()}`;
-      }
-    } catch {
-      // ignore
-    }
-    return `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  };
-
-  const handleCreateBoard = async (boardData: Omit<Board, 'id' | 'createdAt'>, order?: number) => {
-    const previousActiveBoardId = activeBoard?.id || activeBoardId || null;
-    const tempId = makeTempId();
-    // Make the board feel instant: select the optimistic temp board immediately.
-    setActiveBoardId(tempId);
-    setBoardCreateOverlay({
-      title: 'Criando board…',
-      subtitle: boardData?.name ? `— ${boardData.name}` : undefined,
-    });
-
-    createBoardMutation.mutate({ board: boardData, order, clientTempId: tempId }, {
-      onSuccess: newBoard => {
-        try {
-          sessionStorage.removeItem('createBoardDraft.v1');
-        } catch {
-          // noop
-        }
-        if (newBoard) {
-          setActiveBoardId(newBoard.id);
-        }
-        setBoardCreateOverlay(null);
-        setIsCreateBoardModalOpen(false);
-        setIsWizardOpen(false);
-      },
-      onError: (error) => {
-        console.error('[handleCreateBoard] Error:', error);
-        addToast(error.message || 'Erro ao criar board', 'error');
-        setBoardCreateOverlay(null);
-        // Restore previous selection if create fails.
-        if (previousActiveBoardId) {
-          setActiveBoardId(previousActiveBoardId);
-        }
-        // Re-open modal so user can retry (draft is restored from sessionStorage)
-        setIsCreateBoardModalOpen(true);
-      },
-    });
-  };
-
-  /**
-   * Async variant used for flows that must preserve order (ex.: importing a Journey JSON).
-   * Uses mutateAsync to allow sequential creation without race conditions.
-   */
-  const createBoardAsync = async (boardData: Omit<Board, 'id' | 'createdAt'>, order?: number) => {
-    const previousActiveBoardId = activeBoard?.id || activeBoardId || null;
-    try {
-      // Mirror the "instant" UX of handleCreateBoard (optimistic temp selection) for async flows too.
-      const tempId = makeTempId();
-      setActiveBoardId(tempId);
-      const newBoard = await createBoardMutation.mutateAsync({ board: boardData, order, clientTempId: tempId });
-      setActiveBoardId(newBoard.id);
-      return newBoard;
-    } catch (error) {
-      const err = error as Error;
-      console.error('[createBoardAsync] Error:', err);
-      addToast(err.message || 'Erro ao criar board', 'error');
-      // If we failed after selecting a temp board, try to restore selection.
-      if (previousActiveBoardId) setActiveBoardId(previousActiveBoardId);
-      throw err;
-    }
-  };
-
-  /**
-   * Async variant used for flows that must update boards after creation
-   * (ex.: installing an official Journey and linking boards via nextBoardId).
-   */
-  const updateBoardAsync = async (id: string, updates: Partial<Board>) => {
-    try {
-      await updateBoardMutation.mutateAsync({ id, updates });
-    } catch (error) {
-      const err = error as Error;
-      console.error('[updateBoardAsync] Error:', err);
-      addToast(err.message || 'Erro ao atualizar board', 'error');
-      throw err;
-    }
-  };
-
-  const handleEditBoard = (board: Board) => {
-    setEditingBoard(board);
-    setIsCreateBoardModalOpen(true);
-  };
-
-  const handleUpdateBoard = (boardData: Omit<Board, 'id' | 'createdAt'>) => {
-    if (editingBoard) {
-      updateBoardMutation.mutate(
-        {
-          id: editingBoard.id,
-          updates: {
-            name: boardData.name,
-            description: boardData.description,
-            nextBoardId: boardData.nextBoardId,
-            linkedLifecycleStage: boardData.linkedLifecycleStage,
-            wonStageId: boardData.wonStageId,
-            lostStageId: boardData.lostStageId,
-            stages: boardData.stages,
-          },
-        },
-        {
-          onSuccess: () => {
-            setEditingBoard(null);
-            setIsCreateBoardModalOpen(false);
-          },
-        }
-      );
-    }
-  };
-
-  const handleDeleteBoard = async (boardId: string) => {
-    const board = boards.find(b => b.id === boardId);
-    if (!board) return;
-
-    // Verifica quantos deals tem
-    const result = await import('@/lib/supabase/boards').then(m =>
-      m.boardsService.canDelete(boardId)
-    );
-
-    setBoardToDelete({
-      id: boardId,
-      name: board.name,
-      dealCount: result.dealCount ?? 0
-    });
-  };
-
-  const confirmDeleteBoard = async () => {
-    if (!boardToDelete) return;
-
-    const { targetBoardId } = boardToDelete;
-
-    // Caso 1: Usuário quer deletar os deals junto
-    if (targetBoardId === '__DELETE__') {
-      try {
-        // Deleta todos os deals do board primeiro
-        const { dealsService } = await import('@/lib/supabase/deals');
-        const { error: deleteDealsError } = await dealsService.deleteByBoardId(boardToDelete.id);
-
-        if (deleteDealsError) {
-          addToast('Erro ao excluir negócios: ' + deleteDealsError.message, 'error');
-          return;
-        }
-
-        // Agora deleta o board
-        deleteBoardMutation.mutate(boardToDelete.id, {
-          onSuccess: () => {
-            addToast(`Board "${boardToDelete.name}" e seus negócios foram excluídos`, 'success');
-            if (boardToDelete.id === activeBoardId && defaultBoard && defaultBoard.id !== boardToDelete.id) {
-              setActiveBoardId(defaultBoard.id);
-            }
-            setBoardToDelete(null);
-          },
-          onError: (error: Error) => {
-            addToast(error.message || 'Erro ao excluir board', 'error');
-            setBoardToDelete(null);
-          },
-        });
-      } catch (e) {
-        addToast('Erro inesperado ao excluir', 'error');
-        setBoardToDelete(null);
-      }
-      return;
-    }
-
-    // Caso 2: Mover deals pra outro board
-    if (boardToDelete.dealCount > 0 && targetBoardId) {
-      deleteBoardWithMoveMutation.mutate(
-        { boardId: boardToDelete.id, targetBoardId },
-        {
-          onSuccess: () => {
-            addToast(`Board "${boardToDelete.name}" excluído! Negócios movidos com sucesso.`, 'success');
-            if (boardToDelete.id === activeBoardId) {
-              setActiveBoardId(targetBoardId);
-            }
-            setBoardToDelete(null);
-          },
-          onError: (error: Error) => {
-            addToast(error.message || 'Erro ao excluir board', 'error');
-            setBoardToDelete(null);
-          },
-        }
-      );
-      return;
-    }
-
-    // Caso 3: Board sem deals - delete normal
-    deleteBoardMutation.mutate(boardToDelete.id, {
-      onSuccess: () => {
-        addToast(`Board "${boardToDelete.name}" excluído com sucesso`, 'success');
-        if (boardToDelete.id === activeBoardId && defaultBoard) {
-          setActiveBoardId(defaultBoard.id);
-        }
-        setBoardToDelete(null);
-      },
-      onError: (error: Error) => {
-        addToast(error.message || 'Erro ao excluir board', 'error');
-        setBoardToDelete(null);
-      },
-    });
-  };
-
-  const setTargetBoardForDelete = (targetBoardId: string) => {
-    if (boardToDelete) {
-      setBoardToDelete({ ...boardToDelete, targetBoardId });
-    }
-  };
-
-  // Boards disponíveis para mover deals (exclui o board sendo deletado)
-  const availableBoardsForMove = useMemo(() => {
-    if (!boardToDelete) return [];
-    return boards.filter(b => b.id !== boardToDelete.id);
-  }, [boards, boardToDelete]);
-
   return {
-    // Boards
-    boards,
-    boardsLoading, // Specific loading state for boards
-    boardsFetched, // True after first successful fetch
-    activeBoard,
-    activeBoardId, // Persisted selection (best for perf-first refresh)
-    effectiveActiveBoardId, // Actually resolved board id (null until boards arrive)
-    handleSelectBoard: handleSelectBoardWithClear,
-    handleCreateBoard,
-    createBoardAsync,
-    updateBoardAsync,
-    handleEditBoard,
-    handleUpdateBoard,
-    handleDeleteBoard,
-    confirmDeleteBoard,
-    boardToDelete,
-    setBoardToDelete,
-    setTargetBoardForDelete,
-    availableBoardsForMove,
-    isCreateBoardModalOpen,
-    setIsCreateBoardModalOpen,
-    isWizardOpen,
-    setIsWizardOpen,
-    editingBoard,
-    setEditingBoard,
+    // Board data
+    boards, boardsLoading, boardsFetched, activeBoard, activeBoardId, effectiveActiveBoardId,
+    handleSelectBoard,
     // View
-    viewMode,
-    setViewMode,
-    searchTerm,
-    setSearchTerm,
-    ownerFilter,
-    setOwnerFilter,
-    statusFilter,
-    setStatusFilter,
-    dateRange,
-    setDateRange,
-
-    draggingId,
-    selectedDealId,
-    setSelectedDealId,
-    isCreateModalOpen,
-    setIsCreateModalOpen,
-    openActivityMenuId,
-    setOpenActivityMenuId,
-    filteredDeals,
-    hiddenByRecentCount,
-    sortedDeals,
-    // Deal Selection & Sort (list view)
-    selectedDealIds,
-    toggleDealSelect,
-    toggleDealSelectAll,
-    clearDealSelection,
-    dealSortBy,
-    dealSortOrder,
-    handleDealSort,
-    handleBulkMoveDealToStage,
-    handleBulkDeleteDeals,
-    customFieldDefinitions,
-    isLoading,
-    handleDragStart,
-    handleDragOver,
-    handleDrop,
-    handleMoveDealToStage,
-    handleQuickAddActivity,
-    setLastMouseDownDealId,
-    // Quick Actions
-    handleWinDeal,
-    handleLoseDeal,
-    handleDeleteDeal,
-    // Loss Reason Modal
-    lossReasonModal,
-    handleLossReasonConfirm,
-    handleLossReasonClose,
-    // UX: global overlay while creating board (start-from-zero flow)
-    boardCreateOverlay,
+    viewMode, setViewMode,
+    // Spread sub-hooks
+    ...crud, ...filters, ...dragDrop, ...view,
+    // Explicit overrides (sub-hooks may have conflicting keys)
+    filteredDeals: filters.filteredDeals,
+    hiddenByRecentCount: filters.hiddenByRecentCount,
+    sortedDeals: filters.sortedDeals,
   };
 };
 

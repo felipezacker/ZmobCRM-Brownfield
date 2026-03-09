@@ -8,7 +8,7 @@
  */
 import React from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 import { Sheet } from './Sheet';
 
 export interface FullscreenSheetProps {
@@ -29,9 +29,9 @@ export function FullscreenSheet({ isOpen, onClose, title, children, footer, clas
       className={cn('h-[100dvh] rounded-none', className)}
     >
       <div className="flex h-[100dvh] flex-col">
-        <div className="shrink-0 border-b border-border dark:border-white/10 bg-card dark:bg-dark-card">
+        <div className="shrink-0 border-b border-border bg-card dark:bg-dark-card">
           <div className="flex items-center justify-between gap-3 px-4 py-3">
-            <div className="min-w-0 text-sm font-semibold text-foreground dark:text-white truncate">{title}</div>
+            <div className="min-w-0 text-sm font-semibold text-foreground truncate">{title}</div>
             <button
               type="button"
               onClick={onClose}
@@ -46,7 +46,7 @@ export function FullscreenSheet({ isOpen, onClose, title, children, footer, clas
         <div className="min-h-0 flex-1 overflow-auto px-4 py-4">{children}</div>
 
         {footer ? (
-          <div className="shrink-0 border-t border-border dark:border-white/10 bg-card dark:bg-dark-card px-4 py-3">
+          <div className="shrink-0 border-t border-border bg-card dark:bg-dark-card px-4 py-3">
             {footer}
           </div>
         ) : null}

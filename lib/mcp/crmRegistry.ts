@@ -7,7 +7,7 @@ type AnyTool = {
   // Zod schema passed to `tool({ inputSchema })`
   inputSchema?: unknown;
   // Vercel AI SDK tool execute
-  execute?: (args: any) => Promise<any> | any;
+  execute?: (args: unknown) => Promise<unknown> | unknown;
   // Optional flag used by UI flows; irrelevant for MCP but useful metadata
   needsApproval?: boolean;
 };
@@ -74,8 +74,8 @@ export function buildCrmMcpRegistry(params: {
         ? t.description.trim()
         : 'Unmapped tool. This tool is available but has not been curated in the MCP catalog yet.');
 
-    const inputSchemaZod = (t as any).inputSchema ?? {};
-    const needsApproval = !!(t as any).needsApproval;
+    const inputSchemaZod = (t as Record<string, unknown>).inputSchema ?? {};
+    const needsApproval = !!(t as Record<string, unknown>).needsApproval;
 
     tools.push({
       name,

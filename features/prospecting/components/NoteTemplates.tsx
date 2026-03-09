@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button } from '@/app/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import type { CallLogData } from '@/features/inbox/components/CallModal'
 
 const TEMPLATES_BY_OUTCOME: Record<CallLogData['outcome'], string[]> = {
@@ -53,7 +53,7 @@ export const NoteTemplates: React.FC<NoteTemplatesProps> = ({
           size="unstyled"
           type="button"
           onClick={() => onSelect(template)}
-          className="px-2.5 py-1 text-xs rounded-full border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+          className="px-2.5 py-1 text-xs rounded-full border border-border dark:border-border/50 bg-background dark:bg-card/50 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-accent/50 hover:border-border dark:hover:border-border transition-colors"
         >
           {template}
         </Button>

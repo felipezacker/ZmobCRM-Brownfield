@@ -25,7 +25,7 @@ export function NotificationBell() {
   return (
     <Link
       href="/notifications"
-      className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full relative transition-colors focus-visible-ring"
+      className="p-2 text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/10 rounded-full relative transition-colors focus-visible-ring"
       aria-label={`Notificacoes CRM: ${count} nao lidas`}
     >
       <Bell size={20} aria-hidden="true" />

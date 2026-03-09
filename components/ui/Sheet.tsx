@@ -7,7 +7,7 @@
  */
 import React, { useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 
 export interface SheetProps {
@@ -37,8 +37,7 @@ export function Sheet({ isOpen, onClose, children, ariaLabel, className }: Sheet
       {isOpen ? (
         <FocusTrap active={isOpen} onEscape={handleEscape} returnFocus={true}>
           <motion.div
-            className={cn(
-              'fixed inset-0 z-[9999] bg-background/70 backdrop-blur-sm',
+            className={cn('fixed inset-0 z-[var(--z-modal)] bg-background/70 backdrop-blur-sm',
               // keep consistent with desktop sidebar behavior
               'md:left-[var(--app-sidebar-width,0px)]'
             )}
@@ -52,13 +51,12 @@ export function Sheet({ isOpen, onClose, children, ariaLabel, className }: Sheet
               role="dialog"
               aria-modal="true"
               aria-label={ariaLabel}
-              className={cn(
-                'absolute left-0 right-0 bottom-0 mx-auto w-full',
-                'rounded-t-2xl bg-white dark:bg-dark-card',
-                'border border-border dark:border-white/10',
-                'shadow-2xl overflow-hidden',
-                // safe area
-                'pb-[var(--app-safe-area-bottom,0px)]',
+              className={cn('absolute left-0 right-0 bottom-0 mx-auto w-full',
+ 'rounded-t-2xl bg-white dark:bg-dark-card',
+ 'border border-border ',
+ 'shadow-2xl overflow-hidden',
+ // safe area
+ 'pb-[var(--app-safe-area-bottom,0px)]',
                 className
               )}
               initial={{ y: 30, opacity: 0, filter: 'blur(10px)' }}

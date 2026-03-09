@@ -54,7 +54,7 @@ export function createNoteTools({ supabase, organizationId, context, userId, byp
                 return {
                     count: data?.length || 0,
                     dealTitle: guard.deal.title,
-                    notes: (data || []).map((n: any) => ({ id: n.id, content: n.content, createdAt: n.created_at, createdBy: n.created_by })),
+                    notes: (data || []).map((n: { id: string; content: string; created_at: string; created_by: string }) => ({ id: n.id, content: n.content, createdAt: n.created_at, createdBy: n.created_by })),
                 };
             },
         }),

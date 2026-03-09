@@ -27,14 +27,15 @@ export const GET = withRateLimit(async function GET(request: Request, ctx: { par
   if (error) return NextResponse.json({ error: error.message, code: 'DB_ERROR' }, { status: 500 });
   if (!data) return NextResponse.json({ error: 'Board not found', code: 'NOT_FOUND' }, { status: 404 });
 
+  const row = data as Record<string, unknown>;
   return NextResponse.json({
     data: {
-      id: (data as any).id,
-      key: (data as any).key ?? null,
-      name: (data as any).name,
-      description: (data as any).description ?? null,
-      position: (data as any).position ?? 0,
-      is_default: !!(data as any).is_default,
+      id: row.id,
+      key: row.key ?? null,
+      name: row.name,
+      description: row.description ?? null,
+      position: row.position ?? 0,
+      is_default: !!row.is_default,
     },
   });
 });

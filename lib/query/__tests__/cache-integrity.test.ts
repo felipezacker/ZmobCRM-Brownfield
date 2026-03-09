@@ -22,6 +22,8 @@ const CRITICAL_FILES = [
   path.join(LIB_QUERY_DIR, 'hooks/useMoveDeal.ts'),
   path.join(CONTEXT_DIR, 'deals/DealsContext.tsx'),
   path.join(REALTIME_DIR, 'useRealtimeSync.ts'),
+  path.join(REALTIME_DIR, 'dealInsertSync.ts'),
+  path.join(REALTIME_DIR, 'dealUpdateSync.ts'),
 ];
 
 // Padrões problemáticos que indicam regressão
@@ -51,7 +53,7 @@ const DANGEROUS_PATTERNS = [
 // Padrões obrigatórios que devem estar presentes
 const REQUIRED_PATTERNS = [
   {
-    files: ['useDealsQuery.ts', 'useMoveDeal.ts', 'DealsContext.tsx', 'useRealtimeSync.ts'],
+    files: ['useDealsQuery.ts', 'useMoveDeal.ts', 'DealsContext.tsx', 'dealInsertSync.ts', 'dealUpdateSync.ts'],
     pattern: /import\s*\{[^}]*DEALS_VIEW_KEY[^}]*\}\s*from/,
     description: 'DEALS_VIEW_KEY deve ser importado',
   },
@@ -153,20 +155,23 @@ describe('Cache Integrity - Deals', () => {
       ).toBeNull();
     });
 
-    it('useRealtimeSync deve usar DEALS_VIEW_KEY para INSERT e UPDATE', () => {
-      const realtimePath = path.join(REALTIME_DIR, 'useRealtimeSync.ts');
+    it('realtime deal handlers deve usar DEALS_VIEW_KEY para INSERT e UPDATE', () => {
+      const insertPath = path.join(REALTIME_DIR, 'dealInsertSync.ts');
+      const updatePath = path.join(REALTIME_DIR, 'dealUpdateSync.ts');
 
-      if (!fs.existsSync(realtimePath)) {
-        expect.fail('useRealtimeSync.ts not found. Ensure the file exists or update the test path.');
+      if (!fs.existsSync(insertPath)) {
+        expect.fail('dealInsertSync.ts not found. Ensure the file exists or update the test path.');
+      }
+      if (!fs.existsSync(updatePath)) {
+        expect.fail('dealUpdateSync.ts not found. Ensure the file exists or update the test path.');
       }
 
-      const content = fs.readFileSync(realtimePath, 'utf-8');
-      
-      // Deve importar DEALS_VIEW_KEY
-      expect(content).toMatch(/DEALS_VIEW_KEY/);
-      
-      // Deve ter comentário sobre única fonte de verdade
-      expect(content).toMatch(/única fonte de verdade|single source of truth/i);
+      const insertContent = fs.readFileSync(insertPath, 'utf-8');
+      const updateContent = fs.readFileSync(updatePath, 'utf-8');
+
+      // Both handlers must import DEALS_VIEW_KEY
+      expect(insertContent).toMatch(/DEALS_VIEW_KEY/);
+      expect(updateContent).toMatch(/DEALS_VIEW_KEY/);
     });
   });
 

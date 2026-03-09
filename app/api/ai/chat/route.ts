@@ -8,6 +8,7 @@ import { AI_DEFAULT_MODELS } from '@/lib/ai/defaults';
 import type { CRMCallOptions } from '@/types/ai';
 import { isAllowedOrigin } from '@/lib/security/sameOrigin';
 import { isAIFeatureEnabled } from '@/lib/ai/features/server';
+import { decryptApiKey } from '@/lib/crypto/encryption';
 
 export const maxDuration = 60;
 
@@ -28,9 +29,18 @@ function asOptionalStages(
 
     const stages: Array<{ id: string; name: string }> = [];
     for (const item of v) {
-        const maybe = item as any;
-        if (typeof maybe?.id === 'string' && typeof maybe?.name === 'string') {
-            stages.push({ id: maybe.id, name: maybe.name });
+        if (
+            item != null &&
+            typeof item === 'object' &&
+            'id' in item &&
+            'name' in item &&
+            typeof (item as Record<string, unknown>).id === 'string' &&
+            typeof (item as Record<string, unknown>).name === 'string'
+        ) {
+            stages.push({
+                id: (item as Record<string, unknown>).id as string,
+                name: (item as Record<string, unknown>).name as string,
+            });
         }
     }
 
@@ -137,7 +147,8 @@ export async function POST(req: Request) {
         .eq('organization_id', organizationId)
         .maybeSingle();
 
-    const aiEnabled = typeof (orgSettings as any)?.ai_enabled === 'boolean' ? (orgSettings as any).ai_enabled : true;
+    const orgSettingsRecord = orgSettings as Record<string, unknown> | null;
+    const aiEnabled = typeof orgSettingsRecord?.ai_enabled === 'boolean' ? orgSettingsRecord.ai_enabled : true;
     if (!aiEnabled) {
         return new Response(
             'IA desativada pela organização. Um admin pode ativar em Configurações → Central de I.A.',
@@ -145,7 +156,7 @@ export async function POST(req: Request) {
         );
     }
 
-    const chatEnabled = await isAIFeatureEnabled(supabase as any, organizationId, 'ai_chat_agent');
+    const chatEnabled = await isAIFeatureEnabled(supabase, organizationId, 'ai_chat_agent');
     if (!chatEnabled) {
         return new Response(
             'Função de IA desativada: Chat do agente (Pilot).',
@@ -156,12 +167,14 @@ export async function POST(req: Request) {
     const provider = (orgSettings?.ai_provider ?? 'google') as AIProvider;
     const modelId: string | null = orgSettings?.ai_model ?? null;
 
-    const apiKey: string | null =
+    const rawKey: string | null =
         provider === 'google'
             ? (orgSettings?.ai_google_key ?? null)
             : provider === 'openai'
                 ? (orgSettings?.ai_openai_key ?? null)
                 : (orgSettings?.ai_anthropic_key ?? null);
+
+    const apiKey = rawKey ? decryptApiKey(rawKey) : null;
 
     if (!apiKey) {
         const providerLabel = provider === 'google' ? 'Google Gemini' : provider === 'openai' ? 'OpenAI' : 'Anthropic';
@@ -188,16 +201,16 @@ export async function POST(req: Request) {
         overdueDeals: asOptionalNumber(rawContext.overdueDeals),
         wonStage: asOptionalString(rawContext.wonStage),
         lostStage: asOptionalString(rawContext.lostStage),
-        cockpitSnapshot: asOptionalCockpitSnapshot((rawContext as any)?.cockpitSnapshot),
+        cockpitSnapshot: asOptionalCockpitSnapshot(rawContext.cockpitSnapshot),
         userId: user.id,
         userName: profile?.nickname || profile?.first_name || user.email,
-        userRole: (profile as any)?.role,
+        userRole: (profile as Record<string, unknown> | null)?.role as CRMCallOptions['userRole'],
     };
 
     const rawContextSummary = {
         ...rawContext,
         // Evita dump gigante no console.
-        cockpitSnapshot: (rawContext as any)?.cockpitSnapshot ? '[provided]' : undefined,
+        cockpitSnapshot: rawContext.cockpitSnapshot ? '[provided]' : undefined,
     };
 
     console.log('[AI Chat] 📨 Request received:', {
@@ -222,8 +235,8 @@ export async function POST(req: Request) {
     let agent: Awaited<ReturnType<typeof createCRMAgent>>;
     try {
         agent = await createCRMAgent(context, user.id, apiKey, resolvedModelId, provider, supabase);
-    } catch (err: any) {
-        const message = String(err?.message || err || 'Erro desconhecido');
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err || 'Erro desconhecido');
         // Ex.: quando o provider é Gemini mas o modelId é OpenAI (ou vice-versa), o SDK retorna mensagens parecidas.
         console.warn('[AI Chat] Failed to create agent/model:', { provider, modelId: resolvedModelId, message });
         return new Response(
@@ -233,7 +246,7 @@ export async function POST(req: Request) {
     }
 
     // 7. Return streaming response using AI SDK v6 createAgentUIStreamResponse
-    return createAgentUIStreamResponse<CRMCallOptions>({
+    return createAgentUIStreamResponse({
         agent,
         uiMessages: messages,
         options: context,

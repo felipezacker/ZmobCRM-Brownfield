@@ -60,7 +60,7 @@ vi.mock('@/lib/debug', () => ({
   fakeContact: () => ({ name: 'Fake', email: 'fake@test.com', phone: '11999999999' }),
 }));
 
-vi.mock('@/app/components/ui/Button', () => ({
+vi.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
     // eslint-disable-next-line no-restricted-syntax -- mock component
     <button {...props}>{children}</button>

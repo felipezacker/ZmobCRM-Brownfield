@@ -21,7 +21,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Decision, SuggestedAction, PRIORITY_COLORS, PRIORITY_LABELS } from '../types';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface DecisionCardProps {
   decision: Decision;
@@ -49,7 +49,7 @@ const getPriorityStyles = (priority: string) => {
     critical: 'border-l-red-500 bg-red-50/50 dark:bg-red-500/5',
     high: 'border-l-orange-500 bg-orange-50/50 dark:bg-orange-500/5',
     medium: 'border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-500/5',
-    low: 'border-l-slate-400 bg-slate-50/50 dark:bg-slate-500/5',
+    low: 'border-l-slate-400 bg-background/50 dark:bg-accent/5',
   };
   return styles[priority] || styles.medium;
 };
@@ -59,7 +59,7 @@ const getPriorityBadge = (priority: string) => {
     critical: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
     high: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
     medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400',
-    low: 'bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400',
+    low: 'bg-muted text-secondary-foreground dark:bg-accent/20 dark:text-muted-foreground',
   };
   return badges[priority] || badges.medium;
 };
@@ -99,7 +99,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
   return (
     <div
       className={`
-        border-l-4 rounded-lg border border-slate-200 dark:border-white/10
+        border-l-4 rounded-lg border border-border 
         transition-all duration-200 overflow-hidden
         ${getPriorityStyles(decision.priority)}
         ${isExecuting ? 'opacity-50 pointer-events-none' : ''}
@@ -123,12 +123,12 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
             </div>
 
             {/* Title */}
-            <h3 className="font-semibold text-slate-900 dark:text-white text-sm leading-tight mb-1">
+            <h3 className="font-semibold text-foreground text-sm leading-tight mb-1">
               {decision.title}
             </h3>
 
             {/* Description */}
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground dark:text-muted-foreground">
               {decision.description}
             </p>
           </div>
@@ -146,8 +146,8 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
 
         {/* Reasoning Content */}
         {isExpanded && (
-          <div className="mt-3 p-3 rounded-lg bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10">
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div className="mt-3 p-3 rounded-lg bg-white/60 dark:bg-white/5 border border-border">
+            <p className="text-xs text-secondary-foreground dark:text-muted-foreground leading-relaxed">
               {decision.reasoning}
             </p>
           </div>
@@ -156,7 +156,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
 
       {/* Suggested Action */}
       <div className="px-4 pb-3">
-        <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
+        <div className="text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-2 flex items-center gap-1">
           <Target size={12} />
           Ação sugerida:
         </div>
@@ -188,7 +188,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
         {/* Alternative Actions */}
         {decision.alternativeActions && decision.alternativeActions.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
-            <span className="text-xs text-slate-400 mr-1">Ou:</span>
+            <span className="text-xs text-muted-foreground mr-1">Ou:</span>
             {decision.alternativeActions.map((action) => (
               <Button
                 key={action.id}
@@ -197,7 +197,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
                   text-xs px-2 py-1 rounded-full border transition-colors
                   ${selectedAction.id === action.id
                     ? 'bg-primary-100 dark:bg-primary-500/20 border-primary-300 dark:border-primary-500/50 text-primary-700 dark:text-primary-300'
-                    : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/10'
+                    : 'bg-white dark:bg-white/5 border-border  text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-white/10'
                   }
                 `}
               >
@@ -226,7 +226,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
         <Button
           onClick={() => onSnooze(decision.id)}
           disabled={isExecuting}
-          className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+          className="p-2 text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-muted-foreground hover:bg-muted dark:hover:bg-white/10 rounded-lg transition-colors"
           title="Adiar"
         >
           <Clock size={18} />
@@ -235,7 +235,7 @@ export const DecisionCard: React.FC<DecisionCardProps> = ({
         <Button
           onClick={() => onReject(decision.id)}
           disabled={isExecuting}
-          className="p-2 text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+          className="p-2 text-muted-foreground hover:text-red-600 dark:text-muted-foreground dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
           title="Ignorar"
         >
           <XCircle size={18} />

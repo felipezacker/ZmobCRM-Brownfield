@@ -1,7 +1,7 @@
 import React from 'react';
 import { ContactStage } from '@/types';
 import { Users, UserCheck, Handshake, Crown, Archive } from 'lucide-react';
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface StageCounts {
   LEAD: number;
@@ -21,9 +21,9 @@ const STAGE_CONFIG = {
   LEAD: {
     label: 'Leads',
     icon: Users,
-    color: 'bg-slate-500',
+    color: 'bg-accent',
     activeColor:
-      'bg-slate-100 dark:bg-slate-500/20 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-500/30',
+      'bg-muted dark:bg-accent/20 text-secondary-foreground dark:text-muted-foreground border-border dark:border-border/30',
   },
   MQL: {
     label: 'MQL',
@@ -49,9 +49,9 @@ const STAGE_CONFIG = {
   OTHER: {
     label: 'Outros / Perdidos',
     icon: Archive,
-    color: 'bg-slate-500',
+    color: 'bg-accent',
     activeColor:
-      'bg-slate-100 dark:bg-slate-500/20 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-500/30',
+      'bg-muted dark:bg-accent/20 text-secondary-foreground dark:text-muted-foreground border-border dark:border-border/30',
   },
 };
 
@@ -84,7 +84,7 @@ export const ContactsStageTabs: React.FC<ContactsStageTabs> = ({
         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
           activeStage === 'ALL'
             ? 'bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300 border-primary-300 dark:border-primary-500/30'
-            : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10'
+            : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
         }`}
       >
         Todos
@@ -92,7 +92,7 @@ export const ContactsStageTabs: React.FC<ContactsStageTabs> = ({
           className={`text-xs px-1.5 py-0.5 rounded-full ${
             activeStage === 'ALL'
               ? 'bg-primary-200 dark:bg-primary-500/30'
-              : 'bg-slate-100 dark:bg-white/10'
+              : 'bg-muted dark:bg-white/10'
           }`}
         >
           {total}
@@ -112,14 +112,14 @@ export const ContactsStageTabs: React.FC<ContactsStageTabs> = ({
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
               isActive
                 ? config.activeColor
-                : 'bg-white dark:bg-white/5 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10'
+                : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
             }`}
           >
             <Icon size={16} />
             {config.label}
             <span
               className={`text-xs px-1.5 py-0.5 rounded-full ${
-                isActive ? 'bg-white/50 dark:bg-white/10' : 'bg-slate-100 dark:bg-white/10'
+                isActive ? 'bg-white/50 dark:bg-white/10' : 'bg-muted dark:bg-white/10'
               }`}
             >
               {count}
@@ -143,7 +143,7 @@ export const StageBadge: React.FC<{ stage: ContactStage | string }> = ({ stage }
 
   if (!config) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-muted text-secondary-foreground dark:bg-card dark:text-muted-foreground">
         {stage}
       </span>
     );

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { getErrorMessage } from '@/lib/utils/errorUtils'
 import { Loader2, Mail, Lock, ArrowRight } from 'lucide-react'
-import { Button } from '@/app/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Componente React `LoginPage`.
@@ -44,7 +44,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-dark-bg relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-background dark:bg-dark-bg relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
                 <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] bg-primary-500/20 rounded-full blur-[120px]" />
@@ -53,23 +53,23 @@ export default function LoginPage() {
 
             <div className="max-w-md w-full relative z-10 px-4">
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-display tracking-tight mb-2">
+                    <h1 className="text-4xl font-bold text-foreground font-display tracking-tight mb-2">
                         Bem-vindo de volta
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400">
+                    <p className="text-muted-foreground dark:text-muted-foreground">
                         Entre na sua conta para continuar.
                     </p>
                 </div>
 
-                <div className="bg-white dark:bg-dark-card border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl p-8 backdrop-blur-sm">
+                <div className="bg-white dark:bg-dark-card border border-border rounded-2xl shadow-xl p-8 backdrop-blur-sm">
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="email-address" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            <label htmlFor="email-address" className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-1.5">
                                 Email
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Mail className="h-5 w-5 text-slate-400" />
+                                    <Mail className="h-5 w-5 text-muted-foreground" />
                                 </div>
                                 <input
                                     id="email-address"
@@ -79,7 +79,7 @@ export default function LoginPage() {
                                     required
                                     aria-required="true"
                                     aria-describedby={error ? "login-error" : undefined}
-                                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                                    className="block w-full pl-10 pr-3 py-2.5 border border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
                                     placeholder="seu@email.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -88,12 +88,12 @@ export default function LoginPage() {
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            <label htmlFor="password" className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-1.5">
                                 Senha
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-slate-400" />
+                                    <Lock className="h-5 w-5 text-muted-foreground" />
                                 </div>
                                 <input
                                     id="password"
@@ -103,7 +103,7 @@ export default function LoginPage() {
                                     required
                                     aria-required="true"
                                     aria-describedby={error ? "login-error" : undefined}
-                                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
+                                    className="block w-full pl-10 pr-3 py-2.5 border border-border dark:border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all sm:text-sm"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -139,7 +139,7 @@ export default function LoginPage() {
                     </form>
                 </div>
 
-                <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
+                <p className="mt-8 text-center text-xs text-muted-foreground dark:text-muted-foreground">
                     &copy; {new Date().getFullYear()} CRM IA. Todos os direitos reservados.
                 </p>
             </div>

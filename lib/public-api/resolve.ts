@@ -14,7 +14,7 @@ export async function resolveBoardId(opts: { organizationId: string; boardKeyOrI
 
   const { data, error } = await query;
   if (error) throw error;
-  const id = sanitizeUUID((data as any)?.id);
+  const id = sanitizeUUID((data as Record<string, unknown> | null)?.id as string | undefined);
   return id || null;
 }
 
@@ -33,6 +33,6 @@ export async function resolveFirstStageId(opts: { organizationId: string; boardI
     .limit(1)
     .maybeSingle();
   if (error) throw error;
-  return sanitizeUUID((data as any)?.id) || null;
+  return sanitizeUUID((data as Record<string, unknown> | null)?.id as string | undefined) || null;
 }
 

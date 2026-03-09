@@ -40,7 +40,7 @@ export function withRateLimit<TCtx extends AnyContext = undefined>(
     ctx?: TCtx,
   ): Promise<Response | NextResponse> => {
     const ip = getClientIp(request);
-    const result = rateLimit(ip);
+    const result = await rateLimit(ip);
 
     if (!result.success) {
       return rateLimitResponse(result);
