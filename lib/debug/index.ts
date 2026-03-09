@@ -119,7 +119,7 @@ export const fakeActivity = () => ({
     'Alinhar expectativas',
   ]),
   description: faker.lorem.sentence(),
-  type: faker.helpers.arrayElement(['CALL', 'MEETING', 'TASK', 'EMAIL'] as const),
+  type: faker.helpers.arrayElement(['CALL', 'MEETING', 'TASK', 'EMAIL', 'WHATSAPP'] as const),
   date: faker.date.soon({ days: 14 }).toISOString(),
 });
 
