@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** QV-1.7
 - **Epic:** QV (Quality Validation)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 5
 - **Assigned Agent:** @dev
@@ -31,10 +31,10 @@
 
 ## Acceptance Criteria
 
-- [ ] AC1: Given a fila com 100 contatos, when adiciono um contato individual via `AddToQueueSearch`, then a adicao e bloqueada e um toast de warning exibe "Limite de 100 contatos atingido"
-- [ ] AC2: Given um contato ja presente na fila, when tento adiciona-lo individualmente via `AddToQueueSearch`, then a adicao e bloqueada e um toast de warning exibe "Contato ja esta na fila"
-- [ ] AC3: Given uma fila salva existente, when clico para carregar essa fila salva, then os contatos da fila sao restaurados na fila atual (substituindo a fila corrente, nao adicionando), e contatos deletados desde o save sao filtrados silenciosamente
-- [ ] AC4: Given o painel de metricas filtrado por um corretor (viewOwnerId), when admin configura meta diaria para aquele corretor via `GoalConfigModal`, then o `DailyGoalCard` atualiza para mostrar a meta do corretor filtrado (nao do admin logado)
+- [x] AC1: Given a fila com 100 contatos, when adiciono um contato individual via `AddToQueueSearch`, then a adicao e bloqueada e um toast de warning exibe "Limite de 100 contatos atingido"
+- [x] AC2: Given um contato ja presente na fila, when tento adiciona-lo individualmente via `AddToQueueSearch`, then a adicao e bloqueada e um toast de warning exibe "Contato ja esta na fila"
+- [x] AC3: Given uma fila salva existente, when clico para carregar essa fila salva, then os contatos da fila sao restaurados na fila atual (substituindo a fila corrente, nao adicionando), e contatos deletados desde o save sao filtrados silenciosamente
+- [x] AC4: Given o painel de metricas filtrado por um corretor (viewOwnerId), when admin configura meta diaria para aquele corretor via `GoalConfigModal`, then o `DailyGoalCard` atualiza para mostrar a meta do corretor filtrado (nao do admin logado)
 
 ## Scope
 
@@ -72,15 +72,15 @@ Quatro bugs validados em producao/staging que degradam a experiencia de prospecc
 
 ## Criteria of Done
 
-- [ ] AC1 verificado manualmente: fila com 100 contatos bloqueia adicao individual com toast correto
-- [ ] AC2 verificado manualmente: contato duplicado bloqueado com toast correto
-- [ ] AC3 verificado manualmente: fila salva carregada restaura contatos (nao apenas filtros)
-- [ ] AC4 verificado manualmente: DailyGoalCard reflete meta do corretor filtrado apos GoalConfigModal save
-- [ ] Edge case AC3: contatos deletados sao ignorados silenciosamente (sem erro na UI)
-- [ ] `npm run typecheck` passa sem erros novos
-- [ ] `npm run lint` passa sem erros novos
-- [ ] `npm test` passa (regressao em features/prospecting/__tests__)
-- [ ] File List atualizado com arquivos modificados
+- [x] AC1 verificado manualmente: fila com 100 contatos bloqueia adicao individual com toast correto
+- [x] AC2 verificado manualmente: contato duplicado bloqueado com toast correto
+- [x] AC3 verificado manualmente: fila salva carregada restaura contatos (nao apenas filtros)
+- [x] AC4 verificado manualmente: DailyGoalCard reflete meta do corretor filtrado apos GoalConfigModal save
+- [x] Edge case AC3: contatos deletados sao ignorados silenciosamente (sem erro na UI)
+- [x] `npm run typecheck` passa sem erros novos
+- [x] `npm run lint` passa sem erros novos
+- [x] `npm test` passa (regressao em features/prospecting/__tests__)
+- [x] File List atualizado com arquivos modificados
 
 ## Tasks
 
@@ -190,6 +190,7 @@ Quatro bugs validados em producao/staging que degradam a experiencia de prospecc
 | `lib/supabase/prospecting-goals.ts` | Modified | 4 — getGoalByOwner() |
 | `lib/query/hooks/useDailyGoalsQuery.ts` | Modified | 4 — useDailyGoalByOwner() |
 | `features/prospecting/__tests__/useSavedQueues.test.ts` | Modified | 5 — expect atualizado para novo param contactIds |
+| `features/prospecting/__tests__/useProspectingQueue.test.ts` | Modified | 5 — 2 testes adicionados: limite 100 + duplicata |
 
 ## Change Log
 
@@ -200,6 +201,10 @@ Quatro bugs validados em producao/staging que degradam a experiencia de prospecc
 | 2026-03-09 | @po | Validacao GO CONDICIONAL (10/10, readiness 9/10). Status Draft -> Ready. Should-fix: SF-1 subtask 1.2 referencia limite em addBatchToQueue mas limite real esta em FilteredContactsList.tsx (QUEUE_LIMIT=100), nao em addBatchToQueue (que so tem dedup). SF-2 Dependencies idem. Dev deve usar FilteredContactsList como referencia para limite e addBatchToQueue apenas para dedup. NH-1 loadQueue() nao existe como funcao, usar getFiltersFromSaved(). |
 | 2026-03-09 | @sm | Fix SF-1: subtask 1.2 corrigida (FilteredContactsList como referencia de limite, nao addBatchToQueue). Fix SF-2: Dependencies corrigido. Fix NH-1: loadQueue() substituido por getFiltersFromSaved(). quality_gate corrigido de @qa para @architect |
 | 2026-03-09 | @dev | Implementacao completa: Tasks 1-5. Schema decision: contact_ids armazenado dentro do JSONB filters (sem migration). Bug #9 resolvido via useDailyGoalByOwner + viewOwnerId propagado de metricsFilterOwnerId. 22 test suites / 282 tests passando. typecheck e lint OK. |
+| 2026-03-09 | @qa | Review CONCERNS: TEST-GAP-1 (sem testes limite/duplicata), CONCERN-1 (clearQueue+addBatch nao atomico), CONCERN-2 (targetOwnerId ao carregar fila salva) |
+| 2026-03-09 | @dev | Fix QA: +2 testes (limite 100 + duplicata), try/catch unificado com refetch no catch, targetOwnerId usa resolvedViewOwnerId. 284 tests passando. |
+| 2026-03-09 | @qa | Re-review PASS. Todas as 3 issues resolvidas. Gate aprovado. |
+| 2026-03-09 | @po | Testes manuais AC1-AC4 confirmados pelo usuario. Status Ready for Review -> Done. Commit dfc9d76. |
 
 ---
 *Story gerada por @sm (River) — Epic QV*
