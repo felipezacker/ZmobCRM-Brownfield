@@ -61,7 +61,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
                     }
                   }}
                   placeholder="Nome do contato"
-                  className="text-foreground font-medium text-sm bg-transparent outline-none w-full placeholder:text-muted-foreground hover:bg-background dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5"
+                  className="text-foreground font-medium text-sm bg-transparent outline-none w-full placeholder:text-muted-foreground border border-transparent hover:border-border hover:bg-background dark:hover:bg-white/5 rounded px-1 py-0.5 transition-colors focus:ring-1 focus:ring-primary-500 focus:bg-white dark:focus:bg-white/5 focus:border-primary-500 cursor-text"
                 />
               ) : (
                 <span className="text-foreground font-medium text-sm">{resolvedContactName}</span>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { X, Phone as PhoneIcon, MessageCircle, Mail } from 'lucide-react';
 import { useContact, useUpdateContact } from '@/lib/query/hooks/useContactsQuery';
@@ -21,7 +22,6 @@ import { ContactCockpitTimeline } from '../cockpit/ContactCockpitTimeline';
 import { ContactCockpitRightRail } from '../cockpit/ContactCockpitRightRail';
 import { ContactCockpitPipelineBar } from '../cockpit/ContactCockpitPipelineBar';
 import { CLASSIFICATION_LABELS, TEMPERATURE_CONFIG, STAGE_LABELS } from '../constants';
-import { DealDetailModal } from '@/features/boards/components/deal-detail';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -189,11 +189,12 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
     } catch (e) { console.error('Failed to inline update:', e); }
   }, [contact, refetchContact, updateContactMutation]);
 
-  // ---- Open deal handler (modal filho) ----
-  const [childDealId, setChildDealId] = useState<string | null>(null);
+  // ---- Open deal handler (navega para boards com deal aberto) ----
+  const router = useRouter();
   const handleOpenDeal = useCallback((dealId: string) => {
-    setChildDealId(dealId);
-  }, []);
+    onClose();
+    router.push(`/boards?deal=${dealId}`);
+  }, [onClose, router]);
 
   // ---- Timeline entries ----
   const timelineEntries = useMemo(() => {
@@ -448,12 +449,6 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
           </div>
         </div>
 
-        {/* Deal detail modal filho */}
-        <DealDetailModal
-          dealId={childDealId}
-          isOpen={!!childDealId}
-          onClose={() => setChildDealId(null)}
-        />
       </div>
     </FocusTrap>
   );
