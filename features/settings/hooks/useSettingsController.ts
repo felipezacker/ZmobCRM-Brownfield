@@ -27,7 +27,7 @@ export function useSettingsController() {
   void defaultRouteLoaded;
 
   // Tags (centralized via useTags hook — reads/writes Supabase `tags` table)
-  const { tags: availableTags, addTag, removeTag } = useTags();
+  const { tags: availableTags, addTag, removeTag, renameTag } = useTags();
   const [newTagName, setNewTagName] = useState('');
 
   const handleAddTag = useCallback(async () => {
@@ -99,6 +99,7 @@ export function useSettingsController() {
     setNewTagName,
     handleAddTag,
     removeTag,
+    renameTag,
     customFieldDefinitions,
     newFieldLabel,
     setNewFieldLabel,

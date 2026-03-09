@@ -74,6 +74,7 @@ const GeneralSettings: React.FC<GeneralSettingsProps> = ({ hash, isAdmin }) => {
             setNewTagName={controller.setNewTagName}
             onAddTag={controller.handleAddTag}
             onRemoveTag={controller.removeTag}
+            onRenameTag={controller.renameTag}
           />
 
           <CustomFieldsManager

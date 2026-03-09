@@ -60,7 +60,8 @@ export const FocusTrap: React.FC<FocusTrapProps> = ({
       focusTrapOptions={{
         initialFocus: getInitialFocus(),
         returnFocusOnDeactivate: returnFocus,
-        escapeDeactivates: onEscape ? () => {
+        escapeDeactivates: onEscape ? (e: KeyboardEvent) => {
+          e.stopImmediatePropagation();
           onEscape();
           return false; // Don't deactivate, let parent handle it
         } : true,

@@ -58,5 +58,41 @@ export function useTags() {
     [supabase, organizationId],
   );
 
-  return { tags, loading, addTag, removeTag, tagsLowerSet };
+  const renameTag = useCallback(
+    async (oldName: string, newName: string) => {
+      const trimmed = newName.trim();
+      if (!trimmed || trimmed === oldName || !organizationId) return;
+      if (tagsLowerSet.has(trimmed.toLowerCase()) && trimmed.toLowerCase() !== oldName.toLowerCase()) return;
+
+      const { error } = await supabase
+        .from('tags')
+        .update({ name: trimmed })
+        .eq('name', oldName)
+        .eq('organization_id', organizationId);
+      if (error) return;
+
+      // Update contacts that have the old tag name
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('id, tags')
+        .eq('organization_id', organizationId)
+        .contains('tags', [oldName]);
+
+      if (contacts && contacts.length > 0) {
+        const results = await Promise.allSettled(contacts.map(c => {
+          const newTags = (c.tags as string[]).map(t => t === oldName ? trimmed : t);
+          return supabase.from('contacts').update({ tags: newTags }).eq('id', c.id);
+        }));
+        const failures = results.filter(r => r.status === 'rejected');
+        if (failures.length > 0) {
+          console.error(`Failed to update tags on ${failures.length}/${contacts.length} contacts`);
+        }
+      }
+
+      setTags((prev) => prev.map((t) => t === oldName ? trimmed : t));
+    },
+    [supabase, organizationId, tagsLowerSet],
+  );
+
+  return { tags, loading, addTag, removeTag, renameTag, tagsLowerSet };
 }

@@ -41,6 +41,7 @@ vi.mock('./hooks/useSettingsController', () => ({
     setNewTagName: vi.fn(),
     handleAddTag: vi.fn(),
     removeTag: vi.fn(),
+    renameTag: vi.fn(),
   }),
 }))
 
