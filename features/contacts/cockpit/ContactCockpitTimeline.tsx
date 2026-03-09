@@ -118,6 +118,23 @@ export function ContactCockpitTimeline({
     setSaving(true);
     setSaveError(null);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setSaveError('Usuario nao autenticado.');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single();
+      const orgId = (profile as Record<string, unknown>)?.organization_id as string | undefined;
+      if (!orgId) {
+        setSaveError('Organizacao nao encontrada.');
+        return;
+      }
+
       const { error } = await supabase.from('activities').insert({
         deal_id: firstDealId || null,
         contact_id: contactId,
@@ -126,6 +143,8 @@ export function ContactCockpitTimeline({
         description: text,
         date: new Date().toISOString(),
         completed: true,
+        organization_id: orgId,
+        owner_id: user.id,
       });
 
       if (error) {
