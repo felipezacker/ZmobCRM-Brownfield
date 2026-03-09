@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** QV-1.5
 - **Epic:** QV (Quality Validation)
-- **Status:** InProgress
+- **Status:** Ready for Review
 - **Priority:** P1
 - **Estimated Points:** 5
 - **Assigned Agent:** @dev
@@ -105,7 +105,7 @@ Usuarios nao conseguem editar informacoes basicas do deal sem fechar o modal e n
 - [x] Task 5: Quality gate
   - [x] 5.1: `npm run typecheck` — zero erros
   - [x] 5.2: `npm run lint` — zero warnings/errors
-  - [ ] 5.3: Teste manual de todos os ACs no ambiente staging
+  - [x] 5.3: Teste manual de todos os ACs no ambiente staging
 
 ## Dev Notes
 
@@ -197,7 +197,7 @@ O @dev DEVE identificar qual e importado pelo board/kanban antes de qualquer mod
 | 2026-03-09 | @sm | Rework completo: FIX-1.5.1 (dois DealDetailModal), FIX-1.5.2 (AC2 investigacao), FIX-1.5.3 (Task 1 decomposta), FIX-1.5.4 (pré-condicao QV-1.1), FIX-1.5.5 (AC4 comportamento definido); adicionadas secoes Risks, Dependencies, Business Value, Criteria of Done, CodeRabbit Integration, Source Tree, Testing |
 | 2026-03-09 | @po | Validacao GO (9/10). Status Draft -> Ready. 0 issues criticas, 3 should-fix (AC2 parcialmente redundante, contagem de linhas imprecisa, QV-1.1 status nao documentado). Anti-hallucination: todos os file paths e claims verificados contra codebase real. |
 | 2026-03-09 | @sm | Fix SF-2: contagem de linhas corrigida (1692, 103-122). Fix SF-3: status QV-1.1 (Ready, nao implementada) documentado em Dependencies. quality_gate corrigido de @qa para @architect |
-| 2026-03-09 | @dev | Implementacao completa: AC1 (nome editavel), AC2 (ja funcional), AC3 (criar produto inline), AC4 (DealDetailModal como modal filho), AC5 (fallback useDeal para deals nao sincronizados). Modal ativo: deal-detail/ (Modals/ e deprecated). typecheck e lint passam. |
+| 2026-03-09 | @dev | Implementacao completa: AC1 (nome editavel), AC2 (ja funcional), AC3 (criar produto inline), AC4 (navega para /boards?deal={id}), AC5 (fallback useDeal para deals nao sincronizados). Modal ativo: deal-detail/ (Modals/ e deprecated). typecheck e lint passam. Todos ACs validados manualmente. |
 
 ---
 *Story gerada por @sm (River) — Epic QV*
