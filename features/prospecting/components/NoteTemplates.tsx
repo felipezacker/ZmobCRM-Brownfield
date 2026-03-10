@@ -55,6 +55,8 @@ export const NoteTemplates: React.FC<NoteTemplatesProps> = ({
       } else {
         setDbTemplates(null)
       }
+    }).catch(() => {
+      if (!cancelled) setDbTemplates(null)
     })
     return () => { cancelled = true }
   }, [outcome])

@@ -184,7 +184,10 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     if (userId && organizationId) {
       startProspectingSession(userId, organizationId)
         .then(id => setDbSessionId(id))
-        .catch(() => {})
+        .catch(() => {
+          const d = depsRef.current
+          d?.toast('Erro ao salvar sessao no banco — sessao continua localmente', 'warning')
+        })
     }
   }, [userId, organizationId])
 
@@ -209,7 +212,10 @@ export function useProspectingPageState(userId?: string, organizationId?: string
         endProspectingSession(dbSessionId, {
           ...finalStats,
           duration_seconds: durationSeconds,
-        }).catch(() => {})
+        }).catch(() => {
+          const d = depsRef.current
+          d?.toast('Erro ao salvar stats da sessao — dados podem nao ter sido salvos', 'warning')
+        })
         setDbSessionId(null)
       }
       return finalStats

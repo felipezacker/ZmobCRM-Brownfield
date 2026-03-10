@@ -26,12 +26,12 @@ export const ApiKeysSection: React.FC = () => {
       const firstWithKey = boardsFromContext.find((b) => !!b.key) || boardsFromContext[0];
       if (firstWithKey?.id) ap.setSelectedBoardId(firstWithKey.id);
     }
-  }, [boardsFromContext, ap.selectedBoardId, ap.setSelectedBoardId]);
+  }, [boardsFromContext, ap]);
 
   // Reset stage on board change
   useEffect(() => {
     ap.setSelectedToStageId('');
-  }, [ap.selectedBoardId, ap.setSelectedToStageId]);
+  }, [ap]);
 
   return (
     <SettingsSection title="API (Integrações)" icon={Key}>

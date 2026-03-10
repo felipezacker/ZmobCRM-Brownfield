@@ -5,7 +5,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MetricsCards } from '../components/MetricsCards'
 import { MetricsChart } from '../components/MetricsChart'
 import { CorretorRanking } from '../components/CorretorRanking'
-import { getDateRange, aggregateMetrics, type CallActivity } from '../hooks/useProspectingMetrics'
+import { getDateRange, aggregateMetrics, transformRpcResponse, type CallActivity } from '../hooks/useProspectingMetrics'
 import type { ProspectingMetrics, DailyMetric, BrokerMetric } from '../hooks/useProspectingMetrics'
 
 // ── Mock recharts ──────────────────────────────────────────────
@@ -351,6 +351,119 @@ describe('aggregateMetrics', () => {
       { id: '1', date: '2026-03-01T10:00:00', owner_id: 'unknown', contact_id: 'c1', metadata: { outcome: 'connected' } },
     ]
     const result = aggregateMetrics(acts, profiles)
+    expect(result.byBroker[0].ownerName).toBe('Desconhecido')
+  })
+})
+
+// ── transformRpcResponse (CP-3.5) ──────────────────────────────────
+
+describe('transformRpcResponse', () => {
+  it('transforms full RPC response correctly', () => {
+    const rpcData = {
+      total_calls: 100,
+      connected: 40,
+      no_answer: 30,
+      voicemail: 20,
+      busy: 10,
+      avg_duration: 185.5,
+      unique_contacts: 75,
+      by_day: [
+        { date: '2026-03-01', total: 60, connected: 25, no_answer: 20, voicemail: 10, busy: 5 },
+        { date: '2026-03-02', total: 40, connected: 15, no_answer: 10, voicemail: 10, busy: 5 },
+      ],
+      by_broker: [
+        { owner_id: 'u1', owner_name: 'Ana', total_calls: 60, connected: 25, connection_rate: 41.7, avg_duration: 200, unique_contacts: 45 },
+        { owner_id: 'u2', owner_name: 'Bruno', total_calls: 40, connected: 15, connection_rate: 37.5, avg_duration: 160, unique_contacts: 30 },
+      ],
+    }
+
+    const result = transformRpcResponse(rpcData)
+
+    expect(result.totalCalls).toBe(100)
+    expect(result.connectedCalls).toBe(40)
+    expect(result.connectionRate).toBe(40)
+    expect(result.avgDuration).toBe(185.5)
+    expect(result.uniqueContacts).toBe(75)
+    expect(result.byDay).toHaveLength(2)
+    expect(result.byDay[0].date).toBe('2026-03-01')
+    expect(result.byDay[0].total).toBe(60)
+    expect(result.byDay[1].connected).toBe(15)
+    expect(result.byOutcome).toHaveLength(4)
+    expect(result.byBroker).toHaveLength(2)
+    expect(result.byBroker[0].ownerName).toBe('Ana')
+    expect(result.byBroker[1].totalCalls).toBe(40)
+  })
+
+  it('handles empty/null arrays gracefully', () => {
+    const rpcData = {
+      total_calls: 0,
+      connected: 0,
+      no_answer: 0,
+      voicemail: 0,
+      busy: 0,
+      avg_duration: 0,
+      unique_contacts: 0,
+      by_day: null,
+      by_broker: null,
+    }
+
+    const result = transformRpcResponse(rpcData)
+
+    expect(result.totalCalls).toBe(0)
+    expect(result.connectionRate).toBe(0)
+    expect(result.byDay).toHaveLength(0)
+    expect(result.byOutcome).toHaveLength(0)
+    expect(result.byBroker).toHaveLength(0)
+  })
+
+  it('handles empty object (RPC returns {})', () => {
+    const result = transformRpcResponse({})
+
+    expect(result.totalCalls).toBe(0)
+    expect(result.connectedCalls).toBe(0)
+    expect(result.connectionRate).toBe(0)
+    expect(result.avgDuration).toBe(0)
+    expect(result.uniqueContacts).toBe(0)
+    expect(result.byDay).toHaveLength(0)
+    expect(result.byBroker).toHaveLength(0)
+  })
+
+  it('filters zero-count outcomes from byOutcome', () => {
+    const rpcData = {
+      total_calls: 10,
+      connected: 10,
+      no_answer: 0,
+      voicemail: 0,
+      busy: 0,
+      avg_duration: 120,
+      unique_contacts: 8,
+      by_day: [],
+      by_broker: [],
+    }
+
+    const result = transformRpcResponse(rpcData)
+
+    expect(result.byOutcome).toHaveLength(1)
+    expect(result.byOutcome[0]).toEqual({ outcome: 'connected', count: 10 })
+  })
+
+  it('defaults broker ownerName to "Desconhecido" when null', () => {
+    const rpcData = {
+      total_calls: 5,
+      connected: 2,
+      no_answer: 3,
+      voicemail: 0,
+      busy: 0,
+      avg_duration: 90,
+      unique_contacts: 5,
+      by_day: [],
+      by_broker: [
+        { owner_id: 'u1', owner_name: null, total_calls: 5, connected: 2, connection_rate: 40, avg_duration: 90, unique_contacts: 5 },
+      ],
+    }
+
+    const result = transformRpcResponse(rpcData)
+
     expect(result.byBroker[0].ownerName).toBe('Desconhecido')
   })
 })
