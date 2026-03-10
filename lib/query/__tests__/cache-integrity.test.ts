@@ -175,21 +175,6 @@ describe('Cache Integrity - Deals', () => {
     });
   });
 
-  describe('Documentação', () => {
-    it.skip('AGENTS.md deve documentar a regra de cache', () => {
-      const agentsPath = path.join(__dirname, '../../../../AGENTS.md');
-      
-      if (!fs.existsSync(agentsPath)) {
-        console.warn('⚠️ AGENTS.md não encontrado');
-        return;
-      }
-
-      const content = fs.readFileSync(agentsPath, 'utf-8');
-      
-      // Deve mencionar a regra de deals
-      expect(content).toMatch(/deals.*view|DEALS_VIEW_KEY/i);
-    });
-  });
 
   describe('useCRMActions deve usar DEALS_VIEW_KEY', () => {
     it('useCRMActions.ts deve usar DEALS_VIEW_KEY ou equivalente', () => {

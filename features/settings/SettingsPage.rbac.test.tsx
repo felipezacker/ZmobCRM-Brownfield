@@ -133,7 +133,7 @@ describe('SettingsPage RBAC', () => {
     expect(screen.queryByRole('button', { name: /equipe/i })).not.toBeInTheDocument()
   })
 
-  it.skip('admin vê seções de configuração do sistema', async () => {
+  it('admin vê seções de configuração do sistema', async () => {
     useAuthMock.mockReturnValue({
       profile: { role: 'admin' },
     } as any)
@@ -141,7 +141,7 @@ describe('SettingsPage RBAC', () => {
     render(<SettingsPage />)
 
     expect(
-      screen.getByRole('heading', { name: /^Gerenciamento de Tags$/i })
+      screen.getByRole('heading', { name: /^Tags$/i })
     ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: /^Campos Personalizados$/i })
