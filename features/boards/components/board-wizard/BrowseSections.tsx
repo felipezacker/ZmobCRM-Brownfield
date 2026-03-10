@@ -15,6 +15,8 @@ export function PlaybooksList({ onSelectPlaybook }: { onSelectPlaybook: (id: str
         {OFFICIAL_JOURNEYS &&
           Object.values(OFFICIAL_JOURNEYS).map((journey) => (
             <Button
+              variant="unstyled"
+              size="unstyled"
               key={journey.id}
               onClick={() => onSelectPlaybook(journey.id)}
               className="group relative w-full text-left overflow-hidden rounded-xl border border-border bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -58,6 +60,8 @@ export function TemplatesList({ onSelectTemplate }: { onSelectTemplate: (k: Boar
             const t = BOARD_TEMPLATES[key];
             return (
               <Button
+                variant="unstyled"
+                size="unstyled"
                 key={key}
                 onClick={() => onSelectTemplate(key)}
                 className="p-4 bg-white dark:bg-dark-card border border-border rounded-xl hover:border-primary-500/50 dark:hover:border-primary-500/50 hover:shadow-md transition-all text-left group flex flex-col h-full min-h-[140px]"
@@ -101,6 +105,8 @@ export function CommunityList({
         <div className="grid grid-cols-1 gap-4 mb-6">
           {registryIndex?.templates.map((tpl) => (
             <Button
+              variant="unstyled"
+              size="unstyled"
               key={tpl.id}
               onClick={() => onInstallJourney(tpl.path)}
               disabled={isInstalling}

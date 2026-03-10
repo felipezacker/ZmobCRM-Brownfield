@@ -16,6 +16,7 @@ import { useSettings } from '@/context/settings/SettingsContext'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import type { CallLogData } from '@/features/inbox/components/CallModal'
+import type { SuggestedTime } from '@/features/prospecting/utils/suggestBestTime'
 
 type Outcome = CallLogData['outcome']
 
@@ -27,6 +28,7 @@ interface QuickActionsPanelProps {
   outcome: Outcome
   callNotes?: string
   onDismiss: () => void
+  suggestedReturnTime?: SuggestedTime | null
 }
 
 const ACTIONS_BY_OUTCOME: Record<Outcome, Array<'create_deal' | 'schedule_return' | 'move_stage'>> = {
@@ -55,6 +57,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   outcome,
   callNotes,
   onDismiss,
+  suggestedReturnTime,
 }) => {
   const [showCreateDeal, setShowCreateDeal] = useState(false)
   const [showTemplatesManager, setShowTemplatesManager] = useState(false)
@@ -66,8 +69,8 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   const [dealCreated, setDealCreated] = useState(false)
   const [showReturnPicker, setShowReturnPicker] = useState(false)
   const [returnDate, setReturnDate] = useState(() => {
-    const d = getNextBusinessDay()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T10:00`
+    const d = suggestedReturnTime?.suggestedDate ?? getNextBusinessDay()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   })
 
   const createActivity = useCreateActivity()
@@ -206,22 +209,29 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                 </div>
               </Button>
               {showReturnPicker && !returnScheduled && (
-                <div className="px-3 pb-2.5 flex items-center gap-2">
-                  <input
-                    type="datetime-local"
-                    value={returnDate}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                    className="flex-1 text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-primary-500/50"
-                  />
-                  <Button
-                    variant="unstyled"
-                    size="unstyled"
-                    onClick={handleScheduleReturn}
-                    disabled={isScheduling}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-40"
-                  >
-                    {isScheduling ? <Loader2 size={12} className="animate-spin" /> : 'Confirmar'}
-                  </Button>
+                <div className="px-3 pb-2.5 space-y-2">
+                  {suggestedReturnTime && (
+                    <p className="text-xs text-primary-500 font-medium">
+                      Sugerido: {suggestedReturnTime.suggestedDay} as {suggestedReturnTime.suggestedHour}:00 (taxa de conexao: {suggestedReturnTime.connectionRate}%)
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="datetime-local"
+                      value={returnDate}
+                      onChange={(e) => setReturnDate(e.target.value)}
+                      className="flex-1 text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-primary-500/50"
+                    />
+                    <Button
+                      variant="unstyled"
+                      size="unstyled"
+                      onClick={handleScheduleReturn}
+                      disabled={isScheduling}
+                      className="px-3 py-1.5 text-xs font-medium rounded-md bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-40"
+                    >
+                      {isScheduling ? <Loader2 size={12} className="animate-spin" /> : 'Confirmar'}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

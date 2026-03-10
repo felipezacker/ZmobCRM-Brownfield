@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Copy, Download, ArrowUp, ArrowDown } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import type { Board, BoardStage, JourneyDefinition } from '@/types';
 import { useToast } from '@/context/ToastContext';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import { useJourneyExport, useJourneyImport } from './hooks';
 
-function slugify(input: string) {
+export function slugify(input: string) {
   // NOTE: avoid Unicode property escapes (\p{L}) for broader browser compatibility (Safari).
   // Normalize accents → ASCII-ish, then keep [a-z0-9-].
   const ascii = (input ?? '')
@@ -21,7 +22,7 @@ function slugify(input: string) {
     .replace(/-{2,}/g, '-');
 }
 
-function downloadJson(filename: string, data: unknown) {
+export function downloadJson(filename: string, data: unknown) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -50,7 +51,7 @@ function downloadJson(filename: string, data: unknown) {
   }
 }
 
-function buildJourneyFromBoards(
+export function buildJourneyFromBoards(
   opts: { schemaVersion: string; journeyName?: string; boards: Board[]; slugPrefix?: string }
 ): JourneyDefinition {
   const { schemaVersion, journeyName, boards, slugPrefix } = opts;
@@ -90,14 +91,14 @@ function buildJourneyFromBoards(
 
 type Panel = 'export' | 'import';
 
-function buildDefaultJourneyName(selectedBoards: Board[]) {
+export function buildDefaultJourneyName(selectedBoards: Board[]) {
   if (selectedBoards.length <= 1) return selectedBoards[0]?.name || 'Jornada';
   const first = selectedBoards[0]?.name ?? 'Board 1';
   const last = selectedBoards[selectedBoards.length - 1]?.name ?? 'Board N';
   return `Jornada - ${first} → ${last}`;
 }
 
-const JourneySchema = z.object({
+export const JourneySchema = z.object({
   schemaVersion: z.string().min(1),
   name: z.string().optional(),
   boards: z.array(z.object({
@@ -125,7 +126,7 @@ const JourneySchema = z.object({
   })).min(1),
 });
 
-function guessWonLostStageIds(stages: BoardStage[]) {
+export function guessWonLostStageIds(stages: BoardStage[]) {
   const won = stages.find(s => /\b(ganho|won|fechado ganho|conclu[ií]do)\b/i.test(s.label))?.id;
   const lost = stages.find(s => /\b(perdido|lost|churn|cancelad[oa])\b/i.test(s.label))?.id;
   return { wonStageId: won, lostStageId: lost };
@@ -148,245 +149,30 @@ export function ExportTemplateModal(props: {
   const { addToast } = useToast();
 
   const [panel, setPanel] = useState<Panel>('export');
-  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
   const [showPasteImport, setShowPasteImport] = useState(false);
 
-  // Journey metadata
-  const [schemaVersion, setSchemaVersion] = useState('1.0');
-  const [journeyName, setJourneyName] = useState(() => `Jornada - ${activeBoard.name}`);
-  const [journeyNameDirty, setJourneyNameDirty] = useState(false);
-  const [slugPrefix, setSlugPrefix] = useState('');
-
-  // Selected boards for journey (keep order)
-  const [selectedBoardIds, setSelectedBoardIds] = useState<string[]>(() => [activeBoard.id]);
-
   useEffect(() => {
     if (!isOpen) return;
-    // Reset to a predictable state on open.
     setPanel('export');
-    setAdvancedOpen(false);
     setShowTechnicalDetails(false);
     setShowPasteImport(false);
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const {
+    schemaVersion, setSchemaVersion,
+    journeyName, setJourneyName, setJourneyNameDirty,
+    slugPrefix, setSlugPrefix,
+    selectedBoardIds, selectedBoards,
+    journeyJsonText,
+    toggleBoard, moveSelected,
+    handleDownloadJourney, handleCopyJourneyJson,
+  } = useJourneyExport({ boards, activeBoard, isOpen, addToast });
 
-    // UX: normalize persisted selection order on open to match the visible list order.
-    // This prevents confusing exports where an older "selection order" lingers across opens.
-    const orderIndex = new Map<string, number>();
-    for (let i = 0; i < boards.length; i += 1) {
-      orderIndex.set(boards[i].id, i);
-    }
-    const allowed = new Set<string>(boards.map(b => b.id));
-
-    setSelectedBoardIds(prev => {
-      const unique = Array.from(new Set([...prev, activeBoard.id]));
-      return unique
-        .filter(id => allowed.has(id))
-        .sort((a, b) => (orderIndex.get(a) ?? Number.POSITIVE_INFINITY) - (orderIndex.get(b) ?? Number.POSITIVE_INFINITY));
-    });
-  }, [isOpen, boards, activeBoard.id]);
-
-  const selectedBoards = useMemo(() => {
-    const byId = new Map(boards.map(b => [b.id, b]));
-    return selectedBoardIds.map(id => byId.get(id)).filter(Boolean) as Board[];
-  }, [boards, selectedBoardIds]);
-
-  // UX: keep a friendly default name, but never overwrite user edits.
-  useEffect(() => {
-    if (journeyNameDirty) return;
-    setJourneyName(buildDefaultJourneyName(selectedBoards));
-  }, [selectedBoards, journeyNameDirty]);
-
-  const journeyJson = useMemo(() => {
-    return buildJourneyFromBoards({
-      schemaVersion,
-      journeyName: journeyName.trim() || undefined,
-      boards: selectedBoards,
-      slugPrefix: slugPrefix.trim() || undefined,
-    });
-  }, [schemaVersion, slugPrefix, journeyName, selectedBoards]);
-
-  const journeyJsonText = useMemo(() => JSON.stringify(journeyJson, null, 2), [journeyJson]);
-
-  const canExportJourney = selectedBoards.length > 0;
-
-  const toggleBoard = (boardId: string) => {
-    setSelectedBoardIds(prev => {
-      if (prev.includes(boardId)) {
-        // Keep at least 1 selected.
-        const next = prev.filter(id => id !== boardId);
-        return next.length === 0 ? prev : next;
-      }
-      // Insert following the visible boards order (not "selection order").
-      // This avoids confusing exports where the active board (pre-selected) stays first forever.
-      const idxInBoards = boards.findIndex(b => b.id === boardId);
-      if (idxInBoards === -1) return [...prev, boardId];
-
-      const orderIndex = new Map<string, number>();
-      for (let i = 0; i < boards.length; i += 1) {
-        orderIndex.set(boards[i].id, i);
-      }
-
-      const next = [...prev];
-      let insertAt = next.length;
-      for (let i = 0; i < next.length; i += 1) {
-        const existingId = next[i];
-        const existingIdx = orderIndex.get(existingId);
-        if (existingIdx === undefined) continue;
-        if (existingIdx > idxInBoards) {
-          insertAt = i;
-          break;
-        }
-      }
-      next.splice(insertAt, 0, boardId);
-      return next;
-    });
-  };
-
-  const moveSelected = (boardId: string, dir: -1 | 1) => {
-    setSelectedBoardIds(prev => {
-      const idx = prev.indexOf(boardId);
-      if (idx === -1) return prev;
-      const nextIdx = idx + dir;
-      if (nextIdx < 0 || nextIdx >= prev.length) return prev;
-      const copy = [...prev];
-      const [item] = copy.splice(idx, 1);
-      copy.splice(nextIdx, 0, item);
-      return copy;
-    });
-  };
-
-  const handleDownloadJourney = () => {
-    try {
-      if (!canExportJourney) {
-        addToast('Selecione ao menos 1 board para exportar a jornada.', 'error');
-        return;
-      }
-      // If exporting a single board, the filename should be based on that board name.
-      // Otherwise, use the journey name.
-      const base = slugify((selectedBoards.length <= 1 ? activeBoard.name : (journeyName || 'journey')));
-      const filename = `${base || 'journey'}.journey.json`;
-      // Debug trace: helps diagnose user reports like "click does nothing".
-      console.info('[ExportTemplateModal] download click', {
-        filename,
-        schemaVersion,
-        selectedBoards: selectedBoards.map(b => ({ id: b.id, name: b.name, stages: b.stages.length })),
-      });
-      downloadJson(filename, journeyJson);
-      addToast('Download iniciado.', 'success');
-    } catch (err) {
-      console.error('[ExportTemplateModal] download failed:', err);
-      addToast('Falha ao iniciar download. Veja o console para detalhes.', 'error');
-    }
-  };
-
-  const handleCopyJourneyJson = async () => {
-    try {
-      await navigator.clipboard.writeText(journeyJsonText);
-      addToast('journey.json copiado!', 'success');
-    } catch (err) {
-      console.error('[ExportTemplateModal] copy failed:', err);
-      addToast('Não consegui copiar (permissão do navegador).', 'error');
-    }
-  };
-
-  // ============ IMPORT (LOCAL JSON) ============
-  const [importText, setImportText] = useState('');
-  const [importError, setImportError] = useState<string | null>(null);
-  const [importJourney, setImportJourney] = useState<JourneyDefinition | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
-
-  const parseImport = (raw: string) => {
-    setImportText(raw);
-    setImportError(null);
-    setImportJourney(null);
-
-    let parsedJson: unknown;
-    try {
-      parsedJson = JSON.parse(raw);
-    } catch {
-      setImportError('JSON inválido (não consegui fazer parse).');
-      return;
-    }
-
-    const result = JourneySchema.safeParse(parsedJson);
-    if (!result.success) {
-      setImportError('JSON não bate com o schema esperado de Journey (schemaVersion/boards/columns).');
-      return;
-    }
-
-    setImportJourney(result.data as JourneyDefinition);
-  };
-
-  const handleImportFile = async (file: File | null) => {
-    if (!file) return;
-    try {
-      const text = await file.text();
-      parseImport(text);
-    } catch (e) {
-      console.error('[ExportTemplateModal] import file read failed:', e);
-      setImportError('Falha ao ler arquivo.');
-    }
-  };
-
-  const handleInstallImportedJourney = async () => {
-    if (!importJourney) {
-      addToast('Selecione um journey.json válido.', 'error');
-      return;
-    }
-    if (!onCreateBoardAsync) {
-      addToast('Import indisponível nesta tela.', 'error');
-      return;
-    }
-
-    setIsImporting(true);
-    setImportError(null);
-    try {
-      for (let i = 0; i < importJourney.boards.length; i += 1) {
-        const b = importJourney.boards[i];
-        const stages: BoardStage[] = b.columns.map((c) => ({
-          id: crypto.randomUUID(),
-          label: c.name,
-          color: c.color || 'bg-accent',
-          linkedLifecycleStage: c.linkedLifecycleStage,
-        }));
-        const guessed = guessWonLostStageIds(stages);
-
-        const rawPersona = b.strategy?.agentPersona;
-        const agentPersona = rawPersona
-          ? { name: rawPersona.name ?? '', role: rawPersona.role ?? '', behavior: rawPersona.behavior ?? '' }
-          : undefined;
-        await onCreateBoardAsync({
-          name: b.name,
-          description: `Parte da jornada: Sim`,
-          linkedLifecycleStage: undefined,
-          template: 'CUSTOM',
-          stages,
-          isDefault: false,
-          wonStageId: guessed.wonStageId,
-          lostStageId: guessed.lostStageId,
-          agentPersona,
-          goal: b.strategy?.goal,
-          entryTrigger: b.strategy?.entryTrigger,
-        });
-      }
-
-      addToast('Jornada importada com sucesso!', 'success');
-      onClose();
-      setImportText('');
-      setImportError(null);
-      setImportJourney(null);
-      setPanel('export');
-    } catch (e) {
-      console.error('[ExportTemplateModal] install journey failed:', e);
-      setImportError('Falha ao instalar a jornada. Veja o console/toasts.');
-    } finally {
-      setIsImporting(false);
-    }
-  };
+  const {
+    importText, importError, importJourney, isImporting,
+    parseImport, handleImportFile, handleInstallImportedJourney,
+  } = useJourneyImport({ addToast, onClose, onCreateBoardAsync, setPanel });
 
   return (
     <Modal
@@ -400,20 +186,24 @@ export function ExportTemplateModal(props: {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <Button
+            variant="unstyled"
+            size="unstyled"
             type="button"
             onClick={() => setPanel('export')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${panel === 'export'
-              ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+              ? 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500'
               : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
               }`}
           >
             Exportar
           </Button>
           <Button
+            variant="unstyled"
+            size="unstyled"
             type="button"
             onClick={() => setPanel('import')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${panel === 'import'
-              ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+              ? 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500'
               : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
               }`}
           >
@@ -439,6 +229,8 @@ export function ExportTemplateModal(props: {
           />
 
           <Button
+            variant="unstyled"
+            size="unstyled"
             type="button"
             onClick={() => setShowPasteImport(v => !v)}
             className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors w-fit"
@@ -467,6 +259,8 @@ export function ExportTemplateModal(props: {
 
           <div className="flex items-center gap-2">
             <Button
+              variant="unstyled"
+              size="unstyled"
               type="button"
               onClick={() => void handleInstallImportedJourney()}
               disabled={!importJourney || isImporting}
@@ -534,6 +328,8 @@ export function ExportTemplateModal(props: {
                       {isSelected && (
                         <div className="flex items-center gap-1 shrink-0">
                           <Button
+                            variant="ghost"
+                            size="unstyled"
                             type="button"
                             onClick={() => moveSelected(b.id, -1)}
                             className="p-1 rounded hover:bg-muted dark:hover:bg-white/10"
@@ -542,6 +338,8 @@ export function ExportTemplateModal(props: {
                             <ArrowUp size={14} />
                           </Button>
                           <Button
+                            variant="ghost"
+                            size="unstyled"
                             type="button"
                             onClick={() => moveSelected(b.id, 1)}
                             className="p-1 rounded hover:bg-muted dark:hover:bg-white/10"
@@ -559,6 +357,8 @@ export function ExportTemplateModal(props: {
 
             <div className="mt-4 flex items-center gap-2">
               <Button
+                variant="unstyled"
+                size="unstyled"
                 type="button"
                 onClick={handleDownloadJourney}
                 className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold flex items-center gap-2"
@@ -566,15 +366,19 @@ export function ExportTemplateModal(props: {
                 <Download size={16} /> Baixar arquivo
               </Button>
               <Button
+                variant="unstyled"
+                size="unstyled"
                 type="button"
                 onClick={handleCopyJourneyJson}
-                className="px-4 py-2 rounded-lg bg-card dark:bg-white text-white dark:text-foreground text-sm font-semibold flex items-center gap-2"
+                className="px-4 py-2 rounded-lg border border-border bg-white dark:bg-white/10 text-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-white/20 text-sm font-semibold flex items-center gap-2 transition-colors"
               >
                 <Copy size={16} /> Copiar arquivo (texto)
               </Button>
             </div>
 
             <Button
+              variant="unstyled"
+              size="unstyled"
               type="button"
               onClick={() => setShowTechnicalDetails(v => !v)}
               className="mt-3 text-xs font-semibold text-secondary-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors"

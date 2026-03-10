@@ -36,6 +36,8 @@ export const SelectBrowseStep: React.FC<SelectBrowseStepProps> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <Button
+          variant="unstyled"
+          size="unstyled"
           onClick={onBack}
           className="px-3 py-2 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors font-medium"
         >
@@ -45,6 +47,8 @@ export const SelectBrowseStep: React.FC<SelectBrowseStepProps> = ({
         <div className="flex p-1 bg-muted dark:bg-white/5 rounded-xl">
           {(['playbooks', 'templates', 'community'] as const).map((tab) => (
             <Button
+              variant="unstyled"
+              size="unstyled"
               key={tab}
               onClick={() => onChangeFocus(tab, tab === 'community' ? 'community' : 'official')}
               className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 ${

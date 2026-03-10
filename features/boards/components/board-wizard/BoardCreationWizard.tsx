@@ -27,7 +27,7 @@ interface BoardCreationWizardProps {
 export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
   isOpen, onClose, onCreate, onCreateBoardAsync, onUpdateBoardAsync, onOpenCustomModal,
 }) => {
-  const st = useWizardState();
+  const st = useWizardState(isOpen);
   const handlers = useWizardHandlers({
     ...st, onCreate, onCreateBoardAsync, onUpdateBoardAsync, onClose, onOpenCustomModal,
   });
@@ -50,7 +50,7 @@ export const BoardCreationWizard: React.FC<BoardCreationWizardProps> = ({
           <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
             {st.isChatMode ? (<><MessageSquare size={24} className="text-primary-500" /> Refinar com IA</>) : 'Criar Novo Board'}
           </h2>
-          <Button onClick={onClose} className="p-2 hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors">
+          <Button variant="ghost" size="unstyled" onClick={onClose} className="p-2 rounded-lg transition-colors">
             <X size={20} className="text-muted-foreground" />
           </Button>
         </div>

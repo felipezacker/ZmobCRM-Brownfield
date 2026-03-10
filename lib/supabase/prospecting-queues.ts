@@ -58,6 +58,7 @@ interface DbQueueItem {
     stage: string | null;
     temperature: string | null;
     email: string | null;
+    lead_score: number | null;
     contact_phones?: Array<{
       phone_number: string;
       is_primary: boolean;
@@ -86,6 +87,7 @@ const transformQueueItem = (db: DbQueueItem): ProspectingQueueItem => ({
   contactStage: db.contacts?.stage || undefined,
   contactTemperature: db.contacts?.temperature || undefined,
   contactEmail: db.contacts?.email || undefined,
+  leadScore: db.contacts?.lead_score ?? null,
 });
 
 // ============================================
@@ -111,6 +113,7 @@ export const prospectingQueuesService = {
             stage,
             temperature,
             email,
+            lead_score,
             contact_phones (phone_number, is_primary)
           )
         `)
@@ -180,6 +183,7 @@ export const prospectingQueuesService = {
             stage,
             temperature,
             email,
+            lead_score,
             contact_phones (phone_number, is_primary)
           )
         `)

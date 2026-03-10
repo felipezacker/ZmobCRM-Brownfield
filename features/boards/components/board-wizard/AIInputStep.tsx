@@ -46,6 +46,8 @@ export const AIInputStep: React.FC<AIInputStepProps> = ({
           <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/20 rounded-lg">
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             <Button
+              variant="unstyled"
+              size="unstyled"
               onClick={() => {
                 onClose();
                 router.push('/settings/ai#ai-config');

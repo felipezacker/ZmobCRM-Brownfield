@@ -8,6 +8,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { REVENUE_ACCENT } from '@/lib/constants/chart-colors';
 
 interface RevenueTrendChartProps {
   data: Array<{ month: string; revenue: number }>;
@@ -24,8 +25,8 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = ({ data }) =>
     <AreaChart data={data}>
       <defs>
         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
-          <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+          <stop offset="5%" stopColor={REVENUE_ACCENT} stopOpacity={0.3} />
+          <stop offset="95%" stopColor={REVENUE_ACCENT} stopOpacity={0} />
         </linearGradient>
       </defs>
       <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
@@ -50,13 +51,13 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = ({ data }) =>
           color: 'var(--chart-tooltip-text)',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
         }}
-        itemStyle={{ color: '#bae6fd' }}
+        itemStyle={{ color: 'var(--chart-tooltip-text)' }}
         labelStyle={{ color: 'var(--chart-text)' }}
       />
       <Area
         type="monotone"
         dataKey="revenue"
-        stroke="#0ea5e9"
+        stroke={REVENUE_ACCENT}
         strokeWidth={3}
         fillOpacity={1}
         fill="url(#colorRevenue)"

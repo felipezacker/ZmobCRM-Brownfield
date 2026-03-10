@@ -10,6 +10,7 @@ import {
   LabelList,
   Cell
 } from 'recharts';
+import { REVENUE_ACCENT } from '@/lib/constants/chart-colors';
 
 interface FunnelChartProps {
   data: Array<{ name: string; count: number; fill?: string }>;
@@ -58,7 +59,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
             color: 'var(--chart-tooltip-text)',
             fontSize: '12px'
           }}
-          itemStyle={{ color: '#e2e8f0' }}
+          itemStyle={{ color: 'var(--chart-tooltip-text)' }}
         />
         <Bar
           dataKey="count"
@@ -66,7 +67,7 @@ export const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
           background={{ fill: 'rgba(148, 163, 184, 0.05)', radius: 4 }}
         >
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.fill || '#0ea5e9'} />
+            <Cell key={`cell-${index}`} fill={entry.fill || REVENUE_ACCENT} />
           ))}
           <LabelList
             dataKey="count"

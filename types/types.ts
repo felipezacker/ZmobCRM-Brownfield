@@ -345,6 +345,7 @@ export interface ProspectingQueueItem {
   contactStage?: string;
   contactTemperature?: string;
   contactEmail?: string;
+  leadScore?: number | null;
 }
 
 export interface DashboardStats {

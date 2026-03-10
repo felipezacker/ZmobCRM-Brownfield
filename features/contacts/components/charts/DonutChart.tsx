@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { CHART_PALETTE } from '@/lib/constants/chart-colors'
 
 interface DonutItem {
   label: string
@@ -11,17 +12,6 @@ interface DonutChartProps {
   items: DonutItem[]
   title?: string
 }
-
-const COLORS = [
-  '#6366f1', // indigo
-  '#10b981', // emerald
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#8b5cf6', // violet
-  '#06b6d4', // cyan
-  '#f97316', // orange
-  '#14b8a6', // teal
-]
 
 export function DonutChart({ items, title }: DonutChartProps) {
   const total = items.reduce((sum, item) => sum + item.count, 0)
@@ -36,7 +26,7 @@ export function DonutChart({ items, title }: DonutChartProps) {
     const pct = (item.count / total) * 100
     const start = accumulated
     accumulated += pct
-    return { ...item, pct, start, end: accumulated, color: COLORS[idx % COLORS.length] }
+    return { ...item, pct, start, end: accumulated, color: CHART_PALETTE[idx % CHART_PALETTE.length] }
   })
 
   const gradient = segments

@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2, Save, X, Home } from 'lucide-react';
 import { ContactPreference, PropertyType, PreferencePurpose, PreferenceUrgency } from '@/types';
-import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
 import { Button } from '@/components/ui/button';
 import ConfirmModal from '@/components/ConfirmModal';
 
 import { INPUT_CLASS, LABEL_CLASS, LEGEND_CLASS } from '@/features/contacts/constants';
+import { useContactPreferences } from './hooks/useContactPreferences';
+import { usePreferenceEditor, formToPayload } from './hooks/usePreferenceEditor';
+import type { PreferenceFormState } from './hooks/usePreferenceEditor';
 
 // ============================================
 // Opcoes / Labels
@@ -31,73 +33,6 @@ const URGENCY_OPTIONS: { value: PreferenceUrgency; label: string }[] = [
   { value: '6_MONTHS', label: '6 meses' },
   { value: '1_YEAR', label: '1 ano' },
 ];
-
-// ============================================
-// Tipos internos
-// ============================================
-interface PreferenceFormState {
-  propertyTypes: string[];
-  purpose: PreferencePurpose | null;
-  priceMin: string;
-  priceMax: string;
-  regions: string[];
-  bedroomsMin: string;
-  parkingMin: string;
-  areaMin: string;
-  acceptsFinancing: boolean;
-  acceptsFgts: boolean;
-  urgency: PreferenceUrgency | null;
-  notes: string;
-}
-
-const emptyForm: PreferenceFormState = {
-  propertyTypes: [],
-  purpose: null,
-  priceMin: '',
-  priceMax: '',
-  regions: [],
-  bedroomsMin: '',
-  parkingMin: '',
-  areaMin: '',
-  acceptsFinancing: false,
-  acceptsFgts: false,
-  urgency: null,
-  notes: '',
-};
-
-function prefToForm(pref: ContactPreference): PreferenceFormState {
-  return {
-    propertyTypes: pref.propertyTypes || [],
-    purpose: pref.purpose,
-    priceMin: pref.priceMin != null ? String(pref.priceMin) : '',
-    priceMax: pref.priceMax != null ? String(pref.priceMax) : '',
-    regions: pref.regions || [],
-    bedroomsMin: pref.bedroomsMin != null ? String(pref.bedroomsMin) : '',
-    parkingMin: pref.parkingMin != null ? String(pref.parkingMin) : '',
-    areaMin: pref.areaMin != null ? String(pref.areaMin) : '',
-    acceptsFinancing: pref.acceptsFinancing ?? false,
-    acceptsFgts: pref.acceptsFgts ?? false,
-    urgency: pref.urgency,
-    notes: pref.notes || '',
-  };
-}
-
-function formToPayload(form: PreferenceFormState) {
-  return {
-    propertyTypes: form.propertyTypes,
-    purpose: form.purpose,
-    priceMin: form.priceMin ? Number(form.priceMin) : null,
-    priceMax: form.priceMax ? Number(form.priceMax) : null,
-    regions: form.regions,
-    bedroomsMin: form.bedroomsMin ? Number(form.bedroomsMin) : null,
-    parkingMin: form.parkingMin ? Number(form.parkingMin) : null,
-    areaMin: form.areaMin ? Number(form.areaMin) : null,
-    acceptsFinancing: form.acceptsFinancing ?? null,
-    acceptsFgts: form.acceptsFgts ?? null,
-    urgency: form.urgency,
-    notes: form.notes || null,
-  };
-}
 
 // ============================================
 // Componente: Summary de um perfil (header do card)
@@ -403,182 +338,41 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
   organizationId,
   bufferedPrefsRef: externalBufferRef,
 }) => {
-  const [preferences, setPreferences] = useState<ContactPreference[]>([]);
-  const [loading, setLoading] = useState(!!contactId);
-  const [error, setError] = useState<string | null>(null);
+  const prefData = useContactPreferences({ contactId, organizationId, externalBufferRef });
+  const editor = usePreferenceEditor();
 
-  // Buffered mode: track temp preferences when no contactId (creation mode)
-  const internalBufferRef = useRef<ContactPreference[]>([]);
-  const bufferedPrefsRef = externalBufferRef || internalBufferRef;
+  const {
+    preferences, loading, error, setError,
+    saving, confirmDeleteId, setConfirmDeleteId,
+  } = prefData;
 
-  // Estado de edicao: qual pref esta expandida
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  // Estado do form inline
-  const [editForm, setEditForm] = useState<PreferenceFormState>(emptyForm);
-  // ID especial para "novo perfil"
-  const [isCreating, setIsCreating] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [priceError, setPriceError] = useState<string | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const {
+    expandedId, setExpandedId, editForm,
+    isCreating, priceError,
+    validatePrice, startEditing, startCreating, cancelEdit, handleFormChange,
+  } = editor;
 
-  // Carregar preferencias (skip em modo buffered)
-  const loadPreferences = useCallback(async () => {
-    if (!contactId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    const result = await contactPreferencesService.getByContactId(contactId);
-    if (result.error) {
-      setError(result.error.message);
-    } else {
-      setPreferences(result.data || []);
-    }
-    setLoading(false);
-  }, [contactId]);
-
-  useEffect(() => {
-    loadPreferences();
-  }, [loadPreferences]);
-
-  // Validar preco
-  const validatePrice = (form: PreferenceFormState): boolean => {
-    if (form.priceMin && form.priceMax) {
-      if (Number(form.priceMin) > Number(form.priceMax)) {
-        setPriceError('Preco minimo deve ser menor que o maximo');
-        return false;
-      }
-    }
-    setPriceError(null);
-    return true;
-  };
-
-  // Expandir para editar
-  const startEditing = (pref: ContactPreference) => {
-    if (expandedId === pref.id) {
-      setExpandedId(null);
-      return;
-    }
-    setIsCreating(false);
-    setExpandedId(pref.id);
-    setEditForm(prefToForm(pref));
-    setPriceError(null);
-  };
-
-  // Iniciar criacao
-  const startCreating = () => {
-    setExpandedId(null);
-    setIsCreating(true);
-    setEditForm(emptyForm);
-    setPriceError(null);
-  };
-
-  // Cancelar edicao/criacao
-  const cancelEdit = () => {
-    setExpandedId(null);
-    setIsCreating(false);
-    setPriceError(null);
-  };
-
-  // Salvar edicao
   const handleSaveEdit = async () => {
     if (!validatePrice(editForm)) return;
     if (!expandedId) return;
-
-    // Modo buffered: atualizar localmente
-    if (!contactId) {
-      const payload = formToPayload(editForm);
-      const updater = (prev: ContactPreference[]) => prev.map(p =>
-        p.id === expandedId ? { ...p, ...payload } : p
-      );
-      setPreferences(updater);
-      bufferedPrefsRef.current = updater(bufferedPrefsRef.current);
-      setExpandedId(null);
-      return;
-    }
-
-    setSaving(true);
-    const payload = formToPayload(editForm);
-    const result = await contactPreferencesService.update(expandedId, payload);
-    setSaving(false);
-
-    if (result.error) {
-      setError(`Erro ao atualizar: ${result.error.message}`);
-      return;
-    }
-    setExpandedId(null);
-    await loadPreferences();
+    await prefData.saveEdit(expandedId, formToPayload(editForm), {
+      onSuccess: () => setExpandedId(null),
+    });
   };
 
-  // Salvar novo
   const handleSaveNew = async () => {
     if (!validatePrice(editForm)) return;
-
-    // Modo buffered: salvar localmente com ID temporario
-    if (!contactId) {
-      const payload = formToPayload(editForm);
-      const tempPref = {
-        id: `temp-${Date.now()}`,
-        contactId: '',
-        organizationId: organizationId || '',
-        ...payload,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as ContactPreference;
-      setPreferences(prev => [...prev, tempPref]);
-      bufferedPrefsRef.current = [...bufferedPrefsRef.current, tempPref];
-      setIsCreating(false);
-      setEditForm(emptyForm);
-      return;
-    }
-
-    setSaving(true);
-    const payload = formToPayload(editForm);
-    const result = await contactPreferencesService.create({
-      ...payload,
-      contactId,
-      organizationId,
-    } as Omit<ContactPreference, 'id' | 'createdAt' | 'updatedAt'>);
-    setSaving(false);
-
-    if (result.error) {
-      setError(`Erro ao criar: ${result.error.message}`);
-      return;
-    }
-    setIsCreating(false);
-    await loadPreferences();
+    await prefData.saveNew(formToPayload(editForm), {
+      onSuccess: () => { editor.setIsCreating(false); editor.setEditForm(editor.editForm); cancelEdit(); },
+    });
   };
 
-  // Deletar (com confirmacao)
   const handleDelete = async (id: string) => {
-    // Modo buffered: remover localmente sem confirmacao (dados nao salvos)
-    if (!contactId) {
-      setPreferences(prev => prev.filter(p => p.id !== id));
-      bufferedPrefsRef.current = bufferedPrefsRef.current.filter(p => p.id !== id);
-      if (expandedId === id) setExpandedId(null);
-      return;
-    }
-
-    setConfirmDeleteId(id);
+    await prefData.handleDelete(id, expandedId, setExpandedId);
   };
 
   const executeDelete = async (id: string) => {
-    const result = await contactPreferencesService.delete(id);
-    if (result.error) {
-      setError(`Erro ao excluir: ${result.error.message}`);
-      return;
-    }
-    if (expandedId === id) setExpandedId(null);
-    await loadPreferences();
-  };
-
-  // Form change handler
-  const handleFormChange = (updates: Partial<PreferenceFormState>) => {
-    setEditForm(prev => ({ ...prev, ...updates }));
-    if (priceError && ('priceMin' in updates || 'priceMax' in updates)) {
-      setPriceError(null);
-    }
+    await prefData.executeDelete(id, expandedId, setExpandedId);
   };
 
   if (loading) {

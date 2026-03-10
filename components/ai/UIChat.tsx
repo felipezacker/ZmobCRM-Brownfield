@@ -1,15 +1,21 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import type { UIMessagePart, DynamicToolUIPart, UIDataTypes, UITools } from 'ai';
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Loader2, Bot, User, Sparkles, Wrench, X, MessageCircle, Minimize2, Maximize2, ChevronDown, ChevronUp } from 'lucide-react';
-import { useAI } from '@/context/AIContext';
 import dynamic from 'next/dynamic';
 import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
+
+import type { ToolLikePart, ToolInputPayload } from './types';
+export type { UIChatProps } from './types';
+import type { UIChatProps } from './types';
+import { isToolLikePart } from './utils';
+import { useChatContext } from './hooks/useChatContext';
+import { useChatApprovals } from './hooks/useChatApprovals';
+import { useChatErrors } from './hooks/useChatErrors';
+import { useChatUI, toolLabelMap, formatDateTimePtBr, getDateBadge, sanitizeAssistantText } from './hooks/useChatUI';
 
 // Lazy load react-markdown para reduzir bundle inicial em ~35KB
 // O chat geralmente inicia minimizado (startMinimized={true}), então o markdown
@@ -18,98 +24,6 @@ const ReactMarkdown = dynamic(() => import('react-markdown'), {
     ssr: false,
     loading: () => <span className="animate-pulse text-muted-foreground">...</span>
 });
-
-/** Narrowed part type for tool-related UI parts (both static tool-{name} and dynamic-tool). */
-type ToolLikePart = DynamicToolUIPart & {
-    /** Runtime alias used by some tool states */
-    args?: unknown;
-    /** Runtime output payload for tool results */
-    output?: unknown;
-};
-
-/** Type alias for a single UIMessagePart used throughout this component. */
-type MessagePart = UIMessagePart<UIDataTypes, UITools>;
-
-/** Shape expected from cockpitSnapshot for title/contact extraction. */
-interface CockpitSnapshotShape {
-    deal?: { title?: string };
-    contact?: { name?: string };
-}
-
-/** Represents the input payload for CRM tool calls (summarizeToolInput). */
-interface ToolInputPayload {
-    dealId?: string;
-    dealTitle?: string;
-    title?: string;
-    reason?: string;
-    wonValue?: number;
-    stageName?: string;
-    dueDate?: string;
-    [key: string]: unknown;
-}
-
-/** Shape of a deal-like object in tool outputs. */
-interface DealRecord {
-    id?: string;
-    title?: string;
-    [key: string]: unknown;
-}
-
-/** Shape of tool output containing deals. */
-interface ToolOutputWithDeals {
-    deals?: DealRecord[];
-    id?: string;
-    title?: string;
-    [key: string]: unknown;
-}
-
-function isToolLikePart(part: MessagePart): part is ToolLikePart {
-    const t = part.type;
-    return t === 'dynamic-tool' || t === 'tool-invocation' || t.startsWith('tool-');
-}
-
-function humanizeTestLabel(input: unknown): string | undefined {
-    const raw = typeof input === 'string' ? input.trim() : '';
-    if (!raw) return undefined;
-
-    // Remove sufixos de dados de teste gerados automaticamente (ex.: "next-ai_<uuid>")
-    return raw.replace(/\s*next-ai[_-][0-9a-f-]{8,}\s*$/i, '').trim() || undefined;
-}
-
-type ActiveObjectMetadata = {
-    boardId?: string;
-    boardName?: string;
-    dealId?: string;
-    contactId?: string;
-    stages?: Array<{ id: string; name: string }>;
-    dealCount?: number;
-    pipelineValue?: number;
-    stagnantDeals?: number;
-    overdueDeals?: number;
-    wonStage?: string;
-    lostStage?: string;
-};
-
-export interface UIChatProps {
-    /** Optional explicit context (overrides provider context) */
-    boardId?: string;
-    dealId?: string;
-    contactId?: string;
-    /** Snapshot rico do cockpit (deal/contato/atividades/notas/arquivos/scripts etc.) */
-    cockpitSnapshot?: unknown;
-    /**
-     * Controla de onde vem o contexto:
-     * - 'auto' (default): usa props e faz fallback para AIContext (global/board/deal)
-     * - 'props-only': usa SOMENTE props (não lê AIContext para montar body.context)
-     */
-    contextMode?: 'auto' | 'props-only';
-    /** Whether to show as a floating widget */
-    floating?: boolean;
-    /** Starting minimized state (for floating) */
-    startMinimized?: boolean;
-    /** On close callback (for floating) */
-    onClose?: () => void;
-}
 
 /**
  * UI Chat Component using AI SDK UI
@@ -126,90 +40,27 @@ export function UIChat({
     startMinimized = true,
     onClose
 }: UIChatProps) {
-    const { activeContext } = useAI();
     const [isOpen, setIsOpen] = useState(!startMinimized);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [input, setInput] = useState('');
 
-    const cockpitDealTitle = useMemo(() => {
-        const s = cockpitSnapshot as CockpitSnapshotShape | null | undefined;
-        const title = s?.deal?.title;
-        return humanizeTestLabel(title) ?? (typeof title === 'string' && title.trim() ? title.trim() : undefined);
-    }, [cockpitSnapshot]);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    const cockpitContactName = useMemo(() => {
-        const s = cockpitSnapshot as CockpitSnapshotShape | null | undefined;
-        const name = s?.contact?.name;
-        return humanizeTestLabel(name) ?? (typeof name === 'string' && name.trim() ? name.trim() : undefined);
-    }, [cockpitSnapshot]);
-
-    // Extract FULL context from AIContext for AI SDK v6 (somente quando permitido)
-    const metadata = (contextMode === 'auto'
-        ? (activeContext?.activeObject?.metadata as ActiveObjectMetadata | undefined)
-        : undefined);
-
-    // Build rich context with all available info
-    const context = useMemo(() => ({
-        // Core IDs
-        boardId: boardId ?? metadata?.boardId,
-        dealId: dealId ?? metadata?.dealId,
-        contactId: contactId ?? metadata?.contactId,
-
-        // Cockpit snapshot (quando fornecido via props)
-        cockpitSnapshot,
-
-        // Board Context
-        boardName:
-            contextMode === 'auto'
-                ? ((activeContext?.activeObject?.type === 'board'
-                    ? activeContext?.activeObject?.name
-                    : metadata?.boardName) ?? undefined)
-                : undefined,
-        stages: metadata?.stages,
-
-        // Metrics
-        dealCount: metadata?.dealCount,
-        pipelineValue: metadata?.pipelineValue,
-        stagnantDeals: metadata?.stagnantDeals,
-        overdueDeals: metadata?.overdueDeals,
-
-        // Board Config
-        wonStage: metadata?.wonStage,
-        lostStage: metadata?.lostStage,
-    }), [
-        boardId, dealId, contactId,
+    // --- Extracted hooks ---
+    const { context, transport, cockpitDealTitle, cockpitContactName } = useChatContext({
+        boardId,
+        dealId,
+        contactId,
         cockpitSnapshot,
         contextMode,
-        metadata?.boardId, metadata?.dealId, metadata?.contactId,
-        activeContext?.activeObject?.type,
-        activeContext?.activeObject?.name,
-        metadata?.boardName,
-        metadata?.stages, metadata?.dealCount, metadata?.pipelineValue,
-        metadata?.stagnantDeals, metadata?.overdueDeals,
-        metadata?.wonStage, metadata?.lostStage
-    ]);
-
-    // Dev-only: ajuda a inspecionar o contexto real enviado ao backend.
-    if (process.env.NODE_ENV === 'development') {
-        console.log('[UIChat Debug] Context ready (will be sent in POST /api/ai/chat body.context):', {
-            id: `chat-${context.boardId || context.dealId || 'global'}`,
-            context,
-        });
-    }
-
-    // Use transport with dynamic body function + maxSteps for approval flow
-    const transport = useMemo(
-        () =>
-            new DefaultChatTransport({
-                api: '/api/ai/chat',
-                body: { context },
-            }),
-        [context]
-    );
+    });
 
     const { messages, sendMessage, status, error, addToolApprovalResponse } = useChat({
         transport,
         // Re-submete automaticamente quando o usuário aprova/nega uma tool.
-        // Sem isso, o clique só atualiza o estado local e a execução pode “parar”.
+        // Sem isso, o clique só atualiza o estado local e a execução pode "parar".
         sendAutomaticallyWhen: ({ messages }) => {
             // Importante: se houver múltiplas aprovações pendentes no mesmo "step" (ex.: mover vários deals),
             // não podemos re-submeter após a PRIMEIRA resposta, senão o backend tenta continuar com tool-calls
@@ -238,39 +89,35 @@ export function UIChat({
         maxSteps: 10,
     });
 
-    const dealTitleById = useMemo(() => {
-        const map = new Map<string, string>();
+    const {
+        expandedApprovalGroups,
+        setExpandedApprovalGroups,
+        selectedApprovalsById,
+        setSelectedApprovalsById,
+        selectionModeByGroup,
+        setSelectionModeByGroup,
+        pendingApprovalIds,
+        hasPendingApprovals,
+    } = useChatApprovals(messages);
 
-        const recordDeal = (d: DealRecord | undefined) => {
-            if (d?.id && d?.title && !map.has(d.id)) {
-                map.set(d.id, d.title);
-            }
-        };
+    const friendlyError = useChatErrors(error);
 
-        for (const m of messages) {
-            for (const p of m.parts) {
-                if (!isToolLikePart(p)) continue;
+    const {
+        homeHint,
+        headerSubtitle,
+        summarizeToolInput,
+    } = useChatUI({
+        cockpitDealTitle,
+        cockpitContactName,
+        context,
+        messages,
+    });
 
-                const output = p.output as ToolOutputWithDeals | undefined;
-                if (!output) continue;
+    // --- Local helpers ---
+    const isLoading = status === 'streaming' || status === 'submitted';
+    const canSend = status === 'ready' && !hasPendingApprovals;
 
-                if (Array.isArray(output.deals)) {
-                    for (const d of output.deals) recordDeal(d);
-                }
-                // getDealDetails-like
-                recordDeal(output);
-            }
-        }
-
-        return map;
-    }, [messages]);
-
-    const [input, setInput] = useState('');
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const messagesContainerRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    const focusInput = () => {
+    const focusInput = useCallback(() => {
         const el = inputRef.current;
         if (!el) return;
         try {
@@ -279,16 +126,11 @@ export function UIChat({
             // Fallback para browsers que não suportam FocusOptions
             el.focus();
         }
-    };
-
-    // UI state para cards de aprovação (agrupados).
-    const [expandedApprovalGroups, setExpandedApprovalGroups] = useState<Record<string, boolean>>({});
-    const [selectedApprovalsById, setSelectedApprovalsById] = useState<Record<string, boolean>>({});
-    const [selectionModeByGroup, setSelectionModeByGroup] = useState<Record<string, boolean>>({});
+    }, []);
 
     // Auto-scroll to bottom (somente dentro do container de mensagens)
     useEffect(() => {
-        // Evita “pular”/rolar o painel ao abrir o chat (quando ainda não há mensagens)
+        // Evita "pular"/rolar o painel ao abrir o chat (quando ainda não há mensagens)
         if (messages.length === 0) return;
 
         const el = messagesContainerRef.current;
@@ -306,7 +148,7 @@ export function UIChat({
         if (isOpen) {
             focusInput();
         }
-    }, [isOpen]);
+    }, [isOpen, focusInput]);
 
     // DEBUG: Log status changes
     useEffect(() => {
@@ -321,267 +163,6 @@ export function UIChat({
             sendMessage({ text: input });
             setInput('');
         }
-    };
-
-    const isLoading = status === 'streaming' || status === 'submitted';
-
-    // Se existir uma tool-call aguardando aprovação, não podemos aceitar novas mensagens:
-    // alguns providers exigem que toda tool-call tenha um tool-result antes de continuar.
-    // Caso contrário, aparece o erro “No tool output found for function call ...”.
-    const pendingApprovalIds = (() => {
-        const ids: string[] = [];
-        for (const m of messages) {
-            for (const part of m.parts ?? []) {
-                if (!isToolLikePart(part)) continue;
-
-                if (part.state !== 'approval-requested') continue;
-                if (part.approval?.approved != null) continue;
-
-                const id = part.approval?.id || part.toolCallId;
-                if (id) ids.push(id);
-            }
-        }
-        return Array.from(new Set(ids));
-    })();
-
-    const hasPendingApprovals = pendingApprovalIds.length > 0;
-    const canSend = status === 'ready' && !hasPendingApprovals;
-
-    const extractRequestId = (text: string): string | null => {
-        // Ex.: req_7a077671db1e471aa7f7b88ae828db92
-        const m = text.match(/\breq_[a-z0-9]+\b/i);
-        return m?.[0] ?? null;
-    };
-
-    const parseProviderError = (rawMessage: string) => {
-        const msg = rawMessage.trim();
-        const requestId = extractRequestId(msg);
-
-        const has = (re: RegExp) => re.test(msg);
-
-        // Heurísticas bem conservadoras: preferimos errar para “mensagem genérica”
-        // do que inventar causa.
-        const isToolApproval = /No tool output found for function call/i.test(msg);
-
-        const isOpenAIServerError =
-            has(/\bserver_error\b/i) ||
-            has(/"type"\s*:\s*"server_error"/i) ||
-            (has(/openai/i) && has(/\b5\d\d\b/));
-
-        const isRateLimit =
-            has(/rate[_ -]?limit/i) ||
-            has(/quota/i) ||
-            has(/\b429\b/);
-
-        const isAuth =
-            has(/invalid[_ -]?api[_ -]?key/i) ||
-            has(/\b401\b/) ||
-            has(/incorrect api key/i);
-
-        const isModelNotFound =
-            has(/model not found/i) ||
-            has(/does not exist/i) ||
-            has(/no such model/i);
-
-        return {
-            requestId,
-            isToolApproval,
-            isOpenAIServerError,
-            isRateLimit,
-            isAuth,
-            isModelNotFound,
-            raw: msg,
-        };
-    };
-
-    const friendlyError = (() => {
-        const msg = error?.message;
-        if (!msg) return null;
-
-        const parsed = parseProviderError(msg);
-
-        if (parsed.isToolApproval) {
-            return 'Existe uma confirmação pendente acima. Aprove ou negue a ação anterior antes de enviar uma nova mensagem.';
-        }
-
-        if (parsed.isAuth) {
-            return 'Falha de autenticação com o provedor de IA. Confira a chave em Configurações → Inteligência Artificial.';
-        }
-
-        if (parsed.isModelNotFound) {
-            return 'Modelo não encontrado para o provedor configurado. Confira o provedor/modelo em Configurações → Inteligência Artificial.';
-        }
-
-        if (parsed.isRateLimit) {
-            return 'A IA está limitando requisições (rate limit). Aguarde alguns segundos e tente novamente.';
-        }
-
-        if (parsed.isOpenAIServerError) {
-            const id = parsed.requestId ? ` (ID: ${parsed.requestId})` : '';
-            return `A OpenAI parece estar instável no momento (erro interno). Tente novamente em alguns segundos. Se persistir, troque para um modelo mais estável (ex.: gpt-4o) em Configurações → IA${id}.`;
-        }
-
-        // Fallback: manter a mensagem original (útil p/ debug), mas sem deixar 100% “crua”.
-        return parsed.requestId ? `${parsed.raw} (ID: ${parsed.requestId})` : parsed.raw;
-    })();
-
-    const homeHint = useMemo(() => {
-        const hasDealContext = Boolean(cockpitDealTitle || context.dealId);
-        const hasBoardContext = Boolean(context.boardId);
-
-        if (hasDealContext) {
-            return {
-                subtitle: 'Deal • Contato • Atividades • Notas • Arquivos • Scripts',
-                quickActions: [
-                    {
-                        label: '🧾 Diagnóstico do Deal',
-                        prompt:
-                            'Faça um diagnóstico completo deste deal usando o contexto do cockpit (notas, atividades e arquivos). Liste riscos, próximos passos e um plano de follow-up para 7 dias.',
-                    },
-                    {
-                        label: '👉 Próxima ação',
-                        prompt:
-                            'Qual a próxima melhor ação para avançar este deal agora? Seja específico e use o histórico do cockpit para justificar.',
-                    },
-                    {
-                        label: '✍️ Mensagem WhatsApp',
-                        prompt:
-                            'Escreva uma mensagem curta de follow-up para WhatsApp para este contato, baseada no estágio atual e no histórico do cockpit. Traga 2 variações.',
-                    },
-                    {
-                        label: '✅ Tarefas da semana',
-                        prompt:
-                            'Crie 3 tarefas objetivas para avançar este deal nesta semana (com datas sugeridas) e descreva rapidamente o porquê de cada uma.',
-                    },
-                ],
-            };
-        }
-
-        if (hasBoardContext) {
-            return {
-                subtitle: 'Pipeline • Deals • Contatos • Tarefas',
-                quickActions: [
-                    { label: '📊 Analisar Pipeline', prompt: 'Analise meu pipeline de vendas' },
-                    { label: '⏰ Deals Parados', prompt: 'Quais deals estão parados há mais de 7 dias?' },
-                    { label: '🔍 Buscar', prompt: 'Buscar deals por: ' },
-                ],
-            };
-        }
-
-        return {
-            subtitle: 'Deals • Contatos • Tarefas',
-            quickActions: [
-                { label: '🔍 Buscar deals', prompt: 'Buscar deals por: ' },
-                { label: '👤 Buscar contatos', prompt: 'Buscar contatos por: ' },
-                { label: '✅ Próximas tarefas', prompt: 'Quais tarefas eu deveria priorizar hoje?' },
-            ],
-        };
-    }, [cockpitDealTitle, context.boardId, context.dealId]);
-
-    const headerSubtitle = useMemo(() => {
-        // No cockpit, priorizar título do deal / nome do contato em vez de IDs.
-        if (cockpitDealTitle) return `Deal: ${cockpitDealTitle}`;
-        if (cockpitContactName) return `Contato: ${cockpitContactName}`;
-
-        if (context.dealId) return `Deal: ${context.dealId.slice(0, 8)}...`;
-        if (context.boardId) return `Board: ${context.boardId.slice(0, 8)}...`;
-        if (context.contactId) return `Contato: ${context.contactId.slice(0, 8)}...`;
-        return 'AI Assistant';
-    }, [cockpitContactName, cockpitDealTitle, context.boardId, context.contactId, context.dealId]);
-
-    const toolLabelMap: Record<string, string> = {
-        moveDeal: 'Mover estágio',
-        createDeal: 'Criar novo deal',
-        updateDeal: 'Atualizar deal',
-        markDealAsWon: 'Marcar deal como ganho',
-        markDealAsLost: 'Marcar deal como perdido',
-        assignDeal: 'Atribuir deal',
-        createTask: 'Criar tarefa',
-    };
-
-    const formatDateTimePtBr = (isoLike: string | Date): string => {
-        const d = isoLike instanceof Date ? isoLike : new Date(isoLike);
-        if (Number.isNaN(d.getTime())) return String(isoLike);
-
-        const ddmm = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(d);
-        const hhmm = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(d);
-        return `${ddmm} às ${hhmm}`;
-    };
-
-    const getDateBadge = (isoLike?: string): { label: string; className: string } | null => {
-        if (!isoLike) return null;
-        const due = new Date(isoLike);
-        if (Number.isNaN(due.getTime())) return null;
-
-        const now = new Date();
-        const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-        const diffDays = Math.round((startOfDay(due).getTime() - startOfDay(now).getTime()) / 86400000);
-
-        if (diffDays < 0) return { label: 'Atrasada', className: 'bg-[var(--color-error-bg)] text-[var(--color-error-text)] border border-[var(--color-error)]' };
-        if (diffDays === 0) return { label: 'Hoje', className: 'bg-muted text-muted-foreground border border-border' };
-        if (diffDays === 1) return { label: 'Amanhã', className: 'bg-[var(--color-info-bg)] text-[var(--color-info-text)] border border-[var(--color-info)]' };
-        return null;
-    };
-
-    const sanitizeAssistantText = (text: string) => {
-        // Remove UUIDs e trechos comuns do tipo "(ID: <uuid>)" para não poluir a UI.
-        // Mantém o texto humano (título/contato/valor) e evita exposição de identificadores internos.
-        let t = text;
-        t = t.replace(/\(ID:\s*[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\)/gi, '');
-        t = t.replace(/\bID:\s*[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '');
-        t = t.replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '');
-        // Não colapsar quebras de linha (senão markdown de lista vira um parágrafo com "*").
-        t = t.replace(/[\t ]{2,}/g, ' ').trim();
-        return t;
-    };
-
-    const summarizeToolInput = (toolName: string, input: ToolInputPayload | undefined): string[] => {
-        const lines: string[] = [];
-
-        const dealTitleFromId = (dealId?: string) => {
-            if (!dealId) return undefined;
-            return dealTitleById.get(dealId);
-        };
-
-        switch (toolName) {
-            case 'markDealAsLost': {
-                const title = input?.dealTitle || dealTitleFromId(input?.dealId);
-                if (title) lines.push(`Deal: ${title}`);
-                if (input?.reason) lines.push(`Motivo: ${input.reason}`);
-                break;
-            }
-            case 'markDealAsWon': {
-                const title = input?.dealTitle || dealTitleFromId(input?.dealId);
-                if (title) lines.push(`Deal: ${title}`);
-                if (input?.wonValue !== undefined) lines.push(`Valor final: R$ ${Number(input.wonValue).toLocaleString('pt-BR')}`);
-                break;
-            }
-            case 'moveDeal': {
-                const title = input?.dealTitle || dealTitleFromId(input?.dealId);
-                if (title) lines.push(`Deal: ${title}`);
-                if (input?.stageName) lines.push(`Destino: ${input.stageName}`);
-                break;
-            }
-            case 'createTask': {
-                if (input?.title) lines.push(`Tarefa: ${input.title}`);
-                if (input?.dueDate) lines.push(`Vencimento: ${formatDateTimePtBr(input.dueDate)}`);
-                {
-                    const title = input?.dealTitle || dealTitleFromId(input?.dealId);
-                    if (title) lines.push(`Deal: ${title}`);
-                }
-                break;
-            }
-            default: {
-                // Fallback: tente ao menos mostrar o título do deal, sem expor UUID.
-                {
-                    const title = input?.dealTitle || dealTitleFromId(input?.dealId);
-                    if (title) lines.push(`Deal: ${title}`);
-                }
-                break;
-            }
-        }
-
-        return lines.length > 0 ? lines : ['Confirma essa ação?'];
     };
 
     // Floating minimized button
@@ -679,12 +260,11 @@ export function UIChat({
                     const messageParts = message.parts ?? [];
 
                     // Agrupa múltiplos pedidos de aprovação do mesmo tool numa única confirmação.
-                    // Motivação: quando o modelo propõe várias ações repetidas (tarefas, mover deals, etc.),
-                    // a UI não deve exigir dezenas de cliques (um por ação) para aprovar.
-                    const getPartToolName = (p: MessagePart) => {
-                        if (!isToolLikePart(p)) return undefined;
-                        const partType = p.type;
-                        return p.toolName || (partType.startsWith('tool-') ? partType.replace('tool-', '') : undefined);
+                    const getPartToolName = (p: ToolLikePart | { type: string }) => {
+                        if (!isToolLikePart(p as ToolLikePart)) return undefined;
+                        const tp = p as ToolLikePart;
+                        const partType = tp.type;
+                        return tp.toolName || (partType.startsWith('tool-') ? partType.replace('tool-', '') : undefined);
                     };
 
                     const approvalParts = messageParts.filter((p): p is ToolLikePart => {
@@ -710,9 +290,7 @@ export function UIChat({
                     }
 
                     // Mini bug comum: às vezes o backend envia uma mensagem do assistente apenas com parts
-                    // de tools "silenciosas" (sem necessidade de aprovação) e sem texto. Como a UI oculta
-                    // essas tools, acabava aparecendo um avatar + balão vazio (geralmente junto do "Pensando...").
-                    // Aqui evitamos renderizar mensagens do assistente sem conteúdo visível.
+                    // de tools "silenciosas" (sem necessidade de aprovação) e sem texto.
                     const hasVisibleText = messageParts.some((p) => {
                         if (p.type !== 'text') return false;
                         const raw = String(p.text ?? '').trim();
@@ -861,8 +439,6 @@ export function UIChat({
                                             })();
 
                                             const headerTitle = (() => {
-                                                // Evita o título gigante (que quebra palavra por palavra em telas estreitas)
-                                                // e traz o “parâmetro principal” pro título quando fizer sentido.
                                                 if (toolName === 'moveDeal' && commonMain?.startsWith('Destino: ')) {
                                                     const dest = commonMain.replace(/^Destino:\s*/, '').trim();
                                                     return `Mover → ${dest}`;
@@ -979,8 +555,6 @@ export function UIChat({
                                                                         <div className="px-3 py-2 border-b border-border">
                                                                             <div className="text-[12px] font-semibold text-foreground truncate">{dealTitle}</div>
                                                                         </div>
-                                                                        {/* Quando todas as ações são iguais (commonMain) e é 1 item por deal sem extras,
-                                                                            a lista já faz sentido só com os nomes dos deals. Evita “Incluído” repetido. */}
                                                                         {!(commonMain && !selectionMode && dealItems.length === 1 && dealItems[0].extra.length === 0 && !dealItems[0].dueDate) && (
                                                                             <div className="px-2 py-2 space-y-1">
                                                                                 {dealItems.map((p) => {
@@ -988,9 +562,6 @@ export function UIChat({
                                                                                     const dueBadge = getDateBadge(p.dueDate);
                                                                                     const dueText = p.dueDate ? formatDateTimePtBr(p.dueDate) : null;
 
-                                                                                    // Se commonMain existe (ex.: mesmo "Destino" para todos):
-                                                                                    // - no modo normal (sem seleção) não precisamos repetir; mostramos um placeholder amigável.
-                                                                                    // - no modo seleção, é útil ter um rótulo por checkbox; usamos o commonMain.
                                                                                     const lineMain = commonMain
                                                                                         ? (selectionMode ? commonMain : '')
                                                                                         : p.main;

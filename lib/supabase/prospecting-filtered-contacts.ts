@@ -20,6 +20,7 @@ export interface ProspectingFilteredContact {
   primaryPhone: string | null
   hasPhone: boolean
   daysSinceLastActivity: number | null
+  leadScore: number | null
 }
 
 export interface FilteredContactsResult {
@@ -76,6 +77,7 @@ export const prospectingFilteredContactsService = {
         primary_phone: string | null
         has_phone: boolean
         days_since_last_activity: number | null
+        lead_score: number | null
         total_count: number
       }>
 
@@ -96,6 +98,7 @@ export const prospectingFilteredContactsService = {
             primaryPhone: row.primary_phone,
             hasPhone: row.has_phone,
             daysSinceLastActivity: row.days_since_last_activity,
+            leadScore: row.lead_score ?? null,
           })),
           totalCount,
         },

@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react'
 import { Flame, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { CallActivity } from '../hooks/useProspectingMetrics'
+import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 
 interface ConnectionHeatmapProps {
   activities: CallActivity[]
@@ -19,7 +20,7 @@ const PERIODS = [
   { value: 90, label: '90 dias' },
 ] as const
 
-const MIN_CALLS = 50
+const MIN_CALLS = PROSPECTING_CONFIG.HEATMAP_MIN_CALLS
 
 function getTimeSlot(hour: number): string | null {
   if (hour >= 8 && hour < 10) return '08-10'
@@ -93,6 +94,7 @@ interface TooltipInfo {
   total: number
   x: number
   y: number
+  insufficient: boolean
 }
 
 export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapProps) {
@@ -170,39 +172,39 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
                 </div>
                 {TIME_SLOTS.map(slot => {
                   const cell = heatmap[day][slot]
+                  const isInsufficient = cell.total > 0 && cell.total < MIN_CALLS
+                  const cellColor = isInsufficient
+                    ? 'bg-gray-200 dark:bg-gray-700/40'
+                    : getCellColor(cell.rate)
+                  const tooltipData = {
+                    day,
+                    time: slot.replace('-', 'h-') + 'h',
+                    rate: cell.rate,
+                    connected: cell.connected,
+                    total: cell.total,
+                    insufficient: isInsufficient,
+                  }
                   return (
                     <div
                       key={`${day}-${slot}`}
                       role="gridcell"
                       tabIndex={0}
-                      aria-label={`${day} ${slot.replace('-', 'h-')}h: ${(cell.rate * 100).toFixed(0)}% conexao (${cell.connected}/${cell.total})`}
-                      className={`h-8 min-w-[48px] rounded-md cursor-default transition-colors ${getCellColor(cell.rate)} ${
+                      aria-label={
+                        isInsufficient
+                          ? `${day} ${slot.replace('-', 'h-')}h: Dados insuficientes (${cell.total}/${MIN_CALLS} chamadas)`
+                          : `${day} ${slot.replace('-', 'h-')}h: ${(cell.rate * 100).toFixed(0)}% conexao (${cell.connected}/${cell.total})`
+                      }
+                      className={`h-8 min-w-[48px] rounded-md cursor-default transition-colors ${cellColor} ${
                         cell.total === 0 ? 'opacity-40' : ''
                       } focus:outline-none focus:ring-2 focus:ring-primary-500`}
                       onMouseEnter={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect()
-                        setTooltip({
-                          day,
-                          time: slot.replace('-', 'h-') + 'h',
-                          rate: cell.rate,
-                          connected: cell.connected,
-                          total: cell.total,
-                          x: rect.left + rect.width / 2,
-                          y: rect.top - 8,
-                        })
+                        setTooltip({ ...tooltipData, x: rect.left + rect.width / 2, y: rect.top - 8 })
                       }}
                       onMouseLeave={() => setTooltip(null)}
                       onFocus={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect()
-                        setTooltip({
-                          day,
-                          time: slot.replace('-', 'h-') + 'h',
-                          rate: cell.rate,
-                          connected: cell.connected,
-                          total: cell.total,
-                          x: rect.left + rect.width / 2,
-                          y: rect.top - 8,
-                        })
+                        setTooltip({ ...tooltipData, x: rect.left + rect.width / 2, y: rect.top - 8 })
                       }}
                       onBlur={() => setTooltip(null)}
                     />
@@ -230,7 +232,11 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
               style={{ left: tooltip.x, top: tooltip.y }}
             >
               <p className="font-medium">{tooltip.day} {tooltip.time}</p>
-              <p>{(tooltip.rate * 100).toFixed(0)}% conexao ({tooltip.connected}/{tooltip.total} chamadas)</p>
+              {tooltip.insufficient ? (
+                <p>Dados insuficientes ({tooltip.total}/{MIN_CALLS} chamadas)</p>
+              ) : (
+                <p>{(tooltip.rate * 100).toFixed(0)}% conexao ({tooltip.connected}/{tooltip.total} chamadas)</p>
+              )}
             </div>
           )}
         </div>

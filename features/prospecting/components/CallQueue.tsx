@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { ListOrdered, Trash2, RotateCcw } from 'lucide-react'
+import React, { useState, useMemo } from 'react'
+import { ListOrdered, Trash2, RotateCcw, ArrowDownWideNarrow } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { QueueItem } from './QueueItem'
 import type { ProspectingQueueItem } from '@/types'
@@ -18,6 +18,14 @@ interface CallQueueProps {
 
 export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = [], isLoading, onRemove, onClearAll, onResetExhausted, isClearing, removingId, ownerName }) => {
   const [confirmClear, setConfirmClear] = useState(false)
+  const [sortBy, setSortBy] = useState<'position' | 'score'>('position')
+
+  const sortedItems = useMemo(() => {
+    if (sortBy === 'score') {
+      return [...items].sort((a, b) => (b.leadScore ?? -1) - (a.leadScore ?? -1))
+    }
+    return items
+  }, [items, sortBy])
 
   if (isLoading) {
     return (
@@ -55,6 +63,20 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
           <span className="text-xs text-muted-foreground">
             {pendingCount} pendente{pendingCount !== 1 ? 's' : ''}
           </span>
+          <Button
+            variant="unstyled"
+            size="unstyled"
+            type="button"
+            onClick={() => setSortBy(prev => prev === 'position' ? 'score' : 'position')}
+            className={`flex items-center gap-1 text-xs transition-colors ${
+              sortBy === 'score'
+                ? 'text-primary-500 font-medium'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <ArrowDownWideNarrow size={12} />
+            {sortBy === 'score' ? 'Score' : 'Ordem'}
+          </Button>
           {onClearAll && !confirmClear && (
             <Button
               variant="unstyled"
@@ -101,7 +123,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
         </div>
       )}
 
-      {items.map(item => (
+      {sortedItems.map(item => (
         <QueueItem key={item.id} item={item} onRemove={onRemove} isRemoving={item.id === removingId} />
       ))}
 

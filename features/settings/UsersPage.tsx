@@ -1,30 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { hasMinRole, type Role } from '@/lib/auth/roles';
 import { useToast } from '@/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
-import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Mail, Check, X, Sparkles, Clock, RefreshCw, Trash2, Link, Copy, CheckCircle2 } from 'lucide-react';
+import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Clock, Trash2, Link, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
-
-interface Profile {
-    id: string;
-    email: string;
-    role: string;
-    organization_id: string;
-    created_at: string;
-    status: 'active' | 'pending';
-    invited_at?: string;
-    confirmed_at?: string;
-    last_sign_in_at?: string;
-}
-
-interface InviteResult {
-    email: string;
-    success: boolean;
-    error?: string;
-}
+import { useUserList } from './hooks/useUserList';
+import { useInviteModal } from './hooks/useInviteModal';
 
 // Gera iniciais e cor consistente baseada no email
 const getAvatarProps = (email: string) => {
@@ -51,90 +34,22 @@ const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 export const UsersPage: React.FC = () => {
     const { profile: currentUserProfile } = useAuth();
     const { addToast } = useToast();
-    const [users, setUsers] = useState<Profile[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newUserRole, setNewUserRole] = useState('corretor');
-    const [sendingInvites, setSendingInvites] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [actionLoading, setActionLoading] = useState<string | null>(null); // id do usuário em ação
-    const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
-    const [activeInvites, setActiveInvites] = useState<Array<{ id: string; token: string; role: string; expires_at: string | null; used_at: string | null }>>([]);
-    const [expirationDays, setExpirationDays] = useState<number | null>(7); // 7 days default, null = never
+
+    const {
+        users, loading, actionLoading,
+        userToDelete, setUserToDelete,
+        handleDeleteUser, confirmDeleteUser,
+    } = useUserList({ addToast });
+
+    const {
+        isModalOpen, setIsModalOpen,
+        newUserRole, setNewUserRole,
+        sendingInvites, error,
+        activeInvites, expirationDays, setExpirationDays,
+        closeModal, handleGenerateLink, handleDeleteInvite, copyLink,
+    } = useInviteModal({ addToast });
 
     const sb = supabase;
-
-    const fetchUsers = useCallback(async () => {
-        try {
-            const res = await fetch('/api/admin/users', {
-                method: 'GET',
-                headers: { accept: 'application/json' },
-                credentials: 'include',
-            });
-
-            const data = await res.json().catch(() => null);
-            if (!res.ok) {
-                throw new Error(data?.error || `Falha ao carregar usuários (HTTP ${res.status})`);
-            }
-
-            setUsers(data?.users || []);
-        } catch (err) {
-            console.error('Error fetching users:', err);
-            setUsers([]);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    const fetchActiveInvites = useCallback(async () => {
-        try {
-            const res = await fetch('/api/admin/invites', {
-                method: 'GET',
-                headers: { accept: 'application/json' },
-                credentials: 'include',
-            });
-
-            const data = await res.json().catch(() => null);
-            if (!res.ok) {
-                throw new Error(data?.error || `Falha ao carregar convites (HTTP ${res.status})`);
-            }
-
-            const invites = data?.invites || [];
-            const nowTs = Date.now();
-            const validInvites = (invites || []).filter((invite: { used_at?: string | null; expires_at?: string | null }) => {
-                // Only show invites that are not used
-                if (invite.used_at) return false;
-                // If no expiration, it's valid
-                if (!invite.expires_at) return true;
-                // Check if expiration is in the future (with small buffer for timezone issues)
-                const expiresTs = Date.parse(invite.expires_at);
-                return expiresTs > nowTs;
-            });
-            // Force state update by creating new array reference
-            setActiveInvites([...validInvites]);
-        } catch (error) {
-            console.error('Error fetching invites:', error);
-            // On error, still try to update state to empty array to clear stale data
-            setActiveInvites([]);
-        }
-    }, []);
-
-    const closeModal = useCallback(() => {
-        setIsModalOpen(false);
-        setError(null);
-        setNewUserRole('corretor');
-        setExpirationDays(7);
-    }, []);
-
-    useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
-
-    useEffect(() => {
-        if (isModalOpen) {
-            fetchActiveInvites();
-        }
-    }, [fetchActiveInvites, isModalOpen]);
 
     if (!sb) {
         return (
@@ -150,101 +65,6 @@ export const UsersPage: React.FC = () => {
             </div>
         );
     }
-
-    const handleDeleteUser = (user: Profile) => {
-        setUserToDelete(user);
-    };
-
-    const handleGenerateLink = async () => {
-        setSendingInvites(true);
-        setError(null);
-        try {
-            const expiresAt = expirationDays
-                ? new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000).toISOString()
-                : null;
-
-            const res = await fetch('/api/admin/invites', {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    role: newUserRole,
-                    expiresAt,
-                }),
-            });
-
-            const data = await res.json().catch(() => null);
-            if (!res.ok) {
-                throw new Error(data?.error || `Erro ao gerar link (HTTP ${res.status})`);
-            }
-
-            // Force refresh of active invites and ensure state updates
-            await fetchActiveInvites();
-            
-            // Small delay to ensure state propagation
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            addToast('Novo link gerado!', 'success');
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Erro ao gerar link');
-        } finally {
-            setSendingInvites(false);
-        }
-    };
-
-    const handleDeleteInvite = async (id: string) => {
-        try {
-            const res = await fetch(`/api/admin/invites/${id}`, {
-                method: 'DELETE',
-                headers: { accept: 'application/json' },
-                credentials: 'include',
-            });
-            const data = await res.json().catch(() => null);
-            if (!res.ok) {
-                throw new Error(data?.error || `Erro ao remover link (HTTP ${res.status})`);
-            }
-
-            await fetchActiveInvites();
-            addToast('Link removido!', 'success');
-        } catch (err: unknown) {
-            addToast('Erro ao remover link', 'error');
-        }
-    };
-
-    const copyLink = (token: string) => {
-        const link = `${window.location.origin}/join?token=${token}`;
-        navigator.clipboard.writeText(link);
-        addToast('Link copiado!', 'success');
-    };
-
-    const confirmDeleteUser = async () => {
-        if (!userToDelete) return;
-
-        setActionLoading(userToDelete.id);
-        setUserToDelete(null);
-
-        try {
-            const res = await fetch(`/api/admin/users/${userToDelete.id}`, {
-                method: 'DELETE',
-                headers: { accept: 'application/json' },
-                credentials: 'include',
-            });
-            const data = await res.json().catch(() => null);
-            if (!res.ok) {
-                throw new Error(data?.error || `Erro ao remover usuário (HTTP ${res.status})`);
-            }
-
-            addToast(
-                userToDelete.status === 'pending' ? 'Convite cancelado' : 'Usuário removido',
-                'success'
-            );
-            fetchUsers();
-        } catch (err: unknown) {
-            addToast(`Erro: ${err instanceof Error ? err.message : 'Erro desconhecido'}`, 'error');
-        } finally {
-            setActionLoading(null);
-        }
-    };
 
     if (loading) {
         return (

@@ -1,67 +1,20 @@
-import React, { useId, useState, useCallback, useRef } from 'react';
+import React, { useId } from 'react';
 import { X, Maximize2, Plus, Trash2, Phone as PhoneIcon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Contact, ContactType, ContactClassification, ContactTemperature, PhoneType, ContactPreference } from '@/types';
+import { ContactType, ContactClassification, ContactTemperature, PhoneType } from '@/types';
 import { DebugFillButton } from '@/components/debug/DebugFillButton';
 import { fakeContact } from '@/lib/debug';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
-import { useAuth } from '@/context/AuthContext';
-import { useActiveDealsCount } from '@/hooks/useReassignContactWithDeals';
 import { Button } from '@/components/ui/button';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
-import { formatCPF, validateCPF, unformatCPF, formatCEP, validateCEP, BRAZILIAN_STATES } from '@/lib/validations/cpf-cep';
+import { BRAZILIAN_STATES } from '@/lib/validations/cpf-cep';
 import { ContactPreferencesSection } from './ContactPreferencesSection';
-import { findDuplicates, DuplicateMatch } from '@/lib/supabase/contact-dedup';
-
-// ============================================
-// Tipos de dados do formulário de telefone
-// ============================================
-export interface PhoneFormEntry {
-  /** ID temporario (UUID ou temp-*). */
-  id: string;
-  phoneNumber: string;
-  phoneType: PhoneType;
-  isWhatsapp: boolean;
-  isPrimary: boolean;
-}
-
-export interface ContactFormData {
-  name: string;
-  email: string;
-  phone: string;
-  ownerId: string | undefined;
-  cascadeDeals: boolean;
-  birthDate: string;
-  source: '' | 'WEBSITE' | 'LINKEDIN' | 'REFERRAL' | 'MANUAL';
-  notes: string;
-  // Story 3.1 — Novos campos
-  cpf: string;
-  contactType: ContactType;
-  classification: ContactClassification | '';
-  temperature: ContactTemperature;
-  addressCep: string;
-  addressCity: string;
-  addressState: string;
-  phones: PhoneFormEntry[];
-}
-
-interface ContactFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (e: React.FormEvent) => void;
-  formData: ContactFormData;
-  setFormData: React.Dispatch<React.SetStateAction<ContactFormData>>;
-  editingContact: Contact | null;
-  createFakeContactsBatch?: (count: number) => Promise<void>;
-  isSubmitting?: boolean;
-  /** Ref compartilhado para preferencias buffered durante criacao */
-  bufferedPrefsRef?: React.MutableRefObject<ContactPreference[]>;
-  /** Callback to open contact detail modal instead of navigating */
-  onOpenDetail?: (contactId: string) => void;
-}
-
 import { INPUT_CLASS, LABEL_CLASS, LEGEND_CLASS, INPUT_ERROR_CLASS } from '@/features/contacts/constants';
+import { useContactForm } from './hooks/useContactForm';
+
+// Re-export types so existing importers don't break
+export type { PhoneFormEntry, ContactFormData } from './types';
+import type { ContactFormModalProps, ContactFormData } from './types';
 
 /**
  * Componente React `ContactFormModal` — Story 3.1 completo.
@@ -79,49 +32,57 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   onOpenDetail,
 }) => {
   const headingId = useId();
-  const router = useRouter();
   useFocusReturn({ enabled: isOpen });
-  const [isCreatingBatch, setIsCreatingBatch] = useState(false);
-  const { profile } = useAuth();
-  const [activeDealsCount, setActiveDealsCount] = useState(0);
-  const { fetchCount } = useActiveDealsCount(editingContact?.id || null);
-  const [cpfError, setCpfError] = useState<string | null>(null);
-  const [cepError, setCepError] = useState<string | null>(null);
-  // Story 3.7 — Duplicate detection
-  const [duplicateMatches, setDuplicateMatches] = useState<DuplicateMatch[]>([]);
-  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
-  const [pendingSubmitEvent, setPendingSubmitEvent] = useState<React.FormEvent | null>(null);
 
-  const ownerChanged = editingContact && formData.ownerId && formData.ownerId !== editingContact.ownerId;
+  const {
+    profile,
+    isCreatingBatch,
+    setIsCreatingBatch,
+    activeDealsCount,
+    setActiveDealsCount,
+    fetchCount,
+    ownerChanged,
+    cpfError,
+    cepError,
+    duplicateMatches,
+    showDuplicateWarning,
+    handleOpenCockpit,
+    resetValidationState,
+    addPhone,
+    removePhone,
+    updatePhone,
+    handleCPFChange,
+    handleCPFBlur,
+    handleCEPChange,
+    handleCEPBlur,
+    handleFormSubmit,
+    handleCreateAnyway,
+    handleOpenExisting,
+  } = useContactForm({
+    isOpen,
+    formData,
+    setFormData,
+    editingContact,
+    onClose,
+    onSubmit,
+    onOpenDetail,
+  });
 
-  const handleOpenCockpit = useCallback(() => {
-    if (!editingContact) return;
-    onClose();
-    if (onOpenDetail) {
-      onOpenDetail(editingContact.id);
-    } else {
-      router.push(`/contacts?cockpit=${editingContact.id}`);
-    }
-  }, [editingContact, onClose, onOpenDetail, router]);
-
+  // Fetch active deals count when modal opens with editing contact
   React.useEffect(() => {
     if (isOpen && editingContact?.id) {
       fetchCount().then(setActiveDealsCount);
     } else {
       setActiveDealsCount(0);
     }
-  }, [isOpen, editingContact?.id, fetchCount]);
+  }, [isOpen, editingContact?.id, fetchCount, setActiveDealsCount]);
 
   // Reset validation errors and duplicate state when modal opens/closes
   React.useEffect(() => {
     if (isOpen) {
-      setCpfError(null);
-      setCepError(null);
-      setDuplicateMatches([]);
-      setShowDuplicateWarning(false);
-      setPendingSubmitEvent(null);
+      resetValidationState();
     }
-  }, [isOpen]);
+  }, [isOpen, resetValidationState]);
 
   if (!isOpen) return null;
 
@@ -140,161 +101,9 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
       classification: 'COMPRADOR',
       temperature: 'WARM',
       addressCep: '01310-100',
-      addressCity: 'São Paulo',
+      addressCity: 'Sao Paulo',
       addressState: 'SP',
     }));
-  };
-
-  // ============================================
-  // Handlers de telefones
-  // ============================================
-  const addPhone = () => {
-    setFormData(prev => ({
-      ...prev,
-      phones: [
-        ...prev.phones,
-        {
-          id: `temp-${Date.now()}`,
-          phoneNumber: '',
-          phoneType: 'CELULAR',
-          isWhatsapp: false,
-          isPrimary: prev.phones.length === 0, // primeiro telefone é primário por padrão
-        },
-      ],
-    }));
-  };
-
-  const removePhone = (index: number) => {
-    setFormData(prev => {
-      const next = [...prev.phones];
-      const removed = next.splice(index, 1)[0];
-      // Se removeu o primário e ainda tem telefones, marca o primeiro como primário
-      if (removed.isPrimary && next.length > 0) {
-        next[0] = { ...next[0], isPrimary: true };
-      }
-      return { ...prev, phones: next };
-    });
-  };
-
-  const updatePhone = (index: number, updates: Partial<PhoneFormEntry>) => {
-    setFormData(prev => {
-      const next = [...prev.phones];
-      // Se marcando como primário, desmarcar os outros
-      if (updates.isPrimary) {
-        next.forEach((p, i) => {
-          if (i !== index) next[i] = { ...p, isPrimary: false };
-        });
-      }
-      next[index] = { ...next[index], ...updates };
-      return { ...prev, phones: next };
-    });
-  };
-
-  // ============================================
-  // Handlers de CPF
-  // ============================================
-  const handleCPFChange = (value: string) => {
-    const formatted = formatCPF(value);
-    setFormData(prev => ({ ...prev, cpf: formatted }));
-    // Limpa erro ao digitar
-    if (cpfError) setCpfError(null);
-  };
-
-  const handleCPFBlur = () => {
-    if (!formData.cpf) {
-      setCpfError(null);
-      return;
-    }
-    if (!validateCPF(formData.cpf)) {
-      setCpfError('CPF inválido');
-    } else {
-      setCpfError(null);
-    }
-  };
-
-  // ============================================
-  // Handlers de CEP
-  // ============================================
-  const handleCEPChange = (value: string) => {
-    const formatted = formatCEP(value);
-    setFormData(prev => ({ ...prev, addressCep: formatted }));
-    if (cepError) setCepError(null);
-  };
-
-  const handleCEPBlur = () => {
-    if (!formData.addressCep) {
-      setCepError(null);
-      return;
-    }
-    if (!validateCEP(formData.addressCep)) {
-      setCepError('CEP inválido (formato: 00000-000)');
-    } else {
-      setCepError(null);
-    }
-  };
-
-  // ============================================
-  // Form submit com validação
-  // ============================================
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Validar CPF se preenchido
-    if (formData.cpf && !validateCPF(formData.cpf)) {
-      setCpfError('CPF inválido');
-      return;
-    }
-    // Validar CEP se preenchido
-    if (formData.addressCep && !validateCEP(formData.addressCep)) {
-      setCepError('CEP inválido (formato: 00000-000)');
-      return;
-    }
-
-    // Story 3.7 — Check duplicates before creating (only for new contacts)
-    if (!editingContact && profile?.organization_id) {
-      const cpfRaw = formData.cpf ? unformatCPF(formData.cpf) : undefined;
-      const primaryPhone = formData.phones.find(p => p.isPrimary)?.phoneNumber || formData.phone || undefined;
-
-      const { data: matches } = await findDuplicates(
-        profile.organization_id,
-        {
-          email: formData.email || undefined,
-          phone: primaryPhone,
-          cpf: cpfRaw,
-        }
-      );
-
-      if (matches && matches.length > 0) {
-        setDuplicateMatches(matches);
-        setShowDuplicateWarning(true);
-        setPendingSubmitEvent(e);
-        return;
-      }
-    }
-
-    onSubmit(e);
-  };
-
-  // Story 3.7 — "Criar mesmo assim" callback
-  const handleCreateAnyway = () => {
-    setShowDuplicateWarning(false);
-    setDuplicateMatches([]);
-    if (pendingSubmitEvent) {
-      onSubmit(pendingSubmitEvent);
-      setPendingSubmitEvent(null);
-    }
-  };
-
-  // Story 3.7 — "Abrir contato existente" callback
-  const handleOpenExisting = (contactId: string) => {
-    setShowDuplicateWarning(false);
-    setDuplicateMatches([]);
-    setPendingSubmitEvent(null);
-    onClose();
-    if (onOpenDetail) {
-      onOpenDetail(contactId);
-    } else {
-      router.push(`/contacts?cockpit=${contactId}`);
-    }
   };
 
   return (
@@ -717,7 +526,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 </Button>
                 <Button
                   type="button"
-                  onClick={() => { setShowDuplicateWarning(false); setDuplicateMatches([]); setPendingSubmitEvent(null); }}
+                  onClick={() => { resetValidationState(); }}
                   className="text-xs font-medium px-3 py-1.5 text-secondary-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white"
                 >
                   Cancelar

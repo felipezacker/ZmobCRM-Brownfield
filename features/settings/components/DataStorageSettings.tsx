@@ -2,7 +2,7 @@
 // DataStorageSettings - Configurações de armazenamento de dados (SIMPLIFICADO)
 // =============================================================================
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { Database, AlertTriangle, Trash2, Loader2, Unlink, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -14,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { supabase } from '@/lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/query';
+import { useDangerZone, useOrphanDeals } from './hooks';
 
 /**
  * Componente React `DataStorageSettings`.
@@ -33,14 +33,14 @@ export const DataStorageSettings: React.FC = () => {
     const queryClient = useQueryClient();
 
     const sb = supabase;
-
-    const [showDangerZone, setShowDangerZone] = useState(false);
-    const [confirmText, setConfirmText] = useState('');
-    const [isDeleting, setIsDeleting] = useState(false);
-
     const isAdmin = profile?.role === 'admin';
 
-    // Estatísticas
+    const {
+        showDangerZone, setShowDangerZone,
+        confirmText, setConfirmText,
+        isDeleting, handleNukeDatabase,
+    } = useDangerZone({ addToast, sb, queryClient, refresh });
+
     const stats = {
         contacts: contacts.length,
         deals: deals.length,
@@ -49,132 +49,6 @@ export const DataStorageSettings: React.FC = () => {
     };
 
     const totalRecords = stats.contacts + stats.deals + stats.activities + stats.boards;
-
-    const handleNukeDatabase = async () => {
-        if (confirmText !== 'DELETAR TUDO') {
-            addToast('Digite "DELETAR TUDO" para confirmar', 'error');
-            return;
-        }
-
-        if (!sb) {
-            addToast('Supabase não está configurado neste ambiente.', 'error');
-            return;
-        }
-
-        setIsDeleting(true);
-
-        try {
-            // Ordem importa por causa das FKs!
-            // 0. Limpar referências de stages/boards dentro de `boards` (FK boards.won_stage_id/lost_stage_id -> board_stages)
-            // Se não zerarmos isso antes, o delete de `board_stages` falha com:
-            // "violates foreign key constraint boards_won_stage_id_fkey".
-            const { error: boardsRefsError } = await sb
-                .from('boards')
-                .update({ won_stage_id: null, lost_stage_id: null, next_board_id: null })
-                .neq('id', '00000000-0000-0000-0000-000000000000'); // Update all
-            if (boardsRefsError) throw boardsRefsError;
-
-            // 0.1 Integrações/Webhooks (novas FKs para board_stages/boards)
-            // Se houver fontes de entrada apontando para um stage, o delete de `board_stages` falha com:
-            // "violates foreign key constraint integration_inbound_sources_entry_stage_id_fkey".
-            // Por isso, limpamos tudo que depende de integrações antes de mexer em stages/boards.
-            //
-            // Ordem sugerida:
-            // - webhook_deliveries -> webhook_events_out -> webhook_events_in -> endpoints -> inbound_sources
-            const { error: deliveriesError } = await sb
-                .from('webhook_deliveries')
-                .delete()
-                .neq('id', '00000000-0000-0000-0000-000000000000');
-            if (deliveriesError) console.warn('Aviso: erro ao limpar webhook_deliveries:', deliveriesError);
-
-            const { error: eventsOutError } = await sb
-                .from('webhook_events_out')
-                .delete()
-                .neq('id', '00000000-0000-0000-0000-000000000000');
-            if (eventsOutError) console.warn('Aviso: erro ao limpar webhook_events_out:', eventsOutError);
-
-            const { error: eventsInError } = await sb
-                .from('webhook_events_in')
-                .delete()
-                .neq('id', '00000000-0000-0000-0000-000000000000');
-            if (eventsInError) console.warn('Aviso: erro ao limpar webhook_events_in:', eventsInError);
-
-            const { error: outboundError } = await sb
-                .from('integration_outbound_endpoints')
-                .delete()
-                .neq('id', '00000000-0000-0000-0000-000000000000');
-            if (outboundError) console.warn('Aviso: erro ao limpar integration_outbound_endpoints:', outboundError);
-
-            const { error: inboundError } = await sb
-                .from('integration_inbound_sources')
-                .delete()
-                .neq('id', '00000000-0000-0000-0000-000000000000');
-            if (inboundError) console.warn('Aviso: erro ao limpar integration_inbound_sources:', inboundError);
-
-            // 1. Activities (depende de deals)
-            const { error: activitiesError } = await sb.from('activities').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (activitiesError) throw activitiesError;
-
-            // 2. Deal Items (depende de deals)
-            const { error: itemsError } = await sb.from('deal_items').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (itemsError) throw itemsError;
-
-            // 3. Deals (depende de boards, contacts, companies)
-            const { error: dealsError } = await sb.from('deals').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (dealsError) throw dealsError;
-
-            // 0. Limpar referência de Active Board em user_settings (evita erro de FK)
-            const { error: userSettingsError } = await sb
-                .from('user_settings')
-                .update({ active_board_id: null })
-                .neq('id', '00000000-0000-0000-0000-000000000000'); // Update all
-            if (userSettingsError) console.warn('Aviso: erro ao limpar user_settings (pode não existir ainda):', userSettingsError);
-
-            // 4. Board Stages (depende de boards)
-            const { error: stagesError } = await sb.from('board_stages').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (stagesError) throw stagesError;
-
-            // 5. Boards
-            const { error: boardsError } = await sb.from('boards').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (boardsError) throw boardsError;
-
-            // 6. Contacts
-            const { error: contactsError } = await sb.from('contacts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (contactsError) throw contactsError;
-
-            // 7. Tags
-            const { error: tagsError } = await sb.from('tags').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (tagsError) throw tagsError;
-
-            // 9. Products
-            const { error: productsError } = await sb.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (productsError) throw productsError;
-
-            // Invalida todo o cache do React Query
-            await queryClient.invalidateQueries();
-
-            // IMPORTANT: invalidate does not clear cached data; if user navigates back to /boards,
-            // stale cached boards can still render until a refetch happens (which we intentionally reduced).
-            // For the nuke flow, we want the UI to reflect "zero boards" immediately.
-            queryClient.removeQueries({ queryKey: queryKeys.boards.all });
-            queryClient.removeQueries({ queryKey: [...queryKeys.boards.all, 'default'] as const });
-            // Also clear deals cache because /boards renders deals for active board.
-            queryClient.removeQueries({ queryKey: queryKeys.deals.all });
-
-            // Força refresh de todos os contexts (Activities, Deals, etc.)
-            await refresh();
-
-            addToast('🔥 Database zerado com sucesso!', 'success');
-            setConfirmText('');
-            setShowDangerZone(false);
-
-        } catch (error: unknown) {
-            console.error('Erro ao zerar database:', error);
-            addToast(`Erro: ${error instanceof Error ? error.message : String(error)}`, 'error');
-        } finally {
-            setIsDeleting(false);
-        }
-    };
 
     return (
         <div className="space-y-6">
@@ -286,106 +160,19 @@ export const DataStorageSettings: React.FC = () => {
 // OrphanDealsSection — Data health card for deals without contact (DB-003)
 // ---------------------------------------------------------------------------
 
-interface OrphanDeal {
-    id: string;
-    title: string;
-    value: number | null;
-    status: string | null;
-    board_id: string | null;
-    created_at: string;
-    updated_at: string;
-}
-
 const OrphanDealsSection: React.FC = () => {
     const sb = supabase;
     const { addToast } = useToast();
     const { contacts } = useContacts();
     const queryClient = useQueryClient();
 
-    const [count, setCount] = useState<number | null>(null);
-    const [orphans, setOrphans] = useState<OrphanDeal[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [expanded, setExpanded] = useState(false);
-    const [selected, setSelected] = useState<Set<string>>(new Set());
-    const [assignContactId, setAssignContactId] = useState('');
-    const [actionLoading, setActionLoading] = useState(false);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-    const fetchCount = useCallback(async () => {
-        if (!sb) return;
-        const { data, error } = await sb.rpc('get_orphan_deals_count');
-        if (!error && typeof data === 'number') setCount(data);
-    }, [sb]);
-
-    useEffect(() => { fetchCount(); }, [fetchCount]);
-
-    const fetchOrphans = async () => {
-        if (!sb) return;
-        setLoading(true);
-        const { data, error } = await sb.rpc('list_orphan_deals', { p_limit: 50, p_offset: 0 });
-        if (error) {
-            addToast('Erro ao carregar deals órfãos', 'error');
-        } else {
-            setOrphans((data ?? []) as OrphanDeal[]);
-        }
-        setLoading(false);
-    };
-
-    const toggleExpand = () => {
-        if (!expanded) fetchOrphans();
-        setExpanded(!expanded);
-    };
-
-    const toggleSelect = (id: string) => {
-        setSelected(prev => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id); else next.add(id);
-            return next;
-        });
-    };
-
-    const selectAll = () => {
-        if (selected.size === orphans.length) setSelected(new Set());
-        else setSelected(new Set(orphans.map(o => o.id)));
-    };
-
-    const handleAssign = async () => {
-        if (!sb || !assignContactId || selected.size === 0) return;
-        setActionLoading(true);
-        const { data, error } = await sb.rpc('assign_orphan_deals_to_contact', {
-            p_deal_ids: Array.from(selected),
-            p_contact_id: assignContactId,
-        });
-        if (error) {
-            addToast(error.message || 'Erro ao atribuir deals', 'error');
-        } else {
-            addToast(`${data} deal(s) atribuído(s) ao contato`, 'success');
-            setSelected(new Set());
-            setAssignContactId('');
-            await fetchCount();
-            await fetchOrphans();
-            await queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-        }
-        setActionLoading(false);
-    };
-
-    const handleDelete = async () => {
-        if (!sb || selected.size === 0) return;
-        setActionLoading(true);
-        const { data, error } = await sb.rpc('delete_orphan_deals', {
-            p_deal_ids: Array.from(selected),
-        });
-        if (error) {
-            addToast(error.message || 'Erro ao excluir deals', 'error');
-        } else {
-            addToast(`${data} deal(s) excluído(s)`, 'success');
-            setSelected(new Set());
-            await fetchCount();
-            await fetchOrphans();
-            await queryClient.invalidateQueries({ queryKey: queryKeys.deals.all });
-        }
-        setActionLoading(false);
-    };
+    const {
+        count, orphans, loading, expanded,
+        selected, assignContactId, setAssignContactId,
+        actionLoading, showDeleteConfirm, setShowDeleteConfirm,
+        toggleExpand, toggleSelect, selectAll,
+        handleAssign, handleDelete,
+    } = useOrphanDeals({ sb, addToast, queryClient });
 
     if (count === null || count === 0) return null;
 

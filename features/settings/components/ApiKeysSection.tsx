@@ -1,464 +1,76 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Key, Copy, ExternalLink, CheckCircle2, Plus, Trash2, ShieldCheck, RefreshCw, TerminalSquare, Play } from 'lucide-react';
 
 import ConfirmModal from '@/components/ConfirmModal';
 import { useOptionalToast } from '@/context/ToastContext';
 import { useBoards } from '@/context/boards/BoardsContext';
-import { supabase } from '@/lib/supabase/client';
 
 import { SettingsSection } from './SettingsSection';
 import { Button } from '@/components/ui/button';
+import { useApiKeys } from '@/features/settings/hooks/useApiKeys';
+import { useActionPlayground } from '@/features/settings/hooks/useActionPlayground';
 
-type ActionType = 'create_lead' | 'create_deal' | 'move_stage' | 'create_activity';
-
-/** Extract error message from unknown catch value */
-const extractErrorMsg = (e: unknown, fallback: string): string => {
-  if (e instanceof Error) return e.message;
-  if (typeof e === 'object' && e !== null && 'message' in e) {
-    return String((e as { message: unknown }).message);
-  }
-  return fallback;
-};
-
-type ApiKeyRow = {
-  id: string;
-  name: string;
-  key_prefix: string;
-  created_at: string;
-  last_used_at: string | null;
-  revoked_at: string | null;
-};
-
-/**
- * Componente React `ApiKeysSection`.
- * @returns {Element} Retorna um valor do tipo `Element`.
- */
 export const ApiKeysSection: React.FC = () => {
   const { addToast } = useOptionalToast();
   const { boards: boardsFromContext } = useBoards();
 
-  const [action, setAction] = useState<ActionType>('create_lead');
-  const [keys, setKeys] = useState<ApiKeyRow[]>([]);
-  const [loadingKeys, setLoadingKeys] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [revokingId, setRevokingId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<ApiKeyRow | null>(null);
-  const [newKeyName, setNewKeyName] = useState('n8n');
-  const [createdToken, setCreatedToken] = useState<string | null>(null);
-  const [createdPrefix, setCreatedPrefix] = useState<string | null>(null);
-  const [apiKeyToken, setApiKeyToken] = useState<string>(''); // token completo (apenas em memória)
-  const [testLoading, setTestLoading] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [selectedBoardId, setSelectedBoardId] = useState<string>('');
-  const [selectedToStageId, setSelectedToStageId] = useState<string>('');
-  const [identityMode, setIdentityMode] = useState<'phone' | 'email'>('phone');
-  const [identityPhone, setIdentityPhone] = useState<string>('');
-  const [identityEmail, setIdentityEmail] = useState<string>('');
-  const [leadName, setLeadName] = useState<string>('Lead Teste');
-  const [leadEmail, setLeadEmail] = useState<string>('teste@exemplo.com');
-  const [leadPhone, setLeadPhone] = useState<string>('+5511999999999');
-  const [leadSource, setLeadSource] = useState<string>('n8n');
-  const [leadRole, setLeadRole] = useState<string>('Gerente');
-  const [leadCompanyName, setLeadCompanyName] = useState<string>('Empresa Teste');
-  const [leadNotes, setLeadNotes] = useState<string>('');
-  const [activityType, setActivityType] = useState<string>('NOTE');
-  const [activityTitle, setActivityTitle] = useState<string>('Nota via integração');
-  const [actionTestLoading, setActionTestLoading] = useState(false);
-  const [actionTestResult, setActionTestResult] = useState<{ ok: boolean; message: string; raw?: unknown } | null>(null);
+  const ak = useApiKeys(addToast);
+  const ap = useActionPlayground(addToast, boardsFromContext, ak.activeToken);
 
   const openApiUrl = useMemo(() => '/api/public/v1/openapi.json', []);
   const swaggerUrl = useMemo(() => '/api/public/v1/docs', []);
-  const meUrl = useMemo(() => '/api/public/v1/me', []);
-  const contactsUrl = useMemo(() => '/api/public/v1/contacts', []);
-  const dealsUrl = useMemo(() => '/api/public/v1/deals', []);
-  const activitiesUrl = useMemo(() => '/api/public/v1/activities', []);
 
-  const copy = async (label: string, value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      addToast(`${label} copiado.`, 'success');
-    } catch {
-      addToast(`Não foi possível copiar ${label.toLowerCase()}.`, 'error');
-    }
-  };
-
-  const loadKeys = useCallback(async () => {
-    if (!supabase) {
-      addToast('Supabase não configurado neste ambiente.', 'error');
-      return;
-    }
-    setLoadingKeys(true);
-    try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('id,name,key_prefix,created_at,last_used_at,revoked_at')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setKeys((data || []) as ApiKeyRow[]);
-    } catch (e: unknown) {
-      addToast(extractErrorMsg(e, 'Erro ao carregar chaves'), 'error');
-    } finally {
-      setLoadingKeys(false);
-    }
-  }, [addToast]);
-
+  // Auto-select first board
   useEffect(() => {
-    void loadKeys();
-  }, [loadKeys]);
-
-  const createKey = async () => {
-    if (!supabase) {
-      addToast('Supabase não configurado neste ambiente.', 'error');
-      return;
-    }
-    const name = newKeyName.trim() || 'Integração';
-    setCreating(true);
-    setCreatedToken(null);
-    setCreatedPrefix(null);
-    setTestResult(null);
-    try {
-      const { data, error } = await supabase.rpc('create_api_key', { p_name: name });
-      if (error) throw error;
-      const row = Array.isArray(data) ? data[0] : data;
-      const token = row?.token as string | undefined;
-      const prefix = row?.key_prefix as string | undefined;
-      if (!token || !prefix) throw new Error('Resposta inválida ao criar chave');
-      setCreatedToken(token);
-      setCreatedPrefix(prefix);
-      setApiKeyToken(token);
-      addToast('Chave criada. Copie agora — ela aparece só uma vez.', 'success');
-      await loadKeys();
-    } catch (e: unknown) {
-      addToast(extractErrorMsg(e, 'Erro ao criar chave'), 'error');
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const revokeKey = async (id: string) => {
-    if (!supabase) {
-      addToast('Supabase não configurado neste ambiente.', 'error');
-      return;
-    }
-    setRevokingId(id);
-    try {
-      const { error } = await supabase.rpc('revoke_api_key', { p_api_key_id: id });
-      if (error) throw error;
-      addToast('Chave revogada.', 'success');
-      await loadKeys();
-    } catch (e: unknown) {
-      addToast(extractErrorMsg(e, 'Erro ao revogar chave'), 'error');
-    } finally {
-      setRevokingId(null);
-    }
-  };
-
-  const deleteRevokedKey = async (id: string) => {
-    if (!supabase) {
-      addToast('Supabase não configurado neste ambiente.', 'error');
-      return;
-    }
-    setDeletingId(id);
-    try {
-      // Segurança: só permite excluir se já estiver revogada
-      const { error } = await supabase
-        .from('api_keys')
-        .delete()
-        .eq('id', id)
-        .not('revoked_at', 'is', null);
-      if (error) throw error;
-      addToast('Chave excluída.', 'success');
-      await loadKeys();
-    } catch (e: unknown) {
-      addToast(extractErrorMsg(e, 'Erro ao excluir chave'), 'error');
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  const openDeleteConfirm = (k: ApiKeyRow) => {
-    if (!k.revoked_at) {
-      addToast('Você só pode excluir chaves revogadas.', 'warning');
-      return;
-    }
-    setDeleteTarget(k);
-    setDeleteConfirmOpen(true);
-  };
-
-  const testMe = async () => {
-    const token = apiKeyToken.trim() || createdToken?.trim() || '';
-    if (!token) {
-      addToast('Cole uma API key (ou crie uma nova) para testar.', 'warning');
-      return;
-    }
-    setTestLoading(true);
-    setTestResult(null);
-    try {
-      const res = await fetch(meUrl, {
-        headers: { 'X-Api-Key': token },
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setTestResult({ ok: false, message: json?.error || 'Falha no teste' });
-        return;
-      }
-      setTestResult({ ok: true, message: 'OK — API key validada' });
-    } catch (e: unknown) {
-      setTestResult({ ok: false, message: extractErrorMsg(e, 'Erro no teste') });
-    } finally {
-      setTestLoading(false);
-    }
-  };
-
-  // Defaults para deixar o wizard "mágico" (usa dados locais do app; não depende da API key)
-  useEffect(() => {
-    if (!selectedBoardId && boardsFromContext?.length) {
+    if (!ap.selectedBoardId && boardsFromContext?.length) {
       const firstWithKey = boardsFromContext.find((b) => !!b.key) || boardsFromContext[0];
-      if (firstWithKey?.id) setSelectedBoardId(firstWithKey.id);
+      if (firstWithKey?.id) ap.setSelectedBoardId(firstWithKey.id);
     }
-  }, [boardsFromContext, selectedBoardId]);
+  }, [boardsFromContext, ap]);
 
+  // Reset stage on board change
   useEffect(() => {
-    // troca de board reseta seleções dependentes
-    setSelectedToStageId('');
-  }, [selectedBoardId]);
-
-  const selectedBoard = useMemo(
-    () => boardsFromContext.find((b) => b.id === selectedBoardId),
-    [boardsFromContext, selectedBoardId]
-  );
-  const selectedBoardKey = selectedBoard?.key || '';
-  const stagesForBoard = useMemo(() => selectedBoard?.stages || [], [selectedBoard]);
-  const selectedToStageLabel = useMemo(() => {
-    if (!selectedToStageId) return '';
-    const stage = stagesForBoard.find((s) => s.id === selectedToStageId);
-    return stage?.label || '';
-  }, [selectedToStageId, stagesForBoard]);
-  const suggestedMark = useMemo<'won' | 'lost' | null>(() => {
-    if (!selectedToStageId) return null;
-    if (selectedBoard?.wonStageId && selectedToStageId === selectedBoard.wonStageId) return 'won';
-    if (selectedBoard?.lostStageId && selectedToStageId === selectedBoard.lostStageId) return 'lost';
-    return null;
-  }, [selectedBoard?.wonStageId, selectedBoard?.lostStageId, selectedToStageId]);
-
-  const curlExample = useMemo(() => {
-    const token = (apiKeyToken.trim() || createdToken?.trim() || '') || 'SUA_API_KEY';
-    if (action === 'create_lead') {
-      const name = (leadName || 'Lead').replaceAll('"', '\\"');
-      const email = (leadEmail || 'teste@exemplo.com').replaceAll('"', '\\"');
-      const phone = (leadPhone || '+5511999999999').replaceAll('"', '\\"');
-      const source = (leadSource || 'n8n').replaceAll('"', '\\"');
-      const role = (leadRole || '').replaceAll('"', '\\"');
-      const companyName = (leadCompanyName || '').replaceAll('"', '\\"');
-      const notes = (leadNotes || '').replaceAll('"', '\\"');
-      const roleLine = role ? `,\\n+    \\\"role\\\": \\\"${role}\\\"` : '';
-      const companyLine = companyName ? `,\\n+    \\\"company_name\\\": \\\"${companyName}\\\"` : '';
-      const notesLine = notes ? `,\\n+    \\\"notes\\\": \\\"${notes}\\\"` : '';
-      return `curl -X POST '${contactsUrl}' \\\n+  -H 'Content-Type: application/json' \\\n+  -H 'X-Api-Key: ${token}' \\\n+  -d '{\n+    \"name\": \"${name}\",\n+    \"email\": \"${email}\",\n+    \"phone\": \"${phone}\",\n+    \"source\": \"${source}\"${roleLine}${companyLine}${notesLine}\n+  }'`;
-    }
-    if (action === 'create_deal') {
-      const boardKey = selectedBoardKey || 'board-key';
-      return `curl -X POST '${dealsUrl}' \\\n+  -H 'Content-Type: application/json' \\\n+  -H 'X-Api-Key: ${token}' \\\n+  -d '{\n+    \"title\": \"Deal Teste\",\n+    \"value\": 0,\n+    \"board_key\": \"${boardKey}\",\n+    \"contact\": {\n+      \"name\": \"Lead Teste\",\n+      \"email\": \"teste@exemplo.com\",\n+      \"phone\": \"+5511999999999\"\n+    }\n+  }'`;
-    }
-    if (action === 'move_stage') {
-      const stageLabel = selectedToStageLabel || 'STAGE_LABEL';
-      const boardKeyOrId = selectedBoardKey || selectedBoardId || 'board_key';
-      const phone = identityPhone.trim() || '+5511999999999';
-      const email = identityEmail.trim() || 'teste@exemplo.com';
-      const identityField =
-        identityMode === 'phone'
-          ? `\"phone\": \"${phone.replaceAll('"', '\\"')}\",`
-          : `\"email\": \"${email.replaceAll('"', '\\"')}\",`;
-      const markField = suggestedMark ? `\n+    \"mark\": \"${suggestedMark}\",` : '';
-      return `curl -X POST '/api/public/v1/deals/move-stage' \\\n+  -H 'Content-Type: application/json' \\\n+  -H 'X-Api-Key: ${token}' \\\n+  -d '{\n+    \"board_key_or_id\": \"${boardKeyOrId}\",\n+    ${identityField}${markField}\n+    \"to_stage_label\": \"${stageLabel.replaceAll('"', '\\"')}\"\n+  }'`;
-    }
-    return `curl -X POST '${activitiesUrl}' \\\n+  -H 'Content-Type: application/json' \\\n+  -H 'X-Api-Key: ${token}' \\\n+  -d '{\n+    \"type\": \"${activityType}\",\n+    \"title\": \"${activityTitle.replaceAll('"', '\\"')}\",\n+    \"description\": \"Criada via integração\",\n+    \"date\": \"${new Date().toISOString()}\"\n+  }'`;
-  }, [
-    action,
-    activitiesUrl,
-    contactsUrl,
-    createdToken,
-    dealsUrl,
-    selectedBoardKey,
-    selectedBoardId,
-    apiKeyToken,
-    leadName,
-    leadEmail,
-    leadPhone,
-    leadSource,
-    leadRole,
-    leadCompanyName,
-    leadNotes,
-    identityMode,
-    identityPhone,
-    identityEmail,
-    selectedToStageLabel,
-    suggestedMark,
-    activityTitle,
-    activityType,
-  ]);
-
-  const runActionTest = async () => {
-    const token = (apiKeyToken.trim() || createdToken?.trim() || '') || '';
-    if (!token) {
-      addToast('Cole uma API key (ou crie uma nova) para testar.', 'warning');
-      return;
-    }
-    setActionTestLoading(true);
-    setActionTestResult(null);
-    try {
-      if (action === 'create_lead') {
-        const res = await fetch(contactsUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Api-Key': token },
-          body: JSON.stringify({
-            name: leadName || 'Lead Teste',
-            email: leadEmail || `teste+${Date.now()}@exemplo.com`,
-            phone: leadPhone || '+5511999999999',
-            source: leadSource || 'ui-test',
-            role: leadRole || undefined,
-            company_name: leadCompanyName || undefined,
-            notes: leadNotes || undefined,
-          }),
-        });
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json?.error || 'Falha no teste');
-        setActionTestResult({ ok: true, message: `OK (${json?.action || 'ok'})`, raw: json });
-        return;
-      }
-
-      if (action === 'create_deal') {
-        if (!selectedBoardKey) {
-          addToast('Escolha um board com key (slug) para criar deal.', 'warning');
-          setActionTestResult({ ok: false, message: 'Selecione um board com key.' });
-          return;
-        }
-        const res = await fetch(dealsUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Api-Key': token },
-          body: JSON.stringify({
-            title: `Deal Teste ${new Date().toLocaleTimeString('pt-BR')}`,
-            value: 0,
-            board_key: selectedBoardKey,
-            contact: {
-              name: 'Lead Teste',
-              email: `teste+${Date.now()}@exemplo.com`,
-              phone: '+5511999999999',
-            },
-          }),
-        });
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json?.error || 'Falha no teste');
-        setActionTestResult({ ok: true, message: 'OK (deal criado)', raw: json });
-        return;
-      }
-
-      if (action === 'create_activity') {
-        const res = await fetch(activitiesUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Api-Key': token },
-          body: JSON.stringify({
-            type: activityType,
-            title: activityTitle,
-            description: 'Criada pelo teste da UI',
-            date: new Date().toISOString(),
-          }),
-        });
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json?.error || 'Falha no teste');
-        setActionTestResult({ ok: true, message: 'OK (atividade criada)', raw: json });
-        return;
-      }
-
-      if (action === 'move_stage') {
-        if (!selectedToStageId) {
-          addToast('Selecione a etapa de destino.', 'warning');
-          setActionTestResult({ ok: false, message: 'Selecione uma etapa.' });
-          return;
-        }
-        if (!selectedToStageLabel) {
-          addToast('Etapa inválida para este board.', 'warning');
-          setActionTestResult({ ok: false, message: 'Etapa inválida.' });
-          return;
-        }
-        if (!selectedBoardKey && !selectedBoardId) {
-          addToast('Selecione um board.', 'warning');
-          setActionTestResult({ ok: false, message: 'Selecione um board.' });
-          return;
-        }
-        const phone = identityPhone.trim();
-        const email = identityEmail.trim().toLowerCase();
-        if (identityMode === 'phone' && !phone) {
-          addToast('Informe telefone (E.164).', 'warning');
-          setActionTestResult({ ok: false, message: 'Informe telefone.' });
-          return;
-        }
-        if (identityMode === 'email' && !email) {
-          addToast('Informe email.', 'warning');
-          setActionTestResult({ ok: false, message: 'Informe email.' });
-          return;
-        }
-        const res = await fetch(`/api/public/v1/deals/move-stage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Api-Key': token },
-          body: JSON.stringify({
-            board_key_or_id: selectedBoardKey || selectedBoardId,
-            ...(identityMode === 'phone' ? { phone } : { email }),
-            ...(suggestedMark ? { mark: suggestedMark } : {}),
-            to_stage_label: selectedToStageLabel,
-          }),
-        });
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(json?.error || 'Falha no teste');
-        setActionTestResult({ ok: true, message: 'OK (deal movido)', raw: json });
-        return;
-      }
-    } catch (e: unknown) {
-      setActionTestResult({ ok: false, message: extractErrorMsg(e, 'Erro no teste') });
-    } finally {
-      setActionTestLoading(false);
-    }
-  };
+    ap.setSelectedToStageId('');
+  }, [ap]);
 
   return (
     <SettingsSection title="API (Integrações)" icon={Key}>
       <p className="text-sm text-secondary-foreground dark:text-muted-foreground mb-4 leading-relaxed">
-        Aqui você conecta n8n/Make sem precisar “entender API”. Escolha o que quer automatizar, copie o que precisa e teste.
+        Aqui você conecta n8n/Make sem precisar &quot;entender API&quot;. Escolha o que quer automatizar, copie o que precisa e teste.
         <br />
         A documentação técnica (OpenAPI/Swagger) fica disponível, mas só quando você quiser.
       </p>
 
       <div className="grid grid-cols-1 gap-4">
+        {/* API Key CRUD */}
         <div className="rounded-xl border border-border bg-background dark:bg-black/30 p-4">
           <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2 flex items-center gap-2">
             <Key className="h-4 w-4" />
             Chave da integração (independente do assistente)
           </div>
           <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-3">
-            A chave é da sua conta. O assistente só usa ela para montar o “copiar/colar” e testar.
+            A chave é da sua conta. O assistente só usa ela para montar o &quot;copiar/colar&quot; e testar.
           </div>
 
           <div className="flex gap-2">
             <input
-              value={newKeyName}
-              onChange={(e) => setNewKeyName(e.target.value)}
+              value={ak.newKeyName}
+              onChange={(e) => ak.setNewKeyName(e.target.value)}
               className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Nome (ex: n8n, make, parceiro-x)"
             />
             <Button
               type="button"
-              onClick={createKey}
-              disabled={creating}
+              onClick={ak.createKey}
+              disabled={ak.creating}
               className="shrink-0 px-3 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white text-sm font-semibold inline-flex items-center gap-2"
             >
-              {creating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {ak.creating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               Criar
             </Button>
           </div>
 
-          {createdToken && (
+          {ak.createdToken && (
             <div className="mt-3 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-3">
               <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-2 flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4" />
@@ -467,12 +79,12 @@ export const ApiKeysSection: React.FC = () => {
               <div className="flex gap-2">
                 <input
                   readOnly
-                  value={createdToken}
+                  value={ak.createdToken}
                   className="w-full px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 text-foreground font-mono text-xs"
                 />
                 <Button
                   type="button"
-                  onClick={() => copy('API key', createdToken)}
+                  onClick={() => ak.copy('API key', ak.createdToken!)}
                   className="shrink-0 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 hover:bg-white text-emerald-800 dark:text-emerald-200 text-sm font-semibold inline-flex items-center gap-2"
                 >
                   <Copy className="h-4 w-4" />
@@ -480,7 +92,7 @@ export const ApiKeysSection: React.FC = () => {
                 </Button>
               </div>
               <div className="mt-2 text-xs text-emerald-700/80 dark:text-emerald-200/80">
-                Prefixo: <span className="font-mono">{createdPrefix}</span>
+                Prefixo: <span className="font-mono">{ak.createdPrefix}</span>
               </div>
             </div>
           )}
@@ -491,35 +103,36 @@ export const ApiKeysSection: React.FC = () => {
             </div>
             <div className="flex gap-2">
               <input
-                value={apiKeyToken}
-                onChange={(e) => setApiKeyToken(e.target.value)}
+                value={ak.apiKeyToken}
+                onChange={(e) => ak.setApiKeyToken(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono text-xs"
                 placeholder="ncrm_… (fica só em memória, não é salvo)"
               />
               <Button
                 type="button"
-                onClick={testMe}
-                disabled={testLoading}
+                onClick={ak.testMe}
+                disabled={ak.testLoading}
                 className="shrink-0 px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 disabled:opacity-60 text-foreground text-sm font-semibold"
               >
-                {testLoading ? 'Testando…' : 'Testar chave'}
+                {ak.testLoading ? 'Testando…' : 'Testar chave'}
               </Button>
             </div>
-            {testResult && (
-              <div className={`mt-2 text-xs ${testResult.ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
-                {testResult.message}
+            {ak.testResult && (
+              <div className={`mt-2 text-xs ${ak.testResult.ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
+                {ak.testResult.message}
               </div>
             )}
           </div>
         </div>
 
+        {/* Action Selection */}
         <div className="rounded-xl border border-border bg-background dark:bg-black/30 p-4">
           <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2">
             Passo 1 — O que você quer automatizar?
           </div>
           <select
-            value={action}
-            onChange={(e) => setAction(e.target.value as ActionType)}
+            value={ap.action}
+            onChange={(e) => ap.setAction(e.target.value as 'create_lead' | 'create_deal' | 'move_stage' | 'create_activity')}
             className="w-full px-4 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="create_lead">Criar/Atualizar Lead (Contato)</option>
@@ -534,15 +147,16 @@ export const ApiKeysSection: React.FC = () => {
           </div>
         </div>
 
+        {/* Dynamic Config */}
         <div className="rounded-xl border border-border bg-background dark:bg-black/30 p-4">
           <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2">
             Passo 2 — Configure (dinâmico)
           </div>
           <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-3">
-            Aqui entra o “mágico”: você escolhe e a gente já preenche o comando final.
+            Aqui entra o &quot;mágico&quot;: você escolhe e a gente já preenche o comando final.
           </div>
 
-          {action === 'create_lead' && (
+          {ap.action === 'create_lead' && (
             <div>
               <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-3">
                 <span className="font-semibold text-secondary-foreground dark:text-muted-foreground">*</span> Obrigatório: <span className="font-semibold text-secondary-foreground dark:text-muted-foreground">Email</span> <span className="font-semibold">ou</span>{' '}
@@ -556,8 +170,8 @@ export const ApiKeysSection: React.FC = () => {
                   Nome <span className="text-muted-foreground dark:text-muted-foreground">*</span>
                 </div>
                 <input
-                  value={leadName}
-                  onChange={(e) => setLeadName(e.target.value)}
+                  value={ap.leadName}
+                  onChange={(e) => ap.setLeadName(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="Nome do lead"
                 />
@@ -565,8 +179,8 @@ export const ApiKeysSection: React.FC = () => {
               <div>
                 <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Source</div>
                 <input
-                  value={leadSource}
-                  onChange={(e) => setLeadSource(e.target.value)}
+                  value={ap.leadSource}
+                  onChange={(e) => ap.setLeadSource(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="n8n / make / webhook"
                 />
@@ -576,8 +190,8 @@ export const ApiKeysSection: React.FC = () => {
                   Email <span className="text-muted-foreground dark:text-muted-foreground">*</span>
                 </div>
                 <input
-                  value={leadEmail}
-                  onChange={(e) => setLeadEmail(e.target.value)}
+                  value={ap.leadEmail}
+                  onChange={(e) => ap.setLeadEmail(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="email@exemplo.com"
                 />
@@ -587,8 +201,8 @@ export const ApiKeysSection: React.FC = () => {
                   Telefone (E.164) <span className="text-muted-foreground dark:text-muted-foreground">*</span>
                 </div>
                 <input
-                  value={leadPhone}
-                  onChange={(e) => setLeadPhone(e.target.value)}
+                  value={ap.leadPhone}
+                  onChange={(e) => ap.setLeadPhone(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono"
                   placeholder="+5511999999999"
                 />
@@ -596,8 +210,8 @@ export const ApiKeysSection: React.FC = () => {
               <div>
                 <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Cargo</div>
                 <input
-                  value={leadRole}
-                  onChange={(e) => setLeadRole(e.target.value)}
+                  value={ap.leadRole}
+                  onChange={(e) => ap.setLeadRole(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="Ex: Gerente"
                 />
@@ -605,8 +219,8 @@ export const ApiKeysSection: React.FC = () => {
               <div>
                 <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Empresa</div>
                 <input
-                  value={leadCompanyName}
-                  onChange={(e) => setLeadCompanyName(e.target.value)}
+                  value={ap.leadCompanyName}
+                  onChange={(e) => ap.setLeadCompanyName(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="Nome da Empresa"
                 />
@@ -614,8 +228,8 @@ export const ApiKeysSection: React.FC = () => {
               <div className="md:col-span-2">
                 <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Notas</div>
                 <textarea
-                  value={leadNotes}
-                  onChange={(e) => setLeadNotes(e.target.value)}
+                  value={ap.leadNotes}
+                  onChange={(e) => ap.setLeadNotes(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground min-h-[92px]"
                   placeholder="Opcional"
                 />
@@ -624,13 +238,13 @@ export const ApiKeysSection: React.FC = () => {
             </div>
           )}
 
-          {(action === 'create_deal' || action === 'move_stage') && (
+          {(ap.action === 'create_deal' || ap.action === 'move_stage') && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Pipeline (board)</div>
                 <select
-                  value={selectedBoardId}
-                  onChange={(e) => setSelectedBoardId(e.target.value)}
+                  value={ap.selectedBoardId}
+                  onChange={(e) => ap.setSelectedBoardId(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                 >
                   <option value="">Selecione…</option>
@@ -640,22 +254,22 @@ export const ApiKeysSection: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                {selectedBoardId && !selectedBoardKey && (
+                {ap.selectedBoardId && !ap.selectedBoardKey && (
                   <div className="mt-1 text-xs text-rose-600 dark:text-rose-300">
                     Este board ainda não tem <span className="font-mono">key</span>. Para integrações, gere uma key para o board.
                   </div>
                 )}
               </div>
 
-              {action === 'move_stage' && (
+              {ap.action === 'move_stage' && (
                 <div>
                   <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Identidade do lead</div>
                   <div className="flex items-center gap-2 mb-2">
                     <Button
                       type="button"
-                      onClick={() => setIdentityMode('phone')}
+                      onClick={() => ap.setIdentityMode('phone')}
                       className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border ${
-                        identityMode === 'phone'
+                        ap.identityMode === 'phone'
                           ? 'border-primary-500/50 bg-primary-500/10 text-primary-700 dark:text-primary-300'
                           : 'border-border  bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10'
                       }`}
@@ -664,9 +278,9 @@ export const ApiKeysSection: React.FC = () => {
                     </Button>
                     <Button
                       type="button"
-                      onClick={() => setIdentityMode('email')}
+                      onClick={() => ap.setIdentityMode('email')}
                       className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border ${
-                        identityMode === 'email'
+                        ap.identityMode === 'email'
                           ? 'border-primary-500/50 bg-primary-500/10 text-primary-700 dark:text-primary-300'
                           : 'border-border  bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10'
                       }`}
@@ -675,17 +289,17 @@ export const ApiKeysSection: React.FC = () => {
                     </Button>
                   </div>
 
-                  {identityMode === 'phone' ? (
+                  {ap.identityMode === 'phone' ? (
                     <input
-                      value={identityPhone}
-                      onChange={(e) => setIdentityPhone(e.target.value)}
+                      value={ap.identityPhone}
+                      onChange={(e) => ap.setIdentityPhone(e.target.value)}
                       className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono text-sm"
                       placeholder="+5511999999999"
                     />
                   ) : (
                     <input
-                      value={identityEmail}
-                      onChange={(e) => setIdentityEmail(e.target.value)}
+                      value={ap.identityEmail}
+                      onChange={(e) => ap.setIdentityEmail(e.target.value)}
                       className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                       placeholder="email@exemplo.com"
                     />
@@ -696,16 +310,16 @@ export const ApiKeysSection: React.FC = () => {
                 </div>
               )}
 
-              {action === 'move_stage' && (
+              {ap.action === 'move_stage' && (
                 <div className="md:col-span-2">
                   <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Mover para etapa</div>
                   <select
-                    value={selectedToStageId}
-                    onChange={(e) => setSelectedToStageId(e.target.value)}
+                    value={ap.selectedToStageId}
+                    onChange={(e) => ap.setSelectedToStageId(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                   >
                     <option value="">Selecione…</option>
-                    {stagesForBoard.map((s) => (
+                    {ap.stagesForBoard.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.label}
                       </option>
@@ -716,13 +330,13 @@ export const ApiKeysSection: React.FC = () => {
             </div>
           )}
 
-          {action === 'create_activity' && (
+          {ap.action === 'create_activity' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Tipo</div>
                 <select
-                  value={activityType}
-                  onChange={(e) => setActivityType(e.target.value)}
+                  value={ap.activityType}
+                  onChange={(e) => ap.setActivityType(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                 >
                   <option value="NOTE">Nota</option>
@@ -736,8 +350,8 @@ export const ApiKeysSection: React.FC = () => {
               <div>
                 <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Título</div>
                 <input
-                  value={activityTitle}
-                  onChange={(e) => setActivityTitle(e.target.value)}
+                  value={ap.activityTitle}
+                  onChange={(e) => ap.setActivityTitle(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
                 />
               </div>
@@ -747,18 +361,19 @@ export const ApiKeysSection: React.FC = () => {
 
       </div>
 
+      {/* Step 3 — Copy & Test */}
       <div className="mt-4 rounded-xl border border-border bg-background dark:bg-black/30 p-4">
         <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2">
           Passo 3 — Copiar e testar
         </div>
         <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-3">
-          Este é o “copiar/colar” que seu usuário precisa. Se funcionar aqui, funciona no n8n.
+          Este é o &quot;copiar/colar&quot; que seu usuário precisa. Se funcionar aqui, funciona no n8n.
         </div>
 
         <div className="flex flex-wrap gap-2 mb-3">
           <Button
             type="button"
-            onClick={() => copy('cURL', curlExample)}
+            onClick={() => ak.copy('cURL', ap.curlExample)}
             className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 text-foreground text-sm font-semibold inline-flex items-center gap-2"
           >
             <TerminalSquare className="h-4 w-4" />
@@ -766,26 +381,27 @@ export const ApiKeysSection: React.FC = () => {
           </Button>
           <Button
             type="button"
-            onClick={runActionTest}
-            disabled={actionTestLoading}
+            onClick={ap.runActionTest}
+            disabled={ap.testLoading}
             className="px-3 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white text-sm font-semibold inline-flex items-center gap-2"
           >
             <Play className="h-4 w-4" />
-            {actionTestLoading ? 'Testando…' : 'Testar agora'}
+            {ap.testLoading ? 'Testando…' : 'Testar agora'}
           </Button>
         </div>
 
         <pre className="text-xs font-mono whitespace-pre-wrap rounded-lg border border-border bg-white/70 dark:bg-black/20 p-3 text-foreground dark:text-muted-foreground">
-          {curlExample}
+          {ap.curlExample}
         </pre>
 
-        {actionTestResult && (
-          <div className={`mt-3 text-sm ${actionTestResult.ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
-            {actionTestResult.message}
+        {ap.testResult && (
+          <div className={`mt-3 text-sm ${ap.testResult.ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
+            {ap.testResult.message}
           </div>
         )}
       </div>
 
+      {/* OpenAPI */}
       <div className="mt-4 rounded-xl border border-border bg-background dark:bg-black/30 p-4">
         <div className="text-sm font-semibold text-foreground dark:text-muted-foreground mb-2">
           Consulta técnica — OpenAPI
@@ -796,7 +412,7 @@ export const ApiKeysSection: React.FC = () => {
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            onClick={() => copy('URL do OpenAPI', openApiUrl)}
+            onClick={() => ak.copy('URL do OpenAPI', openApiUrl)}
             className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 text-foreground text-sm font-semibold inline-flex items-center gap-2"
           >
             <Copy className="h-4 w-4" />
@@ -826,6 +442,7 @@ export const ApiKeysSection: React.FC = () => {
         </div>
       </div>
 
+      {/* Existing Keys */}
       <div className="mt-6">
         <div className="flex items-center justify-between gap-3 mb-2">
           <div className="text-sm font-semibold text-foreground dark:text-muted-foreground">
@@ -833,23 +450,23 @@ export const ApiKeysSection: React.FC = () => {
           </div>
           <Button
             type="button"
-            onClick={loadKeys}
-            disabled={loadingKeys}
+            onClick={ak.loadKeys}
+            disabled={ak.loadingKeys}
             className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 text-foreground text-sm font-semibold inline-flex items-center gap-2"
           >
-            <RefreshCw className={`h-4 w-4 ${loadingKeys ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${ak.loadingKeys ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
         </div>
 
         <div className="rounded-xl border border-border overflow-hidden">
           <div className="divide-y divide-border dark:divide-white/10">
-            {keys.length === 0 ? (
+            {ak.keys.length === 0 ? (
               <div className="p-4 text-sm text-secondary-foreground dark:text-muted-foreground">
                 Nenhuma chave criada ainda.
               </div>
             ) : (
-              keys.map((k) => (
+              ak.keys.map((k) => (
                 <div key={k.id} className="p-4 bg-white dark:bg-white/5 flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-foreground truncate">
@@ -871,22 +488,22 @@ export const ApiKeysSection: React.FC = () => {
                     {k.revoked_at ? (
                       <Button
                         type="button"
-                        disabled={deletingId === k.id}
-                        onClick={() => openDeleteConfirm(k)}
+                        disabled={ak.deletingId === k.id}
+                        onClick={() => ak.openDeleteConfirm(k)}
                         className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-60 text-rose-700 dark:text-rose-300 text-sm font-semibold inline-flex items-center gap-2"
                       >
                         <Trash2 className="h-4 w-4" />
-                        {deletingId === k.id ? 'Excluindo…' : 'Excluir'}
+                        {ak.deletingId === k.id ? 'Excluindo…' : 'Excluir'}
                       </Button>
                     ) : (
                       <Button
                         type="button"
-                        disabled={revokingId === k.id}
-                        onClick={() => revokeKey(k.id)}
+                        disabled={ak.revokingId === k.id}
+                        onClick={() => ak.revokeKey(k.id)}
                         className="px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-60 text-rose-700 dark:text-rose-300 text-sm font-semibold inline-flex items-center gap-2"
                       >
                         <Trash2 className="h-4 w-4" />
-                        {revokingId === k.id ? 'Revogando…' : 'Revogar'}
+                        {ak.revokingId === k.id ? 'Revogando…' : 'Revogar'}
                       </Button>
                     )}
                   </div>
@@ -898,20 +515,20 @@ export const ApiKeysSection: React.FC = () => {
       </div>
 
       <ConfirmModal
-        isOpen={deleteConfirmOpen}
-        onClose={() => setDeleteConfirmOpen(false)}
+        isOpen={ak.deleteConfirmOpen}
+        onClose={() => ak.setDeleteConfirmOpen(false)}
         onConfirm={() => {
-          if (!deleteTarget) return;
-          void deleteRevokedKey(deleteTarget.id);
+          if (!ak.deleteTarget) return;
+          void ak.deleteRevokedKey(ak.deleteTarget.id);
         }}
         title="Excluir chave revogada?"
         message={
           <div className="space-y-2">
             <div>Essa chave será removida permanentemente.</div>
             <div className="text-xs text-muted-foreground dark:text-muted-foreground">
-              {deleteTarget ? (
+              {ak.deleteTarget ? (
                 <>
-                  <span className="font-semibold">{deleteTarget.name}</span> — <span className="font-mono">{deleteTarget.key_prefix}…</span>
+                  <span className="font-semibold">{ak.deleteTarget.name}</span> — <span className="font-mono">{ak.deleteTarget.key_prefix}…</span>
                 </>
               ) : null}
             </div>

@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback } from 'react'
 import { Phone, PhoneOff, UserPlus, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { STAGE_LABELS, TEMPERATURE_CONFIG } from '@/features/contacts/constants'
+import { LeadScoreBadge } from '@/features/prospecting/components/LeadScoreBadge'
 import type { ProspectingFilteredContact } from '@/lib/supabase/prospecting-filtered-contacts'
 
 const QUEUE_LIMIT = 100
@@ -248,6 +249,9 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                   {STAGE_LABELS[contact.stage] || contact.stage}
                 </span>
               )}
+
+              {/* Lead Score badge */}
+              <LeadScoreBadge score={contact.leadScore} />
 
               {/* Temperature badge */}
               {contact.temperature && TEMPERATURE_CONFIG[contact.temperature] && (

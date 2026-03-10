@@ -20,7 +20,7 @@ import {
 export function buildPanelMaxWidthClass(step: WizardStep, selectMode: SelectMode, isChatMode: boolean): string {
   if (isChatMode) return 'lg:max-w-5xl';
   if (step === 'select' && selectMode === 'home') return 'sm:max-w-xl lg:max-w-xl';
-  if (step === 'select' && selectMode === 'browse') return 'sm:max-w-2xl lg:max-w-2xl';
+  if (step === 'select' && selectMode === 'browse') return 'sm:max-w-3xl lg:max-w-3xl';
   if (step === 'ai-input') return 'sm:max-w-2xl lg:max-w-2xl';
   if (step === 'ai-preview' || step === 'playbook-preview') return 'sm:max-w-4xl lg:max-w-4xl';
   return 'lg:max-w-5xl';

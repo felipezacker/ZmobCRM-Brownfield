@@ -23,10 +23,10 @@ export const AgentOptionsSchema = z.object({
             boardId: z.string().optional(),
             stages: z.array(StageSchema).optional(),
             columns: z.string().optional(),
-        }).catchall(z.any()).optional(),
+        }).catchall(z.unknown()).optional(),
     }).optional(),
 
-    filters: z.record(z.string(), z.any()).optional(),
+    filters: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Infer TypeScript types from Zod schemas
@@ -60,13 +60,10 @@ export interface CallOptions {
         name?: string;
         status?: string;
         value?: number;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        metadata?: Record<string, any>;
+        metadata?: Record<string, unknown>;
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    filters?: Record<string, any>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    filters?: Record<string, unknown>;
+    [key: string]: unknown;
 }
 
 // ============= AI SDK v6 Call Options Schema =============
@@ -96,8 +93,7 @@ export const CRMCallOptionsSchema = z.object({
     lostStage: z.string().optional(),
 
     // Cockpit Context (snapshot rico vindo do painel/cockpit)
-    // Mantido como any para evoluir sem quebrar compatibilidade.
-    cockpitSnapshot: z.any().optional(),
+    cockpitSnapshot: z.unknown().optional(),
 
     // User context
     userId: z.string().optional(),

@@ -9,8 +9,10 @@ import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts'
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { substituteVariables } from '@/features/prospecting/utils/scriptParser'
 import type { ProspectingQueueItem } from '@/types'
+import { LeadScoreBadge } from '@/features/prospecting/components/LeadScoreBadge'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
 import type { SessionStats } from '@/features/prospecting/ProspectingPage'
+import type { SuggestedTime } from '@/features/prospecting/utils/suggestBestTime'
 
 interface PowerDialerProps {
   contact: ProspectingQueueItem
@@ -22,6 +24,9 @@ interface PowerDialerProps {
   selectedScript?: QuickScript | null
   onScriptChange?: (script: QuickScript | null) => void
   sessionStats?: SessionStats
+  isAdminOrDirector?: boolean
+  onManageTemplates?: () => void
+  suggestedReturnTime?: SuggestedTime | null
 }
 
 const TEMP_DISPLAY: Record<string, { icon: React.ReactNode; label: string }> = {
@@ -40,6 +45,9 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   selectedScript,
   onScriptChange,
   sessionStats,
+  isAdminOrDirector,
+  onManageTemplates,
+  suggestedReturnTime,
 }) => {
   const [showCallModal, setShowCallModal] = useState(false)
   const [markedObjections, setMarkedObjections] = useState<string[]>([])
@@ -230,6 +238,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
                   {temp.label}
                 </span>
               )}
+              <LeadScoreBadge score={contact.leadScore} size="md" />
             </div>
           </div>
         </div>
@@ -334,6 +343,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
           outcome={lastCallData.outcome}
           callNotes={lastCallData.notes}
           onDismiss={handleQuickActionsDismiss}
+          suggestedReturnTime={suggestedReturnTime}
         />
       )}
 
@@ -356,6 +366,8 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
         contactPhone={contact.contactPhone || ''}
         suggestedTitle={`Prospecção - ${contact.contactName || ''}`}
         isProspecting
+        isAdminOrDirector={isAdminOrDirector}
+        onManageTemplates={onManageTemplates}
         sideContent={selectedScript ? (
           <ProspectingScriptGuide
             script={selectedScript}

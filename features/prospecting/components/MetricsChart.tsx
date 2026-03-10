@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 import type { DailyMetric } from '../hooks/useProspectingMetrics'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { OUTCOME_COLORS, chartTheme } from '@/lib/constants/chart-colors'
 
 interface MetricsChartProps {
   data: DailyMetric[]
@@ -21,11 +22,11 @@ interface MetricsChartProps {
 }
 
 const OUTCOMES = [
-  { key: 'connected', color: '#10b981', label: 'Conectou' },
-  { key: 'no_answer', color: '#ef4444', label: 'Sem Resposta' },
-  { key: 'voicemail', color: '#f59e0b', label: 'Correio de Voz' },
-  { key: 'busy', color: '#6b7280', label: 'Ocupado' },
-  { key: 'other', color: '#a78bfa', label: 'Outro' },
+  { key: 'connected', color: OUTCOME_COLORS.connected, label: 'Conectou' },
+  { key: 'no_answer', color: OUTCOME_COLORS.no_answer, label: 'Sem Resposta' },
+  { key: 'voicemail', color: OUTCOME_COLORS.voicemail, label: 'Correio de Voz' },
+  { key: 'busy', color: OUTCOME_COLORS.busy, label: 'Ocupado' },
+  { key: 'other', color: OUTCOME_COLORS.other, label: 'Outro' },
 ] as const
 
 function formatDate(dateStr: string): string {
@@ -71,6 +72,7 @@ function CustomTooltip({ active, payload, label, isDark }: {
 }) {
   if (!active || !payload) return null
 
+  const t = chartTheme(isDark)
   const nonZero = payload.filter(p => p.value > 0)
   const total = payload.reduce((sum, p) => sum + p.value, 0)
 
@@ -80,11 +82,11 @@ function CustomTooltip({ active, payload, label, isDark }: {
     <div
       className="rounded-lg shadow-lg px-3 py-2.5 text-xs"
       style={{
-        backgroundColor: isDark ? '#1e293b' : '#ffffff',
-        border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+        backgroundColor: t.tooltipBg,
+        border: `1px solid ${t.tooltipBorder}`,
       }}
     >
-      <p className="font-medium mb-1.5" style={{ color: isDark ? '#e2e8f0' : '#1e293b' }}>
+      <p className="font-medium mb-1.5" style={{ color: t.text }}>
         {label}
       </p>
       {nonZero.map(entry => (
@@ -93,8 +95,8 @@ function CustomTooltip({ active, payload, label, isDark }: {
             className="w-2.5 h-2.5 rounded-sm shrink-0"
             style={{ backgroundColor: entry.color }}
           />
-          <span style={{ color: isDark ? '#94a3b8' : '#64748b' }}>{entry.name}</span>
-          <span className="ml-auto font-medium" style={{ color: isDark ? '#e2e8f0' : '#1e293b' }}>
+          <span style={{ color: t.tick }}>{entry.name}</span>
+          <span className="ml-auto font-medium" style={{ color: t.text }}>
             {entry.value}
           </span>
         </div>
@@ -103,8 +105,8 @@ function CustomTooltip({ active, payload, label, isDark }: {
         <div
           className="flex items-center justify-between pt-1.5 mt-1.5 font-medium"
           style={{
-            borderTop: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
-            color: isDark ? '#e2e8f0' : '#1e293b',
+            borderTop: `1px solid ${t.tooltipBorder}`,
+            color: t.text,
           }}
         >
           <span>Total</span>
@@ -125,6 +127,7 @@ function ChartSkeleton() {
 
 export function MetricsChart({ data, isLoading, periodStart, periodEnd }: MetricsChartProps) {
   const isDark = useDarkMode()
+  const theme = chartTheme(isDark)
 
   if (isLoading) return <ChartSkeleton />
 
@@ -165,23 +168,23 @@ export function MetricsChart({ data, isLoading, periodStart, periodEnd }: Metric
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}
-              stroke={isDark ? '#334155' : '#e2e8f0'}
+              stroke={theme.grid}
             />
             <XAxis
               dataKey="name"
-              tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }}
-              axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+              tick={{ fontSize: 11, fill: theme.tick }}
+              axisLine={{ stroke: theme.grid }}
               tickLine={false}
             />
             <YAxis
               allowDecimals={false}
-              tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }}
+              tick={{ fontSize: 11, fill: theme.tick }}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
               content={<CustomTooltip isDark={isDark} />}
-              cursor={{ fill: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)' }}
+              cursor={{ fill: theme.cursor }}
             />
             {OUTCOMES.map((o, i) => (
               <Bar

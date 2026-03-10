@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Save, Users } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Save, Users, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/Modal'
 import type { DbDailyGoal } from '@/lib/supabase/prospecting-goals'
@@ -16,6 +16,8 @@ interface GoalConfigModalProps {
   currentUserId: string
   onSave: (ownerId: string, callsTarget: number) => Promise<void>
   isSaving: boolean
+  retryOutcomes?: string[]
+  onRetryOutcomesChange?: (outcomes: string[]) => void
 }
 
 export function GoalConfigModal({
@@ -28,6 +30,8 @@ export function GoalConfigModal({
   currentUserId,
   onSave,
   isSaving,
+  retryOutcomes = ['no_answer'],
+  onRetryOutcomesChange,
 }: GoalConfigModalProps) {
   const [myTarget, setMyTarget] = useState(currentTarget)
   const [teamEdits, setTeamEdits] = useState<Record<string, number>>({})
@@ -90,6 +94,41 @@ export function GoalConfigModal({
             </Button>
           </div>
         </div>
+
+        {/* CP-3.2: Retry outcomes configuration */}
+        {onRetryOutcomesChange && (
+          <div className="space-y-2 pt-2 border-t border-border dark:border-border">
+            <div className="flex items-center gap-2">
+              <RotateCcw size={14} className="text-muted-foreground" />
+              <span className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground">Outcomes de Retry Automatico</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Selecione quais resultados de ligacao devem agendar retry automatico.
+            </p>
+            <div className="space-y-1.5">
+              {([
+                { value: 'no_answer', label: 'Sem resposta' },
+                { value: 'voicemail', label: 'Caixa postal' },
+                { value: 'busy', label: 'Ocupado' },
+              ] as const).map(option => (
+                <label key={option.value} className="flex items-center gap-2 cursor-pointer text-sm text-secondary-foreground dark:text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={retryOutcomes.includes(option.value)}
+                    onChange={() => {
+                      const next = retryOutcomes.includes(option.value)
+                        ? retryOutcomes.filter(o => o !== option.value)
+                        : [...retryOutcomes, option.value]
+                      onRetryOutcomesChange(next)
+                    }}
+                    className="rounded border-border dark:border-border text-primary-500 focus:ring-primary-500"
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Team goals — director/admin only */}
         {isAdminOrDirector && (

@@ -7,6 +7,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import { useToast } from '@/context/ToastContext'
+import { supabase } from '@/lib/supabase/client'
 import {
   useProspectingQueueItems,
   useAddToProspectingQueue,
@@ -19,10 +20,11 @@ import {
   useResetRetry,
 } from '@/lib/query/hooks/useProspectingQueueQuery'
 import type { ProspectingQueueItem } from '@/types'
+import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 
-const QUEUE_LIMIT = 100
 const RETRY_INTERVAL_KEY = 'prospecting_retry_interval'
-const DEFAULT_RETRY_INTERVAL = 3
+const RETRY_OUTCOMES_KEY = 'prospecting_retry_outcomes'
+const DEFAULT_RETRY_OUTCOMES = ['no_answer']
 
 interface UseProspectingQueueOptions {
   viewOwnerId?: string
@@ -52,14 +54,30 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
 
   // CP-2.1: Retry interval from localStorage
   const [retryInterval, setRetryIntervalState] = useState<number>(() => {
-    if (typeof window === 'undefined') return DEFAULT_RETRY_INTERVAL
+    if (typeof window === 'undefined') return PROSPECTING_CONFIG.DEFAULT_RETRY_INTERVAL_DAYS
     const stored = localStorage.getItem(RETRY_INTERVAL_KEY)
-    return stored ? parseInt(stored, 10) : DEFAULT_RETRY_INTERVAL
+    return stored ? parseInt(stored, 10) : PROSPECTING_CONFIG.DEFAULT_RETRY_INTERVAL_DAYS
   })
 
   const setRetryInterval = useCallback((days: number) => {
     setRetryIntervalState(days)
     localStorage.setItem(RETRY_INTERVAL_KEY, String(days))
+  }, [])
+
+  // CP-3.2: Configurable retry outcomes
+  const [retryOutcomes, setRetryOutcomesState] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return DEFAULT_RETRY_OUTCOMES
+    try {
+      const stored = localStorage.getItem(RETRY_OUTCOMES_KEY)
+      return stored ? JSON.parse(stored) : DEFAULT_RETRY_OUTCOMES
+    } catch {
+      return DEFAULT_RETRY_OUTCOMES
+    }
+  })
+
+  const setRetryOutcomes = useCallback((outcomes: string[]) => {
+    setRetryOutcomesState(outcomes)
+    localStorage.setItem(RETRY_OUTCOMES_KEY, JSON.stringify(outcomes))
   }, [])
 
   // CP-2.1: Activate ready retries on queue load (run only once)
@@ -73,6 +91,25 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
       }
     }
   }, [isLoading, rawQueue, activateRetriesMutation, effectiveOwnerId])
+
+  // CP-3.5: Cleanup exhausted queue items >30 days (fire-and-forget, once per mount)
+  const hasCleanedUp = useRef(false)
+  useEffect(() => {
+    if (!isLoading && !hasCleanedUp.current && supabase) {
+      hasCleanedUp.current = true
+      Promise.resolve(
+        supabase.rpc('cleanup_exhausted_queue_items', {
+          p_days_old: PROSPECTING_CONFIG.EXHAUSTED_CLEANUP_DAYS,
+        })
+      ).then(({ data }) => {
+        if (data && data > 0) {
+          console.log(`CP-3.5 Cleanup: ${data} items exauridos removidos`)
+        }
+      }).catch(() => {
+        // Fire-and-forget: don't block on cleanup failure
+      })
+    }
+  }, [isLoading])
 
   // Sort by position, keep consistent — exclude exhausted from main queue
   const queue = useMemo(
@@ -137,8 +174,8 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     const item = queue[currentIndex]
     if (!item) return
     try {
-      // CP-2.1: Auto-retry for no_answer outcomes
-      if (outcome === 'no_answer') {
+      // CP-3.2: Auto-retry for configurable outcomes (was: only no_answer)
+      if (outcome && retryOutcomes.includes(outcome)) {
         const result = await scheduleRetryMutation.mutateAsync({
           id: item.id,
           retryIntervalDays: retryInterval,
@@ -155,12 +192,12 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     } catch {
       toast('Erro ao marcar como completo', 'error')
     }
-  }, [queue, currentIndex, updateStatusMutation, scheduleRetryMutation, retryInterval, advanceToNext, toast])
+  }, [queue, currentIndex, updateStatusMutation, scheduleRetryMutation, retryInterval, retryOutcomes, advanceToNext, toast])
 
   const addToQueue = useCallback(async (contactId: string) => {
     // QV-1.7 Bug #6: Validate queue limit (100)
-    if (queue.length >= QUEUE_LIMIT) {
-      toast('Limite de 100 contatos atingido', 'warning')
+    if (queue.length >= PROSPECTING_CONFIG.QUEUE_MAX_CONTACTS) {
+      toast(`Limite de ${PROSPECTING_CONFIG.QUEUE_MAX_CONTACTS} contatos atingido`, 'warning')
       return
     }
 
@@ -223,6 +260,8 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     removingId: removeMutation.isPending ? (removeMutation.variables as string | undefined) : undefined,
     retryInterval,
     setRetryInterval,
+    retryOutcomes,
+    setRetryOutcomes,
     startSession,
     endSession,
     next,

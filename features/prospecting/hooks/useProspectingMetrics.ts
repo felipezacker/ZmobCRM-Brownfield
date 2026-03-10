@@ -1,7 +1,9 @@
 /**
- * Hook for prospecting metrics (CP-1.4)
+ * Hook for prospecting metrics (CP-1.4, CP-3.5)
  *
- * Queries activities WHERE type='CALL' with metadata JSONB
+ * Primary: RPC get_prospecting_metrics_aggregated (server-side, no LIMIT)
+ * Fallback: Direct query with LIMIT (legacy, if RPC fails)
+ *
  * RLS automatically handles RBAC:
  *   - corretor: sees only own activities
  *   - diretor/admin: sees all org activities
@@ -13,6 +15,7 @@ import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import { useAuth } from '@/context/AuthContext'
 import { queryKeys } from '@/lib/query/queryKeys'
 import { supabase } from '@/lib/supabase/client'
+import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 
 export type MetricsPeriod = 'today' | '7d' | '30d' | 'custom'
 
@@ -200,6 +203,58 @@ export function aggregateMetrics(
   }
 }
 
+/** Transform RPC JSONB response into ProspectingMetrics */
+export function transformRpcResponse(rpcData: Record<string, unknown>): ProspectingMetrics {
+  const totalCalls = Number(rpcData.total_calls) || 0
+  const connectedCalls = Number(rpcData.connected) || 0
+  const noAnswer = Number(rpcData.no_answer) || 0
+  const voicemail = Number(rpcData.voicemail) || 0
+  const busy = Number(rpcData.busy) || 0
+  const connectionRate = totalCalls > 0 ? (connectedCalls / totalCalls) * 100 : 0
+  const avgDuration = Number(rpcData.avg_duration) || 0
+  const uniqueContacts = Number(rpcData.unique_contacts) || 0
+
+  const byDayRaw = (rpcData.by_day as Record<string, unknown>[] | null) || []
+  const byDay: DailyMetric[] = byDayRaw.map(d => ({
+    date: String(d.date),
+    connected: Number(d.connected) || 0,
+    no_answer: Number(d.no_answer) || 0,
+    voicemail: Number(d.voicemail) || 0,
+    busy: Number(d.busy) || 0,
+    other: 0,
+    total: Number(d.total) || 0,
+  }))
+
+  const byOutcome = [
+    { outcome: 'connected', count: connectedCalls },
+    { outcome: 'no_answer', count: noAnswer },
+    { outcome: 'voicemail', count: voicemail },
+    { outcome: 'busy', count: busy },
+  ].filter(o => o.count > 0)
+
+  const byBrokerRaw = (rpcData.by_broker as Record<string, unknown>[] | null) || []
+  const byBroker: BrokerMetric[] = byBrokerRaw.map(b => ({
+    ownerId: String(b.owner_id),
+    ownerName: String(b.owner_name || 'Desconhecido'),
+    totalCalls: Number(b.total_calls) || 0,
+    connectedCalls: Number(b.connected) || 0,
+    connectionRate: Number(b.connection_rate) || 0,
+    avgDuration: Number(b.avg_duration) || 0,
+    uniqueContacts: Number(b.unique_contacts) || 0,
+  }))
+
+  return {
+    totalCalls,
+    connectedCalls,
+    connectionRate,
+    avgDuration,
+    uniqueContacts,
+    byDay,
+    byOutcome,
+    byBroker,
+  }
+}
+
 export function useProspectingMetrics(
   period: MetricsPeriod = '7d',
   customRange?: PeriodRange,
@@ -217,10 +272,28 @@ export function useProspectingMetrics(
   const isAdminOrDirector =
     profile?.role === 'admin' || profile?.role === 'diretor'
 
-  const QUERY_LIMIT = 5000
+  // Primary: RPC-based metrics (server-side aggregation, no LIMIT)
+  const rpcQuery = useQuery({
+    queryKey: [...queryKeys.prospectingMetrics.all, 'rpc', range.start, range.end, filterOwnerId || ''],
+    queryFn: async () => {
+      if (!supabase) throw new Error('No supabase client')
+      const { data, error } = await supabase.rpc('get_prospecting_metrics_aggregated', {
+        p_owner_id: filterOwnerId || null,
+        p_org_id: null,
+        p_start_date: range.start,
+        p_end_date: range.end,
+      })
+      if (error) throw error
+      return data as Record<string, unknown>
+    },
+    enabled: !authLoading && !!user,
+    staleTime: 30 * 1000,
+    retry: 1,
+  })
 
-  const metricsQuery = useQuery({
-    queryKey: [...queryKeys.prospectingMetrics.all, range.start, range.end],
+  // Fallback: Direct query (legacy, only if RPC fails)
+  const fallbackQuery = useQuery({
+    queryKey: [...queryKeys.prospectingMetrics.all, 'fallback', range.start, range.end],
     queryFn: async () => {
       if (!supabase) return []
       const { data, error } = await supabase
@@ -231,29 +304,67 @@ export function useProspectingMetrics(
         .gte('date', `${range.start}T00:00:00`)
         .lte('date', `${range.end}T23:59:59`)
         .is('deleted_at', null)
-        .limit(QUERY_LIMIT)
+        .limit(PROSPECTING_CONFIG.METRICS_MAX_RECORDS)
         .order('date', { ascending: false })
 
       if (error) throw error
       return (data || []) as CallActivity[]
     },
-    enabled: !authLoading && !!user,
+    enabled: !authLoading && !!user && rpcQuery.isError,
     staleTime: 30 * 1000,
   })
 
-  const isDataTruncated = (metricsQuery.data?.length ?? 0) >= QUERY_LIMIT
+  const usingFallback = rpcQuery.isError && !fallbackQuery.isError
+  const isDataTruncated = usingFallback && (fallbackQuery.data?.length ?? 0) >= PROSPECTING_CONFIG.METRICS_MAX_RECORDS
 
-  // Filter by broker client-side (data already fetched for all via RLS)
-  const filteredActivities = useMemo(() => {
-    if (!metricsQuery.data) return []
-    if (!filterOwnerId) return metricsQuery.data
-    return metricsQuery.data.filter(a => a.owner_id === filterOwnerId)
-  }, [metricsQuery.data, filterOwnerId])
+  // Activities for heatmap (need raw data) — only from fallback
+  const fallbackActivities = useMemo(() => {
+    if (!fallbackQuery.data) return []
+    if (!filterOwnerId) return fallbackQuery.data
+    return fallbackQuery.data.filter(a => a.owner_id === filterOwnerId)
+  }, [fallbackQuery.data, filterOwnerId])
+
+  // For heatmap: if RPC is active, we need to fetch activities separately
+  // Use a lightweight query just for heatmap raw data
+  const heatmapQuery = useQuery({
+    queryKey: [...queryKeys.prospectingMetrics.all, 'heatmap', range.start, range.end],
+    queryFn: async () => {
+      if (!supabase) return []
+      const { data, error } = await supabase
+        .from('activities')
+        .select('id, date, owner_id, contact_id, metadata')
+        .eq('type', 'CALL')
+        .not('metadata', 'is', null)
+        .gte('date', `${range.start}T00:00:00`)
+        .lte('date', `${range.end}T23:59:59`)
+        .is('deleted_at', null)
+        .limit(PROSPECTING_CONFIG.HEATMAP_MAX_RECORDS)
+        .order('date', { ascending: false })
+
+      if (error) throw error
+      return (data || []) as CallActivity[]
+    },
+    enabled: !authLoading && !!user && !rpcQuery.isError,
+    staleTime: 60 * 1000,
+  })
+
+  const activities = useMemo(() => {
+    const raw = usingFallback ? fallbackActivities : (heatmapQuery.data || [])
+    if (!filterOwnerId) return raw
+    return raw.filter(a => a.owner_id === filterOwnerId)
+  }, [usingFallback, fallbackActivities, heatmapQuery.data, filterOwnerId])
 
   const metrics = useMemo(() => {
-    if (!metricsQuery.data) return null
-    return aggregateMetrics(filteredActivities, profiles)
-  }, [filteredActivities, metricsQuery.data, profiles])
+    // RPC path: transform server-side aggregation
+    if (!rpcQuery.isError && rpcQuery.data) {
+      return transformRpcResponse(rpcQuery.data)
+    }
+    // Fallback path: client-side aggregation
+    if (fallbackQuery.data) {
+      return aggregateMetrics(fallbackActivities, profiles)
+    }
+    return null
+  }, [rpcQuery.data, rpcQuery.isError, fallbackQuery.data, fallbackActivities, profiles])
 
   const invalidateMetrics = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.prospectingMetrics.all })
@@ -261,10 +372,10 @@ export function useProspectingMetrics(
 
   return {
     metrics,
-    activities: filteredActivities,
-    isLoading: metricsQuery.isLoading,
-    isFetching: metricsQuery.isFetching,
-    error: metricsQuery.error,
+    activities,
+    isLoading: rpcQuery.isLoading || (rpcQuery.isError && fallbackQuery.isLoading),
+    isFetching: rpcQuery.isFetching || fallbackQuery.isFetching,
+    error: rpcQuery.isError && fallbackQuery.isError ? fallbackQuery.error : null,
     isAdminOrDirector,
     isDataTruncated,
     range,
