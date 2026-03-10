@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-3.3
 - **Epic:** CP-3 (Prospeccao com IA + Melhorias da Central)
-- **Status:** InProgress
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 13 (L)
 - **Wave:** 2
@@ -32,26 +32,26 @@ O agente de IA ja tem 36+1 tools (com suggestScript de CP-3.2), mas falta a capa
 ## Acceptance Criteria
 
 ### listSavedQueues tool
-- [ ] AC1: Given o agente de IA, when solicitado "mostre minhas filas salvas", then retorna lista com nome, filtros, contact count e is_shared
-- [ ] AC2: Given o agente de IA com filas salvas de outro usuario (is_shared=true), when solicitado, then inclui filas compartilhadas no resultado
+- [x] AC1: Given o agente de IA, when solicitado "mostre minhas filas salvas", then retorna lista com nome, filtros, contact count e is_shared
+- [x] AC2: Given o agente de IA com filas salvas de outro usuario (is_shared=true), when solicitado, then inclui filas compartilhadas no resultado
 
 ### addContactsToQueue tool
-- [ ] AC3: Given o agente de IA e uma lista de contactIds, when solicitado "adicione esses contatos a minha fila", then adiciona em batch e retorna contagem (added/skipped)
-- [ ] AC4: Given a tool addContactsToQueue, when executada, then requer aprovacao do usuario antes de executar (needsApproval: true)
-- [ ] AC5: Given contactIds ja na fila, when adicionados via IA, then sao ignorados (skipped) sem erro
+- [x] AC3: Given o agente de IA e uma lista de contactIds, when solicitado "adicione esses contatos a minha fila", then adiciona em batch e retorna contagem (added/skipped)
+- [x] AC4: Given a tool addContactsToQueue, when executada, then requer aprovacao do usuario antes de executar (needsApproval: true)
+- [x] AC5: Given contactIds ja na fila, when adicionados via IA, then sao ignorados (skipped) sem erro
 
 ### suggestContactsForProspecting tool
-- [ ] AC6: Given o agente de IA, when solicitado "quem devo ligar agora?", then retorna lista de 10 contatos rankeados com score composto e motivo
-- [ ] AC7: Given contatos retornados, when analisados, then cada sugestao inclui: nome, score, temperatura, dias sem contato, melhor acao sugerida e motivo da recomendacao
-- [ ] AC8: Given filtros opcionais (stage, temperature), when passados, then a lista e filtrada adequadamente
+- [x] AC6: Given o agente de IA, when solicitado "quem devo ligar agora?", then retorna lista de 10 contatos rankeados com score composto e motivo
+- [x] AC7: Given contatos retornados, when analisados, then cada sugestao inclui: nome, score, temperatura, dias sem contato, melhor acao sugerida e motivo da recomendacao
+- [x] AC8: Given filtros opcionais (stage, temperature), when passados, then a lista e filtrada adequadamente
 
 ### analyzeProspectingPatterns tool
-- [ ] AC9: Given o agente de IA, when solicitado "analise meus padroes de prospeccao dos ultimos 30 dias", then retorna insights estruturados
-- [ ] AC10: Given o periodo de 30d, when analisado, then inclui: melhor horario, dia mais produtivo, taxa de conexao por stage, contatos negligenciados (>7 dias sem contato)
+- [x] AC9: Given o agente de IA, when solicitado "analise meus padroes de prospeccao dos ultimos 30 dias", then retorna insights estruturados
+- [x] AC10: Given o periodo de 30d, when analisado, then inclui: melhor horario, dia mais produtivo, taxa de conexao por stage, contatos negligenciados (>7 dias sem contato)
 
 ### Integracao e documentacao
-- [ ] AC11: Given o BASE_INSTRUCTIONS, when inspecionado, then documenta 41 tools (36 atuais + suggestScript + 4 desta story)
-- [ ] AC12: Given o prompt catalog, when inspecionado, then inclui template `agent_prospecting_recommendations`
+- [x] AC11: Given o BASE_INSTRUCTIONS, when inspecionado, then documenta 41 tools (36 atuais + suggestScript + 4 desta story)
+- [x] AC12: Given o prompt catalog, when inspecionado, then inclui template `agent_prospecting_recommendations`
 
 ## Scope
 
@@ -228,17 +228,17 @@ toolName: tool({
 
 ## Criteria of Done
 
-- [ ] `listSavedQueues` tool funcional
-- [ ] `addContactsToQueue` tool com needsApproval
-- [ ] `suggestContactsForProspecting` retorna lista rankeada com motivo
-- [ ] `analyzeProspectingPatterns` gera insights acionaveis
-- [ ] Prompt `agent_prospecting_recommendations` no catalog
-- [ ] IA sugere carregar filas salvas quando pertinente
-- [ ] BASE_INSTRUCTIONS atualizado (41 tools)
-- [ ] `npm run typecheck` passa
-- [ ] `npm run lint` passa
-- [ ] `npm test` passa
-- [ ] Testes cobrindo 4 novas tools
+- [x] `listSavedQueues` tool funcional
+- [x] `addContactsToQueue` tool com needsApproval
+- [x] `suggestContactsForProspecting` retorna lista rankeada com motivo
+- [x] `analyzeProspectingPatterns` gera insights acionaveis
+- [x] Prompt `agent_prospecting_recommendations` no catalog
+- [x] IA sugere carregar filas salvas quando pertinente
+- [x] BASE_INSTRUCTIONS atualizado (41 tools)
+- [x] `npm run typecheck` passa
+- [x] `npm run lint` passa
+- [x] `npm test` passa
+- [x] Testes cobrindo 4 novas tools
 
 ## File List
 
@@ -304,6 +304,7 @@ toolName: tool({
 | 2026-03-10 | @po | Validacao GO (9/10). Fix I3: dependencia CP-3.2 clarificada com contagem condicional (40 ou 41 tools). Status Draft → Ready. |
 | 2026-03-10 | @dev | Implementacao completa: 4 tools, testes, prompt template, BASE_INSTRUCTIONS 41 tools. 785 testes passando. |
 | 2026-03-10 | @qa | Review iteracao 1: CONCERNS (faltava byStage AC10). Iteracao 2: PASS (12/12 ACs). |
+| 2026-03-10 | @po | Todos ACs e CoD marcados [x]. Teste manual aprovado pelo usuario. Status InProgress → Done. |
 
 ---
 *Story gerada por @sm (River) — Epic CP-3*
