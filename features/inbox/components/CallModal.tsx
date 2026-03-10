@@ -16,6 +16,9 @@ interface CallModalProps {
     sideContent?: React.ReactNode;
     /** When true, show note templates based on outcome (prospecting flow) */
     isProspecting?: boolean;
+    /** CP-3.2: Show "Gerenciar templates" link for admin/director */
+    isAdminOrDirector?: boolean;
+    onManageTemplates?: () => void;
 }
 
 export interface CallLogData {
@@ -54,6 +57,8 @@ export const CallModal: React.FC<CallModalProps> = ({
     suggestedTitle = 'Ligação',
     sideContent,
     isProspecting,
+    isAdminOrDirector,
+    onManageTemplates,
 }) => {
     const [openedAt, setOpenedAt] = useState<Date | null>(null);
     const [dialerOpenedAt, setDialerOpenedAt] = useState<Date | null>(null);
@@ -381,6 +386,8 @@ export const CallModal: React.FC<CallModalProps> = ({
                                     onSelect={(text) => {
                                         setNotes((prev) => prev ? `${prev}\n${text}` : text)
                                     }}
+                                    isAdminOrDirector={isAdminOrDirector}
+                                    onManageTemplates={onManageTemplates}
                                 />
                             </div>
                         )}

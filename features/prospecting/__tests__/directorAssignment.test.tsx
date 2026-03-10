@@ -47,6 +47,10 @@ vi.mock('../components/PowerDialer', () => ({
   PowerDialer: () => <div data-testid="power-dialer" />,
 }))
 
+vi.mock('../components/NoteTemplatesManager', () => ({
+  NoteTemplatesManager: () => null,
+}))
+
 // Prospecting queue
 vi.mock('../hooks/useProspectingQueue', () => ({
   useProspectingQueue: () => ({
@@ -62,6 +66,8 @@ vi.mock('../hooks/useProspectingQueue', () => ({
     addToQueue: vi.fn(),
     removeFromQueue: vi.fn(),
     refetch: vi.fn(),
+    retryOutcomes: ['no_answer'],
+    setRetryOutcomes: vi.fn(),
   }),
 }))
 
@@ -156,10 +162,13 @@ vi.mock('../hooks/useProspectingGoals', () => ({
 vi.mock('../hooks/useProspectingMetrics', () => ({
   useProspectingMetrics: () => ({
     metrics: null,
+    activities: [],
     isLoading: false,
     isFetching: false,
     error: null,
     isAdminOrDirector: true,
+    isDataTruncated: false,
+    range: { start: '2026-03-01', end: '2026-03-10' },
     invalidateMetrics: vi.fn(),
   }),
 }))
