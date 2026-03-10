@@ -714,48 +714,74 @@ export function createProspectingTools({ supabase, organizationId, userId, bypas
                     }
                 }
 
-                // 5. Neglected contacts (>7 days since last call)
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                // 5. Fetch contact details (stages + info for neglected)
+                const allContactIds = Array.from(contactIds);
+                type ContactDetail = { id: string; name: string; stage: string | null; temperature: string | null; lead_score: number | null };
+                const contactDetailsMap = new Map<string, ContactDetail>();
 
-                // Fetch contact details for neglected ones
-                const neglectedIds: string[] = [];
-                for (const [contactId, lastCall] of contactLastCall) {
-                    if (new Date(lastCall) < sevenDaysAgo) {
-                        neglectedIds.push(contactId);
+                if (allContactIds.length > 0) {
+                    const { data: contactData } = await supabase
+                        .from('contacts')
+                        .select('id, name, stage, temperature, lead_score')
+                        .in('id', allContactIds.slice(0, 500))
+                        .is('deleted_at', null);
+
+                    for (const c of (contactData || []) as ContactDetail[]) {
+                        contactDetailsMap.set(c.id, c);
                     }
                 }
 
-                let neglectedContacts: Array<{ name: string; daysSince: number; temperature: string | null; leadScore: number | null }> = [];
-
-                if (neglectedIds.length > 0) {
-                    const { data: neglectedData } = await supabase
-                        .from('contacts')
-                        .select('id, name, temperature, lead_score')
-                        .in('id', neglectedIds.slice(0, 20))
-                        .is('deleted_at', null);
-
-                    neglectedContacts = (neglectedData || []).map((c: { id: string; name: string; temperature: string | null; lead_score: number | null }) => {
-                        const lastCall = contactLastCall.get(c.id) || '';
-                        const daysSince = Math.floor((Date.now() - new Date(lastCall).getTime()) / (1000 * 60 * 60 * 24));
-                        return {
-                            name: c.name,
-                            daysSince,
-                            temperature: c.temperature,
-                            leadScore: c.lead_score,
-                        };
-                    }).sort((a: { daysSince: number }, b: { daysSince: number }) => b.daysSince - a.daysSince).slice(0, 10);
+                // 6. Aggregate by stage
+                const stageStats = new Map<string, { total: number; connected: number }>();
+                for (const call of calls) {
+                    if (!call.contact_id) continue;
+                    const detail = contactDetailsMap.get(call.contact_id);
+                    const stage = detail?.stage || 'unknown';
+                    if (!stageStats.has(stage)) stageStats.set(stage, { total: 0, connected: 0 });
+                    const ss = stageStats.get(stage)!;
+                    ss.total++;
+                    if ((call.metadata?.outcome as string) === 'connected') ss.connected++;
                 }
 
-                // 6. Build summary
+                const byStage = Array.from(stageStats).map(([stage, stats]) => ({
+                    stage,
+                    calls: stats.total,
+                    connectionRate: stats.total > 0 ? Math.round((stats.connected / stats.total) * 100) : 0,
+                })).sort((a, b) => b.calls - a.calls);
+
+                // 7. Neglected contacts (>7 days since last call)
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+                const neglectedContacts: Array<{ name: string; daysSince: number; temperature: string | null; leadScore: number | null }> = [];
+                for (const [cid, lastCall] of contactLastCall) {
+                    if (new Date(lastCall) < sevenDaysAgo) {
+                        const detail = contactDetailsMap.get(cid);
+                        if (detail) {
+                            const daysSince = Math.floor((Date.now() - new Date(lastCall).getTime()) / (1000 * 60 * 60 * 24));
+                            neglectedContacts.push({
+                                name: detail.name,
+                                daysSince,
+                                temperature: detail.temperature,
+                                leadScore: detail.lead_score,
+                            });
+                        }
+                    }
+                }
+                neglectedContacts.sort((a, b) => b.daysSince - a.daysSince);
+                const topNeglected = neglectedContacts.slice(0, 10);
+
+                // 8. Build summary
                 const totalCalls = calls.length;
                 const totalConnected = calls.filter(c => (c.metadata?.outcome as string) === 'connected').length;
                 const overallRate = totalCalls > 0 ? Math.round((totalConnected / totalCalls) * 100) : 0;
 
+                const topStage = byStage[0];
                 const summary = `Nos ultimos ${days} dias: ${totalCalls} ligacoes, ${overallRate}% taxa de conexao. ` +
                     `Melhor horario: ${bestHour.hour}h (${bestHour.connectionRate}% conexao). ` +
                     `Dia mais produtivo: ${bestDay.dayOfWeek} (${bestDay.totalCalls} ligacoes). ` +
-                    `${neglectedContacts.length} contatos negligenciados (>7 dias sem contato).`;
+                    (topStage ? `Stage com mais ligacoes: ${topStage.stage} (${topStage.calls} ligacoes, ${topStage.connectionRate}% conexao). ` : '') +
+                    `${topNeglected.length} contatos negligenciados (>7 dias sem contato).`;
 
                 return {
                     period,
@@ -763,7 +789,8 @@ export function createProspectingTools({ supabase, organizationId, userId, bypas
                     connectionRate: `${overallRate}%`,
                     bestHour,
                     bestDay,
-                    neglectedContacts,
+                    byStage,
+                    neglectedContacts: topNeglected,
                     summary,
                 };
             },

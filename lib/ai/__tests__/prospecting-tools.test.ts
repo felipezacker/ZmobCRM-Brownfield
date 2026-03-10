@@ -663,7 +663,7 @@ describe('createProspectingTools', () => {
             expect((tools.analyzeProspectingPatterns as any).execute).toBeTypeOf('function');
         });
 
-        it('returns insights with bestHour and bestDay', async () => {
+        it('returns insights with bestHour, bestDay and byStage', async () => {
             // Generate mock activities across different hours/days
             const mockActivities = [
                 { id: 'a1', date: '2026-03-03T10:00:00Z', contact_id: 'c1', metadata: { outcome: 'connected' } },
@@ -673,8 +673,16 @@ describe('createProspectingTools', () => {
                 { id: 'a5', date: '2026-03-04T14:30:00Z', contact_id: 'c5', metadata: { outcome: 'no_answer' } },
             ];
 
+            const mockContacts = [
+                { id: 'c1', name: 'Contato 1', stage: 'prospecting', temperature: 'WARM', lead_score: 50 },
+                { id: 'c2', name: 'Contato 2', stage: 'prospecting', temperature: 'HOT', lead_score: 70 },
+                { id: 'c3', name: 'Contato 3', stage: 'qualification', temperature: 'COLD', lead_score: 30 },
+                { id: 'c4', name: 'Contato 4', stage: 'qualification', temperature: 'WARM', lead_score: 60 },
+                { id: 'c5', name: 'Contato 5', stage: 'prospecting', temperature: 'WARM', lead_score: 40 },
+            ];
+
             // Query 1: activities
-            // Query 2: neglected contacts details
+            // Query 2: contact details (stages + neglected info)
             let fromCallCount = 0;
             const chainMaker = () => {
                 fromCallCount++;
@@ -692,13 +700,7 @@ describe('createProspectingTools', () => {
                 Object.defineProperty(chain, 'then', {
                     value: (resolve: (v: unknown) => void) => {
                         if (fromCallCount === 1) return Promise.resolve({ data: mockActivities, error: null }).then(resolve);
-                        // Neglected contacts
-                        return Promise.resolve({
-                            data: [
-                                { id: 'c1', name: 'Contato Antigo', temperature: 'WARM', lead_score: 50 },
-                            ],
-                            error: null,
-                        }).then(resolve);
+                        return Promise.resolve({ data: mockContacts, error: null }).then(resolve);
                     },
                     writable: true,
                 });
@@ -714,6 +716,18 @@ describe('createProspectingTools', () => {
             expect(result.bestHour).toHaveProperty('connectionRate');
             expect(result.bestDay).toHaveProperty('dayOfWeek');
             expect(result.bestDay).toHaveProperty('totalCalls');
+            // byStage (AC10)
+            expect(result.byStage).toBeDefined();
+            expect(Array.isArray(result.byStage)).toBe(true);
+            expect(result.byStage.length).toBe(2); // prospecting + qualification
+            const prospecting = result.byStage.find((s: any) => s.stage === 'prospecting');
+            expect(prospecting).toBeDefined();
+            expect(prospecting.calls).toBe(3);
+            expect(prospecting.connectionRate).toBe(67); // 2/3
+            const qualification = result.byStage.find((s: any) => s.stage === 'qualification');
+            expect(qualification).toBeDefined();
+            expect(qualification.calls).toBe(2);
+            expect(qualification.connectionRate).toBe(50); // 1/2
             expect(result.summary).toContain('5 ligacoes');
         });
 
