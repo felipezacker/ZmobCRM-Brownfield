@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,9 @@ import { CallDetailsTable } from './components/CallDetailsTable'
 import { CorretorRanking } from './components/CorretorRanking'
 import { DailyGoalCard } from './components/DailyGoalCard'
 import { ConnectionHeatmap } from './components/ConnectionHeatmap'
+import { ProspectingErrorBoundary } from './components/ProspectingErrorBoundary'
 import { GoalConfigModal } from './components/GoalConfigModal'
+import { NoteTemplatesManager } from './components/NoteTemplatesManager'
 import { SaveQueueModal } from './components/SaveQueueModal'
 import { SavedQueuesList } from './components/SavedQueuesList'
 import { useProspectingGoals } from './hooks/useProspectingGoals'
@@ -30,7 +32,11 @@ import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { useTags } from '@/hooks/useTags'
 import { supabase } from '@/lib/supabase/client'
+import { SessionHistory } from './components/SessionHistory'
+import { listSessions, type ProspectingSession } from '@/lib/supabase/prospecting-sessions'
+import { suggestBestTime } from './utils/suggestBestTime'
 import { useProspectingPageState, type OrgProfile } from '@/features/prospecting/hooks/useProspectingPageState'
+import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 
 export type { SessionStats } from '@/features/prospecting/hooks/useProspectingPageState'
 
@@ -62,7 +68,7 @@ export const ProspectingPage: React.FC = () => {
   })
 
   // --- Page state hook (all useState + handlers) ---
-  const pageState = useProspectingPageState()
+  const pageState = useProspectingPageState(profile?.id, profile?.organization_id)
 
   const {
     setDeps,
@@ -82,6 +88,10 @@ export const ProspectingPage: React.FC = () => {
     selectedScript, setSelectedScript,
     sessionStats,
     sessionStartTime,
+    pendingActiveSession,
+    handleResumeSession,
+    handleDismissActiveSession,
+    handleIgnoreActiveSession,
     handleStartSession,
     handleEndSession,
     handleCallComplete,
@@ -90,6 +100,9 @@ export const ProspectingPage: React.FC = () => {
     handleLoadSavedQueue,
     handleExportPdf,
   } = pageState
+
+  // CP-3.2: Note templates manager modal
+  const [showTemplatesManager, setShowTemplatesManager] = useState(false)
 
   // --- External feature hooks (use state values from pageState) ---
 
@@ -102,6 +115,18 @@ export const ProspectingPage: React.FC = () => {
 
   // CP-2.4: Saved queues + PDF export
   const savedQueuesHook = useSavedQueues()
+
+  // CP-3.4: Session history
+  const { data: sessionHistory = [], isLoading: isLoadingSessions } = useQuery<ProspectingSession[]>({
+    queryKey: ['prospecting-sessions', profile?.organization_id, metricsFilterOwnerId],
+    queryFn: () => listSessions(
+      metricsFilterOwnerId || profile?.id,
+      profile?.organization_id || '',
+      PROSPECTING_CONFIG.SESSION_HISTORY_LIMIT,
+    ),
+    enabled: !!profile?.organization_id,
+    staleTime: 30 * 1000,
+  })
 
   // Queue owner view: resolvedViewOwnerId computed here (needs isAdminOrDirector)
   const resolvedViewOwnerId = useMemo(() => {
@@ -123,6 +148,8 @@ export const ProspectingPage: React.FC = () => {
     removingId,
     retryInterval,
     setRetryInterval,
+    retryOutcomes,
+    setRetryOutcomes,
     skip,
     addToQueue,
     removeFromQueue,
@@ -143,6 +170,12 @@ export const ProspectingPage: React.FC = () => {
     filteredContacts: filteredContactsHook,
     savedQueuesDeps: savedQueuesHook,
   })
+
+  // CP-3.4: Compute suggested return time from heatmap data (AC6-AC8)
+  const suggestedReturnTime = useMemo(
+    () => suggestBestTime(metricsHook.activities),
+    [metricsHook.activities],
+  )
 
   const currentContact = sessionActive && queue[currentIndex] ? queue[currentIndex] : null
   const pendingCount = queue.filter(q => q.status === 'pending').length
@@ -335,6 +368,40 @@ export const ProspectingPage: React.FC = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
+        {/* CP-3.4: Active session resume prompt (AC3) */}
+        {pendingActiveSession && !sessionActive && !showSummary && (
+          <div className="flex items-center gap-3 px-4 py-3 mb-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl">
+            <PhoneOutgoing size={16} className="text-amber-600 shrink-0" />
+            <span className="text-sm text-amber-700 dark:text-amber-300 flex-1">
+              Sessao ativa encontrada (iniciada em {new Date(pendingActiveSession.startedAt).toLocaleString('pt-BR')}). Deseja retomar?
+            </span>
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              onClick={handleResumeSession}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 hover:bg-amber-600 text-white transition-colors"
+            >
+              Retomar
+            </Button>
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              onClick={handleDismissActiveSession}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-accent text-secondary-foreground dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors"
+            >
+              Encerrar
+            </Button>
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              onClick={handleIgnoreActiveSession}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-secondary-foreground transition-colors"
+            >
+              Ignorar
+            </Button>
+          </div>
+        )}
+
         {showSummary ? (
           <SessionSummary
             stats={sessionStats}
@@ -342,17 +409,22 @@ export const ProspectingPage: React.FC = () => {
             onClose={() => setShowSummary(false)}
           />
         ) : sessionActive && currentContact ? (
-          <PowerDialer
-            contact={currentContact}
-            currentIndex={currentIndex}
-            totalCount={queue.length}
-            onCallComplete={handleCallComplete}
-            onSkip={skip}
-            onEnd={handleEndSession}
-            selectedScript={selectedScript}
-            onScriptChange={setSelectedScript}
-            sessionStats={sessionStats}
-          />
+          <ProspectingErrorBoundary section="Power Dialer">
+            <PowerDialer
+              contact={currentContact}
+              currentIndex={currentIndex}
+              totalCount={queue.length}
+              onCallComplete={handleCallComplete}
+              onSkip={skip}
+              onEnd={handleEndSession}
+              selectedScript={selectedScript}
+              onScriptChange={setSelectedScript}
+              sessionStats={sessionStats}
+              isAdminOrDirector={isAdminOrDirector}
+              onManageTemplates={() => setShowTemplatesManager(true)}
+              suggestedReturnTime={suggestedReturnTime}
+            />
+          </ProspectingErrorBoundary>
         ) : activeTab === 'metrics' ? (
           <div className="space-y-4">
             {metricsHook.error && (
@@ -499,25 +571,37 @@ export const ProspectingPage: React.FC = () => {
               onConfigureClick={() => goalsHook.setShowGoalModal(true)}
             />
 
-            <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+            <ProspectingErrorBoundary section="Métricas">
+              <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
-              <MetricsChart
-                data={metricsHook.metrics?.byDay || []}
-                isLoading={metricsHook.isLoading}
-                periodStart={metricsHook.range.start}
-                periodEnd={metricsHook.range.end}
-              />
-            </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+                <MetricsChart
+                  data={metricsHook.metrics?.byDay || []}
+                  isLoading={metricsHook.isLoading}
+                  periodStart={metricsHook.range.start}
+                  periodEnd={metricsHook.range.end}
+                />
+              </div>
+            </ProspectingErrorBoundary>
 
             {/* CP-2.3: Connection heatmap */}
-            <ConnectionHeatmap
-              activities={metricsHook.activities}
-              isLoading={metricsHook.isLoading}
-            />
+            <ProspectingErrorBoundary section="Heatmap">
+              <ConnectionHeatmap
+                activities={metricsHook.activities}
+                isLoading={metricsHook.isLoading}
+              />
+            </ProspectingErrorBoundary>
 
             <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+
+            {/* CP-3.4: Session history */}
+            <ProspectingErrorBoundary section="Historico de Sessoes">
+              <SessionHistory
+                sessions={sessionHistory}
+                isLoading={isLoadingSessions}
+              />
+            </ProspectingErrorBoundary>
 
             {isAdminOrDirector && !metricsFilterOwnerId && (
               <CorretorRanking
@@ -586,17 +670,19 @@ export const ProspectingPage: React.FC = () => {
             )}
 
             <AddToQueueSearch onAdd={addToQueue} />
-            <CallQueue
-              items={queue}
-              exhaustedItems={exhaustedItems}
-              isLoading={isLoading}
-              onRemove={removeFromQueue}
-              onClearAll={isViewingAll ? undefined : clearQueue}
-              onResetExhausted={resetExhaustedItem}
-              isClearing={isClearingQueue}
-              removingId={removingId}
-              ownerName={isViewingAll ? 'Todos' : viewingOwnerProfile?.name}
-            />
+            <ProspectingErrorBoundary section="Fila">
+              <CallQueue
+                items={queue}
+                exhaustedItems={exhaustedItems}
+                isLoading={isLoading}
+                onRemove={removeFromQueue}
+                onClearAll={isViewingAll ? undefined : clearQueue}
+                onResetExhausted={resetExhaustedItem}
+                isClearing={isClearingQueue}
+                removingId={removingId}
+                ownerName={isViewingAll ? 'Todos' : viewingOwnerProfile?.name}
+              />
+            </ProspectingErrorBoundary>
           </div>
         )}
       </div>
@@ -624,6 +710,14 @@ export const ProspectingPage: React.FC = () => {
         currentUserId={profile?.id || ''}
         onSave={goalsHook.updateGoal}
         isSaving={goalsHook.isUpdating}
+        retryOutcomes={retryOutcomes}
+        onRetryOutcomesChange={setRetryOutcomes}
+      />
+
+      {/* CP-3.2: Note templates manager modal */}
+      <NoteTemplatesManager
+        isOpen={showTemplatesManager}
+        onClose={() => setShowTemplatesManager(false)}
       />
     </div>
   )

@@ -12,12 +12,18 @@
  * showSummary, selectedScript, sessionStats, sessionStartTime
  */
 
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useAddBatchToProspectingQueue, useQueueContactIds } from '@/lib/query/hooks/useProspectingQueueQuery'
 import { INITIAL_FILTERS, type ProspectingFiltersState } from '@/features/prospecting/components/ProspectingFilters'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
 import type { MetricsPeriod, PeriodRange, ProspectingMetrics, CallActivity } from '@/features/prospecting/hooks/useProspectingMetrics'
 import type { SavedQueue } from '@/lib/supabase/prospecting-saved-queues'
+import {
+  startProspectingSession,
+  endProspectingSession,
+  getActiveSessions,
+  type ProspectingSessionStats,
+} from '@/lib/supabase/prospecting-sessions'
 
 export type SessionStats = {
   total: number
@@ -86,7 +92,31 @@ const INITIAL_SESSION_STATS: SessionStats = {
   busy: 0,
 }
 
-export function useProspectingPageState() {
+export interface PendingActiveSession {
+  id: string
+  startedAt: string
+}
+
+export function useProspectingPageState(userId?: string, organizationId?: string) {
+  // --- Session persistence (CP-3.4) ---
+  const [dbSessionId, setDbSessionId] = useState<string | null>(null)
+  const [pendingActiveSession, setPendingActiveSession] = useState<PendingActiveSession | null>(null)
+
+  // Check for active sessions on mount (AC3)
+  const hasCheckedActive = useRef(false)
+  useEffect(() => {
+    if (!userId || hasCheckedActive.current) return
+    hasCheckedActive.current = true
+    getActiveSessions(userId).then(sessions => {
+      if (sessions.length > 0) {
+        setPendingActiveSession({
+          id: sessions[0].id,
+          startedAt: sessions[0].startedAt,
+        })
+      }
+    }).catch(() => {})
+  }, [userId])
+
   // --- Tab & metrics filter state ---
   const [activeTab, setActiveTab] = useState<'queue' | 'metrics'>('queue')
   const [metricsPeriod, setMetricsPeriod] = useState<MetricsPeriod>('7d')
@@ -150,7 +180,13 @@ export function useProspectingPageState() {
       voicemail: 0,
       busy: 0,
     })
-  }, [])
+    // CP-3.4: Persist session to DB
+    if (userId && organizationId) {
+      startProspectingSession(userId, organizationId)
+        .then(id => setDbSessionId(id))
+        .catch(() => {})
+    }
+  }, [userId, organizationId])
 
   const handleEndSession = useCallback(() => {
     const deps = depsRef.current
@@ -158,15 +194,29 @@ export function useProspectingPageState() {
     const { queue } = deps.queueDeps
     const completed = queue.filter(q => q.status === 'completed').length
     const skipped = queue.filter(q => q.status === 'skipped').length
-    setSessionStats(prev => ({
-      ...prev,
-      total: queue.length,
-      completed,
-      skipped,
-    }))
+    setSessionStats(prev => {
+      const finalStats = {
+        ...prev,
+        total: queue.length,
+        completed,
+        skipped,
+      }
+      // CP-3.4: Persist session stats to DB
+      if (dbSessionId) {
+        const durationSeconds = sessionStartTime
+          ? Math.floor((Date.now() - sessionStartTime.getTime()) / 1000)
+          : 0
+        endProspectingSession(dbSessionId, {
+          ...finalStats,
+          duration_seconds: durationSeconds,
+        }).catch(() => {})
+        setDbSessionId(null)
+      }
+      return finalStats
+    })
     deps.queueDeps.endSession()
     setShowSummary(true)
-  }, [])
+  }, [dbSessionId, sessionStartTime])
 
   const handleCallComplete = useCallback((outcome: string) => {
     const deps = depsRef.current
@@ -247,6 +297,41 @@ export function useProspectingPageState() {
     }
   }, [addBatchMutation])
 
+  // CP-3.4: Resume an abandoned active session
+  const handleResumeSession = useCallback(async () => {
+    if (!pendingActiveSession) return
+    const deps = depsRef.current
+    if (!deps) return
+    setDbSessionId(pendingActiveSession.id)
+    setSessionStartTime(new Date(pendingActiveSession.startedAt))
+    setPendingActiveSession(null)
+    await deps.queueDeps.startSession()
+    setSessionStats({
+      total: deps.queueDeps.queue.length,
+      completed: 0,
+      skipped: 0,
+      connected: 0,
+      noAnswer: 0,
+      voicemail: 0,
+      busy: 0,
+    })
+  }, [pendingActiveSession])
+
+  // CP-3.4: Dismiss (end) abandoned session
+  const handleDismissActiveSession = useCallback(async () => {
+    if (!pendingActiveSession) return
+    endProspectingSession(pendingActiveSession.id, {
+      total: 0, completed: 0, skipped: 0, connected: 0,
+      noAnswer: 0, voicemail: 0, busy: 0, duration_seconds: 0,
+    }).catch(() => {})
+    setPendingActiveSession(null)
+  }, [pendingActiveSession])
+
+  // CP-3.4: Ignore active session banner (don't end in DB)
+  const handleIgnoreActiveSession = useCallback(() => {
+    setPendingActiveSession(null)
+  }, [])
+
   const handleExportPdf = useCallback(async () => {
     const deps = depsRef.current
     if (!deps) return
@@ -318,6 +403,12 @@ export function useProspectingPageState() {
     setSelectedScript,
     sessionStats,
     sessionStartTime,
+
+    // CP-3.4: Session persistence
+    pendingActiveSession,
+    handleResumeSession,
+    handleDismissActiveSession,
+    handleIgnoreActiveSession,
 
     // Handlers
     handleStartSession,
