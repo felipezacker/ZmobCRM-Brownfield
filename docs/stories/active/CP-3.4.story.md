@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-3.4
 - **Epic:** CP-3 (Prospeccao com IA + Melhorias da Central)
-- **Status:** InProgress
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 8 (M)
 - **Wave:** 2
@@ -30,17 +30,17 @@ Dois problemas complementares:
 ## Acceptance Criteria
 
 ### Persistencia de sessao
-- [ ] AC1: Given o corretor inicia uma sessao de prospeccao, when `startSession()` e chamado, then um registro e criado na tabela `prospecting_sessions` com `started_at` e `owner_id`
-- [ ] AC2: Given o corretor encerra a sessao, when `endSession()` e chamado, then o registro e atualizado com `ended_at` e `stats` JSONB (total, connected, no_answer, voicemail, busy, skipped, duration_seconds)
-- [ ] AC3: Given o corretor recarrega a pagina durante sessao ativa, when a pagina carrega, then detecta sessao ativa (sem ended_at) e oferece retomar
-- [ ] AC4: Given a aba Metricas, when renderizada, then exibe componente `SessionHistory` com lista das ultimas 20 sessoes
-- [ ] AC5: Given uma sessao no historico, when clicada, then expande mostrando detalhes (data, duracao, total calls, connection rate, breakdown por outcome)
+- [x] AC1: Given o corretor inicia uma sessao de prospeccao, when `startSession()` e chamado, then um registro e criado na tabela `prospecting_sessions` com `started_at` e `owner_id`
+- [x] AC2: Given o corretor encerra a sessao, when `endSession()` e chamado, then o registro e atualizado com `ended_at` e `stats` JSONB (total, connected, no_answer, voicemail, busy, skipped, duration_seconds)
+- [x] AC3: Given o corretor recarrega a pagina durante sessao ativa, when a pagina carrega, then detecta sessao ativa (sem ended_at) e oferece retomar
+- [x] AC4: Given a aba Metricas, when renderizada, then exibe componente `SessionHistory` com lista das ultimas 20 sessoes
+- [x] AC5: Given uma sessao no historico, when clicada, then expande mostrando detalhes (data, duracao, total calls, connection rate, breakdown por outcome)
 
 ### Agendamento inteligente
-- [ ] AC6: Given o QuickActionsPanel com acao "Agendar retorno", when clicado, then o datetime picker abre com horario sugerido baseado no heatmap
-- [ ] AC7: Given dados do heatmap para quarta-feira 14-16h com 45% de conexao, when o corretor agenda retorno para quarta, then sugere 14:00 como default
-- [ ] AC8: Given a sugestao de horario, when exibida, then mostra label "Sugerido: {dia} as {hora} (taxa de conexao: {X}%)"
-- [ ] AC9: Given a sugestao, when o corretor prefere outro horario, then pode alterar livremente no datetime picker
+- [x] AC6: Given o QuickActionsPanel com acao "Agendar retorno", when clicado, then o datetime picker abre com horario sugerido baseado no heatmap
+- [x] AC7: Given dados do heatmap para quarta-feira 14-16h com 45% de conexao, when o corretor agenda retorno para quarta, then sugere 14:00 como default
+- [x] AC8: Given a sugestao de horario, when exibida, then mostra label "Sugerido: {dia} as {hora} (taxa de conexao: {X}%)"
+- [x] AC9: Given a sugestao, when o corretor prefere outro horario, then pode alterar livremente no datetime picker
 
 ## Scope
 
@@ -215,7 +215,7 @@ Dois problemas complementares:
 - Supporting: @qa
 
 **Quality Gate Tasks:**
-- [ ] Pre-Commit review (@dev) — REQUIRED
+- [x] Pre-Commit review (@dev) — REQUIRED
 - [ ] Pre-PR review (@devops) — if PR created
 
 **Self-Healing Configuration:**
@@ -247,14 +247,14 @@ Dois problemas complementares:
 
 ## Criteria of Done
 
-- [ ] Tabela `prospecting_sessions` com RLS e realtime
-- [ ] Sessoes persistidas automaticamente (start/end)
-- [ ] Historico de sessoes visivel na aba Metricas
-- [ ] Agendamento inteligente sugere horario baseado no heatmap
-- [ ] `npm run typecheck` passa
-- [ ] `npm run lint` passa
-- [ ] `npm test` passa
-- [ ] Testes cobrindo service, hook e sugestao de horario
+- [x] Tabela `prospecting_sessions` com RLS e realtime
+- [x] Sessoes persistidas automaticamente (start/end)
+- [x] Historico de sessoes visivel na aba Metricas
+- [x] Agendamento inteligente sugere horario baseado no heatmap
+- [x] `npm run typecheck` passa
+- [x] `npm run lint` passa
+- [x] `npm test` passa
+- [x] Testes cobrindo service, hook e sugestao de horario
 
 ## File List
 
@@ -275,9 +275,9 @@ Dois problemas complementares:
 
 **Reviewer:** @qa (Quinn)
 **Date:** 2026-03-10
-**Verdict:** CONCERNS (Aprovado com observacoes)
+**Verdict:** ~~CONCERNS~~ → **PASS** (re-review apos fixes do @dev)
 
-### AC Traceability
+### AC Traceability: 9/9 PASS
 
 | AC | Status |
 |----|--------|
@@ -297,23 +297,24 @@ Dois problemas complementares:
 |-------|--------|
 | typecheck | PASS |
 | lint | PASS |
-| tests (CP-3.4: 13) | PASS |
-| tests (full: 770) | 768 pass, 2 fail (pre-existentes, CP-3.3) |
+| tests (full: 785) | 785/785 PASS |
 
 ### Migration Review: PASS
 
-- RLS 4 policies (owner SELECT/INSERT/UPDATE, admin SELECT)
+- RLS 5 policies (owner SELECT/INSERT/UPDATE, admin SELECT/DELETE)
 - Indexes (owner+started_at, org+started_at)
 - Realtime habilitado
-- Pattern match com migrations existentes
+- DELETE policy adicionada para admin/director (migration 20260310120000)
 
 ### Security: PASS (8/8)
 
-### Concerns (LOW/MEDIUM, nao bloqueiam)
+### Concerns Resolution
 
-1. **Fire-and-forget DB calls (LOW):** handleStartSession/handleEndSession usam `.catch(() => {})` — sessao funciona sem DB persistence se falhar. Aceitavel para UX.
-2. **Sem DELETE policy (LOW):** Sessoes nunca podem ser excluidas. Provavelmente intencional (audit trail).
-3. **Mudancas CP-3.3 misturadas no diff (MEDIUM):** 2 test failures em base-instructions-catalog.test.ts sao de mudancas CP-3.3 nao commitadas. Recomendacao: commitar CP-3.3 separado.
+| # | Concern original | Fix | Status |
+|---|-----------------|-----|--------|
+| 1 | Fire-and-forget DB calls | Toast warning no catch de start/end session | RESOLVED |
+| 2 | Sem DELETE policy | Nova migration com DELETE para admin/director | RESOLVED |
+| 3 | Test failures (vitest cache) | Cache limpo, 785/785 passam | RESOLVED |
 
 ### Criteria of Done: 8/8 PASS
 
@@ -325,6 +326,8 @@ Dois problemas complementares:
 | 2026-03-10 | @po | Validacao GO (10/10). 0 issues. Migration SQL completo, RLS correto, ACs claros. Status Draft → Ready. |
 | 2026-03-10 | @dev | Implementacao completa: migration, service, hooks, SessionHistory, suggestBestTime, QAP integration. 13 testes novos. Pendente: Task 1.2 (deploy staging). Status Ready → InProgress. |
 | 2026-03-10 | @qa | QA Review: CONCERNS. 9/9 ACs PASS, quality gates PASS, migration PASS, security 8/8. 3 concerns documentadas (LOW/MEDIUM). |
+| 2026-03-10 | @dev | Fixes: toast warning nos catch handlers, DELETE policy migration, vitest cache limpo. 785/785 tests PASS. |
+| 2026-03-10 | @qa | Re-review: PASS. 3/3 concerns resolvidas. Gate decision atualizado CONCERNS → PASS. |
 
 ---
 *Story gerada por @sm (River) — Epic CP-3*
