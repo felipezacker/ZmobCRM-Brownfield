@@ -1,9 +1,8 @@
-import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import React, { useRef } from 'react';
 import Image from 'next/image';
-import { getErrorMessage } from '@/lib/utils/errorUtils';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { isE164, normalizePhoneE164 } from '@/lib/phone';
+import { useProfileForm } from '@/features/profile/hooks/useProfileForm';
 import { Loader2, User, Mail, Shield, Calendar, Key, Check, Eye, EyeOff, Phone, Pencil, Save, Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -18,86 +17,16 @@ export const ProfilePage: React.FC = () => {
     // nosso helper pode retornar `null` para evitar crash.
     const sb = supabase;
 
-    const [isChangingPassword, setIsChangingPassword] = useState(false);
-    const [isEditingProfile, setIsEditingProfile] = useState(false);
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [showPasswords, setShowPasswords] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [savingProfile, setSavingProfile] = useState(false);
-    const [uploadingAvatar, setUploadingAvatar] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Performance: memoize validation (avoids regex work on unrelated state changes).
-    const passwordRequirements = useMemo(() => ({
-        minLength: newPassword.length >= 6,
-        hasLowercase: /[a-z]/.test(newPassword),
-        hasUppercase: /[A-Z]/.test(newPassword),
-        hasDigit: /\d/.test(newPassword),
-    }), [newPassword]);
-    const isPasswordValid = useMemo(() => Object.values(passwordRequirements).every(Boolean), [passwordRequirements]);
-
-    // Campos do perfil
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [nickname, setNickname] = useState('');
-    const [phone, setPhone] = useState('');
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-    const [commissionRate, setCommissionRate] = useState('');
-
-    const [isChangingEmail, setIsChangingEmail] = useState(false);
-    const [newEmail, setNewEmail] = useState('');
-
-    // Carrega dados do perfil
-    useEffect(() => {
-        if (profile) {
-            setFirstName(profile.first_name || '');
-            setLastName(profile.last_name || '');
-            setNickname(profile.nickname || '');
-            setPhone(normalizePhoneE164(profile.phone || ''));
-            setAvatarUrl(profile.avatar_url || null);
-            setCommissionRate(profile.commission_rate != null ? String(profile.commission_rate) : '');
-        }
-    }, [profile]);
-
-    // Performance: memoize derived display strings to avoid recompute during typing elsewhere.
-    const initials = useMemo(() => {
-        if (firstName && lastName) return `${firstName[0]}${lastName[0]}`.toUpperCase();
-        if (nickname) return nickname.substring(0, 2).toUpperCase();
-        return profile?.email?.substring(0, 2).toUpperCase() || 'U';
-    }, [firstName, lastName, nickname, profile?.email]);
-
-    const displayName = useMemo(() => {
-        if (nickname) return nickname;
-        if (firstName) return firstName;
-        return profile?.email?.split('@')[0] || 'Usuário';
-    }, [firstName, nickname, profile?.email]);
-
-    const fullName = useMemo(() => {
-        if (firstName && lastName) return `${firstName} ${lastName}`;
-        if (firstName) return firstName;
-        return null;
-    }, [firstName, lastName]);
-
-    const gradient = useMemo(() => {
-        const colors = [
-            'from-violet-500 to-purple-600',
-            'from-blue-500 to-cyan-500',
-            'from-emerald-500 to-teal-500',
-            'from-orange-500 to-amber-500',
-            'from-pink-500 to-rose-500',
-            'from-indigo-500 to-blue-500',
-        ];
-        const email = profile?.email || '';
-        const colorIndex = email.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
-        return colors[colorIndex];
-    }, [profile?.email]);
-
-    // Stable handlers (helps memoized children / prevents re-renders in some layouts).
-    const triggerAvatarPicker = useCallback(() => {
-        fileInputRef.current?.click();
-    }, []);
+    // All hooks must be called before the early return (Rules of Hooks).
+    // The hook receives sb as non-null; the early return below guards against null.
+    const form = useProfileForm({
+        profile,
+        refreshProfile,
+        sb: sb!,
+        fileInputRef,
+    });
 
     // Sem Supabase não há como salvar/atualizar perfil.
     // Hooks MUST come before early returns (rules-of-hooks).
@@ -117,206 +46,51 @@ export const ProfilePage: React.FC = () => {
         );
     }
 
-    // Upload de avatar
-    const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file || !profile?.id) return;
-
-        // Validações
-        if (!file.type.startsWith('image/')) {
-            setMessage({ type: 'error', text: 'Por favor, selecione uma imagem.' });
-            return;
-        }
-
-        if (file.size > 2 * 1024 * 1024) {
-            setMessage({ type: 'error', text: 'A imagem deve ter no máximo 2MB.' });
-            return;
-        }
-
-        setUploadingAvatar(true);
-        setMessage(null);
-
-        try {
-            // Nome único para o arquivo
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${profile.id}.${fileExt}`;
-            const filePath = `avatars/${fileName}`;
-
-            // Upload para o Storage
-            const { error: uploadError } = await sb.storage
-                .from('avatars')
-                .upload(filePath, file, { upsert: true });
-
-            if (uploadError) throw uploadError;
-
-            // Pega a URL pública
-            const { data: { publicUrl } } = sb.storage
-                .from('avatars')
-                .getPublicUrl(filePath);
-
-            // Adiciona timestamp para evitar cache
-            const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
-
-            // Atualiza o perfil com a URL do avatar
-            const { error: updateError } = await sb
-                .from('profiles')
-                .update({ avatar_url: urlWithTimestamp })
-                .eq('id', profile.id);
-
-            if (updateError) throw updateError;
-
-            setAvatarUrl(urlWithTimestamp);
-            if (refreshProfile) await refreshProfile();
-            setMessage({ type: 'success', text: 'Foto atualizada!' });
-        } catch (err: unknown) {
-            console.error('Upload error:', err);
-            setMessage({ type: 'error', text: getErrorMessage(err) });
-        } finally {
-            setUploadingAvatar(false);
-        }
-    };
-
-    // Remove avatar
-    const handleRemoveAvatar = async () => {
-        if (!profile?.id) return;
-
-        setUploadingAvatar(true);
-        setMessage(null);
-
-        try {
-            // Remove do Storage (ignora erro se não existir)
-            await sb.storage
-                .from('avatars')
-                .remove([`avatars/${profile.id}.jpg`, `avatars/${profile.id}.png`, `avatars/${profile.id}.jpeg`]);
-
-            // Remove URL do perfil
-            const { error } = await sb
-                .from('profiles')
-                .update({ avatar_url: null })
-                .eq('id', profile.id);
-
-            if (error) throw error;
-
-            setAvatarUrl(null);
-            if (refreshProfile) await refreshProfile();
-            setMessage({ type: 'success', text: 'Foto removida!' });
-        } catch (err: unknown) {
-            setMessage({ type: 'error', text: getErrorMessage(err) });
-        } finally {
-            setUploadingAvatar(false);
-        }
-    };
-
-    const handleSaveProfile = async () => {
-        setSavingProfile(true);
-        setMessage(null);
-
-        try {
-            const normalizedPhone = normalizePhoneE164(phone);
-            if (normalizedPhone && !isE164(normalizedPhone)) {
-                setMessage({
-                    type: 'error',
-                    text: 'Telefone inválido. Use o formato E.164 (ex.: +5511999999999).',
-                });
-                return;
-            }
-
-            // Valida commission_rate se preenchido
-            const isAdminOrDiretor = profile?.role === 'admin' || profile?.role === 'diretor';
-            let parsedCommissionRate: number | null = null;
-            if (isAdminOrDiretor && commissionRate.trim() !== '') {
-                parsedCommissionRate = parseFloat(commissionRate);
-                if (isNaN(parsedCommissionRate) || parsedCommissionRate < 0 || parsedCommissionRate > 100) {
-                    setMessage({
-                        type: 'error',
-                        text: 'Taxa de comissão deve ser um número entre 0 e 100.',
-                    });
-                    return;
-                }
-            }
-
-            const updatePayload: Record<string, string | number | null> = {
-                first_name: firstName.trim() || null,
-                last_name: lastName.trim() || null,
-                nickname: nickname.trim() || null,
-                phone: normalizedPhone || null,
-            };
-            if (isAdminOrDiretor) {
-                updatePayload.commission_rate = commissionRate.trim() !== '' ? parsedCommissionRate : null;
-            }
-
-            const { error } = await sb
-                .from('profiles')
-                .update(updatePayload)
-                .eq('id', profile?.id);
-
-            if (error) throw error;
-
-            // Atualiza o perfil no contexto
-            if (refreshProfile) await refreshProfile();
-
-            setMessage({ type: 'success', text: 'Perfil atualizado com sucesso!' });
-            setIsEditingProfile(false);
-        } catch (err: unknown) {
-            setMessage({ type: 'error', text: getErrorMessage(err) });
-        } finally {
-            setSavingProfile(false);
-        }
-    };
-
-    const handleChangePassword = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (newPassword !== confirmPassword) {
-            setMessage({ type: 'error', text: 'As senhas não coincidem.' });
-            return;
-        }
-
-        if (!isPasswordValid) {
-            setMessage({ type: 'error', text: 'A senha não atende aos requisitos mínimos.' });
-            return;
-        }
-
-        setLoading(true);
-        setMessage(null);
-
-        try {
-            const { error } = await sb.auth.updateUser({
-                password: newPassword
-            });
-
-            if (error) throw error;
-
-            setMessage({ type: 'success', text: 'Senha alterada com sucesso!' });
-            setIsChangingPassword(false);
-            setNewPassword('');
-            setConfirmPassword('');
-        } catch (err: unknown) {
-            setMessage({ type: 'error', text: getErrorMessage(err) });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Altera email
-    const handleChangeEmail = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setMessage(null);
-        setLoading(true);
-
-        try {
-            const { error } = await sb.auth.updateUser({ email: newEmail });
-            if (error) throw error;
-
-            setMessage({ type: 'success', text: 'E-mail de confirmação enviado para o novo endereço!' });
-            setIsChangingEmail(false);
-            setNewEmail('');
-        } catch (err: unknown) {
-            setMessage({ type: 'error', text: getErrorMessage(err) });
-        } finally {
-            setLoading(false);
-        }
-    };
+    const {
+        isChangingPassword,
+        setIsChangingPassword,
+        isEditingProfile,
+        setIsEditingProfile,
+        showPasswords,
+        setShowPasswords,
+        loading,
+        savingProfile,
+        uploadingAvatar,
+        message,
+        newPassword,
+        setNewPassword,
+        confirmPassword,
+        setConfirmPassword,
+        passwordRequirements,
+        firstName,
+        setFirstName,
+        lastName,
+        setLastName,
+        nickname,
+        setNickname,
+        phone,
+        setPhone,
+        avatarUrl,
+        commissionRate,
+        setCommissionRate,
+        isChangingEmail,
+        setIsChangingEmail,
+        newEmail,
+        setNewEmail,
+        initials,
+        displayName,
+        fullName,
+        gradient,
+        triggerAvatarPicker,
+        handleAvatarUpload,
+        handleRemoveAvatar,
+        handleSaveProfile,
+        handleChangePassword,
+        handleChangeEmail,
+        handleCancelEdit,
+        handleCancelPasswordChange,
+        handleCancelEmailChange,
+    } = form;
 
     return (
         <div className="max-w-2xl mx-auto pb-10">
@@ -516,16 +290,7 @@ export const ProfilePage: React.FC = () => {
                         <div className="flex gap-3 pt-4">
                             <Button
                                 type="button"
-                                onClick={() => {
-                                    setIsEditingProfile(false);
-                                    // Reset para valores originais
-                                    setFirstName(profile?.first_name || '');
-                                    setLastName(profile?.last_name || '');
-                                    setNickname(profile?.nickname || '');
-                                    setPhone(normalizePhoneE164(profile?.phone || ''));
-                                    setCommissionRate(profile?.commission_rate != null ? String(profile.commission_rate) : '');
-                                    setMessage(null);
-                                }}
+                                onClick={handleCancelEdit}
                                 className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-xl transition-colors"
                             >
                                 Cancelar
@@ -581,10 +346,7 @@ export const ProfilePage: React.FC = () => {
                                 <div className="flex justify-end gap-2">
                                     <Button
                                         type="button"
-                                        onClick={() => {
-                                            setIsChangingEmail(false);
-                                            setNewEmail('');
-                                        }}
+                                        onClick={handleCancelEmailChange}
                                         className="px-3 py-1.5 text-sm text-secondary-foreground dark:text-muted-foreground hover:text-foreground"
                                     >
                                         Cancelar
@@ -731,12 +493,7 @@ export const ProfilePage: React.FC = () => {
                         <div className="flex gap-3 pt-2">
                             <Button
                                 type="button"
-                                onClick={() => {
-                                    setIsChangingPassword(false);
-                                    setNewPassword('');
-                                    setConfirmPassword('');
-                                    setMessage(null);
-                                }}
+                                onClick={handleCancelPasswordChange}
                                 className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-xl transition-colors"
                             >
                                 Cancelar
