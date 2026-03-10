@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { BoardStage, DealView } from '@/types';
 import { Button } from '@/components/ui/button';
+import { DEFAULT_STAGE_COLOR_ALT } from '@/lib/constants/chart-colors';
 
 interface MoveToStageModalProps {
   isOpen: boolean;
@@ -96,7 +97,7 @@ export const MoveToStageModal: React.FC<MoveToStageModalProps> = ({
               >
                 <div 
                   className="w-3 h-3 rounded-full shrink-0"
-                  style={{ backgroundColor: stage.color || '#3b82f6' }}
+                  style={{ backgroundColor: stage.color || DEFAULT_STAGE_COLOR_ALT }}
                   aria-hidden="true"
                 />
                 <span className="flex-1 font-medium text-secondary-foreground dark:text-muted-foreground group-hover:text-primary-600 dark:group-hover:text-primary-400">

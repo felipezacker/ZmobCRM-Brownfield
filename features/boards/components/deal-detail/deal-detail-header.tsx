@@ -33,7 +33,7 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
   onStageClick,
 }) => {
   return (
-    <div className="bg-background dark:bg-[#0b1222] border-b border-border dark:border-white/[0.06] px-6 pt-5 pb-4 shrink-0">
+    <div className="bg-background dark:bg-card border-b border-border dark:border-white/[0.06] px-6 pt-5 pb-4 shrink-0">
       {/* Row 1: Lead name + product + action icons */}
       <div className="flex items-center gap-3 mb-3">
         <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-400/20 flex items-center justify-center text-sm font-bold text-primary-700 dark:text-primary-300 shrink-0">

@@ -23,7 +23,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
     onDelete,
 }) => {
     return (
-        <div className="flex-1 flex flex-col bg-[#1A1A1A]">
+        <div className="flex-1 flex flex-col bg-zinc-900">
             <div className="p-4 border-b border-white/5 flex items-center justify-between">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notas do Deal</span>
                 {isSaving && (

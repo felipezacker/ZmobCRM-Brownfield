@@ -13,6 +13,7 @@ import { LossReasonModal } from '@/components/ui/LossReasonModal';
 import { DealView, CustomFieldDefinition, Board, BoardStage, DealSortableColumn } from '@/types';
 import { ExportTemplateModal } from './Modals/ExportTemplateModal';
 import ConfirmModal from '@/components/ConfirmModal';
+import { DEFAULT_STAGE_COLOR } from '@/lib/constants/chart-colors';
 import { useAuth } from '@/context/AuthContext';
 import PageLoader from '@/components/PageLoader';
 import { Button } from '@/components/ui/button';
@@ -558,7 +559,7 @@ export const PipelineView: React.FC<PipelineViewProps> = ({
                         >
                           <span
                             className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: stage.color || '#94a3b8' }}
+                            style={{ backgroundColor: stage.color || DEFAULT_STAGE_COLOR }}
                           />
                           <span className="text-secondary-foreground dark:text-muted-foreground">{stage.label}</span>
                         </Button>

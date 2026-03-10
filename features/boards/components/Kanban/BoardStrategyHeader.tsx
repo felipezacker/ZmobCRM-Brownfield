@@ -135,7 +135,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
       {/* Background Glow Effect (Subtle) */}
       <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-orange-500/5 rounded-xl blur-xl opacity-50 group-hover/header:opacity-100 transition-opacity duration-700"></div>
 
-      <div className="relative px-5 py-3 bg-white dark:bg-[#0B1120] rounded-lg border border-border shadow-sm transition-all duration-300 hover:shadow-md">
+      <div className="relative px-5 py-3 bg-white dark:bg-card rounded-lg border border-border shadow-sm transition-all duration-300 hover:shadow-md">
         {/* Edit Button - Only visible on hover */}
         {!isEditing && (
           <Button
