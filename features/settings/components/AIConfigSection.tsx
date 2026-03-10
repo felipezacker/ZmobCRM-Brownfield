@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useSettings } from '@/context/settings/SettingsContext';
 import { Bot, Key, Cpu, CheckCircle, AlertCircle, Loader2, Save, Trash2, ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { useApiKeyValidation } from './hooks/useApiKeyValidation';
+import { useModelSelection } from './hooks/useModelSelection';
 
 // Performance: keep provider/model catalog outside the component to avoid reallocations on every render.
 const AI_PROVIDERS = [
@@ -146,124 +148,28 @@ export const AIConfigSection: React.FC = () => {
 
     const { showToast } = useToast();
 
-    // Estado local para o input da key (não salva até validar)
-    const [localApiKey, setLocalApiKey] = useState(aiApiKey);
-    const [isValidating, setIsValidating] = useState(false);
-    const [validationStatus, setValidationStatus] = useState<'idle' | 'valid' | 'invalid'>(
-        aiApiKey ? 'valid' : 'idle'
-    );
-    const [validationError, setValidationError] = useState<string | null>(null);
-    // UX: mostrar LGPD expandido apenas quando ainda NÃO há key salva (primeira configuração).
-    // Depois que a key existe, manter colapsado por padrão para não “inflar” a tela.
-    const [lgpdExpanded, setLgpdExpanded] = useState(!aiApiKey);
-
-    // Sync local state when context changes (ex: carregamento inicial)
-    useEffect(() => {
-        setLocalApiKey(aiApiKey);
-        if (aiApiKey) {
-            setValidationStatus('valid'); // Assume válida se já estava salva
-        }
-        // Se já existe key salva, manter LGPD colapsado por padrão.
-        setLgpdExpanded(!aiApiKey);
-    }, [aiApiKey]);
-
-    // Reset validation apenas quando usuário EDITA a key (não no carregamento)
-    const handleKeyChange = (newKey: string) => {
-        setLocalApiKey(newKey);
-        if (newKey !== aiApiKey) {
-            setValidationStatus('idle');
-            setValidationError(null);
-        }
-    };
-
-    const handleSaveApiKey = async () => {
-        if (!localApiKey.trim()) {
-            showToast('Digite uma chave de API', 'error');
-            return;
-        }
-
-        setIsValidating(true);
-        setValidationError(null);
-
-        // If user is typing a custom model ID, validate against the draft (even before persisting it).
-        const modelForValidation =
-            modelSelectValue === 'custom' && customModelDraft.trim()
-                ? customModelDraft.trim()
-                : aiModel;
-
-        const result = await validateApiKey(aiProvider, localApiKey, modelForValidation);
-
-        setIsValidating(false);
-
-        if (result.valid) {
-            setValidationStatus('valid');
-            try {
-                await setAiApiKey(localApiKey);
-                // UX: após salvar uma key válida, colapsar LGPD automaticamente.
-                setLgpdExpanded(false);
-                showToast('Chave de API validada e salva!', 'success');
-            } catch (err) {
-                showToast(err instanceof Error ? err.message : 'Falha ao salvar chave de API', 'error');
-            }
-        } else {
-            setValidationStatus('invalid');
-            setValidationError(result.error || 'Chave inválida');
-            showToast(result.error || 'Chave de API inválida', 'error');
-        }
-    };
-
-    const handleRemoveApiKey = async () => {
-        setLocalApiKey('');
-        setValidationStatus('idle');
-        setValidationError(null);
-        try {
-            await setAiApiKey('');
-            showToast('Chave de API removida', 'success');
-        } catch (err) {
-            showToast(err instanceof Error ? err.message : 'Falha ao remover chave de API', 'error');
-        }
-    };
-
-    const hasUnsavedChanges = localApiKey !== aiApiKey;
-
-    // Preços exibidos: input / output (por 1M tokens), apenas como referência na UI.
-    // Fontes oficiais (podem mudar):
-    // - OpenAI: https://platform.openai.com/docs/pricing
-    // - Google Gemini API: https://ai.google.dev/gemini-api/docs/pricing
-    // - Anthropic (model comparison / pricing): https://platform.claude.com/docs/en/about-claude/models
-    // Observação: alguns provedores têm preço em faixas (ex.: Gemini por tamanho de contexto) e/ou “cached input” (OpenAI).
     const currentProvider = AI_PROVIDERS.find(p => p.id === aiProvider);
     const isCatalogModel = !!currentProvider?.models.some(m => m.id === aiModel);
 
-    /**
-     * UX: the <select> needs its own UI state.
-     * If we keep it controlled solely by `aiModel`, choosing "custom" would "do nothing"
-     * because we intentionally do NOT persist `aiModel=''` (backend requires min(1)).
-     */
-    const [modelSelectValue, setModelSelectValue] = useState<string>(isCatalogModel ? aiModel : 'custom');
+    const modelSelection = useModelSelection({
+        aiProvider, aiModel, isCatalogModel, setAiModel, showToast,
+        currentProviderModels: currentProvider?.models,
+    });
 
-    useEffect(() => {
-        // Keep select in sync when aiModel changes externally (initial load / provider auto-pick / save custom).
-        setModelSelectValue(isCatalogModel ? aiModel : 'custom');
-    }, [aiProvider, aiModel, isCatalogModel]);
+    const {
+        modelSelectValue, customModelDraft, setCustomModelDraft,
+        customModelDirty, setCustomModelDirty, isSavingModel,
+        handleModelSelectChange, handleSaveCustomModel, handleResetCustomModel,
+    } = modelSelection;
 
-    // UX: for "Outro (Digitar ID)" we keep a local draft and only persist on explicit save.
-    // This avoids POST /api/settings/ai failing (aiModel has z.string().min(1)).
-    const [customModelDraft, setCustomModelDraft] = useState('');
-    const [customModelDirty, setCustomModelDirty] = useState(false);
-    const [isSavingModel, setIsSavingModel] = useState(false);
-
-    useEffect(() => {
-        // Sync draft when entering custom mode or when a saved custom model is loaded.
-        if (modelSelectValue !== 'custom') {
-            setCustomModelDraft('');
-            setCustomModelDirty(false);
-            return;
-        }
-        if (!customModelDirty) {
-            setCustomModelDraft(!isCatalogModel ? aiModel : '');
-        }
-    }, [modelSelectValue, aiModel, customModelDirty, isCatalogModel]);
+    const {
+        localApiKey, isValidating, validationStatus, validationError,
+        lgpdExpanded, setLgpdExpanded,
+        handleKeyChange, handleSaveApiKey, handleRemoveApiKey, hasUnsavedChanges,
+    } = useApiKeyValidation({
+        aiApiKey, aiProvider, aiModel, setAiApiKey, showToast,
+        validateApiKey, modelSelectValue, customModelDraft,
+    });
 
     const handleProviderChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newProviderId = e.target.value as 'google' | 'openai' | 'anthropic';
@@ -350,24 +256,7 @@ export const AIConfigSection: React.FC = () => {
                             <select
                                 id="ai-model-select"
                                 value={modelSelectValue}
-                                onChange={async (e) => {
-                                    const next = e.target.value;
-                                    if (next === 'custom') {
-                                        // Do NOT persist empty model. Show input and let user save explicitly.
-                                        setModelSelectValue('custom');
-                                        setCustomModelDraft(!isCatalogModel ? aiModel : '');
-                                        setCustomModelDirty(false);
-                                        return;
-                                    }
-                                    setModelSelectValue(next);
-                                    try {
-                                        await setAiModel(next);
-                                        setCustomModelDraft('');
-                                        setCustomModelDirty(false);
-                                    } catch (err) {
-                                        showToast(err instanceof Error ? err.message : 'Falha ao atualizar modelo', 'error');
-                                    }
-                                }}
+                                onChange={(e) => void handleModelSelectChange(e.target.value)}
                                 className="w-full appearance-none bg-background dark:bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
                             >
                                 {currentProvider?.models.map(m => (
@@ -401,27 +290,7 @@ export const AIConfigSection: React.FC = () => {
                                 <div className="mt-2 flex items-center gap-2">
                                     <Button
                                         type="button"
-                                        onClick={async () => {
-                                            const trimmed = customModelDraft.trim();
-                                            if (!trimmed) {
-                                                showToast('Digite o ID do modelo', 'error');
-                                                return;
-                                            }
-                                            setIsSavingModel(true);
-                                            try {
-                                                await setAiModel(trimmed);
-                                                // Keep UX consistent: if the saved ID matches a catalog option, select it;
-                                                // otherwise stay in custom mode.
-                                                const matchesCatalog = !!currentProvider?.models.some(m => m.id === trimmed);
-                                                setModelSelectValue(matchesCatalog ? trimmed : 'custom');
-                                                setCustomModelDirty(false);
-                                                showToast('Modelo salvo!', 'success');
-                                            } catch (err) {
-                                                showToast(err instanceof Error ? err.message : 'Falha ao salvar modelo', 'error');
-                                            } finally {
-                                                setIsSavingModel(false);
-                                            }
-                                        }}
+                                        onClick={() => void handleSaveCustomModel()}
                                         disabled={isSavingModel || !customModelDraft.trim()}
                                         className={`px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all ${isSavingModel || !customModelDraft.trim()
                                             ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
@@ -434,10 +303,7 @@ export const AIConfigSection: React.FC = () => {
 
                                     <Button
                                         type="button"
-                                        onClick={() => {
-                                            setCustomModelDraft(aiModel);
-                                            setCustomModelDirty(false);
-                                        }}
+                                        onClick={handleResetCustomModel}
                                         className="px-3 py-2 rounded-lg text-sm font-medium bg-muted dark:bg-white/5 hover:bg-accent dark:hover:bg-white/10 text-secondary-foreground dark:text-muted-foreground transition-colors"
                                     >
                                         Reset
