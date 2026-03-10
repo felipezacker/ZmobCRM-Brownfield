@@ -18,6 +18,9 @@ import { CallDetailsTable } from './components/CallDetailsTable'
 import { CorretorRanking } from './components/CorretorRanking'
 import { DailyGoalCard } from './components/DailyGoalCard'
 import { ConnectionHeatmap } from './components/ConnectionHeatmap'
+import { NeglectedContactsAlert } from './components/NeglectedContactsAlert'
+import { PerformanceComparison } from './components/PerformanceComparison'
+import { TopObjections } from './components/TopObjections'
 import { ProspectingErrorBoundary } from './components/ProspectingErrorBoundary'
 import { GoalConfigModal } from './components/GoalConfigModal'
 import { NoteTemplatesManager } from './components/NoteTemplatesManager'
@@ -109,6 +112,34 @@ export const ProspectingPage: React.FC = () => {
   // CP-1.4: Metrics
   const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined)
   const { invalidateMetrics, isAdminOrDirector } = metricsHook
+
+  // CP-3.6: Team average + user metrics for PerformanceComparison
+  const teamAverage = useMemo(() => {
+    const brokers = metricsHook.metrics?.byBroker || []
+    const active = brokers.filter(b => b.totalCalls > 0)
+    if (active.length === 0) return null
+    const n = active.length
+    return {
+      ownerId: '',
+      ownerName: 'Time',
+      totalCalls: active.reduce((s, b) => s + b.totalCalls, 0) / n,
+      connectedCalls: active.reduce((s, b) => s + b.connectedCalls, 0) / n,
+      connectionRate: active.reduce((s, b) => s + b.connectionRate, 0) / n,
+      avgDuration: active.reduce((s, b) => s + b.avgDuration, 0) / n,
+      uniqueContacts: active.reduce((s, b) => s + b.uniqueContacts, 0) / n,
+    }
+  }, [metricsHook.metrics?.byBroker])
+
+  const userMetrics = useMemo(() => {
+    if (!profile?.id || !metricsHook.metrics?.byBroker) return null
+    return metricsHook.metrics.byBroker.find(b => b.ownerId === profile.id) || null
+  }, [profile?.id, metricsHook.metrics?.byBroker])
+
+  const periodDays = useMemo(() => {
+    const start = new Date(metricsHook.range.start)
+    const end = new Date(metricsHook.range.end)
+    return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+  }, [metricsHook.range])
 
   // CP-2.3 + QV-1.7 Bug #9: Daily goals + heatmap
   const goalsHook = useProspectingGoals(metricsHook.activities, metricsFilterOwnerId || undefined)
@@ -571,6 +602,20 @@ export const ProspectingPage: React.FC = () => {
               onConfigureClick={() => goalsHook.setShowGoalModal(true)}
             />
 
+            {/* CP-3.6: PerformanceComparison — corretores only, below DailyGoalCard */}
+            <PerformanceComparison
+              userMetrics={userMetrics}
+              teamAverage={teamAverage}
+              isAdminOrDirector={isAdminOrDirector}
+              periodDays={periodDays}
+            />
+
+            {/* CP-3.6: NeglectedContactsAlert — above MetricsCards */}
+            <NeglectedContactsAlert
+              onAddAllToQueue={handleAddBatchToQueue}
+              onError={() => toast('Erro ao buscar contatos negligenciados', 'error')}
+            />
+
             <ProspectingErrorBoundary section="Métricas">
               <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
 
@@ -594,6 +639,9 @@ export const ProspectingPage: React.FC = () => {
             </ProspectingErrorBoundary>
 
             <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+
+            {/* CP-3.6: Top objections widget */}
+            <TopObjections activities={metricsHook.activities} isLoading={metricsHook.isLoading} />
 
             {/* CP-3.4: Session history */}
             <ProspectingErrorBoundary section="Historico de Sessoes">
