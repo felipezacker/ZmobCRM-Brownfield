@@ -119,7 +119,7 @@ export const PROMPT_CATALOG: PromptCatalogItem[] = [
       `- Respostas naturais (evite listas robóticas)\n` +
       `- Máximo 2 parágrafos por resposta\n` +
       `\n` +
-      `FERRAMENTAS (36 disponíveis):\n` +
+      `FERRAMENTAS (41 disponíveis):\n` +
       `📊 ANÁLISE: analyzePipeline, getBoardMetrics\n` +
       `🔍 BUSCA: searchDeals, searchContacts, listDealsByStage, listStagnantDeals, listOverdueDeals, getDealDetails, getContactDetails\n` +
       `🏷️ PIPELINE: listStages, updateStage, reorderStages\n` +
@@ -127,7 +127,7 @@ export const PROMPT_CATALOG: PromptCatalogItem[] = [
       `📝 NOTAS: addDealNote, listDealNotes\n` +
       `📞 ATIVIDADES: createTask, listActivities, completeActivity, rescheduleActivity, logActivity\n` +
       `👤 CONTATOS: createContact, updateContact, linkDealToContact, getLeadScore\n` +
-      `🎯 PROSPECÇÃO: listProspectingQueues, getProspectingMetrics, getProspectingGoals, listQuickScripts, createQuickScript, generateAndSaveScript\n` +
+      `🎯 PROSPECÇÃO: listProspectingQueues, getProspectingMetrics, getProspectingGoals, listQuickScripts, createQuickScript, generateAndSaveScript, suggestScript, listSavedQueues, addContactsToQueue, suggestContactsForProspecting, analyzeProspectingPatterns\n` +
       `\n` +
       `LEAD SCORE:\n` +
       `- Quando o usuário perguntar sobre score, qualidade ou temperatura de um lead/contato, use a tool getLeadScore proativamente.\n` +
@@ -137,7 +137,28 @@ export const PROMPT_CATALOG: PromptCatalogItem[] = [
       `- Se der erro, informe de forma amigável\n` +
       `- Não mostre IDs/UUIDs para o usuário final\n`,
     notes:
-      'Importante: esse prompt é “sensível”. Mudanças ruins degradam o agente e podem quebrar fluxos. Ideal ter versionamento e botão “reset”. Atualizado TD-2.2: inclui todas 36 tools + lead score + prospecção.',
+      'Importante: esse prompt é “sensível”. Mudanças ruins degradam o agente e podem quebrar fluxos. Ideal ter versionamento e botão “reset”. Atualizado CP-3.3: inclui todas 41 tools + recomendação de contatos + análise de padrões.',
+  },
+  {
+    key: 'agent_prospecting_recommendations',
+    title: 'Agente · Recomendações de prospecção',
+    usedBy: ['lib/ai/crmAgent → prospecting context', 'app/api/ai/chat'],
+    defaultTemplate:
+      `Você tem ferramentas avançadas de recomendação de prospecção:\n` +
+      `\n` +
+      `FERRAMENTAS DE RECOMENDAÇÃO:\n` +
+      `- suggestContactsForProspecting: Quando o usuário perguntar “quem devo ligar?”, “sugira contatos”, use esta tool. Retorna lista rankeada com score composto.\n` +
+      `- analyzeProspectingPatterns: Quando pedirem “analise meus padrões”, “como estou prospectando?”, use esta tool. Retorna insights de horário, dia, taxa de conexão.\n` +
+      `- listSavedQueues: Quando pedirem “mostre minhas filas salvas”, “carregar fila”, use esta tool. Lista filas organizadas com contagem.\n` +
+      `- addContactsToQueue: Quando pedirem “adicione esses contatos à fila”, use esta tool. Adiciona em batch, pula duplicatas.\n` +
+      `\n` +
+      `EXEMPLOS DE USO COMBINADO:\n` +
+      `1. “Quem devo ligar agora?” → suggestContactsForProspecting(count=10)\n` +
+      `2. “Analise meus padrões dos últimos 30 dias” → analyzeProspectingPatterns(period=”30d”)\n` +
+      `3. “Carregue minha fila de leads quentes” → listSavedQueues() → identificar fila relevante\n` +
+      `4. “Adicione os 5 melhores à minha fila” → suggestContactsForProspecting(count=5) → addContactsToQueue(contactIds=[...])\n`,
+    notes:
+      'Template de suporte para ferramentas de recomendação CP-3.3. Pode ser combinado com agent_crm_base_instructions.',
   },
 ];
 

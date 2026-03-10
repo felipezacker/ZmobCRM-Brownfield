@@ -4,7 +4,7 @@ import { getPromptCatalogMap } from '../prompts/catalog';
 /**
  * Tests for BASE_INSTRUCTIONS catalog alignment (TD-2.2 / AC1-AC4).
  *
- * Verifies the catalog default template lists all 36 tools and mentions lead score.
+ * Verifies the catalog default template lists all 41 tools and mentions lead score.
  */
 
 describe('agent_crm_base_instructions catalog entry (AC3)', () => {
@@ -16,7 +16,7 @@ describe('agent_crm_base_instructions catalog entry (AC3)', () => {
         expect(entry.key).toBe('agent_crm_base_instructions');
     });
 
-    it('default template mentions all 36 tools', () => {
+    it('default template mentions all 41 tools', () => {
         const template = entry.defaultTemplate;
 
         // Pipeline tools
@@ -59,13 +59,20 @@ describe('agent_crm_base_instructions catalog entry (AC3)', () => {
         expect(template).toContain('addDealNote');
         expect(template).toContain('listDealNotes');
 
-        // Prospecting tools (new in TD-2.2)
+        // Prospecting tools (TD-2.2)
         expect(template).toContain('listProspectingQueues');
         expect(template).toContain('getProspectingMetrics');
         expect(template).toContain('getProspectingGoals');
         expect(template).toContain('listQuickScripts');
         expect(template).toContain('createQuickScript');
         expect(template).toContain('generateAndSaveScript');
+        expect(template).toContain('suggestScript');
+
+        // Prospecting recommendation tools (CP-3.3)
+        expect(template).toContain('listSavedQueues');
+        expect(template).toContain('addContactsToQueue');
+        expect(template).toContain('suggestContactsForProspecting');
+        expect(template).toContain('analyzeProspectingPatterns');
     });
 
     it('mentions lead score proactively (AC4)', () => {
@@ -74,17 +81,28 @@ describe('agent_crm_base_instructions catalog entry (AC3)', () => {
         expect(template.toLowerCase()).toContain('lead score');
     });
 
-    it('mentions 36 tools count', () => {
-        expect(entry.defaultTemplate).toContain('36');
+    it('mentions 41 tools count', () => {
+        expect(entry.defaultTemplate).toContain('41');
     });
 });
 
 describe('BASE_INSTRUCTIONS_FALLBACK alignment', () => {
     // The fallback constant in crmAgent.ts should also mention 36 tools.
     // We test the catalog default which is the authoritative source.
-    it('catalog notes mention TD-2.2 update', () => {
+    it('catalog notes mention CP-3.3 update', () => {
         const catalog = getPromptCatalogMap();
         const entry = catalog['agent_crm_base_instructions'];
-        expect(entry.notes).toContain('TD-2.2');
+        expect(entry.notes).toContain('CP-3.3');
+    });
+
+    it('agent_prospecting_recommendations catalog entry exists', () => {
+        const catalog = getPromptCatalogMap();
+        const entry = catalog['agent_prospecting_recommendations'];
+        expect(entry).toBeDefined();
+        expect(entry.key).toBe('agent_prospecting_recommendations');
+        expect(entry.defaultTemplate).toContain('suggestContactsForProspecting');
+        expect(entry.defaultTemplate).toContain('analyzeProspectingPatterns');
+        expect(entry.defaultTemplate).toContain('listSavedQueues');
+        expect(entry.defaultTemplate).toContain('addContactsToQueue');
     });
 });
