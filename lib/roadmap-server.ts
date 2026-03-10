@@ -2,7 +2,7 @@ import 'server-only';
 import { execSync } from 'child_process';
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
-import { RoadmapData, Story } from './roadmap';
+import { RoadmapData, Story, staticBusinessMetrics, staticBrandVision, staticMilestones } from './roadmap';
 
 const ROOT = process.cwd();
 
@@ -89,5 +89,8 @@ export function getRoadmapData(): RoadmapData {
         stories: getStories(),
         recentCommits: getRecentCommits(),
         deliveryVelocity: getDeliveryVelocity(),
+        businessMetrics: staticBusinessMetrics,
+        brandVision: staticBrandVision,
+        milestones: staticMilestones,
     };
 }

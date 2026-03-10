@@ -340,7 +340,7 @@ export const sections: InstructionSection[] = [
       },
       {
         type: 'paragraph',
-        text: 'Tipos disponíveis: Call, Email, Meeting, Task, Note.',
+        text: 'Tipos disponíveis: Call, Email, Meeting, Task, Note, WhatsApp.',
       },
       {
         type: 'feature-list',

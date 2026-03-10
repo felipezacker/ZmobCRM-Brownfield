@@ -3,11 +3,11 @@
 import dynamic from 'next/dynamic'
 import { PageLoader } from '@/components/PageLoader'
 
-const InstructionsPage = dynamic(
-    () => import('@/features/instructions/InstructionsPage').then(m => ({ default: m.InstructionsPage })),
+const InstructionsPageV2 = dynamic(
+    () => import('@/features/instructions/InstructionsPageV2').then(m => ({ default: m.InstructionsPageV2 })),
     { loading: () => <PageLoader />, ssr: false }
 )
 
 export default function Instructions() {
-    return <InstructionsPage />
+    return <InstructionsPageV2 />
 }
