@@ -7,11 +7,13 @@ import { NeglectedContactsAlert } from '../components/NeglectedContactsAlert'
 
 // ── Mocks ──────────────────────────────────────────────
 
+/* eslint-disable no-restricted-syntax */
 vi.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
     <button {...props}>{children}</button>
   ),
 }))
+/* eslint-enable no-restricted-syntax */
 
 vi.mock('@/features/prospecting/components/LeadScoreBadge', () => ({
   LeadScoreBadge: ({ score }: { score: number | null }) => (

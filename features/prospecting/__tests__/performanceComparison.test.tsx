@@ -5,11 +5,13 @@ import { render, screen } from '@testing-library/react'
 import { PerformanceComparison } from '../components/PerformanceComparison'
 import type { BrokerMetric } from '../hooks/useProspectingMetrics'
 
+/* eslint-disable no-restricted-syntax */
 vi.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
     <button {...props}>{children}</button>
   ),
 }))
+/* eslint-enable no-restricted-syntax */
 
 const makeMetric = (overrides?: Partial<BrokerMetric>): BrokerMetric => ({
   ownerId: 'u1',

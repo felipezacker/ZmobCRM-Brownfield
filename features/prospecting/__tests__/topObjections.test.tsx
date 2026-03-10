@@ -5,11 +5,13 @@ import { render, screen } from '@testing-library/react'
 import { TopObjections } from '../components/TopObjections'
 import type { CallActivity } from '../hooks/useProspectingMetrics'
 
+/* eslint-disable no-restricted-syntax */
 vi.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
     <button {...props}>{children}</button>
   ),
 }))
+/* eslint-enable no-restricted-syntax */
 
 const makeActivity = (objections?: string[]): CallActivity => ({
   id: `a-${Math.random()}`,
