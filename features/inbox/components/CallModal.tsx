@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink } from 'lucide-react';
+import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink, Pause, Play } from 'lucide-react';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { Button } from '@/components/ui/button';
 import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
@@ -62,6 +62,8 @@ export const CallModal: React.FC<CallModalProps> = ({
     const [notes, setNotes] = useState('');
     const [title, setTitle] = useState(suggestedTitle);
     const [copied, setCopied] = useState(false);
+    const [showTimerPrompt, setShowTimerPrompt] = useState(false);
+    const [timerPaused, setTimerPaused] = useState(false);
     const [showMobileScript, setShowMobileScript] = useState(false);
 
     const phone = normalizePhoneE164(contactPhone);
@@ -87,6 +89,8 @@ export const CallModal: React.FC<CallModalProps> = ({
         setNotes('');
         setTitle(suggestedTitle);
         setCopied(false);
+        setShowTimerPrompt(false);
+        setTimerPaused(false);
         setShowMobileScript(false);
     }, [isOpen, suggestedTitle]);
 
@@ -95,13 +99,14 @@ export const CallModal: React.FC<CallModalProps> = ({
     useEffect(() => {
         if (!isOpen) return;
         if (!dialerOpenedAt) return;
+        if (timerPaused) return;
 
         const interval = setInterval(() => {
             setElapsedTime(Math.floor((new Date().getTime() - dialerOpenedAt.getTime()) / 1000));
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [isOpen, dialerOpenedAt]);
+    }, [isOpen, dialerOpenedAt, timerPaused]);
 
     // Format time as MM:SS
     const formatTime = (seconds: number) => {
@@ -132,8 +137,31 @@ export const CallModal: React.FC<CallModalProps> = ({
             await navigator.clipboard.writeText(phone);
             setCopied(true);
             setTimeout(() => setCopied(false), 1200);
+            // Se timer ainda não iniciou, perguntar se quer iniciar
+            if (!dialerOpenedAt) {
+                setShowTimerPrompt(true);
+            }
         } catch {
             // ignore
+        }
+    };
+
+    const handleConfirmStartTimer = () => {
+        setDialerOpenedAt(new Date());
+        setShowTimerPrompt(false);
+    };
+
+    const handleDismissTimerPrompt = () => {
+        setShowTimerPrompt(false);
+    };
+
+    const handleTogglePause = () => {
+        if (timerPaused) {
+            // Retomar: ajustar dialerOpenedAt para que o timer continue de onde parou
+            setDialerOpenedAt(new Date(Date.now() - elapsedTime * 1000));
+            setTimerPaused(false);
+        } else {
+            setTimerPaused(true);
         }
     };
 
@@ -242,16 +270,54 @@ export const CallModal: React.FC<CallModalProps> = ({
                             <span className="text-2xl font-mono font-bold text-foreground tracking-wider">
                                 {formatTime(dialerOpenedAt ? elapsedTime : 0)}
                             </span>
+                            {dialerOpenedAt && (
+                                <Button
+                                    variant="unstyled"
+                                    size="unstyled"
+                                    type="button"
+                                    onClick={handleTogglePause}
+                                    className={`p-1.5 rounded-lg transition-colors ${timerPaused ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-muted dark:bg-white/10 text-muted-foreground hover:text-foreground dark:hover:text-white'}`}
+                                    title={timerPaused ? 'Retomar contagem' : 'Pausar contagem'}
+                                    aria-label={timerPaused ? 'Retomar contagem' : 'Pausar contagem'}
+                                >
+                                    {timerPaused ? <Play size={14} /> : <Pause size={14} />}
+                                </Button>
+                            )}
                         </div>
                         <div className="text-[11px] text-muted-foreground text-center">
                             {!phone ? (
                                 'Sem número de telefone para discar.'
+                            ) : timerPaused ? (
+                                'Contagem pausada — adicione suas notas com calma.'
                             ) : dialerOpenedAt ? (
                                 'Tempo desde abrir o discador (a chamada acontece fora do CRM).'
                             ) : (
                                 'Abra o discador para iniciar a contagem.'
                             )}
                         </div>
+                        {showTimerPrompt && (
+                            <div className="mt-2 flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2">
+                                <span className="text-xs text-yellow-300 font-medium">Iniciar contagem?</span>
+                                <Button
+                                    variant="unstyled"
+                                    size="unstyled"
+                                    type="button"
+                                    onClick={handleConfirmStartTimer}
+                                    className="px-2 py-0.5 rounded text-xs font-semibold bg-yellow-500 hover:bg-yellow-600 text-black transition-colors"
+                                >
+                                    Sim
+                                </Button>
+                                <Button
+                                    variant="unstyled"
+                                    size="unstyled"
+                                    type="button"
+                                    onClick={handleDismissTimerPrompt}
+                                    className="px-2 py-0.5 rounded text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    Não
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
