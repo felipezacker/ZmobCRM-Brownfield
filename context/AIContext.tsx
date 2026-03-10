@@ -49,8 +49,8 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             enhancedContext.filters?.status || '',
             enhancedContext.filters?.owner || '',
             enhancedContext.filters?.search || '',
-            enhancedContext.filters?.dateRange?.start || '',
-            enhancedContext.filters?.dateRange?.end || '',
+            String((enhancedContext.filters?.dateRange as Record<string, unknown> | undefined)?.start ?? ''),
+            String((enhancedContext.filters?.dateRange as Record<string, unknown> | undefined)?.end ?? ''),
             // A few board metrics (avoid logging names / PII)
             String(enhancedContext.activeObject?.metadata?.dealCount ?? ''),
             String(enhancedContext.activeObject?.metadata?.pipelineValue ?? ''),
