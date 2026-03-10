@@ -56,6 +56,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             {msg.proposalData && (
               <div className="mt-2 flex gap-2">
                 <Button
+                  variant="unstyled"
+                  size="unstyled"
                   onClick={() => onPreviewToggle(msg.proposalData!)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors flex items-center gap-1 ${
                     previewBoard === msg.proposalData
@@ -68,6 +70,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                     : 'Ver Preview'}
                 </Button>
                 <Button
+                  variant="unstyled"
+                  size="unstyled"
                   onClick={() => onApplyProposal(msg.proposalData!)}
                   className="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-600 hover:bg-green-500 text-white transition-colors flex items-center gap-1"
                 >
@@ -101,6 +105,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             disabled={isRefining}
           />
           <Button
+            variant="unstyled"
+            size="unstyled"
             onClick={onRefine}
             disabled={!chatInput.trim() || isRefining}
             className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-500 disabled:opacity-50 transition-colors"

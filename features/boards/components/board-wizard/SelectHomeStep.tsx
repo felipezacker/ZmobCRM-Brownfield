@@ -25,16 +25,17 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
 
       {/* Primary CTA: AI */}
       <Button
+        variant="unstyled"
+        size="unstyled"
         onClick={onGoToAI}
         className="mt-4 w-full relative overflow-hidden p-1 rounded-2xl group transition-all hover:shadow-lg hover:shadow-primary-500/20"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-95 group-hover:opacity-100 transition-opacity" />
-        <div className="relative bg-white dark:bg-card rounded-[14px] px-4 py-3 flex items-center justify-center gap-3 transition-colors group-hover:bg-opacity-90 dark:group-hover:bg-opacity-90">
-          <Sparkles
-            size={18}
-            className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-pink-500"
-          />
-          <div className="flex flex-col items-center leading-tight">
+        <div className="relative bg-white dark:bg-card rounded-[14px] px-4 py-3 flex items-center gap-3 transition-colors group-hover:bg-opacity-90 dark:group-hover:bg-opacity-90">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center shrink-0">
+            <Sparkles size={18} className="text-white" />
+          </div>
+          <div className="flex flex-col leading-tight min-w-0">
             <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 dark:from-indigo-400 dark:to-pink-400">
               Criar com IA
             </span>
@@ -48,6 +49,8 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
       {/* Compact chooser list */}
       <div className="mt-3 space-y-2">
         <Button
+          variant="unstyled"
+          size="unstyled"
           onClick={() => onBrowse('playbooks', 'official')}
           className="w-full px-4 py-3 rounded-xl border border-border bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all text-left"
         >
@@ -67,6 +70,8 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
         </Button>
 
         <Button
+          variant="unstyled"
+          size="unstyled"
           onClick={() => onBrowse('templates', 'official')}
           className="w-full px-4 py-3 rounded-xl border border-border bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all text-left"
         >
@@ -86,6 +91,8 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
         </Button>
 
         <Button
+          variant="unstyled"
+          size="unstyled"
           onClick={onStartFromScratch}
           className="w-full px-4 py-3 rounded-xl border border-border bg-white dark:bg-dark-card hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all text-left"
         >
@@ -105,6 +112,8 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
 
       <div className="mt-3 text-center">
         <Button
+          variant="unstyled"
+          size="unstyled"
           onClick={() => onBrowse('community', 'community')}
           className="text-xs font-medium text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground transition-colors"
         >

@@ -149,6 +149,8 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                     className="w-full px-4 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm"
                   />
                   <Button
+                    variant="unstyled"
+                    size="unstyled"
                     type="button"
                     onClick={form.handleCopyKey}
                     className="shrink-0 px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 hover:bg-background dark:hover:bg-white/10 text-secondary-foreground dark:text-muted-foreground"
@@ -318,6 +320,8 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                   </label>
                   <div className="flex items-center gap-2">
                     <Button
+                      variant="unstyled"
+                      size="unstyled"
                       onClick={form.handleAddStage}
                       className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
                     >
@@ -325,6 +329,8 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                       Adicionar etapa
                     </Button>
                     <Button
+                      variant="unstyled"
+                      size="unstyled"
                       onClick={() => form.setIsLifecycleModalOpen(true)}
                       className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors"
                     >
@@ -353,6 +359,8 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                       {/* Stage Header */}
                       <div className="flex items-center gap-3 mb-3">
                         <Button
+                          variant="unstyled"
+                          size="unstyled"
                           type="button"
                           draggable
                           onDragStart={(e) => form.handleDragStart(stage.id, e)}
@@ -389,6 +397,8 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
 
                         {/* Delete */}
                         <Button
+                          variant="unstyled"
+                          size="unstyled"
                           onClick={() => form.handleRemoveStage(stage.id)}
                           disabled={form.stages.length <= 2}
                           className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0 transition-colors"
@@ -431,12 +441,16 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           {/* Footer */}
           <div className={`${MODAL_FOOTER_CLASS} flex justify-end gap-3`}>
               <Button
+                variant="ghost"
+                size="unstyled"
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors focus-visible-ring"
+                className="px-4 py-2 text-sm font-medium text-secondary-foreground dark:text-muted-foreground rounded-lg transition-colors focus-visible-ring"
               >
                 Cancelar
               </Button>
               <Button
+                variant="unstyled"
+                size="unstyled"
                 onClick={form.handleSave}
                 disabled={!form.name.trim()}
                 className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors focus-visible-ring"

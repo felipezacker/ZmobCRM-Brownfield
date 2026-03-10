@@ -186,20 +186,24 @@ export function ExportTemplateModal(props: {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <Button
+            variant="unstyled"
+            size="unstyled"
             type="button"
             onClick={() => setPanel('export')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${panel === 'export'
-              ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+              ? 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500'
               : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
               }`}
           >
             Exportar
           </Button>
           <Button
+            variant="unstyled"
+            size="unstyled"
             type="button"
             onClick={() => setPanel('import')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${panel === 'import'
-              ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+              ? 'bg-primary-600 dark:bg-primary-500 text-white border-primary-600 dark:border-primary-500'
               : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
               }`}
           >
@@ -225,6 +229,8 @@ export function ExportTemplateModal(props: {
           />
 
           <Button
+            variant="unstyled"
+            size="unstyled"
             type="button"
             onClick={() => setShowPasteImport(v => !v)}
             className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors w-fit"
@@ -253,6 +259,8 @@ export function ExportTemplateModal(props: {
 
           <div className="flex items-center gap-2">
             <Button
+              variant="unstyled"
+              size="unstyled"
               type="button"
               onClick={() => void handleInstallImportedJourney()}
               disabled={!importJourney || isImporting}
@@ -320,6 +328,8 @@ export function ExportTemplateModal(props: {
                       {isSelected && (
                         <div className="flex items-center gap-1 shrink-0">
                           <Button
+                            variant="ghost"
+                            size="unstyled"
                             type="button"
                             onClick={() => moveSelected(b.id, -1)}
                             className="p-1 rounded hover:bg-muted dark:hover:bg-white/10"
@@ -328,6 +338,8 @@ export function ExportTemplateModal(props: {
                             <ArrowUp size={14} />
                           </Button>
                           <Button
+                            variant="ghost"
+                            size="unstyled"
                             type="button"
                             onClick={() => moveSelected(b.id, 1)}
                             className="p-1 rounded hover:bg-muted dark:hover:bg-white/10"
@@ -345,6 +357,8 @@ export function ExportTemplateModal(props: {
 
             <div className="mt-4 flex items-center gap-2">
               <Button
+                variant="unstyled"
+                size="unstyled"
                 type="button"
                 onClick={handleDownloadJourney}
                 className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold flex items-center gap-2"
@@ -352,15 +366,19 @@ export function ExportTemplateModal(props: {
                 <Download size={16} /> Baixar arquivo
               </Button>
               <Button
+                variant="unstyled"
+                size="unstyled"
                 type="button"
                 onClick={handleCopyJourneyJson}
-                className="px-4 py-2 rounded-lg bg-card dark:bg-white text-white dark:text-foreground text-sm font-semibold flex items-center gap-2"
+                className="px-4 py-2 rounded-lg border border-border bg-white dark:bg-white/10 text-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-white/20 text-sm font-semibold flex items-center gap-2 transition-colors"
               >
                 <Copy size={16} /> Copiar arquivo (texto)
               </Button>
             </div>
 
             <Button
+              variant="unstyled"
+              size="unstyled"
               type="button"
               onClick={() => setShowTechnicalDetails(v => !v)}
               className="mt-3 text-xs font-semibold text-secondary-foreground dark:text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors"

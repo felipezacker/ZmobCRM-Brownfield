@@ -11,7 +11,7 @@ import {
   InstallProgress,
 } from '@/features/boards/components/board-wizard/types';
 
-export function useWizardState() {
+export function useWizardState(isOpen?: boolean) {
   const [step, setStep] = useState<WizardStep>('select');
   const [selectedPlaybookId, setSelectedPlaybookId] = useState<string | null>(null);
   const [includeSubscriptionRenewals, setIncludeSubscriptionRenewals] = useState(false);
@@ -35,6 +35,23 @@ export function useWizardState() {
   const [isLoadingRegistry, setIsLoadingRegistry] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
   const [installProgress, setInstallProgress] = useState<InstallProgress | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setStep('select');
+      setSelectMode('home');
+      setSelectedPlaybookId(null);
+      setAiInput('');
+      setGeneratedBoard(null);
+      setPreviewBoard(null);
+      setError(null);
+      setIsChatMode(false);
+      setChatMessages([]);
+      setChatInput('');
+      setIsProcessingModalOpen(false);
+      setIncludeSubscriptionRenewals(false);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (activeTab === 'community' && !registryIndex) {

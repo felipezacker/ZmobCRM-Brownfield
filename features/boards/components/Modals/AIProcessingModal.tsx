@@ -75,11 +75,11 @@ export const AIProcessingModal: React.FC<AIProcessingModalProps> = ({ isOpen, cu
     const activeIndex = getCurrentStepIndex();
 
     return (
-        <div className="fixed inset-0 md:left-[var(--app-sidebar-width,0px)] z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Glassmorphism Background */}
-            <div className="absolute inset-0 bg-card/80 backdrop-blur-xl transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-xl transition-opacity duration-500" />
 
-            <div className="relative z-10 w-full max-w-md bg-white/90 dark:bg-card/90 backdrop-blur-xl rounded-2xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] border border-white/40 overflow-hidden transform transition-all duration-500 scale-100">
+            <div className="relative z-10 w-full max-w-md bg-white dark:bg-card rounded-2xl shadow-2xl border border-border overflow-hidden transform transition-all duration-500 scale-100">
                 {/* Header */}
                 <div className="p-8 bg-gradient-to-b from-white/50 to-transparent dark:from-white/5 border-b border-border/50 text-center">
                     <div className="w-16 h-16 bg-gradient-to-tr from-primary-100 to-blue-50 dark:from-primary-900/30 dark:to-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner ring-1 ring-white/50 dark:ring-white/10">
