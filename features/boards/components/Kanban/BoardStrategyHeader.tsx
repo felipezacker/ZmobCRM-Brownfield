@@ -8,6 +8,7 @@ import {
   Check,
   X,
   ChevronRight,
+  ChevronDown,
   MessageSquare,
 } from 'lucide-react';
 import { Board } from '@/types';
@@ -34,6 +35,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
   const { deals } = useCRMActions();
   const setIsGlobalAIOpen = useUIStore((s) => s.setIsGlobalAIOpen);
   const [isEditing, setIsEditing] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [editedBoard, setEditedBoard] = useState(board);
 
   // Calculate Progress Automatically
@@ -136,15 +138,24 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
       <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-orange-500/5 rounded-xl blur-xl opacity-50 group-hover/header:opacity-100 transition-opacity duration-700"></div>
 
       <div className="relative px-5 py-3 bg-white dark:bg-card rounded-lg border border-border shadow-sm transition-all duration-300 hover:shadow-md">
-        {/* Edit Button - Only visible on hover */}
+        {/* Action Buttons - Top right, visible on hover */}
         {!isEditing && (
-          <Button
-            onClick={() => setIsEditing(true)}
-            className="absolute top-2 right-2 p-1.5 text-muted-foreground hover:text-white hover:bg-card rounded-full transition-all opacity-0 group-hover/header:opacity-100"
-            title="Editar Estratégia"
-          >
-            <Edit2 size={12} />
-          </Button>
+          <div className="absolute top-2 right-2 flex items-center gap-0.5 opacity-0 group-hover/header:opacity-100 transition-all">
+            <Button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-all"
+              title={isCollapsed ? 'Expandir Estratégia' : 'Recolher Estratégia'}
+            >
+              {isCollapsed ? <ChevronDown size={12} /> : <ChevronRight size={12} className="rotate-[-90deg]" />}
+            </Button>
+            <Button
+              onClick={() => { setIsCollapsed(false); setIsEditing(true); }}
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-all"
+              title="Editar Estratégia"
+            >
+              <Edit2 size={12} />
+            </Button>
+          </div>
         )}
 
         {isEditing ? (
@@ -336,8 +347,36 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
               </div>
             </div>
           </div>
+        ) : isCollapsed ? (
+          // --- COLLAPSED VIEW ---
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(false)}
+            className="w-full flex items-center gap-4 py-0.5 text-left group/collapsed"
+          >
+            <ChevronRight size={14} className="text-muted-foreground shrink-0 transition-transform group-hover/collapsed:translate-x-0.5" />
+            {board.goal?.targetValue && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Target size={11} className="text-blue-500" />
+                <span className="font-semibold text-foreground">{board.goal.targetValue}</span>
+                <span className="hidden sm:inline truncate max-w-[150px]">{board.goal?.kpi}</span>
+              </span>
+            )}
+            {board.agentPersona?.name && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Bot size={11} className="text-purple-500" />
+                <span>{board.agentPersona.name}</span>
+              </span>
+            )}
+            {board.entryTrigger && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground hidden md:flex">
+                <DoorOpen size={11} className="text-orange-500" />
+                <span className="truncate max-w-[200px]">{board.entryTrigger}</span>
+              </span>
+            )}
+          </button>
         ) : (
-          // --- VIEW MODE (Compact & Premium) ---
+          // --- EXPANDED VIEW (Full Premium) ---
           <>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
               {/* GOAL (Hero Section) - Spans 4 cols */}
