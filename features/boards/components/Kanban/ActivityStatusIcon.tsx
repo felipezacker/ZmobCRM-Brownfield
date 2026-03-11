@@ -89,7 +89,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
             break;
         default:
             content = (
-                <div className="w-5 h-5 rounded-full bg-accent dark:bg-accent flex items-center justify-center text-white ring-1 ring-white dark:ring-dark-card" aria-hidden="true">
+                <div className="w-5 h-5 rounded-full bg-accent dark:bg-accent flex items-center justify-center text-muted-foreground ring-1 ring-white dark:ring-dark-card" aria-hidden="true">
                     <Icon size={10} strokeWidth={3} />
                 </div>
             );

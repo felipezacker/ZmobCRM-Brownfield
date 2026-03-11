@@ -117,6 +117,23 @@ export const useBoardsController = () => {
     sortedDeals: filters.sortedDeals,
     showAllRecent: filters.showAllRecent,
     setShowAllRecent: filters.setShowAllRecent,
+    // Advanced filters (BUX-7) — explicit to avoid spread conflicts
+    dealTypeFilter: filters.dealTypeFilter,
+    setDealTypeFilter: filters.setDealTypeFilter,
+    valueRange: filters.valueRange,
+    setValueRange: filters.setValueRange,
+    closeDateFilter: filters.closeDateFilter,
+    setCloseDateFilter: filters.setCloseDateFilter,
+    productFilter: filters.productFilter,
+    setProductFilter: filters.setProductFilter,
+    tagFilter: filters.tagFilter,
+    setTagFilter: filters.setTagFilter,
+    probabilityRange: filters.probabilityRange,
+    setProbabilityRange: filters.setProbabilityRange,
+    clearAdvancedFilters: filters.clearAdvancedFilters,
+    activeAdvancedFilterCount: filters.activeAdvancedFilterCount,
+    uniqueProducts: filters.uniqueProducts,
+    uniqueTags: filters.uniqueTags,
   };
 };
 

@@ -9,7 +9,7 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys, DEALS_VIEW_KEY } from '../index';
-import { dealsService, contactsService, boardStagesService, supabase } from '@/lib/supabase';
+import { dealsService, contactsService, boardStagesService, activitiesService, supabase } from '@/lib/supabase';
 import { createDeal as createDealAction, updateDeal as updateDealAction, deleteDeal as deleteDealAction } from '@/app/actions/deals';
 import { useAuth } from '@/context/AuthContext';
 import type { Deal, DealView, DealItem, Contact } from '@/types';
@@ -196,15 +196,17 @@ export const useDealsByBoard = (boardId: string) => {
       const contactIds = deals.map(d => d.contactId).filter(Boolean);
       const ownerIds = [...new Set(deals.map(d => d.ownerId).filter(Boolean))] as string[];
 
-      // Step 3: Fetch only referenced contacts and owner profiles in parallel
-      const [contactsResult, ownersResult] = await Promise.all([
+      // Step 3: Fetch contacts, owner profiles, and activities in parallel
+      const [contactsResult, ownersResult, activitiesResult] = await Promise.all([
         contactsService.getByIds(contactIds),
         ownerIds.length > 0 && supabase
           ? supabase.from('profiles').select('id, first_name, last_name, email, avatar_url').in('id', ownerIds)
           : Promise.resolve({ data: [] as { id: string; first_name?: string; last_name?: string; email?: string; avatar_url?: string }[] }),
+        activitiesService.getAll(),
       ]);
 
       const contacts = contactsResult.data || [];
+      const allActivities = activitiesResult.data || [];
 
       // Create lookup maps
       const contactMap = new Map(contacts.map(c => [c.id, c]));
@@ -217,6 +219,22 @@ export const useDealsByBoard = (boardId: string) => {
           name: [o.first_name, o.last_name].filter(Boolean).join(' ') || o.email?.split('@')[0] || 'Sem nome',
           avatar: o.avatar_url || '',
         });
+      }
+
+      // Build nextActivity map: dealId -> nearest incomplete activity
+      const now = new Date();
+      const nextActivityMap = new Map<string, { type: 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'WHATSAPP'; date: string; isOverdue: boolean }>();
+      for (const act of allActivities) {
+        if (!act.dealId || act.completed) continue;
+        const actDate = new Date(act.date);
+        const existing = nextActivityMap.get(act.dealId);
+        if (!existing || actDate < new Date(existing.date)) {
+          nextActivityMap.set(act.dealId, {
+            type: act.type as 'CALL' | 'MEETING' | 'EMAIL' | 'TASK' | 'WHATSAPP',
+            date: act.date,
+            isOverdue: actDate < now,
+          });
+        }
       }
 
       // Enrich ALL deals (filtering happens in select)
@@ -232,6 +250,7 @@ export const useDealsByBoard = (boardId: string) => {
           contactTags: contact?.tags || [],
           contactCustomFields: contact?.customFields || {},
           stageLabel: stageMap.get(deal.status) || 'Estágio não identificado',
+          nextActivity: nextActivityMap.get(deal.id),
         };
       });
       return enrichedDeals;
