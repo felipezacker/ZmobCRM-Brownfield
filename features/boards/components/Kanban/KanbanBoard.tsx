@@ -386,24 +386,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     <ChevronsLeft size={12} />
                   </Button>
                   <span className="font-bold text-secondary-foreground dark:text-muted-foreground font-display text-sm tracking-wide uppercase">
-                    {stage.label}
+                    {stage.label} <span className="font-normal text-muted-foreground">({stageDeals.length})</span>
                   </span>
                 </div>
-                <div className="flex items-center gap-1">
-                  {onAddDealToStage && stage.id !== wonStageId && stage.id !== lostStageId && (
-                    <Button
-                      type="button"
-                      onClick={() => onAddDealToStage(stage.id)}
-                      title={`Novo negócio em ${stage.label}`}
-                      className="opacity-100 md:opacity-0 md:group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                    >
-                      <Plus size={14} />
-                    </Button>
-                  )}
-                  <span className="text-xs font-bold bg-white dark:bg-card border border-border dark:border-border px-2 py-0.5 rounded text-secondary-foreground dark:text-muted-foreground">
-                    {stageDeals.length}
-                  </span>
-                </div>
+                {onAddDealToStage && stage.id !== wonStageId && stage.id !== lostStageId && (
+                  <Button
+                    type="button"
+                    onClick={() => onAddDealToStage(stage.id)}
+                    title={`Novo negócio em ${stage.label}`}
+                    className="opacity-100 md:opacity-0 md:group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                  >
+                    <Plus size={14} />
+                  </Button>
+                )}
               </div>
 
               {/* Automation Indicator - Always rendered for consistent height */}
