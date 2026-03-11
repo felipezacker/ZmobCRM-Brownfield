@@ -357,9 +357,13 @@ export function useProspectingPageState(userId?: string, organizationId?: string
         total: 0, completed: 0, skipped: 0, connected: 0,
         noAnswer: 0, voicemail: 0, busy: 0, duration_seconds: 0,
       }
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         othersToEnd.map(s => endProspectingSession(s.id, zeroStats))
       )
+      const failed = results.filter(r => r.status === 'rejected').length
+      if (failed > 0) {
+        deps.toast(`${failed} sessao(oes) nao puderam ser encerradas`, 'warning')
+      }
     }
     setDbSessionId(pendingActiveSession.id)
     setSessionStartTime(new Date(pendingActiveSession.startedAt))
@@ -410,9 +414,14 @@ export function useProspectingPageState(userId?: string, organizationId?: string
       total: 0, completed: 0, skipped: 0, connected: 0,
       noAnswer: 0, voicemail: 0, busy: 0, duration_seconds: 0,
     }
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       allActiveSessions.map(s => endProspectingSession(s.id, zeroStats))
     )
+    const failed = results.filter(r => r.status === 'rejected').length
+    if (failed > 0) {
+      const deps = depsRef.current
+      deps?.toast(`${failed} sessao(oes) nao puderam ser encerradas`, 'warning')
+    }
     setPendingActiveSession(null)
     setAllActiveSessions([])
   }, [allActiveSessions])

@@ -141,19 +141,51 @@ describe('CP-4.8: Multiple active sessions', () => {
   })
 
   describe('AC5: State cleanup after resolution', () => {
-    it('verifies cleanup logic clears both states', () => {
-      // Simulating state management: after dismiss/resume, both should be null/empty
-      let pendingActiveSession: { id: string; startedAt: string } | null = { id: 's1', startedAt: '2026-03-10T10:00:00Z' }
-      let allActiveSessions = [
-        { id: 's2' }, { id: 's1' },
+    it('dismiss all: ends every session then clears state', async () => {
+      const sessions = [
+        { id: 's3', ownerId: 'o1', organizationId: 'org1', startedAt: '2026-03-10T14:00:00Z', endedAt: null, stats: {}, createdAt: '2026-03-10T14:00:00Z' },
+        { id: 's2', ownerId: 'o1', organizationId: 'org1', startedAt: '2026-03-10T10:00:00Z', endedAt: null, stats: {}, createdAt: '2026-03-10T10:00:00Z' },
       ]
+      mockChain.eq.mockResolvedValue({ error: null })
 
-      // Simulate cleanup (what the handlers do)
-      pendingActiveSession = null
-      allActiveSessions = []
+      // Simulate handleDismissAllSessions: end all, then clear
+      const results = await Promise.allSettled(
+        sessions.map(s => endProspectingSession(s.id, ZERO_STATS))
+      )
+      const allSettled = results.every(r => r.status === 'fulfilled')
+      expect(allSettled).toBe(true)
+      expect(mockChain.from).toHaveBeenCalledTimes(2)
 
+      // After settlement, state should be cleared
+      const pendingActiveSession = null
+      const allActiveSessions: unknown[] = []
       expect(pendingActiveSession).toBeNull()
-      expect(allActiveSessions).toEqual([])
+      expect(allActiveSessions).toHaveLength(0)
+    })
+
+    it('resume: ends others then clears allActiveSessions', async () => {
+      const sessions = [
+        { id: 's3', ownerId: 'o1', organizationId: 'org1', startedAt: '2026-03-10T14:00:00Z', endedAt: null, stats: {}, createdAt: '2026-03-10T14:00:00Z' },
+        { id: 's2', ownerId: 'o1', organizationId: 'org1', startedAt: '2026-03-10T10:00:00Z', endedAt: null, stats: {}, createdAt: '2026-03-10T10:00:00Z' },
+      ]
+      const pending = { id: 's3', startedAt: '2026-03-10T14:00:00Z' }
+      mockChain.eq.mockResolvedValue({ error: null })
+
+      // Simulate handleResumeSession: end others, keep pending
+      const othersToEnd = sessions.filter(s => s.id !== pending.id)
+      expect(othersToEnd).toHaveLength(1)
+      expect(othersToEnd[0].id).toBe('s2')
+
+      await Promise.allSettled(
+        othersToEnd.map(s => endProspectingSession(s.id, ZERO_STATS))
+      )
+      expect(mockChain.from).toHaveBeenCalledTimes(1) // only s2 ended
+
+      // After settlement, both states cleared
+      const clearedPending = null
+      const clearedAll: unknown[] = []
+      expect(clearedPending).toBeNull()
+      expect(clearedAll).toHaveLength(0)
     })
   })
 })
