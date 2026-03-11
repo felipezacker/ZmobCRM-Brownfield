@@ -4,7 +4,7 @@
 
 - **Story ID:** CP-4.4
 - **Epic:** CP-4 (Prospeccao — Filas & Sessao UX)
-- **Status:** InReview
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 5 (M)
 - **Estimated Hours:** 5-7h
@@ -33,12 +33,12 @@ Esta story adiciona um **accordion inline** ao `QueueItem`: clicar no item expan
 
 ## Acceptance Criteria
 
-- [ ] AC1: Clicar no corpo do item da fila expande/colapsa a area de detalhes inline (toggle)
-- [ ] AC2: Area expandida exibe: email, ultima atividade (tipo + data relativa), ultima nota (truncada em 100 chars), estagio atual no pipeline, e lead score com descricao textual
-- [ ] AC3: Botao "Ver perfil" na area expandida navega para `/contacts?contactId={id}` do contato
-- [ ] AC4: Apenas um item expandido por vez — expandir novo item colapsa o anterior (accordion behavior gerenciado em `CallQueue`)
-- [ ] AC5: Clicar no botao de remover (X) nao aciona o toggle de expand (propagacao bloqueada)
-- [ ] AC6: Dados carregados sob demanda: fetch ocorre somente quando o item e expandido, nao pre-carregado para todos os itens
+- [x] AC1: Clicar no corpo do item da fila expande/colapsa a area de detalhes inline (toggle)
+- [x] AC2: Area expandida exibe: email, ultima atividade (tipo + data relativa), ultima nota (truncada em 100 chars), estagio atual no pipeline, e lead score com descricao textual
+- [x] AC3: Botao "Ver perfil" na area expandida navega para `/contacts?contactId={id}` do contato
+- [x] AC4: Apenas um item expandido por vez — expandir novo item colapsa o anterior (accordion behavior gerenciado em `CallQueue`)
+- [x] AC5: Clicar no botao de remover (X) nao aciona o toggle de expand (propagacao bloqueada)
+- [x] AC6: Dados carregados sob demanda: fetch ocorre somente quando o item e expandido, nao pre-carregado para todos os itens
 
 ## Scope
 
@@ -81,14 +81,14 @@ Reduz friccao pre-ligacao: o corretor avalia contexto sem troca de tela, aumenta
 
 ## Criteria of Done
 
-- [ ] AC1 a AC6 implementados e verificados
-- [ ] Area expandida com skeleton durante loading
-- [ ] Botao "Ver perfil" navega corretamente para pagina do contato
-- [ ] Dados carregados sob demanda (AC6 verificado via test ou inspecao)
-- [ ] `npm run typecheck` passa
-- [ ] `npm run lint` passa
-- [ ] `npm test` passa (novos testes + sem regressao)
-- [ ] Dark mode funcional na area expandida
+- [x] AC1 a AC6 implementados e verificados
+- [x] Area expandida com skeleton durante loading
+- [x] Botao "Ver perfil" navega corretamente para pagina do contato
+- [x] Dados carregados sob demanda (AC6 verificado via test ou inspecao)
+- [x] `npm run typecheck` passa
+- [x] `npm run lint` passa
+- [x] `npm test` passa (novos testes + sem regressao)
+- [x] Dark mode funcional na area expandida
 
 ## Tasks
 
@@ -318,6 +318,7 @@ Secondary Focus:
 | 2026-03-11 | 1.2 | Rework @po SF-1: Dev Notes atualizado com thresholds reais do LeadScoreBadge.tsx (3 faixas: Frio <30, Morno 30-60, Quente >60) e instrucao de reutilizar o componente/logica existente. SF-2: nota quality_gate @qa adicionada ao Dev Notes por consistencia com epic CP-4. Status mantido Ready. | @sm (River) |
 | 2026-03-11 | 2.0 | Implementacao completa: Tasks 1-6 concluidas. Accordion state, expand/collapse com a11y (role=button, aria-expanded, keyboard), QueueItemDetails com fetch sob demanda, Ver perfil link, 7 testes unitarios. Typecheck e lint OK. | @dev (Dex) |
 | 2026-03-11 | 2.1 | QA Review PASS. 2 concerns corrigidos: (1) limit 1->10 em useContactActivities para exibir ultima nota, (2) handleToggleExpand memoizado com useCallback. Status InProgress -> InReview. | @qa (Quinn) |
+| 2026-03-11 | 2.2 | ACs e Criteria of Done marcados como completos. Status InReview -> Done. | @po (Pax) |
 
 ---
 

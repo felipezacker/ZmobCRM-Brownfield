@@ -40,11 +40,11 @@ Hoje, `getActiveSessions()` em `lib/supabase/prospecting-sessions.ts` usa `.limi
 
 ## Acceptance Criteria
 
-- [ ] AC1: `getActiveSessions()` em `lib/supabase/prospecting-sessions.ts` retorna todas as sessoes ativas do usuario — remover `.limit(1)` da query
-- [ ] AC2: Se ha 2 ou mais sessoes ativas, o banner de sessao ativa em `useProspectingPageState` exibe a contagem total (ex: "2 sessoes ativas encontradas")
-- [ ] AC3: Opcao "Encerrar todas" fecha todas as sessoes ativas com `endProspectingSession(id, stats_zerados)` para cada uma
-- [ ] AC4: Opcao "Retomar mais recente" retoma a sessao com o `startedAt` mais recente (primeiro item do array, ja ordenado por `started_at DESC`) e encerra todas as demais com stats zerados
-- [ ] AC5: Apos executar qualquer acao de resolucao (AC3 ou AC4), o banner desaparece e `pendingActiveSession` e limpo normalmente
+- [x] AC1: `getActiveSessions()` em `lib/supabase/prospecting-sessions.ts` retorna todas as sessoes ativas do usuario — remover `.limit(1)` da query
+- [x] AC2: Se ha 2 ou mais sessoes ativas, o banner de sessao ativa em `useProspectingPageState` exibe a contagem total (ex: "2 sessoes ativas encontradas")
+- [x] AC3: Opcao "Encerrar todas" fecha todas as sessoes ativas com `endProspectingSession(id, stats_zerados)` para cada uma
+- [x] AC4: Opcao "Retomar mais recente" retoma a sessao com o `startedAt` mais recente (primeiro item do array, ja ordenado por `started_at DESC`) e encerra todas as demais com stats zerados
+- [x] AC5: Apos executar qualquer acao de resolucao (AC3 ou AC4), o banner desaparece e `pendingActiveSession` e limpo normalmente
 
 ## Scope
 

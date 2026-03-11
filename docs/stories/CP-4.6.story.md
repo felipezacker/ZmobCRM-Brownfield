@@ -4,7 +4,7 @@
 
 - **Epic:** CP-4 — Prospeccao: Filas & Sessao UX
 - **Story ID:** CP-4.6
-- **Status:** InReview
+- **Status:** Done
 - **Priority:** P1
 - **Points:** 3 (S)
 - **Wave:** Onda 1 — Core Session Flow
@@ -307,6 +307,7 @@ Secondary Focus:
 | 2026-03-11 | 1.0.2 | Aplicados should-fix do @po. SF-1: nota em Dev Notes clarificando semantica de "limpar filtros" (sobrescrever com INITIAL_FILTERS, nao removeItem). SF-2: nota em Dev Notes + Subtask 3.8 + exemplo no Subtask 3.6 com role="status" e aria-live="polite". Status mantido: Ready. | @sm (River) |
 | 2026-03-11 | 2.0.0 | Implementacao completa: Fix 1 (batch loading indicator), Fix 2 (badge retryCount), Fix 3 (localStorage filters). lint/typecheck/856 tests passando. Status: Ready for Review. | @dev (Dex) |
 | 2026-03-11 | 2.1.0 | QA review PASS (0 issues). ACs marcados. Status: InReview. Commit 37db6fb. Aguardando push via @devops. | @dev (Dex) |
+| 2026-03-11 | 2.2.0 | Status InReview -> Done. QA gate PASS confirmado. | @po (Pax) |
 
 ---
 
