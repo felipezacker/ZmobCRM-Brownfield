@@ -228,30 +228,30 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                             />
                         </div>
                         <div className="max-h-48 overflow-y-auto p-1">
-                            <button
+                            <Button
                                 type="button"
                                 onClick={() => { setOwnerFilter('all'); setOwnerOpen(false); }}
                                 className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === 'all' ? 'font-semibold bg-muted' : ''}`}
                             >
                                 Todos os Donos
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
                                 onClick={() => { setOwnerFilter('mine'); setOwnerOpen(false); }}
                                 className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === 'mine' ? 'font-semibold bg-muted' : ''}`}
                             >
                                 Meus Negócios
-                            </button>
+                            </Button>
                             {filteredOrgMembers.length > 0 && <div className="h-px bg-border my-1" />}
                             {filteredOrgMembers.map(m => (
-                                <button
+                                <Button
                                     key={m.id}
                                     type="button"
                                     onClick={() => { setOwnerFilter(m.id); setOwnerOpen(false); }}
                                     className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === m.id ? 'font-semibold bg-muted' : ''}`}
                                 >
                                     {m.name}
-                                </button>
+                                </Button>
                             ))}
                             {filteredOrgMembers.length === 0 && ownerSearch && (
                                 <p className="px-3 py-2 text-sm text-muted-foreground">Nenhum resultado</p>
@@ -306,14 +306,14 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                                     };
                                 };
                                 return (
-                                    <button
+                                    <Button
                                         key={preset.label}
                                         type="button"
                                         onClick={() => setDateRange(getPresetRange())}
                                         className="px-2 py-1.5 text-xs rounded bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
                                     >
                                         {preset.label}
-                                    </button>
+                                    </Button>
                                 );
                             })}
                         </div>
@@ -331,13 +331,13 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                                     className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-white/50 dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500" />
                             </div>
                             {(dateRange.start || dateRange.end) && (
-                                <button
+                                <Button
                                     type="button"
                                     onClick={() => setDateRange({ start: '', end: '' })}
                                     className="w-full text-center text-xs text-red-500 hover:text-red-600 py-1 transition-colors"
                                 >
                                     Limpar período
-                                </button>
+                                </Button>
                             )}
                         </div>
                     </PopoverContent>

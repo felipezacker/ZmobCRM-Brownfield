@@ -350,7 +350,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
           </div>
         ) : isCollapsed ? (
           // --- COLLAPSED VIEW ---
-          <button
+          <Button
             type="button"
             onClick={() => setIsCollapsed(false)}
             className="w-full flex items-center gap-4 py-0.5 text-left group/collapsed"
@@ -375,7 +375,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                 <span className="truncate max-w-[200px]">{board.entryTrigger}</span>
               </span>
             )}
-          </button>
+          </Button>
         ) : (
           // --- EXPANDED VIEW (Full Premium) ---
           <>
