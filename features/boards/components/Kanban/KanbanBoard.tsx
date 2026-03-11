@@ -13,6 +13,9 @@ import { useAddDealItem, useRemoveDealItem, useUpdateDeal } from '@/lib/query/ho
 import { useOrganizationMembers, type OrgMember } from '@/hooks/useOrganizationMembers';
 import type { Product } from '@/types';
 
+// Performance: reuse currency formatter instance (same pattern as DealCard.tsx:62).
+const BRL_CURRENCY = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
 /**
  * UI: Drop highlight should follow the stage color.
  *
@@ -313,7 +316,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       type="button"
                       onClick={() => onAddDealToStage(stage.id)}
                       title={`Novo negócio em ${stage.label}`}
-                      className="opacity-60 md:opacity-0 md:group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                      className="opacity-100 md:opacity-0 md:group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                     >
                       <Plus size={14} />
                     </Button>
@@ -341,7 +344,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <div className="text-xs text-muted-foreground dark:text-muted-foreground font-medium text-right">
                 Total:{' '}
                 <span className="text-foreground font-mono">
-                  ${stageValue.toLocaleString()}
+                  {BRL_CURRENCY.format(stageValue)}
                 </span>
               </div>
             </div>

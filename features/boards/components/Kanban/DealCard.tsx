@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { DealView, Product } from '@/types';
 import type { OrgMember } from '@/hooks/useOrganizationMembers';
-import { Hourglass, Loader2, Trophy, XCircle } from 'lucide-react';
+import { Hourglass, Loader2, Trophy, XCircle, Phone, Calendar, Mail } from 'lucide-react';
 import { priorityAriaLabelPtBr } from '@/lib/utils/priority';
 import { useDealCardPopovers } from './hooks/useDealCardPopovers';
 import { ProductPicker, OwnerPicker } from './DealCardPopovers';
 import { DealCardActions } from './DealCardActions';
+import { formatRelativeActivityDate, formatStageAge } from '@/features/boards/hooks/boardUtils';
 
 interface DealCardProps {
   deal: DealView;
@@ -171,6 +172,14 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     parts.push(BRL_CURRENCY.format(deal.value));
     const priority = getPriorityLabel(deal.priority);
     if (priority) parts.push(priority);
+    if (deal.nextActivity) {
+      const relDate = formatRelativeActivityDate(deal.nextActivity.date);
+      parts.push(`proxima atividade: ${deal.nextActivity.type} ${relDate}`);
+    }
+    if (!isClosed) {
+      const stageAge = formatStageAge(deal.lastStageChangeDate);
+      if (stageAge) parts.push(stageAge);
+    }
     if (isRotting && !isClosed) parts.push('estagnado');
     if (isGrabbed) parts.push('segurado para mover');
     return parts.join(', ');
@@ -251,6 +260,19 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         <span className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground shrink-0 tabular-nums">
           {BRL_CURRENCY.format(deal.value)}
         </span>
+        {!isClosed && (() => {
+          const stageAge = formatStageAge(deal.lastStageChangeDate);
+          if (!stageAge) return null;
+          const days = parseInt(stageAge.replace(/\D/g, ''), 10);
+          return (
+            <span
+              className={`text-[9px] font-medium shrink-0 ${days > 10 ? 'text-amber-500' : 'text-muted-foreground'}`}
+              aria-label={`${stageAge} neste estagio`}
+            >
+              {stageAge}
+            </span>
+          );
+        })()}
       </div>
 
       {/* Row 2: Product */}
@@ -277,6 +299,24 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         filteredMembers={popovers.filteredMembers}
         onSelectOwner={popovers.handleSelectOwner}
       />
+
+      {/* Row 3.5: Next Activity (conditional) */}
+      {deal.nextActivity && (() => {
+        const relDate = formatRelativeActivityDate(deal.nextActivity.date);
+        const isOverdue = deal.nextActivity.isOverdue;
+        const isToday = relDate === 'Hoje';
+        const colorClass = isOverdue ? 'text-red-500' : isToday ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground';
+        const ActivityIcon = deal.nextActivity.type === 'CALL' ? Phone : deal.nextActivity.type === 'EMAIL' ? Mail : deal.nextActivity.type === 'MEETING' ? Calendar : Mail;
+        return (
+          <div
+            className={`flex items-center gap-1.5 text-xs ${colorClass}`}
+            aria-label={`Proxima atividade: ${deal.nextActivity.type} ${relDate}`}
+          >
+            <ActivityIcon size={12} aria-hidden="true" className="shrink-0" />
+            <span className="truncate">{relDate}</span>
+          </div>
+        );
+      })()}
 
       {/* Row 4: Tags + Date + Activity Icon */}
       <DealCardActions
