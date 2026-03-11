@@ -243,8 +243,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             item: { productId: product.id, name: product.name, quantity: 1, price: product.price },
           });
         }
-      } catch {
-        // Mutation errors are handled by react-query onError callbacks
+      } catch (error) {
+        console.error('Failed to change product on deal', error);
       }
     },
     [dealsById, addItem, removeItem]

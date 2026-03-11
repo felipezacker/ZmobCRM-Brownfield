@@ -9,6 +9,7 @@ import {
   X,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   MessageSquare,
 } from 'lucide-react';
 import { Board } from '@/types';
@@ -146,7 +147,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
               className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-all"
               title={isCollapsed ? 'Expandir Estratégia' : 'Recolher Estratégia'}
             >
-              {isCollapsed ? <ChevronDown size={12} /> : <ChevronRight size={12} className="rotate-[-90deg]" />}
+              {isCollapsed ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
             </Button>
             <Button
               onClick={() => { setIsCollapsed(false); setIsEditing(true); }}

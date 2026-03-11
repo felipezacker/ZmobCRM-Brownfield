@@ -193,6 +193,14 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   const visibleTags = contactTags.slice(0, maxVisibleTags);
   const extraTagCount = contactTags.length - maxVisibleTags;
 
+  // Pre-compute stage age
+  const stageAge = !isClosed ? formatStageAge(deal.lastStageChangeDate) : null;
+  const stageAgeDays = stageAge ? parseInt(stageAge.replace(/\D/g, ''), 10) : 0;
+
+  // Pre-compute next activity display
+  const nextActivityRel = deal.nextActivity ? formatRelativeActivityDate(deal.nextActivity.date) : null;
+  const nextActivityIcon = deal.nextActivity?.type === 'CALL' ? Phone : deal.nextActivity?.type === 'EMAIL' ? Mail : deal.nextActivity?.type === 'MEETING' ? Calendar : deal.nextActivity?.type === 'WHATSAPP' ? MessageCircle : Mail;
+
   return (
     <div
       data-deal-id={deal.id}
@@ -250,7 +258,6 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         </div>
       )}
 
-
       {/* Row 1: Avatar + Contact Name + Value */}
       <div className="flex items-center gap-2">
         <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex items-center justify-center text-[10px] font-bold shrink-0">
@@ -262,19 +269,14 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         <span className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground shrink-0 tabular-nums">
           {BRL_CURRENCY.format(deal.value)}
         </span>
-        {!isClosed && (() => {
-          const stageAge = formatStageAge(deal.lastStageChangeDate);
-          if (!stageAge) return null;
-          const days = parseInt(stageAge.replace(/\D/g, ''), 10);
-          return (
-            <span
-              className={`text-[9px] font-medium shrink-0 ${days > 10 ? 'text-amber-500' : 'text-muted-foreground'}`}
-              aria-label={`${stageAge} neste estagio`}
-            >
-              {stageAge}
-            </span>
-          );
-        })()}
+        {stageAge && (
+          <span
+            className={`text-[9px] font-medium shrink-0 ${stageAgeDays > 10 ? 'text-amber-500' : 'text-muted-foreground'}`}
+            aria-label={`${stageAge} neste estagio`}
+          >
+            {stageAge}
+          </span>
+        )}
       </div>
 
       {/* Row 2: Product */}
@@ -303,22 +305,15 @@ const DealCardComponent: React.FC<DealCardProps> = ({
       />
 
       {/* Row 3.5: Next Activity (conditional) */}
-      {deal.nextActivity && (() => {
-        const relDate = formatRelativeActivityDate(deal.nextActivity.date);
-        const isOverdue = deal.nextActivity.isOverdue;
-        const isToday = relDate === 'Hoje';
-        const colorClass = isOverdue ? 'text-red-500' : isToday ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground';
-        const ActivityIcon = deal.nextActivity.type === 'CALL' ? Phone : deal.nextActivity.type === 'EMAIL' ? Mail : deal.nextActivity.type === 'MEETING' ? Calendar : deal.nextActivity.type === 'WHATSAPP' ? MessageCircle : Mail;
-        return (
-          <div
-            className={`flex items-center gap-1.5 text-xs mt-1.5 ${colorClass}`}
-            aria-label={`Proxima atividade: ${deal.nextActivity.type} ${relDate}`}
-          >
-            <ActivityIcon size={12} aria-hidden="true" className="shrink-0" />
-            <span className="truncate">{relDate}</span>
-          </div>
-        );
-      })()}
+      {deal.nextActivity && nextActivityRel && (
+        <div
+          className={`flex items-center gap-1.5 text-xs mt-1.5 ${deal.nextActivity.isOverdue ? 'text-red-500' : nextActivityRel === 'Hoje' ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}
+          aria-label={`Proxima atividade: ${deal.nextActivity.type} ${nextActivityRel}`}
+        >
+          {React.createElement(nextActivityIcon, { size: 12, 'aria-hidden': true, className: 'shrink-0' })}
+          <span className="truncate">{nextActivityRel}</span>
+        </div>
+      )}
 
       {/* Row 4: Tags + Date + Activity Icon */}
       <DealCardActions
