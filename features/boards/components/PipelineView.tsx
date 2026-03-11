@@ -4,6 +4,7 @@ import { KanbanList } from './Kanban/KanbanList';
 import { PipelineToolbar } from './PipelineToolbar';
 import { PipelineModals } from './PipelineModals';
 import { BulkActionsBar } from './BulkActionsBar';
+import { SummaryBar } from './SummaryBar';
 import { usePipelineModals } from './hooks/usePipelineModals';
 import { DealView, CustomFieldDefinition, Board, BoardStage, DealSortableColumn } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -94,6 +95,14 @@ interface PipelineViewProps {
   handleLossReasonConfirm: (reason: string) => void;
   handleLossReasonClose: () => void;
   boardCreateOverlay?: { title: string; subtitle?: string } | null;
+  boardMetrics?: {
+    pipelineValue: number;
+    totalDeals: number;
+    avgTicket: number;
+    winRate: number;
+    stagnantDeals: number;
+    overdueDeals: number;
+  } | null;
 }
 
 export const PipelineView: React.FC<PipelineViewProps> = (props) => {
@@ -118,7 +127,7 @@ export const PipelineView: React.FC<PipelineViewProps> = (props) => {
     dealSortBy, dealSortOrder, handleDealSort, sortedDeals,
     hiddenByRecentCount = 0, handleBulkMoveDealToStage, handleBulkDeleteDeals,
     lossReasonModal, handleLossReasonConfirm, handleLossReasonClose,
-    boardCreateOverlay,
+    boardCreateOverlay, boardMetrics,
   } = props;
 
   const { profile } = useAuth();
@@ -213,6 +222,10 @@ export const PipelineView: React.FC<PipelineViewProps> = (props) => {
             onNewDeal={() => setIsCreateModalOpen(true)}
             hiddenByRecentCount={hiddenByRecentCount}
           />
+
+          {boardMetrics && (
+            <SummaryBar {...boardMetrics} />
+          )}
 
           <div className="flex-1 overflow-hidden">
             {viewMode === 'kanban' ? (
