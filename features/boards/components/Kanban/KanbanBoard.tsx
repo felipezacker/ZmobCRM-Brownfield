@@ -1,5 +1,5 @@
 import React, { useCallback, useId, useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronsLeft, ChevronsRight, Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DealView, BoardStage } from '@/types';
 import { DealCard } from './DealCard';
@@ -12,6 +12,16 @@ import { useSettings } from '@/context/settings/SettingsContext';
 import { useAddDealItem, useRemoveDealItem, useUpdateDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useOrganizationMembers, type OrgMember } from '@/hooks/useOrganizationMembers';
 import type { Product } from '@/types';
+
+// Performance: reuse currency formatter instance (same pattern as DealCard.tsx:62).
+const BRL_CURRENCY = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+// Compact format for collapsed columns (48px width)
+const formatCompactBRL = (value: number): string => {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace('.', ',')}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
+  return BRL_CURRENCY.format(value);
+};
 
 /**
  * UI: Drop highlight should follow the stage color.
@@ -67,7 +77,7 @@ interface KanbanBoardProps {
   setOpenActivityMenuId: (id: string | null) => void;
   handleQuickAddActivity: (
     dealId: string,
-    type: 'CALL' | 'MEETING' | 'EMAIL',
+    type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP',
     dealTitle: string
   ) => void;
   setLastMouseDownDealId: (id: string | null) => void;
@@ -114,6 +124,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const { members } = useOrganizationMembers();
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
   const instructionsId = useId();
+
+  // BUX-6: Collapsible columns state (persists during session via useState)
+  const [collapsedStages, setCollapsedStages] = useState<Set<string>>(new Set());
+  const toggleCollapse = useCallback((stageId: string) => {
+    setCollapsedStages(prev => {
+      const next = new Set(prev);
+      if (next.has(stageId)) next.delete(stageId); else next.add(stageId);
+      return next;
+    });
+  }, []);
 
   // Keyboard accessibility hook for grab-and-move with Arrow keys
   const { grabbedDealId, announcement, handleCardKeyDown } = useKanbanKeyboard();
@@ -208,19 +228,23 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       const deal = dealsById.get(dealId);
       if (!deal) return;
 
-      // Remove all existing items
-      if (deal.items?.length) {
-        for (const item of deal.items) {
-          await removeItem.mutateAsync({ dealId, itemId: item.id });
+      try {
+        // Remove all existing items
+        if (deal.items?.length) {
+          for (const item of deal.items) {
+            await removeItem.mutateAsync({ dealId, itemId: item.id });
+          }
         }
-      }
 
-      // Add new product if selected
-      if (product) {
-        await addItem.mutateAsync({
-          dealId,
-          item: { productId: product.id, name: product.name, quantity: 1, price: product.price },
-        });
+        // Add new product if selected
+        if (product) {
+          await addItem.mutateAsync({
+            dealId,
+            item: { productId: product.id, name: product.name, quantity: 1, price: product.price },
+          });
+        }
+      } catch (error) {
+        console.error('Failed to change product on deal', error);
       }
     },
     [dealsById, addItem, removeItem]
@@ -271,12 +295,71 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         const stageDeals = dealsByStageId.map.get(stage.id) ?? [];
         const stageValue = dealsByStageId.totals.get(stage.id) ?? 0;
         const isOver = dragOverStage === stage.id && draggingId !== null;
+        const isCollapsed = collapsedStages.has(stage.id);
 
         // Resolve linked stage name
         const linkedStageName =
           stage.linkedLifecycleStage
             ? lifecycleStageNameById.get(stage.linkedLifecycleStage) ?? null
             : null;
+
+        // BUX-6: Collapsed column — narrow strip with vertical label, count, value, active drop zone
+        if (isCollapsed) {
+          return (
+            <div
+              key={stage.id}
+              role="group"
+              aria-label={`Coluna ${stage.label} colapsada, ${stageDeals.length} negócio${stageDeals.length !== 1 ? 's' : ''}`}
+              onDragOver={(e) => {
+                handleDragOver(e);
+                setDragOverStage(stage.id);
+              }}
+              onDrop={(e) => {
+                handleDrop(e, stage.id);
+                setDragOverStage(null);
+              }}
+              onDragEnter={() => setDragOverStage(stage.id)}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setDragOverStage(null);
+                }
+              }}
+              onClick={() => toggleCollapse(stage.id)}
+              className={`min-w-[48px] max-w-[48px] flex flex-col items-center h-full rounded-xl border-2 cursor-pointer transition-all duration-200 select-none
+                ${isOver
+                  ? `${dropHighlightClasses(stage.color)} scale-[1.02]`
+                  : 'border-border/50 glass hover:border-border'
+                }
+              `}
+            >
+              <div className={`h-1.5 w-full rounded-t-[10px] ${stage.color}`} />
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 py-4 px-1 pointer-events-none overflow-hidden">
+                <Button
+                  type="button"
+                  tabIndex={0}
+                  aria-label={`Expandir coluna ${stage.label}`}
+                  className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors pointer-events-auto"
+                >
+                  <ChevronsRight size={12} />
+                </Button>
+                <span className="text-xs font-bold text-muted-foreground [writing-mode:vertical-lr] rotate-180 max-h-[120px] overflow-hidden">
+                  {stage.label}
+                </span>
+                <span className="text-[10px] font-bold bg-white dark:bg-card border border-border px-1.5 py-0.5 rounded">
+                  {stageDeals.length}
+                </span>
+                <span className="text-[9px] text-muted-foreground tabular-nums text-center font-mono leading-tight" title={BRL_CURRENCY.format(stageValue)}>
+                  {formatCompactBRL(stageValue)}
+                </span>
+              </div>
+              {isOver && (
+                <div className="pb-2 text-green-500 dark:text-green-400 text-[10px] font-bold animate-pulse">
+                  ✓
+                </div>
+              )}
+            </div>
+          );
+        }
 
         return (
           <div
@@ -290,7 +373,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               setDragOverStage(null);
             }}
             onDragEnter={() => setDragOverStage(stage.id)}
-            onDragLeave={() => setDragOverStage(null)}
+            onDragLeave={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setDragOverStage(null);
+              }
+            }}
             className={`group/col min-w-[20rem] flex-1 flex flex-col rounded-xl border-2 overflow-visible h-full max-h-full transition-all duration-200
                             ${isOver
                 ? `${dropHighlightClasses(stage.color)} scale-[1.02]`
@@ -304,24 +391,29 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               className={`p-3 border-b border-border  bg-background/50 dark:bg-white/5 shrink-0`}
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="font-bold text-secondary-foreground dark:text-muted-foreground font-display text-sm tracking-wide uppercase">
-                  {stage.label}
-                </span>
-                <div className="flex items-center gap-1">
-                  {onAddDealToStage && stage.id !== wonStageId && stage.id !== lostStageId && (
-                    <Button
-                      type="button"
-                      onClick={() => onAddDealToStage(stage.id)}
-                      title={`Novo negócio em ${stage.label}`}
-                      className="opacity-60 md:opacity-0 md:group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
-                    >
-                      <Plus size={14} />
-                    </Button>
-                  )}
-                  <span className="text-xs font-bold bg-white dark:bg-card border border-border dark:border-border px-2 py-0.5 rounded text-secondary-foreground dark:text-muted-foreground">
-                    {stageDeals.length}
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    onClick={() => toggleCollapse(stage.id)}
+                    aria-label={`Colapsar coluna ${stage.label}`}
+                    className="p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  >
+                    <ChevronsLeft size={12} />
+                  </Button>
+                  <span className="font-bold text-secondary-foreground dark:text-muted-foreground font-display text-sm tracking-wide uppercase">
+                    {stage.label} <span className="font-normal text-muted-foreground">({stageDeals.length})</span>
                   </span>
                 </div>
+                {onAddDealToStage && stage.id !== wonStageId && stage.id !== lostStageId && (
+                  <Button
+                    type="button"
+                    onClick={() => onAddDealToStage(stage.id)}
+                    title={`Novo negócio em ${stage.label}`}
+                    className="opacity-100 md:opacity-0 md:group-hover/col:opacity-100 transition-opacity p-0.5 rounded text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                  >
+                    <Plus size={14} />
+                  </Button>
+                )}
               </div>
 
               {/* Automation Indicator - Always rendered for consistent height */}
@@ -341,7 +433,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <div className="text-xs text-muted-foreground dark:text-muted-foreground font-medium text-right">
                 Total:{' '}
                 <span className="text-foreground font-mono">
-                  ${stageValue.toLocaleString()}
+                  {BRL_CURRENCY.format(stageValue)}
                 </span>
               </div>
             </div>
@@ -353,8 +445,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               className={`flex-1 p-2 overflow-y-auto space-y-2 bg-muted/50 dark:bg-black/20 scrollbar-thin min-h-[100px]`}
             >
               {stageDeals.length === 0 && !draggingId && (
-                <div className="h-full flex items-center justify-center text-muted-foreground dark:text-secondary-foreground text-sm py-8">
-                  Sem negócios
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground py-8 gap-2">
+                  <Inbox size={24} className="opacity-40" aria-hidden="true" />
+                  <span className="text-xs text-center px-4">
+                    Arraste negócios aqui ou crie um novo
+                  </span>
                 </div>
               )}
               {isOver && stageDeals.length === 0 && (

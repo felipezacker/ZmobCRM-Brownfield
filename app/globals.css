@@ -163,7 +163,7 @@ svg.lucide {
   --color-text-subtle: oklch(62% 0.025 260);
 
   /* Glass effect - Light */
-  --glass-bg: oklch(99% 0.002 90 / 0.8);
+  --glass-bg: oklch(99% 0.002 90 / 0.92);
   --glass-border: oklch(90% 0.01 90 / 0.5);
   --glass-blur: 10px;
 
@@ -239,7 +239,7 @@ html, body {
   --color-text-subtle: oklch(62% 0.025 260);
 
   /* Glass effect - Dark */
-  --glass-bg: oklch(15% 0.02 260 / 0.75);
+  --glass-bg: oklch(15% 0.02 260 / 0.95);
   --glass-border: oklch(100% 0 0 / 0.05);
   --glass-blur: 12px;
 

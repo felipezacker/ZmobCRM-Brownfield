@@ -4,11 +4,13 @@ import { KanbanList } from './Kanban/KanbanList';
 import { PipelineToolbar } from './PipelineToolbar';
 import { PipelineModals } from './PipelineModals';
 import { BulkActionsBar } from './BulkActionsBar';
+import { SummaryBar } from './SummaryBar';
 import { usePipelineModals } from './hooks/usePipelineModals';
 import { DealView, CustomFieldDefinition, Board, BoardStage, DealSortableColumn } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import PageLoader from '@/components/PageLoader';
 import { Button } from '@/components/ui/button';
+import type { OrgMember } from '@/hooks/useOrganizationMembers';
 
 interface PipelineViewProps {
   // Boards
@@ -38,10 +40,15 @@ interface PipelineViewProps {
   setViewMode: (mode: 'kanban' | 'list') => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  ownerFilter: 'all' | 'mine';
-  setOwnerFilter: (filter: 'all' | 'mine') => void;
+  ownerFilter: string;
+  setOwnerFilter: (filter: string) => void;
   statusFilter: 'open' | 'won' | 'lost' | 'all';
   setStatusFilter: (filter: 'open' | 'won' | 'lost' | 'all') => void;
+  priorityFilter: 'all' | 'high' | 'medium' | 'low';
+  setPriorityFilter: (filter: 'all' | 'high' | 'medium' | 'low') => void;
+  dateRange: { start: string; end: string };
+  setDateRange: (range: { start: string; end: string }) => void;
+  orgMembers: OrgMember[];
   draggingId: string | null;
   selectedDealId: string | null;
   setSelectedDealId: (id: string | null) => void;
@@ -58,7 +65,7 @@ interface PipelineViewProps {
   handleMoveDealToStage: (dealId: string, newStageId: string) => void;
   handleQuickAddActivity: (
     dealId: string,
-    type: 'CALL' | 'MEETING' | 'EMAIL',
+    type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP',
     dealTitle: string
   ) => void;
   setLastMouseDownDealId: (id: string | null) => void;
@@ -76,8 +83,27 @@ interface PipelineViewProps {
   handleDealSort: (column: DealSortableColumn) => void;
   sortedDeals: DealView[];
   hiddenByRecentCount?: number;
+  showAllRecent?: boolean;
+  setShowAllRecent?: (value: boolean) => void;
   handleBulkMoveDealToStage: (targetStageId: string) => void;
   handleBulkDeleteDeals: () => void;
+  // Advanced filters (BUX-7)
+  dealTypeFilter: string[];
+  setDealTypeFilter: (v: string[]) => void;
+  valueRange: { min: number | null; max: number | null };
+  setValueRange: (v: { min: number | null; max: number | null }) => void;
+  closeDateFilter: { start: string; end: string };
+  setCloseDateFilter: (v: { start: string; end: string }) => void;
+  productFilter: string[];
+  setProductFilter: (v: string[]) => void;
+  tagFilter: string[];
+  setTagFilter: (v: string[]) => void;
+  probabilityRange: { min: number; max: number };
+  setProbabilityRange: (v: { min: number; max: number }) => void;
+  clearAdvancedFilters: () => void;
+  activeAdvancedFilterCount: number;
+  uniqueProducts: string[];
+  uniqueTags: string[];
   // Loss Reason Modal
   lossReasonModal: {
     isOpen: boolean;
@@ -88,6 +114,14 @@ interface PipelineViewProps {
   handleLossReasonConfirm: (reason: string) => void;
   handleLossReasonClose: () => void;
   boardCreateOverlay?: { title: string; subtitle?: string } | null;
+  boardMetrics?: {
+    pipelineValue: number;
+    totalDeals: number;
+    avgTicket: number;
+    winRate: number;
+    stagnantDeals: number;
+    overdueDeals: number;
+  } | null;
 }
 
 export const PipelineView: React.FC<PipelineViewProps> = (props) => {
@@ -100,6 +134,7 @@ export const PipelineView: React.FC<PipelineViewProps> = (props) => {
     isWizardOpen, setIsWizardOpen, editingBoard, setEditingBoard,
     viewMode, setViewMode, searchTerm, setSearchTerm,
     ownerFilter, setOwnerFilter, statusFilter, setStatusFilter,
+    priorityFilter, setPriorityFilter, dateRange, setDateRange, orgMembers,
     draggingId, selectedDealId, setSelectedDealId,
     isCreateModalOpen, setIsCreateModalOpen,
     openActivityMenuId, setOpenActivityMenuId,
@@ -109,9 +144,19 @@ export const PipelineView: React.FC<PipelineViewProps> = (props) => {
     handleWinDeal, handleLoseDeal, handleDeleteDeal,
     selectedDealIds, toggleDealSelect, toggleDealSelectAll, clearDealSelection,
     dealSortBy, dealSortOrder, handleDealSort, sortedDeals,
-    hiddenByRecentCount = 0, handleBulkMoveDealToStage, handleBulkDeleteDeals,
+    hiddenByRecentCount = 0, showAllRecent = false, setShowAllRecent,
+    handleBulkMoveDealToStage, handleBulkDeleteDeals,
     lossReasonModal, handleLossReasonConfirm, handleLossReasonClose,
-    boardCreateOverlay,
+    boardCreateOverlay, boardMetrics,
+    // Advanced filters (BUX-7)
+    dealTypeFilter, setDealTypeFilter,
+    valueRange, setValueRange,
+    closeDateFilter, setCloseDateFilter,
+    productFilter, setProductFilter,
+    tagFilter, setTagFilter,
+    probabilityRange, setProbabilityRange,
+    clearAdvancedFilters, activeAdvancedFilterCount,
+    uniqueProducts, uniqueTags,
   } = props;
 
   const { profile } = useAuth();
@@ -198,9 +243,36 @@ export const PipelineView: React.FC<PipelineViewProps> = (props) => {
             setOwnerFilter={setOwnerFilter}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
+            priorityFilter={priorityFilter}
+            setPriorityFilter={setPriorityFilter}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            orgMembers={orgMembers}
             onNewDeal={() => setIsCreateModalOpen(true)}
             hiddenByRecentCount={hiddenByRecentCount}
+            showAllRecent={showAllRecent}
+            setShowAllRecent={setShowAllRecent ?? (() => {})}
+            dealTypeFilter={dealTypeFilter}
+            setDealTypeFilter={setDealTypeFilter}
+            valueRange={valueRange}
+            setValueRange={setValueRange}
+            closeDateFilter={closeDateFilter}
+            setCloseDateFilter={setCloseDateFilter}
+            productFilter={productFilter}
+            setProductFilter={setProductFilter}
+            tagFilter={tagFilter}
+            setTagFilter={setTagFilter}
+            probabilityRange={probabilityRange}
+            setProbabilityRange={setProbabilityRange}
+            clearAdvancedFilters={clearAdvancedFilters}
+            activeAdvancedFilterCount={activeAdvancedFilterCount}
+            uniqueProducts={uniqueProducts}
+            uniqueTags={uniqueTags}
           />
+
+          {boardMetrics && (
+            <SummaryBar {...boardMetrics} />
+          )}
 
           <div className="flex-1 overflow-hidden">
             {viewMode === 'kanban' ? (

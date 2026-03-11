@@ -25,6 +25,7 @@ export const useBoardDragDrop = ({
     isOpen: boolean; dealId: string; dealTitle: string; stageId: string;
   } | null>(null);
   const lastMouseDownDealId = useRef<string | null>(null);
+  const lastDropTime = useRef<number>(0);
 
   const setLastMouseDownDealId = (id: string | null) => {
     lastMouseDownDealId.current = id;
@@ -44,6 +45,10 @@ export const useBoardDragDrop = ({
 
   const handleDrop = (e: React.DragEvent, stageId: string) => {
     e.preventDefault();
+    // Prevent rapid consecutive drops (500ms cooldown)
+    const now = Date.now();
+    if (now - lastDropTime.current < 500) { setDraggingId(null); return; }
+    lastDropTime.current = now;
     const dealId = e.dataTransfer.getData('dealId') || lastMouseDownDealId.current;
     const dealTitle = e.dataTransfer.getData('dealTitle') || '';
     if (dealId && activeBoard) {
@@ -103,12 +108,12 @@ export const useBoardDragDrop = ({
   };
 
   const handleQuickAddActivity = (
-    dealId: string, type: 'CALL' | 'MEETING' | 'EMAIL', dealTitle: string,
+    dealId: string, type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP', dealTitle: string,
   ) => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(10, 0, 0, 0);
-    const titles = { CALL: 'Ligar para Cliente', MEETING: 'Reunião de Acompanhamento', EMAIL: 'Enviar Email de Follow-up' };
+    const titles = { CALL: 'Ligar para Cliente', MEETING: 'Reunião de Acompanhamento', EMAIL: 'Enviar Email de Follow-up', WHATSAPP: 'Enviar WhatsApp' };
     createActivityMutation.mutate({ activity: {
       dealId, dealTitle, type, title: titles[type],
       description: 'Agendado via Acesso Rápido', date: tomorrow.toISOString(),

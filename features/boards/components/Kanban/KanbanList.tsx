@@ -19,7 +19,7 @@ import {
 import { useOrganizationMembers, OrgMember } from '@/hooks/useOrganizationMembers';
 import ConfirmModal from '@/components/ConfirmModal';
 
-type QuickAddType = 'CALL' | 'MEETING' | 'EMAIL';
+type QuickAddType = 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP';
 
 // Performance: reuse Intl formatters
 const PT_BR_DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR');
@@ -371,7 +371,7 @@ interface KanbanListProps {
   setOpenActivityMenuId: (id: string | null) => void;
   handleQuickAddActivity: (
     dealId: string,
-    type: 'CALL' | 'MEETING' | 'EMAIL',
+    type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP',
     dealTitle: string
   ) => void;
   onMoveDealToStage?: (dealId: string, newStageId: string) => void;

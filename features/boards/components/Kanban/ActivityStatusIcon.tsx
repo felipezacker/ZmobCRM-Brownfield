@@ -1,6 +1,6 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
+import React, { useRef, useState, useLayoutEffect, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft, Trophy, XCircle, Trash2 } from 'lucide-react';
+import { Phone, Mail, Calendar, Plus, ArrowRightLeft, Trophy, XCircle, Trash2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ActivityStatusIconProps {
@@ -10,7 +10,7 @@ interface ActivityStatusIconProps {
     dealTitle?: string;
     isOpen: boolean;
     onToggle: (e: React.MouseEvent) => void;
-    onQuickAdd: (type: 'CALL' | 'MEETING' | 'EMAIL') => void;
+    onQuickAdd: (type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP') => void;
     /** Optional callback to close the menu without needing an event object */
     onRequestClose?: () => void;
     /** Callback for keyboard-accessible move to stage action */
@@ -48,7 +48,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
     onDeleteDeal,
     isClosed = false,
 }) => {
-    const Icon = type === 'CALL' ? Phone : type === 'EMAIL' ? Mail : type === 'MEETING' ? Calendar : ChevronRight;
+    const Icon = Plus;
 
     // Get accessible status description
     const getStatusLabel = () => {
@@ -68,8 +68,8 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
     switch (status) {
         case 'yellow':
             content = (
-                <div className="text-yellow-500" aria-hidden="true">
-                    <AlertTriangle size={18} fill="currentColor" className="text-yellow-500/20" />
+                <div className="w-5 h-5 rounded-full bg-accent dark:bg-accent flex items-center justify-center text-muted-foreground ring-1 ring-white dark:ring-dark-card" aria-hidden="true">
+                    <Plus size={10} strokeWidth={3} />
                 </div>
             );
             break;
@@ -89,24 +89,61 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
             break;
         default:
             content = (
-                <div className="w-5 h-5 rounded-full bg-accent dark:bg-accent flex items-center justify-center text-white ring-1 ring-white dark:ring-dark-card" aria-hidden="true">
+                <div className="w-5 h-5 rounded-full bg-accent dark:bg-accent flex items-center justify-center text-muted-foreground ring-1 ring-white dark:ring-dark-card" aria-hidden="true">
                     <Icon size={10} strokeWidth={3} />
                 </div>
             );
     }
 
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
     const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
 
     useLayoutEffect(() => {
         if (isOpen && dealId && triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect();
             setMenuPos({
-                top: rect.top - 8, // 8px gap above the button
-                left: rect.right - 192, // 192px = w-48, align right edge
+                top: rect.top - 8,
+                left: rect.right - 192,
             });
         }
     }, [isOpen, dealId]);
+
+    // Escape key closes menu
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onRequestClose?.();
+                triggerRef.current?.focus();
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onRequestClose]);
+
+    // Focus first menu item on open
+    useEffect(() => {
+        if (isOpen && menuRef.current) {
+            const firstItem = menuRef.current.querySelector<HTMLElement>('[role="menuitem"]');
+            firstItem?.focus();
+        }
+    }, [isOpen, menuPos]);
+
+    // Arrow key navigation within menu
+    const handleMenuKeyDown = useCallback((e: React.KeyboardEvent) => {
+        const items = menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+        if (!items?.length) return;
+        const current = document.activeElement as HTMLElement;
+        const idx = Array.from(items).indexOf(current);
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            items[(idx + 1) % items.length].focus();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            items[(idx - 1 + items.length) % items.length].focus();
+        }
+    }, []);
 
     return (
         <div className="relative">
@@ -124,11 +161,13 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
 
             {isOpen && dealId && menuPos && createPortal(
                 <div
+                    ref={menuRef}
                     role="menu"
                     aria-label="Agendar atividade rápida"
                     className="fixed w-48 bg-white dark:bg-card rounded-lg shadow-xl border border-border z-50 overflow-hidden animate-in zoom-in-95 duration-100"
                     style={{ top: menuPos.top, left: menuPos.left, transform: 'translateY(-100%)' }}
                     onClick={(e) => e.stopPropagation()}
+                    onKeyDown={handleMenuKeyDown}
                 >
                     {/* Resultado — top section, only for open deals */}
                     {!isClosed && (onWinDeal || onLoseDeal) && (
@@ -187,6 +226,17 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                             className="w-full justify-start px-3 py-2 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Calendar size={14} className="text-orange-500" aria-hidden="true" /> Reunião amanhã
+                        </Button>
+                        <Button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                                onQuickAdd('WHATSAPP');
+                                onRequestClose?.();
+                            }}
+                            className="w-full justify-start px-3 py-2 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                        >
+                            <MessageCircle size={14} className="text-green-500" aria-hidden="true" /> WhatsApp amanhã
                         </Button>
                     </div>
 

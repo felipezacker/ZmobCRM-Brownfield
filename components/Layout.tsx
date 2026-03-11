@@ -123,7 +123,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <NavigationRail />
       </div>
 
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar spacer — maintains flow space while sidebar is fixed */}
+      <div className={`hidden lg:block shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-52'}`} />
+
+      {/* Desktop sidebar — fixed for hover-to-expand overlay */}
       <AppSidebar
         sidebarCollapsed={sidebarCollapsed}
         setSidebarCollapsed={setSidebarCollapsed}
@@ -132,7 +135,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       />
 
       {/* Main Content Wrapper */}
-      <div className="flex-1 flex min-w-0 overflow-hidden relative">
+      <div className="flex-1 flex min-w-0 overflow-hidden relative isolate">
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0" aria-hidden="true">
             <div className="grain"></div>

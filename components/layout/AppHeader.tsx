@@ -20,7 +20,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const { darkMode, toggleDarkMode } = useTheme();
 
   return (
-    <header className="h-16 glass border-b border-[var(--color-border-subtle)] flex items-center justify-end px-6 z-40 shrink-0" role="banner">
+    <header className="h-16 glass border-b border-[var(--color-border-subtle)] flex items-center justify-end px-6 shrink-0" role="banner">
       <div className="flex items-center gap-4">
         <Button
           type="button"

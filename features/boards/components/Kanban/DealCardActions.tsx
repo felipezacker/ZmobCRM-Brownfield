@@ -17,7 +17,7 @@ interface DealCardActionsProps {
   activityStatus: string;
   isMenuOpen: boolean;
   onToggleMenu: (e: React.MouseEvent) => void;
-  onQuickAdd: (type: 'CALL' | 'MEETING' | 'EMAIL') => void;
+  onQuickAdd: (type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP') => void;
   onRequestClose: () => void;
   onMoveToStage?: (dealId: string) => void;
   onWinDeal?: (dealId: string) => void;
@@ -49,7 +49,7 @@ export const DealCardActions: React.FC<DealCardActionsProps> = ({
         <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-red-100 dark:bg-red-800/40 text-red-700 dark:text-red-300 shrink-0">PERDIDO</span>
       )}
       {visibleTags.map((tag, index) => (
-        <span key={`${deal.id}-tag-${index}`} className="text-[9px] font-medium px-1 py-0.5 rounded bg-muted dark:bg-white/5 text-muted-foreground dark:text-muted-foreground truncate max-w-[60px]">{tag}</span>
+        <span key={`${deal.id}-tag-${index}`} className="text-[9px] font-medium px-1 py-0.5 rounded bg-muted dark:bg-white/5 text-muted-foreground dark:text-muted-foreground truncate max-w-[80px]">{tag}</span>
       ))}
       {extraTagCount > 0 && (
         <span className="text-[9px] text-muted-foreground dark:text-muted-foreground shrink-0">+{extraTagCount}</span>

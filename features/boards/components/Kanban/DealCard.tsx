@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { DealView, Product } from '@/types';
 import type { OrgMember } from '@/hooks/useOrganizationMembers';
-import { Hourglass, Loader2, Trophy, XCircle } from 'lucide-react';
+import { Hourglass, Loader2, Trophy, XCircle, Phone, Calendar, Mail, MessageCircle } from 'lucide-react';
 import { priorityAriaLabelPtBr } from '@/lib/utils/priority';
 import { useDealCardPopovers } from './hooks/useDealCardPopovers';
 import { ProductPicker, OwnerPicker } from './DealCardPopovers';
 import { DealCardActions } from './DealCardActions';
+
+import { formatRelativeActivityDate, formatStageAge } from '@/features/boards/hooks/boardUtils';
 
 interface DealCardProps {
   deal: DealView;
@@ -23,7 +25,7 @@ interface DealCardProps {
   setOpenMenuId: (id: string | null) => void;
   onQuickAddActivity: (
     dealId: string,
-    type: 'CALL' | 'MEETING' | 'EMAIL',
+    type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP',
     dealTitle: string
   ) => void;
   setLastMouseDownDealId: (id: string | null) => void;
@@ -100,7 +102,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     setOpenMenuId(isMenuOpen ? null : deal.id);
   };
 
-  const handleQuickAdd = (type: 'CALL' | 'MEETING' | 'EMAIL') => {
+  const handleQuickAdd = (type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP') => {
     onQuickAddActivity(deal.id, type, deal.title);
   };
 
@@ -171,6 +173,14 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     parts.push(BRL_CURRENCY.format(deal.value));
     const priority = getPriorityLabel(deal.priority);
     if (priority) parts.push(priority);
+    if (deal.nextActivity) {
+      const relDate = formatRelativeActivityDate(deal.nextActivity.date);
+      parts.push(`proxima atividade: ${deal.nextActivity.type} ${relDate}`);
+    }
+    if (!isClosed) {
+      const stageAge = formatStageAge(deal.lastStageChangeDate);
+      if (stageAge) parts.push(stageAge);
+    }
     if (isRotting && !isClosed) parts.push('estagnado');
     if (isGrabbed) parts.push('segurado para mover');
     return parts.join(', ');
@@ -182,6 +192,14 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   const maxVisibleTags = 2;
   const visibleTags = contactTags.slice(0, maxVisibleTags);
   const extraTagCount = contactTags.length - maxVisibleTags;
+
+  // Pre-compute stage age
+  const stageAge = !isClosed ? formatStageAge(deal.lastStageChangeDate) : null;
+  const stageAgeDays = stageAge ? parseInt(stageAge.replace(/\D/g, ''), 10) : 0;
+
+  // Pre-compute next activity display
+  const nextActivityRel = deal.nextActivity ? formatRelativeActivityDate(deal.nextActivity.date) : null;
+  const nextActivityIcon = deal.nextActivity?.type === 'CALL' ? Phone : deal.nextActivity?.type === 'EMAIL' ? Mail : deal.nextActivity?.type === 'MEETING' ? Calendar : deal.nextActivity?.type === 'WHATSAPP' ? MessageCircle : Mail;
 
   return (
     <div
@@ -251,6 +269,14 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         <span className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground shrink-0 tabular-nums">
           {BRL_CURRENCY.format(deal.value)}
         </span>
+        {stageAge && (
+          <span
+            className={`text-[9px] font-medium shrink-0 ${stageAgeDays > 10 ? 'text-amber-500' : 'text-muted-foreground'}`}
+            aria-label={`${stageAge} neste estagio`}
+          >
+            {stageAge}
+          </span>
+        )}
       </div>
 
       {/* Row 2: Product */}
@@ -277,6 +303,17 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         filteredMembers={popovers.filteredMembers}
         onSelectOwner={popovers.handleSelectOwner}
       />
+
+      {/* Row 3.5: Next Activity (conditional) */}
+      {deal.nextActivity && nextActivityRel && (
+        <div
+          className={`flex items-center gap-1.5 text-xs mt-1.5 ${deal.nextActivity.isOverdue ? 'text-red-500' : nextActivityRel === 'Hoje' ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}
+          aria-label={`Proxima atividade: ${deal.nextActivity.type} ${nextActivityRel}`}
+        >
+          {React.createElement(nextActivityIcon, { size: 12, 'aria-hidden': true, className: 'shrink-0' })}
+          <span className="truncate">{nextActivityRel}</span>
+        </div>
+      )}
 
       {/* Row 4: Tags + Date + Activity Icon */}
       <DealCardActions
