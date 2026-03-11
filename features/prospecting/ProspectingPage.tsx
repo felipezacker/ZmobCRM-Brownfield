@@ -96,8 +96,10 @@ export const ProspectingPage: React.FC = () => {
     sessionStats,
     sessionStartTime,
     pendingActiveSession,
+    activeSessionCount,
     handleResumeSession,
     handleDismissActiveSession,
+    handleDismissAllSessions,
     handleIgnoreActiveSession,
     handleStartSession,
     handleEndSession,
@@ -411,12 +413,15 @@ export const ProspectingPage: React.FC = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* CP-3.4: Active session resume prompt (AC3) */}
+        {/* CP-3.4 + CP-4.8: Active session resume prompt */}
         {pendingActiveSession && !sessionActive && !showSummary && (
           <div className="flex items-center gap-3 px-4 py-3 mb-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl">
             <PhoneOutgoing size={16} className="text-amber-600 shrink-0" />
             <span className="text-sm text-amber-700 dark:text-amber-300 flex-1">
-              Sessao ativa encontrada (iniciada em {new Date(pendingActiveSession.startedAt).toLocaleString('pt-BR')}). Deseja retomar?
+              {activeSessionCount >= 2
+                ? `${activeSessionCount} sessoes ativas encontradas. Deseja retomar a mais recente ou encerrar todas?`
+                : `Sessao ativa encontrada (iniciada em ${new Date(pendingActiveSession.startedAt).toLocaleString('pt-BR')}). Deseja retomar?`
+              }
             </span>
             <Button
               variant="unstyled"
@@ -424,15 +429,15 @@ export const ProspectingPage: React.FC = () => {
               onClick={handleResumeSession}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 hover:bg-amber-600 text-white transition-colors"
             >
-              Retomar
+              {activeSessionCount >= 2 ? 'Retomar mais recente' : 'Retomar'}
             </Button>
             <Button
               variant="unstyled"
               size="unstyled"
-              onClick={handleDismissActiveSession}
+              onClick={activeSessionCount >= 2 ? handleDismissAllSessions : handleDismissActiveSession}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-accent text-secondary-foreground dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors"
             >
-              Encerrar
+              {activeSessionCount >= 2 ? 'Encerrar todas' : 'Encerrar'}
             </Button>
             <Button
               variant="unstyled"

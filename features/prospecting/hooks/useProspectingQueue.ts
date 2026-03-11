@@ -18,6 +18,9 @@ import {
   useScheduleRetry,
   useActivateReadyRetries,
   useResetRetry,
+  useRemoveBatchItems,
+  useMoveToTop,
+  useReorderQueue,
 } from '@/lib/query/hooks/useProspectingQueueQuery'
 import type { ProspectingQueueItem } from '@/types'
 import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
@@ -49,6 +52,9 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
   const scheduleRetryMutation = useScheduleRetry()
   const activateRetriesMutation = useActivateReadyRetries()
   const resetRetryMutation = useResetRetry()
+  const removeBatchMutation = useRemoveBatchItems()
+  const moveToTopMutation = useMoveToTop()
+  const reorderMutation = useReorderQueue()
   const { addToast, showToast } = useToast()
   const toast = addToast || showToast
 
@@ -249,6 +255,37 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     }
   }, [resetRetryMutation, toast])
 
+  // CP-4.5: Remove múltiplos itens em batch
+  const removeBatchItems = useCallback(async (ids: string[]) => {
+    try {
+      await removeBatchMutation.mutateAsync(ids)
+      toast(`${ids.length} contato(s) removidos da fila`, 'success')
+      await refetch()
+    } catch {
+      toast('Erro ao remover contatos', 'error')
+    }
+  }, [removeBatchMutation, toast, refetch])
+
+  // CP-4.5: Move itens selecionados para o topo da fila
+  const moveToTop = useCallback(async (ids: string[]) => {
+    try {
+      if (!supabase) throw new Error('Supabase não configurado')
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('User not found')
+      await moveToTopMutation.mutateAsync({ ids, ownerId: effectiveOwnerId || user.id })
+      toast(`${ids.length} contato(s) movidos para o topo`, 'success')
+      await refetch()
+    } catch {
+      toast('Erro ao mover contatos', 'error')
+    }
+  }, [moveToTopMutation, effectiveOwnerId, toast, refetch])
+
+  // CP-4.7: Reordenar fila via drag-and-drop
+  const reorderQueue = useCallback((newItems: ProspectingQueueItem[]) => {
+    const updates = newItems.map((item, index) => ({ id: item.id, position: index }))
+    reorderMutation.mutate(updates)
+  }, [reorderMutation])
+
   return {
     queue,
     exhaustedItems,
@@ -271,6 +308,10 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     removeFromQueue,
     clearQueue,
     resetExhaustedItem,
+    removeBatchItems,
+    moveToTop,
+    reorderQueue,
+    isReordering: reorderMutation.isPending,
     refetch,
   }
 }

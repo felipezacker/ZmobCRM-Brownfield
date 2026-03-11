@@ -543,4 +543,93 @@ export const prospectingQueuesService = {
       return { data: null, error: e as Error };
     }
   },
+
+  /**
+   * Remove múltiplos itens da fila em batch (CP-4.5).
+   */
+  async removeItems(ids: string[]): Promise<{ data: { removed: number } | null; error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { data: null, error: new Error('Supabase não configurado') };
+      if (ids.length === 0) return { data: { removed: 0 }, error: null };
+
+      const { error, count } = await sb
+        .from('prospecting_queues')
+        .delete({ count: 'exact' })
+        .in('id', ids);
+
+      if (error) return { data: null, error };
+      return { data: { removed: count ?? ids.length }, error: null };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Move itens selecionados para o topo da fila (CP-4.5).
+   * Reordena por posição mantendo a ordem relativa dos demais.
+   */
+  async moveToTop(ids: string[], ownerId: string): Promise<{ error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { error: new Error('Supabase não configurado') };
+      if (ids.length === 0) return { error: null };
+
+      // Busca todos os itens do owner ordenados por posição
+      const { data: allItems, error: fetchError } = await sb
+        .from('prospecting_queues')
+        .select('id, position')
+        .eq('owner_id', ownerId)
+        .order('position', { ascending: true });
+
+      if (fetchError) return { error: fetchError };
+      if (!allItems) return { error: null };
+
+      const selectedSet = new Set(ids);
+      const selected = allItems.filter(i => selectedSet.has(i.id));
+      const rest = allItems.filter(i => !selectedSet.has(i.id));
+      const reordered = [...selected, ...rest];
+
+      // Atualiza posições em batch
+      const updates = reordered.map((item, index) =>
+        sb.from('prospecting_queues').update({ position: index }).eq('id', item.id)
+      );
+
+      const results = await Promise.all(updates);
+      const firstError = results.find(r => r.error);
+      if (firstError?.error) return { error: new Error(firstError.error.message) };
+
+      return { error: null };
+    } catch (e) {
+      return { error: e as Error };
+    }
+  },
+
+  /**
+   * Atualiza posições dos itens da fila (CP-4.7).
+   * Usado para persistir reordenação via drag-and-drop.
+   * Executa updates em paralelo via Promise.all para melhor performance.
+   */
+  async updatePositions(updates: { id: string; position: number }[]): Promise<{ error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { error: new Error('Supabase não configurado') };
+      if (updates.length === 0) return { error: null };
+
+      const results = await Promise.all(
+        updates.map(update =>
+          sb.from('prospecting_queues')
+            .update({ position: update.position })
+            .eq('id', update.id)
+        )
+      );
+
+      const firstError = results.find(r => r.error);
+      if (firstError?.error) return { error: new Error(firstError.error.message) };
+
+      return { error: null };
+    } catch (e) {
+      return { error: e as Error };
+    }
+  },
 };

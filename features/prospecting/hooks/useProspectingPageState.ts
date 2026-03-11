@@ -23,6 +23,7 @@ import {
   endProspectingSession,
   getActiveSessions,
   type ProspectingSessionStats,
+  type ProspectingSession,
 } from '@/lib/supabase/prospecting-sessions'
 
 export type SessionStats = {
@@ -103,6 +104,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   // --- Session persistence (CP-3.4) ---
   const [dbSessionId, setDbSessionId] = useState<string | null>(null)
   const [pendingActiveSession, setPendingActiveSession] = useState<PendingActiveSession | null>(null)
+  const [allActiveSessions, setAllActiveSessions] = useState<ProspectingSession[]>([])
 
   // Check for active sessions on mount (AC3)
   const hasCheckedActive = useRef(false)
@@ -111,6 +113,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     hasCheckedActive.current = true
     getActiveSessions(userId).then(sessions => {
       if (sessions.length > 0) {
+        setAllActiveSessions(sessions)
         setPendingActiveSession({
           id: sessions[0].id,
           startedAt: sessions[0].startedAt,
@@ -329,14 +332,26 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     }
   }, [addBatchMutation])
 
-  // CP-3.4: Resume an abandoned active session
+  // CP-3.4 + CP-4.8: Resume the most recent active session, end all others
   const handleResumeSession = useCallback(async () => {
     if (!pendingActiveSession) return
     const deps = depsRef.current
     if (!deps) return
+    // CP-4.8: End all other active sessions with zero stats
+    const othersToEnd = allActiveSessions.filter(s => s.id !== pendingActiveSession.id)
+    if (othersToEnd.length > 0) {
+      const zeroStats: ProspectingSessionStats = {
+        total: 0, completed: 0, skipped: 0, connected: 0,
+        noAnswer: 0, voicemail: 0, busy: 0, duration_seconds: 0,
+      }
+      await Promise.allSettled(
+        othersToEnd.map(s => endProspectingSession(s.id, zeroStats))
+      )
+    }
     setDbSessionId(pendingActiveSession.id)
     setSessionStartTime(new Date(pendingActiveSession.startedAt))
     setPendingActiveSession(null)
+    setAllActiveSessions([])
     await deps.queueDeps.startSession()
     setSessionStats({
       total: deps.queueDeps.queue.length,
@@ -347,9 +362,9 @@ export function useProspectingPageState(userId?: string, organizationId?: string
       voicemail: 0,
       busy: 0,
     })
-  }, [pendingActiveSession])
+  }, [pendingActiveSession, allActiveSessions])
 
-  // CP-3.4: Dismiss (end) abandoned session
+  // CP-3.4: Dismiss (end) abandoned session (single)
   const handleDismissActiveSession = useCallback(async () => {
     if (!pendingActiveSession) return
     endProspectingSession(pendingActiveSession.id, {
@@ -357,11 +372,27 @@ export function useProspectingPageState(userId?: string, organizationId?: string
       noAnswer: 0, voicemail: 0, busy: 0, duration_seconds: 0,
     }).catch(() => {})
     setPendingActiveSession(null)
+    setAllActiveSessions([])
   }, [pendingActiveSession])
+
+  // CP-4.8: Dismiss (end) ALL active sessions at once
+  const handleDismissAllSessions = useCallback(async () => {
+    if (allActiveSessions.length === 0) return
+    const zeroStats: ProspectingSessionStats = {
+      total: 0, completed: 0, skipped: 0, connected: 0,
+      noAnswer: 0, voicemail: 0, busy: 0, duration_seconds: 0,
+    }
+    await Promise.allSettled(
+      allActiveSessions.map(s => endProspectingSession(s.id, zeroStats))
+    )
+    setPendingActiveSession(null)
+    setAllActiveSessions([])
+  }, [allActiveSessions])
 
   // CP-3.4: Ignore active session banner (don't end in DB)
   const handleIgnoreActiveSession = useCallback(() => {
     setPendingActiveSession(null)
+    setAllActiveSessions([])
   }, [])
 
   const handleExportPdf = useCallback(async () => {
@@ -453,10 +484,13 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     sessionStats,
     sessionStartTime,
 
-    // CP-3.4: Session persistence
+    // CP-3.4 + CP-4.8: Session persistence
     pendingActiveSession,
+    allActiveSessions,
+    activeSessionCount: allActiveSessions.length,
     handleResumeSession,
     handleDismissActiveSession,
+    handleDismissAllSessions,
     handleIgnoreActiveSession,
 
     // Batch progress
