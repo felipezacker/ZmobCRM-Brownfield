@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** BUX-4
 - **Epic:** BUX (Board UX & Filtros Gerenciais)
-- **Status:** InReview
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 5 (S)
 - **Wave:** 2
@@ -182,6 +182,7 @@ Adicionar um botao "..." (3 dots / MoreHorizontal) no canto superior direito do 
 | 2026-03-10 | @sm | Story criada a partir do Epic BUX |
 | 2026-03-10 | @sm | Correcao PO: substituido touch:opacity-100 por abordagem mobile-first (classe inexistente no Tailwind) |
 | 2026-03-10 | @dev | Implementacao completa: botao 3 dots (Option A), reutiliza menu existente. typecheck/lint/test OK (844 testes). Status Ready → InReview. |
+| 2026-03-10 | @qa | QA Gate PASS. Fix: hide 3 dots em temp cards. Re-review PASS. Status InReview → Done. |
 
 ---
 *Story gerada por @sm (River) — Epic BUX (Board UX & Filtros Gerenciais)*
