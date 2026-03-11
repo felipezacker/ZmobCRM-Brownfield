@@ -141,7 +141,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
           {exhaustedItems.map(item => (
             <div key={item.id} className="flex items-center gap-3 p-3 bg-red-50/50 dark:bg-red-500/5 rounded-lg border border-red-200/50 dark:border-red-500/10">
               <div className="flex-shrink-0 w-9 h-9 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
-                <span className="text-xs font-bold text-red-500 dark:text-red-400">3x</span>
+                <span className="text-xs font-bold text-red-500 dark:text-red-400">{item.retryCount}x</span>
               </div>
               <div className="flex-1 min-w-0">
                 <span className="text-sm font-medium text-foreground truncate block">

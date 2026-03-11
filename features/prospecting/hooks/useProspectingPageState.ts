@@ -97,6 +97,8 @@ export interface PendingActiveSession {
   startedAt: string
 }
 
+const FILTERS_STORAGE_KEY = 'prospecting_filters'
+
 export function useProspectingPageState(userId?: string, organizationId?: string) {
   // --- Session persistence (CP-3.4) ---
   const [dbSessionId, setDbSessionId] = useState<string | null>(null)
@@ -135,7 +137,24 @@ export function useProspectingPageState(userId?: string, organizationId?: string
 
   // --- Filter panel state ---
   const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState<ProspectingFiltersState>(INITIAL_FILTERS)
+  const [filters, setFilters] = useState<ProspectingFiltersState>(() => {
+    try {
+      if (typeof window === 'undefined') return INITIAL_FILTERS
+      const stored = localStorage.getItem(FILTERS_STORAGE_KEY)
+      return stored ? JSON.parse(stored) : INITIAL_FILTERS
+    } catch {
+      return INITIAL_FILTERS
+    }
+  })
+
+  // --- Persist filters to localStorage ---
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters))
+    } catch {
+      // Ignore storage errors (e.g. private browsing)
+    }
+  }, [filters])
 
   // --- Director assignment ---
   const [assignToOwnerId, setAssignToOwnerId] = useState<string>('')
@@ -153,6 +172,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
 
   // --- Batch mutation ---
   const addBatchMutation = useAddBatchToProspectingQueue()
+  const [batchAddCount, setBatchAddCount] = useState(0)
 
   // --- Deps ref (synced by component via setDeps) ---
   const depsRef = useRef<PageDeps | null>(null)
@@ -248,6 +268,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const handleAddBatchToQueue = useCallback(async (contactIds: string[]) => {
     const deps = depsRef.current
     if (!deps) return
+    setBatchAddCount(contactIds.length)
     try {
       const result = await addBatchMutation.mutateAsync({
         contactIds,
@@ -267,6 +288,8 @@ export function useProspectingPageState(userId?: string, organizationId?: string
       deps.queueDeps.refetch()
     } catch {
       deps.toast('Erro ao adicionar contatos \u00e0 fila', 'error')
+    } finally {
+      setBatchAddCount(0)
     }
   }, [addBatchMutation, assignToOwnerId])
 
@@ -415,6 +438,10 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     handleResumeSession,
     handleDismissActiveSession,
     handleIgnoreActiveSession,
+
+    // Batch progress
+    isBatchAdding: addBatchMutation.isPending,
+    batchAddCount,
 
     // Handlers
     handleStartSession,

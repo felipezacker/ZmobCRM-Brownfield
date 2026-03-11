@@ -102,6 +102,8 @@ export const ProspectingPage: React.FC = () => {
     handleAddBatchToQueue,
     handleLoadSavedQueue,
     handleExportPdf,
+    isBatchAdding,
+    batchAddCount,
   } = pageState
 
   // CP-3.2: Note templates manager modal
@@ -717,6 +719,11 @@ export const ProspectingPage: React.FC = () => {
               </div>
             )}
 
+            {isBatchAdding && (
+              <span role="status" aria-live="polite" className="text-xs text-muted-foreground animate-pulse">
+                Adicionando {batchAddCount} contatos...
+              </span>
+            )}
             <AddToQueueSearch onAdd={addToQueue} />
             <ProspectingErrorBoundary section="Fila">
               <CallQueue
