@@ -135,7 +135,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       />
 
       {/* Main Content Wrapper */}
-      <div className="flex-1 flex min-w-0 overflow-hidden relative">
+      <div className="flex-1 flex min-w-0 overflow-hidden relative isolate">
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0" aria-hidden="true">
             <div className="grain"></div>
