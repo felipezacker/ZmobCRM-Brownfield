@@ -284,6 +284,7 @@ export const prospectingQueuesService = {
 
   /**
    * Assign session_id to all pending items.
+   * Skipped items from previous sessions are re-queued at the end (CP-4.2).
    */
   async startSession(): Promise<{ data: string | null; error: Error | null }> {
     try {
@@ -295,11 +296,47 @@ export const prospectingQueuesService = {
 
       const sessionId = crypto.randomUUID();
 
+      // Step 1: Get MAX(position) of pending items
+      const { data: maxPendingPos, error: maxPosError } = await sb
+        .from('prospecting_queues')
+        .select('position')
+        .eq('owner_id', user.id)
+        .eq('status', 'pending')
+        .order('position', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (maxPosError) return { data: null, error: maxPosError };
+      const maxPosition = maxPendingPos ? (maxPendingPos as { position: number }).position : -1;
+
+      // Step 2: Get all skipped items ordered by position (preserve relative order)
+      const { data: skippedItems, error: skippedError } = await sb
+        .from('prospecting_queues')
+        .select('id')
+        .eq('owner_id', user.id)
+        .eq('status', 'skipped')
+        .order('position', { ascending: true });
+
+      if (skippedError) return { data: null, error: skippedError };
+
+      // Step 3: Reset skipped → pending with positions after max pending
+      if (skippedItems && skippedItems.length > 0) {
+        for (let i = 0; i < skippedItems.length; i++) {
+          const item = skippedItems[i] as { id: string };
+          const { error: resetError } = await sb
+            .from('prospecting_queues')
+            .update({ status: 'pending', position: maxPosition + i + 1 })
+            .eq('id', item.id);
+          if (resetError) return { data: null, error: resetError };
+        }
+      }
+
+      // Step 4: Assign session_id to all pending items (including ex-skipped)
       const { error } = await sb
         .from('prospecting_queues')
-        .update({ session_id: sessionId, status: 'pending' })
+        .update({ session_id: sessionId })
         .eq('owner_id', user.id)
-        .in('status', ['pending']);
+        .eq('status', 'pending');
 
       if (error) return { data: null, error };
       return { data: sessionId, error: null };

@@ -4,7 +4,7 @@
 
 - **Epic:** CP-4 — Prospeccao: Filas & Sessao UX
 - **Story ID:** CP-4.6
-- **Status:** Ready for Review
+- **Status:** InReview
 - **Priority:** P1
 - **Points:** 3 (S)
 - **Wave:** Onda 1 — Core Session Flow
@@ -43,11 +43,11 @@ O state `filters` em `useProspectingPageState.ts:138` e inicializado sempre com 
 
 ## Acceptance Criteria
 
-- [ ] AC1: Ao iniciar `handleAddBatchToQueue`, a UI exibe um indicador de loading com a contagem de contatos sendo adicionados (ex: "Adicionando 45 contatos...")
-- [ ] AC2: O badge de exaustao na secao "Esgotados" do `CallQueue` exibe o valor real de `item.retryCount` seguido de "x" (ex: "3x", "4x", "5x") em vez do texto hardcoded "3x"
-- [ ] AC3: Filtros de prospeccao (stages, temperatures, classifications, tags, source, ownerId, inactiveDays, onlyWithPhone) persistem em localStorage e sao restaurados ao recarregar a pagina
-- [ ] AC4: Clicar em "Limpar" nos filtros (`onFiltersChange(INITIAL_FILTERS)` em `ProspectingFilters.tsx:211`) tambem remove a entrada do localStorage
-- [ ] AC5: O fluxo existente de `handleLoadSavedQueue` que chama `setFilters(restored)` continua funcionando sem regressao — o localStorage e sobrescrito com os filtros da fila salva
+- [x] AC1: Ao iniciar `handleAddBatchToQueue`, a UI exibe um indicador de loading com a contagem de contatos sendo adicionados (ex: "Adicionando 45 contatos...")
+- [x] AC2: O badge de exaustao na secao "Esgotados" do `CallQueue` exibe o valor real de `item.retryCount` seguido de "x" (ex: "3x", "4x", "5x") em vez do texto hardcoded "3x"
+- [x] AC3: Filtros de prospeccao (stages, temperatures, classifications, tags, source, ownerId, inactiveDays, onlyWithPhone) persistem em localStorage e sao restaurados ao recarregar a pagina
+- [x] AC4: Clicar em "Limpar" nos filtros (`onFiltersChange(INITIAL_FILTERS)` em `ProspectingFilters.tsx:211`) tambem remove a entrada do localStorage
+- [x] AC5: O fluxo existente de `handleLoadSavedQueue` que chama `setFilters(restored)` continua funcionando sem regressao — o localStorage e sobrescrito com os filtros da fila salva
 
 ---
 
@@ -306,6 +306,7 @@ Secondary Focus:
 | 2026-03-11 | 1.0.1 | Validacao GO (10/10). Status Draft -> Ready. 0 critical, 2 should-fix (SF-1: AC4 localStorage semantics aceito; SF-2: aria-live recomendado ao @dev). Todos file paths verificados contra source. | @po (Pax) |
 | 2026-03-11 | 1.0.2 | Aplicados should-fix do @po. SF-1: nota em Dev Notes clarificando semantica de "limpar filtros" (sobrescrever com INITIAL_FILTERS, nao removeItem). SF-2: nota em Dev Notes + Subtask 3.8 + exemplo no Subtask 3.6 com role="status" e aria-live="polite". Status mantido: Ready. | @sm (River) |
 | 2026-03-11 | 2.0.0 | Implementacao completa: Fix 1 (batch loading indicator), Fix 2 (badge retryCount), Fix 3 (localStorage filters). lint/typecheck/856 tests passando. Status: Ready for Review. | @dev (Dex) |
+| 2026-03-11 | 2.1.0 | QA review PASS (0 issues). ACs marcados. Status: InReview. Commit 37db6fb. Aguardando push via @devops. | @dev (Dex) |
 
 ---
 
