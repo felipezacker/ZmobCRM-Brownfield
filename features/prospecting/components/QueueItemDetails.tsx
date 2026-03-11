@@ -44,7 +44,7 @@ export function QueueItemDetails({ contactId, contactEmail, contactStage, leadSc
   // Fetch last activity on demand (only when expanded)
   const { data: activities, isLoading } = useContactActivities(
     isExpanded ? contactId : undefined,
-    1
+    10
   )
 
   const lastActivity = activities?.[0]

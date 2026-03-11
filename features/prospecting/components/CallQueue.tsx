@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -43,9 +43,19 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
   const [confirmBatchRemove, setConfirmBatchRemove] = useState(false)
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
 
-  const handleToggleExpand = (id: string) => {
+  // CP-4.5 QA fix: limpar selectedIds stale quando items mudam (ex: remove individual)
+  const itemIds = useMemo(() => new Set(items.map(i => i.id)), [items])
+  useEffect(() => {
+    setSelectedIds(prev => {
+      if (prev.size === 0) return prev
+      const cleaned = new Set([...prev].filter(id => itemIds.has(id)))
+      return cleaned.size === prev.size ? prev : cleaned
+    })
+  }, [itemIds])
+
+  const handleToggleExpand = useCallback((id: string) => {
     setExpandedId(prev => prev === id ? null : id)
-  }
+  }, [])
 
   const sortedItems = useMemo(() => {
     if (sortBy === 'score') {

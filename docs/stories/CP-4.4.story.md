@@ -4,7 +4,7 @@
 
 - **Story ID:** CP-4.4
 - **Epic:** CP-4 (Prospeccao — Filas & Sessao UX)
-- **Status:** InProgress
+- **Status:** InReview
 - **Priority:** P2
 - **Estimated Points:** 5 (M)
 - **Estimated Hours:** 5-7h
@@ -290,6 +290,25 @@ Secondary Focus:
 | `features/prospecting/components/QueueItemDetails.tsx` | Create | Detalhes inline (email, atividade, nota, stage, score, Ver perfil) |
 | `features/prospecting/__tests__/queueItemExpand.test.tsx` | Create | 7 testes cobrindo AC1-AC6 |
 
+## QA Results
+
+| Check | Resultado |
+|-------|-----------|
+| Code review | PASS — codigo limpo, componentes bem separados, imports absolutos |
+| Unit tests | PASS — 7/7 testes passando |
+| Acceptance criteria | PASS — AC1-AC6 todos verificados |
+| Regressions | PASS — typecheck 0 erros, lint 0 erros |
+| Performance | PASS — fetch controlado por enabled, max 1 query ativa (accordion), staleTime 30s |
+| Security | PASS — sem inputs injetaveis, navegacao read-only |
+| Accessibility | PASS — role=button, tabIndex=0, aria-expanded, keyboard Enter/Space, stopPropagation em controles filhos |
+
+**Gate Decision:** PASS (apos correcao de 2 concerns na re-review)
+**Reviewer:** @qa (Quinn) — 2026-03-11
+
+**Concerns corrigidos:**
+1. MEDIUM: `limit` em useContactActivities alterado de 1 para 10 (permite encontrar ultima nota)
+2. LOW: `handleToggleExpand` memoizado com useCallback (conforme subtask 1.3)
+
 ## Change Log
 
 | Data | Versao | Descricao | Autor |
@@ -298,6 +317,7 @@ Secondary Focus:
 | 2026-03-11 | 1.1 | Validacao GO (10/10). Status Draft -> Ready. 2 should-fix: (1) Lead Score ranges divergem do LeadScoreBadge.tsx existente, (2) quality_gate @qa nao na lista oficial mas e convencao do projeto. | @po (Pax) |
 | 2026-03-11 | 1.2 | Rework @po SF-1: Dev Notes atualizado com thresholds reais do LeadScoreBadge.tsx (3 faixas: Frio <30, Morno 30-60, Quente >60) e instrucao de reutilizar o componente/logica existente. SF-2: nota quality_gate @qa adicionada ao Dev Notes por consistencia com epic CP-4. Status mantido Ready. | @sm (River) |
 | 2026-03-11 | 2.0 | Implementacao completa: Tasks 1-6 concluidas. Accordion state, expand/collapse com a11y (role=button, aria-expanded, keyboard), QueueItemDetails com fetch sob demanda, Ver perfil link, 7 testes unitarios. Typecheck e lint OK. | @dev (Dex) |
+| 2026-03-11 | 2.1 | QA Review PASS. 2 concerns corrigidos: (1) limit 1->10 em useContactActivities para exibir ultima nota, (2) handleToggleExpand memoizado com useCallback. Status InProgress -> InReview. | @qa (Quinn) |
 
 ---
 
