@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink, Pause, Play } from 'lucide-react';
+import { X, Phone, PhoneOff, Check, XCircle, Voicemail, Clock, FileText, Copy, ExternalLink, Pause, Play, MessageCircle, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { Button } from '@/components/ui/button';
 import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
@@ -70,8 +71,13 @@ export const CallModal: React.FC<CallModalProps> = ({
     const [showTimerPrompt, setShowTimerPrompt] = useState(false);
     const [timerPaused, setTimerPaused] = useState(false);
     const [showMobileScript, setShowMobileScript] = useState(false);
+    const [showQr, setShowQr] = useState(false);
+    const [qrMode, setQrMode] = useState<'call' | 'whatsapp'>('call');
 
     const phone = normalizePhoneE164(contactPhone);
+    // WhatsApp URL uses number without '+' prefix
+    const whatsappNumber = phone ? phone.replace(/^\+/, '') : '';
+    const qrValue = qrMode === 'call' ? `tel:${phone}` : `https://wa.me/${whatsappNumber}`;
 
     // Close on Escape key
     useEffect(() => {
@@ -97,6 +103,8 @@ export const CallModal: React.FC<CallModalProps> = ({
         setShowTimerPrompt(false);
         setTimerPaused(false);
         setShowMobileScript(false);
+        setShowQr(false);
+        setQrMode('call');
     }, [isOpen, suggestedTitle]);
 
     // Timer effect: without WebRTC we don't know call lifecycle, so we start counting only
@@ -170,6 +178,15 @@ export const CallModal: React.FC<CallModalProps> = ({
         }
     };
 
+    const handleToggleQr = () => {
+        const willShow = !showQr;
+        setShowQr(willShow);
+        // Auto-start timer when revealing QR (user is about to call from phone)
+        if (willShow && !dialerOpenedAt) {
+            setDialerOpenedAt(new Date());
+        }
+    };
+
     const handleOpenPhoneApp = () => {
         if (!phone) return;
         if (!dialerOpenedAt) {
@@ -197,7 +214,7 @@ export const CallModal: React.FC<CallModalProps> = ({
             <div className={`relative flex ${sideContent ? 'gap-4' : ''} mx-4 max-h-[90vh]`}>
 
             {/* Modal */}
-            <div className="relative bg-white dark:bg-card border border-border dark:border-border/50 rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="relative bg-white dark:bg-card border border-border dark:border-border/50 rounded-2xl shadow-2xl w-full max-w-xl min-w-[min(36rem,calc(100vw-2rem))] overflow-hidden max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="bg-linear-to-r from-yellow-500/10 to-orange-500/10 p-4 border-b border-border dark:border-border/50 shrink-0">
                     <div className="flex items-center justify-between">
@@ -326,6 +343,76 @@ export const CallModal: React.FC<CallModalProps> = ({
                     </div>
                 </div>
 
+                {/* QR Code toggle button + expandable QR */}
+                {phone && (
+                    <div className="flex flex-col items-center gap-3 px-4 pb-4 shrink-0">
+                        <Button
+                            variant="unstyled"
+                            size="unstyled"
+                            type="button"
+                            onClick={handleToggleQr}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                showQr
+                                    ? 'bg-primary-500/10 text-primary-500 border border-primary-500/30'
+                                    : 'bg-muted dark:bg-card/50 text-muted-foreground hover:text-foreground dark:hover:text-white border border-border dark:border-border/50 hover:border-border dark:hover:border-border'
+                            }`}
+                        >
+                            <QrCode size={18} />
+                            QR Code
+                        </Button>
+
+                        {showQr && (
+                            <div className="flex flex-col items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="p-3 bg-white rounded-xl">
+                                    <QRCodeSVG
+                                        value={qrValue}
+                                        size={120}
+                                        bgColor="#ffffff"
+                                        fgColor="#000000"
+                                        level="M"
+                                    />
+                                </div>
+                                {/* Toggle Ligação / WhatsApp */}
+                                <div className="flex items-center gap-1 bg-muted dark:bg-card/50 rounded-lg p-1">
+                                    <Button
+                                        variant="unstyled"
+                                        size="unstyled"
+                                        type="button"
+                                        onClick={() => setQrMode('call')}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                                            qrMode === 'call'
+                                                ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        <Phone size={13} />
+                                        Ligação
+                                    </Button>
+                                    <Button
+                                        variant="unstyled"
+                                        size="unstyled"
+                                        type="button"
+                                        onClick={() => setQrMode('whatsapp')}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                                            qrMode === 'whatsapp'
+                                                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        }`}
+                                    >
+                                        <MessageCircle size={13} />
+                                        WhatsApp
+                                    </Button>
+                                </div>
+                                <p className="text-[11px] text-muted-foreground text-center">
+                                    {qrMode === 'call'
+                                        ? 'Aponte a câmera do celular para ligar'
+                                        : 'Aponte a câmera do celular para abrir WhatsApp'}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Content */}
                 <div className="p-4 space-y-4 overflow-y-auto">
                     {/* Outcome Selection */}
@@ -415,13 +502,16 @@ export const CallModal: React.FC<CallModalProps> = ({
                         variant="unstyled"
                         size="unstyled"
                         type="button"
-                        onClick={handleCopyPhone}
+                        onClick={() => {
+                            if (!phone) return;
+                            window.open(`https://wa.me/${whatsappNumber}`, '_blank', 'noopener');
+                        }}
                         disabled={!phone}
-                        className="py-2.5 px-3 rounded-lg text-sm font-semibold bg-accent dark:bg-card hover:bg-accent dark:hover:bg-accent text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        title={copied ? 'Copiado' : 'Copiar número'}
+                        className="py-2.5 px-3 rounded-lg text-sm font-semibold bg-green-600 hover:bg-green-700 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        title="Abrir WhatsApp"
                     >
-                        <Copy size={14} />
-                        {copied ? 'Copiado' : 'Copiar número'}
+                        <MessageCircle size={14} />
+                        WhatsApp
                     </Button>
                     <Button
                         variant="unstyled"

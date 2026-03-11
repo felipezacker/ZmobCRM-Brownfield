@@ -15,7 +15,7 @@ describe('CallModal (modo sem WebRTC)', () => {
     vi.restoreAllMocks();
   });
 
-  it('deve mostrar botões "Copiar número" e "Abrir no discador" quando há telefone', () => {
+  it('deve mostrar botões "WhatsApp", "Abrir no discador" e "QR Code" quando há telefone', () => {
     render(
       <CallModal
         isOpen={true}
@@ -26,9 +26,9 @@ describe('CallModal (modo sem WebRTC)', () => {
       />
     );
 
-    // Há botões duplicados no header (ícones) e no footer (texto). Validamos pelo texto visível.
-    expect(screen.getByText(/copiar número/i)).toBeInTheDocument();
+    expect(screen.getByText(/whatsapp/i)).toBeInTheDocument();
     expect(screen.getByText(/abrir no discador/i)).toBeInTheDocument();
+    expect(screen.getByText(/qr code/i)).toBeInTheDocument();
   });
 
   it('não deve iniciar o timer antes de abrir o discador', () => {
