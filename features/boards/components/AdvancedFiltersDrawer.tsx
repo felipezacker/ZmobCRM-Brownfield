@@ -62,7 +62,7 @@ function ChipGroup({ options, selected, onChange }: {
       {options.map(opt => {
         const isActive = selected.includes(opt.value);
         return (
-          <button
+          <Button
             key={opt.value}
             type="button"
             onClick={() => toggle(opt.value)}
@@ -73,7 +73,7 @@ function ChipGroup({ options, selected, onChange }: {
             }`}
           >
             {opt.label}
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -156,7 +156,7 @@ export function AdvancedFiltersDrawer({
               const val = shortcut.getValue();
               const isActive = closeDateFilter.start === val.start && closeDateFilter.end === val.end;
               return (
-                <button
+                <Button
                   key={shortcut.label}
                   type="button"
                   onClick={() => setCloseDateFilter(isActive ? { start: '', end: '' } : val)}
@@ -167,7 +167,7 @@ export function AdvancedFiltersDrawer({
                   }`}
                 >
                   {shortcut.label}
-                </button>
+                </Button>
               );
             })}
           </div>
