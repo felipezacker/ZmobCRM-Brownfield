@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** BUX-10
 - **Epic:** BUX (Board UX & Filtros Gerenciais)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 3 (S)
 - **Wave:** 1
