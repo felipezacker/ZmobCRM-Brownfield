@@ -164,6 +164,9 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const { data: queueContactIds = [] } = useQueueContactIds(effectiveOwnerId)
   const queueContactIdsSet = useMemo(() => new Set(queueContactIds), [queueContactIds])
 
+  // --- Briefing state (CP-4.1) ---
+  const [showBriefing, setShowBriefing] = useState(false)
+
   // --- Session state ---
   const [showSummary, setShowSummary] = useState(false)
   const [selectedScript, setSelectedScript] = useState<QuickScript | null>(null)
@@ -383,6 +386,17 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     }
   }, [])
 
+  // CP-4.1: Confirm start — executes original handleStartSession and closes briefing
+  const handleConfirmStart = useCallback(async () => {
+    setShowBriefing(false)
+    await handleStartSession()
+  }, [handleStartSession])
+
+  // CP-4.1: Cancel briefing — closes without starting session
+  const handleCancelBriefing = useCallback(() => {
+    setShowBriefing(false)
+  }, [])
+
   return {
     // Deps sync
     setDeps,
@@ -424,6 +438,12 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     // Queue contact IDs
     queueContactIdsSet,
     effectiveOwnerId,
+
+    // CP-4.1: Briefing
+    showBriefing,
+    setShowBriefing,
+    handleConfirmStart,
+    handleCancelBriefing,
 
     // Session
     showSummary,

@@ -35,6 +35,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { useTags } from '@/hooks/useTags'
 import { supabase } from '@/lib/supabase/client'
+import { SessionBriefing } from './components/SessionBriefing'
 import { SessionHistory } from './components/SessionHistory'
 import { listSessions, type ProspectingSession } from '@/lib/supabase/prospecting-sessions'
 import { suggestBestTime } from './utils/suggestBestTime'
@@ -87,6 +88,9 @@ export const ProspectingPage: React.FC = () => {
     filters, setFilters,
     assignToOwnerId, setAssignToOwnerId,
     queueContactIdsSet,
+    showBriefing, setShowBriefing,
+    handleConfirmStart,
+    handleCancelBriefing,
     showSummary, setShowSummary,
     selectedScript, setSelectedScript,
     sessionStats,
@@ -212,6 +216,8 @@ export const ProspectingPage: React.FC = () => {
 
   const currentContact = sessionActive && queue[currentIndex] ? queue[currentIndex] : null
   const pendingCount = queue.filter(q => q.status === 'pending').length
+  const skippedCount = queue.filter(q => q.status === 'skipped').length
+  const canStartSession = pendingCount + skippedCount > 0
 
   const viewingOwnerProfile = viewQueueOwnerId && !isViewingAll ? profiles.find(p => p.id === viewQueueOwnerId) : null
 
@@ -318,8 +324,8 @@ export const ProspectingPage: React.FC = () => {
                 <Button
                   variant="unstyled"
                   size="unstyled"
-                  onClick={handleStartSession}
-                  disabled={pendingCount === 0}
+                  onClick={() => setShowBriefing(true)}
+                  disabled={!canStartSession}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Play size={16} />
@@ -741,6 +747,16 @@ export const ProspectingPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* CP-4.1: Session briefing modal */}
+      {showBriefing && (
+        <SessionBriefing
+          pendingCount={pendingCount}
+          skippedCount={skippedCount}
+          onConfirm={handleConfirmStart}
+          onCancel={handleCancelBriefing}
+        />
+      )}
 
       {/* CP-2.4: Save queue modal */}
       <SaveQueueModal
