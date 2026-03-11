@@ -18,13 +18,14 @@ interface UseBoardViewParams {
   moveDealMutation: { mutate: (args: { dealId: string; targetStageId: string; deal: DealView; board: Board; lifecycleStages: LifecycleStage[] }) => void };
   deleteDealMutation: { mutate: (id: string) => void };
   lifecycleStages: LifecycleStage[];
+  filteredDeals: DealView[];
   clearDealSelectionTrigger: 'kanban' | 'list'; // viewMode for clearing on switch
 }
 
 export const useBoardView = ({
   activeBoard, deals, searchTerm, ownerFilter, statusFilter, dateRange,
   boardsLoading, boardsFetching, boardsUpdatedAt, boardsCount,
-  moveDealMutation, deleteDealMutation, lifecycleStages, clearDealSelectionTrigger,
+  moveDealMutation, deleteDealMutation, lifecycleStages, filteredDeals, clearDealSelectionTrigger,
 }: UseBoardViewParams) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -93,12 +94,12 @@ export const useBoardView = ({
   const hasEverLoadedBoards = boardsUpdatedAt > 0;
   const isLoading = (boardsLoading || boardsFetching || !hasEverLoadedBoards) && boardsCount === 0;
 
-  // Board metrics (used by SummaryBar and AI context)
+  // Board metrics from filtered deals (used by SummaryBar)
   const boardMetrics = useMemo(() => {
     if (!activeBoard || activeBoard.id.startsWith('temp-')) return null;
     let pipelineValue = 0, stagnantDeals = 0, overdueDeals = 0;
     let wonCount = 0, lostCount = 0, totalDeals = 0;
-    for (const d of deals) {
+    for (const d of filteredDeals) {
       totalDeals++;
       pipelineValue += d.value ?? 0;
       if (isDealRotting(d) && !d.isWon && !d.isLost) stagnantDeals++;
@@ -110,7 +111,7 @@ export const useBoardView = ({
     const winRate = closedTotal > 0 ? (wonCount / closedTotal) * 100 : 0;
     const avgTicket = totalDeals > 0 ? pipelineValue / totalDeals : 0;
     return { pipelineValue, totalDeals, avgTicket, winRate, stagnantDeals, overdueDeals };
-  }, [activeBoard, deals]);
+  }, [activeBoard, filteredDeals]);
 
   // AI Context
   const lastContextSignatureRef = useRef<string | null>(null);

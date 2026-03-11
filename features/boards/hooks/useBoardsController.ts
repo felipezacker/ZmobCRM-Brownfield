@@ -83,6 +83,7 @@ export const useBoardsController = () => {
     statusFilter: filters.statusFilter, dateRange: filters.dateRange,
     boardsLoading, boardsFetching, boardsUpdatedAt, boardsCount: boards.length,
     moveDealMutation, deleteDealMutation, lifecycleStages,
+    filteredDeals: filters.filteredDeals,
     clearDealSelectionTrigger: viewMode,
   });
 
