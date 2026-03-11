@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-4.9
 - **Epic:** CP-4 (Prospeccao — Filas & Sessao UX)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 5 (M)
 - **Wave:** 3
@@ -42,9 +42,9 @@ Hoje, ao retomar uma sessao ativa via banner amarelo (fluxo CP-3.4), `handleResu
 
 ## Acceptance Criteria
 
-- [ ] AC1: Ao clicar "Retomar" no banner amarelo de sessao ativa, `sessionStats` e populado com os valores do campo `stats` do registro no banco de dados (ultimo estado gravado)
-- [ ] AC2: A barra de progresso no PowerDialer reflete a posicao real: `completed` e `total` carregados do DB, nao resetados para 0
-- [ ] AC3: Se o campo `stats` da sessao no DB for `{}` (vazio) ou nao tiver o campo `total` definido (sessoes legacy sem save intermediario), o comportamento atual e mantido: stats iniciam zerados sem erro
+- [x] AC1: Ao clicar "Retomar" no banner amarelo de sessao ativa, `sessionStats` e populado com os valores do campo `stats` do registro no banco de dados (ultimo estado gravado)
+- [x] AC2: A barra de progresso no PowerDialer reflete a posicao real: `completed` e `total` carregados do DB, nao resetados para 0
+- [x] AC3: Se o campo `stats` da sessao no DB for `{}` (vazio) ou nao tiver o campo `total` definido (sessoes legacy sem save intermediario), o comportamento atual e mantido: stats iniciam zerados sem erro
 
 ## Scope
 
@@ -80,12 +80,12 @@ Corretores que retomam sessoes abandonadas (queda de internet, fechamento aciden
 
 ## Criteria of Done
 
-- [ ] `handleResumeSession()` carrega `stats` do DB e aplica em `sessionStats` quando validos
-- [ ] Sessoes legacy (stats vazios) nao causam erro — fallback para zeros funciona silenciosamente
-- [ ] Barra de progresso no PowerDialer reflete posicao real apos retomada
-- [ ] Testes unitarios cobrem: (a) retomada com stats validos, (b) retomada com stats vazios/legacy, (c) retomada com stats inconsistentes
-- [ ] Lint e typecheck passando (`npm run lint && npm run typecheck`)
-- [ ] Nenhuma regressao no fluxo de inicio de sessao normal (nao-retomada)
+- [x] `handleResumeSession()` carrega `stats` do DB e aplica em `sessionStats` quando validos
+- [x] Sessoes legacy (stats vazios) nao causam erro — fallback para zeros funciona silenciosamente
+- [x] Barra de progresso no PowerDialer reflete posicao real apos retomada
+- [x] Testes unitarios cobrem: (a) retomada com stats validos, (b) retomada com stats vazios/legacy, (c) retomada com stats inconsistentes
+- [x] Lint e typecheck passando (`npm run lint && npm run typecheck`)
+- [x] Nenhuma regressao no fluxo de inicio de sessao normal (nao-retomada)
 
 ## Tasks
 
@@ -302,6 +302,7 @@ Secondary Focus:
 | 2026-03-11 | 1.0 | Story criada | @sm (River) |
 | 2026-03-11 | 1.1 | Validacao GO (10/10) — Status Draft -> Ready. Observacao: CP-4.8 deve estar Done antes de iniciar implementacao. | @po (Pax) |
 | 2026-03-11 | 1.2 | Implementacao completa — Tasks 1-3 done, 11 testes passando, typecheck/lint clean, zero regressao (942/943, 1 falha pre-existente em integracao Supabase). Status Ready -> Ready for Review. | @dev (Dex) |
+| 2026-03-11 | 1.3 | QA PASS (100). Re-review PASS — 944/944 testes, zero regressao. ACs e CoD marcados. Status Ready for Review -> Done. | @dev (Dex) |
 
 ## QA Results
 
