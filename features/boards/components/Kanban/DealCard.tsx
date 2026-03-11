@@ -251,16 +251,18 @@ const DealCardComponent: React.FC<DealCardProps> = ({
       )}
 
       {/* 3 Dots Menu Button — mobile-first: always visible; desktop: on hover */}
-      <Button
-        type="button"
-        onClick={handleToggleMenu}
-        aria-label="Menu de acoes"
-        aria-haspopup="menu"
-        aria-expanded={isMenuOpen}
-        className="absolute top-1 right-1 p-1 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground hover:bg-muted focus-visible-ring z-20"
-      >
-        <MoreHorizontal size={14} aria-hidden="true" />
-      </Button>
+      {!deal.id.startsWith('temp-') && (
+        <Button
+          type="button"
+          onClick={handleToggleMenu}
+          aria-label="Menu de acoes"
+          aria-haspopup="menu"
+          aria-expanded={isMenuOpen}
+          className="absolute top-1 right-1 p-1 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground hover:bg-muted focus-visible-ring z-20"
+        >
+          <MoreHorizontal size={14} aria-hidden="true" />
+        </Button>
+      )}
 
       {/* Row 1: Avatar + Contact Name + Value */}
       <div className="flex items-center gap-2">
