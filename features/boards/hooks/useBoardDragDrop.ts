@@ -103,12 +103,12 @@ export const useBoardDragDrop = ({
   };
 
   const handleQuickAddActivity = (
-    dealId: string, type: 'CALL' | 'MEETING' | 'EMAIL', dealTitle: string,
+    dealId: string, type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP', dealTitle: string,
   ) => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(10, 0, 0, 0);
-    const titles = { CALL: 'Ligar para Cliente', MEETING: 'Reunião de Acompanhamento', EMAIL: 'Enviar Email de Follow-up' };
+    const titles = { CALL: 'Ligar para Cliente', MEETING: 'Reunião de Acompanhamento', EMAIL: 'Enviar Email de Follow-up', WHATSAPP: 'Enviar WhatsApp' };
     createActivityMutation.mutate({ activity: {
       dealId, dealTitle, type, title: titles[type],
       description: 'Agendado via Acesso Rápido', date: tomorrow.toISOString(),

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DealView, Product } from '@/types';
 import type { OrgMember } from '@/hooks/useOrganizationMembers';
-import { Hourglass, Loader2, Trophy, XCircle, Phone, Calendar, Mail } from 'lucide-react';
+import { Hourglass, Loader2, Trophy, XCircle, Phone, Calendar, Mail, MessageCircle } from 'lucide-react';
 import { priorityAriaLabelPtBr } from '@/lib/utils/priority';
 import { useDealCardPopovers } from './hooks/useDealCardPopovers';
 import { ProductPicker, OwnerPicker } from './DealCardPopovers';
@@ -24,7 +24,7 @@ interface DealCardProps {
   setOpenMenuId: (id: string | null) => void;
   onQuickAddActivity: (
     dealId: string,
-    type: 'CALL' | 'MEETING' | 'EMAIL',
+    type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP',
     dealTitle: string
   ) => void;
   setLastMouseDownDealId: (id: string | null) => void;
@@ -101,7 +101,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
     setOpenMenuId(isMenuOpen ? null : deal.id);
   };
 
-  const handleQuickAdd = (type: 'CALL' | 'MEETING' | 'EMAIL') => {
+  const handleQuickAdd = (type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP') => {
     onQuickAddActivity(deal.id, type, deal.title);
   };
 
@@ -306,7 +306,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         const isOverdue = deal.nextActivity.isOverdue;
         const isToday = relDate === 'Hoje';
         const colorClass = isOverdue ? 'text-red-500' : isToday ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground';
-        const ActivityIcon = deal.nextActivity.type === 'CALL' ? Phone : deal.nextActivity.type === 'EMAIL' ? Mail : deal.nextActivity.type === 'MEETING' ? Calendar : Mail;
+        const ActivityIcon = deal.nextActivity.type === 'CALL' ? Phone : deal.nextActivity.type === 'EMAIL' ? Mail : deal.nextActivity.type === 'MEETING' ? Calendar : deal.nextActivity.type === 'WHATSAPP' ? MessageCircle : Mail;
         return (
           <div
             className={`flex items-center gap-1.5 text-xs ${colorClass}`}

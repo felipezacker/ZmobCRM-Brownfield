@@ -17,7 +17,7 @@ interface DealCardActionsProps {
   activityStatus: string;
   isMenuOpen: boolean;
   onToggleMenu: (e: React.MouseEvent) => void;
-  onQuickAdd: (type: 'CALL' | 'MEETING' | 'EMAIL') => void;
+  onQuickAdd: (type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP') => void;
   onRequestClose: () => void;
   onMoveToStage?: (dealId: string) => void;
   onWinDeal?: (dealId: string) => void;

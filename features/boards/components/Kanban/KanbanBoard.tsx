@@ -70,7 +70,7 @@ interface KanbanBoardProps {
   setOpenActivityMenuId: (id: string | null) => void;
   handleQuickAddActivity: (
     dealId: string,
-    type: 'CALL' | 'MEETING' | 'EMAIL',
+    type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP',
     dealTitle: string
   ) => void;
   setLastMouseDownDealId: (id: string | null) => void;

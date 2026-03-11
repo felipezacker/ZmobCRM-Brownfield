@@ -1,6 +1,6 @@
 import React, { useRef, useState, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft, Trophy, XCircle, Trash2 } from 'lucide-react';
+import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft, Trophy, XCircle, Trash2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ActivityStatusIconProps {
@@ -10,7 +10,7 @@ interface ActivityStatusIconProps {
     dealTitle?: string;
     isOpen: boolean;
     onToggle: (e: React.MouseEvent) => void;
-    onQuickAdd: (type: 'CALL' | 'MEETING' | 'EMAIL') => void;
+    onQuickAdd: (type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP') => void;
     /** Optional callback to close the menu without needing an event object */
     onRequestClose?: () => void;
     /** Callback for keyboard-accessible move to stage action */
@@ -48,7 +48,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
     onDeleteDeal,
     isClosed = false,
 }) => {
-    const Icon = type === 'CALL' ? Phone : type === 'EMAIL' ? Mail : type === 'MEETING' ? Calendar : ChevronRight;
+    const Icon = type === 'CALL' ? Phone : type === 'EMAIL' ? Mail : type === 'MEETING' ? Calendar : type === 'WHATSAPP' ? MessageCircle : ChevronRight;
 
     // Get accessible status description
     const getStatusLabel = () => {
@@ -187,6 +187,17 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                             className="w-full justify-start px-3 py-2 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
                         >
                             <Calendar size={14} className="text-orange-500" aria-hidden="true" /> Reunião amanhã
+                        </Button>
+                        <Button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                                onQuickAdd('WHATSAPP');
+                                onRequestClose?.();
+                            }}
+                            className="w-full justify-start px-3 py-2 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded flex items-center gap-2 focus-visible-ring"
+                        >
+                            <MessageCircle size={14} className="text-green-500" aria-hidden="true" /> WhatsApp amanhã
                         </Button>
                     </div>
 
