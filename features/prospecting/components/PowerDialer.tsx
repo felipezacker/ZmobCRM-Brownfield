@@ -12,6 +12,8 @@ import type { ProspectingQueueItem } from '@/types'
 import { LeadScoreBadge } from '@/features/prospecting/components/LeadScoreBadge'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
 import type { SessionStats } from '@/features/prospecting/ProspectingPage'
+import type { GoalProgress } from '@/features/prospecting/hooks/useProspectingGoals'
+import { useOptionalToast } from '@/context/ToastContext'
 import type { SuggestedTime } from '@/features/prospecting/utils/suggestBestTime'
 
 interface PowerDialerProps {
@@ -27,6 +29,7 @@ interface PowerDialerProps {
   isAdminOrDirector?: boolean
   onManageTemplates?: () => void
   suggestedReturnTime?: SuggestedTime | null
+  goalProgress?: GoalProgress
 }
 
 const TEMP_DISPLAY: Record<string, { icon: React.ReactNode; label: string }> = {
@@ -48,6 +51,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   isAdminOrDirector,
   onManageTemplates,
   suggestedReturnTime,
+  goalProgress,
 }) => {
   const [showCallModal, setShowCallModal] = useState(false)
   const [markedObjections, setMarkedObjections] = useState<string[]>([])
@@ -55,8 +59,18 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   const [showQuickActions, setShowQuickActions] = useState(false)
   const [lastCallData, setLastCallData] = useState<CallLogData | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const goalCelebratedRef = useRef(false)
   const createActivity = useCreateActivity()
   const { scripts } = useQuickScripts()
+  const { addToast } = useOptionalToast()
+
+  // CP-4.3: Celebrate when daily goal is reached (once per mount)
+  useEffect(() => {
+    if (goalProgress?.isComplete && !goalCelebratedRef.current) {
+      goalCelebratedRef.current = true
+      addToast(`Meta atingida! Você completou ${goalProgress.target} ligações hoje.`, 'success')
+    }
+  }, [goalProgress?.isComplete, goalProgress?.target, addToast])
 
   const progress = totalCount > 0 ? ((currentIndex + 1) / totalCount) * 100 : 0
   const temp = contact.contactTemperature ? TEMP_DISPLAY[contact.contactTemperature] : null
@@ -197,6 +211,17 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
                 {count} {label}
               </span>
             ))}
+          </div>
+        )}
+        {/* CP-4.3: Daily goal mini-indicator */}
+        {goalProgress && goalProgress.target > 0 && (
+          <div className="flex items-center justify-center pt-0.5">
+            <span className={`text-xs font-medium ${
+              goalProgress.color === 'green' ? 'text-green-500' :
+              goalProgress.color === 'yellow' ? 'text-yellow-500' : 'text-red-500'
+            }`}>
+              {goalProgress.current}/{goalProgress.target} ligações hoje
+            </span>
           </div>
         )}
       </div>

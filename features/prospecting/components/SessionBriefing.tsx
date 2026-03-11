@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { ArrowLeft, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import type { GoalProgress } from '@/features/prospecting/hooks/useProspectingGoals'
 import {
   MODAL_OVERLAY_CLASS,
   MODAL_PANEL_BASE_CLASS,
@@ -16,9 +17,10 @@ interface SessionBriefingProps {
   skippedCount: number
   onConfirm: () => void
   onCancel: () => void
+  goalProgress?: GoalProgress
 }
 
-export function SessionBriefing({ pendingCount, skippedCount, onConfirm, onCancel }: SessionBriefingProps) {
+export function SessionBriefing({ pendingCount, skippedCount, onConfirm, onCancel, goalProgress }: SessionBriefingProps) {
   const totalCount = pendingCount + skippedCount
   const confirmRef = useRef<HTMLButtonElement>(null)
 
@@ -56,6 +58,18 @@ export function SessionBriefing({ pendingCount, skippedCount, onConfirm, onCance
               <span className="text-sm font-medium text-primary-700 dark:text-primary-300">Total na fila</span>
               <span className="text-sm font-bold text-primary-700 dark:text-primary-300">{totalCount}</span>
             </div>
+            {/* CP-4.3: Daily goal progress */}
+            {goalProgress && goalProgress.target > 0 && (
+              <div className="flex items-center justify-between px-3 py-2.5 bg-muted dark:bg-white/5 rounded-lg">
+                <span className="text-sm text-muted-foreground">Meta do dia</span>
+                <span className={`text-sm font-semibold ${
+                  goalProgress.color === 'green' ? 'text-green-500' :
+                  goalProgress.color === 'yellow' ? 'text-yellow-500' : 'text-red-500'
+                }`}>
+                  {goalProgress.current}/{goalProgress.target} ligações — {goalProgress.percentage}%
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -192,6 +192,10 @@ export const ProspectingPage: React.FC = () => {
     removeFromQueue,
     clearQueue,
     resetExhaustedItem,
+    removeBatchItems,
+    reorderQueue,
+    isReordering,
+    moveToTop,
   } = queueHook
 
   // CP-1.3: Filtered contacts
@@ -462,6 +466,7 @@ export const ProspectingPage: React.FC = () => {
               isAdminOrDirector={isAdminOrDirector}
               onManageTemplates={() => setShowTemplatesManager(true)}
               suggestedReturnTime={suggestedReturnTime}
+              goalProgress={goalsHook.progress}
             />
           </ProspectingErrorBoundary>
         ) : activeTab === 'metrics' ? (
@@ -742,6 +747,11 @@ export const ProspectingPage: React.FC = () => {
                 isClearing={isClearingQueue}
                 removingId={removingId}
                 ownerName={isViewingAll ? 'Todos' : viewingOwnerProfile?.name}
+                isSessionActive={sessionActive}
+                onBatchRemove={removeBatchItems}
+                onBatchMoveToTop={moveToTop}
+                onReorder={reorderQueue}
+                isReordering={isReordering}
               />
             </ProspectingErrorBoundary>
           </div>
@@ -755,6 +765,7 @@ export const ProspectingPage: React.FC = () => {
           skippedCount={skippedCount}
           onConfirm={handleConfirmStart}
           onCancel={handleCancelBriefing}
+          goalProgress={goalsHook.progress}
         />
       )}
 

@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { SessionBriefing } from '../components/SessionBriefing'
+import type { GoalProgress } from '../hooks/useProspectingGoals'
 
 vi.mock('@/components/ui/button', () => {
   const { forwardRef } = require('react')
@@ -105,6 +106,64 @@ describe('SessionBriefing', () => {
     const dialog = screen.getByRole('dialog')
     expect(dialog).toHaveAttribute('aria-modal', 'true')
     expect(dialog).toHaveAttribute('aria-label', 'Briefing da sessao')
+  })
+})
+
+// ── CP-4.3: Goal progress in briefing (AC1, AC4) ──────────────────
+
+describe('SessionBriefing — Goal Progress (CP-4.3)', () => {
+  const baseProps = {
+    pendingCount: 5,
+    skippedCount: 2,
+    onConfirm: vi.fn(),
+    onCancel: vi.fn(),
+  }
+
+  it('AC1: shows goal progress when goalProgress is provided', () => {
+    const goalProgress: GoalProgress = {
+      target: 20,
+      current: 12,
+      percentage: 60,
+      color: 'yellow',
+      isComplete: false,
+    }
+    render(<SessionBriefing {...baseProps} goalProgress={goalProgress} />)
+
+    expect(screen.getByText('Meta do dia')).toBeInTheDocument()
+    expect(screen.getByText('12/20 ligações — 60%')).toBeInTheDocument()
+  })
+
+  it('AC1: applies correct color class for green', () => {
+    const goalProgress: GoalProgress = {
+      target: 20,
+      current: 20,
+      percentage: 100,
+      color: 'green',
+      isComplete: true,
+    }
+    render(<SessionBriefing {...baseProps} goalProgress={goalProgress} />)
+
+    const value = screen.getByText('20/20 ligações — 100%')
+    expect(value.className).toContain('text-green-500')
+  })
+
+  it('AC4: does not show goal section when goalProgress is undefined', () => {
+    render(<SessionBriefing {...baseProps} />)
+
+    expect(screen.queryByText('Meta do dia')).not.toBeInTheDocument()
+  })
+
+  it('AC4: does not show goal section when goalProgress.target is 0', () => {
+    const goalProgress: GoalProgress = {
+      target: 0,
+      current: 0,
+      percentage: 0,
+      color: 'red',
+      isComplete: false,
+    }
+    render(<SessionBriefing {...baseProps} goalProgress={goalProgress} />)
+
+    expect(screen.queryByText('Meta do dia')).not.toBeInTheDocument()
   })
 })
 
