@@ -9,6 +9,7 @@ import { DealView, CustomFieldDefinition, Board, BoardStage, DealSortableColumn 
 import { useAuth } from '@/context/AuthContext';
 import PageLoader from '@/components/PageLoader';
 import { Button } from '@/components/ui/button';
+import type { OrgMember } from '@/hooks/useOrganizationMembers';
 
 interface PipelineViewProps {
   // Boards
@@ -38,10 +39,15 @@ interface PipelineViewProps {
   setViewMode: (mode: 'kanban' | 'list') => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  ownerFilter: 'all' | 'mine';
-  setOwnerFilter: (filter: 'all' | 'mine') => void;
+  ownerFilter: string;
+  setOwnerFilter: (filter: string) => void;
   statusFilter: 'open' | 'won' | 'lost' | 'all';
   setStatusFilter: (filter: 'open' | 'won' | 'lost' | 'all') => void;
+  priorityFilter: 'all' | 'high' | 'medium' | 'low';
+  setPriorityFilter: (filter: 'all' | 'high' | 'medium' | 'low') => void;
+  dateRange: { start: string; end: string };
+  setDateRange: (range: { start: string; end: string }) => void;
+  orgMembers: OrgMember[];
   draggingId: string | null;
   selectedDealId: string | null;
   setSelectedDealId: (id: string | null) => void;
@@ -58,7 +64,7 @@ interface PipelineViewProps {
   handleMoveDealToStage: (dealId: string, newStageId: string) => void;
   handleQuickAddActivity: (
     dealId: string,
-    type: 'CALL' | 'MEETING' | 'EMAIL',
+    type: 'CALL' | 'MEETING' | 'EMAIL' | 'WHATSAPP',
     dealTitle: string
   ) => void;
   setLastMouseDownDealId: (id: string | null) => void;
@@ -100,6 +106,7 @@ export const PipelineView: React.FC<PipelineViewProps> = (props) => {
     isWizardOpen, setIsWizardOpen, editingBoard, setEditingBoard,
     viewMode, setViewMode, searchTerm, setSearchTerm,
     ownerFilter, setOwnerFilter, statusFilter, setStatusFilter,
+    priorityFilter, setPriorityFilter, dateRange, setDateRange, orgMembers,
     draggingId, selectedDealId, setSelectedDealId,
     isCreateModalOpen, setIsCreateModalOpen,
     openActivityMenuId, setOpenActivityMenuId,
@@ -198,6 +205,11 @@ export const PipelineView: React.FC<PipelineViewProps> = (props) => {
             setOwnerFilter={setOwnerFilter}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
+            priorityFilter={priorityFilter}
+            setPriorityFilter={setPriorityFilter}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            orgMembers={orgMembers}
             onNewDeal={() => setIsCreateModalOpen(true)}
             hiddenByRecentCount={hiddenByRecentCount}
           />

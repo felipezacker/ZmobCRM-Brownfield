@@ -106,6 +106,8 @@ export const useBoardsController = () => {
     handleSelectBoard,
     // View
     viewMode, setViewMode,
+    // Organization members for owner filter dropdown
+    orgMembers,
     // Spread sub-hooks
     ...crud, ...filters, ...dragDrop, ...view,
     // Explicit overrides (sub-hooks may have conflicting keys)

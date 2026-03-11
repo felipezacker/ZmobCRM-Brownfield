@@ -19,9 +19,10 @@ export const useBoardFilters = ({
   const searchParams = useSearchParams();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [ownerFilter, setOwnerFilter] = useState<'all' | 'mine'>('all');
+  const [ownerFilter, setOwnerFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'open' | 'won' | 'lost' | 'all'>('open');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [dealSortBy, setDealSortBy] = useState<DealSortableColumn>('createdAt');
   const [dealSortOrder, setDealSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -32,7 +33,28 @@ export const useBoardFilters = ({
     if (statusParam === 'open' || statusParam === 'won' || statusParam === 'lost' || statusParam === 'all') {
       setStatusFilter(statusParam);
     }
+    const priorityParam = searchParams.get('priority');
+    if (priorityParam === 'high' || priorityParam === 'medium' || priorityParam === 'low') {
+      setPriorityFilter(priorityParam);
+    }
+    const ownerParam = searchParams.get('owner');
+    if (ownerParam) setOwnerFilter(ownerParam);
+    const dateStart = searchParams.get('dateStart');
+    const dateEnd = searchParams.get('dateEnd');
+    if (dateStart || dateEnd) setDateRange({ start: dateStart || '', end: dateEnd || '' });
   }, [searchParams]);
+
+  // Sync active filters to URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (priorityFilter !== 'all') params.set('priority', priorityFilter); else params.delete('priority');
+    if (ownerFilter !== 'all') params.set('owner', ownerFilter); else params.delete('owner');
+    if (dateRange.start) params.set('dateStart', dateRange.start); else params.delete('dateStart');
+    if (dateRange.end) params.set('dateEnd', dateRange.end); else params.delete('dateEnd');
+    if (statusFilter !== 'open') params.set('status', statusFilter); else params.delete('status');
+    const qs = params.toString();
+    window.history.replaceState({}, '', qs ? `?${qs}` : window.location.pathname);
+  }, [priorityFilter, ownerFilter, dateRange.start, dateRange.end, statusFilter]);
 
   const handleDealSort = useCallback((column: DealSortableColumn) => {
     setDealSortBy(prev => {
@@ -50,6 +72,7 @@ export const useBoardFilters = ({
     cutoffDate.setDate(cutoffDate.getDate() - 30);
     const cutoffTime = cutoffDate.getTime();
     const searchLower = searchTerm.toLowerCase();
+    const searchNormalized = searchLower.replace(/-/g, ' ');
     const startTime = dateRange.start ? new Date(dateRange.start).getTime() : null;
     let endTime: number | null = null;
     if (dateRange.end) {
@@ -59,8 +82,17 @@ export const useBoardFilters = ({
     }
 
     return deals.filter(l => {
-      const matchesSearch = (l.title || '').toLowerCase().includes(searchLower);
-      const matchesOwner = ownerFilter === 'all' || l.ownerId === profileId;
+      const matchesSearch = !searchLower || [l.title, l.contactName, l.contactPhone, l.propertyRef]
+        .some(field => {
+          const normalized = (field || '').toLowerCase().replace(/-/g, ' ');
+          return normalized.includes(searchNormalized);
+        });
+      const matchesOwner = !ownerFilter || ownerFilter === 'all'
+        ? true
+        : ownerFilter === 'mine'
+          ? l.ownerId === profileId
+          : l.ownerId === ownerFilter;
+      const matchesPriority = priorityFilter === 'all' || l.priority === priorityFilter;
       let matchesDate = true;
       if (startTime !== null) matchesDate = new Date(l.createdAt).getTime() >= startTime;
       if (matchesDate && endTime !== null) matchesDate = new Date(l.createdAt).getTime() <= endTime;
@@ -76,7 +108,7 @@ export const useBoardFilters = ({
           if (new Date(l.updatedAt).getTime() < cutoffTime) matchesRecent = false;
         }
       }
-      return matchesSearch && matchesOwner && matchesDate && matchesStatus && matchesRecent;
+      return matchesSearch && matchesOwner && matchesPriority && matchesDate && matchesStatus && matchesRecent;
     }).map(deal => {
       if (deal.ownerId === profileId) {
         return {
@@ -91,7 +123,7 @@ export const useBoardFilters = ({
       if (liveMember) return { ...deal, owner: { name: liveMember.name, avatar: liveMember.avatar } };
       return deal;
     });
-  }, [deals, searchTerm, ownerFilter, dateRange.start, dateRange.end, statusFilter,
+  }, [deals, searchTerm, ownerFilter, priorityFilter, dateRange.start, dateRange.end, statusFilter,
       profileId, profileNickname, profileFirstName, profileAvatarUrl, orgMembersById]);
 
   const hiddenByRecentCount = useMemo(() => {
@@ -136,6 +168,7 @@ export const useBoardFilters = ({
     searchTerm, setSearchTerm,
     ownerFilter, setOwnerFilter,
     statusFilter, setStatusFilter,
+    priorityFilter, setPriorityFilter,
     dateRange, setDateRange,
     dealSortBy, dealSortOrder, handleDealSort,
     filteredDeals, hiddenByRecentCount, sortedDeals,

@@ -3,6 +3,7 @@ import { Info } from 'lucide-react';
 import { KanbanHeader } from './Kanban/KanbanHeader';
 import { BoardStrategyHeader } from './Kanban/BoardStrategyHeader';
 import { Board } from '@/types';
+import type { OrgMember } from '@/hooks/useOrganizationMembers';
 
 interface PipelineToolbarProps {
   boards: Board[];
@@ -16,10 +17,15 @@ interface PipelineToolbarProps {
   setViewMode: (mode: 'kanban' | 'list') => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  ownerFilter: 'all' | 'mine';
-  setOwnerFilter: (filter: 'all' | 'mine') => void;
+  ownerFilter: string;
+  setOwnerFilter: (filter: string) => void;
   statusFilter: 'open' | 'won' | 'lost' | 'all';
   setStatusFilter: (filter: 'open' | 'won' | 'lost' | 'all') => void;
+  priorityFilter: 'all' | 'high' | 'medium' | 'low';
+  setPriorityFilter: (filter: 'all' | 'high' | 'medium' | 'low') => void;
+  dateRange: { start: string; end: string };
+  setDateRange: (range: { start: string; end: string }) => void;
+  orgMembers: OrgMember[];
   onNewDeal: () => void;
   hiddenByRecentCount: number;
 }
@@ -40,6 +46,11 @@ export const PipelineToolbar: React.FC<PipelineToolbarProps> = ({
   setOwnerFilter,
   statusFilter,
   setStatusFilter,
+  priorityFilter,
+  setPriorityFilter,
+  dateRange,
+  setDateRange,
+  orgMembers,
   onNewDeal,
   hiddenByRecentCount,
 }) => (
@@ -60,6 +71,11 @@ export const PipelineToolbar: React.FC<PipelineToolbarProps> = ({
       setOwnerFilter={setOwnerFilter}
       statusFilter={statusFilter}
       setStatusFilter={setStatusFilter}
+      priorityFilter={priorityFilter}
+      setPriorityFilter={setPriorityFilter}
+      dateRange={dateRange}
+      setDateRange={setDateRange}
+      orgMembers={orgMembers}
       onNewDeal={onNewDeal}
     />
 
