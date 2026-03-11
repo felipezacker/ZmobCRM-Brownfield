@@ -67,7 +67,7 @@ export const SummaryBar: React.FC<SummaryBarProps> = ({
     <MetricCard
       icon={<Trophy size={14} />}
       label="Win Rate"
-      value={`${winRate.toFixed(1)}%`}
+      value={`${(Number.isFinite(winRate) ? winRate : 0).toFixed(1)}%`}
     />
     <div className="w-px h-6 bg-border/50 shrink-0" />
     <MetricCard

@@ -228,19 +228,23 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       const deal = dealsById.get(dealId);
       if (!deal) return;
 
-      // Remove all existing items
-      if (deal.items?.length) {
-        for (const item of deal.items) {
-          await removeItem.mutateAsync({ dealId, itemId: item.id });
+      try {
+        // Remove all existing items
+        if (deal.items?.length) {
+          for (const item of deal.items) {
+            await removeItem.mutateAsync({ dealId, itemId: item.id });
+          }
         }
-      }
 
-      // Add new product if selected
-      if (product) {
-        await addItem.mutateAsync({
-          dealId,
-          item: { productId: product.id, name: product.name, quantity: 1, price: product.price },
-        });
+        // Add new product if selected
+        if (product) {
+          await addItem.mutateAsync({
+            dealId,
+            item: { productId: product.id, name: product.name, quantity: 1, price: product.price },
+          });
+        }
+      } catch {
+        // Mutation errors are handled by react-query onError callbacks
       }
     },
     [dealsById, addItem, removeItem]
@@ -369,7 +373,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               setDragOverStage(null);
             }}
             onDragEnter={() => setDragOverStage(stage.id)}
-            onDragLeave={() => setDragOverStage(null)}
+            onDragLeave={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setDragOverStage(null);
+              }
+            }}
             className={`group/col min-w-[20rem] flex-1 flex flex-col rounded-xl border-2 overflow-visible h-full max-h-full transition-all duration-200
                             ${isOver
                 ? `${dropHighlightClasses(stage.color)} scale-[1.02]`

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
+import React, { useRef, useState, useLayoutEffect, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Phone, Mail, Calendar, Plus, ArrowRightLeft, Trophy, XCircle, Trash2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -96,17 +96,54 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
     }
 
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
     const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
 
     useLayoutEffect(() => {
         if (isOpen && dealId && triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect();
             setMenuPos({
-                top: rect.top - 8, // 8px gap above the button
-                left: rect.right - 192, // 192px = w-48, align right edge
+                top: rect.top - 8,
+                left: rect.right - 192,
             });
         }
     }, [isOpen, dealId]);
+
+    // Escape key closes menu
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onRequestClose?.();
+                triggerRef.current?.focus();
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onRequestClose]);
+
+    // Focus first menu item on open
+    useEffect(() => {
+        if (isOpen && menuRef.current) {
+            const firstItem = menuRef.current.querySelector<HTMLElement>('[role="menuitem"]');
+            firstItem?.focus();
+        }
+    }, [isOpen, menuPos]);
+
+    // Arrow key navigation within menu
+    const handleMenuKeyDown = useCallback((e: React.KeyboardEvent) => {
+        const items = menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+        if (!items?.length) return;
+        const current = document.activeElement as HTMLElement;
+        const idx = Array.from(items).indexOf(current);
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            items[(idx + 1) % items.length].focus();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            items[(idx - 1 + items.length) % items.length].focus();
+        }
+    }, []);
 
     return (
         <div className="relative">
@@ -124,11 +161,13 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
 
             {isOpen && dealId && menuPos && createPortal(
                 <div
+                    ref={menuRef}
                     role="menu"
                     aria-label="Agendar atividade rápida"
                     className="fixed w-48 bg-white dark:bg-card rounded-lg shadow-xl border border-border z-50 overflow-hidden animate-in zoom-in-95 duration-100"
                     style={{ top: menuPos.top, left: menuPos.left, transform: 'translateY(-100%)' }}
                     onClick={(e) => e.stopPropagation()}
+                    onKeyDown={handleMenuKeyDown}
                 >
                     {/* Resultado — top section, only for open deals */}
                     {!isClosed && (onWinDeal || onLoseDeal) && (

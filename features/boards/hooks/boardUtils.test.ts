@@ -15,8 +15,8 @@ describe('formatRelativeActivityDate', () => {
     expect(formatRelativeActivityDate('2026-03-10T14:00:00')).toBe('Hoje')
   })
 
-  it('returns "Amanha" for tomorrow', () => {
-    expect(formatRelativeActivityDate('2026-03-11T09:00:00')).toBe('Amanha')
+  it('returns "Amanhã" for tomorrow', () => {
+    expect(formatRelativeActivityDate('2026-03-11T09:00:00')).toBe('Amanhã')
   })
 
   it('returns "DD/MM" for future dates', () => {

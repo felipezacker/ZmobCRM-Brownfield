@@ -25,6 +25,7 @@ export const useBoardDragDrop = ({
     isOpen: boolean; dealId: string; dealTitle: string; stageId: string;
   } | null>(null);
   const lastMouseDownDealId = useRef<string | null>(null);
+  const lastDropTime = useRef<number>(0);
 
   const setLastMouseDownDealId = (id: string | null) => {
     lastMouseDownDealId.current = id;
@@ -44,6 +45,10 @@ export const useBoardDragDrop = ({
 
   const handleDrop = (e: React.DragEvent, stageId: string) => {
     e.preventDefault();
+    // Prevent rapid consecutive drops (500ms cooldown)
+    const now = Date.now();
+    if (now - lastDropTime.current < 500) { setDraggingId(null); return; }
+    lastDropTime.current = now;
     const dealId = e.dataTransfer.getData('dealId') || lastMouseDownDealId.current;
     const dealTitle = e.dataTransfer.getData('dealTitle') || '';
     if (dealId && activeBoard) {

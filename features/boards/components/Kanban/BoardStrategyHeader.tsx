@@ -232,7 +232,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                           onChange={e =>
                             setEditedBoard({
                               ...editedBoard,
-                              goal: { ...editedBoard.goal!, targetValue: e.target.value },
+                              goal: { ...(editedBoard.goal ?? { kpi: '', targetValue: '', type: 'number' as const, description: '' }), targetValue: e.target.value },
                             })
                           }
                         />
@@ -243,7 +243,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                             setEditedBoard({
                               ...editedBoard,
                               goal: {
-                                ...editedBoard.goal!,
+                                ...(editedBoard.goal ?? { kpi: '', targetValue: '', type: 'number' as const, description: '' }),
                                 type: e.target.value as 'currency' | 'number' | 'percentage',
                               },
                             })
@@ -261,7 +261,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                         onChange={e =>
                           setEditedBoard({
                             ...editedBoard,
-                            goal: { ...editedBoard.goal!, kpi: e.target.value },
+                            goal: { ...(editedBoard.goal ?? { kpi: '', targetValue: '', type: 'number' as const, description: '' }), kpi: e.target.value },
                           })
                         }
                       />
@@ -287,7 +287,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                     onChange={e =>
                       setEditedBoard({
                         ...editedBoard,
-                        goal: { ...editedBoard.goal!, description: e.target.value },
+                        goal: { ...(editedBoard.goal ?? { kpi: '', targetValue: '', type: 'number' as const, description: '' }), description: e.target.value },
                       })
                     }
                   />
@@ -310,7 +310,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                         onChange={e =>
                           setEditedBoard({
                             ...editedBoard,
-                            agentPersona: { ...editedBoard.agentPersona!, name: e.target.value },
+                            agentPersona: { ...(editedBoard.agentPersona ?? { name: '', role: '', behavior: '' }), name: e.target.value },
                           })
                         }
                       />
@@ -324,7 +324,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                         onChange={e =>
                           setEditedBoard({
                             ...editedBoard,
-                            agentPersona: { ...editedBoard.agentPersona!, role: e.target.value },
+                            agentPersona: { ...(editedBoard.agentPersona ?? { name: '', role: '', behavior: '' }), role: e.target.value },
                           })
                         }
                       />
@@ -339,7 +339,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                     onChange={e =>
                       setEditedBoard({
                         ...editedBoard,
-                        agentPersona: { ...editedBoard.agentPersona!, behavior: e.target.value },
+                        agentPersona: { ...(editedBoard.agentPersona ?? { name: '', role: '', behavior: '' }), behavior: e.target.value },
                       })
                     }
                   />
