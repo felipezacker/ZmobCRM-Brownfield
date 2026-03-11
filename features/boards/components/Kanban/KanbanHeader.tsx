@@ -1,5 +1,5 @@
-import React from 'react';
-import { Plus, Search, LayoutGrid, Table as TableIcon, User, Settings, Lightbulb, Download } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Search, LayoutGrid, Table as TableIcon, User, Settings, Lightbulb, Download, Filter, X, CalendarDays, ChevronDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Board } from '@/types';
 import { BoardSelector } from '../BoardSelector';
@@ -30,6 +30,9 @@ interface KanbanHeaderProps {
     setDateRange: (range: { start: string; end: string }) => void;
     orgMembers: OrgMember[];
     onNewDeal: () => void;
+    // Advanced filters (BUX-7)
+    activeAdvancedFilterCount: number;
+    onOpenAdvancedFilters: () => void;
 }
 
 export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
@@ -47,8 +50,23 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
     priorityFilter, setPriorityFilter,
     dateRange, setDateRange,
     orgMembers,
-    onNewDeal
+    onNewDeal,
+    activeAdvancedFilterCount,
+    onOpenAdvancedFilters,
 }) => {
+    const [ownerOpen, setOwnerOpen] = useState(false);
+    const [ownerSearch, setOwnerSearch] = useState('');
+
+    const filteredOrgMembers = orgMembers.filter(
+        m => !ownerSearch || m.name.toLowerCase().includes(ownerSearch.toLowerCase())
+    );
+
+    const ownerDisplayName = ownerFilter === 'all'
+        ? 'Todos os Donos'
+        : ownerFilter === 'mine'
+            ? 'Meus Negócios'
+            : orgMembers.find(m => m.id === ownerFilter)?.name || 'Dono';
+
     return (
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div className="flex items-center gap-4 w-full sm:w-auto flex-wrap">
@@ -172,47 +190,173 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                 </div>
 
                 {/* Priority Filter Chips */}
-                <div className="flex bg-muted dark:bg-white/5 p-0.5 rounded-lg border border-border gap-0.5">
-                    {(['all', 'high', 'medium', 'low'] as const).map(p => (
-                        <Button key={p} onClick={() => setPriorityFilter(p)}
-                            aria-label={`Filtrar prioridade: ${p === 'all' ? 'todas' : p === 'high' ? 'alta' : p === 'medium' ? 'média' : 'baixa'}`}
-                            aria-pressed={priorityFilter === p}
-                            className={`px-2 py-1 text-xs rounded-md transition-all ${priorityFilter === p ? 'bg-white dark:bg-accent shadow-sm font-semibold' : 'text-muted-foreground hover:text-foreground'}`}>
-                            {p === 'all' ? 'Todas' : p === 'high' ? 'Alta' : p === 'medium' ? 'Média' : 'Baixa'}
-                        </Button>
-                    ))}
-                </div>
-
-                {/* Owner Filter */}
-                <div className="relative">
-                    <select
-                        value={ownerFilter}
-                        onChange={(e) => setOwnerFilter(e.target.value)}
-                        aria-label="Filtrar negócios por proprietário"
-                        className="pl-3 pr-8 py-2 rounded-lg border border-border dark:border-border bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 backdrop-blur-sm appearance-none cursor-pointer"
-                    >
-                        <option value="all">Todos os Donos</option>
-                        <option value="mine">Meus Negócios</option>
-                        {orgMembers.length > 0 && <option disabled>───────────</option>}
-                        {orgMembers.map(m => (
-                            <option key={m.id} value={m.id}>{m.name}</option>
+                <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground font-medium hidden sm:inline">Prioridade:</span>
+                    <div className="flex bg-muted dark:bg-white/5 p-0.5 rounded-lg border border-border gap-0.5">
+                        {(['all', 'high', 'medium', 'low'] as const).map(p => (
+                            <Button key={p} onClick={() => setPriorityFilter(p)}
+                                aria-label={`Filtrar prioridade: ${p === 'all' ? 'todas' : p === 'high' ? 'alta' : p === 'medium' ? 'média' : 'baixa'}`}
+                                aria-pressed={priorityFilter === p}
+                                className={`px-2 py-1 text-xs rounded-md transition-all ${priorityFilter === p ? 'bg-white dark:bg-accent shadow-sm font-semibold' : 'text-muted-foreground hover:text-foreground'}`}>
+                                {p === 'all' ? 'Todas' : p === 'high' ? 'Alta' : p === 'medium' ? 'Média' : 'Baixa'}
+                            </Button>
                         ))}
-                    </select>
-                    <User className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={14} />
+                    </div>
                 </div>
 
-                {/* Date Range Picker */}
-                <div className="flex items-center gap-1">
-                    <input type="date" value={dateRange.start}
-                        onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
-                        aria-label="Data início"
-                        className="px-2 py-1.5 text-xs rounded-lg border border-border bg-white/50 dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500" />
-                    <span className="text-muted-foreground text-xs">até</span>
-                    <input type="date" value={dateRange.end}
-                        onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
-                        aria-label="Data fim"
-                        className="px-2 py-1.5 text-xs rounded-lg border border-border bg-white/50 dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500" />
-                </div>
+                {/* Owner Filter - Searchable Popover */}
+                <Popover open={ownerOpen} onOpenChange={(open) => { setOwnerOpen(open); if (!open) setOwnerSearch(''); }}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            aria-label="Filtrar negócios por proprietário"
+                            className="pl-3 pr-2 py-2 rounded-lg border border-border bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 backdrop-blur-sm cursor-pointer flex items-center gap-1.5 min-w-[140px]"
+                        >
+                            <User size={14} className="text-muted-foreground shrink-0" />
+                            <span className="truncate flex-1 text-left">{ownerDisplayName}</span>
+                            <ChevronDown size={12} className="text-muted-foreground shrink-0" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-0" align="start">
+                        <div className="p-2 border-b border-border">
+                            <input
+                                type="text"
+                                placeholder="Buscar dono..."
+                                value={ownerSearch}
+                                onChange={(e) => setOwnerSearch(e.target.value)}
+                                className="w-full px-2 py-1.5 text-sm rounded border border-border bg-white/50 dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500"
+                                autoFocus
+                            />
+                        </div>
+                        <div className="max-h-48 overflow-y-auto p-1">
+                            <button
+                                type="button"
+                                onClick={() => { setOwnerFilter('all'); setOwnerOpen(false); }}
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === 'all' ? 'font-semibold bg-muted' : ''}`}
+                            >
+                                Todos os Donos
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setOwnerFilter('mine'); setOwnerOpen(false); }}
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === 'mine' ? 'font-semibold bg-muted' : ''}`}
+                            >
+                                Meus Negócios
+                            </button>
+                            {filteredOrgMembers.length > 0 && <div className="h-px bg-border my-1" />}
+                            {filteredOrgMembers.map(m => (
+                                <button
+                                    key={m.id}
+                                    type="button"
+                                    onClick={() => { setOwnerFilter(m.id); setOwnerOpen(false); }}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === m.id ? 'font-semibold bg-muted' : ''}`}
+                                >
+                                    {m.name}
+                                </button>
+                            ))}
+                            {filteredOrgMembers.length === 0 && ownerSearch && (
+                                <p className="px-3 py-2 text-sm text-muted-foreground">Nenhum resultado</p>
+                            )}
+                        </div>
+                    </PopoverContent>
+                </Popover>
+
+                {/* Date Range Picker - Improved */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            aria-label="Filtrar por período"
+                            className={`px-3 py-2 rounded-lg border border-border bg-white/50 dark:bg-white/5 text-sm outline-none focus:ring-2 focus:ring-primary-500 backdrop-blur-sm cursor-pointer flex items-center gap-1.5 ${(dateRange.start || dateRange.end) ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
+                        >
+                            <CalendarDays size={14} className="shrink-0" />
+                            <span className="truncate">
+                                {dateRange.start || dateRange.end
+                                    ? `${dateRange.start ? new Date(dateRange.start + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '...'} — ${dateRange.end ? new Date(dateRange.end + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '...'}`
+                                    : 'Período'}
+                            </span>
+                            {(dateRange.start || dateRange.end) && (
+                                <span
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={(e) => { e.stopPropagation(); setDateRange({ start: '', end: '' }); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setDateRange({ start: '', end: '' }); } }}
+                                    className="ml-0.5 hover:text-foreground rounded-full hover:bg-muted p-0.5"
+                                    aria-label="Limpar período"
+                                >
+                                    <X size={12} />
+                                </span>
+                            )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-0" align="start">
+                        <div className="p-2 grid grid-cols-2 gap-1 border-b border-border">
+                            {[
+                                { label: '7 dias', days: 7 },
+                                { label: '30 dias', days: 30 },
+                                { label: '90 dias', days: 90 },
+                                { label: 'Este mês', days: -1 },
+                            ].map(preset => {
+                                const getPresetRange = () => {
+                                    const end = new Date();
+                                    const start = preset.days === -1
+                                        ? new Date(end.getFullYear(), end.getMonth(), 1)
+                                        : new Date(Date.now() - preset.days * 86400000);
+                                    return {
+                                        start: start.toISOString().split('T')[0],
+                                        end: end.toISOString().split('T')[0],
+                                    };
+                                };
+                                return (
+                                    <button
+                                        key={preset.label}
+                                        type="button"
+                                        onClick={() => setDateRange(getPresetRange())}
+                                        className="px-2 py-1.5 text-xs rounded bg-muted hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        {preset.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <div className="p-3 space-y-2">
+                            <div>
+                                <label className="text-[10px] text-muted-foreground uppercase font-bold block mb-0.5">De</label>
+                                <input type="date" value={dateRange.start}
+                                    onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
+                                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-white/50 dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500" />
+                            </div>
+                            <div>
+                                <label className="text-[10px] text-muted-foreground uppercase font-bold block mb-0.5">Até</label>
+                                <input type="date" value={dateRange.end}
+                                    onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
+                                    className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-white/50 dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500" />
+                            </div>
+                            {(dateRange.start || dateRange.end) && (
+                                <button
+                                    type="button"
+                                    onClick={() => setDateRange({ start: '', end: '' })}
+                                    className="w-full text-center text-xs text-red-500 hover:text-red-600 py-1 transition-colors"
+                                >
+                                    Limpar período
+                                </button>
+                            )}
+                        </div>
+                    </PopoverContent>
+                </Popover>
+
+                {/* Advanced Filters Button (BUX-7) */}
+                <Button
+                    onClick={onOpenAdvancedFilters}
+                    aria-label="Abrir filtros avançados"
+                    className="px-3 py-2 text-sm rounded-lg border border-border bg-white/50 dark:bg-white/5 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-white/10 transition-colors flex items-center gap-1.5"
+                >
+                    <Filter size={16} />
+                    Filtros
+                    {activeAdvancedFilterCount > 0 && (
+                        <span className="ml-0.5 px-1.5 py-0.5 text-[10px] font-bold bg-primary-500 text-white rounded-full leading-none">
+                            {activeAdvancedFilterCount}
+                        </span>
+                    )}
+                </Button>
             </div>
 
             <div className="flex gap-3">

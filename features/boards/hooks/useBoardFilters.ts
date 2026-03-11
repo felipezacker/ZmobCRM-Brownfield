@@ -126,7 +126,7 @@ export const useBoardFilters = ({
     }
 
     return deals.filter(l => {
-      const matchesSearch = !searchLower || [l.title, l.contactName, l.contactPhone, l.propertyRef]
+      const matchesSearch = !searchLower || [l.title, l.contactName, l.contactPhone, l.propertyRef, ...(l.items || []).map(i => i.name)]
         .some(field => {
           const normalized = (field || '').toLowerCase().replace(/-/g, ' ');
           return normalized.includes(searchNormalized);
@@ -157,8 +157,19 @@ export const useBoardFilters = ({
       const matchesDealType = dealTypeFilter.length === 0 || dealTypeFilter.includes(l.dealType || '');
       const matchesValueRange = (valueRange.min === null || (l.value ?? 0) >= valueRange.min) &&
                                 (valueRange.max === null || (l.value ?? 0) <= valueRange.max);
-      const matchesCloseDate = (!closeDateFilter.start || (l.expectedCloseDate && l.expectedCloseDate >= closeDateFilter.start)) &&
-                               (!closeDateFilter.end || (l.expectedCloseDate && l.expectedCloseDate <= closeDateFilter.end));
+      let matchesCloseDate = true;
+      if (closeDateFilter.start || closeDateFilter.end) {
+        if (!l.expectedCloseDate) { matchesCloseDate = false; }
+        else {
+          const closeTime = new Date(l.expectedCloseDate).getTime();
+          if (closeDateFilter.start) matchesCloseDate = closeTime >= new Date(closeDateFilter.start).getTime();
+          if (matchesCloseDate && closeDateFilter.end) {
+            const endOfDay = new Date(closeDateFilter.end);
+            endOfDay.setHours(23, 59, 59, 999);
+            matchesCloseDate = closeTime <= endOfDay.getTime();
+          }
+        }
+      }
       const matchesProduct = productFilter.length === 0 || (l.items || []).some(i => productFilter.includes(i.name));
       const matchesTags = tagFilter.length === 0 || (l.contactTags || []).some(t => tagFilter.includes(t));
       const matchesProbability = (l.probability ?? 0) >= probabilityRange.min && (l.probability ?? 0) <= probabilityRange.max;

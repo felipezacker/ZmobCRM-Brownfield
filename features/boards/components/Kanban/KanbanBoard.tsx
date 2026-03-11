@@ -16,6 +16,13 @@ import type { Product } from '@/types';
 // Performance: reuse currency formatter instance (same pattern as DealCard.tsx:62).
 const BRL_CURRENCY = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
+// Compact format for collapsed columns (48px width)
+const formatCompactBRL = (value: number): string => {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace('.', ',')}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
+  return BRL_CURRENCY.format(value);
+};
+
 /**
  * UI: Drop highlight should follow the stage color.
  *
@@ -322,7 +329,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               `}
             >
               <div className={`h-1.5 w-full rounded-t-[10px] ${stage.color}`} />
-              <div className="flex-1 flex flex-col items-center justify-center gap-3 py-4 px-1 pointer-events-none">
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 py-4 px-1 pointer-events-none overflow-hidden">
                 <Button
                   type="button"
                   tabIndex={0}
@@ -337,8 +344,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <span className="text-[10px] font-bold bg-white dark:bg-card border border-border px-1.5 py-0.5 rounded">
                   {stageDeals.length}
                 </span>
-                <span className="text-[9px] text-muted-foreground tabular-nums text-center font-mono leading-tight">
-                  {BRL_CURRENCY.format(stageValue)}
+                <span className="text-[9px] text-muted-foreground tabular-nums text-center font-mono leading-tight" title={BRL_CURRENCY.format(stageValue)}>
+                  {formatCompactBRL(stageValue)}
                 </span>
               </div>
               {isOver && (

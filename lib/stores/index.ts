@@ -97,9 +97,10 @@ interface UIState {
  */
 export const useUIStore = create<UIState>()(
   devtools(
+    persist(
     subscribeWithSelector((set, get) => ({
-      // Sidebar
-      sidebarOpen: true,
+      // Sidebar (default collapsed, persisted)
+      sidebarOpen: false,
       toggleSidebar: () => set(state => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
@@ -134,6 +135,11 @@ export const useUIStore = create<UIState>()(
         })),
       isLoading: key => get().loadingStates[key] ?? false,
     })),
+    {
+      name: 'zmob-sidebar',
+      partialize: (state) => ({ sidebarOpen: state.sidebarOpen }),
+    }
+    ),
     { name: 'ui-store' }
   )
 );

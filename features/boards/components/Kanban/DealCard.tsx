@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { DealView, Product } from '@/types';
 import type { OrgMember } from '@/hooks/useOrganizationMembers';
-import { Hourglass, Loader2, Trophy, XCircle, Phone, Calendar, Mail, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { Hourglass, Loader2, Trophy, XCircle, Phone, Calendar, Mail, MessageCircle } from 'lucide-react';
 import { priorityAriaLabelPtBr } from '@/lib/utils/priority';
 import { useDealCardPopovers } from './hooks/useDealCardPopovers';
 import { ProductPicker, OwnerPicker } from './DealCardPopovers';
 import { DealCardActions } from './DealCardActions';
-import { Button } from '@/components/ui/button';
+
 import { formatRelativeActivityDate, formatStageAge } from '@/features/boards/hooks/boardUtils';
 
 interface DealCardProps {
@@ -250,19 +250,6 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         </div>
       )}
 
-      {/* 3 Dots Menu Button — mobile-first: always visible; desktop: on hover */}
-      {!deal.id.startsWith('temp-') && (
-        <Button
-          type="button"
-          onClick={handleToggleMenu}
-          aria-label="Menu de acoes"
-          aria-haspopup="menu"
-          aria-expanded={isMenuOpen}
-          className="absolute top-1 right-1 p-1 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground hover:bg-muted focus-visible-ring z-20"
-        >
-          <MoreHorizontal size={14} aria-hidden="true" />
-        </Button>
-      )}
 
       {/* Row 1: Avatar + Contact Name + Value */}
       <div className="flex items-center gap-2">
@@ -324,7 +311,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         const ActivityIcon = deal.nextActivity.type === 'CALL' ? Phone : deal.nextActivity.type === 'EMAIL' ? Mail : deal.nextActivity.type === 'MEETING' ? Calendar : deal.nextActivity.type === 'WHATSAPP' ? MessageCircle : Mail;
         return (
           <div
-            className={`flex items-center gap-1.5 text-xs ${colorClass}`}
+            className={`flex items-center gap-1.5 text-xs mt-1.5 ${colorClass}`}
             aria-label={`Proxima atividade: ${deal.nextActivity.type} ${relDate}`}
           >
             <ActivityIcon size={12} aria-hidden="true" className="shrink-0" />

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, Mail, Calendar, ChevronRight, AlertTriangle, ArrowRightLeft, Trophy, XCircle, Trash2, MessageCircle } from 'lucide-react';
+import { Phone, Mail, Calendar, Plus, ArrowRightLeft, Trophy, XCircle, Trash2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ActivityStatusIconProps {
@@ -48,7 +48,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
     onDeleteDeal,
     isClosed = false,
 }) => {
-    const Icon = type === 'CALL' ? Phone : type === 'EMAIL' ? Mail : type === 'MEETING' ? Calendar : type === 'WHATSAPP' ? MessageCircle : ChevronRight;
+    const Icon = Plus;
 
     // Get accessible status description
     const getStatusLabel = () => {
@@ -68,8 +68,8 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
     switch (status) {
         case 'yellow':
             content = (
-                <div className="text-yellow-500" aria-hidden="true">
-                    <AlertTriangle size={18} fill="currentColor" className="text-yellow-500/20" />
+                <div className="w-5 h-5 rounded-full bg-accent dark:bg-accent flex items-center justify-center text-muted-foreground ring-1 ring-white dark:ring-dark-card" aria-hidden="true">
+                    <Plus size={10} strokeWidth={3} />
                 </div>
             );
             break;

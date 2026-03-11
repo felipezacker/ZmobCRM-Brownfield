@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -48,28 +48,38 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onItemClick,
 }) => {
   const pathname = usePathname();
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Hover-to-expand: collapsed + hovered = temporarily show expanded content
+  const isHoverExpanded = sidebarCollapsed && isHovered;
+  const showExpanded = !sidebarCollapsed || isHoverExpanded;
 
   return (
     <aside
-      className={`hidden lg:flex flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-20 items-center' : 'w-52'}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`hidden lg:flex fixed left-0 top-0 bottom-0 flex-col z-20 glass border-r border-[var(--color-border-subtle)] transition-all duration-300 ease-in-out
+        ${showExpanded ? 'w-52' : 'w-20 items-center'}
+        ${isHoverExpanded ? 'z-40 shadow-2xl shadow-black/20' : ''}
+      `}
       aria-label="Menu principal"
     >
       {/* Logo */}
-      <div className={`h-16 flex items-center border-b border-[var(--color-border-subtle)] transition-all duration-300 px-5 ${sidebarCollapsed ? 'justify-center px-0' : ''}`}>
-        <div className={`flex items-center transition-all duration-300 ${sidebarCollapsed ? 'gap-0 justify-center' : 'gap-3'}`}>
+      <div className={`h-16 flex items-center border-b border-[var(--color-border-subtle)] transition-all duration-300 px-5 ${!showExpanded ? 'justify-center px-0' : ''}`}>
+        <div className={`flex items-center transition-all duration-300 ${!showExpanded ? 'gap-0 justify-center' : 'gap-3'}`}>
           <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary-500/20 shrink-0" aria-hidden="true">
             Z
           </div>
-          <span className={`text-xl font-bold font-display tracking-tight text-foreground whitespace-nowrap overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
+          <span className={`text-xl font-bold font-display tracking-tight text-foreground whitespace-nowrap overflow-hidden transition-all duration-300 ${!showExpanded ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
             ZmobCRM
           </span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 p-4 space-y-2 flex flex-col ${sidebarCollapsed ? 'items-center px-2' : ''}`} aria-label="Navegacao do sistema">
+      <nav className={`flex-1 p-4 space-y-2 flex flex-col ${!showExpanded ? 'items-center px-2' : ''}`} aria-label="Navegacao do sistema">
         {NAV_ITEMS.map((item) => {
-          if (sidebarCollapsed) {
+          if (!showExpanded) {
             const isActive = pathname === item.to || (item.to === '/boards' && pathname === '/pipeline');
             const wasJustClicked = clickedPath === item.to;
             const anotherItemWasClicked = clickedPath && clickedPath !== item.to;
@@ -105,22 +115,22 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
         })}
       </nav>
 
-      {/* Toggle Button */}
-      {!sidebarCollapsed ? (
+      {/* Toggle / Pin Button */}
+      {showExpanded ? (
         <div className="px-4 pb-2">
           <Button
-            onClick={() => setSidebarCollapsed(true)}
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-muted-foreground hover:text-secondary-foreground dark:hover:text-white bg-background/50 dark:bg-white/5 border border-border hover:bg-muted dark:hover:bg-white/10 transition-all text-sm"
-            title="Recolher Menu"
+            title={sidebarCollapsed ? 'Fixar Menu Aberto' : 'Recolher Menu'}
           >
-            <PanelLeftClose size={18} />
-            <span>Recolher</span>
+            {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            <span>{sidebarCollapsed ? 'Fixar' : 'Recolher'}</span>
           </Button>
         </div>
       ) : (
         <div className="px-4 pb-2 flex justify-center">
           <Button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            onClick={() => setSidebarCollapsed(false)}
             className="flex items-center justify-center w-10 h-10 p-2 rounded-lg text-muted-foreground hover:text-secondary-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/5 transition-all"
             title="Expandir Menu"
           >
@@ -129,7 +139,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
         </div>
       )}
 
-      <SidebarUserCard collapsed={sidebarCollapsed} />
+      <SidebarUserCard collapsed={!showExpanded} />
     </aside>
   );
 };

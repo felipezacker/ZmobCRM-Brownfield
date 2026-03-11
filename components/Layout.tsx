@@ -123,7 +123,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <NavigationRail />
       </div>
 
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar spacer — maintains flow space while sidebar is fixed */}
+      <div className={`hidden lg:block shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-52'}`} />
+
+      {/* Desktop sidebar — fixed for hover-to-expand overlay */}
       <AppSidebar
         sidebarCollapsed={sidebarCollapsed}
         setSidebarCollapsed={setSidebarCollapsed}
