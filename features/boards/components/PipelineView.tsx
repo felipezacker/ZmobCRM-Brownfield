@@ -83,8 +83,27 @@ interface PipelineViewProps {
   handleDealSort: (column: DealSortableColumn) => void;
   sortedDeals: DealView[];
   hiddenByRecentCount?: number;
+  showAllRecent?: boolean;
+  setShowAllRecent?: (value: boolean) => void;
   handleBulkMoveDealToStage: (targetStageId: string) => void;
   handleBulkDeleteDeals: () => void;
+  // Advanced filters (BUX-7)
+  dealTypeFilter: string[];
+  setDealTypeFilter: (v: string[]) => void;
+  valueRange: { min: number | null; max: number | null };
+  setValueRange: (v: { min: number | null; max: number | null }) => void;
+  closeDateFilter: { start: string; end: string };
+  setCloseDateFilter: (v: { start: string; end: string }) => void;
+  productFilter: string[];
+  setProductFilter: (v: string[]) => void;
+  tagFilter: string[];
+  setTagFilter: (v: string[]) => void;
+  probabilityRange: { min: number; max: number };
+  setProbabilityRange: (v: { min: number; max: number }) => void;
+  clearAdvancedFilters: () => void;
+  activeAdvancedFilterCount: number;
+  uniqueProducts: string[];
+  uniqueTags: string[];
   // Loss Reason Modal
   lossReasonModal: {
     isOpen: boolean;
@@ -125,9 +144,19 @@ export const PipelineView: React.FC<PipelineViewProps> = (props) => {
     handleWinDeal, handleLoseDeal, handleDeleteDeal,
     selectedDealIds, toggleDealSelect, toggleDealSelectAll, clearDealSelection,
     dealSortBy, dealSortOrder, handleDealSort, sortedDeals,
-    hiddenByRecentCount = 0, handleBulkMoveDealToStage, handleBulkDeleteDeals,
+    hiddenByRecentCount = 0, showAllRecent = false, setShowAllRecent,
+    handleBulkMoveDealToStage, handleBulkDeleteDeals,
     lossReasonModal, handleLossReasonConfirm, handleLossReasonClose,
     boardCreateOverlay, boardMetrics,
+    // Advanced filters (BUX-7)
+    dealTypeFilter, setDealTypeFilter,
+    valueRange, setValueRange,
+    closeDateFilter, setCloseDateFilter,
+    productFilter, setProductFilter,
+    tagFilter, setTagFilter,
+    probabilityRange, setProbabilityRange,
+    clearAdvancedFilters, activeAdvancedFilterCount,
+    uniqueProducts, uniqueTags,
   } = props;
 
   const { profile } = useAuth();
@@ -221,6 +250,24 @@ export const PipelineView: React.FC<PipelineViewProps> = (props) => {
             orgMembers={orgMembers}
             onNewDeal={() => setIsCreateModalOpen(true)}
             hiddenByRecentCount={hiddenByRecentCount}
+            showAllRecent={showAllRecent}
+            setShowAllRecent={setShowAllRecent ?? (() => {})}
+            dealTypeFilter={dealTypeFilter}
+            setDealTypeFilter={setDealTypeFilter}
+            valueRange={valueRange}
+            setValueRange={setValueRange}
+            closeDateFilter={closeDateFilter}
+            setCloseDateFilter={setCloseDateFilter}
+            productFilter={productFilter}
+            setProductFilter={setProductFilter}
+            tagFilter={tagFilter}
+            setTagFilter={setTagFilter}
+            probabilityRange={probabilityRange}
+            setProbabilityRange={setProbabilityRange}
+            clearAdvancedFilters={clearAdvancedFilters}
+            activeAdvancedFilterCount={activeAdvancedFilterCount}
+            uniqueProducts={uniqueProducts}
+            uniqueTags={uniqueTags}
           />
 
           {boardMetrics && (

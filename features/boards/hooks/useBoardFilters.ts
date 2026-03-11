@@ -25,6 +25,15 @@ export const useBoardFilters = ({
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [dealSortBy, setDealSortBy] = useState<DealSortableColumn>('createdAt');
   const [dealSortOrder, setDealSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showAllRecent, setShowAllRecent] = useState(false);
+
+  // Advanced filters (BUX-7)
+  const [dealTypeFilter, setDealTypeFilter] = useState<string[]>([]);
+  const [valueRange, setValueRange] = useState<{ min: number | null; max: number | null }>({ min: null, max: null });
+  const [closeDateFilter, setCloseDateFilter] = useState<{ start: string; end: string }>({ start: '', end: '' });
+  const [productFilter, setProductFilter] = useState<string[]>([]);
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [probabilityRange, setProbabilityRange] = useState<{ min: number; max: number }>({ min: 0, max: 100 });
 
   // Initialize filters from URL
   useEffect(() => {
@@ -42,6 +51,30 @@ export const useBoardFilters = ({
     const dateStart = searchParams.get('dateStart');
     const dateEnd = searchParams.get('dateEnd');
     if (dateStart || dateEnd) setDateRange({ start: dateStart || '', end: dateEnd || '' });
+    // Advanced filters from URL (BUX-7)
+    const dealTypeParam = searchParams.get('dealType');
+    if (dealTypeParam) setDealTypeFilter(dealTypeParam.split(','));
+    const valueMinParam = searchParams.get('valueMin');
+    const valueMaxParam = searchParams.get('valueMax');
+    if (valueMinParam || valueMaxParam) setValueRange({
+      min: valueMinParam ? Number(valueMinParam) : null,
+      max: valueMaxParam ? Number(valueMaxParam) : null,
+    });
+    const closeDateStartParam = searchParams.get('closeDateStart');
+    const closeDateEndParam = searchParams.get('closeDateEnd');
+    if (closeDateStartParam || closeDateEndParam) setCloseDateFilter({
+      start: closeDateStartParam || '', end: closeDateEndParam || '',
+    });
+    const productParam = searchParams.get('product');
+    if (productParam) setProductFilter(productParam.split(','));
+    const tagsParam = searchParams.get('tags');
+    if (tagsParam) setTagFilter(tagsParam.split(','));
+    const probMinParam = searchParams.get('probMin');
+    const probMaxParam = searchParams.get('probMax');
+    if (probMinParam || probMaxParam) setProbabilityRange({
+      min: probMinParam ? Number(probMinParam) : 0,
+      max: probMaxParam ? Number(probMaxParam) : 100,
+    });
   }, [searchParams]);
 
   // Sync active filters to URL
@@ -52,9 +85,20 @@ export const useBoardFilters = ({
     if (dateRange.start) params.set('dateStart', dateRange.start); else params.delete('dateStart');
     if (dateRange.end) params.set('dateEnd', dateRange.end); else params.delete('dateEnd');
     if (statusFilter !== 'open') params.set('status', statusFilter); else params.delete('status');
+    // Advanced filters URL sync (BUX-7)
+    if (dealTypeFilter.length > 0) params.set('dealType', dealTypeFilter.join(',')); else params.delete('dealType');
+    if (valueRange.min !== null) params.set('valueMin', String(valueRange.min)); else params.delete('valueMin');
+    if (valueRange.max !== null) params.set('valueMax', String(valueRange.max)); else params.delete('valueMax');
+    if (closeDateFilter.start) params.set('closeDateStart', closeDateFilter.start); else params.delete('closeDateStart');
+    if (closeDateFilter.end) params.set('closeDateEnd', closeDateFilter.end); else params.delete('closeDateEnd');
+    if (productFilter.length > 0) params.set('product', productFilter.join(',')); else params.delete('product');
+    if (tagFilter.length > 0) params.set('tags', tagFilter.join(',')); else params.delete('tags');
+    if (probabilityRange.min > 0) params.set('probMin', String(probabilityRange.min)); else params.delete('probMin');
+    if (probabilityRange.max < 100) params.set('probMax', String(probabilityRange.max)); else params.delete('probMax');
     const qs = params.toString();
     window.history.replaceState({}, '', qs ? `?${qs}` : window.location.pathname);
-  }, [priorityFilter, ownerFilter, dateRange.start, dateRange.end, statusFilter]);
+  }, [priorityFilter, ownerFilter, dateRange.start, dateRange.end, statusFilter,
+      dealTypeFilter, valueRange, closeDateFilter, productFilter, tagFilter, probabilityRange]);
 
   const handleDealSort = useCallback((column: DealSortableColumn) => {
     setDealSortBy(prev => {
@@ -103,12 +147,24 @@ export const useBoardFilters = ({
       else if (statusFilter === 'lost') matchesStatus = l.isLost;
 
       let matchesRecent = true;
-      if (statusFilter === 'open' || statusFilter === 'all') {
+      if (!showAllRecent && (statusFilter === 'open' || statusFilter === 'all')) {
         if (l.isWon || l.isLost) {
           if (new Date(l.updatedAt).getTime() < cutoffTime) matchesRecent = false;
         }
       }
-      return matchesSearch && matchesOwner && matchesPriority && matchesDate && matchesStatus && matchesRecent;
+
+      // Advanced filters (BUX-7)
+      const matchesDealType = dealTypeFilter.length === 0 || dealTypeFilter.includes(l.dealType || '');
+      const matchesValueRange = (valueRange.min === null || (l.value ?? 0) >= valueRange.min) &&
+                                (valueRange.max === null || (l.value ?? 0) <= valueRange.max);
+      const matchesCloseDate = (!closeDateFilter.start || (l.expectedCloseDate && l.expectedCloseDate >= closeDateFilter.start)) &&
+                               (!closeDateFilter.end || (l.expectedCloseDate && l.expectedCloseDate <= closeDateFilter.end));
+      const matchesProduct = productFilter.length === 0 || (l.items || []).some(i => productFilter.includes(i.name));
+      const matchesTags = tagFilter.length === 0 || (l.contactTags || []).some(t => tagFilter.includes(t));
+      const matchesProbability = (l.probability ?? 0) >= probabilityRange.min && (l.probability ?? 0) <= probabilityRange.max;
+
+      return matchesSearch && matchesOwner && matchesPriority && matchesDate && matchesStatus && matchesRecent
+        && matchesDealType && matchesValueRange && matchesCloseDate && matchesProduct && matchesTags && matchesProbability;
     }).map(deal => {
       if (deal.ownerId === profileId) {
         return {
@@ -124,7 +180,8 @@ export const useBoardFilters = ({
       return deal;
     });
   }, [deals, searchTerm, ownerFilter, priorityFilter, dateRange.start, dateRange.end, statusFilter,
-      profileId, profileNickname, profileFirstName, profileAvatarUrl, orgMembersById]);
+      profileId, profileNickname, profileFirstName, profileAvatarUrl, orgMembersById, showAllRecent,
+      dealTypeFilter, valueRange, closeDateFilter, productFilter, tagFilter, probabilityRange]);
 
   const hiddenByRecentCount = useMemo(() => {
     if (statusFilter !== 'open' && statusFilter !== 'all') return 0;
@@ -164,6 +221,39 @@ export const useBoardFilters = ({
     return sorted;
   }, [filteredDeals, viewMode, dealSortBy, dealSortOrder, orgMembersById]);
 
+  // Advanced filter helpers (BUX-7)
+  const clearAdvancedFilters = useCallback(() => {
+    setDealTypeFilter([]);
+    setValueRange({ min: null, max: null });
+    setCloseDateFilter({ start: '', end: '' });
+    setProductFilter([]);
+    setTagFilter([]);
+    setProbabilityRange({ min: 0, max: 100 });
+  }, []);
+
+  const activeAdvancedFilterCount = useMemo(() => {
+    let count = 0;
+    if (dealTypeFilter.length > 0) count++;
+    if (valueRange.min !== null || valueRange.max !== null) count++;
+    if (closeDateFilter.start || closeDateFilter.end) count++;
+    if (productFilter.length > 0) count++;
+    if (tagFilter.length > 0) count++;
+    if (probabilityRange.min > 0 || probabilityRange.max < 100) count++;
+    return count;
+  }, [dealTypeFilter, valueRange, closeDateFilter, productFilter, tagFilter, probabilityRange]);
+
+  const uniqueProducts = useMemo(() => {
+    const set = new Set<string>();
+    deals.forEach(d => (d.items || []).forEach(i => { if (i.name) set.add(i.name); }));
+    return Array.from(set).sort();
+  }, [deals]);
+
+  const uniqueTags = useMemo(() => {
+    const set = new Set<string>();
+    deals.forEach(d => (d.contactTags || []).forEach(t => set.add(t)));
+    return Array.from(set).sort();
+  }, [deals]);
+
   return {
     searchTerm, setSearchTerm,
     ownerFilter, setOwnerFilter,
@@ -172,5 +262,15 @@ export const useBoardFilters = ({
     dateRange, setDateRange,
     dealSortBy, dealSortOrder, handleDealSort,
     filteredDeals, hiddenByRecentCount, sortedDeals,
+    showAllRecent, setShowAllRecent,
+    // Advanced filters (BUX-7)
+    dealTypeFilter, setDealTypeFilter,
+    valueRange, setValueRange,
+    closeDateFilter, setCloseDateFilter,
+    productFilter, setProductFilter,
+    tagFilter, setTagFilter,
+    probabilityRange, setProbabilityRange,
+    clearAdvancedFilters, activeAdvancedFilterCount,
+    uniqueProducts, uniqueTags,
   };
 };

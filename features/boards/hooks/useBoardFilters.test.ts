@@ -233,6 +233,83 @@ describe('useBoardFilters', () => {
     })
   })
 
+  describe('showAllRecent toggle (BUX-10)', () => {
+    const oldWonDeal = {
+      ...baseDeal,
+      id: 'old-won',
+      title: 'Deal Antigo Ganho',
+      isWon: true,
+      isLost: false,
+      updatedAt: '2025-12-01T10:00:00Z',
+      closedAt: '2025-12-01T10:00:00Z',
+    } as unknown as DealView
+
+    const recentWonDeal = {
+      ...baseDeal,
+      id: 'recent-won',
+      title: 'Deal Recente Ganho',
+      isWon: true,
+      isLost: false,
+      updatedAt: new Date().toISOString(),
+      closedAt: new Date().toISOString(),
+    } as unknown as DealView
+
+    const mixedDeals = [baseDeal, oldWonDeal, recentWonDeal]
+
+    it('hides old won/lost deals by default when status is "all"', () => {
+      const { result } = renderHook(() => useBoardFilters({
+        ...defaultParams,
+        deals: mixedDeals,
+      }))
+      act(() => result.current.setStatusFilter('all'))
+      const ids = result.current.filteredDeals.map(d => d.id)
+      expect(ids).not.toContain('old-won')
+      expect(ids).toContain('recent-won')
+    })
+
+    it('shows old won/lost deals when showAllRecent is true', () => {
+      const { result } = renderHook(() => useBoardFilters({
+        ...defaultParams,
+        deals: mixedDeals,
+      }))
+      act(() => {
+        result.current.setStatusFilter('all')
+        result.current.setShowAllRecent(true)
+      })
+      const ids = result.current.filteredDeals.map(d => d.id)
+      expect(ids).toContain('old-won')
+      expect(ids).toContain('recent-won')
+    })
+
+    it('hiddenByRecentCount is independent of showAllRecent', () => {
+      const { result } = renderHook(() => useBoardFilters({
+        ...defaultParams,
+        deals: mixedDeals,
+      }))
+      act(() => result.current.setStatusFilter('all'))
+      const countBefore = result.current.hiddenByRecentCount
+      act(() => result.current.setShowAllRecent(true))
+      expect(result.current.hiddenByRecentCount).toBe(countBefore)
+      expect(countBefore).toBeGreaterThan(0)
+    })
+
+    it('hiddenByRecentCount returns 0 for won/lost status filters', () => {
+      const { result } = renderHook(() => useBoardFilters({
+        ...defaultParams,
+        deals: mixedDeals,
+      }))
+      act(() => result.current.setStatusFilter('won'))
+      expect(result.current.hiddenByRecentCount).toBe(0)
+      act(() => result.current.setStatusFilter('lost'))
+      expect(result.current.hiddenByRecentCount).toBe(0)
+    })
+
+    it('showAllRecent defaults to false', () => {
+      const { result } = renderHook(() => useBoardFilters(defaultParams))
+      expect(result.current.showAllRecent).toBe(false)
+    })
+  })
+
   describe('URL sync (AC9)', () => {
     it('syncs priority filter to URL', () => {
       const { result } = renderHook(() => useBoardFilters(defaultParams))

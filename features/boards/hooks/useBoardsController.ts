@@ -115,6 +115,8 @@ export const useBoardsController = () => {
     filteredDeals: filters.filteredDeals,
     hiddenByRecentCount: filters.hiddenByRecentCount,
     sortedDeals: filters.sortedDeals,
+    showAllRecent: filters.showAllRecent,
+    setShowAllRecent: filters.setShowAllRecent,
   };
 };
 
