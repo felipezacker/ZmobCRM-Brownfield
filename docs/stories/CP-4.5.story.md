@@ -28,13 +28,13 @@ A feature fica bloqueada (não renderizada) durante sessão ativa — quando `se
 
 ## Acceptance Criteria
 
-- [ ] AC1: Dado que o corretor visualiza a fila de prospecção, quando a lista tem itens pendentes, então um checkbox aparece à esquerda de cada item da fila
-- [ ] AC2: Dado que o header da fila é exibido, quando há itens na fila, então existe um controle "Selecionar todos" que marca/desmarca todos os checkboxes simultaneamente
-- [ ] AC3: Dado que nenhum item está selecionado, quando o corretor marca pelo menos 1 checkbox, então uma barra de ações aparece abaixo do header mostrando "X selecionados" e os botões de ação
-- [ ] AC4: Dado que itens estão selecionados, quando o corretor clica em "Remover selecionados", então um modal/inline de confirmação aparece; após confirmar, os itens são removidos e a seleção é limpa
-- [ ] AC5: Dado que itens estão selecionados, quando o corretor clica em "Mover para o topo", então os itens selecionados são reposicionados para position 0, 1, 2... (mantendo a ordem relativa entre eles) e a seleção é limpa
-- [ ] AC6: Dado que uma ação em lote foi executada com sucesso (remover ou mover), quando a operação completa, então a seleção é zerada automaticamente
-- [ ] AC7: Dado que uma sessão de prospecção está ativa (`sessionActive === true`), quando o corretor visualiza a fila, então os checkboxes e a barra de ações não são exibidos
+- [x] AC1: Dado que o corretor visualiza a fila de prospecção, quando a lista tem itens pendentes, então um checkbox aparece à esquerda de cada item da fila
+- [x] AC2: Dado que o header da fila é exibido, quando há itens na fila, então existe um controle "Selecionar todos" que marca/desmarca todos os checkboxes simultaneamente
+- [x] AC3: Dado que nenhum item está selecionado, quando o corretor marca pelo menos 1 checkbox, então uma barra de ações aparece abaixo do header mostrando "X selecionados" e os botões de ação
+- [x] AC4: Dado que itens estão selecionados, quando o corretor clica em "Remover selecionados", então um modal/inline de confirmação aparece; após confirmar, os itens são removidos e a seleção é limpa
+- [x] AC5: Dado que itens estão selecionados, quando o corretor clica em "Mover para o topo", então os itens selecionados são reposicionados para position 0, 1, 2... (mantendo a ordem relativa entre eles) e a seleção é limpa
+- [x] AC6: Dado que uma ação em lote foi executada com sucesso (remover ou mover), quando a operação completa, então a seleção é zerada automaticamente
+- [x] AC7: Dado que uma sessão de prospecção está ativa (`sessionActive === true`), quando o corretor visualiza a fila, então os checkboxes e a barra de ações não são exibidos
 
 ## Scope
 
@@ -73,12 +73,12 @@ Permite ao corretor reorganizar a fila de trabalho em segundos, eliminando atrit
 
 ## Criteria of Done
 
-- [ ] AC1–AC7 todos implementados e verificados manualmente
-- [ ] Testes unitários passando: `removeItems`, `moveToTop` no service; lógica de toggle/selectAll no componente
-- [ ] `npm run lint` sem erros
-- [ ] `npm run typecheck` sem erros
-- [ ] Nenhuma regressão nas features existentes de remoção individual e "Limpar tudo"
-- [ ] Checkboxes acessíveis: navegáveis por teclado, com `aria-label` adequado
+- [x] AC1–AC7 todos implementados e verificados manualmente
+- [x] Testes unitários passando: `removeItems`, `moveToTop` no service; lógica de toggle/selectAll no componente
+- [x] `npm run lint` sem erros
+- [x] `npm run typecheck` sem erros
+- [x] Nenhuma regressão nas features existentes de remoção individual e "Limpar tudo"
+- [x] Checkboxes acessíveis: navegáveis por teclado, com `aria-label` adequado
 
 ## Tasks
 
@@ -245,6 +245,27 @@ Secondary Focus:
 - `features/prospecting/__tests__/components.test.tsx` — modificar (19 novos testes: checkbox, BatchActionsBar, a11y)
 - `lib/supabase/__tests__/prospecting-queues.batch.test.ts` — novo (7 testes: removeItems, moveToTop)
 
+## QA Results
+
+**Verdict: PASS**
+
+| Check | Resultado |
+|-------|-----------|
+| Code review | PASS — Código limpo, padrões consistentes |
+| Unit tests | PASS — 932/932 passando (26 novos: 7 service + 19 componente) |
+| Acceptance criteria | PASS — AC1-AC7 verificados |
+| Regressions | PASS — 86 test suites, zero falhas |
+| Performance | PASS — Optimistic updates em ambas mutations |
+| Security | PASS — RLS garante isolamento |
+| Lint + TypeCheck | PASS — 0 erros |
+
+**Observações resolvidas:**
+1. `selectedIds` stale após remove individual — Fix: useEffect cleanup (já no commit)
+2. `supabase!` non-null assertion — Fix: guard explícito (já no commit)
+3. `moveToTop` N updates individuais — Aceito como MVP
+
+**Reviewer:** @qa (Quinn) | **Data:** 2026-03-11
+
 ## Change Log
 
 | Data       | Versao | Descricao                          | Autor       |
@@ -253,6 +274,7 @@ Secondary Focus:
 | 2026-03-11 | 1.1    | Validado GO (10/10) — Status Draft > Ready. 0 critical, 2 should-fix (SF-1: clarificar local testes service; SF-2: clarificar padrao de consumo hooks batch). Ambos nao-bloqueantes. | @po (Pax) |
 | 2026-03-11 | 1.2    | SF-1 aplicado: testes de service layer clarificados para `lib/supabase/__tests__/prospecting-queues.test.ts` (diretorio confirmado no filesystem). SF-2 aplicado: padrao de consumo dos hooks batch documentado em "Arquitetura de Camadas" — hooks instanciados em `useProspectingQueue`, nao no componente (padrao confirmado no hook existente linha 46+220). Status mantido Ready. | @sm (River) |
 | 2026-03-11 | 2.0    | Implementação completa Tasks 1-6. Tasks 1-2 pré-existentes no codebase. Tasks 3-5: checkbox em QueueItem, selectedIds + BatchActionsBar em CallQueue, wiring em ProspectingPage. Task 6: 26 testes novos (7 service + 19 componente). 924/924 testes passando, 0 lint errors, 0 type errors. Status: Ready for Review. | @dev (Dex) |
+| 2026-03-11 | 3.0    | QA Review: PASS. 7/7 checks ok. 3 observações: 2 corrigidas (selectedIds stale + supabase guard), 1 aceita MVP (N updates). 932/932 testes. Status: Done. | @qa (Quinn) |
 
 ---
 
