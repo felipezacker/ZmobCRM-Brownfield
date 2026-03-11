@@ -96,6 +96,18 @@ const INITIAL_SESSION_STATS: SessionStats = {
 export interface PendingActiveSession {
   id: string
   startedAt: string
+  stats?: ProspectingSessionStats | Record<string, never>
+}
+
+/** Validates that DB stats are usable (not legacy empty object, not inconsistent) */
+function isValidSessionStats(stats: unknown): stats is ProspectingSessionStats {
+  if (typeof stats !== 'object' || stats === null) return false
+  const s = stats as ProspectingSessionStats
+  return (
+    typeof s.total === 'number' &&
+    typeof s.completed === 'number' &&
+    s.completed <= s.total
+  )
 }
 
 const FILTERS_STORAGE_KEY = 'prospecting_filters'
@@ -117,6 +129,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
         setPendingActiveSession({
           id: sessions[0].id,
           startedAt: sessions[0].startedAt,
+          stats: sessions[0].stats,
         })
       }
     }).catch(() => {})
@@ -353,15 +366,30 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     setPendingActiveSession(null)
     setAllActiveSessions([])
     await deps.queueDeps.startSession()
-    setSessionStats({
-      total: deps.queueDeps.queue.length,
-      completed: 0,
-      skipped: 0,
-      connected: 0,
-      noAnswer: 0,
-      voicemail: 0,
-      busy: 0,
-    })
+    // CP-4.9: Load stats from DB if valid, otherwise fallback to zeros
+    const dbStats = pendingActiveSession.stats
+    if (isValidSessionStats(dbStats)) {
+      setSessionStats({
+        total: dbStats.total,
+        completed: dbStats.completed,
+        skipped: dbStats.skipped ?? 0,
+        connected: dbStats.connected ?? 0,
+        noAnswer: dbStats.noAnswer ?? 0,
+        voicemail: dbStats.voicemail ?? 0,
+        busy: dbStats.busy ?? 0,
+      })
+    } else {
+      // Legacy session or empty stats — start from zero
+      setSessionStats({
+        total: deps.queueDeps.queue.length,
+        completed: 0,
+        skipped: 0,
+        connected: 0,
+        noAnswer: 0,
+        voicemail: 0,
+        busy: 0,
+      })
+    }
   }, [pendingActiveSession, allActiveSessions])
 
   // CP-3.4: Dismiss (end) abandoned session (single)
