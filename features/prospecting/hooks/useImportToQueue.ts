@@ -22,8 +22,16 @@ export type ImportStep = 'upload' | 'mapping' | 'preview' | 'progress' | 'summar
 
 /** Campos que a prospecção precisa mapear (subset simplificado) */
 const PROSPECTING_CRM_FIELDS = STATIC_CRM_FIELDS.filter(f =>
-  ['name', 'phone', 'email', 'tags', 'classification', '_ignore'].includes(f.value),
+  ['name', 'phone', 'email', 'tags', 'classification', 'source', '_ignore'].includes(f.value),
 )
+
+/** Gera tag de rastreabilidade para o lote importado (formato ISO: import-prospecao-2026-03-12) */
+export function generateImportTag(date: Date = new Date()): string {
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `import-prospecao-${yyyy}-${mm}-${dd}`
+}
 
 export { PROSPECTING_CRM_FIELDS }
 
@@ -222,7 +230,34 @@ export function useImportToQueue({ currentQueueSize, onAddBatchToQueue }: UseImp
       // Sem isso, a API criaria contatos para linhas sem telefone (inúteis na fila de prospecção).
       const validIndices = new Set(validRows.map(v => v.rowIndex))
       const filteredRows = parsed.rows.filter((_, i) => validIndices.has(i))
-      const csvContent = stringifyCsv([parsed.headers, ...filteredRows], ';')
+
+      // CP-IMP-2: Injetar tag automática de rastreabilidade no CSV
+      const autoTag = generateImportTag()
+      const tagsColIdx = Object.entries(columnMapping).find(([, v]) => v === 'tags')?.[0]
+      let headersWithTag = [...parsed.headers]
+      let rowsWithTag = filteredRows.map(r => [...r])
+
+      if (tagsColIdx !== undefined) {
+        // Coluna tags já mapeada — concatenar tag automática ao valor existente
+        const idx = Number(tagsColIdx)
+        rowsWithTag = rowsWithTag.map(row => {
+          const existing = (row[idx] || '').trim()
+          row[idx] = existing ? `${existing},${autoTag}` : autoTag
+          return row
+        })
+      } else {
+        // Sem coluna tags mapeada — adicionar nova coluna
+        headersWithTag = [...headersWithTag, 'tags']
+        rowsWithTag = rowsWithTag.map(row => [...row, autoTag])
+      }
+
+      // Atualizar columnMapping para incluir a coluna tags (QA fix: sem isso a API ignora a coluna)
+      const mappingForApi = { ...columnMapping }
+      if (tagsColIdx === undefined) {
+        mappingForApi[headersWithTag.length - 1] = 'tags'
+      }
+
+      const csvContent = stringifyCsv([headersWithTag, ...rowsWithTag], ';')
       const filteredFile = new File([csvContent], file.name, { type: 'text/csv' })
 
       // Construir FormData para a API
@@ -230,7 +265,7 @@ export function useImportToQueue({ currentQueueSize, onAddBatchToQueue }: UseImp
       formData.append('file', filteredFile)
       formData.append('mode', 'skip_duplicates')
       formData.append('delimiter', ';')
-      formData.append('columnMapping', JSON.stringify(columnMapping))
+      formData.append('columnMapping', JSON.stringify(mappingForApi))
 
       const res = await fetch('/api/contacts/import', { method: 'POST', body: formData })
       const data = await res.json()
