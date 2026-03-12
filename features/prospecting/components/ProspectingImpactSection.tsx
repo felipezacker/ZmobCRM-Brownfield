@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useDarkMode } from '../hooks/useDarkMode'
-import { chartTheme, CHART_PALETTE } from '@/lib/constants/chart-colors'
+import { chartTheme, CHART_PALETTE, DEFAULT_STAGE_COLOR } from '@/lib/constants/chart-colors'
 import type { ProspectingImpact } from '../hooks/useProspectingImpact'
 
 interface ProspectingImpactSectionProps {
@@ -183,7 +183,7 @@ export function ProspectingImpactSection({ impact, isLoading }: ProspectingImpac
                 dataKey="unlinked"
                 name="Sem Deal"
                 stackId="a"
-                fill="#94a3b8"
+                fill={DEFAULT_STAGE_COLOR}
                 radius={[2, 2, 0, 0]}
               />
             </BarChart>

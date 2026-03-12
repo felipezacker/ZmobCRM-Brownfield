@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-5.3
 - **Epic:** CP-5 (Prospeccao — Rastreabilidade & Vinculacao)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P3
 - **Estimated Points:** 5 (M)
 - **Wave:** 2
@@ -43,12 +43,12 @@ Adicionar uma nova secao "Impacto no Pipeline" no dashboard de prospeccao (`feat
 
 ## Acceptance Criteria
 
-- [ ] AC1: O dashboard de prospeccao exibe uma secao "Impacto no Pipeline" com 4 KPI cards: (a) Ligacoes com Deal (count de activities com source=prospecting E deal_id), (b) Taxa de Vinculacao (% de ligacoes de prospeccao que tem deal_id), (c) Valor de Pipeline (soma de deal.value dos deals vinculados a ligacoes de prospeccao), (d) Deals Ganhos (count de deals vinculados a ligacoes de prospeccao onde is_won=true)
-- [ ] AC2: Os KPIs respeitam o filtro de periodo ja existente no dashboard (today, 7d, 30d, custom) — mesma `PeriodRange` do `useProspectingMetrics`
-- [ ] AC3: As metricas respeitam RBAC — corretor ve apenas seus dados, diretor/admin ve todos (via RLS existente)
-- [ ] AC4: Um mini-chart (sparkline ou barra) mostra a tendencia de "Ligacoes com Deal" nos ultimos 7 ou 30 dias (conforme periodo selecionado)
-- [ ] AC5: Loading skeleton exibido enquanto dados estao carregando
-- [ ] AC6: Secao lida graciosamente com zero dados (mensagem "Sem dados de impacto no periodo selecionado")
+- [x] AC1: O dashboard de prospeccao exibe uma secao "Impacto no Pipeline" com 4 KPI cards: (a) Ligacoes com Deal (count de activities com source=prospecting E deal_id), (b) Taxa de Vinculacao (% de ligacoes de prospeccao que tem deal_id), (c) Valor de Pipeline (soma de deal.value dos deals vinculados a ligacoes de prospeccao), (d) Deals Ganhos (count de deals vinculados a ligacoes de prospeccao onde is_won=true)
+- [x] AC2: Os KPIs respeitam o filtro de periodo ja existente no dashboard (today, 7d, 30d, custom) — mesma `PeriodRange` do `useProspectingMetrics`
+- [x] AC3: As metricas respeitam RBAC — corretor ve apenas seus dados, diretor/admin ve todos (via RLS existente)
+- [x] AC4: Um mini-chart (sparkline ou barra) mostra a tendencia de "Ligacoes com Deal" nos ultimos 7 ou 30 dias (conforme periodo selecionado)
+- [x] AC5: Loading skeleton exibido enquanto dados estao carregando
+- [x] AC6: Secao lida graciosamente com zero dados (mensagem "Sem dados de impacto no periodo selecionado")
 
 ## Scope
 
@@ -270,12 +270,48 @@ Secondary Focus:
 - Acessibilidade: KPI cards acessiveis com aria-labels. Chart com texto alternativo
 - Error handling: query failures devem mostrar estado vazio, nao crash
 
+## QA Results
+
+**Reviewer:** @qa (Quinn)
+**Date:** 2026-03-12
+**Verdict:** PASS
+
+### Review Summary
+
+| Check | Status |
+|-------|--------|
+| AC1: 4 KPI cards | PASS |
+| AC2: Filtro de periodo | PASS |
+| AC3: RBAC via RLS | PASS |
+| AC4: Mini-chart tendencia | PASS |
+| AC5: Loading skeleton | PASS |
+| AC6: Empty state | PASS |
+| Lint | PASS |
+| Typecheck | PASS |
+| Testes (10/10) | PASS |
+| Regressoes | Nenhuma |
+| Performance | OK |
+| Seguranca | OK |
+
+### Issues Encontradas e Resolvidas
+
+| Severidade | Issue | Resolucao |
+|-----------|-------|-----------|
+| MEDIUM | Cor `#94a3b8` hardcoded no bar "Sem Deal" — deveria usar constante centralizada | Corrigido: importou `DEFAULT_STAGE_COLOR` de `@/lib/constants/chart-colors` |
+| MEDIUM | Query key `distinctDealIds.slice(0, 5)` podia causar colisao de cache com >5 deals | Corrigido: substituido por `distinctDealIds.sort().join(',')` para key deterministica |
+
+### Gate Decision
+
+**PASS** — Todos os ACs verificados, 9/9 Criteria of Done atendidos, 2 issues MEDIUM corrigidos e re-verificados. Typecheck limpo, 10/10 testes passando, nenhuma regressao.
+
 ## Change Log
 
 | Data | Versao | Descricao | Autor |
 |------|--------|-----------|-------|
 | 2026-03-12 | 1.0 | Story criada | @sm (River) |
 | 2026-03-12 | 1.1 | Validacao GO (10/10). SF-1 corrigido: integration point era `page.tsx` (wrapper), corrigido para `ProspectingPage.tsx`. SF-2: hook params alinhados com `useProspectingMetrics` signature. Status Draft -> Ready. | @po (Pax) |
+| 2026-03-12 | 1.2 | QA PASS — 6/6 ACs verificados, 2 issues MEDIUM corrigidos e re-verificados. 10/10 testes. | @qa (Quinn) |
+| 2026-03-12 | 1.3 | Conclusao validada. ACs marcados, status Ready for Review -> Done. | @po (Pax) |
 
 ---
 

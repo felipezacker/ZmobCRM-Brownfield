@@ -96,7 +96,7 @@ export function useProspectingImpact(
 
   // Step 2: Fetch linked deals
   const dealsQuery = useQuery({
-    queryKey: [...queryKeys.prospectingMetrics.all, 'impact-deals', ...distinctDealIds.slice(0, 5)],
+    queryKey: [...queryKeys.prospectingMetrics.all, 'impact-deals', distinctDealIds.sort().join(',')],
     queryFn: async () => {
       if (!supabase || distinctDealIds.length === 0) return []
       const { data, error } = await supabase
