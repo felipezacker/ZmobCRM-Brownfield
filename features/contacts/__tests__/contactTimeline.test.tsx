@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax */
 /**
  * CP-5.2: Timeline unificada — deduplication, badges, filters, expand/collapse
  */
