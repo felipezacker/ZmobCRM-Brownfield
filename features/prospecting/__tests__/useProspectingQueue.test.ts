@@ -63,6 +63,16 @@ vi.mock('@/lib/query/hooks/useProspectingQueueQuery', () => ({
   useResetRetry: () => ({
     mutateAsync: mockResetRetryAsync,
   }),
+  useRemoveBatchItems: () => ({
+    mutateAsync: vi.fn(),
+  }),
+  useMoveToTop: () => ({
+    mutateAsync: vi.fn(),
+  }),
+  useReorderQueue: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }))
 
 vi.mock('@/context/ToastContext', () => ({

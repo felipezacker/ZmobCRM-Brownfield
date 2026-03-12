@@ -26,10 +26,14 @@ vi.mock('@/features/prospecting/components/ProspectingScriptGuide', () => ({
   ProspectingScriptGuide: () => <div data-testid="script-guide" />,
 }))
 
-const mockMutate = vi.fn()
+const mockMutateAsync = vi.fn().mockResolvedValue({ id: 'activity-123' })
 vi.mock('@/lib/query/hooks/useActivitiesQuery', () => ({
-  useCreateActivity: () => ({ mutate: mockMutate }),
+  useCreateActivity: () => ({ mutate: mockMutateAsync, mutateAsync: mockMutateAsync }),
   useContactActivities: () => ({ data: [], isLoading: false }),
+}))
+
+vi.mock('@/lib/supabase/deals', () => ({
+  getOpenDealsByContact: vi.fn().mockResolvedValue(null),
 }))
 
 const mockScripts: QuickScript[] = [

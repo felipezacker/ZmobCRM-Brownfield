@@ -60,6 +60,7 @@ export const useDeals = (filters?: DealsFilters) => {
       return deals;
     },
     enabled: !authLoading && !!user, // Only fetch when auth is ready
+    refetchOnWindowFocus: false, // Realtime handles sync — avoid overwriting optimistic updates
   });
 };
 
@@ -261,6 +262,9 @@ export const useDealsByBoard = (boardId: string) => {
       return data.filter(d => d.boardId === boardId);
     },
     enabled: !authLoading && !!user && !!boardId && !boardId.startsWith('temp-'),
+    // Desabilitar refetch agressivo para deals — Realtime é a fonte de verdade para sync.
+    // refetchOnWindowFocus causa race condition com optimistic updates (QV-1.1 regression).
+    refetchOnWindowFocus: false,
   });
 };
 

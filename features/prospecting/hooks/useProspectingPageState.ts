@@ -14,7 +14,7 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useAddBatchToProspectingQueue, useQueueContactIds } from '@/lib/query/hooks/useProspectingQueueQuery'
-import { INITIAL_FILTERS, type ProspectingFiltersState } from '@/features/prospecting/components/ProspectingFilters'
+import { INITIAL_FILTERS, migrateFilters, type ProspectingFiltersState } from '@/features/prospecting/components/ProspectingFilters'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
 import type { MetricsPeriod, PeriodRange, ProspectingMetrics, CallActivity } from '@/features/prospecting/hooks/useProspectingMetrics'
 import type { SavedQueue } from '@/lib/supabase/prospecting-saved-queues'
@@ -23,6 +23,7 @@ import {
   endProspectingSession,
   getActiveSessions,
   type ProspectingSessionStats,
+  type ProspectingSession,
 } from '@/lib/supabase/prospecting-sessions'
 
 export type SessionStats = {
@@ -95,12 +96,27 @@ const INITIAL_SESSION_STATS: SessionStats = {
 export interface PendingActiveSession {
   id: string
   startedAt: string
+  stats?: ProspectingSessionStats | Record<string, never>
 }
+
+/** Validates that DB stats are usable (not legacy empty object, not inconsistent) */
+function isValidSessionStats(stats: unknown): stats is ProspectingSessionStats {
+  if (typeof stats !== 'object' || stats === null) return false
+  const s = stats as ProspectingSessionStats
+  return (
+    typeof s.total === 'number' &&
+    typeof s.completed === 'number' &&
+    s.completed <= s.total
+  )
+}
+
+const FILTERS_STORAGE_KEY = 'prospecting_filters'
 
 export function useProspectingPageState(userId?: string, organizationId?: string) {
   // --- Session persistence (CP-3.4) ---
   const [dbSessionId, setDbSessionId] = useState<string | null>(null)
   const [pendingActiveSession, setPendingActiveSession] = useState<PendingActiveSession | null>(null)
+  const [allActiveSessions, setAllActiveSessions] = useState<ProspectingSession[]>([])
 
   // Check for active sessions on mount (AC3)
   const hasCheckedActive = useRef(false)
@@ -109,9 +125,11 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     hasCheckedActive.current = true
     getActiveSessions(userId).then(sessions => {
       if (sessions.length > 0) {
+        setAllActiveSessions(sessions)
         setPendingActiveSession({
           id: sessions[0].id,
           startedAt: sessions[0].startedAt,
+          stats: sessions[0].stats,
         })
       }
     }).catch(() => {})
@@ -135,7 +153,26 @@ export function useProspectingPageState(userId?: string, organizationId?: string
 
   // --- Filter panel state ---
   const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState<ProspectingFiltersState>(INITIAL_FILTERS)
+  const [filters, setFilters] = useState<ProspectingFiltersState>(() => {
+    try {
+      if (typeof window === 'undefined') return INITIAL_FILTERS
+      const stored = localStorage.getItem(FILTERS_STORAGE_KEY)
+      if (!stored) return INITIAL_FILTERS
+      // Migrate old format (source→sources, ownerId removed, dealOwnerId→dealOwnerIds)
+      return migrateFilters(JSON.parse(stored))
+    } catch {
+      return INITIAL_FILTERS
+    }
+  })
+
+  // --- Persist filters to localStorage ---
+  useEffect(() => {
+    try {
+      localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters))
+    } catch {
+      // Ignore storage errors (e.g. private browsing)
+    }
+  }, [filters])
 
   // --- Director assignment ---
   const [assignToOwnerId, setAssignToOwnerId] = useState<string>('')
@@ -145,6 +182,9 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const { data: queueContactIds = [] } = useQueueContactIds(effectiveOwnerId)
   const queueContactIdsSet = useMemo(() => new Set(queueContactIds), [queueContactIds])
 
+  // --- Briefing state (CP-4.1) ---
+  const [showBriefing, setShowBriefing] = useState(false)
+
   // --- Session state ---
   const [showSummary, setShowSummary] = useState(false)
   const [selectedScript, setSelectedScript] = useState<QuickScript | null>(null)
@@ -153,6 +193,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
 
   // --- Batch mutation ---
   const addBatchMutation = useAddBatchToProspectingQueue()
+  const [batchAddCount, setBatchAddCount] = useState(0)
 
   // --- Deps ref (synced by component via setDeps) ---
   const depsRef = useRef<PageDeps | null>(null)
@@ -248,6 +289,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const handleAddBatchToQueue = useCallback(async (contactIds: string[]) => {
     const deps = depsRef.current
     if (!deps) return
+    setBatchAddCount(contactIds.length)
     try {
       const result = await addBatchMutation.mutateAsync({
         contactIds,
@@ -267,6 +309,8 @@ export function useProspectingPageState(userId?: string, organizationId?: string
       deps.queueDeps.refetch()
     } catch {
       deps.toast('Erro ao adicionar contatos \u00e0 fila', 'error')
+    } finally {
+      setBatchAddCount(0)
     }
   }, [addBatchMutation, assignToOwnerId])
 
@@ -303,27 +347,58 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     }
   }, [addBatchMutation])
 
-  // CP-3.4: Resume an abandoned active session
+  // CP-3.4 + CP-4.8: Resume the most recent active session, end all others
   const handleResumeSession = useCallback(async () => {
     if (!pendingActiveSession) return
     const deps = depsRef.current
     if (!deps) return
+    // CP-4.8: End all other active sessions with zero stats
+    const othersToEnd = allActiveSessions.filter(s => s.id !== pendingActiveSession.id)
+    if (othersToEnd.length > 0) {
+      const zeroStats: ProspectingSessionStats = {
+        total: 0, completed: 0, skipped: 0, connected: 0,
+        noAnswer: 0, voicemail: 0, busy: 0, duration_seconds: 0,
+      }
+      const results = await Promise.allSettled(
+        othersToEnd.map(s => endProspectingSession(s.id, zeroStats))
+      )
+      const failed = results.filter(r => r.status === 'rejected').length
+      if (failed > 0) {
+        deps.toast(`${failed} sessao(oes) nao puderam ser encerradas`, 'warning')
+      }
+    }
     setDbSessionId(pendingActiveSession.id)
     setSessionStartTime(new Date(pendingActiveSession.startedAt))
     setPendingActiveSession(null)
+    setAllActiveSessions([])
     await deps.queueDeps.startSession()
-    setSessionStats({
-      total: deps.queueDeps.queue.length,
-      completed: 0,
-      skipped: 0,
-      connected: 0,
-      noAnswer: 0,
-      voicemail: 0,
-      busy: 0,
-    })
-  }, [pendingActiveSession])
+    // CP-4.9: Load stats from DB if valid, otherwise fallback to zeros
+    const dbStats = pendingActiveSession.stats
+    if (isValidSessionStats(dbStats)) {
+      setSessionStats({
+        total: dbStats.total,
+        completed: dbStats.completed,
+        skipped: dbStats.skipped ?? 0,
+        connected: dbStats.connected ?? 0,
+        noAnswer: dbStats.noAnswer ?? 0,
+        voicemail: dbStats.voicemail ?? 0,
+        busy: dbStats.busy ?? 0,
+      })
+    } else {
+      // Legacy session or empty stats — start from zero
+      setSessionStats({
+        total: deps.queueDeps.queue.length,
+        completed: 0,
+        skipped: 0,
+        connected: 0,
+        noAnswer: 0,
+        voicemail: 0,
+        busy: 0,
+      })
+    }
+  }, [pendingActiveSession, allActiveSessions])
 
-  // CP-3.4: Dismiss (end) abandoned session
+  // CP-3.4: Dismiss (end) abandoned session (single)
   const handleDismissActiveSession = useCallback(async () => {
     if (!pendingActiveSession) return
     endProspectingSession(pendingActiveSession.id, {
@@ -331,11 +406,32 @@ export function useProspectingPageState(userId?: string, organizationId?: string
       noAnswer: 0, voicemail: 0, busy: 0, duration_seconds: 0,
     }).catch(() => {})
     setPendingActiveSession(null)
+    setAllActiveSessions([])
   }, [pendingActiveSession])
+
+  // CP-4.8: Dismiss (end) ALL active sessions at once
+  const handleDismissAllSessions = useCallback(async () => {
+    if (allActiveSessions.length === 0) return
+    const zeroStats: ProspectingSessionStats = {
+      total: 0, completed: 0, skipped: 0, connected: 0,
+      noAnswer: 0, voicemail: 0, busy: 0, duration_seconds: 0,
+    }
+    const results = await Promise.allSettled(
+      allActiveSessions.map(s => endProspectingSession(s.id, zeroStats))
+    )
+    const failed = results.filter(r => r.status === 'rejected').length
+    if (failed > 0) {
+      const deps = depsRef.current
+      deps?.toast(`${failed} sessao(oes) nao puderam ser encerradas`, 'warning')
+    }
+    setPendingActiveSession(null)
+    setAllActiveSessions([])
+  }, [allActiveSessions])
 
   // CP-3.4: Ignore active session banner (don't end in DB)
   const handleIgnoreActiveSession = useCallback(() => {
     setPendingActiveSession(null)
+    setAllActiveSessions([])
   }, [])
 
   const handleExportPdf = useCallback(async () => {
@@ -358,6 +454,17 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     } finally {
       setIsGeneratingPdf(false)
     }
+  }, [])
+
+  // CP-4.1: Confirm start — executes original handleStartSession and closes briefing
+  const handleConfirmStart = useCallback(async () => {
+    setShowBriefing(false)
+    await handleStartSession()
+  }, [handleStartSession])
+
+  // CP-4.1: Cancel briefing — closes without starting session
+  const handleCancelBriefing = useCallback(() => {
+    setShowBriefing(false)
   }, [])
 
   return {
@@ -402,6 +509,12 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     queueContactIdsSet,
     effectiveOwnerId,
 
+    // CP-4.1: Briefing
+    showBriefing,
+    setShowBriefing,
+    handleConfirmStart,
+    handleCancelBriefing,
+
     // Session
     showSummary,
     setShowSummary,
@@ -410,11 +523,18 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     sessionStats,
     sessionStartTime,
 
-    // CP-3.4: Session persistence
+    // CP-3.4 + CP-4.8: Session persistence
     pendingActiveSession,
+    allActiveSessions,
+    activeSessionCount: allActiveSessions.length,
     handleResumeSession,
     handleDismissActiveSession,
+    handleDismissAllSessions,
     handleIgnoreActiveSession,
+
+    // Batch progress
+    isBatchAdding: addBatchMutation.isPending,
+    batchAddCount,
 
     // Handlers
     handleStartSession,

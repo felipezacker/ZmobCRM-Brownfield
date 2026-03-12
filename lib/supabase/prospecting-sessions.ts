@@ -74,7 +74,6 @@ export async function getActiveSessions(ownerId: string): Promise<ProspectingSes
     .eq('owner_id', ownerId)
     .is('ended_at', null)
     .order('started_at', { ascending: false })
-    .limit(1)
   if (error) throw error
   return (data || []).map(transformSession)
 }

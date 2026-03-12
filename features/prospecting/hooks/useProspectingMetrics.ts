@@ -79,6 +79,7 @@ export interface CallActivity {
   date: string
   owner_id: string | null
   contact_id: string | null
+  description?: string | null
   metadata: { outcome?: string; duration_seconds?: number } | null
   contacts?: { name: string }[] | { name: string } | null
 }
@@ -298,7 +299,7 @@ export function useProspectingMetrics(
       if (!supabase) return []
       const { data, error } = await supabase
         .from('activities')
-        .select('id, date, owner_id, contact_id, metadata, contacts(name)')
+        .select('id, date, owner_id, contact_id, description, metadata, contacts(name)')
         .eq('type', 'CALL')
         .not('metadata', 'is', null)
         .gte('date', `${range.start}T00:00:00`)
@@ -332,7 +333,7 @@ export function useProspectingMetrics(
       if (!supabase) return []
       const { data, error } = await supabase
         .from('activities')
-        .select('id, date, owner_id, contact_id, metadata')
+        .select('id, date, owner_id, contact_id, description, metadata')
         .eq('type', 'CALL')
         .not('metadata', 'is', null)
         .gte('date', `${range.start}T00:00:00`)

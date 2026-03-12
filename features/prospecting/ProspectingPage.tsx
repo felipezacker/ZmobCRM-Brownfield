@@ -35,7 +35,9 @@ import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { useTags } from '@/hooks/useTags'
 import { supabase } from '@/lib/supabase/client'
+import { SessionBriefing } from './components/SessionBriefing'
 import { SessionHistory } from './components/SessionHistory'
+import { ContactDetailModal } from '@/features/contacts/components/ContactDetailModal'
 import { listSessions, type ProspectingSession } from '@/lib/supabase/prospecting-sessions'
 import { suggestBestTime } from './utils/suggestBestTime'
 import { useProspectingPageState, type OrgProfile } from '@/features/prospecting/hooks/useProspectingPageState'
@@ -87,13 +89,18 @@ export const ProspectingPage: React.FC = () => {
     filters, setFilters,
     assignToOwnerId, setAssignToOwnerId,
     queueContactIdsSet,
+    showBriefing, setShowBriefing,
+    handleConfirmStart,
+    handleCancelBriefing,
     showSummary, setShowSummary,
     selectedScript, setSelectedScript,
     sessionStats,
     sessionStartTime,
     pendingActiveSession,
+    activeSessionCount,
     handleResumeSession,
     handleDismissActiveSession,
+    handleDismissAllSessions,
     handleIgnoreActiveSession,
     handleStartSession,
     handleEndSession,
@@ -102,10 +109,13 @@ export const ProspectingPage: React.FC = () => {
     handleAddBatchToQueue,
     handleLoadSavedQueue,
     handleExportPdf,
+    isBatchAdding,
+    batchAddCount,
   } = pageState
 
   // CP-3.2: Note templates manager modal
   const [showTemplatesManager, setShowTemplatesManager] = useState(false)
+  const [contactModalId, setContactModalId] = useState<string | null>(null)
 
   // --- External feature hooks (use state values from pageState) ---
 
@@ -186,6 +196,10 @@ export const ProspectingPage: React.FC = () => {
     removeFromQueue,
     clearQueue,
     resetExhaustedItem,
+    removeBatchItems,
+    reorderQueue,
+    isReordering,
+    moveToTop,
   } = queueHook
 
   // CP-1.3: Filtered contacts
@@ -210,6 +224,8 @@ export const ProspectingPage: React.FC = () => {
 
   const currentContact = sessionActive && queue[currentIndex] ? queue[currentIndex] : null
   const pendingCount = queue.filter(q => q.status === 'pending').length
+  const skippedCount = queue.filter(q => q.status === 'skipped').length
+  const canStartSession = pendingCount + skippedCount > 0
 
   const viewingOwnerProfile = viewQueueOwnerId && !isViewingAll ? profiles.find(p => p.id === viewQueueOwnerId) : null
 
@@ -316,8 +332,8 @@ export const ProspectingPage: React.FC = () => {
                 <Button
                   variant="unstyled"
                   size="unstyled"
-                  onClick={handleStartSession}
-                  disabled={pendingCount === 0}
+                  onClick={() => setShowBriefing(true)}
+                  disabled={!canStartSession}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Play size={16} />
@@ -399,12 +415,15 @@ export const ProspectingPage: React.FC = () => {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* CP-3.4: Active session resume prompt (AC3) */}
+        {/* CP-3.4 + CP-4.8: Active session resume prompt */}
         {pendingActiveSession && !sessionActive && !showSummary && (
           <div className="flex items-center gap-3 px-4 py-3 mb-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl">
             <PhoneOutgoing size={16} className="text-amber-600 shrink-0" />
             <span className="text-sm text-amber-700 dark:text-amber-300 flex-1">
-              Sessao ativa encontrada (iniciada em {new Date(pendingActiveSession.startedAt).toLocaleString('pt-BR')}). Deseja retomar?
+              {activeSessionCount >= 2
+                ? `${activeSessionCount} sessoes ativas encontradas. Deseja retomar a mais recente ou encerrar todas?`
+                : `Sessao ativa encontrada (iniciada em ${new Date(pendingActiveSession.startedAt).toLocaleString('pt-BR')}). Deseja retomar?`
+              }
             </span>
             <Button
               variant="unstyled"
@@ -412,15 +431,15 @@ export const ProspectingPage: React.FC = () => {
               onClick={handleResumeSession}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 hover:bg-amber-600 text-white transition-colors"
             >
-              Retomar
+              {activeSessionCount >= 2 ? 'Retomar mais recente' : 'Retomar'}
             </Button>
             <Button
               variant="unstyled"
               size="unstyled"
-              onClick={handleDismissActiveSession}
+              onClick={activeSessionCount >= 2 ? handleDismissAllSessions : handleDismissActiveSession}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-muted hover:bg-accent text-secondary-foreground dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors"
             >
-              Encerrar
+              {activeSessionCount >= 2 ? 'Encerrar todas' : 'Encerrar'}
             </Button>
             <Button
               variant="unstyled"
@@ -454,6 +473,7 @@ export const ProspectingPage: React.FC = () => {
               isAdminOrDirector={isAdminOrDirector}
               onManageTemplates={() => setShowTemplatesManager(true)}
               suggestedReturnTime={suggestedReturnTime}
+              goalProgress={goalsHook.progress}
             />
           </ProspectingErrorBoundary>
         ) : activeTab === 'metrics' ? (
@@ -674,7 +694,7 @@ export const ProspectingPage: React.FC = () => {
                   onFiltersChange={setFilters}
                   profiles={profiles}
                   availableTags={availableTags}
-                  showOwnerFilter={isAdminOrDirector}
+                  showCorretorFilter={isAdminOrDirector}
                   onApply={handleApplyFilters}
                 />
 
@@ -717,6 +737,11 @@ export const ProspectingPage: React.FC = () => {
               </div>
             )}
 
+            {isBatchAdding && (
+              <span role="status" aria-live="polite" className="text-xs text-muted-foreground animate-pulse">
+                Adicionando {batchAddCount} contatos...
+              </span>
+            )}
             <AddToQueueSearch onAdd={addToQueue} />
             <ProspectingErrorBoundary section="Fila">
               <CallQueue
@@ -729,11 +754,28 @@ export const ProspectingPage: React.FC = () => {
                 isClearing={isClearingQueue}
                 removingId={removingId}
                 ownerName={isViewingAll ? 'Todos' : viewingOwnerProfile?.name}
+                isSessionActive={sessionActive}
+                onBatchRemove={removeBatchItems}
+                onBatchMoveToTop={moveToTop}
+                onReorder={reorderQueue}
+                isReordering={isReordering}
+                onOpenContact={setContactModalId}
               />
             </ProspectingErrorBoundary>
           </div>
         )}
       </div>
+
+      {/* CP-4.1: Session briefing modal */}
+      {showBriefing && (
+        <SessionBriefing
+          pendingCount={pendingCount}
+          skippedCount={skippedCount}
+          onConfirm={handleConfirmStart}
+          onCancel={handleCancelBriefing}
+          goalProgress={goalsHook.progress}
+        />
+      )}
 
       {/* CP-2.4: Save queue modal */}
       <SaveQueueModal
@@ -766,6 +808,13 @@ export const ProspectingPage: React.FC = () => {
       <NoteTemplatesManager
         isOpen={showTemplatesManager}
         onClose={() => setShowTemplatesManager(false)}
+      />
+
+      {/* Contact detail modal (from queue item expand) */}
+      <ContactDetailModal
+        contactId={contactModalId}
+        isOpen={!!contactModalId}
+        onClose={() => setContactModalId(null)}
       />
     </div>
   )

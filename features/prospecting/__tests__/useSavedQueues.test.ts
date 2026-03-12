@@ -151,6 +151,10 @@ describe('useSavedQueues', () => {
     }
 
     const extracted = result.current.getFiltersFromSaved(queue)
-    expect(extracted).toEqual({ stages: ['lead'], temperatures: ['hot'] })
+    // migrateFilters returns full shape with defaults for missing fields
+    expect(extracted.stages).toEqual(['lead'])
+    expect(extracted.temperatures).toEqual(['hot'])
+    expect(extracted.sources).toEqual([])
+    expect(extracted.dealOwnerIds).toEqual([])
   })
 })

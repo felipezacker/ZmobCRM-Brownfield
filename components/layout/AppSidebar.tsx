@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { prefetchRoute, RouteName } from '@/lib/prefetch';
 import { Button } from '@/components/ui/button';
-import { NavItem } from './NavItem';
 import { SidebarUserCard } from './SidebarUserCard';
 
 const NAV_ITEMS: Array<{
@@ -77,67 +76,54 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
       </div>
 
       {/* Navigation */}
-      <nav className={`flex-1 p-4 space-y-2 flex flex-col ${!showExpanded ? 'items-center px-2' : ''}`} aria-label="Navegacao do sistema">
+      <nav className={`flex-1 space-y-1.5 flex flex-col transition-all duration-300 ${showExpanded ? 'p-4' : 'p-2 items-center'}`} aria-label="Navegacao do sistema">
         {NAV_ITEMS.map((item) => {
-          if (!showExpanded) {
-            const isActive = pathname === item.to || (item.to === '/boards' && pathname === '/pipeline');
-            const wasJustClicked = clickedPath === item.to;
-            const anotherItemWasClicked = clickedPath && clickedPath !== item.to;
-            const isActuallyActive = anotherItemWasClicked ? false : (isActive || wasJustClicked);
-            return (
-              <Link
-                key={item.to}
-                href={item.to}
-                onMouseEnter={() => prefetchRoute(item.prefetch)}
-                onClick={() => onItemClick(item.to)}
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${isActuallyActive
-                  ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900/50'
-                  : 'text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 hover:text-foreground dark:hover:text-white'
-                  }`}
-                title={item.label}
-              >
-                <item.icon size={20} />
-              </Link>
-            );
-          }
+          const isActive = pathname === item.to || (item.to === '/boards' && pathname === '/pipeline');
+          const wasJustClicked = clickedPath === item.to;
+          const anotherItemWasClicked = clickedPath && clickedPath !== item.to;
+          const isActuallyActive = anotherItemWasClicked ? false : (isActive || wasJustClicked);
 
           return (
-            <NavItem
+            <Link
               key={item.to}
-              to={item.to}
-              icon={item.icon}
-              label={item.label}
-              prefetch={item.prefetch}
-              clickedPath={clickedPath}
-              onItemClick={onItemClick}
-            />
+              href={item.to}
+              onMouseEnter={() => prefetchRoute(item.prefetch)}
+              onFocus={() => prefetchRoute(item.prefetch)}
+              onClick={() => onItemClick(item.to)}
+              className={`flex items-center rounded-lg text-sm font-medium transition-all duration-300 ease-in-out focus-visible-ring
+                ${showExpanded ? 'gap-3 px-4 py-2.5' : 'p-2.5'}
+                ${isActuallyActive
+                  ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900/50'
+                  : 'text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 hover:text-foreground dark:hover:text-white'
+                }`}
+              title={item.label}
+            >
+              <item.icon size={20} className={`shrink-0 ${isActuallyActive ? 'text-primary-500' : ''}`} aria-hidden="true" />
+              <span className={`font-display tracking-wide whitespace-nowrap overflow-hidden transition-all duration-300 ${showExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
+                {item.label}
+              </span>
+            </Link>
           );
         })}
       </nav>
 
       {/* Toggle / Pin Button */}
-      {showExpanded ? (
-        <div className="px-4 pb-2">
-          <Button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-muted-foreground hover:text-secondary-foreground dark:hover:text-white bg-background/50 dark:bg-white/5 border border-border hover:bg-muted dark:hover:bg-white/10 transition-all text-sm"
-            title={sidebarCollapsed ? 'Fixar Menu Aberto' : 'Recolher Menu'}
-          >
-            {sidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-            <span>{sidebarCollapsed ? 'Fixar' : 'Recolher'}</span>
-          </Button>
-        </div>
-      ) : (
-        <div className="px-4 pb-2 flex justify-center">
-          <Button
-            onClick={() => setSidebarCollapsed(false)}
-            className="flex items-center justify-center w-10 h-10 p-2 rounded-lg text-muted-foreground hover:text-secondary-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/5 transition-all"
-            title="Expandir Menu"
-          >
-            <PanelLeftOpen size={20} />
-          </Button>
-        </div>
-      )}
+      <div className={`pb-2 transition-all duration-300 ${showExpanded ? 'px-4' : 'px-2 flex justify-center'}`}>
+        <Button
+          onClick={() => setSidebarCollapsed(showExpanded ? !sidebarCollapsed : false)}
+          className={`flex items-center rounded-xl text-muted-foreground hover:text-secondary-foreground dark:hover:text-white transition-all duration-300 text-sm
+            ${showExpanded
+              ? 'gap-2 w-full px-3 py-2 bg-background/50 dark:bg-white/5 border border-border hover:bg-muted dark:hover:bg-white/10'
+              : 'justify-center p-2.5 hover:bg-muted dark:hover:bg-white/5'
+            }`}
+          title={sidebarCollapsed ? (showExpanded ? 'Fixar Menu Aberto' : 'Expandir Menu') : 'Recolher Menu'}
+        >
+          {!sidebarCollapsed ? <PanelLeftClose size={18} className="shrink-0" /> : <PanelLeftOpen size={18} className="shrink-0" />}
+          <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${showExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
+            {sidebarCollapsed ? 'Fixar' : 'Recolher'}
+          </span>
+        </Button>
+      </div>
 
       <SidebarUserCard collapsed={!showExpanded} />
     </aside>

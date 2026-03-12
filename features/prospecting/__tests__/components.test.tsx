@@ -156,6 +156,155 @@ describe('QueueItem', () => {
   })
 })
 
+// ── CP-4.5: QueueItem — Checkbox batch selection ──────────────────
+
+describe('QueueItem — batch selection (CP-4.5)', () => {
+  it('renderiza checkbox quando onToggle é fornecido e sessão inativa', () => {
+    render(<QueueItem item={makeItem()} onToggle={vi.fn()} selected={false} isSessionActive={false} />)
+    expect(screen.getByLabelText('Selecionar João Silva')).toBeInTheDocument()
+  })
+
+  it('não renderiza checkbox quando isSessionActive é true', () => {
+    render(<QueueItem item={makeItem()} onToggle={vi.fn()} selected={false} isSessionActive={true} />)
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+  })
+
+  it('não renderiza checkbox quando onToggle é undefined', () => {
+    render(<QueueItem item={makeItem()} isSessionActive={false} />)
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+  })
+
+  it('checkbox reflete estado selected', () => {
+    render(<QueueItem item={makeItem()} onToggle={vi.fn()} selected={true} isSessionActive={false} />)
+    const cb = screen.getByLabelText('Selecionar João Silva') as HTMLInputElement
+    expect(cb.checked).toBe(true)
+  })
+
+  it('chama onToggle com item.id ao clicar checkbox', () => {
+    const onToggle = vi.fn()
+    render(<QueueItem item={makeItem({ id: 'test-id' })} onToggle={onToggle} selected={false} isSessionActive={false} />)
+    fireEvent.click(screen.getByLabelText('Selecionar João Silva'))
+    expect(onToggle).toHaveBeenCalledWith('test-id', expect.anything())
+  })
+
+  it('checkbox acessível: focusável e acionável', () => {
+    const onToggle = vi.fn()
+    render(<QueueItem item={makeItem()} onToggle={onToggle} selected={false} isSessionActive={false} />)
+    const cb = screen.getByLabelText('Selecionar João Silva')
+    expect(cb).toHaveAttribute('type', 'checkbox')
+    cb.focus()
+    expect(document.activeElement).toBe(cb)
+  })
+})
+
+// ── CP-4.5: CallQueue — Selecionar todos + BatchActionsBar ─────────
+
+describe('CallQueue — batch selection (CP-4.5)', () => {
+  const items = [
+    makeItem({ id: 'q-1', contactName: 'João', position: 0 }),
+    makeItem({ id: 'q-2', contactName: 'Maria', position: 1 }),
+    makeItem({ id: 'q-3', contactName: 'Carlos', position: 2 }),
+  ]
+
+  it('renderiza checkbox "Selecionar todos" quando sessão inativa', () => {
+    render(<CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={false} />)
+    expect(screen.getByLabelText('Selecionar todos')).toBeInTheDocument()
+  })
+
+  it('não renderiza checkbox "Selecionar todos" quando sessão ativa', () => {
+    render(<CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={true} />)
+    expect(screen.queryByLabelText('Selecionar todos')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Desmarcar todos')).not.toBeInTheDocument()
+  })
+
+  it('selecionar todos marca todos os checkboxes individuais', () => {
+    render(<CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={false} />)
+    fireEvent.click(screen.getByLabelText('Selecionar todos'))
+    const checkboxes = screen.getAllByRole('checkbox')
+    // all item checkboxes + select all = 4 checkboxes
+    checkboxes.forEach(cb => {
+      expect((cb as HTMLInputElement).checked).toBe(true)
+    })
+  })
+
+  it('BatchActionsBar aparece ao selecionar pelo menos 1 item', () => {
+    render(
+      <CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={false} onBatchRemove={vi.fn()} onBatchMoveToTop={vi.fn()} />
+    )
+    // Initially no batch bar
+    expect(screen.queryByText(/selecionado/)).not.toBeInTheDocument()
+    // Select one item
+    fireEvent.click(screen.getByLabelText('Selecionar João'))
+    expect(screen.getByText('1 selecionado')).toBeInTheDocument()
+    expect(screen.getByText('Mover para o topo')).toBeInTheDocument()
+    expect(screen.getByText('Remover selecionados')).toBeInTheDocument()
+  })
+
+  it('BatchActionsBar mostra plural para múltiplos selecionados', () => {
+    render(
+      <CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={false} onBatchRemove={vi.fn()} />
+    )
+    fireEvent.click(screen.getByLabelText('Selecionar João'))
+    fireEvent.click(screen.getByLabelText('Selecionar Maria'))
+    expect(screen.getByText('2 selecionados')).toBeInTheDocument()
+  })
+
+  it('BatchActionsBar não aparece quando sessão ativa', () => {
+    render(
+      <CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={true} onBatchRemove={vi.fn()} />
+    )
+    expect(screen.queryByText(/selecionado/)).not.toBeInTheDocument()
+  })
+
+  it('Remover selecionados mostra confirmação inline', () => {
+    render(
+      <CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={false} onBatchRemove={vi.fn()} />
+    )
+    fireEvent.click(screen.getByLabelText('Selecionar João'))
+    fireEvent.click(screen.getByText('Remover selecionados'))
+    expect(screen.getByText(/Remover 1 contato\?/)).toBeInTheDocument()
+    expect(screen.getByText('Confirmar')).toBeInTheDocument()
+    expect(screen.getByText('Cancelar')).toBeInTheDocument()
+  })
+
+  it('Confirmar remoção chama onBatchRemove e limpa seleção', async () => {
+    const onBatchRemove = vi.fn().mockResolvedValue(undefined)
+    render(
+      <CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={false} onBatchRemove={onBatchRemove} />
+    )
+    fireEvent.click(screen.getByLabelText('Selecionar João'))
+    fireEvent.click(screen.getByText('Remover selecionados'))
+    fireEvent.click(screen.getByText('Confirmar'))
+    await vi.waitFor(() => {
+      expect(onBatchRemove).toHaveBeenCalledWith(['q-1'])
+    })
+  })
+
+  it('Mover para o topo chama onBatchMoveToTop e limpa seleção', async () => {
+    const onBatchMoveToTop = vi.fn().mockResolvedValue(undefined)
+    render(
+      <CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={false} onBatchMoveToTop={onBatchMoveToTop} />
+    )
+    fireEvent.click(screen.getByLabelText('Selecionar Maria'))
+    fireEvent.click(screen.getByText('Mover para o topo'))
+    await vi.waitFor(() => {
+      expect(onBatchMoveToTop).toHaveBeenCalledWith(['q-2'])
+    })
+  })
+
+  it('Cancelar remoção em batch fecha confirmação', () => {
+    render(
+      <CallQueue items={items} isLoading={false} onRemove={vi.fn()} isSessionActive={false} onBatchRemove={vi.fn()} />
+    )
+    fireEvent.click(screen.getByLabelText('Selecionar João'))
+    fireEvent.click(screen.getByText('Remover selecionados'))
+    fireEvent.click(screen.getByText('Cancelar'))
+    // Confirmation gone, batch bar still visible
+    expect(screen.queryByText(/Remover 1 contato/)).not.toBeInTheDocument()
+    expect(screen.getByText('1 selecionado')).toBeInTheDocument()
+  })
+})
+
 // ── SessionSummary ──────────────────────────────────────────────
 
 describe('SessionSummary', () => {

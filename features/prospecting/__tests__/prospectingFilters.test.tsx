@@ -4,6 +4,7 @@ import React from 'react'
 import {
   ProspectingFilters,
   INITIAL_FILTERS,
+  migrateFilters,
   type ProspectingFiltersState,
 } from '../components/ProspectingFilters'
 
@@ -21,7 +22,7 @@ const renderFilters = (
     filters: ProspectingFiltersState
     onFiltersChange: (f: ProspectingFiltersState) => void
     availableTags: string[]
-    showOwnerFilter: boolean
+    showCorretorFilter: boolean
     onApply: () => void
   }> = {}
 ) => {
@@ -30,11 +31,19 @@ const renderFilters = (
     onFiltersChange: vi.fn(),
     profiles: mockProfiles,
     availableTags: mockTags,
-    showOwnerFilter: false,
+    showCorretorFilter: false,
     onApply: vi.fn(),
   }
   const props = { ...defaults, ...overrides }
   return { ...render(<ProspectingFilters {...props} />), props }
+}
+
+/** Opens a MultiSelectDropdown by clicking its trigger button */
+const openDropdown = (label: string) => {
+  const labelEl = screen.getByText(label)
+  const wrapper = labelEl.closest('div')!
+  const button = wrapper.querySelector('button')!
+  fireEvent.click(button)
 }
 
 // ── Tests ──────────────────────────────────────────────
@@ -46,6 +55,7 @@ describe('ProspectingFilters', () => {
 
   it('renders all stage options', () => {
     renderFilters()
+    openDropdown('Estágio')
     expect(screen.getByText('Lead')).toBeTruthy()
     expect(screen.getByText('MQL')).toBeTruthy()
     expect(screen.getByText('Prospect')).toBeTruthy()
@@ -54,6 +64,7 @@ describe('ProspectingFilters', () => {
 
   it('renders all temperature options', () => {
     renderFilters()
+    openDropdown('Temperatura')
     expect(screen.getByText('Quente')).toBeTruthy()
     expect(screen.getByText('Morno')).toBeTruthy()
     expect(screen.getByText('Frio')).toBeTruthy()
@@ -61,14 +72,17 @@ describe('ProspectingFilters', () => {
 
   it('renders all classification options', () => {
     renderFilters()
+    openDropdown('Classificação')
     expect(screen.getByText('Comprador')).toBeTruthy()
     expect(screen.getByText('Vendedor')).toBeTruthy()
     expect(screen.getByText('Investidor')).toBeTruthy()
   })
 
-  it('renders source dropdown', () => {
+  it('renders origem dropdown', () => {
     renderFilters()
-    expect(screen.getByText('Todas')).toBeTruthy()
+    openDropdown('Origem')
+    expect(screen.getByText('Website')).toBeTruthy()
+    expect(screen.getByText('LinkedIn')).toBeTruthy()
   })
 
   it('renders inactive days input', () => {
@@ -76,24 +90,21 @@ describe('ProspectingFilters', () => {
     expect(screen.getByPlaceholderText('30')).toBeTruthy()
   })
 
-  it('does NOT show owner filter for corretor', () => {
-    renderFilters({ showOwnerFilter: false })
-    expect(screen.queryByText('Corretor')).toBeNull()
+  it('does NOT show corretor filter for corretor role', () => {
+    renderFilters({ showCorretorFilter: false })
+    expect(screen.queryByText('Corretor (negócios)')).toBeNull()
   })
 
-  it('shows owner filter for diretor/admin', () => {
-    renderFilters({ showOwnerFilter: true })
-    expect(screen.getByText('Corretor')).toBeTruthy()
-    expect(screen.getByText('João')).toBeTruthy()
-    expect(screen.getByText('Maria')).toBeTruthy()
+  it('shows corretor filter for diretor/admin', () => {
+    renderFilters({ showCorretorFilter: true })
+    expect(screen.getByText('Corretor (negócios)')).toBeTruthy()
   })
 
   it('toggles stage selection', () => {
     const onFiltersChange = vi.fn()
     renderFilters({ onFiltersChange })
-
+    openDropdown('Estágio')
     fireEvent.click(screen.getByText('Lead'))
-
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ stages: ['LEAD'] })
     )
@@ -102,9 +113,8 @@ describe('ProspectingFilters', () => {
   it('toggles temperature selection', () => {
     const onFiltersChange = vi.fn()
     renderFilters({ onFiltersChange })
-
+    openDropdown('Temperatura')
     fireEvent.click(screen.getByText('Quente'))
-
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ temperatures: ['HOT'] })
     )
@@ -113,9 +123,8 @@ describe('ProspectingFilters', () => {
   it('toggles classification selection', () => {
     const onFiltersChange = vi.fn()
     renderFilters({ onFiltersChange })
-
+    openDropdown('Classificação')
     fireEvent.click(screen.getByText('Comprador'))
-
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ classifications: ['COMPRADOR'] })
     )
@@ -127,33 +136,21 @@ describe('ProspectingFilters', () => {
       filters: { ...INITIAL_FILTERS, stages: ['LEAD'] },
       onFiltersChange,
     })
-
-    fireEvent.click(screen.getByText('Lead'))
-
+    openDropdown('Estágio')
+    // Button text also shows "Lead", so get the checkbox label inside the dropdown
+    const allLead = screen.getAllByText('Lead')
+    const dropdownLabel = allLead.find(el => el.closest('label'))!
+    fireEvent.click(dropdownLabel)
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ stages: [] })
-    )
-  })
-
-  it('updates source filter', () => {
-    const onFiltersChange = vi.fn()
-    renderFilters({ onFiltersChange })
-
-    const select = screen.getByText('Todas').closest('select')!
-    fireEvent.change(select, { target: { value: 'WEBSITE' } })
-
-    expect(onFiltersChange).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'WEBSITE' })
     )
   })
 
   it('updates inactive days', () => {
     const onFiltersChange = vi.fn()
     renderFilters({ onFiltersChange })
-
     const input = screen.getByPlaceholderText('30')
     fireEvent.change(input, { target: { value: '15' } })
-
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ inactiveDays: 15 })
     )
@@ -165,10 +162,8 @@ describe('ProspectingFilters', () => {
       filters: { ...INITIAL_FILTERS, inactiveDays: 30 },
       onFiltersChange,
     })
-
     const input = screen.getByPlaceholderText('30')
     fireEvent.change(input, { target: { value: '' } })
-
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ inactiveDays: null })
     )
@@ -194,25 +189,22 @@ describe('ProspectingFilters', () => {
         temperatures: ['HOT'],
         classifications: ['COMPRADOR'],
         tags: ['VIP'],
-        source: 'WEBSITE',
-        ownerId: 'u-1',
+        sources: ['WEBSITE'],
+        dealOwnerIds: [],
         inactiveDays: 30,
         onlyWithPhone: false,
+        hasActiveDeal: null,
       },
       onFiltersChange,
     })
-
     fireEvent.click(screen.getByText('Limpar'))
-
     expect(onFiltersChange).toHaveBeenCalledWith(INITIAL_FILTERS)
   })
 
   it('calls onApply when "Aplicar Filtros" is clicked', () => {
     const onApply = vi.fn()
     renderFilters({ onApply })
-
     fireEvent.click(screen.getByText('Aplicar Filtros'))
-
     expect(onApply).toHaveBeenCalledTimes(1)
   })
 
@@ -222,9 +214,8 @@ describe('ProspectingFilters', () => {
       filters: { ...INITIAL_FILTERS, stages: ['LEAD'] },
       onFiltersChange,
     })
-
+    openDropdown('Estágio')
     fireEvent.click(screen.getByText('MQL'))
-
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ stages: ['LEAD', 'MQL'] })
     )
@@ -266,7 +257,6 @@ describe('ProspectingFilters', () => {
     renderFilters({
       filters: { ...INITIAL_FILTERS, tags: ['VIP', 'Urgente'] },
     })
-    // Selected tags rendered as chips (not in dropdown)
     expect(screen.getByText('VIP')).toBeTruthy()
     expect(screen.getByText('Urgente')).toBeTruthy()
   })
@@ -277,7 +267,6 @@ describe('ProspectingFilters', () => {
       filters: { ...INITIAL_FILTERS, tags: ['VIP'] },
       onFiltersChange,
     })
-    // The X button is inside the chip
     const chip = screen.getByText('VIP').closest('span')!
     const removeBtn = chip.querySelector('button')!
     fireEvent.click(removeBtn)
@@ -291,8 +280,6 @@ describe('ProspectingFilters', () => {
       filters: { ...INITIAL_FILTERS, tags: ['VIP'] },
     })
     fireEvent.focus(screen.getByPlaceholderText('Buscar tags...'))
-    // VIP is selected so should NOT appear in dropdown suggestions
-    // It appears as a chip but not as a dropdown item
     const listItems = screen.queryAllByRole('button').filter(b => b.textContent === 'VIP' && b.closest('li'))
     expect(listItems).toHaveLength(0)
   })
@@ -316,9 +303,7 @@ describe('ProspectingFilters', () => {
   it('toggles onlyWithPhone filter via chip', () => {
     const onFiltersChange = vi.fn()
     renderFilters({ onFiltersChange })
-
     fireEvent.click(screen.getByText('Só com telefone'))
-
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ onlyWithPhone: true })
     )
@@ -330,23 +315,39 @@ describe('ProspectingFilters', () => {
       filters: { ...INITIAL_FILTERS, onlyWithPhone: true },
       onFiltersChange,
     })
-
     fireEvent.click(screen.getByText('Só com telefone'))
-
     expect(onFiltersChange).toHaveBeenCalledWith(
       expect.objectContaining({ onlyWithPhone: false })
     )
   })
 
-  it('updates owner filter onChange', () => {
+  it('toggles hasActiveDeal=true via chip', () => {
     const onFiltersChange = vi.fn()
-    renderFilters({ showOwnerFilter: true, onFiltersChange })
-
-    const ownerSelect = screen.getByText('Todos').closest('select')!
-    fireEvent.change(ownerSelect, { target: { value: 'u-1' } })
-
+    renderFilters({ onFiltersChange })
+    fireEvent.click(screen.getByText('Com negócio ativo'))
     expect(onFiltersChange).toHaveBeenCalledWith(
-      expect.objectContaining({ ownerId: 'u-1' })
+      expect.objectContaining({ hasActiveDeal: true })
+    )
+  })
+
+  it('toggles hasActiveDeal=false via chip', () => {
+    const onFiltersChange = vi.fn()
+    renderFilters({ onFiltersChange })
+    fireEvent.click(screen.getByText('Sem negócio ativo'))
+    expect(onFiltersChange).toHaveBeenCalledWith(
+      expect.objectContaining({ hasActiveDeal: false })
+    )
+  })
+
+  it('deselects hasActiveDeal when already active', () => {
+    const onFiltersChange = vi.fn()
+    renderFilters({
+      filters: { ...INITIAL_FILTERS, hasActiveDeal: true },
+      onFiltersChange,
+    })
+    fireEvent.click(screen.getByText('Com negócio ativo'))
+    expect(onFiltersChange).toHaveBeenCalledWith(
+      expect.objectContaining({ hasActiveDeal: null })
     )
   })
 
@@ -355,5 +356,36 @@ describe('ProspectingFilters', () => {
       filters: { ...INITIAL_FILTERS, onlyWithPhone: true },
     })
     expect(screen.getByText('Limpar')).toBeTruthy()
+  })
+})
+
+describe('migrateFilters', () => {
+  it('migrates old source string to sources array', () => {
+    const old = { stages: [], temperatures: [], classifications: [], tags: [], source: 'WEBSITE', inactiveDays: null, onlyWithPhone: false, hasActiveDeal: null }
+    const result = migrateFilters(old as unknown as Record<string, unknown>)
+    expect(result.sources).toEqual(['WEBSITE'])
+  })
+
+  it('migrates old dealOwnerId string to dealOwnerIds array', () => {
+    const old = { stages: [], temperatures: [], classifications: [], tags: [], dealOwnerId: 'u-1', inactiveDays: null, onlyWithPhone: false, hasActiveDeal: null }
+    const result = migrateFilters(old as unknown as Record<string, unknown>)
+    expect(result.dealOwnerIds).toEqual(['u-1'])
+  })
+
+  it('preserves new format (sources array)', () => {
+    const current = { ...INITIAL_FILTERS, sources: ['WEBSITE', 'MANUAL'] } as unknown as Record<string, unknown>
+    const result = migrateFilters(current)
+    expect(result.sources).toEqual(['WEBSITE', 'MANUAL'])
+  })
+
+  it('drops old ownerId field', () => {
+    const old = { ...INITIAL_FILTERS, ownerId: 'u-1' } as unknown as Record<string, unknown>
+    const result = migrateFilters(old)
+    expect((result as Record<string, unknown>).ownerId).toBeUndefined()
+  })
+
+  it('handles empty/null values gracefully', () => {
+    const result = migrateFilters({})
+    expect(result).toEqual(INITIAL_FILTERS)
   })
 })

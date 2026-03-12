@@ -367,3 +367,119 @@ export const useClearAllQueue = () => {
     },
   })
 }
+
+// CP-4.5: Remove múltiplos itens da fila em batch
+export const useRemoveBatchItems = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { data, error } = await prospectingQueuesService.removeItems(ids)
+      if (error) throw error
+      return data!
+    },
+    onMutate: async (ids) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+
+      const idsSet = new Set(ids)
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => old ? old.filter(item => !idsSet.has(item.id)) : old
+      )
+
+      return { snapshot }
+    },
+    onError: (_error, _vars, context) => {
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
+    },
+  })
+}
+
+// CP-4.5: Move itens selecionados para o topo da fila
+export const useMoveToTop = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ ids, ownerId }: { ids: string[]; ownerId: string }) => {
+      const { error } = await prospectingQueuesService.moveToTop(ids, ownerId)
+      if (error) throw error
+    },
+    onMutate: async ({ ids }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+
+      const idsSet = new Set(ids)
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => {
+          if (!old) return old
+          const selected = old.filter(item => idsSet.has(item.id))
+          const rest = old.filter(item => !idsSet.has(item.id))
+          return [...selected, ...rest].map((item, i) => ({ ...item, position: i }))
+        }
+      )
+
+      return { snapshot }
+    },
+    onError: (_error, _vars, context) => {
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
+    },
+  })
+}
+
+// CP-4.7: Reordenar itens da fila via drag-and-drop
+export const useReorderQueue = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (updates: { id: string; position: number }[]) => {
+      const { error } = await prospectingQueuesService.updatePositions(updates)
+      if (error) throw error
+    },
+    onMutate: async (updates) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+
+      // Optimistic: reorder cache immediately
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => {
+          if (!old) return old
+          const posMap = new Map(updates.map(u => [u.id, u.position]))
+          return [...old]
+            .map(item => posMap.has(item.id) ? { ...item, position: posMap.get(item.id)! } : item)
+            .sort((a, b) => a.position - b.position)
+        }
+      )
+
+      return { snapshot }
+    },
+    onError: (_error, _vars, context) => {
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+    },
+    // No onSettled invalidation — optimistic update is authoritative.
+    // Avoids refetch flicker after drop.
+  })
+}

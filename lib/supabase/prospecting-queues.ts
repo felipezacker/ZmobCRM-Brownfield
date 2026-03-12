@@ -284,6 +284,7 @@ export const prospectingQueuesService = {
 
   /**
    * Assign session_id to all pending items.
+   * Skipped items from previous sessions are re-queued at the end (CP-4.2).
    */
   async startSession(): Promise<{ data: string | null; error: Error | null }> {
     try {
@@ -295,11 +296,47 @@ export const prospectingQueuesService = {
 
       const sessionId = crypto.randomUUID();
 
+      // Step 1: Get MAX(position) of pending items
+      const { data: maxPendingPos, error: maxPosError } = await sb
+        .from('prospecting_queues')
+        .select('position')
+        .eq('owner_id', user.id)
+        .eq('status', 'pending')
+        .order('position', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (maxPosError) return { data: null, error: maxPosError };
+      const maxPosition = maxPendingPos ? (maxPendingPos as { position: number }).position : -1;
+
+      // Step 2: Get all skipped items ordered by position (preserve relative order)
+      const { data: skippedItems, error: skippedError } = await sb
+        .from('prospecting_queues')
+        .select('id')
+        .eq('owner_id', user.id)
+        .eq('status', 'skipped')
+        .order('position', { ascending: true });
+
+      if (skippedError) return { data: null, error: skippedError };
+
+      // Step 3: Reset skipped → pending with positions after max pending
+      if (skippedItems && skippedItems.length > 0) {
+        for (let i = 0; i < skippedItems.length; i++) {
+          const item = skippedItems[i] as { id: string };
+          const { error: resetError } = await sb
+            .from('prospecting_queues')
+            .update({ status: 'pending', position: maxPosition + i + 1 })
+            .eq('id', item.id);
+          if (resetError) return { data: null, error: resetError };
+        }
+      }
+
+      // Step 4: Assign session_id to all pending items (including ex-skipped)
       const { error } = await sb
         .from('prospecting_queues')
-        .update({ session_id: sessionId, status: 'pending' })
+        .update({ session_id: sessionId })
         .eq('owner_id', user.id)
-        .in('status', ['pending']);
+        .eq('status', 'pending');
 
       if (error) return { data: null, error };
       return { data: sessionId, error: null };
@@ -504,6 +541,105 @@ export const prospectingQueuesService = {
       return { data: (data || []).map(d => (d as { contact_id: string }).contact_id), error: null };
     } catch (e) {
       return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Remove múltiplos itens da fila em batch (CP-4.5).
+   */
+  async removeItems(ids: string[]): Promise<{ data: { removed: number } | null; error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { data: null, error: new Error('Supabase não configurado') };
+      if (ids.length === 0) return { data: { removed: 0 }, error: null };
+
+      const { error, count } = await sb
+        .from('prospecting_queues')
+        .delete({ count: 'exact' })
+        .in('id', ids);
+
+      if (error) return { data: null, error };
+      return { data: { removed: count ?? ids.length }, error: null };
+    } catch (e) {
+      return { data: null, error: e as Error };
+    }
+  },
+
+  /**
+   * Move itens selecionados para o topo da fila (CP-4.5).
+   * Reordena por posição mantendo a ordem relativa dos demais.
+   */
+  async moveToTop(ids: string[], ownerId: string): Promise<{ error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { error: new Error('Supabase não configurado') };
+      if (ids.length === 0) return { error: null };
+
+      // Busca todos os itens do owner ordenados por posição
+      const { data: allItems, error: fetchError } = await sb
+        .from('prospecting_queues')
+        .select('id, position')
+        .eq('owner_id', ownerId)
+        .order('position', { ascending: true });
+
+      if (fetchError) return { error: fetchError };
+      if (!allItems) return { error: null };
+
+      const selectedSet = new Set(ids);
+      const selected = allItems.filter(i => selectedSet.has(i.id));
+      const rest = allItems.filter(i => !selectedSet.has(i.id));
+      const reordered = [...selected, ...rest];
+
+      // Atualiza posições em batch
+      const updates = reordered.map((item, index) =>
+        sb.from('prospecting_queues').update({ position: index }).eq('id', item.id)
+      );
+
+      const results = await Promise.all(updates);
+      const firstError = results.find(r => r.error);
+      if (firstError?.error) return { error: new Error(firstError.error.message) };
+
+      return { error: null };
+    } catch (e) {
+      return { error: e as Error };
+    }
+  },
+
+  /**
+   * Atualiza posições dos itens da fila (CP-4.7).
+   * Usado para persistir reordenação via drag-and-drop.
+   * Otimizado: single RPC call em vez de N queries paralelas.
+   */
+  async updatePositions(updates: { id: string; position: number }[]): Promise<{ error: Error | null }> {
+    try {
+      const sb = supabase;
+      if (!sb) return { error: new Error('Supabase não configurado') };
+      if (updates.length === 0) return { error: null };
+
+      const { error } = await sb.rpc('batch_update_queue_positions', {
+        p_updates: JSON.stringify(updates),
+      });
+
+      if (error) {
+        // Fallback to parallel updates if RPC doesn't exist yet
+        if (error.message?.includes('function') || error.code === '42883') {
+          const results = await Promise.all(
+            updates.map(update =>
+              sb.from('prospecting_queues')
+                .update({ position: update.position })
+                .eq('id', update.id)
+            )
+          );
+          const firstError = results.find(r => r.error);
+          if (firstError?.error) return { error: new Error(firstError.error.message) };
+          return { error: null };
+        }
+        return { error: new Error(error.message) };
+      }
+
+      return { error: null };
+    } catch (e) {
+      return { error: e as Error };
     }
   },
 };

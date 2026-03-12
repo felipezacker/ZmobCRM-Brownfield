@@ -14,8 +14,10 @@ vi.mock('@/components/ui/button', () => ({
 }))
 
 const mockMutateAsync = vi.fn().mockResolvedValue({})
+const mockUpdateMutate = vi.fn()
 vi.mock('@/lib/query/hooks/useActivitiesQuery', () => ({
   useCreateActivity: () => ({ mutateAsync: mockMutateAsync }),
+  useUpdateActivity: () => ({ mutate: mockUpdateMutate }),
 }))
 
 vi.mock('@/lib/supabase', () => ({

@@ -28,10 +28,11 @@ export const useProspectingFilteredContacts = () => {
       temperatures: filters.temperatures.length > 0 ? filters.temperatures : undefined,
       classifications: filters.classifications.length > 0 ? filters.classifications : undefined,
       tags: filters.tags.length > 0 ? filters.tags : undefined,
-      source: filters.source || undefined,
-      ownerId: filters.ownerId || undefined,
+      sources: filters.sources.length > 0 ? filters.sources : undefined,
+      dealOwnerIds: filters.dealOwnerIds.length > 0 ? filters.dealOwnerIds : undefined,
       inactiveDays: filters.inactiveDays ?? undefined,
       onlyWithPhone: filters.onlyWithPhone || undefined,
+      hasActiveDeal: filters.hasActiveDeal ?? undefined,
       page: 0,
       pageSize: 50,
     }

@@ -1,14 +1,19 @@
 status:
   branch: develop
-  modifiedFiles: []
-  modifiedFilesTotalCount: 0
+  modifiedFiles:
+    - features/boards/components/AdvancedFiltersDrawer.tsx
+    - features/inbox/components/CallModal.tsx
+    - package-lock.json
+    - package.json
+    - .codex/skills/
+  modifiedFilesTotalCount: 6
   recentCommits:
-    - Merge remote-tracking branch 'origin/main' into develop
-    - 'docs(qa): CP-2.4 QA review PASS — 665 tests, 13/13 ACs verified'
+    - 'fix: CI failures — lint raw buttons, missing AdvancedFiltersDrawer'
+    - 'fix: address code review feedback — IIFEs, catch, ChevronUp, z-index'
   currentEpic: null
   currentStory: null
-  lastUpdate: '2026-03-06T23:33:18.089Z'
+  lastUpdate: '2026-03-11T19:10:41.803Z'
   isGitRepo: true
-timestamp: 1772839998090
+timestamp: 1773256241805
 ttl: 60
-gitFingerprint: 1772748807438.1045:1772835759817.934
+gitFingerprint: 1773105008306.5422:1773256069693.987

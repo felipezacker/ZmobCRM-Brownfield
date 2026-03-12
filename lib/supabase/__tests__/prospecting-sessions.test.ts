@@ -78,8 +78,8 @@ describe('prospecting-sessions service', () => {
   })
 
   describe('getActiveSessions', () => {
-    it('queries sessions without ended_at', async () => {
-      mockChain.limit.mockResolvedValue({
+    it('queries sessions without ended_at and returns all (no limit)', async () => {
+      mockChain.order.mockResolvedValue({
         data: [{
           id: 's1', owner_id: 'o1', organization_id: 'org1',
           started_at: '2026-03-10T10:00:00Z', ended_at: null,
@@ -93,6 +93,25 @@ describe('prospecting-sessions service', () => {
       expect(result[0].id).toBe('s1')
       expect(result[0].endedAt).toBeNull()
       expect(mockChain.is).toHaveBeenCalledWith('ended_at', null)
+    })
+
+    it('returns all active sessions without limit (CP-4.8 AC1)', async () => {
+      mockChain.order.mockResolvedValue({
+        data: [
+          { id: 's3', owner_id: 'o1', organization_id: 'org1', started_at: '2026-03-10T12:00:00Z', ended_at: null, stats: {}, created_at: '2026-03-10T12:00:00Z' },
+          { id: 's2', owner_id: 'o1', organization_id: 'org1', started_at: '2026-03-10T10:00:00Z', ended_at: null, stats: {}, created_at: '2026-03-10T10:00:00Z' },
+          { id: 's1', owner_id: 'o1', organization_id: 'org1', started_at: '2026-03-09T08:00:00Z', ended_at: null, stats: {}, created_at: '2026-03-09T08:00:00Z' },
+        ],
+        error: null,
+      })
+
+      const result = await getActiveSessions('o1')
+      expect(result).toHaveLength(3)
+      expect(result[0].id).toBe('s3')
+      expect(result[1].id).toBe('s2')
+      expect(result[2].id).toBe('s1')
+      // Verify no .limit() was called in the chain
+      expect(mockChain.limit).not.toHaveBeenCalled()
     })
   })
 

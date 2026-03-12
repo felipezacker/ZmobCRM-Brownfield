@@ -15,7 +15,7 @@ import {
   prospectingSavedQueuesService,
   type SavedQueue,
 } from '@/lib/supabase/prospecting-saved-queues'
-import type { ProspectingFiltersState } from '../components/ProspectingFilters'
+import { migrateFilters, type ProspectingFiltersState } from '../components/ProspectingFilters'
 
 export function useSavedQueues() {
   const { user, loading: authLoading } = useAuth()
@@ -99,9 +99,9 @@ export function useSavedQueues() {
   const getFiltersFromSaved = useCallback(
     (queue: SavedQueue): ProspectingFiltersState => {
       const raw = queue.filters
-      // Handle versioned format
+      // Handle versioned format + migrate old fields (source→sources, ownerId removed, dealOwnerId→dealOwnerIds)
       const filterData = raw.version === 'v1' ? raw.filters : raw
-      return filterData as unknown as ProspectingFiltersState
+      return migrateFilters(filterData as Record<string, unknown>)
     },
     [],
   )

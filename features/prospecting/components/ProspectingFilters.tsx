@@ -11,26 +11,27 @@ import {
 } from '@/features/contacts/constants'
 
 const SELECT_CLASS =
-  'bg-white dark:bg-black/20 border border-border  rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 '
+  'bg-white dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500'
 
 const INPUT_CLASS =
-  'bg-white dark:bg-black/20 border border-border  rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500  w-20'
+  'bg-white dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500 w-20'
 
 const CHIP_ACTIVE =
   'bg-primary-100 text-primary-700 border-primary-300 dark:bg-primary-500/20 dark:text-primary-300 dark:border-primary-500/30'
 
 const CHIP_INACTIVE =
-  'bg-white text-secondary-foreground border-border hover:border-border dark:bg-black/20 dark:text-muted-foreground  dark:hover:border-white/20'
+  'bg-white text-secondary-foreground border-border hover:border-border dark:bg-black/20 dark:text-muted-foreground dark:hover:border-white/20'
 
 export interface ProspectingFiltersState {
   stages: string[]
   temperatures: string[]
   classifications: string[]
   tags: string[]
-  source: string
-  ownerId: string
+  sources: string[]
+  dealOwnerIds: string[]
   inactiveDays: number | null
   onlyWithPhone: boolean
+  hasActiveDeal: boolean | null
 }
 
 export const INITIAL_FILTERS: ProspectingFiltersState = {
@@ -38,10 +39,34 @@ export const INITIAL_FILTERS: ProspectingFiltersState = {
   temperatures: [],
   classifications: [],
   tags: [],
-  source: '',
-  ownerId: '',
+  sources: [],
+  dealOwnerIds: [],
   inactiveDays: null,
   onlyWithPhone: false,
+  hasActiveDeal: null,
+}
+
+/** Migrates old filter format (v1) to current shape */
+export function migrateFilters(raw: Record<string, unknown>): ProspectingFiltersState {
+  return {
+    stages: (raw.stages as string[]) ?? [],
+    temperatures: (raw.temperatures as string[]) ?? [],
+    classifications: (raw.classifications as string[]) ?? [],
+    tags: (raw.tags as string[]) ?? [],
+    sources: Array.isArray(raw.sources) && (raw.sources as string[]).length > 0
+      ? raw.sources as string[]
+      : typeof raw.source === 'string' && raw.source.trim()
+        ? [raw.source.trim()]
+        : [],
+    dealOwnerIds: Array.isArray(raw.dealOwnerIds) && (raw.dealOwnerIds as string[]).length > 0
+      ? raw.dealOwnerIds as string[]
+      : typeof raw.dealOwnerId === 'string' && raw.dealOwnerId.trim()
+        ? [raw.dealOwnerId.trim()]
+        : [],
+    inactiveDays: (raw.inactiveDays as number) ?? null,
+    onlyWithPhone: (raw.onlyWithPhone as boolean) ?? false,
+    hasActiveDeal: (raw.hasActiveDeal as boolean | null) ?? null,
+  }
 }
 
 interface ProspectingFiltersProps {
@@ -49,42 +74,81 @@ interface ProspectingFiltersProps {
   onFiltersChange: (filters: ProspectingFiltersState) => void
   profiles: Array<{ id: string; name: string }>
   availableTags: string[]
-  showOwnerFilter: boolean
+  showCorretorFilter: boolean
   onApply: () => void
 }
 
-/** Reusable chip toggle for enum-based multi-selects */
-const ChipRow: React.FC<{
+/** Multi-select dropdown for enum-based filters */
+const MultiSelectDropdown: React.FC<{
   label: string
   options: Array<{ value: string; label: string }>
   selected: string[]
   onChange: (next: string[]) => void
-}> = ({ label, options, selected, onChange }) => (
-  <div>
-    <label className="block text-xs font-bold text-muted-foreground uppercase mb-2">{label}</label>
-    <div className="flex flex-wrap gap-2">
-      {options.map(opt => {
-        const active = selected.includes(opt.value)
-        return (
-          <label
-            key={opt.value}
-            className={`flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${active ? CHIP_ACTIVE : CHIP_INACTIVE}`}
-          >
-            <input
-              type="checkbox"
-              className="sr-only"
-              checked={active}
-              onChange={() => onChange(
-                active ? selected.filter(v => v !== opt.value) : [...selected, opt.value]
-              )}
-            />
-            {opt.label}
-          </label>
-        )
-      })}
+  placeholder?: string
+}> = ({ label, options, selected, onChange, placeholder = 'Todos' }) => {
+  const [open, setOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  // Close on outside click
+  React.useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  const displayText = selected.length === 0
+    ? placeholder
+    : selected.length === 1
+      ? options.find(o => o.value === selected[0])?.label || selected[0]
+      : `${selected.length} selecionados`
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">{label}</label>
+      <Button
+        variant="unstyled"
+        size="unstyled"
+        type="button"
+        onClick={() => setOpen(prev => !prev)}
+        className={`${SELECT_CLASS} w-48 text-left flex items-center justify-between gap-1 ${
+          selected.length > 0 ? 'text-foreground' : 'text-muted-foreground'
+        }`}
+      >
+        <span className="truncate text-sm">{displayText}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}>
+          <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
+        </svg>
+      </Button>
+      {open && (
+        <div className="absolute z-20 mt-1 w-48 max-h-52 overflow-y-auto bg-white dark:bg-card border border-border rounded-lg shadow-lg py-1">
+          {options.map(opt => {
+            const active = selected.includes(opt.value)
+            return (
+              <label
+                key={opt.value}
+                className="flex items-center gap-2 px-3 py-1.5 text-xs text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/10 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={active}
+                  onChange={() => onChange(
+                    active ? selected.filter(v => v !== opt.value) : [...selected, opt.value]
+                  )}
+                  className="w-3.5 h-3.5 rounded border-border text-primary-500 focus:ring-1 focus:ring-primary-500"
+                />
+                {opt.label}
+              </label>
+            )
+          })}
+        </div>
+      )}
     </div>
-  </div>
-)
+  )
+}
 
 /** Tags autocomplete with selected chips */
 const TagsFilter: React.FC<{
@@ -175,7 +239,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
   onFiltersChange,
   profiles,
   availableTags,
-  showOwnerFilter,
+  showCorretorFilter,
   onApply,
 }) => {
   const hasAnyFilter =
@@ -183,10 +247,11 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
     filters.temperatures.length > 0 ||
     filters.classifications.length > 0 ||
     filters.tags.length > 0 ||
-    filters.source !== '' ||
-    filters.ownerId !== '' ||
+    filters.sources.length > 0 ||
+    filters.dealOwnerIds.length > 0 ||
     filters.inactiveDays !== null ||
-    filters.onlyWithPhone
+    filters.onlyWithPhone ||
+    filters.hasActiveDeal !== null
 
   const stageOptions = useMemo(() =>
     Object.entries(STAGE_LABELS).map(([value, label]) => ({ value, label })), [])
@@ -196,6 +261,12 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
 
   const classOptions = useMemo(() =>
     Object.entries(CLASSIFICATION_LABELS).map(([value, label]) => ({ value, label })), [])
+
+  const sourceOptions = useMemo(() =>
+    Object.entries(SOURCE_LABELS).map(([value, label]) => ({ value, label })), [])
+
+  const corretorOptions = useMemo(() =>
+    profiles.map(p => ({ value: p.id, label: p.name })), [profiles])
 
   return (
     <div className="bg-background dark:bg-white/5 border border-border rounded-xl p-4 space-y-4 animate-in slide-in-from-top-2">
@@ -226,62 +297,19 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
         </div>
       </div>
 
-      <ChipRow label="Estágio" options={stageOptions} selected={filters.stages}
-        onChange={(next) => onFiltersChange({ ...filters, stages: next })} />
-
-      <ChipRow label="Temperatura" options={tempOptions} selected={filters.temperatures}
-        onChange={(next) => onFiltersChange({ ...filters, temperatures: next })} />
-
-      <ChipRow label="Classificação" options={classOptions} selected={filters.classifications}
-        onChange={(next) => onFiltersChange({ ...filters, classifications: next })} />
-
-      {/* Source + Owner + Inactive days + Tags */}
+      {/* Row 1: Perfil do contato */}
       <div className="flex flex-wrap gap-4 items-end">
-        <div>
-          <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Origem</label>
-          <select
-            className={SELECT_CLASS}
-            value={filters.source}
-            onChange={(e) => onFiltersChange({ ...filters, source: e.target.value })}
-          >
-            <option value="">Todas</option>
-            {Object.entries(SOURCE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </div>
+        <MultiSelectDropdown label="Estágio" options={stageOptions} selected={filters.stages}
+          onChange={(next) => onFiltersChange({ ...filters, stages: next })} placeholder="Todos" />
 
-        {showOwnerFilter && (
-          <div>
-            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Corretor</label>
-            <select
-              className={SELECT_CLASS}
-              value={filters.ownerId}
-              onChange={(e) => onFiltersChange({ ...filters, ownerId: e.target.value })}
-            >
-              <option value="">Todos</option>
-              {profiles.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-        )}
+        <MultiSelectDropdown label="Temperatura" options={tempOptions} selected={filters.temperatures}
+          onChange={(next) => onFiltersChange({ ...filters, temperatures: next })} placeholder="Todas" />
 
-        <div>
-          <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Sem atividade há (dias)</label>
-          <input
-            type="number"
-            min={1}
-            max={365}
-            placeholder="30"
-            className={INPUT_CLASS}
-            value={filters.inactiveDays ?? ''}
-            onChange={(e) => {
-              const val = e.target.value ? parseInt(e.target.value, 10) : null
-              onFiltersChange({ ...filters, inactiveDays: val })
-            }}
-          />
-        </div>
+        <MultiSelectDropdown label="Classificação" options={classOptions} selected={filters.classifications}
+          onChange={(next) => onFiltersChange({ ...filters, classifications: next })} placeholder="Todas" />
+
+        <MultiSelectDropdown label="Origem" options={sourceOptions} selected={filters.sources}
+          onChange={(next) => onFiltersChange({ ...filters, sources: next })} placeholder="Todas" />
 
         {availableTags.length > 0 && (
           <TagsFilter
@@ -292,23 +320,82 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
         )}
       </div>
 
-      {/* Phone toggle */}
-      <label
-        className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
-          filters.onlyWithPhone
-            ? 'bg-primary-100 text-primary-700 border-primary-300 dark:bg-primary-500/20 dark:text-primary-300 dark:border-primary-500/30'
-            : CHIP_INACTIVE
-        }`}
-      >
-        <input
-          type="checkbox"
-          className="sr-only"
-          checked={filters.onlyWithPhone}
-          onChange={(e) => onFiltersChange({ ...filters, onlyWithPhone: e.target.checked })}
-        />
-        <Phone size={12} />
-        Só com telefone
-      </label>
+      {/* Row 2: Relacionamento */}
+      <div className="flex flex-wrap gap-4 items-end">
+        {showCorretorFilter && (
+          <MultiSelectDropdown label="Corretor (negócios)" options={corretorOptions} selected={filters.dealOwnerIds}
+            onChange={(next) => onFiltersChange({ ...filters, dealOwnerIds: next })} placeholder="Todos" />
+        )}
+
+        <div>
+          <label className="block text-xs font-bold text-muted-foreground uppercase mb-1">Inativo há</label>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              min={1}
+              max={365}
+              placeholder="30"
+              className={INPUT_CLASS}
+              value={filters.inactiveDays ?? ''}
+              onChange={(e) => {
+                const val = e.target.value ? parseInt(e.target.value, 10) : null
+                onFiltersChange({ ...filters, inactiveDays: val })
+              }}
+            />
+            <span className="text-xs text-muted-foreground">dias</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Toggles */}
+      <div className="flex flex-wrap gap-2">
+        <label
+          className={`inline-flex items-center gap-1.5 cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+            filters.onlyWithPhone ? CHIP_ACTIVE : CHIP_INACTIVE
+          }`}
+        >
+          <input
+            type="checkbox"
+            className="sr-only"
+            checked={filters.onlyWithPhone}
+            onChange={(e) => onFiltersChange({ ...filters, onlyWithPhone: e.target.checked })}
+          />
+          <Phone size={12} />
+          Só com telefone
+        </label>
+
+        <Button
+          variant="unstyled"
+          size="unstyled"
+          type="button"
+          onClick={() => onFiltersChange({
+            ...filters,
+            hasActiveDeal: filters.hasActiveDeal === true ? null : true,
+          })}
+          className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+            filters.hasActiveDeal === true ? CHIP_ACTIVE : CHIP_INACTIVE
+          }`}
+        >
+          Com negócio ativo
+          {filters.hasActiveDeal === true && <X size={10} className="ml-0.5" />}
+        </Button>
+
+        <Button
+          variant="unstyled"
+          size="unstyled"
+          type="button"
+          onClick={() => onFiltersChange({
+            ...filters,
+            hasActiveDeal: filters.hasActiveDeal === false ? null : false,
+          })}
+          className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+            filters.hasActiveDeal === false ? CHIP_ACTIVE : CHIP_INACTIVE
+          }`}
+        >
+          Sem negócio ativo
+          {filters.hasActiveDeal === false && <X size={10} className="ml-0.5" />}
+        </Button>
+      </div>
     </div>
   )
 }

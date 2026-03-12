@@ -37,7 +37,7 @@ const formatDate = (dateStr: string): string => {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
-const ActivityItem: React.FC<{ activity: Activity }> = ({ activity }) => {
+const ActivityItem: React.FC<{ activity: Activity; isExpanded: boolean; onToggle: () => void }> = ({ activity, isExpanded, onToggle }) => {
   const icon = ACTIVITY_ICONS[activity.type] || ACTIVITY_ICONS.TASK
   const outcome = activity.type === 'CALL' && activity.metadata?.outcome
     ? OUTCOME_BADGES[activity.metadata.outcome as string]
@@ -60,9 +60,20 @@ const ActivityItem: React.FC<{ activity: Activity }> = ({ activity }) => {
           )}
         </div>
         {activity.description && (
-          <p className="text-[11px] text-muted-foreground dark:text-muted-foreground mt-0.5 line-clamp-1">
-            {activity.description}
-          </p>
+          <Button
+            variant="unstyled"
+            size="unstyled"
+            onClick={onToggle}
+            className="text-left mt-0.5 group block"
+            aria-label={isExpanded ? 'Recolher nota' : 'Expandir nota'}
+          >
+            <p className={`text-[11px] text-muted-foreground dark:text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
+              {activity.description}
+            </p>
+            <span className="text-[10px] text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
+              {isExpanded ? 'ver menos' : 'ver mais'}
+            </span>
+          </Button>
         )}
         <span className="text-[10px] text-muted-foreground dark:text-muted-foreground mt-0.5 block">
           {formatDate(activity.date)}
@@ -74,6 +85,7 @@ const ActivityItem: React.FC<{ activity: Activity }> = ({ activity }) => {
 
 export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defaultOpen = true }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const { data: activities = [], isLoading } = useContactActivities(contactId)
 
   return (
@@ -117,7 +129,12 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
           ) : (
             <div>
               {activities.map(activity => (
-                <ActivityItem key={activity.id} activity={activity} />
+                <ActivityItem
+                  key={activity.id}
+                  activity={activity}
+                  isExpanded={expandedId === activity.id}
+                  onToggle={() => setExpandedId(prev => prev === activity.id ? null : activity.id)}
+                />
               ))}
             </div>
           )}
