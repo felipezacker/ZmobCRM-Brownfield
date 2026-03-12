@@ -74,6 +74,36 @@ export function calculateEstimatedCommission(
 }
 
 // ============================================
+// OPEN DEAL LOOKUP (for auto-linking)
+// ============================================
+
+/**
+ * Busca o deal aberto mais recente de um contato.
+ * Usado para auto-vincular atividades de prospecção ao deal relevante.
+ * Best-effort: retorna null em caso de erro (não deve bloquear fluxos).
+ *
+ * @param contactId - ID do contato.
+ * @returns Deal aberto mais recente ou null.
+ */
+export async function getOpenDealsByContact(
+  contactId: string,
+): Promise<{ id: string; title: string } | null> {
+  if (!supabase || !contactId) return null
+  const { data, error } = await supabase
+    .from('deals')
+    .select('id, title')
+    .eq('contact_id', contactId)
+    .eq('is_won', false)
+    .eq('is_lost', false)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error || !data) return null
+  return { id: data.id, title: data.title }
+}
+
+// ============================================
 // DEALS SERVICE
 // ============================================
 

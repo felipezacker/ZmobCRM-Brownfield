@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { CreateDealModal } from '@/features/boards/components/Modals/CreateDealModal'
 import { NoteTemplatesManager } from '@/features/prospecting/components/NoteTemplatesManager'
-import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery'
+import { useCreateActivity, useUpdateActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { contactsService } from '@/lib/supabase'
 import { useSettings } from '@/context/settings/SettingsContext'
 import { useAuth } from '@/context/AuthContext'
@@ -29,6 +29,7 @@ interface QuickActionsPanelProps {
   callNotes?: string
   onDismiss: () => void
   suggestedReturnTime?: SuggestedTime | null
+  lastActivityId?: string | null
 }
 
 const ACTIONS_BY_OUTCOME: Record<Outcome, Array<'create_deal' | 'schedule_return' | 'move_stage'>> = {
@@ -58,6 +59,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   callNotes,
   onDismiss,
   suggestedReturnTime,
+  lastActivityId,
 }) => {
   const [showCreateDeal, setShowCreateDeal] = useState(false)
   const [showTemplatesManager, setShowTemplatesManager] = useState(false)
@@ -74,6 +76,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   })
 
   const createActivity = useCreateActivity()
+  const updateActivity = useUpdateActivity()
   const { lifecycleStages } = useSettings()
   const { profile } = useAuth()
   const { addToast, showToast } = useToast()
@@ -128,10 +131,22 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
     }
   }
 
-  const handleDealCreated = () => {
+  const handleDealCreated = (dealId: string) => {
     setShowCreateDeal(false)
     setDealCreated(true)
     toast('Negócio criado com sucesso', 'success')
+
+    // CP-5.1: Retroactively link the last call activity to the new deal
+    if (lastActivityId && dealId) {
+      updateActivity.mutate(
+        { id: lastActivityId, updates: { dealId } },
+        {
+          onError: () => {
+            toast('Ligação criada, mas não foi possível vincular ao negócio', 'warning')
+          },
+        },
+      )
+    }
   }
 
   return (

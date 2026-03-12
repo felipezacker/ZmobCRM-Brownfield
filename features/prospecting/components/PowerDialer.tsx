@@ -7,6 +7,7 @@ import { ContactHistory } from '@/features/prospecting/components/ContactHistory
 import { QuickActionsPanel } from '@/features/prospecting/components/QuickActionsPanel'
 import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts'
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery'
+import { getOpenDealsByContact } from '@/lib/supabase/deals'
 import { substituteVariables } from '@/features/prospecting/utils/scriptParser'
 import type { ProspectingQueueItem } from '@/types'
 import { LeadScoreBadge } from '@/features/prospecting/components/LeadScoreBadge'
@@ -60,6 +61,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   const [lastCallData, setLastCallData] = useState<CallLogData | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const goalCelebratedRef = useRef(false)
+  const lastActivityIdRef = useRef<string | null>(null)
   const createActivity = useCreateActivity()
   const { scripts } = useQuickScripts()
   const { addToast } = useOptionalToast()
@@ -127,25 +129,46 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [showCallModal, showScriptDropdown, showQuickActions, onSkip, onEnd])
 
-  const handleCallSave = useCallback((data: CallLogData) => {
-    createActivity.mutate({
-      activity: {
-        title: data.title,
-        description: data.notes || undefined,
-        type: 'CALL',
-        date: new Date().toISOString(),
-        completed: true,
-        contactId: contact.contactId,
-        dealTitle: '',
-        user: { name: 'Você', avatar: '' },
-        metadata: {
-          outcome: data.outcome,
-          duration_seconds: data.duration,
-          source: 'prospecting',
-          ...(markedObjections.length > 0 && { objections: markedObjections }),
+  const handleCallSave = useCallback(async (data: CallLogData) => {
+    // CP-5.1: Best-effort deal auto-linking
+    let linkedDealId: string | undefined
+    let linkedDealTitle = ''
+    try {
+      const deal = await getOpenDealsByContact(contact.contactId)
+      if (deal) {
+        linkedDealId = deal.id
+        linkedDealTitle = deal.title
+      }
+    } catch {
+      // Best-effort: if lookup fails, create activity without deal
+    }
+
+    try {
+      const result = await createActivity.mutateAsync({
+        activity: {
+          title: data.title,
+          description: data.notes || undefined,
+          type: 'CALL',
+          date: new Date().toISOString(),
+          completed: true,
+          contactId: contact.contactId,
+          dealId: linkedDealId,
+          dealTitle: linkedDealTitle,
+          user: { name: 'Você', avatar: '' },
+          metadata: {
+            outcome: data.outcome,
+            duration_seconds: data.duration,
+            source: 'prospecting',
+            ...(markedObjections.length > 0 && { objections: markedObjections }),
+          },
         },
-      },
-    })
+      })
+
+      // CP-5.1: Store activity ID for retroactive deal linking via QuickActionsPanel
+      lastActivityIdRef.current = result.id
+    } catch {
+      // Activity creation failed — proceed to avoid user stuck in modal
+    }
 
     setShowCallModal(false)
     setMarkedObjections([])
@@ -369,6 +392,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
           callNotes={lastCallData.notes}
           onDismiss={handleQuickActionsDismiss}
           suggestedReturnTime={suggestedReturnTime}
+          lastActivityId={lastActivityIdRef.current}
         />
       )}
 

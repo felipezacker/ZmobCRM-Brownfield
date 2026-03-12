@@ -56,7 +56,17 @@ function TableSkeleton() {
 
 export function CallDetailsTable({ activities, profiles, isLoading }: CallDetailsTableProps) {
   const [page, setPage] = useState(0)
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
   const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p.name])), [profiles])
+
+  const toggleExpand = (id: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const totalPages = Math.ceil(activities.length / PAGE_SIZE)
   const pageData = useMemo(
@@ -100,6 +110,7 @@ export function CallDetailsTable({ activities, profiles, isLoading }: CallDetail
               <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Corretor</th>
               <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Contato</th>
               <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Status</th>
+              <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Notas</th>
               <th className="text-right py-2 px-2 text-xs font-medium text-muted-foreground dark:text-muted-foreground">Duração</th>
             </tr>
           </thead>
@@ -120,6 +131,23 @@ export function CallDetailsTable({ activities, profiles, isLoading }: CallDetail
                 </td>
                 <td className="py-2.5 px-2">
                   {getOutcomeBadge(activity.metadata?.outcome)}
+                </td>
+                <td className="py-2.5 px-2 max-w-[250px]">
+                  {activity.description ? (
+                    <Button
+                      variant="unstyled"
+                      size="unstyled"
+                      onClick={() => toggleExpand(activity.id)}
+                      className="text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={expandedRows.has(activity.id) ? 'Recolher notas' : 'Expandir notas'}
+                    >
+                      <span className={expandedRows.has(activity.id) ? '' : 'line-clamp-2'}>
+                        {activity.description}
+                      </span>
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
                 </td>
                 <td className="py-2.5 px-2 text-right text-xs text-muted-foreground dark:text-muted-foreground whitespace-nowrap">
                   {activity.metadata?.duration_seconds
