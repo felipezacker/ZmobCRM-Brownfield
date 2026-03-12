@@ -30,6 +30,7 @@ interface ContactGroup {
   calls: number
   predominantOutcome: string
   dealLinked: boolean
+  dealId: string | null
 }
 
 export function MetricsDrilldownModal({
@@ -90,7 +91,7 @@ export function MetricsDrilldownModal({
   // Group by contact for uniqueContacts view
   const contactGroups = useMemo((): ContactGroup[] => {
     if (cardType !== 'uniqueContacts') return []
-    const groups = new Map<string, { name: string; calls: number; outcomes: string[]; dealLinked: boolean }>()
+    const groups = new Map<string, { name: string; calls: number; outcomes: string[]; dealLinked: boolean; dealId: string | null }>()
     for (const act of activities) {
       const cid = act.contact_id || 'unknown'
       const name = getContactName(act)
@@ -98,13 +99,17 @@ export function MetricsDrilldownModal({
       if (existing) {
         existing.calls++
         if (act.metadata?.outcome) existing.outcomes.push(act.metadata.outcome)
-        if (act.deal_id) existing.dealLinked = true
+        if (act.deal_id) {
+          existing.dealLinked = true
+          if (!existing.dealId) existing.dealId = act.deal_id
+        }
       } else {
         groups.set(cid, {
           name,
           calls: 1,
           outcomes: act.metadata?.outcome ? [act.metadata.outcome] : [],
           dealLinked: !!act.deal_id,
+          dealId: act.deal_id || null,
         })
       }
     }
@@ -128,6 +133,7 @@ export function MetricsDrilldownModal({
         calls: data.calls,
         predominantOutcome,
         dealLinked: data.dealLinked,
+        dealId: data.dealId,
       }
     }).sort((a, b) => b.calls - a.calls)
   }, [activities, cardType])
@@ -204,8 +210,21 @@ export function MetricsDrilldownModal({
               <tbody>
                 {pageContacts.map(group => (
                   <tr key={group.contactId} className="border-b border-border dark:border-border hover:bg-background dark:hover:bg-white/5 transition-colors">
-                    <td className="py-2.5 px-2 text-secondary-foreground dark:text-muted-foreground">
-                      {group.name}
+                    <td className="py-2.5 px-2">
+                      {group.contactId !== 'unknown' ? (
+                        <a
+                          href={`/contacts?cockpit=${group.contactId}`}
+                          target="_blank"
+                          rel="noopener"
+                          className="text-primary hover:underline"
+                        >
+                          {group.name}
+                        </a>
+                      ) : (
+                        <span className="text-secondary-foreground dark:text-muted-foreground">
+                          {group.name}
+                        </span>
+                      )}
                     </td>
                     <td className="py-2.5 px-2 text-center text-secondary-foreground dark:text-muted-foreground font-medium">
                       {group.calls}
@@ -214,7 +233,16 @@ export function MetricsDrilldownModal({
                       <OutcomeBadge outcome={group.predominantOutcome} />
                     </td>
                     <td className="py-2.5 px-2">
-                      {group.dealLinked ? (
+                      {group.dealLinked && group.dealId ? (
+                        <a
+                          href={`/deals/${group.dealId}/cockpit`}
+                          target="_blank"
+                          rel="noopener"
+                          className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 hover:underline"
+                        >
+                          Vinculado
+                        </a>
+                      ) : group.dealLinked ? (
                         <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400">
                           Vinculado
                         </span>
@@ -242,8 +270,21 @@ export function MetricsDrilldownModal({
               <tbody>
                 {pageActivities.map(activity => (
                   <tr key={activity.id} className="border-b border-border dark:border-border hover:bg-background dark:hover:bg-white/5 transition-colors">
-                    <td className="py-2.5 px-2 text-secondary-foreground dark:text-muted-foreground truncate max-w-[180px]">
-                      {getContactName(activity)}
+                    <td className="py-2.5 px-2 truncate max-w-[180px]">
+                      {activity.contact_id ? (
+                        <a
+                          href={`/contacts?cockpit=${activity.contact_id}`}
+                          target="_blank"
+                          rel="noopener"
+                          className="text-primary hover:underline"
+                        >
+                          {getContactName(activity)}
+                        </a>
+                      ) : (
+                        <span className="text-secondary-foreground dark:text-muted-foreground">
+                          {getContactName(activity)}
+                        </span>
+                      )}
                     </td>
                     <td className="py-2.5 px-2">
                       <OutcomeBadge outcome={activity.metadata?.outcome} />
@@ -272,9 +313,14 @@ export function MetricsDrilldownModal({
                     </td>
                     <td className="py-2.5 px-2">
                       {activity.deal_id ? (
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400">
+                        <a
+                          href={`/deals/${activity.deal_id}/cockpit`}
+                          target="_blank"
+                          rel="noopener"
+                          className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 hover:underline"
+                        >
                           Vinculado
-                        </span>
+                        </a>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}

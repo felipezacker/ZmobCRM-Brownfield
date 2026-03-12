@@ -314,3 +314,70 @@ describe('MetricsDrilldownModal — deal column (CP-5.4)', () => {
     expect(badges.length).toBeGreaterThanOrEqual(1)
   })
 })
+
+// ── CP-5.7: Actionable links tests ──────────────────────────
+
+describe('MetricsDrilldownModal — contact links (CP-5.7)', () => {
+  it('renders contact name as link with correct href', () => {
+    renderModal('totalCalls')
+    const links = screen.getAllByRole('link', { name: 'Contato Teste' })
+    expect(links[0]).toHaveAttribute('href', '/contacts?cockpit=c1')
+  })
+
+  it('renders contact link with target="_blank" and rel="noopener"', () => {
+    renderModal('totalCalls')
+    const links = screen.getAllByRole('link', { name: 'Contato Teste' })
+    expect(links[0]).toHaveAttribute('target', '_blank')
+    expect(links[0]).toHaveAttribute('rel', 'noopener')
+  })
+
+  it('renders plain text when contact_id is null', () => {
+    const activitiesWithNull = [
+      makeActivity({ id: 'no-contact', contact_id: null as unknown as string, contacts: [{ name: 'Sem ID' }] }),
+    ]
+    renderModal('totalCalls', activitiesWithNull)
+    expect(screen.getByText('Sem ID')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Sem ID' })).not.toBeInTheDocument()
+  })
+})
+
+describe('MetricsDrilldownModal — deal links (CP-5.7)', () => {
+  it('renders Vinculado as link with correct href', () => {
+    renderModal('totalCalls')
+    const dealLinks = screen.getAllByRole('link', { name: 'Vinculado' })
+    expect(dealLinks[0]).toHaveAttribute('href', '/deals/deal-1/cockpit')
+  })
+
+  it('renders deal link with target="_blank" and rel="noopener"', () => {
+    renderModal('totalCalls')
+    const dealLinks = screen.getAllByRole('link', { name: 'Vinculado' })
+    expect(dealLinks[0]).toHaveAttribute('target', '_blank')
+    expect(dealLinks[0]).toHaveAttribute('rel', 'noopener')
+  })
+
+  it('shows dash when activity has no deal_id', () => {
+    const noDealActivities = [
+      makeActivity({ id: 'no-deal', contact_id: 'c99', contacts: [{ name: 'No Deal' }] }),
+    ]
+    renderModal('totalCalls', noDealActivities)
+    expect(screen.queryByRole('link', { name: 'Vinculado' })).not.toBeInTheDocument()
+  })
+})
+
+describe('MetricsDrilldownModal — uniqueContacts links (CP-5.7)', () => {
+  it('renders contact name as link in uniqueContacts view', () => {
+    renderModal('uniqueContacts')
+    const link = screen.getByRole('link', { name: 'Contato Teste' })
+    expect(link).toHaveAttribute('href', '/contacts?cockpit=c1')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener')
+  })
+
+  it('renders deal Vinculado as link in uniqueContacts view', () => {
+    renderModal('uniqueContacts')
+    const dealLinks = screen.getAllByRole('link', { name: 'Vinculado' })
+    expect(dealLinks.length).toBeGreaterThanOrEqual(1)
+    expect(dealLinks[0]).toHaveAttribute('href', expect.stringContaining('/deals/'))
+    expect(dealLinks[0]).toHaveAttribute('target', '_blank')
+  })
+})
