@@ -1,5 +1,5 @@
--- CP-4.7 optimization: single RPC for batch position updates
--- Replaces N parallel updates with one function call
+-- Fix: add auth guard to batch_update_queue_positions
+-- SECURITY DEFINER bypasses RLS, so we must verify ownership manually
 
 CREATE OR REPLACE FUNCTION batch_update_queue_positions(p_updates jsonb)
 RETURNS void
@@ -32,6 +32,3 @@ BEGIN
   END LOOP;
 END;
 $$;
-
--- Grant execute to authenticated users (RLS on table still applies for reads)
-GRANT EXECUTE ON FUNCTION batch_update_queue_positions(jsonb) TO authenticated;
