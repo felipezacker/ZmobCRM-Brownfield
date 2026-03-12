@@ -87,7 +87,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
           <input
             type="text"
             placeholder={
-              viewMode === 'people' ? 'Buscar nomes, emails...' : 'Buscar empresas, setor...'
+              viewMode === 'people' ? 'Buscar nomes, emails, telefone...' : 'Buscar empresas, setor...'
             }
             value={search}
             onChange={e => setSearch(e.target.value)}
