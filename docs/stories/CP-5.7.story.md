@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-5.7
 - **Epic:** CP-5 (Prospeccao — Rastreabilidade & Visao Gerencial)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 3 (S)
 - **Wave:** 3
@@ -178,6 +178,7 @@ Primary Focus:
 | 2026-03-12 | 1.0 | Story criada | @pm (Morgan) |
 | 2026-03-12 | 1.1 | Validacao GO (10/10). SF-1: multi-deal por contato captura apenas primeiro — aceitavel v1. Status Draft → Ready. | @po (Pax) |
 | 2026-03-12 | 1.2 | Implementation complete. All tasks done, 8 tests added, 1079/1079 passing. Status Ready → Ready for Review. | @dev (Dex) |
+| 2026-03-12 | 1.3 | QA PASS, PR #36 merged to main. Status Ready for Review → Done. | @po (Pax) |
 
 ## Dev Agent Record
 
