@@ -478,6 +478,7 @@ export async function POST(req: Request) {
     let updated = 0;
     let skipped = 0;
     const importedContactIds: string[] = []; // track all created/updated IDs for lead score
+    const reusedContactIds: string[] = []; // track IDs of skipped-but-existing contacts (for queue flows)
     const rowToContactId = new Map<number, string>(); // rowNumber → contact ID (for deal creation)
 
     // Import in manageable chunks to reduce payload sizes
@@ -554,6 +555,8 @@ export async function POST(req: Request) {
 
       if (normalizedMode === 'skip_duplicates' && allMatchedIds.length > 0) {
         skipped += 1;
+        reusedContactIds.push(allMatchedIds[0]);
+        rowToContactId.set(rowNumber, allMatchedIds[0]);
         continue;
       }
 
@@ -812,6 +815,8 @@ export async function POST(req: Request) {
         scoresRecalculated,
         dealsCreated,
       },
+      importedContactIds,
+      reusedContactIds,
       scoresQueued,
       errors,
       detectedHeaders: headers,
