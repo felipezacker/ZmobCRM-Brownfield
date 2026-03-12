@@ -879,6 +879,14 @@ export const ProspectingPage: React.FC = () => {
         />
       )}
 
+      {/* CP-IMP-1: Import list modal */}
+      <ImportListModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        currentQueueSize={queue.length}
+        onAddBatchToQueue={handleAddBatchToQueue}
+      />
+
       {/* Contact detail modal (from queue item expand) */}
       <ContactDetailModal
         contactId={contactModalId}

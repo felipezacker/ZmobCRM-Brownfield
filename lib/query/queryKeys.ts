@@ -52,6 +52,9 @@ export const queryKeys = {
     // Prospecting metrics (CP-1.4)
     prospectingMetrics: createQueryKeys('prospectingMetrics'),
 
+    // Live operations (CP-5.6)
+    liveOperations: createQueryKeys('liveOperations'),
+
     // Dashboard (non-standard structure)
     dashboard: {
         stats: ['dashboard', 'stats'] as const,

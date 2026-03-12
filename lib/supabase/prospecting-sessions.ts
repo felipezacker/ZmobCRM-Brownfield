@@ -78,6 +78,18 @@ export async function getActiveSessions(ownerId: string): Promise<ProspectingSes
   return (data || []).map(transformSession)
 }
 
+export async function getOrgActiveSessions(organizationId: string): Promise<ProspectingSession[]> {
+  if (!supabase) return []
+  const { data, error } = await supabase
+    .from('prospecting_sessions')
+    .select('*')
+    .eq('organization_id', organizationId)
+    .is('ended_at', null)
+    .order('started_at', { ascending: true })
+  if (error) throw error
+  return (data || []).map(transformSession)
+}
+
 export async function listSessions(
   ownerId: string | undefined,
   organizationId: string,
