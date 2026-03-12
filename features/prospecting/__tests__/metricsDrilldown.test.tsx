@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax */
 /**
  * CP-5.4: MetricsCards clickable + MetricsDrilldownModal tests
  */
