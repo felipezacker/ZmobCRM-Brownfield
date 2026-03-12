@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown, Upload } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { CallQueue } from './components/CallQueue'
@@ -11,10 +11,14 @@ import { AddToQueueSearch } from './components/AddToQueueSearch'
 import { ProspectingFilters } from './components/ProspectingFilters'
 import { FilteredContactsList } from './components/FilteredContactsList'
 import { MetricsCards } from './components/MetricsCards'
+import { MetricsDrilldownModal } from './components/MetricsDrilldownModal'
+import { LiveOperationsPanel } from './components/LiveOperationsPanel'
 import { MetricsChart } from './components/MetricsChart'
 import { ConversionFunnel } from './components/ConversionFunnel'
 import { AutoInsights } from './components/AutoInsights'
 import { CallDetailsTable } from './components/CallDetailsTable'
+import { ProspectingImpactSection } from './components/ProspectingImpactSection'
+import { BrokerSummaryCard } from './components/BrokerSummaryCard'
 import { CorretorRanking } from './components/CorretorRanking'
 import { DailyGoalCard } from './components/DailyGoalCard'
 import { ConnectionHeatmap } from './components/ConnectionHeatmap'
@@ -26,11 +30,14 @@ import { GoalConfigModal } from './components/GoalConfigModal'
 import { NoteTemplatesManager } from './components/NoteTemplatesManager'
 import { SaveQueueModal } from './components/SaveQueueModal'
 import { SavedQueuesList } from './components/SavedQueuesList'
+import { ImportListModal } from './components/ImportListModal'
 import { useProspectingGoals } from './hooks/useProspectingGoals'
 import { useSavedQueues } from './hooks/useSavedQueues'
 import { useProspectingQueue } from './hooks/useProspectingQueue'
 import { useProspectingFilteredContacts } from './hooks/useProspectingFilteredContacts'
 import { useProspectingMetrics } from './hooks/useProspectingMetrics'
+import { useProspectingImpact } from './hooks/useProspectingImpact'
+import { useLiveOperations } from './hooks/useLiveOperations'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { useTags } from '@/hooks/useTags'
@@ -42,6 +49,7 @@ import { listSessions, type ProspectingSession } from '@/lib/supabase/prospectin
 import { suggestBestTime } from './utils/suggestBestTime'
 import { useProspectingPageState, type OrgProfile } from '@/features/prospecting/hooks/useProspectingPageState'
 import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
+import type { DrilldownCardType } from '@/features/prospecting/constants'
 
 export type { SessionStats } from '@/features/prospecting/hooks/useProspectingPageState'
 
@@ -115,13 +123,24 @@ export const ProspectingPage: React.FC = () => {
 
   // CP-3.2: Note templates manager modal
   const [showTemplatesManager, setShowTemplatesManager] = useState(false)
+  // CP-IMP-1: Import list modal
+  const [showImportModal, setShowImportModal] = useState(false)
   const [contactModalId, setContactModalId] = useState<string | null>(null)
+
+  // CP-5.4: Drilldown modal state
+  const [drilldownCard, setDrilldownCard] = useState<DrilldownCardType | null>(null)
 
   // --- External feature hooks (use state values from pageState) ---
 
   // CP-1.4: Metrics
   const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined)
   const { invalidateMetrics, isAdminOrDirector } = metricsHook
+
+  // CP-5.3: Prospecting impact metrics
+  const impactHook = useProspectingImpact(metricsPeriod, customRange, metricsFilterOwnerId || undefined)
+
+  // CP-5.6: Live operations (admin/director only)
+  const liveOps = useLiveOperations(profile?.organization_id, profiles, isAdminOrDirector)
 
   // CP-3.6: Team average + user metrics for PerformanceComparison
   const teamAverage = useMemo(() => {
@@ -177,7 +196,11 @@ export const ProspectingPage: React.FC = () => {
     return undefined
   }, [viewQueueOwnerId, isViewingAll, isAdminOrDirector, profile?.id])
 
-  const queueHook = useProspectingQueue({ viewOwnerId: resolvedViewOwnerId })
+  const queueHook = useProspectingQueue({
+    viewOwnerId: resolvedViewOwnerId,
+    onCurrentIndexChange: pageState.syncCurrentIndex,
+    initialCurrentIndex: pageState.currentIndexRef.current,
+  })
 
   const {
     queue,
@@ -295,6 +318,16 @@ export const ProspectingPage: React.FC = () => {
                   </select>
                 </div>
 
+                {/* CP-IMP-1: Import list button */}
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
+                  onClick={() => setShowImportModal(true)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors"
+                >
+                  <Upload size={14} />
+                  Importar Lista
+                </Button>
                 <Button
                   variant="unstyled"
                   size="unstyled"
@@ -497,6 +530,17 @@ export const ProspectingPage: React.FC = () => {
               </div>
             )}
 
+            {/* CP-5.6: Live operations panel (admin/director only) */}
+            {isAdminOrDirector && (
+              <ProspectingErrorBoundary section="Operação Ao Vivo">
+                <LiveOperationsPanel
+                  sessions={liveOps.sessions}
+                  activeCount={liveOps.activeCount}
+                  isLoading={liveOps.isLoading}
+                />
+              </ProspectingErrorBoundary>
+            )}
+
             {/* CP-2.4: PDF export button */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">Dashboard de Métricas</span>
@@ -516,6 +560,7 @@ export const ProspectingPage: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2">
               {([
                 { key: 'today', label: 'Hoje' },
+                { key: 'yesterday', label: 'Ontem' },
                 { key: '7d', label: '7 dias' },
                 { key: '30d', label: '30 dias' },
               ] as const).map(({ key, label }) => (
@@ -636,8 +681,17 @@ export const ProspectingPage: React.FC = () => {
               onError={() => toast('Erro ao buscar contatos negligenciados', 'error')}
             />
 
+            {/* CP-5.5: Broker summary card when filtering by corretor */}
+            {metricsFilterOwnerId && metricsHook.metrics && (
+              <BrokerSummaryCard
+                brokerName={profiles.find(p => p.id === metricsFilterOwnerId)?.name || 'Corretor'}
+                metrics={metricsHook.metrics}
+                impact={impactHook.impact}
+              />
+            )}
+
             <ProspectingErrorBoundary section="Métricas">
-              <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+              <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} onCardClick={setDrilldownCard} />
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                 <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
@@ -683,6 +737,14 @@ export const ProspectingPage: React.FC = () => {
               profiles={profiles}
               isLoading={metricsHook.isLoading}
             />
+
+            {/* CP-5.3: Prospecting impact on pipeline */}
+            <ProspectingErrorBoundary section="Impacto">
+              <ProspectingImpactSection
+                impact={impactHook.impact}
+                isLoading={impactHook.isLoading}
+              />
+            </ProspectingErrorBoundary>
           </div>
         ) : (
           <div className="space-y-4">
@@ -808,6 +870,25 @@ export const ProspectingPage: React.FC = () => {
       <NoteTemplatesManager
         isOpen={showTemplatesManager}
         onClose={() => setShowTemplatesManager(false)}
+      />
+
+      {/* CP-5.4: Metrics drilldown modal */}
+      {drilldownCard && (
+        <MetricsDrilldownModal
+          isOpen={!!drilldownCard}
+          onClose={() => setDrilldownCard(null)}
+          cardType={drilldownCard}
+          activities={metricsHook.activities}
+          profiles={profiles}
+        />
+      )}
+
+      {/* CP-IMP-1: Import list modal */}
+      <ImportListModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        currentQueueSize={queue.length}
+        onAddBatchToQueue={handleAddBatchToQueue}
       />
 
       {/* Contact detail modal (from queue item expand) */}

@@ -62,7 +62,8 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
   const [phones, setPhones] = useState<ContactPhone[]>([]);
   const [preferences, setPreferences] = useState<ContactPreference | null>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [dealActivities, setDealActivities] = useState<Activity[]>([]);
+  const [contactActivities, setContactActivities] = useState<Activity[]>([]);
   const [notes, setNotes] = useState<DealNote[]>([]);
   const [scoreHistory, setScoreHistory] = useState<{ id: string; old_score: number; new_score: number; change: number; created_at: string }[]>([]);
   const [isNotesLoading, setIsNotesLoading] = useState(false);
@@ -104,20 +105,22 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
       setDeals(fetchedDeals);
       setScoreHistory((scoreHistoryResult?.data as typeof scoreHistory) || []);
 
-      // Secondary: activities + notes
+      // Secondary: activities (by deal + by contact) + notes
       const dealIds = fetchedDeals.map((d) => d.id);
       const secondaryResults = await Promise.allSettled([
         dealIds.length > 0
           ? supabase.from('activities').select('*').in('deal_id', dealIds).is('deleted_at', null).order('date', { ascending: false }).limit(100)
           : Promise.resolve({ data: [] }),
+        supabase.from('activities').select('*').eq('contact_id', contactId).is('deleted_at', null).order('date', { ascending: false }).limit(100),
         dealIds.length > 0
           ? supabase.from('deal_notes').select('*').in('deal_id', dealIds).order('created_at', { ascending: false })
           : Promise.resolve({ data: [] }),
       ]);
 
       if (cancelled) return;
-      setActivities((secondaryResults[0].status === 'fulfilled' ? secondaryResults[0].value : { data: [] })?.data as Activity[] || []);
-      setNotes((secondaryResults[1].status === 'fulfilled' ? secondaryResults[1].value : { data: [] })?.data as DealNote[] || []);
+      setDealActivities((secondaryResults[0].status === 'fulfilled' ? secondaryResults[0].value : { data: [] })?.data as Activity[] || []);
+      setContactActivities((secondaryResults[1].status === 'fulfilled' ? secondaryResults[1].value : { data: [] })?.data as Activity[] || []);
+      setNotes((secondaryResults[2].status === 'fulfilled' ? secondaryResults[2].value : { data: [] })?.data as DealNote[] || []);
     };
 
     loadAll();
@@ -126,11 +129,17 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
 
   // ---- Refresh functions ----
   const refreshActivities = useCallback(async () => {
-    if (!supabase || deals.length === 0) return;
+    if (!supabase) return;
     const dealIds = deals.map((d) => d.id);
-    const { data } = await supabase.from('activities').select('*').in('deal_id', dealIds).is('deleted_at', null).order('date', { ascending: false }).limit(100);
-    setActivities((data as Activity[]) || []);
-  }, [deals]);
+    const results = await Promise.allSettled([
+      dealIds.length > 0
+        ? supabase.from('activities').select('*').in('deal_id', dealIds).is('deleted_at', null).order('date', { ascending: false }).limit(100)
+        : Promise.resolve({ data: [] }),
+      supabase.from('activities').select('*').eq('contact_id', contactId).is('deleted_at', null).order('date', { ascending: false }).limit(100),
+    ]);
+    setDealActivities((results[0].status === 'fulfilled' ? results[0].value : { data: [] })?.data as Activity[] || []);
+    setContactActivities((results[1].status === 'fulfilled' ? results[1].value : { data: [] })?.data as Activity[] || []);
+  }, [deals, contactId]);
 
   const refreshNotes = useCallback(async () => {
     if (!supabase || deals.length === 0) return;
@@ -196,10 +205,22 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
     router.push(`/boards?deal=${dealId}`);
   }, [onClose, router]);
 
+  // ---- Merged & deduplicated activities ----
+  const mergedActivities = useMemo(() => {
+    const map = new Map<string, Activity>();
+    for (const a of dealActivities) map.set(a.id, a);
+    for (const a of contactActivities) {
+      if (!map.has(a.id)) map.set(a.id, a);
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [dealActivities, contactActivities]);
+
   // ---- Timeline entries ----
   const timelineEntries = useMemo(() => {
     const dealsMap = new Map(deals.map((d) => [d.id, d]));
-    const activityEntries = activities.map((a) => ({
+    const activityEntries = mergedActivities.map((a) => ({
       id: a.id,
       type: a.type,
       title: a.title,
@@ -207,6 +228,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
       date: a.date,
       dealTitle: (a.dealId ? dealsMap.get(a.dealId)?.title : '') || '',
       dealId: a.dealId || '',
+      metadata: a.metadata,
     }));
     const scoreEntries = scoreHistory.map((s) => {
       const sign = s.change > 0 ? '+' : '';
@@ -224,7 +246,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
     return [...activityEntries, ...scoreEntries].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-  }, [activities, deals, scoreHistory]);
+  }, [mergedActivities, deals, scoreHistory]);
 
   // ---- Contact snapshot for AI ----
   const contactSnapshot = useMemo(() => {
@@ -248,10 +270,10 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
         regions: preferences.regions, urgency: preferences.urgency,
       } : null,
       phonesCount: phones.length,
-      activitiesCount: activities.length,
+      activitiesCount: mergedActivities.length,
       notesCount: notes.length,
     };
-  }, [contact, deals, preferences, phones, activities, notes]);
+  }, [contact, deals, preferences, phones, mergedActivities, notes]);
 
   // ---- Loading state ----
   if (isLoading || !contact) {

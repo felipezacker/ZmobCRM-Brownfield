@@ -35,3 +35,14 @@ Required sections in every story:
 - Staging DB has real data — testing notes should reference staging
 - Kanban quick-add (QuickAddType) is separate from activity type enum — scope OUT by default
 - activity-tools.ts already includes WHATSAPP (Epic TD) — reference as "confirmado" never "provavelmente"
+- RT Epic stories use naming `docs/stories/RT-{n}.{m}.story.md` (flat, no slug, no active/ subdir)
+
+## Realtime Architecture (Epic RT — confirmed 2026-03-12)
+
+- `lib/realtime/useRealtimeSync.ts`: hook central; `useRealtimeSyncAll` (linha 191) cobre deals/contacts/activities/boards/prospecting_*; `useRealtimeSyncKanban` cobre deals/board_stages/contacts
+- `board_stages` NAO esta em `useRealtimeSyncAll` — apenas em `useRealtimeSyncKanban`
+- Layout global: `components/Layout.tsx` e Client Component (tem useState/useEffect) — pode receber hooks diretamente
+- App shell renderizado via `app/(protected)/providers.tsx` linha 61: `<Layout>{children}</Layout>`
+- Header app: `components/layout/AppHeader.tsx` — renderizado em `Layout.tsx:144`; props atuais: isGlobalAIOpen, onToggleAI, debugEnabled, onToggleDebug
+- `refetchOnWindowFocus` override status: deals (true), dealsView (true), boards (true), boardStages (true) = false; contacts (false) = ainda true; activities (false) = ainda true — RT-3.2 adiciona override em contacts e activities
+- `isConnected` atual em useRealtimeSync: booleano simples — RT-3.2 adiciona `connectionStatus: 'connected'|'disconnected'|'reconnecting'`

@@ -17,7 +17,7 @@ import { queryKeys } from '@/lib/query/queryKeys'
 import { supabase } from '@/lib/supabase/client'
 import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 
-export type MetricsPeriod = 'today' | '7d' | '30d' | 'custom'
+export type MetricsPeriod = 'today' | 'yesterday' | '7d' | '30d' | 'custom'
 
 export interface PeriodRange {
   start: string // ISO date string YYYY-MM-DD
@@ -65,6 +65,13 @@ export function getDateRange(period: MetricsPeriod, custom?: PeriodRange): Perio
     return { start: end, end }
   }
 
+  if (period === 'yesterday') {
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+    const y = yesterday.toISOString().split('T')[0]
+    return { start: y, end: y }
+  }
+
   const start = new Date(now)
   if (period === '7d') {
     start.setDate(start.getDate() - 6)
@@ -79,6 +86,7 @@ export interface CallActivity {
   date: string
   owner_id: string | null
   contact_id: string | null
+  deal_id?: string | null
   description?: string | null
   metadata: { outcome?: string; duration_seconds?: number } | null
   contacts?: { name: string }[] | { name: string } | null
@@ -299,7 +307,7 @@ export function useProspectingMetrics(
       if (!supabase) return []
       const { data, error } = await supabase
         .from('activities')
-        .select('id, date, owner_id, contact_id, description, metadata, contacts(name)')
+        .select('id, date, owner_id, contact_id, deal_id, description, metadata, contacts(name)')
         .eq('type', 'CALL')
         .not('metadata', 'is', null)
         .gte('date', `${range.start}T00:00:00`)
@@ -333,7 +341,7 @@ export function useProspectingMetrics(
       if (!supabase) return []
       const { data, error } = await supabase
         .from('activities')
-        .select('id, date, owner_id, contact_id, description, metadata')
+        .select('id, date, owner_id, contact_id, deal_id, description, metadata, contacts(name)')
         .eq('type', 'CALL')
         .not('metadata', 'is', null)
         .gte('date', `${range.start}T00:00:00`)

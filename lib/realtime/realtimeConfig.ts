@@ -30,18 +30,20 @@ export type RealtimeTable =
   | 'prospecting_queues'
   | 'prospecting_saved_queues'
   | 'prospecting_daily_goals'
+  | 'prospecting_sessions'
   | 'organization_settings';
 
 export const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unknown[])[] => {
   const mapping: Record<RealtimeTable, readonly (readonly unknown[])[]> = {
     deals: [queryKeys.deals.all, queryKeys.dashboard.stats],
     contacts: [queryKeys.contacts.all, queryKeys.deals.all],
-    activities: [queryKeys.activities.all, queryKeys.prospectingMetrics.all],
+    activities: [queryKeys.activities.all, queryKeys.prospectingMetrics.all, queryKeys.liveOperations.all],
     boards: [queryKeys.boards.all],
     board_stages: [queryKeys.boards.all],
     prospecting_queues: [queryKeys.prospectingQueue.all],
     prospecting_saved_queues: [queryKeys.savedQueues.all],
     prospecting_daily_goals: [queryKeys.dailyGoals.all],
+    prospecting_sessions: [queryKeys.liveOperations.all],
     organization_settings: [['settings'] as const],
   };
   return mapping[table];

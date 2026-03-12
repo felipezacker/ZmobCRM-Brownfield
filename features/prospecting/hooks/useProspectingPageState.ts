@@ -21,6 +21,7 @@ import type { SavedQueue } from '@/lib/supabase/prospecting-saved-queues'
 import {
   startProspectingSession,
   endProspectingSession,
+  updateSessionProgress,
   getActiveSessions,
   type ProspectingSessionStats,
   type ProspectingSession,
@@ -51,6 +52,7 @@ export interface QueueDeps {
   markCompleted: (outcome: string) => void
   clearQueue: () => Promise<unknown>
   refetch: () => void
+  jumpToIndex: (index: number) => void
 }
 
 /** Subset of useProspectingMetrics return needed by handlers */
@@ -191,6 +193,69 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const [sessionStats, setSessionStats] = useState<SessionStats>(INITIAL_SESSION_STATS)
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
 
+  // --- Debounced session progress flush (stats + currentIndex) ---
+  const progressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionStatsRef = useRef<SessionStats>(INITIAL_SESSION_STATS)
+  const currentIndexRef = useRef<number>(0)
+  const dbSessionIdRef = useRef<string | null>(null)
+
+  // Keep refs in sync with state
+  useEffect(() => { sessionStatsRef.current = sessionStats }, [sessionStats])
+  useEffect(() => { dbSessionIdRef.current = dbSessionId }, [dbSessionId])
+
+  /** Expose a setter so the queue hook can push currentIndex updates */
+  const syncCurrentIndex = useCallback((index: number) => {
+    currentIndexRef.current = index
+  }, [])
+
+  const flushProgress = useCallback(() => {
+    const sid = dbSessionIdRef.current
+    if (!sid) return
+    const stats = sessionStatsRef.current
+    const durationSeconds = sessionStartTime
+      ? Math.floor((Date.now() - sessionStartTime.getTime()) / 1000)
+      : 0
+    updateSessionProgress(sid, {
+      ...stats,
+      duration_seconds: durationSeconds,
+      current_index: currentIndexRef.current,
+    }).catch(() => {})
+  }, [sessionStartTime])
+
+  const scheduleFlush = useCallback(() => {
+    if (progressTimerRef.current) clearTimeout(progressTimerRef.current)
+    progressTimerRef.current = setTimeout(flushProgress, 2000)
+  }, [flushProgress])
+
+  // --- beforeunload: warn + flush on page close ---
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!dbSessionIdRef.current) return
+      // Cancel any pending debounced flush to avoid duplicate writes
+      if (progressTimerRef.current) { clearTimeout(progressTimerRef.current); progressTimerRef.current = null }
+      // Flush stats synchronously via sendBeacon
+      const sid = dbSessionIdRef.current
+      const stats = sessionStatsRef.current
+      const durationSeconds = sessionStartTime
+        ? Math.floor((Date.now() - sessionStartTime.getTime()) / 1000)
+        : 0
+      const payload = JSON.stringify({
+        session_id: sid,
+        stats: {
+          ...stats,
+          duration_seconds: durationSeconds,
+          current_index: currentIndexRef.current,
+        },
+      })
+      const blob = new Blob([payload], { type: 'application/json' })
+      navigator.sendBeacon?.('/api/prospecting-session-progress', blob)
+      // Show browser warning
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [sessionStartTime])
+
   // --- Batch mutation ---
   const addBatchMutation = useAddBatchToProspectingQueue()
   const [batchAddCount, setBatchAddCount] = useState(0)
@@ -235,6 +300,8 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const handleEndSession = useCallback(() => {
     const deps = depsRef.current
     if (!deps) return
+    // Clear pending debounce timer to avoid stale flush after session ends
+    if (progressTimerRef.current) { clearTimeout(progressTimerRef.current); progressTimerRef.current = null }
     const { queue } = deps.queueDeps
     const completed = queue.filter(q => q.status === 'completed').length
     const skipped = queue.filter(q => q.status === 'skipped').length
@@ -278,7 +345,9 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     }))
     deps.queueDeps.markCompleted(outcome)
     deps.metricsDeps.invalidateMetrics()
-  }, [])
+    // Flush stats + position to DB (debounced 2s)
+    scheduleFlush()
+  }, [scheduleFlush])
 
   const handleApplyFilters = useCallback(() => {
     const deps = depsRef.current
@@ -373,7 +442,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     setAllActiveSessions([])
     await deps.queueDeps.startSession()
     // CP-4.9: Load stats from DB if valid, otherwise fallback to zeros
-    const dbStats = pendingActiveSession.stats
+    const dbStats = pendingActiveSession.stats as (ProspectingSessionStats & { current_index?: number }) | Record<string, never>
     if (isValidSessionStats(dbStats)) {
       setSessionStats({
         total: dbStats.total,
@@ -384,6 +453,11 @@ export function useProspectingPageState(userId?: string, organizationId?: string
         voicemail: dbStats.voicemail ?? 0,
         busy: dbStats.busy ?? 0,
       })
+      // Restore queue position from DB (ref + queue hook state)
+      if (typeof dbStats.current_index === 'number' && dbStats.current_index >= 0) {
+        currentIndexRef.current = dbStats.current_index
+        deps.queueDeps.jumpToIndex(dbStats.current_index)
+      }
     } else {
       // Legacy session or empty stats — start from zero
       setSessionStats({
@@ -531,6 +605,11 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     handleDismissActiveSession,
     handleDismissAllSessions,
     handleIgnoreActiveSession,
+
+    // Session progress sync
+    syncCurrentIndex,
+    currentIndexRef,
+    scheduleFlush,
 
     // Batch progress
     isBatchAdding: addBatchMutation.isPending,

@@ -196,6 +196,11 @@ function normalizeTemperature(v: string | undefined): string | undefined {
   return undefined;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function isValidEmail(v: string): boolean {
+  return EMAIL_REGEX.test(v) && v.length <= 254;
+}
+
 function normalizeContactType(v: string | undefined): string | undefined {
   if (!v) return undefined;
   const s = normalizeHeader(v).toUpperCase();
@@ -220,6 +225,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Arquivo CSV não enviado (field "file").' }, { status: 400 });
     }
 
+    // Server-side file size limit (5MB) — defense in depth beyond client validation
+    const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json({ error: `Arquivo excede o limite de 5MB (${(file.size / 1024 / 1024).toFixed(1)}MB).` }, { status: 413 });
+    }
+
     const columnMappingRaw = form.get('columnMapping');
     const ignoreHeader = form.get('ignoreHeader') === 'true';
     const dealConfigRaw = form.get('dealConfig');
@@ -227,7 +238,9 @@ export async function POST(req: Request) {
     if (dealConfigRaw) {
       try {
         dealConfig = JSON.parse(String(dealConfigRaw));
-      } catch { /* ignore invalid */ }
+      } catch {
+        return NextResponse.json({ error: 'dealConfig JSON inválido.' }, { status: 400 });
+      }
     }
 
     const text = await file.text();
@@ -278,13 +291,19 @@ export async function POST(req: Request) {
       const email = getCell(r, mapping.email);
       const phone = getCell(r, mapping.phone);
 
+      // Validate email format if provided
+      const validatedEmail = email && isValidEmail(email) ? email : undefined;
+      if (email && !validatedEmail) {
+        errors.push({ rowNumber, message: `Email inválido: "${email}"` });
+      }
+
       const computedName =
         (firstName || lastName)
           ? [firstName, lastName].filter(Boolean).join(' ').trim()
           : name;
 
-      if (!computedName && !email) {
-        errors.push({ rowNumber, message: 'Linha sem nome e sem email (não consigo criar contato).' });
+      if (!computedName && !validatedEmail) {
+        errors.push({ rowNumber, message: 'Linha sem nome e sem email válido (não consigo criar contato).' });
         continue;
       }
 
@@ -300,7 +319,7 @@ export async function POST(req: Request) {
         customFields: cfData,
         data: {
           name: computedName,
-          email,
+          email: validatedEmail,
           phone,
           status: normalizeStatus(getCell(r, mapping.status)),
           stage: normalizeStage(getCell(r, mapping.stage)),
@@ -478,6 +497,7 @@ export async function POST(req: Request) {
     let updated = 0;
     let skipped = 0;
     const importedContactIds: string[] = []; // track all created/updated IDs for lead score
+    const reusedContactIds: string[] = []; // track IDs of skipped-but-existing contacts (for queue flows)
     const rowToContactId = new Map<number, string>(); // rowNumber → contact ID (for deal creation)
 
     // Import in manageable chunks to reduce payload sizes
@@ -554,6 +574,8 @@ export async function POST(req: Request) {
 
       if (normalizedMode === 'skip_duplicates' && allMatchedIds.length > 0) {
         skipped += 1;
+        reusedContactIds.push(allMatchedIds[0]);
+        rowToContactId.set(rowNumber, allMatchedIds[0]);
         continue;
       }
 
@@ -607,6 +629,7 @@ export async function POST(req: Request) {
 
     // ── Lead score recalculation ──
     let scoresRecalculated = 0;
+    let scoresFailed = 0;
     let scoresQueued = false;
 
     if (importedContactIds.length > 200) {
@@ -620,6 +643,7 @@ export async function POST(req: Request) {
           batch.map(async (cid) => {
             const { error: scoreErr } = await recalculateScore(cid, organizationId, supabase);
             if (!scoreErr) scoresRecalculated++;
+            else scoresFailed++;
           })
         );
       }
@@ -810,8 +834,11 @@ export async function POST(req: Request) {
         skipped,
         errors: errors.length,
         scoresRecalculated,
+        scoresFailed,
         dealsCreated,
       },
+      importedContactIds,
+      reusedContactIds,
       scoresQueued,
       errors,
       detectedHeaders: headers,

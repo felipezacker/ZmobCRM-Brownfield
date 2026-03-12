@@ -225,6 +225,9 @@ BEGIN
         AND d.owner_id = ANY(p_deal_owner_ids)
         AND d.deleted_at IS NULL
     ))
+  -- Safety cap: prevents OOM on large orgs. The paginated version
+  -- (get_prospecting_filtered_contacts) returns total_count for full results.
+  -- 5000 covers max queue size (100) with wide margin for filter-then-enqueue flows.
   LIMIT 5000;
 END;
 $$;
