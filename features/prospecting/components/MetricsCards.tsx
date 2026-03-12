@@ -2,12 +2,15 @@
 
 import React from 'react'
 import { Phone, PhoneCall, PhoneOff, Voicemail, Clock, Users } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import type { ProspectingMetrics } from '../hooks/useProspectingMetrics'
+import type { DrilldownCardType } from '../constants'
 import { formatDuration } from '../utils/formatDuration'
 
 interface MetricsCardsProps {
   metrics: ProspectingMetrics | null
   isLoading: boolean
+  onCardClick?: (cardType: DrilldownCardType) => void
 }
 
 function KpiCard({
@@ -16,15 +19,24 @@ function KpiCard({
   value,
   subtitle,
   color,
+  onClick,
 }: {
   icon: React.ElementType
   label: string
   value: string
   subtitle?: string
   color: string
+  onClick?: () => void
 }) {
   return (
-    <div className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4 shadow-sm">
+    <Button
+      variant="unstyled"
+      size="unstyled"
+      type="button"
+      onClick={onClick}
+      className="bg-white dark:bg-white/5 border border-border dark:border-border rounded-xl p-4 shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all text-left w-full"
+      aria-label={`Ver detalhes: ${label}`}
+    >
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg ${color}`}>
           <Icon size={18} className="text-white" />
@@ -37,7 +49,7 @@ function KpiCard({
           )}
         </div>
       </div>
-    </div>
+    </Button>
   )
 }
 
@@ -55,7 +67,7 @@ function SkeletonCard() {
   )
 }
 
-export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
+export function MetricsCards({ metrics, isLoading, onCardClick }: MetricsCardsProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
@@ -80,6 +92,7 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
         label="Ligações Discadas"
         value={total.toString()}
         color="bg-blue-500"
+        onClick={() => onCardClick?.('totalCalls')}
       />
       <KpiCard
         icon={PhoneCall}
@@ -87,6 +100,7 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
         value={connected.toString()}
         subtitle={pct(connected)}
         color="bg-emerald-500"
+        onClick={() => onCardClick?.('connected')}
       />
       <KpiCard
         icon={PhoneOff}
@@ -94,6 +108,7 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
         value={noAnswer.toString()}
         subtitle={pct(noAnswer)}
         color="bg-red-500"
+        onClick={() => onCardClick?.('noAnswer')}
       />
       <KpiCard
         icon={Voicemail}
@@ -101,6 +116,7 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
         value={voicemailCount.toString()}
         subtitle={pct(voicemailCount)}
         color="bg-amber-500"
+        onClick={() => onCardClick?.('voicemail')}
       />
       <KpiCard
         icon={Clock}
@@ -108,12 +124,14 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
         value={formatDuration(metrics?.avgDuration || 0)}
         subtitle={connected > 0 ? 'por ligação conectada' : undefined}
         color="bg-violet-500"
+        onClick={() => onCardClick?.('avgDuration')}
       />
       <KpiCard
         icon={Users}
         label="Contatos Prospectados"
         value={metrics?.uniqueContacts?.toString() || '0'}
         color="bg-primary-500"
+        onClick={() => onCardClick?.('uniqueContacts')}
       />
     </div>
   )
