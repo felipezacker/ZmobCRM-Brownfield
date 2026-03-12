@@ -171,6 +171,16 @@ vi.mock('../hooks/useProspectingMetrics', () => ({
     range: { start: '2026-03-01', end: '2026-03-10' },
     invalidateMetrics: vi.fn(),
   }),
+  getDateRange: () => ({ start: '2026-03-01', end: '2026-03-10' }),
+}))
+
+// CP-5.3: Mock impact hook
+vi.mock('../hooks/useProspectingImpact', () => ({
+  useProspectingImpact: () => ({
+    impact: null,
+    isLoading: false,
+    error: null,
+  }),
 }))
 
 vi.mock('../components/MetricsCards', () => ({

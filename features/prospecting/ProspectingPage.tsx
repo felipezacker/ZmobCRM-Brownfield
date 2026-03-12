@@ -15,6 +15,7 @@ import { MetricsChart } from './components/MetricsChart'
 import { ConversionFunnel } from './components/ConversionFunnel'
 import { AutoInsights } from './components/AutoInsights'
 import { CallDetailsTable } from './components/CallDetailsTable'
+import { ProspectingImpactSection } from './components/ProspectingImpactSection'
 import { CorretorRanking } from './components/CorretorRanking'
 import { DailyGoalCard } from './components/DailyGoalCard'
 import { ConnectionHeatmap } from './components/ConnectionHeatmap'
@@ -31,6 +32,7 @@ import { useSavedQueues } from './hooks/useSavedQueues'
 import { useProspectingQueue } from './hooks/useProspectingQueue'
 import { useProspectingFilteredContacts } from './hooks/useProspectingFilteredContacts'
 import { useProspectingMetrics } from './hooks/useProspectingMetrics'
+import { useProspectingImpact } from './hooks/useProspectingImpact'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { useTags } from '@/hooks/useTags'
@@ -122,6 +124,9 @@ export const ProspectingPage: React.FC = () => {
   // CP-1.4: Metrics
   const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined)
   const { invalidateMetrics, isAdminOrDirector } = metricsHook
+
+  // CP-5.3: Prospecting impact metrics
+  const impactHook = useProspectingImpact(metricsPeriod, customRange, metricsFilterOwnerId || undefined)
 
   // CP-3.6: Team average + user metrics for PerformanceComparison
   const teamAverage = useMemo(() => {
@@ -683,6 +688,14 @@ export const ProspectingPage: React.FC = () => {
               profiles={profiles}
               isLoading={metricsHook.isLoading}
             />
+
+            {/* CP-5.3: Prospecting impact on pipeline */}
+            <ProspectingErrorBoundary section="Impacto">
+              <ProspectingImpactSection
+                impact={impactHook.impact}
+                isLoading={impactHook.isLoading}
+              />
+            </ProspectingErrorBoundary>
           </div>
         ) : (
           <div className="space-y-4">
