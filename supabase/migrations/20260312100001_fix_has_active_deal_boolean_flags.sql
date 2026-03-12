@@ -211,6 +211,7 @@ BEGIN
         AND d.owner_id = ANY(p_deal_owner_ids)
         AND d.deleted_at IS NULL
     ))
+  -- Safety cap: prevents OOM on large orgs (queue max = 100, wide margin)
   LIMIT 5000;
 END;
 $$;

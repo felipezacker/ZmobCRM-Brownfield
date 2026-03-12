@@ -17,13 +17,25 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient()
-    const { error } = await supabase
+
+    // Auth guard: verify authenticated user owns this session
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    }
+
+    const { error, count } = await supabase
       .from('prospecting_sessions')
       .update({ stats })
       .eq('id', session_id)
+      .eq('owner_id', user.id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    if (count === 0) {
+      return NextResponse.json({ error: 'Session not found or not owned by user' }, { status: 403 })
     }
 
     return NextResponse.json({ ok: true })

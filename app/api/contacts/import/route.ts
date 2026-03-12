@@ -196,6 +196,11 @@ function normalizeTemperature(v: string | undefined): string | undefined {
   return undefined;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function isValidEmail(v: string): boolean {
+  return EMAIL_REGEX.test(v) && v.length <= 254;
+}
+
 function normalizeContactType(v: string | undefined): string | undefined {
   if (!v) return undefined;
   const s = normalizeHeader(v).toUpperCase();
@@ -218,6 +223,12 @@ export async function POST(req: Request) {
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: 'Arquivo CSV não enviado (field "file").' }, { status: 400 });
+    }
+
+    // Server-side file size limit (5MB) — defense in depth beyond client validation
+    const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json({ error: `Arquivo excede o limite de 5MB (${(file.size / 1024 / 1024).toFixed(1)}MB).` }, { status: 413 });
     }
 
     const columnMappingRaw = form.get('columnMapping');
@@ -278,13 +289,19 @@ export async function POST(req: Request) {
       const email = getCell(r, mapping.email);
       const phone = getCell(r, mapping.phone);
 
+      // Validate email format if provided
+      const validatedEmail = email && isValidEmail(email) ? email : undefined;
+      if (email && !validatedEmail) {
+        errors.push({ rowNumber, message: `Email inválido: "${email}"` });
+      }
+
       const computedName =
         (firstName || lastName)
           ? [firstName, lastName].filter(Boolean).join(' ').trim()
           : name;
 
-      if (!computedName && !email) {
-        errors.push({ rowNumber, message: 'Linha sem nome e sem email (não consigo criar contato).' });
+      if (!computedName && !validatedEmail) {
+        errors.push({ rowNumber, message: 'Linha sem nome e sem email válido (não consigo criar contato).' });
         continue;
       }
 
@@ -300,7 +317,7 @@ export async function POST(req: Request) {
         customFields: cfData,
         data: {
           name: computedName,
-          email,
+          email: validatedEmail,
           phone,
           status: normalizeStatus(getCell(r, mapping.status)),
           stage: normalizeStage(getCell(r, mapping.stage)),

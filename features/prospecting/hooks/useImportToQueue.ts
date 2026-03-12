@@ -242,7 +242,15 @@ export function useImportToQueue({ currentQueueSize, onAddBatchToQueue }: UseImp
         const idx = Number(tagsColIdx)
         rowsWithTag = rowsWithTag.map(row => {
           const existing = (row[idx] || '').trim()
-          row[idx] = existing ? `${existing},${autoTag}` : autoTag
+          // Deduplicate: don't add autoTag if already present
+          if (!existing) {
+            row[idx] = autoTag
+          } else {
+            const existingTags = existing.split(',').map(t => t.trim())
+            if (!existingTags.includes(autoTag)) {
+              row[idx] = `${existing},${autoTag}`
+            }
+          }
           return row
         })
       } else {

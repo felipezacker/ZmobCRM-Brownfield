@@ -8,7 +8,7 @@
  *   useRealtimeSync('deals');  // Subscribe to deals table changes
  *   useRealtimeSync(['deals', 'activities']);  // Multiple tables
  */
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
@@ -32,7 +32,7 @@ export function useRealtimeSync(
 ) {
   const { enabled = true, debounceMs = 100, onchange } = options;
   const queryClient = useQueryClient();
-  const instanceId = useId();
+  const instanceIdRef = useRef(crypto.randomUUID());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,7 +59,7 @@ export function useRealtimeSync(
 
     const parsed = JSON.parse(tablesKey);
     const tableList: RealtimeTable[] = Array.isArray(parsed) ? parsed : [parsed];
-    const channelName = `realtime-sync-${tableList.join('-')}-${instanceId}`;
+    const channelName = `realtime-sync-${tableList.join('-')}-${instanceIdRef.current}`;
 
     if (channelRef.current) {
       if (DEBUG_REALTIME) console.log(`[Realtime] Cleaning up existing channel: ${channelName}`);

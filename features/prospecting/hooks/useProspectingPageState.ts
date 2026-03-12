@@ -231,6 +231,8 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (!dbSessionIdRef.current) return
+      // Cancel any pending debounced flush to avoid duplicate writes
+      if (progressTimerRef.current) { clearTimeout(progressTimerRef.current); progressTimerRef.current = null }
       // Flush stats synchronously via sendBeacon
       const sid = dbSessionIdRef.current
       const stats = sessionStatsRef.current
