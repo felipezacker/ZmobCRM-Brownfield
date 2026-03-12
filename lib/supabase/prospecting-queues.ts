@@ -383,6 +383,15 @@ export const prospectingQueuesService = {
         return { data: { added: 0, skipped: contactIds.length }, error: null };
       }
 
+      // Hard limit: never exceed 100 items in queue
+      const currentCount = existingSet.size;
+      const maxNew = Math.max(0, 100 - currentCount);
+      const limitedContactIds = newContactIds.slice(0, maxNew);
+
+      if (limitedContactIds.length === 0) {
+        return { data: { added: 0, skipped: contactIds.length }, error: null };
+      }
+
       // Get max position for this owner
       const { data: maxPos } = await sb
         .from('prospecting_queues')
@@ -395,7 +404,7 @@ export const prospectingQueuesService = {
       let nextPosition = maxPos ? (maxPos as { position: number }).position + 1 : 0;
 
       // Build batch insert rows
-      const rows = newContactIds.map(contactId => ({
+      const rows = limitedContactIds.map(contactId => ({
         contact_id: sanitizeUUID(contactId),
         owner_id: ownerId,
         organization_id: orgId,
@@ -410,7 +419,7 @@ export const prospectingQueuesService = {
       if (error) return { data: null, error };
 
       return {
-        data: { added: newContactIds.length, skipped: contactIds.length - newContactIds.length },
+        data: { added: limitedContactIds.length, skipped: contactIds.length - limitedContactIds.length },
         error: null,
       };
     } catch (e) {

@@ -395,19 +395,6 @@ export const ProspectingPage: React.FC = () => {
               variant="unstyled"
               size="unstyled"
               type="button"
-              onClick={() => setViewQueueOwnerId('')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                !viewQueueOwnerId
-                  ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-              }`}
-            >
-              Minha fila
-            </Button>
-            <Button
-              variant="unstyled"
-              size="unstyled"
-              type="button"
               onClick={() => setViewQueueOwnerId('__all__')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                 isViewingAll
@@ -417,6 +404,19 @@ export const ProspectingPage: React.FC = () => {
             >
               <Users size={12} />
               Todos
+            </Button>
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              type="button"
+              onClick={() => setViewQueueOwnerId('')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                !viewQueueOwnerId
+                  ? 'bg-primary-500 text-white shadow-sm'
+                  : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
+              }`}
+            >
+              Minha fila
             </Button>
             <div className="w-px h-4 bg-accent dark:bg-accent shrink-0 mx-0.5" />
             {profiles.map(p => (
@@ -758,6 +758,7 @@ export const ProspectingPage: React.FC = () => {
                   availableTags={availableTags}
                   showCorretorFilter={isAdminOrDirector}
                   onApply={handleApplyFilters}
+                  onClose={() => setShowFilters(false)}
                 />
 
                 {/* Director: assign queue to corretor */}

@@ -69,6 +69,7 @@ export function DailyGoalCard({ progress, isLoading, isAdminOrDirector, onConfig
   const prevCompleteRef = useRef(progress.isComplete)
 
   useEffect(() => {
+    if (isLoading) return
     if (progress.isComplete && !prevCompleteRef.current) {
       setShowCelebration(true)
       const timer = setTimeout(() => setShowCelebration(false), 3000)
@@ -76,7 +77,7 @@ export function DailyGoalCard({ progress, isLoading, isAdminOrDirector, onConfig
       return () => clearTimeout(timer)
     }
     prevCompleteRef.current = progress.isComplete
-  }, [progress.isComplete])
+  }, [progress.isComplete, isLoading])
 
   if (isLoading) {
     return (

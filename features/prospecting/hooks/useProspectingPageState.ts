@@ -150,7 +150,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
 
   // --- Queue owner view ---
-  const [viewQueueOwnerId, setViewQueueOwnerId] = useState<string>('')
+  const [viewQueueOwnerId, setViewQueueOwnerId] = useState<string>('__all__')
   const isViewingAll = viewQueueOwnerId === '__all__'
 
   // --- Filter panel state ---

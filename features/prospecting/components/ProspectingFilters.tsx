@@ -76,6 +76,7 @@ interface ProspectingFiltersProps {
   availableTags: string[]
   showCorretorFilter: boolean
   onApply: () => void
+  onClose?: () => void
 }
 
 /** Multi-select dropdown for enum-based filters */
@@ -241,6 +242,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
   availableTags,
   showCorretorFilter,
   onApply,
+  onClose,
 }) => {
   const hasAnyFilter =
     filters.stages.length > 0 ||
@@ -294,6 +296,17 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
           >
             Aplicar Filtros
           </Button>
+          {onClose && (
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-muted dark:hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground"
+              aria-label="Fechar filtros"
+            >
+              <X size={16} />
+            </Button>
+          )}
         </div>
       </div>
 
