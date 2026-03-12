@@ -31,12 +31,29 @@ const DEFAULT_RETRY_OUTCOMES = ['no_answer']
 
 interface UseProspectingQueueOptions {
   viewOwnerId?: string
+  /** Callback to sync currentIndex to parent (session persistence) */
+  onCurrentIndexChange?: (index: number) => void
+  /** Initial currentIndex to restore from a resumed session */
+  initialCurrentIndex?: number
 }
 
 export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
   const [sessionActive, setSessionActive] = useState(false)
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentIndex, setCurrentIndexRaw] = useState(options?.initialCurrentIndex ?? 0)
   const [sessionId, setSessionId] = useState<string | undefined>()
+
+  // Stable ref for the callback to avoid deps churn
+  const onIndexChangeRef = useRef(options?.onCurrentIndexChange)
+  onIndexChangeRef.current = options?.onCurrentIndexChange
+
+  // Wrap setCurrentIndex to also notify parent for session persistence
+  const setCurrentIndex = useCallback((valueOrFn: number | ((prev: number) => number)) => {
+    setCurrentIndexRaw(prev => {
+      const next = typeof valueOrFn === 'function' ? valueOrFn(prev) : valueOrFn
+      onIndexChangeRef.current?.(next)
+      return next
+    })
+  }, [])
 
   // Realtime sync for prospecting queue changes from other users
   useRealtimeSync('prospecting_queues')
@@ -141,13 +158,18 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     } catch (e) {
       toast('Erro ao iniciar sessão', 'error')
     }
-  }, [startSessionMutation, toast])
+  }, [startSessionMutation, toast, setCurrentIndex])
 
   const endSession = useCallback(() => {
     setSessionActive(false)
     setCurrentIndex(0)
     setSessionId(undefined)
-  }, [])
+  }, [setCurrentIndex])
+
+  /** Jump to a specific queue index (used for session resume) */
+  const jumpToIndex = useCallback((index: number) => {
+    setCurrentIndex(index)
+  }, [setCurrentIndex])
 
   const advanceToNext = useCallback(() => {
     const nextPending = queue.findIndex(
@@ -159,7 +181,7 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
       // No more pending — session complete
       setSessionActive(false)
     }
-  }, [queue, currentIndex])
+  }, [queue, currentIndex, setCurrentIndex])
 
   const next = useCallback(() => {
     advanceToNext()
@@ -314,6 +336,7 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     moveToTop,
     reorderQueue,
     isReordering: reorderMutation.isPending,
+    jumpToIndex,
     refetch,
   }
 }

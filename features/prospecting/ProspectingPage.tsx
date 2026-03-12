@@ -196,7 +196,11 @@ export const ProspectingPage: React.FC = () => {
     return undefined
   }, [viewQueueOwnerId, isViewingAll, isAdminOrDirector, profile?.id])
 
-  const queueHook = useProspectingQueue({ viewOwnerId: resolvedViewOwnerId })
+  const queueHook = useProspectingQueue({
+    viewOwnerId: resolvedViewOwnerId,
+    onCurrentIndexChange: pageState.syncCurrentIndex,
+    initialCurrentIndex: pageState.currentIndexRef.current,
+  })
 
   const {
     queue,

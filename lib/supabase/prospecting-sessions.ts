@@ -57,6 +57,19 @@ export async function startProspectingSession(ownerId: string, organizationId: s
   return data.id
 }
 
+/** Incrementally update session progress (stats + queue position) without ending */
+export async function updateSessionProgress(
+  sessionId: string,
+  stats: Partial<ProspectingSessionStats> & { current_index?: number },
+): Promise<void> {
+  if (!supabase) return
+  const { error } = await supabase
+    .from('prospecting_sessions')
+    .update({ stats })
+    .eq('id', sessionId)
+  if (error) throw error
+}
+
 export async function endProspectingSession(sessionId: string, stats: ProspectingSessionStats): Promise<void> {
   if (!supabase) throw new Error('Supabase not initialized')
   const { error } = await supabase
