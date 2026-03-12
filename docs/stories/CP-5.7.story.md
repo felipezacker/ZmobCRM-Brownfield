@@ -201,7 +201,22 @@ N/A — zero issues during implementation
 | `features/prospecting/__tests__/metricsDrilldown.test.tsx` | Modificado | Testes para links |
 
 ## QA Results
-(pending)
+
+**Reviewer:** @qa (Quinn) | **Date:** 2026-03-12 | **Verdict:** PASS
+
+**AC Traceability:** 9/9 PASS — all acceptance criteria verified in code and tests.
+
+**Test Coverage:** 8 new tests (38 total in file), 1079/1079 suite-wide. Covers: link rendering, href correctness, target/rel attributes, null/unknown fallbacks for both views.
+
+**Security:** `rel="noopener"` on all 4 link points. Same-origin URLs. No XSS vectors.
+
+**Findings:**
+
+| Severity | Description | Action |
+|----------|-------------|--------|
+| LOW | No dedicated test for `contactId === 'unknown'` in grouped view fallback | Acceptable v1 — indirectly covered |
+
+**Regression:** Zero failures across 96 test files.
 
 ---
 
