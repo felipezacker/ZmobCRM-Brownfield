@@ -205,7 +205,7 @@ describe('CallQueue DnD (CP-4.7)', () => {
     expect(screen.getByText('Arraste requer ordenação por posição')).toBeInTheDocument()
   })
 
-  it('disables drag when isReordering is true', () => {
+  it('keeps drag enabled even while isReordering (optimistic update)', () => {
     render(
       <CallQueue
         items={items}
@@ -216,7 +216,8 @@ describe('CallQueue DnD (CP-4.7)', () => {
       />
     )
 
-    expect(screen.queryByLabelText('Arrastar para reordenar')).not.toBeInTheDocument()
+    // isReordering no longer disables drag — drag handles should be present
+    expect(screen.getAllByLabelText('Arrastar para reordenar').length).toBeGreaterThan(0)
   })
 })
 

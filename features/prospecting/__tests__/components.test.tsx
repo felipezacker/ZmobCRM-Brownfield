@@ -184,7 +184,7 @@ describe('QueueItem — batch selection (CP-4.5)', () => {
     const onToggle = vi.fn()
     render(<QueueItem item={makeItem({ id: 'test-id' })} onToggle={onToggle} selected={false} isSessionActive={false} />)
     fireEvent.click(screen.getByLabelText('Selecionar João Silva'))
-    expect(onToggle).toHaveBeenCalledWith('test-id')
+    expect(onToggle).toHaveBeenCalledWith('test-id', expect.anything())
   })
 
   it('checkbox acessível: focusável e acionável', () => {

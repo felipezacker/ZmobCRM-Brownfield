@@ -37,6 +37,7 @@ import { useTags } from '@/hooks/useTags'
 import { supabase } from '@/lib/supabase/client'
 import { SessionBriefing } from './components/SessionBriefing'
 import { SessionHistory } from './components/SessionHistory'
+import { ContactDetailModal } from '@/features/contacts/components/ContactDetailModal'
 import { listSessions, type ProspectingSession } from '@/lib/supabase/prospecting-sessions'
 import { suggestBestTime } from './utils/suggestBestTime'
 import { useProspectingPageState, type OrgProfile } from '@/features/prospecting/hooks/useProspectingPageState'
@@ -114,6 +115,7 @@ export const ProspectingPage: React.FC = () => {
 
   // CP-3.2: Note templates manager modal
   const [showTemplatesManager, setShowTemplatesManager] = useState(false)
+  const [contactModalId, setContactModalId] = useState<string | null>(null)
 
   // --- External feature hooks (use state values from pageState) ---
 
@@ -692,7 +694,7 @@ export const ProspectingPage: React.FC = () => {
                   onFiltersChange={setFilters}
                   profiles={profiles}
                   availableTags={availableTags}
-                  showOwnerFilter={isAdminOrDirector}
+                  showCorretorFilter={isAdminOrDirector}
                   onApply={handleApplyFilters}
                 />
 
@@ -757,6 +759,7 @@ export const ProspectingPage: React.FC = () => {
                 onBatchMoveToTop={moveToTop}
                 onReorder={reorderQueue}
                 isReordering={isReordering}
+                onOpenContact={setContactModalId}
               />
             </ProspectingErrorBoundary>
           </div>
@@ -805,6 +808,13 @@ export const ProspectingPage: React.FC = () => {
       <NoteTemplatesManager
         isOpen={showTemplatesManager}
         onClose={() => setShowTemplatesManager(false)}
+      />
+
+      {/* Contact detail modal (from queue item expand) */}
+      <ContactDetailModal
+        contactId={contactModalId}
+        isOpen={!!contactModalId}
+        onClose={() => setContactModalId(null)}
       />
     </div>
   )

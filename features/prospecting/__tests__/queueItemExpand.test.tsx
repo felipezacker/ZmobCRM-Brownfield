@@ -194,9 +194,9 @@ describe('QueueItem Expand (CP-4.4)', () => {
     expect(screen.getByText(/45\/100/)).toBeInTheDocument()
     expect(screen.getByText(/Morno/)).toBeInTheDocument()
 
-    // Ver perfil link
-    const profileLink = screen.getByText('Ver perfil')
-    expect(profileLink.closest('a')).toHaveAttribute('href', '/contacts?contactId=c-1')
+    // Ver perfil button (opens contact modal, not navigation)
+    const profileBtn = screen.getByText('Ver perfil')
+    expect(profileBtn.closest('button')).toBeTruthy()
   })
 
   // AC2 fallback: sem atividades

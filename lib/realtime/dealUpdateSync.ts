@@ -1,11 +1,12 @@
 import { QueryClient } from '@tanstack/react-query';
 import { queryKeys, DEALS_VIEW_KEY } from '@/lib/query/queryKeys';
-import type { DealView } from '@/types';
+import type { Deal, DealView } from '@/types';
 import { normalizeDealPayload } from './normalizeDealPayload';
 
 /**
  * Handle a deal UPDATE from Realtime by applying directly to cache.
  * Includes stale-detection logic to prevent reverting optimistic updates.
+ * Updates all 3 caches: DEALS_VIEW_KEY (enriched), deals.lists() (raw), deals.detail (single).
  */
 export function handleDealUpdate(
   queryClient: QueryClient,
@@ -17,6 +18,9 @@ export function handleDealUpdate(
                          typeof newData.status === 'string' ? newData.status : null;
   const payloadOldStatus = typeof oldData.stage_id === 'string' ? oldData.stage_id :
                            typeof oldData.status === 'string' ? oldData.status : null;
+
+  // Normalize once, reuse across all cache updates
+  const normalizedData = normalizeDealPayload(newData);
 
   queryClient.setQueryData<DealView[]>(
     DEALS_VIEW_KEY,
@@ -64,8 +68,6 @@ export function handleDealUpdate(
         }
       }
 
-      const normalizedData = normalizeDealPayload(newData);
-
       return old.map((deal) => {
         if (deal.id === dealId) {
           return { ...deal, ...normalizedData };
@@ -74,6 +76,31 @@ export function handleDealUpdate(
       });
     }
   );
+
+  // Update raw deals cache (keeps DealDetailModal in sync)
+  queryClient.setQueryData<Deal[]>(
+    queryKeys.deals.lists(),
+    (old) => {
+      if (!old || !Array.isArray(old)) return old;
+      const exists = old.find((d) => d.id === dealId);
+      if (!exists) return old;
+      return old.map((deal) => {
+        if (deal.id === dealId) {
+          return { ...deal, ...normalizedData } as Deal;
+        }
+        return deal;
+      });
+    }
+  );
+
+  // Update detail cache if it exists
+  const detailData = queryClient.getQueryData<Deal>(queryKeys.deals.detail(dealId));
+  if (detailData) {
+    queryClient.setQueryData<Deal>(
+      queryKeys.deals.detail(dealId),
+      { ...detailData, ...normalizedData } as Deal
+    );
+  }
 
   // Still invalidate dashboard stats
   queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.stats });

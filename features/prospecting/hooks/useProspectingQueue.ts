@@ -283,8 +283,10 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
   // CP-4.7: Reordenar fila via drag-and-drop
   const reorderQueue = useCallback((newItems: ProspectingQueueItem[]) => {
     const updates = newItems.map((item, index) => ({ id: item.id, position: index }))
-    reorderMutation.mutate(updates)
-  }, [reorderMutation])
+    reorderMutation.mutate(updates, {
+      onError: () => toast('Erro ao salvar ordem', 'error'),
+    })
+  }, [reorderMutation, toast])
 
   return {
     queue,

@@ -33,15 +33,17 @@ interface CallQueueProps {
   onBatchMoveToTop?: (ids: string[]) => Promise<void>
   onReorder?: (items: ProspectingQueueItem[]) => void
   isReordering?: boolean
+  onOpenContact?: (contactId: string) => void
 }
 
-export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = [], isLoading, onRemove, onClearAll, onResetExhausted, isClearing, removingId, ownerName, isSessionActive, onBatchRemove, onBatchMoveToTop, onReorder, isReordering }) => {
+export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = [], isLoading, onRemove, onClearAll, onResetExhausted, isClearing, removingId, ownerName, isSessionActive, onBatchRemove, onBatchMoveToTop, onReorder, isReordering, onOpenContact }) => {
   const [confirmClear, setConfirmClear] = useState(false)
   const [sortBy, setSortBy] = useState<'position' | 'score'>('position')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [confirmBatchRemove, setConfirmBatchRemove] = useState(false)
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
+  const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null)
 
   // CP-4.5 QA fix: limpar selectedIds stale quando items mudam (ex: remove individual)
   const itemIds = useMemo(() => new Set(items.map(i => i.id)), [items])
@@ -73,7 +75,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
   })
   const sensors = useSensors(pointerSensor, touchSensor)
 
-  const isDragDisabled = sortBy === 'score' || !!isSessionActive || !!isReordering
+  const isDragDisabled = sortBy === 'score' || !!isSessionActive
 
   // CP-4.7: Handle drag end
   const handleDragEnd = useCallback((event: DragEndEvent) => {
@@ -88,18 +90,32 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
     onReorder(reordered)
   }, [sortedItems, onReorder])
 
-  // CP-4.5: Selection handlers
-  const handleToggle = useCallback((id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }, [])
+  // CP-4.5: Selection handlers (with shift+click range select)
+  const handleToggle = useCallback((id: string, event?: React.MouseEvent) => {
+    const clickedIndex = sortedItems.findIndex(i => i.id === id)
+
+    if (event?.shiftKey && lastClickedIndex !== null && clickedIndex !== -1) {
+      const start = Math.min(lastClickedIndex, clickedIndex)
+      const end = Math.max(lastClickedIndex, clickedIndex)
+      const rangeIds = sortedItems.slice(start, end + 1).map(i => i.id)
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        rangeIds.forEach(rid => next.add(rid))
+        return next
+      })
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        if (next.has(id)) {
+          next.delete(id)
+        } else {
+          next.add(id)
+        }
+        return next
+      })
+    }
+    setLastClickedIndex(clickedIndex)
+  }, [sortedItems, lastClickedIndex])
 
   const handleSelectAll = useCallback(() => {
     if (selectedIds.size === items.length) {
@@ -329,6 +345,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
               onToggle={!isSessionActive ? handleToggle : undefined}
               isSessionActive={isSessionActive}
               isDragDisabled={isDragDisabled}
+              onOpenContact={onOpenContact}
             />
           ))}
         </SortableContext>

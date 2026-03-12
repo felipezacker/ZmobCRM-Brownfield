@@ -1,6 +1,6 @@
 import React from 'react'
 import { ExternalLink, Phone, Mail, Clock, FileText, TrendingUp } from 'lucide-react'
-import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { useContactActivities } from '@/lib/query/hooks/useActivitiesQuery'
 
 interface QueueItemDetailsProps {
@@ -9,6 +9,7 @@ interface QueueItemDetailsProps {
   contactStage?: string
   leadScore?: number | null
   isExpanded: boolean
+  onOpenContact?: (contactId: string) => void
 }
 
 function getScoreLabel(score: number): { label: string; color: string } {
@@ -40,7 +41,7 @@ const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
   TASK: <Clock size={12} className="text-green-500" />,
 }
 
-export function QueueItemDetails({ contactId, contactEmail, contactStage, leadScore, isExpanded }: QueueItemDetailsProps) {
+export function QueueItemDetails({ contactId, contactEmail, contactStage, leadScore, isExpanded, onOpenContact }: QueueItemDetailsProps) {
   // Fetch last activity on demand (only when expanded)
   const { data: activities, isLoading } = useContactActivities(
     isExpanded ? contactId : undefined,
@@ -72,7 +73,13 @@ export function QueueItemDetails({ contactId, contactEmail, contactStage, leadSc
 
       {/* Last activity */}
       {lastActivity ? (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Button
+          variant="unstyled"
+          size="unstyled"
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onOpenContact?.(contactId) }}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-left cursor-pointer"
+        >
           {ACTIVITY_ICONS[lastActivity.type] || <Clock size={12} />}
           <span className="truncate">
             {lastActivity.title || lastActivity.type}
@@ -80,19 +87,25 @@ export function QueueItemDetails({ contactId, contactEmail, contactStage, leadSc
           <span className="text-[10px] shrink-0">
             {formatRelativeDate(lastActivity.date)}
           </span>
-        </div>
+        </Button>
       ) : (
         <div className="text-xs text-muted-foreground/60">Sem atividades registradas</div>
       )}
 
       {/* Last note (if different from last activity) */}
       {lastNote && lastNote.id !== lastActivity?.id && lastNote.title && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Button
+          variant="unstyled"
+          size="unstyled"
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onOpenContact?.(contactId) }}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-left cursor-pointer"
+        >
           <FileText size={11} className="text-amber-500 shrink-0" />
           <span className="truncate">
             {lastNote.title.length > 100 ? lastNote.title.slice(0, 100) + '...' : lastNote.title}
           </span>
-        </div>
+        </Button>
       )}
 
       {/* Lead score with label */}
@@ -105,14 +118,17 @@ export function QueueItemDetails({ contactId, contactEmail, contactStage, leadSc
         </div>
       )}
 
-      {/* View profile button */}
-      <Link
-        href={`/contacts?contactId=${contactId}`}
-        className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+      {/* View profile button — opens modal instead of navigating */}
+      <Button
+        variant="unstyled"
+        size="unstyled"
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onOpenContact?.(contactId) }}
+        className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1 cursor-pointer"
       >
         <ExternalLink size={11} />
         Ver perfil
-      </Link>
+      </Button>
     </div>
   )
 }

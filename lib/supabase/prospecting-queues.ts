@@ -608,7 +608,7 @@ export const prospectingQueuesService = {
   /**
    * Atualiza posições dos itens da fila (CP-4.7).
    * Usado para persistir reordenação via drag-and-drop.
-   * Executa updates em paralelo via Promise.all para melhor performance.
+   * Otimizado: single RPC call em vez de N queries paralelas.
    */
   async updatePositions(updates: { id: string; position: number }[]): Promise<{ error: Error | null }> {
     try {
@@ -616,16 +616,26 @@ export const prospectingQueuesService = {
       if (!sb) return { error: new Error('Supabase não configurado') };
       if (updates.length === 0) return { error: null };
 
-      const results = await Promise.all(
-        updates.map(update =>
-          sb.from('prospecting_queues')
-            .update({ position: update.position })
-            .eq('id', update.id)
-        )
-      );
+      const { error } = await sb.rpc('batch_update_queue_positions', {
+        p_updates: JSON.stringify(updates),
+      });
 
-      const firstError = results.find(r => r.error);
-      if (firstError?.error) return { error: new Error(firstError.error.message) };
+      if (error) {
+        // Fallback to parallel updates if RPC doesn't exist yet
+        if (error.message?.includes('function') || error.code === '42883') {
+          const results = await Promise.all(
+            updates.map(update =>
+              sb.from('prospecting_queues')
+                .update({ position: update.position })
+                .eq('id', update.id)
+            )
+          );
+          const firstError = results.find(r => r.error);
+          if (firstError?.error) return { error: new Error(firstError.error.message) };
+          return { error: null };
+        }
+        return { error: new Error(error.message) };
+      }
 
       return { error: null };
     } catch (e) {

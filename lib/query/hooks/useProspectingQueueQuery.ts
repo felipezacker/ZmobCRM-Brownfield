@@ -460,15 +460,15 @@ export const useReorderQueue = () => {
         queryKey: queryKeys.prospectingQueue.lists(),
       })
 
+      // Optimistic: reorder cache immediately
       queryClient.setQueriesData<ProspectingQueueItem[]>(
         { queryKey: queryKeys.prospectingQueue.lists() },
         (old) => {
           if (!old) return old
-          return [...old].sort((a, b) => {
-            const posA = updates.find(u => u.id === a.id)?.position ?? a.position
-            const posB = updates.find(u => u.id === b.id)?.position ?? b.position
-            return posA - posB
-          })
+          const posMap = new Map(updates.map(u => [u.id, u.position]))
+          return [...old]
+            .map(item => posMap.has(item.id) ? { ...item, position: posMap.get(item.id)! } : item)
+            .sort((a, b) => a.position - b.position)
         }
       )
 
@@ -479,8 +479,7 @@ export const useReorderQueue = () => {
         queryClient.setQueryData(key, data)
       })
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
-    },
+    // No onSettled invalidation — optimistic update is authoritative.
+    // Avoids refetch flicker after drop.
   })
 }

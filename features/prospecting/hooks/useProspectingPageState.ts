@@ -14,7 +14,7 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useAddBatchToProspectingQueue, useQueueContactIds } from '@/lib/query/hooks/useProspectingQueueQuery'
-import { INITIAL_FILTERS, type ProspectingFiltersState } from '@/features/prospecting/components/ProspectingFilters'
+import { INITIAL_FILTERS, migrateFilters, type ProspectingFiltersState } from '@/features/prospecting/components/ProspectingFilters'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
 import type { MetricsPeriod, PeriodRange, ProspectingMetrics, CallActivity } from '@/features/prospecting/hooks/useProspectingMetrics'
 import type { SavedQueue } from '@/lib/supabase/prospecting-saved-queues'
@@ -157,7 +157,9 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     try {
       if (typeof window === 'undefined') return INITIAL_FILTERS
       const stored = localStorage.getItem(FILTERS_STORAGE_KEY)
-      return stored ? JSON.parse(stored) : INITIAL_FILTERS
+      if (!stored) return INITIAL_FILTERS
+      // Migrate old format (source→sources, ownerId removed, dealOwnerId→dealOwnerIds)
+      return migrateFilters(JSON.parse(stored))
     } catch {
       return INITIAL_FILTERS
     }

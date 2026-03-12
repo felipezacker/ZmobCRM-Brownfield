@@ -19,7 +19,10 @@ export function normalizeDealPayload(data: Record<string, unknown>): Record<stri
 
   for (const [snake, camel] of snakeToCamel) {
     if (result[snake] !== undefined && result[camel] === undefined) {
-      result[camel] = result[snake];
+      // Skip null/undefined values to avoid overwriting existing deal data (e.g., boardId)
+      if (result[snake] !== null) {
+        result[camel] = result[snake];
+      }
       delete result[snake];
     }
   }

@@ -3,7 +3,7 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useProspectingFilteredContacts } from '../hooks/useProspectingFilteredContacts'
-import { INITIAL_FILTERS, type ProspectingFiltersState } from '../components/ProspectingFilters'
+import { INITIAL_FILTERS } from '../components/ProspectingFilters'
 
 // ── Mocks ──────────────────────────────────────────────
 
@@ -87,10 +87,11 @@ describe('useProspectingFilteredContacts', () => {
         temperatures: ['HOT'],
         classifications: [],
         tags: ['VIP'],
-        source: 'WEBSITE',
-        ownerId: 'u-2',
+        sources: ['WEBSITE'],
+        dealOwnerIds: ['u-2'],
         inactiveDays: 30,
         onlyWithPhone: true,
+        hasActiveDeal: null,
       })
     })
 
@@ -100,10 +101,11 @@ describe('useProspectingFilteredContacts', () => {
         temperatures: ['HOT'],
         classifications: undefined,
         tags: ['VIP'],
-        source: 'WEBSITE',
-        ownerId: 'u-2',
+        sources: ['WEBSITE'],
+        dealOwnerIds: ['u-2'],
         inactiveDays: 30,
         onlyWithPhone: true,
+        hasActiveDeal: undefined,
         page: 0,
         pageSize: 50,
       })
@@ -198,16 +200,7 @@ describe('useProspectingFilteredContacts', () => {
     })
 
     act(() => {
-      result.current.applyFilters({
-        stages: [],
-        temperatures: [],
-        classifications: [],
-        tags: [],
-        source: '',
-        ownerId: '',
-        inactiveDays: null,
-        onlyWithPhone: false,
-      })
+      result.current.applyFilters(INITIAL_FILTERS)
     })
 
     await waitFor(() => {
@@ -217,8 +210,8 @@ describe('useProspectingFilteredContacts', () => {
           temperatures: undefined,
           classifications: undefined,
           tags: undefined,
-          source: undefined,
-          ownerId: undefined,
+          sources: undefined,
+          dealOwnerIds: undefined,
           inactiveDays: undefined,
           onlyWithPhone: undefined,
         })

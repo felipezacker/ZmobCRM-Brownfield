@@ -29,12 +29,13 @@ interface QueueItemProps {
   isExpanded?: boolean
   onToggleExpand?: (id: string) => void
   selected?: boolean
-  onToggle?: (id: string) => void
+  onToggle?: (id: string, event?: React.MouseEvent) => void
   isSessionActive?: boolean
   isDragDisabled?: boolean
+  onOpenContact?: (contactId: string) => void
 }
 
-export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving, isExpanded = false, onToggleExpand, selected, onToggle, isSessionActive, isDragDisabled }) => {
+export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving, isExpanded = false, onToggleExpand, selected, onToggle, isSessionActive, isDragDisabled, onOpenContact }) => {
   const status = STATUS_LABELS[item.status] || STATUS_LABELS.pending
 
   const {
@@ -51,8 +52,11 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : undefined,
+    transition: transition || 'transform 200ms ease',
+    opacity: isDragging ? 0.4 : undefined,
+    zIndex: isDragging ? 50 : undefined,
+    boxShadow: isDragging ? '0 8px 25px rgba(0,0,0,0.15)' : undefined,
+    scale: isDragging ? '1.02' : undefined,
   }
 
   return (
@@ -95,8 +99,8 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
           <input
             type="checkbox"
             checked={!!selected}
-            onChange={() => onToggle(item.id)}
-            onClick={(e) => e.stopPropagation()}
+            onChange={() => {/* handled by onClick */}}
+            onClick={(e) => { e.stopPropagation(); onToggle(item.id, e as unknown as React.MouseEvent) }}
             aria-label={`Selecionar ${item.contactName || 'contato'}`}
             className="flex-shrink-0 w-4 h-4 rounded border-border text-primary-500 focus:ring-2 focus:ring-primary-500 cursor-pointer"
           />
@@ -169,6 +173,7 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
           contactStage={item.contactStage}
           leadScore={item.leadScore}
           isExpanded={isExpanded}
+          onOpenContact={onOpenContact}
         />
       )}
     </div>

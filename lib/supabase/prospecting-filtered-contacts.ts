@@ -33,10 +33,11 @@ export interface FilteredContactsParams {
   temperatures?: string[]
   classifications?: string[]
   tags?: string[]
-  source?: string
-  ownerId?: string
+  sources?: string[]
+  dealOwnerIds?: string[]
   inactiveDays?: number
   onlyWithPhone?: boolean
+  hasActiveDeal?: boolean | null
   page?: number
   pageSize?: number
 }
@@ -54,10 +55,11 @@ export const prospectingFilteredContactsService = {
         p_temperatures: params.temperatures?.length ? params.temperatures : null,
         p_classifications: params.classifications?.length ? params.classifications : null,
         p_tags: params.tags?.length ? params.tags : null,
-        p_source: params.source || null,
-        p_owner_id: params.ownerId || null,
+        p_sources: params.sources?.length ? params.sources : null,
         p_inactive_days: params.inactiveDays ?? null,
         p_only_with_phone: params.onlyWithPhone ?? false,
+        p_has_active_deal: params.hasActiveDeal ?? null,
+        p_deal_owner_ids: params.dealOwnerIds?.length ? params.dealOwnerIds : null,
         p_page: params.page ?? 0,
         p_page_size: params.pageSize ?? 50,
       })
@@ -121,10 +123,11 @@ export const prospectingFilteredContactsService = {
         p_temperatures: params.temperatures?.length ? params.temperatures : null,
         p_classifications: params.classifications?.length ? params.classifications : null,
         p_tags: params.tags?.length ? params.tags : null,
-        p_source: params.source || null,
-        p_owner_id: params.ownerId || null,
+        p_sources: params.sources?.length ? params.sources : null,
         p_inactive_days: params.inactiveDays ?? null,
         p_only_with_phone: params.onlyWithPhone ?? false,
+        p_has_active_deal: params.hasActiveDeal ?? null,
+        p_deal_owner_ids: params.dealOwnerIds?.length ? params.dealOwnerIds : null,
       })
 
       if (error) return { data: null, error }

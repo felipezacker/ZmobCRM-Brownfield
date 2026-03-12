@@ -270,17 +270,14 @@ export const useMoveDeal = () => {
       }
     },
 
-    // Only refetch deals on success (not contacts, not activities)
-    // NOTE: We DON'T invalidate here to avoid race condition with Realtime.
-    // The Realtime UPDATE event will handle synchronization.
-    // Invalidating here causes the deal to "jump back" because:
-    // 1. Optimistic update moves deal visually
-    // 2. Server confirms update
-    // 3. onSettled invalidates → refetch (may get stale data if timing is off)
-    // 4. Realtime UPDATE arrives → invalidates again → refetch (may overwrite with old data)
-    // By skipping invalidation here, we let Realtime handle sync naturally.
-    onSettled: () => {
-      // Let Realtime handle synchronization - it will invalidate when the UPDATE event arrives
+    // Delayed invalidation as safety net: if Realtime misses the event,
+    // this ensures the cache self-corrects after 3 seconds.
+    // The delay avoids racing with the optimistic update.
+    onSettled: (_data, _error, { dealId }) => {
+      setTimeout(() => {
+        // Only invalidate the detail cache — DEALS_VIEW_KEY is handled by Realtime
+        queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(dealId) });
+      }, 3000);
     },
   });
 };
