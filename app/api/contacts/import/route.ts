@@ -238,7 +238,9 @@ export async function POST(req: Request) {
     if (dealConfigRaw) {
       try {
         dealConfig = JSON.parse(String(dealConfigRaw));
-      } catch { /* ignore invalid */ }
+      } catch {
+        return NextResponse.json({ error: 'dealConfig JSON inválido.' }, { status: 400 });
+      }
     }
 
     const text = await file.text();
@@ -627,6 +629,7 @@ export async function POST(req: Request) {
 
     // ── Lead score recalculation ──
     let scoresRecalculated = 0;
+    let scoresFailed = 0;
     let scoresQueued = false;
 
     if (importedContactIds.length > 200) {
@@ -640,6 +643,7 @@ export async function POST(req: Request) {
           batch.map(async (cid) => {
             const { error: scoreErr } = await recalculateScore(cid, organizationId, supabase);
             if (!scoreErr) scoresRecalculated++;
+            else scoresFailed++;
           })
         );
       }
@@ -830,6 +834,7 @@ export async function POST(req: Request) {
         skipped,
         errors: errors.length,
         scoresRecalculated,
+        scoresFailed,
         dealsCreated,
       },
       importedContactIds,

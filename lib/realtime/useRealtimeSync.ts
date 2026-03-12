@@ -36,6 +36,9 @@ export function useRealtimeSync(
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
   const pendingInvalidationsRef = useRef<Set<readonly unknown[]>>(new Set());
   const pendingInvalidateOnlyRef = useRef<Set<readonly unknown[]>>(new Set());
   const pendingBoardStagesInsertCountRef = useRef(0);
@@ -59,6 +62,8 @@ export function useRealtimeSync(
 
     const parsed = JSON.parse(tablesKey);
     const tableList: RealtimeTable[] = Array.isArray(parsed) ? parsed : [parsed];
+    // Generate fresh UUID on retry to avoid Supabase channel name collision
+    if (retryTrigger > 0) instanceIdRef.current = crypto.randomUUID();
     const channelName = `realtime-sync-${tableList.join('-')}-${instanceIdRef.current}`;
 
     if (channelRef.current) {
@@ -160,13 +165,28 @@ export function useRealtimeSync(
     channel.subscribe((status) => {
       if (DEBUG_REALTIME) console.log(`[Realtime] Channel ${channelName} status:`, status);
       setIsConnected(status === 'SUBSCRIBED');
-      if (status === 'CHANNEL_ERROR') console.error(`[Realtime] Channel error for ${channelName}`);
-      else if (status === 'TIMED_OUT') console.warn(`[Realtime] Channel timeout for ${channelName}`);
+      if (status === 'SUBSCRIBED') {
+        retryCountRef.current = 0;
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        const level = status === 'CHANNEL_ERROR' ? 'error' : 'warn';
+        console[level](`[Realtime] Channel ${level} for ${channelName}`);
+        // Exponential backoff retry (max 5 attempts, max 30s delay)
+        if (retryCountRef.current < 5) {
+          const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 30000);
+          retryCountRef.current += 1;
+          if (DEBUG_REALTIME) console.log(`[Realtime] Retry ${retryCountRef.current}/5 in ${delay}ms`);
+          retryTimerRef.current = setTimeout(() => {
+            // Force useEffect re-run which triggers cleanup+resubscribe
+            setRetryTrigger(n => n + 1);
+          }, delay);
+        }
+      }
     });
 
     channelRef.current = channel;
 
     return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       if (channelRef.current) {
         sb.removeChannel(channelRef.current);
@@ -174,7 +194,8 @@ export function useRealtimeSync(
       }
       setIsConnected(false);
     };
-  }, [enabled, tablesKey, debounceMs, queryClient]);
+  // retryTrigger forces effect re-run on exponential backoff reconnect
+  }, [enabled, tablesKey, debounceMs, queryClient, retryTrigger]);
 
   return {
     sync: () => {
