@@ -366,10 +366,14 @@ export const contactsService = {
 
       // Apply filters
       if (filters) {
-        // T007: Search filter (name OR email)
+        // T007: Search filter (name OR email OR phone)
         if (filters.search && filters.search.trim()) {
           const searchTerm = filters.search.trim().replace(/[%_\\]/g, '\\$&');
-          query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+          const phoneDigits = searchTerm.replace(/\D/g, '');
+          const phoneFilter = phoneDigits.length >= 3
+            ? `phone.ilike.%${phoneDigits}%`
+            : `phone.ilike.%${searchTerm}%`;
+          query = query.or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,${phoneFilter}`);
         }
 
         // T008: Stage filter

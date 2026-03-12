@@ -115,16 +115,16 @@ export function CallDetailsTable({ activities, profiles, isLoading }: CallDetail
                 <td className="py-2.5 px-2">
                   <OutcomeBadge outcome={activity.metadata?.outcome} />
                 </td>
-                <td className="py-2.5 px-2 max-w-[250px]">
+                <td className="py-2.5 px-2 max-w-[250px] overflow-hidden">
                   {activity.description ? (
                     <Button
                       variant="unstyled"
                       size="unstyled"
                       onClick={() => toggleExpand(activity.id)}
-                      className="text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-left text-xs text-muted-foreground hover:text-foreground transition-colors max-w-full"
                       aria-label={expandedRows.has(activity.id) ? 'Recolher notas' : 'Expandir notas'}
                     >
-                      <span className={expandedRows.has(activity.id) ? '' : 'line-clamp-2'}>
+                      <span className={`break-words ${expandedRows.has(activity.id) ? '' : 'line-clamp-2'}`}>
                         {activity.description}
                       </span>
                     </Button>

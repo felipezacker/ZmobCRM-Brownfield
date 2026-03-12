@@ -20,7 +20,9 @@ function matchesContactsServerFilters(contact: Contact, filters?: ContactsServer
     const q = filters.search.trim().toLowerCase();
     const nameOk = (contact.name || '').toLowerCase().includes(q);
     const emailOk = (contact.email || '').toLowerCase().includes(q);
-    if (!nameOk && !emailOk) return false;
+    const phoneDigits = q.replace(/\D/g, '');
+    const phoneOk = phoneDigits.length >= 3 && (contact.phone || '').replace(/\D/g, '').includes(phoneDigits);
+    if (!nameOk && !emailOk && !phoneOk) return false;
   }
 
   if (filters.stage && filters.stage !== 'ALL') {
@@ -78,7 +80,9 @@ export const useContacts = (filters?: ContactsFilters) => {
             const search = filters.search.toLowerCase();
             const matchName = (contact.name || '').toLowerCase().includes(search);
             const matchEmail = (contact.email || '').toLowerCase().includes(search);
-            if (!matchName && !matchEmail) return false;
+            const phoneDigits = search.replace(/\D/g, '');
+            const matchPhone = phoneDigits.length >= 3 && (contact.phone || '').replace(/\D/g, '').includes(phoneDigits);
+            if (!matchName && !matchEmail && !matchPhone) return false;
           }
           return true;
         });
