@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest'
 import {
   generateImportTag,
   PROSPECTING_CRM_FIELDS,
+  CHUNK_SIZE,
 } from '../hooks/useImportToQueue'
 
-describe('CP-IMP-2: Import traceability', () => {
+describe('CP-IMP-2/3: Import traceability & chunking', () => {
   describe('generateImportTag', () => {
     it('should generate tag with ISO date format', () => {
       const date = new Date(2026, 2, 12) // March 12, 2026
@@ -37,6 +38,12 @@ describe('CP-IMP-2: Import traceability', () => {
       expect(fieldValues).toContain('classification')
       expect(fieldValues).toContain('source')
       expect(fieldValues).toContain('_ignore')
+    })
+  })
+
+  describe('CHUNK_SIZE (CP-IMP-3)', () => {
+    it('should be 500', () => {
+      expect(CHUNK_SIZE).toBe(500)
     })
   })
 })
