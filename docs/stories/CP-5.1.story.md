@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-5.1
 - **Epic:** CP-5 (Prospeccao — Rastreabilidade & Vinculacao)
-- **Status:** Ready
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 8 (M-L)
 - **Wave:** 1
@@ -47,12 +47,12 @@ C) Permitir expand/collapse de notas no ContactHistory.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Ao salvar uma ligacao no PowerDialer, se o contato tem deals abertos (nao won/lost), o `deal_id` do deal mais recente e automaticamente vinculado a activity criada
-- [ ] AC2: Se o contato nao tem deals abertos, a activity e criada sem `deal_id` (comportamento atual preservado, sem erro)
-- [ ] AC3: A `CallDetailsTable` exibe uma coluna "Notas" que mostra o texto truncado da `description` da activity, com opcao de expandir ao clicar
-- [ ] AC4: O `ContactHistory` permite expandir/colapsar notas longas — ao clicar na nota truncada, exibe o texto completo
-- [ ] AC5: Ligacoes de prospeccao vinculadas a um deal aparecem na timeline do deal (via `useActivitiesByDeal` existente — nenhuma alteracao no hook necessaria, apenas o dealId correto na activity)
-- [ ] AC6: Quando um deal e criado via QuickActionsPanel apos uma ligacao, a activity da ligacao que acabou de ser feita e atualizada com o `deal_id` do novo deal
+- [x] AC1: Ao salvar uma ligacao no PowerDialer, se o contato tem deals abertos (nao won/lost), o `deal_id` do deal mais recente e automaticamente vinculado a activity criada
+- [x] AC2: Se o contato nao tem deals abertos, a activity e criada sem `deal_id` (comportamento atual preservado, sem erro)
+- [x] AC3: A `CallDetailsTable` exibe uma coluna "Notas" que mostra o texto truncado da `description` da activity, com opcao de expandir ao clicar
+- [x] AC4: O `ContactHistory` permite expandir/colapsar notas longas — ao clicar na nota truncada, exibe o texto completo
+- [x] AC5: Ligacoes de prospeccao vinculadas a um deal aparecem na timeline do deal (via `useActivitiesByDeal` existente — nenhuma alteracao no hook necessaria, apenas o dealId correto na activity)
+- [x] AC6: Quando um deal e criado via QuickActionsPanel apos uma ligacao, a activity da ligacao que acabou de ser feita e atualizada com o `deal_id` do novo deal
 
 ## Scope
 
@@ -96,15 +96,15 @@ C) Permitir expand/collapse de notas no ContactHistory.
 
 ## Criteria of Done
 
-- [ ] Ligacoes criadas no PowerDialer incluem `deal_id` quando contato tem deals abertos
-- [ ] Ligacoes sem deals abertos continuam funcionando sem erro
-- [ ] `CallDetailsTable` mostra notas com expand/collapse
-- [ ] `ContactHistory` permite ver nota completa ao clicar
-- [ ] Ligacoes de prospeccao aparecem na timeline do deal
-- [ ] QuickActionsPanel atualiza activity com `deal_id` do deal recem-criado
-- [ ] Testes unitarios cobrem: (a) vinculacao com deal, (b) sem deal, (c) expand/collapse UI
-- [ ] Lint e typecheck passando (`npm run lint && npm run typecheck`)
-- [ ] Nenhuma regressao no fluxo de prospeccao existente
+- [x] Ligacoes criadas no PowerDialer incluem `deal_id` quando contato tem deals abertos
+- [x] Ligacoes sem deals abertos continuam funcionando sem erro
+- [x] `CallDetailsTable` mostra notas com expand/collapse
+- [x] `ContactHistory` permite ver nota completa ao clicar
+- [x] Ligacoes de prospeccao aparecem na timeline do deal
+- [x] QuickActionsPanel atualiza activity com `deal_id` do deal recem-criado
+- [x] Testes unitarios cobrem: (a) vinculacao com deal, (b) sem deal, (c) expand/collapse UI
+- [x] Lint e typecheck passando (`npm run lint && npm run typecheck`)
+- [x] Nenhuma regressao no fluxo de prospeccao existente
 
 ## Tasks
 
@@ -146,11 +146,11 @@ C) Permitir expand/collapse de notas no ContactHistory.
   - [x] Subtask 6.3: Teste de `CallDetailsTable` — coluna de notas renderiza, expand/collapse funciona
   - [x] Subtask 6.4: Teste de `ContactHistory` — expand/collapse de notas longas
 
-- [ ] Task 7: Validacao de integracao (AC: 1, 3, 4, 5)
-  - [ ] Subtask 7.1: Testar em staging com contato que tem deal aberto — verificar que ligacao aparece na timeline do deal
-  - [ ] Subtask 7.2: Testar com contato sem deals — verificar que fluxo nao quebra
-  - [ ] Subtask 7.3: Verificar CallDetailsTable com notas longas e curtas
-  - [ ] Subtask 7.4: Verificar ContactHistory expand/collapse
+- [x] Task 7: Validacao de integracao (AC: 1, 3, 4, 5)
+  - [x] Subtask 7.1: Testar em staging com contato que tem deal aberto — verificar que ligacao aparece na timeline do deal
+  - [x] Subtask 7.2: Testar com contato sem deals — verificar que fluxo nao quebra
+  - [x] Subtask 7.3: Verificar CallDetailsTable com notas longas e curtas
+  - [x] Subtask 7.4: Verificar ContactHistory expand/collapse
 
 ## Dev Notes
 
@@ -319,6 +319,7 @@ Secondary Focus:
 | 2026-03-11 | 1.0 | Story criada | @pm (Morgan) |
 | 2026-03-11 | 1.1 | Validacao GO (10/10) — SF-1 corrigido (CreateDealModal.onCreated ja passa dealId). Status Draft -> Ready. | @po (Pax) |
 | 2026-03-11 | 1.2 | Tasks 1-6 implementadas. Auto-vinculacao deal, notas expand/collapse, 14 testes novos. Lint+typecheck OK. | @dev (Dex) |
+| 2026-03-12 | 1.3 | Task 7 validada em staging. ACs e Criteria of Done marcados. Status Ready → Done. | @devops (Gage) |
 
 ---
 
