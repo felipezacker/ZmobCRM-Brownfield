@@ -9,14 +9,22 @@ function json<T>(body: T, status = 200): Response {
   });
 }
 
+const VALIDATION_TIMEOUT_MS = 15_000;
+
 const ValidateSchema = z.object({
   provider: z.enum(['google', 'openai', 'anthropic']),
   apiKey: z.string().min(10, 'Chave muito curta'),
   model: z.string().min(1),
 });
 
+function fetchWithTimeout(url: string, init: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), VALIDATION_TIMEOUT_MS);
+  return fetch(url, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 async function validateGoogle(apiKey: string, model: string) {
-  const res = await fetch(
+  const res = await fetchWithTimeout(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${apiKey}`,
     {
       method: 'POST',
@@ -49,7 +57,7 @@ async function validateGoogle(apiKey: string, model: string) {
 }
 
 async function validateOpenAI(apiKey: string) {
-  const res = await fetch('https://api.openai.com/v1/models', {
+  const res = await fetchWithTimeout('https://api.openai.com/v1/models', {
     headers: { Authorization: `Bearer ${apiKey}` },
   });
 
@@ -59,7 +67,7 @@ async function validateOpenAI(apiKey: string) {
 }
 
 async function validateAnthropic(apiKey: string, model: string) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -126,6 +134,10 @@ export async function POST(req: Request) {
     return json(result);
   } catch (error) {
     console.error('[ai/validate] Validation error:', error);
-    return json({ valid: false, error: 'Falha ao conectar com o provedor. Tente novamente.' }, 500);
+    const isTimeout = error instanceof DOMException && error.name === 'AbortError';
+    const msg = isTimeout
+      ? 'Timeout ao conectar com o provedor. Tente novamente.'
+      : 'Falha ao conectar com o provedor. Tente novamente.';
+    return json({ valid: false, error: msg }, 500);
   }
 }
