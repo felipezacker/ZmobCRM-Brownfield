@@ -8,6 +8,7 @@
 import { supabase } from './client';
 import { sanitizeUUID } from './utils';
 import type { ProspectingQueueItem, ProspectingQueueStatus } from '@/types';
+import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config';
 
 // ============================================
 // HELPERS
@@ -383,9 +384,9 @@ export const prospectingQueuesService = {
         return { data: { added: 0, skipped: contactIds.length }, error: null };
       }
 
-      // Hard limit: never exceed 100 items in queue
+      // Hard limit: never exceed configured max items in queue
       const currentCount = existingSet.size;
-      const maxNew = Math.max(0, 100 - currentCount);
+      const maxNew = Math.max(0, PROSPECTING_CONFIG.QUEUE_MAX_CONTACTS - currentCount);
       const limitedContactIds = newContactIds.slice(0, maxNew);
 
       if (limitedContactIds.length === 0) {
