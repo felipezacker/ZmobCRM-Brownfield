@@ -13,13 +13,14 @@ const IV_LENGTH = 12; // 96-bit IV recommended for GCM
 const AUTH_TAG_LENGTH = 16;
 const PREFIX = 'enc:v1:';
 
-function getEncryptionKey(): Buffer {
+function getEncryptionKey(): Buffer | null {
  const keyHex = process.env.ENCRYPTION_KEY;
  if (!keyHex) {
- throw new Error('ENCRYPTION_KEY environment variable is not set');
+ return null;
  }
  if (keyHex.length !== 64) {
- throw new Error('ENCRYPTION_KEY must be a 64-character hex string (32 bytes)');
+ console.error('[encryption] ENCRYPTION_KEY must be a 64-character hex string (32 bytes)');
+ return null;
  }
  return Buffer.from(keyHex, 'hex');
 }
@@ -43,6 +44,12 @@ export function encryptApiKey(plaintext: string | null | undefined): string | nu
  if (isEncrypted(plaintext)) return plaintext;
 
  const key = getEncryptionKey();
+ if (!key) {
+  // Graceful degradation: store plaintext when ENCRYPTION_KEY is not configured
+  console.warn('[encryption] ENCRYPTION_KEY not set — storing API key without encryption');
+  return plaintext;
+ }
+
  const iv = randomBytes(IV_LENGTH);
  const cipher = createCipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_LENGTH });
 
@@ -66,6 +73,10 @@ export function decryptApiKey(encrypted: string | null | undefined): string {
 
  try {
  const key = getEncryptionKey();
+ if (!key) {
+  console.warn('[encryption] ENCRYPTION_KEY not set — cannot decrypt, returning empty');
+  return '';
+ }
  const parts = encrypted.slice(PREFIX.length).split(':');
 
  if (parts.length !== 3) {

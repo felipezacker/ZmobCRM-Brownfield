@@ -66,8 +66,9 @@ export interface ImportProgress {
   label: string
 }
 
-const MAX_ROWS = 500
+const MAX_ROWS = 5000
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+export const CHUNK_SIZE = 500 // CP-IMP-3: auto-split em lotes para a API
 
 // ---------------------------------------------------------------------------
 // Hook
@@ -223,75 +224,83 @@ export function useImportToQueue({ currentQueueSize, onAddBatchToQueue }: UseImp
     }
 
     try {
-      // ── Stage 1: Import via API ──
+      // ── Stage 1: Import via API (com auto-split em chunks) ──
       setProgress({ stage: 'importing', current: 0, total, label: `Importando 0/${total} contatos...` })
 
-      // AC4: Reconstruir CSV com APENAS linhas que passaram na validação de telefone.
-      // Sem isso, a API criaria contatos para linhas sem telefone (inúteis na fila de prospecção).
+      // Reconstruir rows com APENAS linhas válidas
       const validIndices = new Set(validRows.map(v => v.rowIndex))
       const filteredRows = parsed.rows.filter((_, i) => validIndices.has(i))
 
-      // CP-IMP-2: Injetar tag automática de rastreabilidade no CSV
+      // CP-IMP-2: Injetar tag automática de rastreabilidade
       const autoTag = generateImportTag()
       const tagsColIdx = Object.entries(columnMapping).find(([, v]) => v === 'tags')?.[0]
       let headersWithTag = [...parsed.headers]
       let rowsWithTag = filteredRows.map(r => [...r])
 
       if (tagsColIdx !== undefined) {
-        // Coluna tags já mapeada — concatenar tag automática ao valor existente
         const idx = Number(tagsColIdx)
         rowsWithTag = rowsWithTag.map(row => {
           const existing = (row[idx] || '').trim()
-          // Deduplicate: don't add autoTag if already present
-          if (!existing) {
-            row[idx] = autoTag
-          } else {
-            const existingTags = existing.split(',').map(t => t.trim())
-            if (!existingTags.includes(autoTag)) {
-              row[idx] = `${existing},${autoTag}`
-            }
-          }
+          row[idx] = existing ? `${existing},${autoTag}` : autoTag
           return row
         })
       } else {
-        // Sem coluna tags mapeada — adicionar nova coluna
         headersWithTag = [...headersWithTag, 'tags']
         rowsWithTag = rowsWithTag.map(row => [...row, autoTag])
       }
 
-      // Atualizar columnMapping para incluir a coluna tags (QA fix: sem isso a API ignora a coluna)
+      // Atualizar columnMapping para incluir a coluna tags (QA fix CP-IMP-2)
       const mappingForApi = { ...columnMapping }
       if (tagsColIdx === undefined) {
         mappingForApi[headersWithTag.length - 1] = 'tags'
       }
 
-      const csvContent = stringifyCsv([headersWithTag, ...rowsWithTag], ';')
-      const filteredFile = new File([csvContent], file.name, { type: 'text/csv' })
+      // CP-IMP-3: Auto-split em chunks de CHUNK_SIZE
+      let totalCreated = 0
+      let totalReused = 0
+      let totalApiErrors = 0
+      const allContactIds: string[] = []
+      let processedSoFar = 0
 
-      // Construir FormData para a API
-      const formData = new FormData()
-      formData.append('file', filteredFile)
-      formData.append('mode', 'skip_duplicates')
-      formData.append('delimiter', ';')
-      formData.append('columnMapping', JSON.stringify(mappingForApi))
+      const numChunks = Math.ceil(rowsWithTag.length / CHUNK_SIZE)
 
-      const res = await fetch('/api/contacts/import', { method: 'POST', body: formData })
-      const data = await res.json()
+      for (let chunkIdx = 0; chunkIdx < numChunks; chunkIdx++) {
+        const chunkRows = rowsWithTag.slice(chunkIdx * CHUNK_SIZE, (chunkIdx + 1) * CHUNK_SIZE)
+        const csvContent = stringifyCsv([headersWithTag, ...chunkRows], ';')
+        const chunkFile = new File([csvContent], file.name, { type: 'text/csv' })
 
-      if (!res.ok || !data.ok) {
-        setError(data.error || 'Erro na importação')
-        setStep('preview')
-        return
+        const formData = new FormData()
+        formData.append('file', chunkFile)
+        formData.append('mode', 'skip_duplicates')
+        formData.append('delimiter', ';')
+        formData.append('columnMapping', JSON.stringify(mappingForApi))
+
+        const res = await fetch('/api/contacts/import', { method: 'POST', body: formData })
+        const data = await res.json()
+
+        if (!res.ok || !data.ok) {
+          // Chunk falhou — reportar com totais parciais (AC5)
+          if (allContactIds.length === 0) {
+            setError(data.error || 'Erro na importação')
+            setStep('preview')
+            return
+          }
+          // Parciais já processados — prosseguir para enqueue com o que temos
+          totalApiErrors += chunkRows.length
+          break
+        }
+
+        totalCreated += data.totals?.created || 0
+        totalReused += data.totals?.skipped || 0
+        totalApiErrors += data.totals?.errors || 0
+
+        const importedIds: string[] = data.importedContactIds || []
+        const reusedIds: string[] = data.reusedContactIds || []
+        allContactIds.push(...importedIds, ...reusedIds)
+
+        processedSoFar += chunkRows.length
+        setProgress({ stage: 'importing', current: processedSoFar, total, label: `Importando ${processedSoFar}/${total} contatos...` })
       }
-
-
-      const createdCount: number = data.totals?.created || 0
-      const reusedCount: number = data.totals?.skipped || 0
-      const apiErrors: number = data.totals?.errors || 0
-
-      const importedIds: string[] = data.importedContactIds || []
-      const reusedIds: string[] = data.reusedContactIds || []
-      const allContactIds = [...importedIds, ...reusedIds]
 
       setProgress({ stage: 'importing', current: total, total, label: `Importação concluída` })
 
@@ -311,11 +320,11 @@ export function useImportToQueue({ currentQueueSize, onAddBatchToQueue }: UseImp
 
       // ── Summary ──
       const summaryResult: ImportSummary = {
-        created: createdCount,
-        reused: reusedCount,
+        created: totalCreated,
+        reused: totalReused,
         ignoredNoPhone: invalidCount,
         ignoredQueueFull,
-        errors: apiErrors,
+        errors: totalApiErrors,
         enqueuedCount,
       }
 
