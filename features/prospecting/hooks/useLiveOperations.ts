@@ -103,7 +103,7 @@ export function useLiveOperations(
 
       const lastAct = ownerActs.length > 0 ? ownerActs[0] : null
       const lastActivity = lastAct
-        ? { date: lastAct.date, outcome: lastAct.metadata?.outcome || 'unknown' }
+        ? { date: lastAct.date, outcome: lastAct.metadata?.outcome || '' }
         : null
 
       // Inactivity check

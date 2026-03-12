@@ -95,7 +95,7 @@ export const LiveOperationsPanel: React.FC<LiveOperationsPanelProps> = ({
       {/* Session list */}
       <ul role="list" className="space-y-2">
         {sessions.map(session => {
-          const badge = session.lastActivity ? getOutcomeBadge(session.lastActivity.outcome) : null
+          const badge = session.lastActivity?.outcome ? getOutcomeBadge(session.lastActivity.outcome) : null
           return (
             <li
               key={session.sessionId}
