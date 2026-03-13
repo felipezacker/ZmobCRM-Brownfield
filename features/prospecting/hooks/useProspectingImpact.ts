@@ -11,7 +11,6 @@
 
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import { useAuth } from '@/context/AuthContext'
 import { queryKeys } from '@/lib/query/queryKeys'
 import { supabase } from '@/lib/supabase/client'
@@ -46,8 +45,6 @@ export function useProspectingImpact(
   filterOwnerId?: string,
 ) {
   const { user, loading: authLoading } = useAuth()
-
-  useRealtimeSync('activities')
 
   const range = useMemo(() => getDateRange(period, customRange), [period, customRange])
 

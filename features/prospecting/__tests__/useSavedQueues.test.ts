@@ -5,10 +5,6 @@ import React from 'react'
 import { useSavedQueues } from '../hooks/useSavedQueues'
 import { prospectingSavedQueuesService } from '@/lib/supabase/prospecting-saved-queues'
 
-vi.mock('@/lib/realtime/useRealtimeSync', () => ({
-  useRealtimeSync: vi.fn(),
-}))
-
 vi.mock('@/lib/supabase/prospecting-saved-queues', () => ({
   prospectingSavedQueuesService: {
     list: vi.fn(),

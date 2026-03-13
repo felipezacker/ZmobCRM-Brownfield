@@ -316,5 +316,75 @@ features/
 | 2026-03-12 | 1.2 | Atualizacao alinhada com epic corrigido pelo @pm: contagem de chamadas redundantes corrigida de 6-8 para 12 (lista completa no Business Value); esforco atualizado de 2-3h para 3-4h. | @sm |
 | 2026-03-12 | 2.0 | Implementacao completa: `useRealtimeSyncAll` no Layout, `board_stages` adicionado ao SyncAll, 10 chamadas redundantes removidas de 9 hooks, imports limpos. Lint/typecheck/tests passam. Pendente: teste funcional manual (Task 6.2). | @dev |
 
+## QA Results
+
+### Review Date: 2026-03-12
+
+### Reviewed By: Quinn (Test Architect)
+
+### Code Quality Assessment
+
+A refatoracao central esta correta: 10 chamadas `useRealtimeSync` removidas de 9 hooks, imports limpos, `board_stages` adicionado ao `useRealtimeSyncAll`. Lint, typecheck e 95/97 testes passam (2 falhas pre-existentes). A implementacao segue os padroes do codebase.
+
+### Issues Encontrados
+
+**ISSUE-1 (HIGH): Dupla chamada useRealtimeSyncAll — 2 canais WebSocket ao inves de 1**
+
+- `providers.tsx:53` — `GlobalRealtimeBanner` chama `useRealtimeSyncAll()` e usa o return (connectionStatus, resetRetry)
+- `components/Layout.tsx:33` — @dev adicionou `useRealtimeSyncAll()` sem usar o return
+- Resultado: 2 canais WebSocket simultaneos, contradizendo AC7 ("numero de canais ativos e 1")
+- **Fix:** Remover `useRealtimeSyncAll()` e seu import de `Layout.tsx`. A chamada em `providers.tsx` ja cobre o caso — `providers.tsx` esta acima de `Layout` na arvore de componentes e o canal fica ativo enquanto o app shell existir.
+
+**ISSUE-2 (LOW): Subscricao residual em useProspectingImpact**
+
+- `features/prospecting/hooks/useProspectingImpact.ts:50` ainda chama `useRealtimeSync('activities')` — redundante com `useRealtimeSyncAll` no Layout
+- Fora do escopo da story (nao listado nos Tasks), mas gera canal extra quando o componente esta montado
+- **Recomendacao:** Registrar como tech debt para proxima story RT
+
+**ISSUE-3 (LOW): Mocks orfaos nos testes**
+
+- `useSavedQueues.test.ts:8-9` e `useProspectingQueue.test.ts:31-32` ainda mocam `useRealtimeSync` embora os hooks nao o usem mais
+- Nao causa falha (mock inofensivo), mas e dead code
+- **Recomendacao:** Remover mocks na proxima oportunidade
+
+### Compliance Check
+
+- Coding Standards: PASS
+- Project Structure: PASS
+- Testing Strategy: PASS (testes existentes continuam passando)
+- All ACs Met: CONCERNS (AC7 violado pela dupla chamada — fix simples necessario)
+
+### Acceptance Criteria Validation
+
+| AC | Status | Observacao |
+|----|--------|-----------|
+| AC1 | CONCERNS | `useRealtimeSyncAll` chamado no Layout, mas tambem em `providers.tsx` — necessario remover de um dos dois |
+| AC2 | PASS | Todos os 9 hooks feature tiveram `useRealtimeSync` removido |
+| AC3 | PASS | Ambas linhas 50-51 de `useInboxMessages.ts` removidas |
+| AC4 | PASS | `board_stages` adicionado ao `useRealtimeSyncAll`, `useRealtimeSyncKanban` removido de `useBoardsController` |
+| AC5 | PASS | `useProspectingQueue`, `useSavedQueues`, `useProspectingGoals` limpos |
+| AC6 | PENDING | Teste funcional manual nao executado (Task 6.2) |
+| AC7 | FAIL | 2 canais ativos (providers.tsx + Layout.tsx), deveria ser 1 |
+
+### Security Review
+
+Sem concerns de seguranca. Mudancas sao puramente de reorganizacao de hooks React — nenhuma logica de negocio, dados ou autenticacao alterada.
+
+### Performance Considerations
+
+A consolidacao reduzira canais WebSocket de ~12 para 1 (ou 2 apos fix do ISSUE-1 ser aplicado → 1). Impacto positivo em producao.
+
+### Commit Hygiene
+
+O commit `96bea59` inclui mudancas de outra(s) story(s): ConnectionStatus, browser connectivity listeners, RealtimeStatusBanner, normalizeDealPayload boardId handling, dealUpdateSync test, package.json. Recomenda-se commits atomicos por story para rastreabilidade.
+
+### Gate Status
+
+Gate: **CONCERNS** → docs/qa/gates/RT-0.4-consolidar-subscricoes-duplicadas.yml
+
+### Recommended Status
+
+CONCERNS — Corrigir ISSUE-1 (remover `useRealtimeSyncAll` de Layout.tsx) antes de marcar como Done. Fix estimado: < 5 minutos.
+
 ---
 *Story gerada por @sm (River) — Epic RT (Realtime Everywhere)*

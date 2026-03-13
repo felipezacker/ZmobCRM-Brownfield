@@ -1,0 +1,64 @@
+schema: 1
+story: 'RT-0.4'
+story_title: 'Consolidar subscricoes duplicadas'
+gate: CONCERNS
+status_reason: 'Core refactoring correct (10 redundant subscriptions removed from 9 hooks, board_stages added to SyncAll). However, useRealtimeSyncAll is called in both providers.tsx and Layout.tsx, creating 2 WebSocket channels instead of the target 1. Simple fix required: remove call from Layout.tsx.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-03-12T23:55:00Z'
+
+top_issues:
+  - severity: high
+    category: architecture
+    description: 'Double useRealtimeSyncAll call — providers.tsx:53 (GlobalRealtimeBanner) and Layout.tsx:33 both create a WebSocket channel. Violates AC7 (single channel).'
+    recommendation: 'Remove useRealtimeSyncAll() and its import from Layout.tsx. The call in providers.tsx already covers the global subscription and uses the return value for the status banner.'
+    suggested_owner: dev
+  - severity: low
+    category: code
+    description: 'useProspectingImpact.ts:50 still calls useRealtimeSync(activities) — redundant with Layout subscription. Out of story scope.'
+    recommendation: 'Register as tech debt for next RT story.'
+    suggested_owner: dev
+  - severity: low
+    category: tests
+    description: 'Orphaned mocks in useSavedQueues.test.ts and useProspectingQueue.test.ts — still mock useRealtimeSync though hooks no longer use it.'
+    recommendation: 'Remove dead mocks in next cleanup pass.'
+    suggested_owner: dev
+
+waiver: { active: false }
+
+quality_score: 80
+
+expires: '2026-03-26T23:55:00Z'
+
+evidence:
+  tests_reviewed: 97
+  tests_passing: 95
+  tests_failing_preexisting: 2
+  risks_identified: 1
+  trace:
+    ac_covered: [2, 3, 4, 5]
+    ac_concerns: [1, 7]
+    ac_pending: [6]
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'No security impact — pure React hook reorganization, no business logic or auth changes.'
+  performance:
+    status: PASS
+    notes: 'WebSocket consolidation reduces channels from ~12 to 1-2 per user. Positive impact once double-call fixed.'
+  reliability:
+    status: CONCERNS
+    notes: 'Double useRealtimeSyncAll creates redundant processing. Fix will resolve.'
+  maintainability:
+    status: PASS
+    notes: 'Clean removal of imports and hooks. Single point of subscription in Layout/Providers improves maintainability.'
+
+recommendations:
+  immediate:
+    - action: 'Remove useRealtimeSyncAll() call and import from components/Layout.tsx — providers.tsx already handles it'
+      refs: ['components/Layout.tsx:9', 'components/Layout.tsx:33']
+  future:
+    - action: 'Remove redundant useRealtimeSync from useProspectingImpact.ts'
+      refs: ['features/prospecting/hooks/useProspectingImpact.ts:50']
+    - action: 'Remove orphaned useRealtimeSync mocks from test files'
+      refs: ['features/prospecting/__tests__/useSavedQueues.test.ts:8-9', 'features/prospecting/__tests__/useProspectingQueue.test.ts:31-32']

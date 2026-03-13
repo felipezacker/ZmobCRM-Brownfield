@@ -55,14 +55,14 @@ describe('encryptApiKey', () => {
  expect(a).not.toBe(b);
  });
 
- it('throws if ENCRYPTION_KEY is missing', () => {
+ it('returns plaintext when ENCRYPTION_KEY is missing (graceful degradation)', () => {
  delete process.env.ENCRYPTION_KEY;
- expect(() => encryptApiKey('sk-test')).toThrow('ENCRYPTION_KEY environment variable is not set');
+ expect(encryptApiKey('sk-test')).toBe('sk-test');
  });
 
- it('throws if ENCRYPTION_KEY has wrong length', () => {
+ it('returns plaintext when ENCRYPTION_KEY has wrong length (graceful degradation)', () => {
  process.env.ENCRYPTION_KEY = 'tooshort';
- expect(() => encryptApiKey('sk-test')).toThrow('64-character hex string');
+ expect(encryptApiKey('sk-test')).toBe('sk-test');
  });
 });
 

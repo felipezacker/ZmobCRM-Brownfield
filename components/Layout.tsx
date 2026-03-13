@@ -6,7 +6,6 @@ import { isDebugMode, enableDebugMode, disableDebugMode } from '@/lib/debug';
 import { SkipLink } from '@/lib/a11y';
 import { useResponsiveMode } from '@/hooks/useResponsiveMode';
 import { BottomNav, MoreMenuSheet, NavigationRail } from '@/components/navigation';
-import { useRealtimeSyncAll } from '@/lib/realtime/useRealtimeSync';
 import { UIChat } from './ai/UIChat';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { AppHeader } from '@/components/layout/AppHeader';
@@ -28,9 +27,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isDesktop = mode === 'desktop';
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
-
-  // Global realtime subscription — single channel for all CRM tables (RT-0.4)
-  useRealtimeSyncAll();
 
   useEffect(() => {
     setDebugEnabled(isDebugMode());
