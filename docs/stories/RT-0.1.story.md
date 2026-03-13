@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** RT-0.1
 - **Epic:** RT (Realtime Everywhere)
-- **Status:** InProgress
+- **Status:** Done
 - **Priority:** P0
 - **Estimated Points:** 2 (XS)
 - **Phase:** 0 (Bugs Criticos)
@@ -213,6 +213,28 @@ error TEXT (nullable)
 - [x] Nenhuma regressao em funcionalidade existente de deals
 - [ ] Review por @dev aprovado
 
+## QA Results
+
+**Reviewer:** @qa (Quinn)
+**Date:** 2026-03-12
+**Verdict:** PASS
+
+| Check | Result |
+|-------|--------|
+| Code Review | PASS — tabelas e colunas corretas, idempotente |
+| Testes | PASS — 4 cenarios validados no staging |
+| Acceptance Criteria | PASS — AC1-AC4 todos validados |
+| No Regressions | PASS — trigger e funcao signature inalterados |
+| Performance | N/A — mesma complexidade |
+| Security | PASS — SECURITY DEFINER + search_path + org_id filters |
+| Documentacao | PASS — header da migration explica o bug e fix |
+
+**Staging Evidence:**
+- Trigger `trg_notify_deal_stage_changed` ativo, WHEN clause correta
+- `prosecdef=true`, `proconfig={search_path=public}`
+- INSERT columns alinhadas com schema real (verificado via `information_schema.columns`)
+- Zero referencias a `integration_webhook_events`/`integration_webhook_deliveries` no prosrc
+
 ## File List
 
 | Arquivo | Acao | Descricao |
@@ -227,6 +249,8 @@ error TEXT (nullable)
 | 2026-03-12 | @po | Validacao GO (10/10). Status Draft → Ready. 3 should-fix nao-bloqueantes documentados. |
 | 2026-03-12 | @po | Fix: quality_gate @dev → @qa (alinhamento com epic corrigido) |
 | 2026-03-12 | @data-engineer | Implementacao: migration 20260312100004 criada, aplicada no staging, todos ACs validados |
+| 2026-03-13 | @qa | QA Gate: PASS. 7-point check completo, zero issues. |
+| 2026-03-13 | @dev | Status InProgress → Done. Story completa. |
 
 ---
 *Story gerada por @sm (River) — Epic RT (Realtime Everywhere)*
