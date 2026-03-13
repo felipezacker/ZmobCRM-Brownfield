@@ -71,6 +71,28 @@ describe('normalizeDealPayload', () => {
     }
   });
 
+  it('preserves existing camelCase when snake_case counterpart is absent (AC4.5)', () => {
+    const result = normalizeDealPayload({ id: 'deal-1', boardId: 'existing-board' });
+
+    expect(result.boardId).toBe('existing-board');
+    expect(result).not.toHaveProperty('board_id');
+  });
+
+  it('preserves multiple existing camelCase keys when snake_case counterparts are absent', () => {
+    const result = normalizeDealPayload({
+      id: 'deal-1',
+      boardId: 'board-1',
+      ownerId: 'user-1',
+      isWon: true,
+      updatedAt: '2026-01-01',
+    });
+
+    expect(result.boardId).toBe('board-1');
+    expect(result.ownerId).toBe('user-1');
+    expect(result.isWon).toBe(true);
+    expect(result.updatedAt).toBe('2026-01-01');
+  });
+
   it('handles multiple snake_case fields in single payload', () => {
     const result = normalizeDealPayload({
       id: 'deal-1',
