@@ -87,6 +87,7 @@ export const PipelineToolbar: React.FC<PipelineToolbarProps> = ({
   uniqueProducts, uniqueTags,
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [strategyOpen, setStrategyOpen] = useState(false);
 
   return (
     <>
@@ -114,9 +115,10 @@ export const PipelineToolbar: React.FC<PipelineToolbarProps> = ({
         onNewDeal={onNewDeal}
         activeAdvancedFilterCount={activeAdvancedFilterCount}
         onOpenAdvancedFilters={() => setDrawerOpen(true)}
+        onEditStrategy={() => setStrategyOpen(!strategyOpen)}
       />
 
-      <BoardStrategyHeader board={activeBoard} />
+      {strategyOpen && <BoardStrategyHeader board={activeBoard} initialEditing onClose={() => setStrategyOpen(false)} />}
 
       {hiddenByRecentCount > 0 && !showAllRecent && (
         <div className="mx-4 mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-full text-xs text-amber-700 dark:text-amber-300">
