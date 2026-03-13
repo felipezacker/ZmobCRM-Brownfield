@@ -19,7 +19,7 @@ export const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contact }) => 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-semibold text-white truncate">{contact.name}</h4>
+                        <h4 className="text-sm font-semibold text-foreground truncate">{contact.name}</h4>
                     </div>
 
                     {/* Contact details grid */}

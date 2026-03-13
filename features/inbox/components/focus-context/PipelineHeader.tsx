@@ -22,7 +22,7 @@ export const PipelineHeader: React.FC<PipelineHeaderProps> = ({
             {/* Top Row: Title + Board Name (center) + Value */}
             <div className="flex items-center justify-between px-6 py-3">
                 <div>
-                    <h1 className="text-lg font-semibold text-white tracking-tight">
+                    <h1 className="text-lg font-semibold text-foreground tracking-tight">
                         {deal.title}
                     </h1>
                 </div>
