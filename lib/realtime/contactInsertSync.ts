@@ -45,17 +45,28 @@ export function handleContactInsert(
         return old.map((c, i) => i === existingIndex ? { ...c, ...normalizedContact } as Contact : c);
       }
 
-      // Find temp contact (id starts with 'temp-') matching by name
+      // Find temp contact (id starts with 'temp-') matching by name + email or phone
       const tempContact = old.find(c => {
-        const isTemp = typeof c.id === 'string' && c.id.startsWith('temp-');
+        if (!(typeof c.id === 'string' && c.id.startsWith('temp-'))) return false;
         const sameName = c.name === newData.name;
-        return isTemp && sameName;
+        if (!sameName) return false;
+        // If email or phone available on both sides, require at least one to match
+        const incomingEmail = newData.email as string | undefined;
+        const incomingPhone = newData.phone as string | undefined;
+        const hasMatchableField = (incomingEmail && c.email) || (incomingPhone && c.phone);
+        if (hasMatchableField) {
+          const emailMatch = incomingEmail && c.email && incomingEmail === c.email;
+          const phoneMatch = incomingPhone && c.phone && incomingPhone === c.phone;
+          return !!(emailMatch || phoneMatch);
+        }
+        // Fallback to name-only when no email/phone available on either side
+        return true;
       });
 
       if (tempContact) {
         wasEnriched = true;
         // Remove temp, add real enriched with temp's extra fields
-        const filtered = old.filter(c => !(typeof c.id === 'string' && c.id.startsWith('temp-') && c.name === newData.name));
+        const filtered = old.filter(c => c !== tempContact);
         const enrichedContact = {
           avatar: tempContact.avatar,
           ...normalizedContact,
@@ -77,9 +88,19 @@ export function handleContactInsert(
       if (!Array.isArray(key) || key[1] !== 'paginated') continue;
       if (!cacheData) continue;
 
-      const tempIdx = cacheData.data.findIndex(c =>
-        typeof c.id === 'string' && c.id.startsWith('temp-') && c.name === newData.name
-      );
+      const tempIdx = cacheData.data.findIndex(c => {
+        if (!(typeof c.id === 'string' && c.id.startsWith('temp-'))) return false;
+        if (c.name !== newData.name) return false;
+        const incomingEmail = newData.email as string | undefined;
+        const incomingPhone = newData.phone as string | undefined;
+        const hasMatchableField = (incomingEmail && c.email) || (incomingPhone && c.phone);
+        if (hasMatchableField) {
+          const emailMatch = incomingEmail && c.email && incomingEmail === c.email;
+          const phoneMatch = incomingPhone && c.phone && incomingPhone === c.phone;
+          return !!(emailMatch || phoneMatch);
+        }
+        return true;
+      });
 
       if (tempIdx !== -1) {
         wasEnriched = true;

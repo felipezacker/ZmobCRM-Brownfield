@@ -78,18 +78,19 @@ export function ImportListModal({
   onAddBatchToQueue,
 }: ImportListModalProps) {
   const hook = useImportToQueue({ currentQueueSize, onAddBatchToQueue })
+  const { reset, handleFileSelect } = hook
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleClose = useCallback(() => {
-    hook.reset()
+    reset()
     onClose()
-  }, [hook, onClose])
+  }, [reset, onClose])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     const droppedFile = e.dataTransfer.files[0]
-    if (droppedFile) hook.handleFileSelect(droppedFile)
-  }, [hook])
+    if (droppedFile) handleFileSelect(droppedFile)
+  }, [handleFileSelect])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()

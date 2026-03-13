@@ -3,17 +3,29 @@ import { queryKeys, NOTIFICATION_COUNT_KEY } from '@/lib/query/queryKeys';
 
 export const DEBUG_REALTIME = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_REALTIME === 'true';
 
+/** Threshold (ms) for stale-detection: reject incoming if older than cache by this amount */
+export const STALE_THRESHOLD_MS = 100;
+
 // Global deduplication for INSERT events
 const processedInserts = new Map<string, number>();
 const PROCESSED_CACHE_TTL = 5000;
+const CLEANUP_INTERVAL = 100; // purge expired entries every N calls
+const CLEANUP_SIZE_THRESHOLD = 500; // force purge when Map exceeds this size
+let insertCallCount = 0;
 
 export function shouldProcessInsert(key: string): boolean {
   const now = Date.now();
-  for (const [k, timestamp] of processedInserts) {
-    if (now - timestamp > PROCESSED_CACHE_TTL) {
-      processedInserts.delete(k);
+  insertCallCount++;
+
+  // Periodic cleanup instead of scanning every call
+  if (insertCallCount % CLEANUP_INTERVAL === 0 || processedInserts.size > CLEANUP_SIZE_THRESHOLD) {
+    for (const [k, timestamp] of processedInserts) {
+      if (now - timestamp > PROCESSED_CACHE_TTL) {
+        processedInserts.delete(k);
+      }
     }
   }
+
   if (processedInserts.has(key)) {
     return false;
   }
@@ -58,5 +70,7 @@ export const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unkn
 export interface UseRealtimeSyncOptions {
   enabled?: boolean;
   debounceMs?: number;
+  /** If provided, adds an organization_id=eq.{id} filter to subscriptions (defense-in-depth on top of RLS) */
+  organizationId?: string;
   onchange?: (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => void;
 }

@@ -37,20 +37,20 @@ export function useRealtimeSync(
   tables: RealtimeTable | RealtimeTable[],
   options: UseRealtimeSyncOptions = {}
 ) {
-  const { enabled = true, debounceMs = 100, onchange } = options;
+  const { enabled = true, debounceMs = 100, organizationId, onchange } = options;
   const queryClient = useQueryClient();
   const instanceIdRef = useRef(crypto.randomUUID());
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimerRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [retryTrigger, setRetryTrigger] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected');
   const [maxRetriesExhausted, setMaxRetriesExhausted] = useState(false);
   const connectionStatusRef = useRef<ConnectionStatus>('connected');
-  const pendingInvalidationsRef = useRef<Set<readonly unknown[]>>(new Set());
-  const pendingInvalidateOnlyRef = useRef<Set<readonly unknown[]>>(new Set());
+  const pendingInvalidationsRef = useRef<Set<string>>(new Set());
+  const pendingInvalidateOnlyRef = useRef<Set<string>>(new Set());
   const pendingBoardStagesInsertCountRef = useRef(0);
   const flushScheduledRef = useRef(false);
   const onchangeRef = useRef(onchange);
@@ -85,11 +85,18 @@ export function useRealtimeSync(
     const channel = sb.channel(channelName);
 
     tableList.forEach(table => {
+      const filterConfig: { event: '*'; schema: 'public'; table: string; filter?: string } = {
+        event: '*', schema: 'public', table,
+      };
+      if (organizationId) {
+        filterConfig.filter = `organization_id=eq.${organizationId}`;
+      }
       channel.on(
         'postgres_changes',
-        { event: '*', schema: 'public', table },
+        filterConfig,
         (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
-          if (DEBUG_REALTIME) console.log(`[Realtime] ${table} ${payload.eventType}:`, payload);
+          try {
+            if (DEBUG_REALTIME) console.log(`[Realtime] ${table} ${payload.eventType}:`, payload);
           onchangeRef.current?.(payload);
 
           // ─── Deal UPDATE: apply directly to cache, skip pending queue ───
@@ -109,15 +116,15 @@ export function useRealtimeSync(
             if (!result || result === 'enriched') return;
             // Cross-tab insert ('raw'): schedule refetch for complete DealView data (Bug #17)
             const dealKeys = getTableQueryKeys(table);
-            dealKeys.forEach(key => pendingInvalidationsRef.current.add(key));
+            dealKeys.forEach(key => pendingInvalidationsRef.current.add(JSON.stringify(key)));
             if (!flushScheduledRef.current) {
               flushScheduledRef.current = true;
               queueMicrotask(() => {
                 flushScheduledRef.current = false;
                 const keysToFlush = Array.from(pendingInvalidationsRef.current);
                 pendingInvalidationsRef.current.clear();
-                keysToFlush.forEach(queryKey => {
-                  queryClient.invalidateQueries({ queryKey, exact: false, refetchType: 'all' });
+                keysToFlush.forEach(serialized => {
+                  queryClient.invalidateQueries({ queryKey: JSON.parse(serialized), exact: false, refetchType: 'all' });
                 });
               });
             }
@@ -140,15 +147,15 @@ export function useRealtimeSync(
             if (!result || result === 'enriched') return;
             // Cross-tab insert ('raw'): schedule refetch for contacts data
             const contactKeys = getTableQueryKeys(table);
-            contactKeys.forEach(key => pendingInvalidationsRef.current.add(key));
+            contactKeys.forEach(key => pendingInvalidationsRef.current.add(JSON.stringify(key)));
             if (!flushScheduledRef.current) {
               flushScheduledRef.current = true;
               queueMicrotask(() => {
                 flushScheduledRef.current = false;
                 const keysToFlush = Array.from(pendingInvalidationsRef.current);
                 pendingInvalidationsRef.current.clear();
-                keysToFlush.forEach(queryKey => {
-                  queryClient.invalidateQueries({ queryKey, exact: false, refetchType: 'all' });
+                keysToFlush.forEach(serialized => {
+                  queryClient.invalidateQueries({ queryKey: JSON.parse(serialized), exact: false, refetchType: 'all' });
                 });
               });
             }
@@ -170,15 +177,15 @@ export function useRealtimeSync(
             if (!result || result === 'enriched') return;
             // Cross-tab insert ('raw'): schedule refetch for activity data
             const activityKeys = getTableQueryKeys(table);
-            activityKeys.forEach(key => pendingInvalidationsRef.current.add(key));
+            activityKeys.forEach(key => pendingInvalidationsRef.current.add(JSON.stringify(key)));
             if (!flushScheduledRef.current) {
               flushScheduledRef.current = true;
               queueMicrotask(() => {
                 flushScheduledRef.current = false;
                 const keysToFlush = Array.from(pendingInvalidationsRef.current);
                 pendingInvalidationsRef.current.clear();
-                keysToFlush.forEach(queryKey => {
-                  queryClient.invalidateQueries({ queryKey, exact: false, refetchType: 'all' });
+                keysToFlush.forEach(serialized => {
+                  queryClient.invalidateQueries({ queryKey: JSON.parse(serialized), exact: false, refetchType: 'all' });
                 });
               });
             }
@@ -201,10 +208,10 @@ export function useRealtimeSync(
           }
 
           if (payload.eventType === 'INSERT' && table === 'board_stages') {
-            keys.forEach(key => pendingInvalidateOnlyRef.current.add(key));
+            keys.forEach(key => pendingInvalidateOnlyRef.current.add(JSON.stringify(key)));
             pendingBoardStagesInsertCountRef.current += 1;
           } else {
-            keys.forEach(key => pendingInvalidationsRef.current.add(key));
+            keys.forEach(key => pendingInvalidationsRef.current.add(JSON.stringify(key)));
           }
 
           if (payload.eventType === 'INSERT') {
@@ -219,27 +226,37 @@ export function useRealtimeSync(
                 const boardStagesInsertCount = pendingBoardStagesInsertCountRef.current;
                 pendingBoardStagesInsertCountRef.current = 0;
 
-                keysToFlush.forEach(queryKey => {
-                  queryClient.invalidateQueries({ queryKey, exact: false, refetchType: 'all' });
+                keysToFlush.forEach(serialized => {
+                  queryClient.invalidateQueries({ queryKey: JSON.parse(serialized), exact: false, refetchType: 'all' });
                 });
-                keysInvalidateOnly.forEach(queryKey => {
+                keysInvalidateOnly.forEach(serialized => {
                   queryClient.invalidateQueries({
-                    queryKey, exact: false,
+                    queryKey: JSON.parse(serialized), exact: false,
                     refetchType: boardStagesInsertCount <= 1 ? 'all' : 'none',
                   });
                 });
               });
             }
           } else {
-            // DELETE or non-deal UPDATE: debounce
-            if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-            debounceTimerRef.current = setTimeout(() => {
-              pendingInvalidationsRef.current.forEach(queryKey => {
-                if (DEBUG_REALTIME) console.log(`[Realtime] Invalidating queries (debounced):`, queryKey);
-                queryClient.invalidateQueries({ queryKey });
+            // DELETE or non-deal UPDATE: debounce per table
+            const tableTimer = debounceTimerRef.current.get(table);
+            if (tableTimer) clearTimeout(tableTimer);
+            debounceTimerRef.current.set(table, setTimeout(() => {
+              debounceTimerRef.current.delete(table);
+              // Flush only keys for this table
+              const tableKeys = getTableQueryKeys(table).map(k => JSON.stringify(k));
+              const tableKeySet = new Set(tableKeys);
+              pendingInvalidationsRef.current.forEach(serialized => {
+                if (tableKeySet.has(serialized)) {
+                  if (DEBUG_REALTIME) console.log(`[Realtime] Invalidating queries (debounced):`, JSON.parse(serialized));
+                  queryClient.invalidateQueries({ queryKey: JSON.parse(serialized) });
+                  pendingInvalidationsRef.current.delete(serialized);
+                }
               });
-              pendingInvalidationsRef.current.clear();
-            }, debounceMs);
+            }, debounceMs));
+          }
+          } catch (err) {
+            console.error(`[Realtime] Error handling ${table} ${payload.eventType}:`, err);
           }
         }
       );
@@ -287,7 +304,8 @@ export function useRealtimeSync(
 
     return () => {
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current.forEach(timer => clearTimeout(timer));
+      debounceTimerRef.current.clear();
       if (channelRef.current) {
         sb.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -295,7 +313,8 @@ export function useRealtimeSync(
       setIsConnected(false);
     };
   // retryTrigger forces effect re-run on exponential backoff reconnect
-  }, [enabled, tablesKey, debounceMs, queryClient, retryTrigger]);
+  // organizationId: re-subscribe when org changes (defense-in-depth filter)
+  }, [enabled, tablesKey, debounceMs, organizationId, queryClient, retryTrigger]);
 
   // Browser connectivity & visibility listeners (AC4, AC5)
   useEffect(() => {
@@ -323,8 +342,19 @@ export function useRealtimeSync(
       connectionStatusRef.current = 'disconnected';
     };
 
+    let hiddenAtMs = 0;
+    const MIN_HIDDEN_DURATION_MS = 5000; // Only resync if hidden > 5s
+
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') invalidateAll(); // AC5
+      if (document.visibilityState === 'hidden') {
+        hiddenAtMs = Date.now();
+      } else if (document.visibilityState === 'visible') {
+        const wasHiddenMs = hiddenAtMs > 0 ? Date.now() - hiddenAtMs : Infinity;
+        hiddenAtMs = 0;
+        if (wasHiddenMs >= MIN_HIDDEN_DURATION_MS) {
+          invalidateAll(); // AC5: only resync if tab was hidden long enough
+        }
+      }
     };
 
     window.addEventListener('online', onOnline);

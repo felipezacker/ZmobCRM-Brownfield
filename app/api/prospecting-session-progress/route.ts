@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     const { error, count } = await supabase
       .from('prospecting_sessions')
-      .update({ stats })
+      .update({ stats }, { count: 'exact' })
       .eq('id', session_id)
       .eq('owner_id', user.id)
 

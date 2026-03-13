@@ -313,11 +313,12 @@ export function useProspectingPageState(userId?: string, organizationId?: string
         skipped,
       }
       // CP-3.4: Persist session stats to DB
-      if (dbSessionId) {
+      const sid = dbSessionIdRef.current
+      if (sid) {
         const durationSeconds = sessionStartTime
           ? Math.floor((Date.now() - sessionStartTime.getTime()) / 1000)
           : 0
-        endProspectingSession(dbSessionId, {
+        endProspectingSession(sid, {
           ...finalStats,
           duration_seconds: durationSeconds,
         }).catch(() => {
@@ -330,7 +331,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     })
     deps.queueDeps.endSession()
     setShowSummary(true)
-  }, [dbSessionId, sessionStartTime])
+  }, [sessionStartTime])
 
   const handleCallComplete = useCallback((outcome: string) => {
     const deps = depsRef.current

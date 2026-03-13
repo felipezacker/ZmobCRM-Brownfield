@@ -4,7 +4,7 @@
  * Orquestra: parse CSV/XLSX → mapeamento de colunas → validação de telefone →
  * chamada à API de import → enfileiramento dos IDs retornados.
  */
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import readXlsxFile from 'read-excel-file/browser'
 import { parseCsv, detectCsvDelimiter, stringifyCsv } from '@/lib/utils/csv'
 import { normalizePhoneE164, isE164 } from '@/lib/phone'
@@ -343,6 +343,15 @@ export function useImportToQueue({ currentQueueSize, onAddBatchToQueue }: UseImp
     else if (step === 'preview') setStep('mapping')
   }, [step])
 
+  // ── Memoized counts (single pass instead of 2x .filter()) ──
+  const { validCount, invalidCount } = useMemo(() => {
+    let valid = 0
+    for (const v of validations) {
+      if (v.isValid) valid++
+    }
+    return { validCount: valid, invalidCount: validations.length - valid }
+  }, [validations])
+
   return {
     // State
     step,
@@ -363,8 +372,8 @@ export function useImportToQueue({ currentQueueSize, onAddBatchToQueue }: UseImp
     reset,
 
     // Computed
-    validCount: validations.filter(v => v.isValid).length,
-    invalidCount: validations.filter(v => !v.isValid).length,
+    validCount,
+    invalidCount,
     prospectingCrmFields: PROSPECTING_CRM_FIELDS,
   }
 }

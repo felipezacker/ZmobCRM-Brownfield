@@ -82,6 +82,9 @@ export function useLiveOperations(
   })
 
   // Realtime sync for both tables
+  // TODO: Filter activities subscription (e.g., by type=CALL or owner_id) when
+  // useRealtimeSync supports Supabase channel filters — currently subscribes to
+  // the full activities table which is broader than needed for live operations.
   useRealtimeSync(['prospecting_sessions', 'activities'], { enabled: isEnabled })
 
   // Build LiveSession array

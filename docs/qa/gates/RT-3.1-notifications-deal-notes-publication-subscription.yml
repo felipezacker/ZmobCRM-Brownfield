@@ -1,0 +1,9 @@
+schema: 1
+story: 'RT-3.1'
+gate: PASS
+status_reason: 'All 8 ACs verified against code and staging evidence. Migration idempotent with IF NOT EXISTS guards, realtimeConfig and queryKeys correctly mapped, subscriptions wired in NotificationBell, useSystemNotifications, and useDealDetail with proper cleanup and filtering.'
+reviewer: 'Quinn'
+updated: '2026-03-13T18:00:00Z'
+quality_score: 100
+top_issues: []
+waiver: { active: false }

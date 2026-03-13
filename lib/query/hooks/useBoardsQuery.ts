@@ -42,16 +42,22 @@ export const useBoards = () => {
 
 /**
  * Hook to fetch a single board by ID
+ * Derives data from the useBoards() cache via `select` — no extra network request.
  */
 export const useBoard = (id: string | undefined) => {
   const { user, loading: authLoading } = useAuth();
-  return useQuery<Board | null>({
-    queryKey: queryKeys.boards.detail(id || ''),
+  return useQuery<Board[], Error, Board | null>({
+    queryKey: queryKeys.boards.lists(),
     queryFn: async () => {
       const { data, error } = await boardsService.getAll();
       if (error) throw error;
-      return (data || []).find(b => b.id === id) || null;
+      return data || [];
     },
+    select: (boards) => boards.find(b => b.id === id) || null,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: (query) => query.state.dataUpdatedAt === 0 || query.state.isInvalidated,
+    refetchOnReconnect: false,
     enabled: !authLoading && !!user && !!id,
   });
 };

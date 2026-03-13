@@ -23,7 +23,7 @@ export function NotificationBell() {
     staleTime: 1000 * 60, // 1 min
   })
 
-  useRealtimeSync('notifications', { enabled: !!organizationId })
+  useRealtimeSync('notifications', { enabled: !!organizationId, organizationId: organizationId ?? undefined })
 
   return (
     <Link

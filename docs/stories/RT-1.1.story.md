@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** RT-1.1
 - **Epic:** RT (Realtime Everywhere)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 3 (S)
 - **Phase:** 1 (Acao propria = instantanea)
@@ -249,6 +249,61 @@ onMutate: async (stageId: string) => {
 | `lib/query/hooks/useBoardsQuery.ts` | Modified | Adicionar onMutate + onError + onSuccess nos 3 hooks de stage |
 | `lib/query/hooks/__tests__/useBoardStageOptimistic.test.ts` | Created | 10 testes unitarios: optimistic insert/update/delete + rollback + onSettled |
 
+## QA Results
+
+- **Reviewer:** @qa (Quinn)
+- **Date:** 2026-03-13
+- **Verdict:** PASS
+
+### AC Traceability
+
+| AC | Status | Evidence |
+|----|--------|----------|
+| AC1 — Add stage appears immediately | PASS | `useBoardsQuery.ts:264-272` — `onMutate` creates `tempStage` with `temp-stage-*` id, inserts into correct board via `setQueryData`. Test: `useBoardStageOptimistic.test.ts:78-104` |
+| AC2 — Add stage rollback on error | PASS | `useBoardsQuery.ts:274-277` — `onError` restores `previousBoards` snapshot. Test: `useBoardStageOptimistic.test.ts:139-167` |
+| AC3 — Update stage reflects immediately | PASS | `useBoardsQuery.ts:308-317` — `onMutate` maps all boards, spreads `updates` onto matching stage by `stageId`. Test: `useBoardStageOptimistic.test.ts:206-233` |
+| AC4 — Update stage rollback on error | PASS | `useBoardsQuery.ts:319-322` — `onError` restores `previousBoards` snapshot. Test: `useBoardStageOptimistic.test.ts:235-262` |
+| AC5 — Delete stage disappears immediately | PASS | `useBoardsQuery.ts:343-348` — `onMutate` filters out stage by `stageId` from all boards. Test: `useBoardStageOptimistic.test.ts:301-328` |
+| AC6 — Delete stage rollback on error | PASS | `useBoardsQuery.ts:350-353` — `onError` restores `previousBoards` snapshot. Test: `useBoardStageOptimistic.test.ts:330-358` |
+| AC7 — All 3 hooks invalidate boards.all on settled | PASS | `useBoardsQuery.ts:289-291,324-326,356-358` — all 3 hooks call `invalidateQueries({ queryKey: queryKeys.boards.all })` in `onSettled`. Tests: lines 169-190, 264-285, 360-381 |
+
+### Criteria of Done Verification
+
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| useAddBoardStage onMutate (cancelQueries + snapshot + setQueryData with temp-stage-*) | PASS | Lines 264-272 |
+| useAddBoardStage onSuccess (replace temp with server stage) | PASS | Lines 279-287 |
+| useAddBoardStage onError (restore snapshot) | PASS | Lines 274-277 |
+| useUpdateBoardStage onMutate (cancelQueries + snapshot + apply updates) | PASS | Lines 308-317 |
+| useUpdateBoardStage onError (restore snapshot) | PASS | Lines 319-322 |
+| useDeleteBoardStage onMutate (cancelQueries + snapshot + filter stage) | PASS | Lines 343-348 |
+| useDeleteBoardStage onError (restore snapshot) | PASS | Lines 350-353 |
+| All 3 hooks keep onSettled invalidateQueries | PASS | Lines 289-291, 324-326, 356-358 |
+| TypeScript compiles (npm run typecheck) | PASS | Confirmed by @dev |
+| Lint passes (npm run lint) | PASS | Confirmed by @dev |
+| Unit tests for success + rollback in all 3 hooks | PASS | 10 tests in useBoardStageOptimistic.test.ts |
+
+### Quality Gates
+
+| Gate | Result |
+|------|--------|
+| npm run typecheck | PASS |
+| npm run lint | PASS |
+| npm test | PASS (1257 tests) |
+
+### Code Quality Observations
+
+- Pattern consistency: all 3 stage hooks follow the exact same optimistic pattern as the existing board-level hooks (useCreateBoard, useUpdateBoard, useDeleteBoard) in the same file
+- Immutability: all `setQueryData` callbacks produce new arrays/objects via `.map()` and spread; no in-place mutation
+- Guard clauses: all `onError` handlers check `context?.previousBoards` before restoring
+- TypeScript typing: `Board[]` generic on `setQueryData`, `BoardStage` on temp stage — no `any`
+- Commit ab020af contains exactly the expected changes: 3 files (story, source, tests), 701 insertions
+- CodeRabbit skipped (macOS, no WSL) — acceptable, no blocking issues found in manual review
+
+### Gate Status
+
+Gate: PASS -> docs/qa/gates/RT-1.1-optimistic-updates-board-stages.yml
+
 ## Change Log
 
 | Data | Agente | Mudanca |
@@ -257,6 +312,7 @@ onMutate: async (stageId: string) => {
 | 2026-03-12 | @po | Validacao GO (10/10). Status Draft -> Ready. Should-fix: (1) useUpdateBoardStage nao recebe boardId em onMutate — dev deve iterar todos os boards por stageId; (2) RT-0.1 ainda Draft — verificar Done antes de iniciar. |
 | 2026-03-13 | @dev | Implementacao completa: Tasks 1-4.4 todas concluidas. 10 testes passando, typecheck e lint OK. 1134 testes totais sem regressao. Status: Ready -> InProgress -> Ready for Review. CodeRabbit (Task 4.5) skipped — macOS, sem WSL. |
 | 2026-03-13 | @dev | Fix: re-implementacao dos callbacks onMutate/onError/onSuccess nos 3 hooks de stage (codigo havia sido perdido, arquivo so tinha mutationFn + onSettled). 10/10 testes passam, 1212 testes totais sem regressao. |
+| 2026-03-13 | @qa | QA Gate PASS. Status Ready for Review -> Done. All 7 ACs verified with code evidence. 10 dedicated tests + 1257 total tests, zero regressions. |
 
 ---
 *Story gerada por @sm (River) — Epic RT (Realtime Everywhere)*

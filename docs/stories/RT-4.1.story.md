@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** RT-4.1
 - **Epic:** RT (Realtime Everywhere)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 8 (M-L)
 - **Phase:** 4 (Robustez)
@@ -392,6 +392,7 @@ Secondary Focus:
 | 2026-03-12 | 1.1 | NO-GO 8/10 por @po: 3 issues criticos (testes existentes, deps falsas, AC4.1 pre-RT-0.2) | @po (Pax) |
 | 2026-03-12 | 1.2 | Fix: Tasks 4/5 "Estender" (nao "Criar"), deps corrigidas para BLOQUEANTE/RECOMENDADO, descricao corrigida. Re-validacao GO. Status Draft → Ready. | @po (Pax) |
 | 2026-03-13 | 2.0 | Implementacao completa: 6 tasks, 34 testes novos (148 total realtime), todos ACs green, cobertura atingida. Status Ready → Ready for Review. | @dev (Dex) |
+| 2026-03-13 | 2.1 | QA Gate verified. Status Ready for Review → Done. | @qa (Quinn) |
 
 ---
 

@@ -61,6 +61,7 @@ export function useProspectingImpact(
         .gte('date', `${range.start}T00:00:00`)
         .lte('date', `${range.end}T23:59:59`)
         .is('deleted_at', null)
+        .contains('metadata', JSON.stringify({ source: 'prospecting' }))
 
       if (filterOwnerId) {
         query = query.eq('owner_id', filterOwnerId)
@@ -74,12 +75,9 @@ export function useProspectingImpact(
     staleTime: 30 * 1000,
   })
 
-  // Filter client-side for source=prospecting
+  // source=prospecting filter is now pushed to the DB query via .contains()
   const prospectingCalls = useMemo(() => {
-    if (!activitiesQuery.data) return []
-    return activitiesQuery.data.filter(
-      a => a.metadata?.source === 'prospecting'
-    )
+    return activitiesQuery.data || []
   }, [activitiesQuery.data])
 
   // Unique deal IDs from prospecting calls

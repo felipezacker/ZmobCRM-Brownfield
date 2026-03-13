@@ -3,7 +3,7 @@ import { queryKeys } from '@/lib/query/queryKeys';
 import type { Activity } from '@/types';
 import { sortActivitiesSmart } from '@/lib/utils/activitySort';
 import { normalizeActivityPayload } from './normalizeActivityPayload';
-import { DEBUG_REALTIME } from './realtimeConfig';
+import { DEBUG_REALTIME, STALE_THRESHOLD_MS } from './realtimeConfig';
 
 /**
  * Handle an activity UPDATE from Realtime by applying directly to cache.
@@ -36,7 +36,7 @@ export function handleActivityUpdate(
       const incomingMs = typeof incomingTs === 'string' ? new Date(incomingTs).getTime() : 0;
       const currentMs = typeof currentTs === 'string' ? new Date(currentTs).getTime() : 0;
 
-      if (incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - 100) {
+      if (incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - STALE_THRESHOLD_MS) {
         if (DEBUG_REALTIME) {
           console.log(`[Realtime] Stale activity UPDATE for ${activityId}, skipping`);
         }

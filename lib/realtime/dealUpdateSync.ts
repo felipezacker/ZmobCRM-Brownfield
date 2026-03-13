@@ -2,6 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { queryKeys, DEALS_VIEW_KEY } from '@/lib/query/queryKeys';
 import type { Deal, DealView } from '@/types';
 import { normalizeDealPayload } from './normalizeDealPayload';
+import { STALE_THRESHOLD_MS } from './realtimeConfig';
 
 /**
  * Handle a deal UPDATE from Realtime by applying directly to cache.
@@ -31,7 +32,10 @@ export function handleDealUpdate(
       const currentStatus = currentDeal && typeof currentDeal.status === 'string' ? currentDeal.status : null;
 
       if (!currentDeal) {
-        return [...old, newData as unknown as DealView];
+        // Don't add raw payload (missing contactName/contactEmail/contactPhone).
+        // Trigger a refetch to get complete enriched data from the server.
+        queryClient.invalidateQueries({ queryKey: DEALS_VIEW_KEY });
+        return old;
       }
 
       // Same status — merge non-status fields if timestamp is newer
@@ -41,7 +45,7 @@ export function handleDealUpdate(
         const incomingMs = typeof incomingTs === 'string' ? new Date(incomingTs).getTime() : 0;
         const currentMs = typeof currentTs === 'string' ? new Date(currentTs).getTime() : 0;
 
-        if (incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - 100) {
+        if (incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - STALE_THRESHOLD_MS) {
           return old; // Stale
         }
       }
@@ -59,7 +63,7 @@ export function handleDealUpdate(
           const currentUpdatedAt = typeof currentUpdatedAtRaw === 'string' ? new Date(currentUpdatedAtRaw).getTime() : null;
 
           if (incomingUpdatedAt && currentUpdatedAt) {
-            if (incomingUpdatedAt - currentUpdatedAt < -100) {
+            if (incomingUpdatedAt - currentUpdatedAt < -STALE_THRESHOLD_MS) {
               return old; // Stale
             }
           }

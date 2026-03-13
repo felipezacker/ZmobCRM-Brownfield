@@ -2,6 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query/queryKeys';
 import type { Contact, PaginatedResponse } from '@/types';
 import { normalizeContactPayload } from './normalizeContactPayload';
+import { STALE_THRESHOLD_MS } from './realtimeConfig';
 
 /**
  * Handle a contact UPDATE from Realtime by applying directly to cache.
@@ -40,7 +41,7 @@ export function handleContactUpdate(
       (currentContact as unknown as Record<string, unknown>).updated_at as string | undefined;
     const currentMs = typeof currentTs === 'string' ? new Date(currentTs).getTime() : 0;
 
-    if (incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - 100) {
+    if (incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - STALE_THRESHOLD_MS) {
       continue; // Stale — skip this key
     }
 
@@ -64,7 +65,7 @@ export function handleContactUpdate(
       const currentTs = exists.updatedAt ||
         (exists as unknown as Record<string, unknown>).updated_at as string | undefined;
       const currentMs = typeof currentTs === 'string' ? new Date(currentTs).getTime() : 0;
-      if (incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - 100) {
+      if (incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - STALE_THRESHOLD_MS) {
         return old; // Stale
       }
 
