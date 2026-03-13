@@ -129,15 +129,15 @@ export function ScriptEditorModal({
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-2xl mx-4 bg-card rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+            <div className="relative w-full max-w-2xl mx-4 bg-card rounded-xl border border-border shadow-2xl overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-                    <h2 className="text-lg font-semibold text-white">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+                    <h2 className="text-lg font-semibold text-foreground">
                         {initialData?.id ? 'Editar Script' : 'Novo Script'}
                     </h2>
                     <Button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/5 rounded-lg text-muted-foreground hover:text-white transition-colors"
+                        className="p-2 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                     >
                         <X size={20} />
                     </Button>
@@ -155,7 +155,7 @@ export function ScriptEditorModal({
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                             placeholder="Ex: Follow-up de Proposta"
-                            className="w-full px-4 py-2.5 bg-card/50 border border-white/10 rounded-lg text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent"
+                            className="w-full px-4 py-2.5 bg-card/50 border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent"
                         />
                     </div>
 
@@ -169,7 +169,7 @@ export function ScriptEditorModal({
                             <select
                                 value={formData.category}
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value as ScriptCategory })}
-                                className="w-full px-4 py-2.5 bg-card/50 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent appearance-none cursor-pointer"
+                                className="w-full px-4 py-2.5 bg-card/50 border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent appearance-none cursor-pointer"
                             >
                                 {CATEGORIES.map((cat) => (
                                     <option key={cat.value} value={cat.value}>
@@ -193,7 +193,7 @@ export function ScriptEditorModal({
                                             onClick={() => setFormData({ ...formData, icon: iconOption.value })}
                                             className={`p-2.5 rounded-lg border transition-all ${formData.icon === iconOption.value
                                                     ? 'bg-primary-500/20 border-primary-500/50 text-primary-400'
-                                                    : 'bg-card/50 border-white/10 text-muted-foreground hover:text-white hover:border-white/20'
+                                                    : 'bg-card/50 border-border text-muted-foreground hover:text-foreground hover:border-border'
                                                 }`}
                                             title={iconOption.label}
                                         >
@@ -229,10 +229,10 @@ export function ScriptEditorModal({
                                 onChange={(e) => setFormData({ ...formData, template: e.target.value })}
                                 placeholder="Olá {nome}! 👋&#10;&#10;Escreva sua mensagem aqui...&#10;&#10;Use {nome} e {empresa} como variáveis."
                                 rows={8}
-                                className="w-full px-4 py-3 bg-card/50 border border-white/10 rounded-lg text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent resize-none font-mono text-sm"
+                                className="w-full px-4 py-3 bg-card/50 border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-transparent resize-none font-mono text-sm"
                             />
                         ) : (
-                            <div className="w-full px-4 py-3 bg-card/50 border border-white/10 rounded-lg min-h-[200px] whitespace-pre-wrap text-sm text-white">
+                            <div className="w-full px-4 py-3 bg-card/50 border border-border rounded-lg min-h-[200px] whitespace-pre-wrap text-sm text-foreground">
                                 {applyVariables(formData.template) ||
                                     <span className="text-muted-foreground italic">Nenhum texto para preview...</span>
                                 }
@@ -246,10 +246,10 @@ export function ScriptEditorModal({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/10 bg-background/50">
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background/50">
                     <Button
                         onClick={onClose}
-                        className="px-4 py-2 text-sm text-muted-foreground hover:text-white transition-colors"
+                        className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                         Cancelar
                     </Button>

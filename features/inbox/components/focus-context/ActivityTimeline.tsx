@@ -14,6 +14,7 @@ import {
 import type { Activity, Board, Contact, Deal } from '@/types';
 import { Button } from '@/components/ui/button';
 import { TAILWIND_TO_HEX } from './constants';
+import { DEFAULT_STAGE_COLOR } from '@/lib/design-tokens';
 import type { ScheduleType } from '../ScheduleModal';
 import type { MessageChannel } from '../MessageComposerModal';
 
@@ -49,15 +50,15 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
     return (
         <div className="flex-1 flex flex-col min-w-0 border-r border-dark-border">
             {/* Header */}
-            <div className="shrink-0 h-12 flex items-center justify-between px-6 border-b border-white/5">
+            <div className="shrink-0 h-12 flex items-center justify-between px-6 border-b border-border">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Atividades
                 </h3>
                 <div className="flex items-center gap-1">
-                    <Button className="p-1.5 hover:bg-white/5 rounded text-muted-foreground hover:text-white transition-colors">
+                    <Button className="p-1.5 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors">
                         <Filter size={14} />
                     </Button>
-                    <Button className="p-1.5 hover:bg-white/5 rounded text-muted-foreground hover:text-white transition-colors">
+                    <Button className="p-1.5 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors">
                         <Search size={14} />
                     </Button>
                 </div>
@@ -70,7 +71,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                         <div className="w-12 h-12 bg-card/50 rounded-xl flex items-center justify-center mb-4 border border-border/50">
                             <ArrowUpRight size={24} className="text-muted-foreground" />
                         </div>
-                        <p className="text-sm font-medium text-white mb-1">Nenhuma atividade</p>
+                        <p className="text-sm font-medium text-foreground mb-1">Nenhuma atividade</p>
                         <p className="text-sm text-muted-foreground max-w-[200px]">
                             Comece adicionando uma nota ou agendando uma acao.
                         </p>
@@ -88,7 +89,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                             return (
                                 <div
                                     key={activity.id}
-                                    className="relative pl-[54px] pr-6 py-4 group hover:bg-white/[0.02] transition-colors border-b border-white/5"
+                                    className="relative pl-[54px] pr-6 py-4 group hover:bg-accent/50 transition-colors border-b border-border"
                                 >
                                     {/* Timeline Node */}
                                     <div className={`absolute left-[18px] top-[18px] w-[20px] h-[20px] rounded-full flex items-center justify-center z-10
@@ -106,7 +107,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                                         <div className="flex flex-col gap-1 flex-1">
                                             <div className="flex items-center gap-2">
                                                 <ActivityTypeBadge activity={activity} board={board} />
-                                                <span className={`text-sm font-medium transition-colors ${activity.completed ? 'text-muted-foreground' : 'text-white'}`}>
+                                                <span className={`text-sm font-medium transition-colors ${activity.completed ? 'text-muted-foreground' : 'text-foreground'}`}>
                                                     {activity.title.includes('Moveu para') ? (
                                                         <StageMoveBadge title={activity.title} board={board} />
                                                     ) : activity.title}
@@ -130,7 +131,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
             </div>
 
             {/* Input Area */}
-            <div className="shrink-0 p-4 border-t border-white/5">
+            <div className="shrink-0 p-4 border-t border-border">
                 <div className="flex flex-wrap gap-2 mb-3">
                     <Button
                         onClick={() => onWhatsApp({ message: buildWhatsAppMessage('TASK', `Queria falar sobre ${deal.title}`) })}
@@ -172,7 +173,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                         value={note}
                         onChange={(e) => onNoteChange(e.target.value)}
                         placeholder="Escreva..."
-                        className="w-full min-h-[120px] bg-card/50 border border-border ring-1 ring-ring/30 focus:border-primary-500 focus:ring-primary-500/40 rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none transition-all resize-none"
+                        className="w-full min-h-[120px] bg-card/50 border border-border ring-1 ring-ring/30 focus:border-primary-500 focus:ring-primary-500/40 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none transition-all resize-none"
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && e.metaKey && note.trim()) {
                                 onAddActivity({
@@ -233,7 +234,7 @@ function StageMoveBadge({ title, board }: { title: string; board?: Board }) {
     const matchingStage = board?.stages.find(s =>
         s.label.toLowerCase() === stageName.toLowerCase()
     );
-    const hexColor = TAILWIND_TO_HEX[matchingStage?.color || ''] || '#64748b';
+    const hexColor = TAILWIND_TO_HEX[matchingStage?.color || ''] || DEFAULT_STAGE_COLOR;
 
     return (
         <span className="flex items-center gap-2">
