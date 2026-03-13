@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
+import { QueryClient } from '@tanstack/react-query';
+import { createTestQueryClient, createWrapper as createWrapperFromFactory } from './helpers/queryClientFactory';
+import { flushMicrotasks } from './helpers/flushMicrotasks';
 
 // ── Mocks (vi.hoisted so vi.mock factories can reference them) ───
 
@@ -76,7 +77,7 @@ let queryClient: QueryClient;
 
 beforeEach(() => {
   vi.useFakeTimers();
-  queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  queryClient = createTestQueryClient();
   subscribeCallback = null;
   tableCallbacks.clear();
   mocks.shouldProcessInsert.mockClear().mockReturnValue(true);
@@ -105,10 +106,7 @@ afterEach(() => {
 });
 
 function createWrapper() {
-  const Wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(QueryClientProvider, { client: queryClient }, children);
-  Wrapper.displayName = 'TestWrapper';
-  return Wrapper;
+  return createWrapperFromFactory(queryClient);
 }
 
 // ── AC1: Channel lifecycle ──────────────────────────────
@@ -243,7 +241,7 @@ describe('useRealtimeSync microtask flush on INSERT (AC3)', () => {
     await act(async () => {
       cb!(makeInsertPayload('boards', 'board-1'));
       syncCallCount = invalidateSpy.mock.calls.length;
-      await Promise.resolve(); // flush microtask
+      await flushMicrotasks();
     });
 
     expect(syncCallCount).toBe(0);
@@ -262,7 +260,7 @@ describe('useRealtimeSync microtask flush on INSERT (AC3)', () => {
     await act(async () => {
       boardCb!(makeInsertPayload('boards', 'board-1'));
       stagesCb!(makeInsertPayload('board_stages', 'stage-1'));
-      await Promise.resolve(); // flush microtask
+      await flushMicrotasks();
     });
 
     // Both tables should be invalidated
@@ -360,7 +358,7 @@ describe('useRealtimeSync event dispatch', () => {
     const cb = tableCallbacks.get('deals');
     await act(async () => {
       cb!(makePayload('INSERT', 'deals', { id: 'deal-1', updated_at: '2026-01-01' }));
-      await Promise.resolve();
+      await flushMicrotasks();
     });
 
     expect(invalidateSpy).toHaveBeenCalled();
@@ -376,7 +374,7 @@ describe('useRealtimeSync event dispatch', () => {
     const cb = tableCallbacks.get('deals');
     await act(async () => {
       cb!(makePayload('INSERT', 'deals', { id: 'deal-1', updated_at: '2026-01-01' }));
-      await Promise.resolve();
+      await flushMicrotasks();
     });
 
     expect(invalidateSpy).not.toHaveBeenCalled();
@@ -392,7 +390,7 @@ describe('useRealtimeSync event dispatch', () => {
     const cb = tableCallbacks.get('deals');
     await act(async () => {
       cb!(makePayload('INSERT', 'deals', { id: 'deal-1', updated_at: '2026-01-01' }));
-      await Promise.resolve();
+      await flushMicrotasks();
     });
 
     expect(invalidateSpy).not.toHaveBeenCalled();
