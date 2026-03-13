@@ -7,7 +7,7 @@
 import { useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
-import { useDeals } from '@/context/deals/DealsContext';
+import { useDeals, useCreateDeal, useUpdateDeal, useDeleteDeal, useAddDealItem, useRemoveDealItem } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useBoards } from '@/context/boards/BoardsContext';
@@ -18,14 +18,12 @@ import type { Deal, DealView, Contact } from '@/types';
 export function useCRMActions() {
   const queryClient = useQueryClient();
   const { profile, user } = useAuth();
-  const {
-    rawDeals,
-    addDeal: addDealState,
-    updateDeal,
-    deleteDeal,
-    addItemToDeal,
-    removeItemFromDeal,
-  } = useDeals();
+  const { data: rawDeals = [] } = useDeals();
+  const createDealMutation = useCreateDeal();
+  const updateDealMutation = useUpdateDeal();
+  const deleteDealMutation = useDeleteDeal();
+  const addItemMutation = useAddDealItem();
+  const removeItemMutation = useRemoveDealItem();
   const { contacts, contactMap, addContact } = useContacts();
   const { activities, addActivity, updateActivity, deleteActivity, toggleActivityCompletion } = useActivities();
   const { boards, activeBoard, activeBoardId, getBoardById } = useBoards();
@@ -136,7 +134,12 @@ export function useCRMActions() {
       }
     }
 
-    const createdDeal = await addDealState({ ...deal, contactId: finalContactId });
+    let createdDeal: Deal | null = null;
+    try {
+      createdDeal = await createDealMutation.mutateAsync({ ...deal, contactId: finalContactId } as Parameters<typeof createDealMutation.mutateAsync>[0]);
+    } catch {
+      // Error handled by mutation's onError (cache rollback)
+    }
 
     if (optimisticBoardId) {
       try {
@@ -200,7 +203,7 @@ export function useCRMActions() {
     }
 
     return createdDeal;
-  }, [contacts, activeBoard, addContact, addDealState, addActivity, queryClient, ownerName, ownerAvatar]);
+  }, [contacts, activeBoard, addContact, createDealMutation, addActivity, queryClient, ownerName, ownerAvatar]);
 
   const convertContactToDeal = useCallback(async (contactId: string) => {
     const contact = contacts.find(c => c.id === contactId);
@@ -221,7 +224,12 @@ export function useCRMActions() {
       isLost: false,
     };
 
-    const createdDeal = await addDealState(newDeal);
+    let createdDeal: Deal | null = null;
+    try {
+      createdDeal = await createDealMutation.mutateAsync(newDeal as Parameters<typeof createDealMutation.mutateAsync>[0]);
+    } catch {
+      return;
+    }
     if (createdDeal) {
       await addActivity({
         dealId: createdDeal.id,
@@ -234,7 +242,7 @@ export function useCRMActions() {
         completed: true,
       });
     }
-  }, [contacts, activeBoard, activeBoardId, addDealState, addActivity, ownerName, ownerAvatar]);
+  }, [contacts, activeBoard, activeBoardId, createDealMutation, addActivity, ownerName, ownerAvatar]);
 
   const convertLead = useCallback(async (leadId: string) => {
     const lead = leads.find(l => l.id === leadId);
@@ -267,7 +275,12 @@ export function useCRMActions() {
       isLost: false,
     };
 
-    const createdDeal = await addDealState(newDeal);
+    let createdDeal: Deal | null = null;
+    try {
+      createdDeal = await createDealMutation.mutateAsync(newDeal as Parameters<typeof createDealMutation.mutateAsync>[0]);
+    } catch {
+      return;
+    }
 
     if (!createdDeal) return;
 
@@ -286,7 +299,7 @@ export function useCRMActions() {
         completed: true,
       });
     }
-  }, [leads, activeBoard, activeBoardId, addContact, addDealState, addActivity, discardLead, ownerName, ownerAvatar]);
+  }, [leads, activeBoard, activeBoardId, addContact, createDealMutation, addActivity, discardLead, ownerName, ownerAvatar]);
 
   const checkWalletHealth = useCallback(async () => {
     const thirtyDaysAgo = new Date();

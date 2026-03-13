@@ -22,7 +22,7 @@ import { FocusItem, AISuggestion } from '../hooks/useInboxController';
 import { Activity, DealView } from '@/types';
 import { FocusContextPanel } from './focus-context';
 import { useCRMActions } from '@/hooks/useCRMActions';
-import { useDeals } from '@/context/deals/DealsContext';
+import { useUpdateDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
@@ -108,7 +108,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
   const [manualDealId, setManualDealId] = useState('');
   const [contextSearch, setContextSearch] = useState('');
   const { deals } = useCRMActions();
-  const { updateDeal } = useDeals();
+  const updateDealMutation = useUpdateDeal();
   const { contacts } = useContacts();
   const { boards, activeBoard } = useBoards();
   const { activities, addActivity, updateActivity } = useActivities();
@@ -241,8 +241,8 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
   const { moveDeal } = useMoveDealSimple(contextData?.board ?? null, []);
 
   const handleMoveStage = (stageId: string) => contextData?.deal && moveDeal(contextData.deal, stageId);
-  const handleMarkWon = () => contextData?.deal && updateDeal(contextData.deal.id, { isWon: true, isLost: false, closedAt: new Date().toISOString() });
-  const handleMarkLost = () => contextData?.deal && updateDeal(contextData.deal.id, { isWon: false, isLost: true, closedAt: new Date().toISOString() });
+  const handleMarkWon = () => contextData?.deal && updateDealMutation.mutate({ id: contextData.deal.id, updates: { isWon: true, isLost: false, closedAt: new Date().toISOString() } });
+  const handleMarkLost = () => contextData?.deal && updateDealMutation.mutate({ id: contextData.deal.id, updates: { isWon: false, isLost: true, closedAt: new Date().toISOString() } });
 
   // Keyboard shortcuts
   useEffect(() => {

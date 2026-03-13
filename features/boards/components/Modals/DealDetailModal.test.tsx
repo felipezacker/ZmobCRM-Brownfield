@@ -67,6 +67,10 @@ vi.mock('@/hooks/useOrganizationMembers', () => ({
   useOrganizationMembers: () => ({ members: [], loading: false }),
 }));
 
+vi.mock('@/lib/realtime/useRealtimeSync', () => ({
+  useRealtimeSync: () => undefined,
+}));
+
 vi.mock('@/lib/query/hooks/useContactsQuery', () => ({
   useContact: () => ({ data: { id: 'contact-1', name: 'Fulano', email: 'fulano@example.com', phone: '' } }),
 }));
@@ -118,14 +122,12 @@ vi.mock('@/hooks/useCRMActions', () => ({
   }),
 }));
 
-vi.mock('@/context/deals/DealsContext', () => ({
-  useDeals: () => ({
-    rawDeals: [mockDeal],
-    updateDeal: vi.fn(),
-    deleteDeal: vi.fn(),
-    addItemToDeal: vi.fn(),
-    removeItemFromDeal: vi.fn(),
-  }),
+vi.mock('@/lib/query/hooks/useDealsQuery', () => ({
+  useDeals: () => ({ data: [mockDeal], isLoading: false, error: null, refetch: vi.fn() }),
+  useUpdateDeal: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useDeleteDeal: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useAddDealItem: () => ({ mutateAsync: vi.fn() }),
+  useRemoveDealItem: () => ({ mutateAsync: vi.fn() }),
 }));
 
 vi.mock('@/context/contacts/ContactsContext', () => ({

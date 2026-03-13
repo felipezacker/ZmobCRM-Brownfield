@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useCRMActions } from '@/hooks/useCRMActions';
-import { useDeals } from '@/context/deals/DealsContext';
+import { useUpdateDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useActivities } from '@/context/activities/ActivitiesContext';
 import { Decision, DecisionStats, SuggestedAction, ActionPayload } from '../types';
 import decisionQueueService from '../services/decisionQueueService';
@@ -17,7 +17,7 @@ import { runAllAnalyzers } from '../analyzers';
  */
 export function useDecisionQueue() {
   const { deals } = useCRMActions();
-  const { updateDeal } = useDeals();
+  const updateDealMutation = useUpdateDeal();
   const { activities, addActivity, updateActivity } = useActivities();
 
   const [decisions, setDecisions] = useState<Decision[]>(() =>
@@ -112,7 +112,7 @@ export function useDecisionQueue() {
 
         case 'move_deal': {
           if (decision.dealId && payload.newStage) {
-            updateDeal(decision.dealId, { status: payload.newStage as string });
+            updateDealMutation.mutate({ id: decision.dealId, updates: { status: payload.newStage as string } });
             return true;
           }
           break;
@@ -161,7 +161,7 @@ export function useDecisionQueue() {
     }
 
     return false;
-  }, [addActivity, updateDeal, updateActivity]);
+  }, [addActivity, updateDealMutation, updateActivity]);
 
   // Approve a decision
   const approveDecision = useCallback(async (

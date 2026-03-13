@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useContact as useContactQuery } from '@/lib/query/hooks/useContactsQuery';
-import { useDeals } from '@/context/deals/DealsContext';
+import { useUpdateDeal, useDeleteDeal, useAddDealItem, useRemoveDealItem } from '@/lib/query/hooks/useDealsQuery';
 import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useSettings } from '@/context/settings/SettingsContext';
@@ -20,6 +20,7 @@ import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
 import type { ContactPreference } from '@/types';
 import type { TimelineItem } from '@/features/boards/components/deal-detail/types';
 import { createDealDetailHandlers } from './useDealDetailHandlers';
+import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 
 export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: () => void) {
   const { mode } = useResponsiveMode();
@@ -27,7 +28,26 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
 
   const { deals } = useCRMActions();
   const { contacts, updateContact } = useContacts();
-  const { updateDeal, deleteDeal, addItemToDeal, removeItemFromDeal } = useDeals();
+  const updateDealMutation = useUpdateDeal();
+  const deleteDealMutation = useDeleteDeal();
+  const addItemMutation = useAddDealItem();
+  const removeItemMutation = useRemoveDealItem();
+  const updateDeal = useCallback((id: string, updates: Partial<import('@/types').Deal>) => {
+    updateDealMutation.mutate({ id, updates });
+  }, [updateDealMutation]);
+  const deleteDeal = useCallback(async (id: string) => {
+    await deleteDealMutation.mutateAsync(id);
+  }, [deleteDealMutation]);
+  const addItemToDeal = useCallback(async (dealId: string, item: Omit<import('@/types').DealItem, 'id'>) => {
+    try {
+      const result = await addItemMutation.mutateAsync({ dealId, item });
+      return result.item;
+    } catch { return null; }
+  }, [addItemMutation]);
+  const removeItemFromDeal = useCallback(async (dealId: string, itemId: string) => {
+    try { await removeItemMutation.mutateAsync({ dealId, itemId }); }
+    catch { /* Error handled by mutation's onError */ }
+  }, [removeItemMutation]);
   const { activities, updateActivity, deleteActivity } = useActivities();
   const { activeBoard, boards } = useBoards();
   const { products, customFieldDefinitions, lifecycleStages } = useSettings();
@@ -193,6 +213,18 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
     if (!deal?.id) { setDealNotes([]); return; }
     fetchDealNotes();
   }, [deal?.id, fetchDealNotes]);
+
+  // RT-3.1: Realtime subscription for deal_notes
+  useRealtimeSync('deal_notes', {
+    enabled: isOpen && !!deal?.id,
+    onchange: (payload) => {
+      const affectedDealId = (payload.new as Record<string, unknown>)?.deal_id
+        ?? (payload.old as Record<string, unknown>)?.deal_id;
+      if (affectedDealId === deal?.id) {
+        fetchDealNotes();
+      }
+    },
+  });
 
   useEffect(() => {
     const currentDeal = dealRef.current;

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
 import { useCRMActions } from '@/hooks/useCRMActions';
-import { useDeals } from '@/context/deals/DealsContext';
+import { useDeals as useDealsQuery, useUpdateDeal, useAddDealItem, useRemoveDealItem } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
@@ -34,18 +34,33 @@ import {
 export function useDealCockpitState(dealId?: string) {
   const { profile, user } = useAuth();
   const { deals } = useCRMActions();
-  const dealsCtx = useDeals();
-  const { updateDeal, addItemToDeal, removeItemFromDeal } = dealsCtx;
+  const { isLoading: dealsLoading, error: dealsQueryError, refetch: refetchDeals } = useDealsQuery();
+  const updateDealMutation = useUpdateDeal();
+  const addItemMutation = useAddDealItem();
+  const removeItemMutation = useRemoveDealItem();
+  const updateDeal = useCallback((id: string, updates: Partial<import('@/types').Deal>) => {
+    updateDealMutation.mutate({ id, updates });
+  }, [updateDealMutation]);
+  const addItemToDeal = useCallback(async (dealId: string, item: Omit<import('@/types').DealItem, 'id'>) => {
+    try {
+      const result = await addItemMutation.mutateAsync({ dealId, item });
+      return result.item;
+    } catch { return null; }
+  }, [addItemMutation]);
+  const removeItemFromDeal = useCallback(async (dealId: string, itemId: string) => {
+    try { await removeItemMutation.mutateAsync({ dealId, itemId }); }
+    catch { /* Error handled by mutation's onError */ }
+  }, [removeItemMutation]);
   const { contacts, updateContact } = useContacts();
   const { boards } = useBoards();
   const activitiesCtx = useActivities();
   const { activities, addActivity } = activitiesCtx;
-  const crmLoading = dealsCtx.loading || activitiesCtx.loading;
-  const crmError = dealsCtx.error || activitiesCtx.error;
+  const crmLoading = dealsLoading || activitiesCtx.loading;
+  const crmError = dealsQueryError ? (dealsQueryError as Error).message : activitiesCtx.error;
   const refreshCRM = useCallback(async () => {
-    await dealsCtx.refresh();
+    await refetchDeals();
     await activitiesCtx.refresh();
-  }, [dealsCtx, activitiesCtx]);
+  }, [refetchDeals, activitiesCtx]);
 
   const { customFieldDefinitions, products } = useSettings();
 

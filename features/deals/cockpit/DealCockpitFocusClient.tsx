@@ -7,7 +7,7 @@ import { useCRMActions } from '@/hooks/useCRMActions';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useBoards } from '@/context/boards/BoardsContext';
-import { useDeals } from '@/context/deals/DealsContext';
+import { useUpdateDeal } from '@/lib/query/hooks/useDealsQuery';
 import { FocusContextPanel } from '@/features/inbox/components/focus-context';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import type { Activity, DealView } from '@/types';
@@ -26,7 +26,7 @@ export default function DealCockpitFocusClient({ dealId }: { dealId: string }) {
   const { contacts } = useContacts();
   const { boards, activeBoard } = useBoards();
   const { activities, addActivity, updateActivity } = useActivities();
-  const { updateDeal } = useDeals();
+  const updateDealMutation = useUpdateDeal();
 
   const dealsById = useMemo(() => new Map(deals.map((d) => [d.id, d])), [deals]);
   const contactsById = useMemo(() => new Map(contacts.map((c) => [c.id, c])), [contacts]);
@@ -54,13 +54,13 @@ export default function DealCockpitFocusClient({ dealId }: { dealId: string }) {
 
   const onMarkWon = useCallback(() => {
     if (!deal) return;
-    updateDeal(deal.id, { isWon: true, isLost: false, closedAt: new Date().toISOString() });
-  }, [deal, updateDeal]);
+    updateDealMutation.mutate({ id: deal.id, updates: { isWon: true, isLost: false, closedAt: new Date().toISOString() } });
+  }, [deal, updateDealMutation]);
 
   const onMarkLost = useCallback(() => {
     if (!deal) return;
-    updateDeal(deal.id, { isWon: false, isLost: true, closedAt: new Date().toISOString() });
-  }, [deal, updateDeal]);
+    updateDealMutation.mutate({ id: deal.id, updates: { isWon: false, isLost: true, closedAt: new Date().toISOString() } });
+  }, [deal, updateDealMutation]);
 
   if (!deal) {
     return (

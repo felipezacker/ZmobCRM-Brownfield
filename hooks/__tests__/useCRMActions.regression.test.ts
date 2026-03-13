@@ -51,15 +51,13 @@ vi.mock('@/context/AuthContext', () => ({
   }),
 }));
 
-vi.mock('@/context/deals/DealsContext', () => ({
-  useDeals: () => ({
-    get rawDeals() { return mockRawDeals; },
-    addDeal: mockAddDealState,
-    updateDeal: vi.fn(),
-    deleteDeal: vi.fn(),
-    addItemToDeal: vi.fn(),
-    removeItemFromDeal: vi.fn(),
-  }),
+vi.mock('@/lib/query/hooks/useDealsQuery', () => ({
+  useDeals: () => ({ get data() { return mockRawDeals; }, isLoading: false, error: null, refetch: vi.fn() }),
+  useCreateDeal: () => ({ mutateAsync: mockAddDealState }),
+  useUpdateDeal: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useDeleteDeal: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
+  useAddDealItem: () => ({ mutateAsync: vi.fn() }),
+  useRemoveDealItem: () => ({ mutateAsync: vi.fn() }),
 }));
 
 vi.mock('@/context/contacts/ContactsContext', () => ({
