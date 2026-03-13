@@ -33,7 +33,8 @@ export type RealtimeTable =
   | 'prospecting_sessions'
   | 'organization_settings'
   | 'notifications'
-  | 'deal_notes';
+  | 'deal_notes'
+  | 'system_notifications';
 
 export const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unknown[])[] => {
   const mapping: Record<RealtimeTable, readonly (readonly unknown[])[]> = {
@@ -49,6 +50,7 @@ export const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unkn
     organization_settings: [['settings'] as const],
     notifications: [NOTIFICATION_COUNT_KEY],
     deal_notes: [queryKeys.activities.all],
+    system_notifications: [['system_notifications'] as const],
   };
   return mapping[table];
 };

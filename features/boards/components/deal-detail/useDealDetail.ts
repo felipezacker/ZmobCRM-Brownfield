@@ -220,7 +220,8 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
     onchange: (payload) => {
       const affectedDealId = (payload.new as Record<string, unknown>)?.deal_id
         ?? (payload.old as Record<string, unknown>)?.deal_id;
-      if (affectedDealId === deal?.id) {
+      // DELETE events without REPLICA IDENTITY FULL only send PK in old — refetch to be safe
+      if (!affectedDealId || affectedDealId === deal?.id) {
         fetchDealNotes();
       }
     },
