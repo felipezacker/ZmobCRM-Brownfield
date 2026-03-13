@@ -2,7 +2,7 @@
 
 **ID:** PRD-IMOVEIS
 **Status:** Draft
-**Data:** 2026-03-03
+**Data:** 2026-03-13
 **Autor:** @pm (Morgan)
 **Origem:** Backlog triagem equipe (Epic 8) + pesquisas @analyst (portais, competidores) + decisoes stakeholder
 
@@ -12,20 +12,21 @@
 
 ### 1.1 Estado Atual
 
-O ZmobCRM e um CRM imobiliario AI-first construido com Next.js, React 19, TypeScript e Supabase. Possui 42 tabelas (48 migrations), RLS 100%, RBAC 3 niveis (admin > diretor > corretor), e ja completou o Epic CRM Imobiliario (EPIC-CRM-IMOB) com:
+O ZmobCRM e um CRM imobiliario AI-first construido com Next.js, React 19, TypeScript e Supabase. Possui 42+ tabelas (76 migrations), RLS 100%, RBAC 3 niveis (admin > diretor > corretor), e ja completou os Epics CRM Imobiliario (EPIC-CRM-IMOB) e Realtime Everywhere (EPIC-RT) com:
 
 - Modelo de dados de contatos com campos imobiliarios (CPF, classificacao, temperatura)
 - **Tabela `contact_preferences`** — perfil de interesse do contato (tipo imovel, faixa preco, regioes, quartos, vagas, financiamento, FGTS, urgencia)
 - Cockpit 360 do contato com timeline, deals, IA
 - Lead scoring com IA (7 fatores, 0-100)
 - Notificacoes inteligentes (aniversario, churn, stagnation, score drop)
+- **Realtime sync** — subscriptions Supabase para deals, contacts, activities, notifications com cache patching via React Query
 
 **Gap critico:** O sistema captura preferencias de imovel do contato mas NAO possui catalogo de imoveis. Nao existe matching contato-imovel. 6/6 concorrentes analisados possuem gestao de imoveis.
 
 ### 1.2 Documentacao Disponivel
 
 - [x] Tech Stack (SCHEMA.md, system-architecture.md)
-- [x] Schema DB (48 migrations, 42 tabelas)
+- [x] Schema DB (76 migrations, 42+ tabelas)
 - [x] Analise competitiva (6 concorrentes: Jetimob, Vista/Loft, Imoview, Arbo, Tecimob, Imobzi)
 - [x] Pesquisa APIs portais (ZAP/VivaReal, OLX, Chaves na Mao, Orulo)
 - [x] Technical Debt Assessment
@@ -60,6 +61,8 @@ O cadastro de imoveis e a feature #1 mais critica para qualquer CRM imobiliario 
 4. Competir com Tecimob (R$129,90/mes) e Jetimob (R$199/mes)
 
 A integracao Orulo e prioritaria porque alimenta o CRM automaticamente com lancamentos de incorporadoras — o Tecimob ja possui esta integracao e e referencia do stakeholder.
+
+**Contexto tecnico:** O Epic RT (Realtime Everywhere) foi concluido, estabelecendo o pattern de Supabase Realtime + React Query cache patching para todas as entidades. O modulo de imoveis pode aproveitar esse pattern para que cadastros/atualizacoes de imoveis sejam refletidos em tempo real para todos os corretores da organizacao (consideracao para Wave 1, IM-1.2).
 
 O matching com IA sera o **diferencial unico** do ZmobCRM no mercado brasileiro. Nenhum concorrente possui matching inteligente com scoring — apenas o Tecimob tem o "Radar de Clientes" que e basico e sem IA.
 
@@ -230,6 +233,7 @@ O cockpit de imovel usa layout **header hero + tabs** ao inves do layout 3 colun
 - **Backend:** Supabase (PostgreSQL 17, RLS, Edge Functions, Storage)
 - **IA:** Multi-provider (Gemini, OpenAI, Anthropic) via `organization_settings`
 - **State:** React Query (TanStack Query) para cache e mutations
+- **Realtime:** Supabase Realtime com cache patching (Epic RT concluido — pattern disponivel para properties)
 - **Auth:** Supabase Auth com RBAC (admin > diretor > corretor)
 
 ### 8.2 Estrategia de Integracao
@@ -264,6 +268,7 @@ features/properties/
     useProperties.ts
     usePropertyMatching.ts
     useOruloSync.ts
+    usePropertyRealtimeSync.ts  # Realtime cache patching (pattern do Epic RT)
 lib/supabase/
   properties.ts               # CRUD de imoveis
   property-matching.ts        # Funcoes de matching
@@ -612,6 +617,7 @@ IM-3.3 (IA Descricoes) ← pode rodar em paralelo com 3.1/3.2
 | 2026-03-03 | @pm (Morgan) | PRD atualizado — UX refs adicionadas (Beotto, Tecimob, Jetimob). Layout cockpit alterado para header+tabs (ref. Beotto). Adicionados: categorias de foto (FR4), notas privadas (FR8b), documentos/materiais (FR16b), tabs detalhadas (FR13b), tabela property_documents. IM-1.3 ajustada de 5 para 8 pontos. Total: 57 pontos |
 | 2026-03-03 | @architect (Aria) | Review tecnico aplicado — 11 ajustes: (C1) Expandir contact_preferences CHECK com 3 novos tipos, (C2) Definir mecanismo counter atomico para codigo interno, (C3) Trocar Edge Function por Vercel Cron Jobs, (H1) property_features removida — usar features TEXT[] inline, (H2) Campos Orulo individuais → source_data JSONB extensivel, (H3) Matching RPC set-returning (evitar N+1), (H4) Logica de match regiao definida, (M1) deals.property_ref deprecated path, (M2) RLS DELETE restrito admin/diretor, (M3) Storage path com org_id, (M4) Credenciais Orulo em organization_settings. Total tabelas: 6→5 |
 | 2026-03-04 | @po (Pax) | Validacao PRD (84/100, GO condicional). 7 correcoes aplicadas: (C1) contact_preferences.property_types nao tem CHECK — corrigido para app layer, (C2) notifications.type CHECK precisa incluir PROPERTY_MATCH — AC adicionada em IM-3.2, (C3) Contagem tabelas 36→42 (48 migrations), (M1) Colunas Orulo explicitadas em organization_settings na IM-2.1, (M2) DELETE policy clarificada sem owner_id, (M3) CreateDealModal mantido minimalista — campo imovel apenas no DealDetailModal, (M4) Secao "Fora do Escopo V1" adicionada com 8 exclusoes |
+| 2026-03-13 | @pm (Morgan) | PRD atualizado — 5 correcoes pos-Epic RT: (1) Contagem migrations 48→76, (2) Estado atual inclui Epic RT (Realtime Everywhere) concluido, (3) Stack atualizada com Supabase Realtime, (4) Adicionado usePropertyRealtimeSync.ts na organizacao de codigo, (5) Contexto tecnico do Realtime como oportunidade para IM-1.2 |
 
 ---
 
