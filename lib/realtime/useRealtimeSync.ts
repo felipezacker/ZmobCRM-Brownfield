@@ -17,6 +17,7 @@ import {
   RealtimeTable,
   UseRealtimeSyncOptions,
   getTableQueryKeys,
+  shouldProcessInsert,
 } from './realtimeConfig';
 import { handleDealInsert } from './dealInsertSync';
 import { handleDealUpdate } from './dealUpdateSync';
@@ -186,6 +187,18 @@ export function useRealtimeSync(
 
           // ─── Standard handling for all other events ───
           const keys = getTableQueryKeys(table);
+
+          // ─── Dedup for generic INSERTs (RT-4.3) ───
+          if (payload.eventType === 'INSERT') {
+            const newRecord = payload.new as Record<string, unknown>;
+            const dedupeKey = `${table}-${newRecord.id}-${newRecord.updated_at ?? ''}`;
+            if (!shouldProcessInsert(dedupeKey)) {
+              if (DEBUG_REALTIME) {
+                console.log(`[Realtime] Deduplicated ${table} INSERT: ${dedupeKey}`);
+              }
+              return;
+            }
+          }
 
           if (payload.eventType === 'INSERT' && table === 'board_stages') {
             keys.forEach(key => pendingInvalidateOnlyRef.current.add(key));
