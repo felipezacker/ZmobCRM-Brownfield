@@ -17,6 +17,7 @@ import { useBoards } from '@/context/boards/BoardsContext';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useUIStore } from '@/lib/stores';
 import { Button } from '@/components/ui/button';
+import { SHADOW_TOKENS } from '@/lib/design-tokens';
 
 // Performance: reuse formatter instances.
 const BRL_CURRENCY_FORMATTER = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -102,7 +103,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
 
   if (!hasStrategy && !isEditing) {
     return (
-      <div className="mb-4">
+      <div className="mb-1">
         <Button
           onClick={() => setIsEditing(true)}
           className="w-full py-3 border-2 border-dashed border-border rounded-xl flex items-center justify-center gap-2 text-muted-foreground dark:text-muted-foreground hover:border-primary-500 dark:hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition-all group bg-background/50 dark:bg-white/5"
@@ -134,7 +135,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
   };
 
   return (
-    <div className="relative mb-4 group/header z-20">
+    <div className="relative mb-1 group/header z-20">
       {/* Background Glow Effect (Subtle) */}
       <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-orange-500/5 rounded-xl blur-xl opacity-50 group-hover/header:opacity-100 transition-opacity duration-700"></div>
 
@@ -401,8 +402,8 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
                 {/* Sleek Progress Bar */}
                 <div className="relative h-1 w-full bg-muted dark:bg-card rounded-full overflow-hidden mb-1">
                   <div
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)] transition-all duration-1000 ease-out"
-                    style={{ width: `${progress}% ` }}
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${progress}% `, boxShadow: `0 0 8px ${SHADOW_TOKENS.glow.primary}` }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-[9px] font-medium text-muted-foreground uppercase tracking-wider">

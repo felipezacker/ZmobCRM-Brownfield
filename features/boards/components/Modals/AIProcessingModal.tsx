@@ -1,5 +1,6 @@
 import React from 'react';
 import { Loader2, CheckCircle2, Circle, Sparkles, BrainCircuit, LayoutTemplate, Target, Eye, BookOpen } from 'lucide-react';
+import { SHADOW_TOKENS } from '@/lib/design-tokens';
 
 export type ProcessingStep = 'analyzing' | 'structure' | 'strategy' | 'finalizing' | 'complete';
 export type SimulatorPhase = 'structure' | 'strategy';
@@ -136,8 +137,8 @@ export const AIProcessingModal: React.FC<AIProcessingModalProps> = ({ isOpen, cu
                 {/* Progress Bar */}
                 <div className="h-1.5 bg-muted dark:bg-white/5 w-full">
                     <div
-                        className="h-full bg-gradient-to-r from-primary-500 to-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-700 ease-out"
-                        style={{ width: `${((activeIndex + 0.5) / steps.length) * 100}%` }}
+                        className="h-full bg-gradient-to-r from-primary-500 to-blue-500 transition-all duration-700 ease-out"
+                        style={{ width: `${((activeIndex + 0.5) / steps.length) * 100}%`, boxShadow: `0 0 10px ${SHADOW_TOKENS.glow.primary}` }}
                     />
                 </div>
             </div>

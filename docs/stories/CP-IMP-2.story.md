@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-IMP-2
 - **Epic:** Avulsa (Central de Prospeccao)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 2 (S)
 - **Assigned Agent:** @dev
@@ -167,6 +167,7 @@ Isso expoe "Origem" no dropdown de mapeamento. A API ja processa `source` sem ne
 | 2026-03-12 | @qa (Quinn) | Review 1: CONCERNS — HIGH: columnMapping nao incluia indice da nova coluna tags |
 | 2026-03-12 | @dev (Dex) | Fix: mappingForApi com indice da coluna tags dinamica, 14/14 testes OK |
 | 2026-03-12 | @qa (Quinn) | Re-review: PASS — todos os ACs verificados, zero issues |
+| 2026-03-13 | @po (Pax) | Auditoria de status: QA PASS confirmado, CoD [x]. Status Ready for Review → Done. |
 
 ## File List
 

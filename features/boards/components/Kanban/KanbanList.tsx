@@ -157,7 +157,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
         {/* Col 1: Checkbox + Activity + Negocio (sticky) */}
         <td
           className={`${STICKY_Z} ${stickyBg} min-w-[280px] px-4 py-3`}
-          style={{ boxShadow: '2px 0 4px -2px rgba(0,0,0,0.06)' }}
+          style={{ boxShadow: 'var(--shadow-subtle)' }}
         >
           <div className="flex items-center gap-3">
             <input
@@ -484,7 +484,7 @@ export const KanbanList: React.FC<KanbanListProps> = ({
               <th
                 scope="col"
                 className={`${STICKY_Z} ${STICKY_HEADER_BG} min-w-[280px] px-4 py-4`}
-                style={{ boxShadow: '2px 0 4px -2px rgba(0,0,0,0.06)' }}
+                style={{ boxShadow: 'var(--shadow-subtle)' }}
               >
                 <div className="flex items-center gap-3">
                   <input

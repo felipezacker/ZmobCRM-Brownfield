@@ -2,6 +2,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
+import { ERROR_PAGE_COLORS } from "@/lib/design-tokens";
 
 /**
  * GlobalError renders outside the root layout, so Tailwind/globals.css
@@ -35,8 +36,8 @@ export default function GlobalError({
           alignItems: "center",
           justifyContent: "center",
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-          backgroundColor: "#020617",
-          color: "#f8fafc",
+          backgroundColor: ERROR_PAGE_COLORS.bg,
+          color: ERROR_PAGE_COLORS.text,
           padding: "1.5rem",
         }}
       >
@@ -47,7 +48,7 @@ export default function GlobalError({
               width: "3.5rem",
               height: "3.5rem",
               borderRadius: "1rem",
-              backgroundColor: "rgba(239, 68, 68, 0.15)",
+              backgroundColor: ERROR_PAGE_COLORS.errorIconBg,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -75,7 +76,7 @@ export default function GlobalError({
           <p
             style={{
               fontSize: "0.875rem",
-              color: "#94a3b8",
+              color: ERROR_PAGE_COLORS.textMuted,
               margin: "0 0 1.5rem",
               lineHeight: 1.5,
             }}
@@ -89,8 +90,8 @@ export default function GlobalError({
               style={{
                 fontSize: "0.75rem",
                 fontFamily: "monospace",
-                color: "#64748b",
-                backgroundColor: "rgba(255,255,255,0.05)",
+                color: ERROR_PAGE_COLORS.textSubtle,
+                backgroundColor: ERROR_PAGE_COLORS.codeBg,
                 borderRadius: "0.5rem",
                 padding: "0.5rem 0.75rem",
                 margin: "0 0 1.5rem",
@@ -120,15 +121,15 @@ export default function GlobalError({
                 padding: "0.625rem 1rem",
                 fontSize: "0.875rem",
                 fontWeight: 600,
-                color: "#020617",
-                backgroundColor: "#0ea5e9",
+                color: ERROR_PAGE_COLORS.buttonText,
+                backgroundColor: ERROR_PAGE_COLORS.buttonBg,
                 border: "none",
                 borderRadius: "0.5rem",
                 cursor: "pointer",
                 transition: "background-color 0.15s",
               }}
-              onMouseOver={(e) => { (e.target as HTMLButtonElement).style.backgroundColor = "#0284c7"; }}
-              onMouseOut={(e) => { (e.target as HTMLButtonElement).style.backgroundColor = "#0ea5e9"; }}
+              onMouseOver={(e) => { (e.target as HTMLButtonElement).style.backgroundColor = ERROR_PAGE_COLORS.buttonHover; }}
+              onMouseOut={(e) => { (e.target as HTMLButtonElement).style.backgroundColor = ERROR_PAGE_COLORS.buttonBg; }}
             >
               Tentar novamente
             </button>
@@ -142,15 +143,15 @@ export default function GlobalError({
                 padding: "0.625rem 1rem",
                 fontSize: "0.875rem",
                 fontWeight: 500,
-                color: "#e2e8f0",
+                color: ERROR_PAGE_COLORS.linkText,
                 backgroundColor: "transparent",
-                border: "1px solid rgba(255,255,255,0.1)",
+                border: `1px solid ${ERROR_PAGE_COLORS.linkBorder}`,
                 borderRadius: "0.5rem",
                 cursor: "pointer",
                 textDecoration: "none",
                 transition: "background-color 0.15s",
               }}
-              onMouseOver={(e) => { (e.target as HTMLAnchorElement).style.backgroundColor = "rgba(255,255,255,0.05)"; }}
+              onMouseOver={(e) => { (e.target as HTMLAnchorElement).style.backgroundColor = ERROR_PAGE_COLORS.linkHoverBg; }}
               onMouseOut={(e) => { (e.target as HTMLAnchorElement).style.backgroundColor = "transparent"; }}
             >
               Reportar problema
@@ -162,7 +163,7 @@ export default function GlobalError({
             style={{
               marginTop: "2rem",
               fontSize: "0.75rem",
-              color: "rgba(148, 163, 184, 0.4)",
+              color: ERROR_PAGE_COLORS.footerText,
             }}
           >
             ZmobCRM

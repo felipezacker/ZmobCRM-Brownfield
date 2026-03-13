@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { REVENUE_ACCENT } from '@/lib/constants/chart-colors';
+import { SHADOW_TOKENS } from '@/lib/design-tokens';
 
 interface RevenueTrendChartProps {
   data: Array<{ month: string; revenue: number }>;
@@ -49,7 +50,7 @@ export const RevenueTrendChart: React.FC<RevenueTrendChartProps> = ({ data }) =>
           border: '1px solid var(--chart-tooltip-border)',
           borderRadius: '12px',
           color: 'var(--chart-tooltip-text)',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          boxShadow: SHADOW_TOKENS.tooltip,
         }}
         itemStyle={{ color: 'var(--chart-tooltip-text)' }}
         labelStyle={{ color: 'var(--chart-text)' }}

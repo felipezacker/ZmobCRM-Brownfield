@@ -3,6 +3,7 @@ import { CheckCircle2, Target } from 'lucide-react';
 import type { Board } from '@/types';
 import { Button } from '@/components/ui/button';
 import { TAILWIND_TO_HEX } from './constants';
+import { DEFAULT_STAGE_COLOR } from '@/lib/design-tokens';
 
 interface PipelineStagesProps {
     board?: Board;
@@ -24,7 +25,7 @@ export const PipelineStages: React.FC<PipelineStagesProps> = ({
                 {board?.stages.map((stage, idx) => {
                     const isActive = idx === currentIdx;
                     const isPassed = idx < currentIdx;
-                    const hexColor = TAILWIND_TO_HEX[stage.color] || '#64748b';
+                    const hexColor = TAILWIND_TO_HEX[stage.color] || DEFAULT_STAGE_COLOR;
 
                     const mockDaysPerStage = [3, 12, 38, 0];
                     const daysInThisStage = isActive ? daysInStage : (isPassed ? mockDaysPerStage[idx] || Math.floor(Math.random() * 15) + 1 : 0);
@@ -62,7 +63,7 @@ export const PipelineStages: React.FC<PipelineStagesProps> = ({
                                     <span
                                         className="text-[10px] font-mono"
                                         style={{
-                                            color: isActive && daysInThisStage > 7 ? '#fb923c' : (isActive || isPassed) ? hexColor : '#64748b',
+                                            color: isActive && daysInThisStage > 7 ? '#fb923c' : (isActive || isPassed) ? hexColor : DEFAULT_STAGE_COLOR,
                                         }}
                                     >
                                         {daysInThisStage}d
