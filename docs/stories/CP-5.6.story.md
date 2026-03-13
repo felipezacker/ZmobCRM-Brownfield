@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-5.6
 - **Epic:** CP-5 (Prospeccao — Rastreabilidade & Visao Gerencial)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 5 (M)
 - **Wave:** 3
@@ -41,14 +41,14 @@ Painel "Operacao Ao Vivo" na aba Metricas (visivel apenas para admin/diretor) co
 
 ## Acceptance Criteria
 
-- [ ] AC1: O painel "Operacao Ao Vivo" e visivel APENAS para admin/diretor na aba Metricas do dashboard de prospeccao
-- [ ] AC2: O painel exibe um contador com o total de sessoes ativas no momento (ex: "3 sessoes ativas")
-- [ ] AC3: Para cada sessao ativa, lista: nome do corretor, duracao da sessao (formatada HH:MM:SS atualizando a cada segundo), ultimo outcome logado (badge colorido), e tempo desde a ultima ligacao
-- [ ] AC4: Corretores com sessao ativa mas sem ligacao registrada ha mais de 15 minutos exibem um badge vermelho "Inativo" ao lado do nome
-- [ ] AC5: Os dados atualizam em tempo real via Supabase Realtime — novas sessoes aparecem, sessoes encerradas desaparecem, e novas ligacoes atualizam o "ultimo outcome" sem necessidade de refresh manual
-- [ ] AC6: Quando nenhuma sessao esta ativa, o painel exibe mensagem "Nenhum corretor em sessao no momento" com icone ilustrativo
-- [ ] AC7: O painel NAO aparece para corretores (role = 'corretor') — apenas admin e diretor
-- [ ] AC8: Os stats parciais de cada sessao (ligacoes feitas, atendidas) sao exibidos ao lado do nome do corretor
+- [x] AC1: O painel "Operacao Ao Vivo" e visivel APENAS para admin/diretor na aba Metricas do dashboard de prospeccao
+- [x] AC2: O painel exibe um contador com o total de sessoes ativas no momento (ex: "3 sessoes ativas")
+- [x] AC3: Para cada sessao ativa, lista: nome do corretor, duracao da sessao (formatada HH:MM:SS atualizando a cada segundo), ultimo outcome logado (badge colorido), e tempo desde a ultima ligacao
+- [x] AC4: Corretores com sessao ativa mas sem ligacao registrada ha mais de 15 minutos exibem um badge vermelho "Inativo" ao lado do nome
+- [x] AC5: Os dados atualizam em tempo real via Supabase Realtime — novas sessoes aparecem, sessoes encerradas desaparecem, e novas ligacoes atualizam o "ultimo outcome" sem necessidade de refresh manual
+- [x] AC6: Quando nenhuma sessao esta ativa, o painel exibe mensagem "Nenhum corretor em sessao no momento" com icone ilustrativo
+- [x] AC7: O painel NAO aparece para corretores (role = 'corretor') — apenas admin e diretor
+- [x] AC8: Os stats parciais de cada sessao (ligacoes feitas, atendidas) sao exibidos ao lado do nome do corretor
 
 ## Scope
 
@@ -86,16 +86,16 @@ Painel "Operacao Ao Vivo" na aba Metricas (visivel apenas para admin/diretor) co
 
 ## Criteria of Done
 
-- [ ] Painel "Operacao Ao Vivo" visivel apenas para admin/diretor
-- [ ] Contador de sessoes ativas exibido corretamente
-- [ ] Lista de sessoes mostra: nome, duracao, ultimo outcome, tempo desde ultima ligacao
-- [ ] Badge "Inativo" aparece apos 15 minutos sem ligacao com sessao ativa
-- [ ] Dados atualizam via Realtime (sem refresh manual)
-- [ ] Empty state quando nenhuma sessao ativa
-- [ ] `prospecting_sessions` adicionada ao `RealtimeTable` type e query key mapping
-- [ ] Testes cobrem: painel visivel/invisivel por role, sessoes ativas/vazias, alerta inatividade, timer
-- [ ] Lint e typecheck passando (`npm run lint && npm run typecheck`)
-- [ ] Nenhuma regressao no dashboard de prospeccao
+- [x] Painel "Operacao Ao Vivo" visivel apenas para admin/diretor
+- [x] Contador de sessoes ativas exibido corretamente
+- [x] Lista de sessoes mostra: nome, duracao, ultimo outcome, tempo desde ultima ligacao
+- [x] Badge "Inativo" aparece apos 15 minutos sem ligacao com sessao ativa
+- [x] Dados atualizam via Realtime (sem refresh manual)
+- [x] Empty state quando nenhuma sessao ativa
+- [x] `prospecting_sessions` adicionada ao `RealtimeTable` type e query key mapping
+- [x] Testes cobrem: painel visivel/invisivel por role, sessoes ativas/vazias, alerta inatividade, timer
+- [x] Lint e typecheck passando (`npm run lint && npm run typecheck`)
+- [x] Nenhuma regressao no dashboard de prospeccao
 
 ## Tasks
 
@@ -343,6 +343,7 @@ Secondary Focus:
 | 2026-03-12 | 2.0 | Implementacao completa: Tasks 0-6 [x]. 3 novos arquivos, 3 modificados, 12 testes. Lint/typecheck OK. Status Ready → Ready for Review. | @dev (Dex) |
 | 2026-03-12 | 2.1 | QA fix: adicionados testes faltantes — getOrgActiveSessions (3 testes), inactivity logic (5 testes), role-based visibility (2 testes). Total: 22 testes. | @dev (Dex) |
 | 2026-03-12 | 2.2 | QA fix HIGH: activities Realtime agora invalida liveOperations cache — `queryKeys.liveOperations.all` adicionado ao mapping de activities em realtimeConfig.ts. AC5 100% atendido. | @dev (Dex) |
+| 2026-03-13 | 3.0 | Auditoria de status: QA PASS confirmado (8/8 ACs, 22 testes), ACs e CoD marcados [x]. Status Ready for Review → Done. | @po (Pax) |
 
 ## Dev Agent Record
 

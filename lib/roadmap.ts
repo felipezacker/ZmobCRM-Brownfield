@@ -1,3 +1,5 @@
+import { ROADMAP_PHASE_COLORS } from '@/lib/design-tokens';
+
 // Shared interfaces and static data
 export interface RoadmapItem {
     name: string;
@@ -84,7 +86,7 @@ export const staticMilestones: Milestone[] = [
 export const staticRoadmap: RoadmapPhase[] = [
     {
         phase: 'Proximo Passo',
-        color: '#f59e0b', // amber-500
+        color: ROADMAP_PHASE_COLORS.next,
         items: [
             { name: 'Prospeccao com IA v3 (CP-3)', desc: 'IA sugere quem ligar e quando baseado em lead score e heatmap' },
             { name: 'Módulo de Imóveis (Beta)', desc: 'Cadastro inicial e property_ref integrado ao Board e IA' },
@@ -92,7 +94,7 @@ export const staticRoadmap: RoadmapPhase[] = [
     },
     {
         phase: 'Planejado',
-        color: '#60a5fa', // blue-400
+        color: ROADMAP_PHASE_COLORS.planned,
         items: [
             { name: 'Modulo de Imoveis', desc: 'Cadastro completo com matching automatico entre imovel e perfil do cliente' },
             { name: 'Permissoes Avancadas', desc: 'Niveis customizaveis de acesso, cadeia de diretores e departamentos' },
@@ -104,7 +106,7 @@ export const staticRoadmap: RoadmapPhase[] = [
     },
     {
         phase: 'Concluido',
-        color: '#10b981', // emerald-500
+        color: ROADMAP_PHASE_COLORS.completed,
         items: [
             { name: 'Real-time Sync Board (QV-1.1)', desc: 'Sincronização em tempo real do kanban, contatos e deals (Bug #1, #17, #18, #19)' },
             { name: 'Custom Error Pages (QV-1.2)', desc: 'Páginas de erro 404/500 personalizadas e integradas ao layout global' },

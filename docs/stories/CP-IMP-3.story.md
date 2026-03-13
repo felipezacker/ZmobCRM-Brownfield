@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-IMP-3
 - **Epic:** Avulsa (Central de Prospeccao)
-- **Status:** Ready
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 3 (M)
 - **Assigned Agent:** @dev
@@ -58,6 +58,7 @@
 | 2026-03-12 | @pm (Morgan) | Story criada |
 | 2026-03-12 | @po (Pax) | Validacao: GO — status Ready |
 | 2026-03-12 | @dev (Dex) | Implementacao: MAX_ROWS 5000, CHUNK_SIZE 500, loop com progress, 15/15 testes OK |
+| 2026-03-13 | @po (Pax) | Auditoria de status: implementacao confirmada (commit 52db237), tasks [x]. Status Ready → Done. |
 
 ## File List
 

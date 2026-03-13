@@ -614,17 +614,18 @@ export default function InstallStartPage() {
                   </Button>
                 </div>
 
+                {/* Password strength indicators — uses design system success/muted tokens */}
                 <div className="grid grid-cols-3 gap-2 text-[11px] text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: passwordChecks.minLen ? 'rgba(16,185,129,0.9)' : 'rgba(148,163,184,0.5)' }} />
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${passwordChecks.minLen ? 'bg-success/90' : 'bg-muted-foreground/50'}`} />
                     <span>8+ caracteres</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: passwordChecks.hasLetter ? 'rgba(16,185,129,0.9)' : 'rgba(148,163,184,0.5)' }} />
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${passwordChecks.hasLetter ? 'bg-success/90' : 'bg-muted-foreground/50'}`} />
                     <span>1 letra</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: passwordChecks.hasNumber ? 'rgba(16,185,129,0.9)' : 'rgba(148,163,184,0.5)' }} />
+                    <span className={`inline-block w-1.5 h-1.5 rounded-full ${passwordChecks.hasNumber ? 'bg-success/90' : 'bg-muted-foreground/50'}`} />
                     <span>1 número</span>
                   </div>
                 </div>

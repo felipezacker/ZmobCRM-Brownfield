@@ -54,7 +54,7 @@ export const FilesTab: React.FC<FilesTabProps> = ({
                         <Plus size={20} className="text-muted-foreground" />
                     )}
                 </div>
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium text-foreground">
                     {isUploading ? 'Enviando...' : 'Adicionar arquivo'}
                 </p>
                 <p className="text-xs text-muted-foreground">Clique ou arraste (max 10MB)</p>
@@ -72,19 +72,19 @@ export const FilesTab: React.FC<FilesTabProps> = ({
                     files.map((file) => {
                         const ext = file.file_name.split('.').pop()?.toUpperCase() || 'FILE';
                         return (
-                            <div key={file.id} className="flex items-center p-3 rounded-lg bg-card/20 border border-white/5 hover:bg-card/40 transition-colors group">
-                                <div className="w-10 h-10 rounded-lg bg-card flex items-center justify-center text-xs font-bold text-muted-foreground border border-white/5 uppercase shrink-0">
+                            <div key={file.id} className="flex items-center p-3 rounded-lg bg-card/20 border border-border hover:bg-card/40 transition-colors group">
+                                <div className="w-10 h-10 rounded-lg bg-card flex items-center justify-center text-xs font-bold text-muted-foreground border border-border uppercase shrink-0">
                                     {ext.slice(0, 3)}
                                 </div>
                                 <div className="ml-3 flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-white truncate">{file.file_name}</p>
+                                    <p className="text-sm font-medium text-foreground truncate">{file.file_name}</p>
                                     <p className="text-xs text-muted-foreground">
                                         {formatFileSize(file.file_size ?? 0)} - {new Date(file.created_at).toLocaleDateString('pt-BR')}
                                     </p>
                                 </div>
                                 <Button
                                     onClick={() => onDownload(file)}
-                                    className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
+                                    className="p-2 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                                 >
                                     <Download size={16} />
                                 </Button>

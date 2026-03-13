@@ -124,6 +124,42 @@ svg.lucide {
   --chart-amber: oklch(78% 0.16 75);
   --chart-emerald: oklch(64% 0.17 165);
 
+  /* Typography Scale — 7 semantic sizes (consolidated from 14)
+   * caption: labels, badges, metadata
+   * body: default body text, descriptions
+   * subtitle: section titles, card headers
+   * title: page section titles
+   * heading: page titles, major sections
+   * display: hero-adjacent, marketing headers
+   * hero: landing pages, large displays */
+  --text-caption: 0.75rem;    /* 12px — text-xs */
+  --text-body: 0.875rem;      /* 14px — text-sm */
+  --text-subtitle: 1.125rem;  /* 18px — text-lg */
+  --text-title: 1.25rem;      /* 20px — text-xl */
+  --text-heading: 1.5rem;     /* 24px — text-2xl */
+  --text-display: 1.875rem;   /* 30px — text-3xl */
+  --text-hero: 3rem;          /* 48px — text-5xl */
+
+  /* Spacing Scale — 8-step (base: 4px)
+   * Formalizes the Tailwind scale already in use */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-12: 3rem;     /* 48px */
+
+  /* Shadow Tokens */
+  --shadow-subtle: 2px 0 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-tooltip: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  /* Border Radius Scale — 4 semantic tokens */
+  --radius-sm: 0.25rem;   /* 4px — badges, small elements */
+  --radius-md: 0.375rem;  /* 6px — inputs, compact cards */
+  --radius-lg: 0.75rem;   /* 12px — cards, modals, primary radius */
+  --radius-full: 9999px;  /* pill shapes, avatars */
+
   /* Light Mode - Soft Cream (OKLCH) */
   --color-bg: oklch(97% 0.005 90);
   --color-surface: oklch(99% 0.002 90);
@@ -171,12 +207,18 @@ svg.lucide {
   --premium-accent: #7DE8EB;
   --premium-mesh-color: rgba(125, 232, 235, 0.03);
 
-  /* Chart Colors */
+  /* Chart Theme — used by Recharts via lib/design-tokens.ts */
   --chart-text: #64748b;
   --chart-grid: rgba(148, 163, 184, 0.1);
   --chart-tooltip-bg: #0f172a;
   --chart-tooltip-border: rgba(255, 255, 255, 0.1);
   --chart-tooltip-text: #f8fafc;
+
+  /* Focus Ring — tokenized for accessibility utilities below */
+  --focus-ring: oklch(55% 0.25 265);
+  --focus-ring-high: oklch(48% 0.25 265);
+  --focus-ring-glow: oklch(55% 0.25 265 / 0.3);
+  --skip-link-bg: oklch(40% 0.20 265);
 }
 
 /* Avoid accidental horizontal scroll on small screens (mobile/tablet). */
@@ -247,12 +289,18 @@ html, body {
   --premium-accent: #7DE8EB;
   --premium-mesh-color: rgba(125, 232, 235, 0.05);
 
-  /* Chart Colors */
+  /* Chart Theme — Dark */
   --chart-text: #94a3b8;
   --chart-grid: rgba(255, 255, 255, 0.1);
   --chart-tooltip-bg: #1e293b;
   --chart-tooltip-border: rgba(255, 255, 255, 0.1);
   --chart-tooltip-text: #f8fafc;
+
+  /* Focus Ring — Dark */
+  --focus-ring: oklch(70% 0.20 265);
+  --focus-ring-high: oklch(78% 0.18 265);
+  --focus-ring-glow: oklch(70% 0.20 265 / 0.3);
+  --skip-link-bg: oklch(55% 0.25 265);
 
   /* shadcn/ui semantic tokens (dark) */
   --background: var(--color-bg);
@@ -346,23 +394,14 @@ body {
 }
 
 .focus-visible-ring:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
-}
-
-.dark .focus-visible-ring:focus-visible {
-  outline-color: #60a5fa;
 }
 
 .focus-visible-high:focus-visible {
-  outline: 3px solid #1d4ed8;
+  outline: 3px solid var(--focus-ring-high);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
-}
-
-.dark .focus-visible-high:focus-visible {
-  outline-color: #93c5fd;
-  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.3);
+  box-shadow: 0 0 0 4px var(--focus-ring-glow);
 }
 
 /* Skip link styling */
@@ -371,7 +410,7 @@ body {
   left: -9999px;
   z-index: var(--z-toast);
   padding: 0.75rem 1.5rem;
-  background-color: #1e40af;
+  background-color: var(--skip-link-bg);
   color: #ffffff;
   font-weight: 600;
   text-decoration: none;
@@ -381,12 +420,8 @@ body {
 
 .skip-link:focus {
   left: 0;
-  outline: 3px solid #60a5fa;
+  outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
-}
-
-.dark .skip-link {
-  background-color: #3b82f6;
 }
 
 /* Live region for screen reader announcements */

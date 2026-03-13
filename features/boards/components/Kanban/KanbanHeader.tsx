@@ -68,8 +68,8 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
             : orgMembers.find(m => m.id === ownerFilter)?.name || 'Dono';
 
     return (
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <div className="flex items-center gap-4 w-full sm:w-auto flex-wrap">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
                 {/* Board Selector */}
                 <BoardSelector
                     boards={boards}

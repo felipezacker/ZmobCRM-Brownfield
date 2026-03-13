@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { CorretorSelect } from '@/components/ui/CorretorSelect';
 import { StageProgressBar } from '@/features/boards/components/StageProgressBar';
 import { BRL_CURRENCY } from '@/features/boards/components/deal-detail/constants';
+import { SHADOW_TOKENS } from '@/lib/design-tokens';
 import type { DealDetailHeaderProps } from '@/features/boards/components/deal-detail/types';
 
 export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
@@ -123,11 +124,14 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
         <div className="flex gap-2 items-center shrink-0">
           {(deal.isWon || deal.isLost) ? (
             <>
-              <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${
-                deal.isWon
-                  ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 dark:shadow-[0_0_12px_rgba(34,197,94,0.15)]'
-                  : 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 dark:shadow-[0_0_12px_rgba(239,68,68,0.15)]'
-              }`}>
+              <span
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg ${
+                  deal.isWon
+                    ? 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400'
+                    : 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+                }`}
+                style={{ boxShadow: `0 0 12px ${deal.isWon ? SHADOW_TOKENS.glow.success : SHADOW_TOKENS.glow.error}` }}
+              >
                 {deal.isWon ? 'GANHO' : 'PERDIDO'}
               </span>
               <Button

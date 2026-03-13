@@ -20,7 +20,7 @@ export const DealInfoCard: React.FC<DealInfoCardProps> = ({ deal, contact }) => 
                 </span>
             </div>
 
-            <h4 className="text-sm font-semibold text-white mb-2">{deal.title}</h4>
+            <h4 className="text-sm font-semibold text-foreground mb-2">{deal.title}</h4>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>

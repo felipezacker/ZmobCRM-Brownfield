@@ -63,7 +63,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
             <div className="mb-4 p-3 bg-gradient-to-br from-primary-500/10 to-purple-500/10 rounded-lg border border-primary-500/20">
                 <div className="flex items-center gap-2 mb-2">
                     <Sparkles size={14} className="text-primary-400" />
-                    <span className="text-xs font-medium text-white">Gerar Script com IA</span>
+                    <span className="text-xs font-medium text-foreground">Gerar Script com IA</span>
                 </div>
                 <div className="flex gap-2">
                     {(['followup', 'closing', 'objection', 'rescue'] as ScriptCategory[]).map((type) => (
@@ -84,7 +84,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                                     console.error('AI Script error:', err);
                                 }
                             }}
-                            className="flex-1 text-[9px] px-2 py-1.5 bg-card/60 hover:bg-accent text-muted-foreground hover:text-white rounded transition-colors capitalize"
+                            className="flex-1 text-[9px] px-2 py-1.5 bg-card/60 hover:bg-accent text-muted-foreground hover:text-foreground rounded transition-colors capitalize"
                         >
                             {type === 'followup' ? 'Follow-up' : type === 'closing' ? 'Fechamento' : type === 'objection' ? 'Objecao' : 'Resgate'}
                         </Button>
@@ -98,7 +98,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                     return (
                         <div
                             key={script.id}
-                            className={`p-4 bg-card/40 rounded-xl border border-white/5 hover:border-border hover:bg-card/80 transition-all cursor-pointer group ${copiedScript === script.id ? 'ring-2 ring-emerald-500/50' : ''}`}
+                            className={`p-4 bg-card/40 rounded-xl border border-border hover:border-border hover:bg-card/80 transition-all cursor-pointer group ${copiedScript === script.id ? 'ring-2 ring-emerald-500/50' : ''}`}
                             onClick={() => {
                                 copyScript(script.template, script.id);
                                 onNoteChange(applyVariables(script.template, { nome: firstName }));
@@ -109,7 +109,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                                     <div className={`px-2 py-0.5 rounded text-[10px] font-medium bg-${categoryInfo.color}-500/20 text-${categoryInfo.color}-400`}>
                                         {categoryInfo.label}
                                     </div>
-                                    <span className="text-sm font-semibold text-white">{script.title}</span>
+                                    <span className="text-sm font-semibold text-foreground">{script.title}</span>
                                     {script.is_system && (
                                         <span className="text-[9px] text-muted-foreground bg-accent/50 px-1.5 py-0.5 rounded">Sistema</span>
                                     )}

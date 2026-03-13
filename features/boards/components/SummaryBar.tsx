@@ -45,7 +45,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, alert, warn
 export const SummaryBar: React.FC<SummaryBarProps> = ({
   pipelineValue, totalDeals, avgTicket, winRate, stagnantDeals, overdueDeals,
 }) => (
-  <div className="mx-4 mt-2 px-2 py-1.5 bg-white/60 dark:bg-card/60 backdrop-blur border border-border/50 rounded-lg flex items-center gap-1 overflow-x-auto scrollbar-none">
+  <div className="mx-4 mt-1 px-2 py-1 bg-white/60 dark:bg-card/60 backdrop-blur border border-border/50 rounded-lg flex items-center gap-1 overflow-x-auto scrollbar-none">
     <MetricCard
       icon={<DollarSign size={14} />}
       label="Pipeline"

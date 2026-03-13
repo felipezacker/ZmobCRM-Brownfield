@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Phone, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
+import { PIPELINE_CONFIG_COLORS } from '@/lib/design-tokens';
 
 export type ScheduleType = 'CALL' | 'MEETING' | 'TASK';
 
@@ -154,7 +155,7 @@ export function ScheduleModal({
             <div className="relative bg-card border border-border rounded-xl w-full max-w-xl mx-4 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
-                    <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                         <Calendar size={20} className="text-primary-400" />
                         Agendar Atividade
                     </h2>
@@ -185,9 +186,9 @@ export function ScheduleModal({
                                                 : 'border-border bg-card/50 text-muted-foreground hover:border-border'
                                             }`}
                                         style={isSelected ? {
-                                            borderColor: cfg.color === 'blue' ? '#3b82f6' : cfg.color === 'purple' ? '#a855f7' : '#f97316',
-                                            backgroundColor: cfg.color === 'blue' ? 'rgba(59,130,246,0.1)' : cfg.color === 'purple' ? 'rgba(168,85,247,0.1)' : 'rgba(249,115,22,0.1)',
-                                            color: cfg.color === 'blue' ? '#60a5fa' : cfg.color === 'purple' ? '#c084fc' : '#fb923c',
+                                            borderColor: PIPELINE_CONFIG_COLORS[cfg.color as keyof typeof PIPELINE_CONFIG_COLORS]?.border,
+                                            backgroundColor: PIPELINE_CONFIG_COLORS[cfg.color as keyof typeof PIPELINE_CONFIG_COLORS]?.bg,
+                                            color: PIPELINE_CONFIG_COLORS[cfg.color as keyof typeof PIPELINE_CONFIG_COLORS]?.text,
                                         } : {}}
                                     >
                                         <Icon size={18} />
@@ -208,7 +209,7 @@ export function ScheduleModal({
                                 setTitleTouched(true);
                                 setTitle(e.target.value);
                             }}
-                            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary-500"
+                            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-500"
                             placeholder="Ex: Ligar para João"
                         />
                     </div>
@@ -222,7 +223,7 @@ export function ScheduleModal({
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
                                 min={new Date().toISOString().split('T')[0]}
-                                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary-500"
+                                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary-500"
                             />
                         </div>
                         <div>
@@ -231,7 +232,7 @@ export function ScheduleModal({
                                 type="time"
                                 value={time}
                                 onChange={(e) => setTime(e.target.value)}
-                                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary-500"
+                                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary-500"
                             />
                         </div>
                     </div>
@@ -265,7 +266,7 @@ export function ScheduleModal({
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={4}
-                            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary-500 resize-y min-h-[120px] max-h-[40vh]"
+                            className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary-500 resize-y min-h-[120px] max-h-[40vh]"
                             placeholder="Notas adicionais..."
                         />
                     </div>

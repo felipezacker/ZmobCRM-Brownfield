@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { RoadmapPhase, RoadmapData, staticRoadmap, staticBrandVision } from '@/lib/roadmap';
+import { ROADMAP_SECTION_COLORS } from '@/lib/design-tokens';
 
 export const Reveal = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
     <motion.div
@@ -19,14 +20,14 @@ export const MeshBg = () => (
         <div
             className="absolute inset-0 opacity-[0.05] md:opacity-[0.08]"
             style={{
-                background: 'radial-gradient(circle at var(--mx, 50%) var(--my, 50%), #3b82f6 0%, transparent 60%)'
+                background: `radial-gradient(circle at var(--mx, 50%) var(--my, 50%), ${ROADMAP_SECTION_COLORS.primary.hex} 0%, transparent 60%)`
             }}
         />
         <div className="absolute inset-0 opacity-[0.02] md:opacity-[0.03] grain" />
     </div>
 );
 
-export const SectionTitle = ({ number, title, color = '#3b82f6', glow = 'rgba(59, 130, 246, 0.2)' }: { number: string; title: string; color?: string; glow?: string }) => (
+export const SectionTitle = ({ number, title, color = ROADMAP_SECTION_COLORS.primary.hex, glow = ROADMAP_SECTION_COLORS.primary.glow }: { number: string; title: string; color?: string; glow?: string }) => (
     <Reveal>
         <div className="font-mono text-[10px] md:text-[11px] text-zinc-500 uppercase tracking-[0.15em] mb-2">
             <span className="text-blue-400 mr-3">{number}</span>{title.split('—')[0].trim()}
@@ -171,12 +172,12 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
 
                 {/* Section 02: Módulo Prospecção */}
                 <section className="py-12">
-                    <SectionTitle number="02" title="Prospeccao Inteligente v2" color="#10b981" glow="rgba(16, 185, 129, 0.2)" />
+                    <SectionTitle number="02" title="Prospeccao Inteligente v2" color={ROADMAP_SECTION_COLORS.emerald.hex} glow={ROADMAP_SECTION_COLORS.emerald.glow} />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                        <StatCard label="Power Dialer" value="⚡" sub="Fila ultraveloz automatica" color="#60a5fa" delay={0.1} />
-                        <StatCard label="Scripts" value="📝" sub="Roteiros guiados por IA" color="#10b981" delay={0.2} />
-                        <StatCard label="Metricas" value="📈" sub="KPIs em tempo real" color="#f59e0b" delay={0.3} />
-                        <StatCard label="Retry" value="🔄" sub="Recontato inteligente" color="#60a5fa" delay={0.4} />
+                        <StatCard label="Power Dialer" value="⚡" sub="Fila ultraveloz automatica" color={ROADMAP_SECTION_COLORS.sky.hex} delay={0.1} />
+                        <StatCard label="Scripts" value="📝" sub="Roteiros guiados por IA" color={ROADMAP_SECTION_COLORS.emerald.hex} delay={0.2} />
+                        <StatCard label="Metricas" value="📈" sub="KPIs em tempo real" color={ROADMAP_SECTION_COLORS.amber.hex} delay={0.3} />
+                        <StatCard label="Retry" value="🔄" sub="Recontato inteligente" color={ROADMAP_SECTION_COLORS.sky.hex} delay={0.4} />
                     </div>
                 </section>
 
@@ -189,10 +190,10 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                     <MilestoneTrack milestones={data.milestones} />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-                        <StatCard label="Funcionalidades Ativas" value={data.featureModules.length} sub="modulos em producao" color="#10b981" delay={0.1} />
-                        <StatCard label="Entregas Realizadas" value={completedDeliveries} sub={`de ${totalDeliveries} no roadmap`} color="#60a5fa" delay={0.2} />
-                        <StatCard label="Evolucoes no Banco" value={data.migrationCount} sub="melhorias na base" color="#f59e0b" delay={0.3} />
-                        <StatCard label="Velocidade (30 dias)" value={data.deliveryVelocity} sub="commits no ultimo mes" color="#60a5fa" delay={0.4} />
+                        <StatCard label="Funcionalidades Ativas" value={data.featureModules.length} sub="modulos em producao" color={ROADMAP_SECTION_COLORS.emerald.hex} delay={0.1} />
+                        <StatCard label="Entregas Realizadas" value={completedDeliveries} sub={`de ${totalDeliveries} no roadmap`} color={ROADMAP_SECTION_COLORS.sky.hex} delay={0.2} />
+                        <StatCard label="Evolucoes no Banco" value={data.migrationCount} sub="melhorias na base" color={ROADMAP_SECTION_COLORS.amber.hex} delay={0.3} />
+                        <StatCard label="Velocidade (30 dias)" value={data.deliveryVelocity} sub="commits no ultimo mes" color={ROADMAP_SECTION_COLORS.sky.hex} delay={0.4} />
                     </div>
 
                     <Reveal delay={0.5}>
@@ -217,7 +218,7 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
 
                 {/* Section 04: Funcionalidades (O que já funciona) */}
                 <section className="py-12">
-                    <SectionTitle number="04" title="O Que Já Funciona" color="#10b981" />
+                    <SectionTitle number="04" title="O Que Já Funciona" color={ROADMAP_SECTION_COLORS.emerald.hex} />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {data.featureModules.map((mod, i) => (
                             <Reveal key={mod} delay={0.05 * i}>
