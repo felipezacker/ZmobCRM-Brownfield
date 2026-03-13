@@ -24,6 +24,8 @@ const BRL_CURRENCY_FORMATTER = new Intl.NumberFormat('pt-BR', { style: 'currency
 
 interface BoardStrategyHeaderProps {
   board: Board;
+  initialEditing?: boolean;
+  onClose?: () => void;
 }
 
 /**
@@ -32,12 +34,12 @@ interface BoardStrategyHeaderProps {
  * @param {BoardStrategyHeaderProps} { board } - Parâmetro `{ board }`.
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
-export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board }) => {
+export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board, initialEditing = false, onClose }) => {
   const { updateBoard, boards } = useBoards();
   const { deals } = useCRMActions();
   const setIsGlobalAIOpen = useUIStore((s) => s.setIsGlobalAIOpen);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isEditing, setIsEditing] = useState(initialEditing);
+  const [isCollapsed, setIsCollapsed] = useState(!initialEditing);
   const [editedBoard, setEditedBoard] = useState(board);
 
   // Calculate Progress Automatically
@@ -127,11 +129,13 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board 
       nextBoardId: editedBoard.nextBoardId,
     });
     setIsEditing(false);
+    onClose?.();
   };
 
   const handleCancel = () => {
     setEditedBoard(board);
     setIsEditing(false);
+    onClose?.();
   };
 
   return (
