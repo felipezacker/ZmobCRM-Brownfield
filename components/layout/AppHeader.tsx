@@ -3,12 +3,15 @@ import { Sparkles, Bug, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { NotificationPopover } from '@/components/notifications/NotificationPopover';
 import { Button } from '@/components/ui/button';
+import { RealtimeConnectionBadge } from '@/components/ui/RealtimeConnectionBadge';
+import type { ConnectionStatus } from '@/lib/realtime';
 
 interface AppHeaderProps {
   isGlobalAIOpen: boolean;
   onToggleAI: () => void;
   debugEnabled: boolean;
   onToggleDebug: () => void;
+  connectionStatus: ConnectionStatus;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -16,12 +19,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onToggleAI,
   debugEnabled,
   onToggleDebug,
+  connectionStatus,
 }) => {
   const { darkMode, toggleDarkMode } = useTheme();
 
   return (
     <header className="h-16 glass border-b border-[var(--color-border-subtle)] flex items-center justify-end px-6 shrink-0" role="banner">
       <div className="flex items-center gap-4">
+        <RealtimeConnectionBadge status={connectionStatus} />
         <Button
           type="button"
           onClick={onToggleAI}

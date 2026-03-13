@@ -9,6 +9,7 @@ import { BottomNav, MoreMenuSheet, NavigationRail } from '@/components/navigatio
 import { UIChat } from './ai/UIChat';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { AppHeader } from '@/components/layout/AppHeader';
+import { useRealtimeSyncAll } from '@/lib/realtime';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isDesktop = mode === 'desktop';
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [debugEnabled, setDebugEnabled] = useState(false);
+  const { connectionStatus } = useRealtimeSyncAll();
 
   useEffect(() => {
     setDebugEnabled(isDebugMode());
@@ -146,6 +148,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             onToggleAI={() => setIsGlobalAIOpen(!isGlobalAIOpen)}
             debugEnabled={debugEnabled}
             onToggleDebug={toggleDebugMode}
+            connectionStatus={connectionStatus}
           />
 
           <main

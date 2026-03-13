@@ -1,0 +1,58 @@
+storyId: RT-3.2
+title: "Indicador visual de conexao + refetchOnWindowFocus"
+date: 2026-03-13
+reviewer: "@qa (Quinn)"
+verdict: PASS
+status_reason: "All 7 ACs met. 1218 tests passing, zero regressions. TypeScript and ESLint clean. Accessibility ARIA attributes correct. Scope compliance verified (useContactActivities untouched)."
+
+issues:
+  - severity: medium
+    category: architecture
+    description: "useRealtimeSyncAll() in Layout.tsx creates WebSocket channel overlapping activities table from useLiveOperations.ts (dual subscription)."
+    recommendation: "Accept as documented tech debt. RT-0.4 (InProgress) will consolidate all subscriptions into a single channel."
+
+  - severity: low
+    category: tests
+    description: "No unit tests for RealtimeConnectionBadge component. Component is stateless and config-driven (trivial)."
+    recommendation: "Optional — create tests if time allows, but component is too simple to block on."
+
+ac_coverage:
+  - ac: AC1
+    status: PASS
+    evidence: "RealtimeConnectionBadge.tsx renders green dot with aria-label 'Realtime conectado'"
+  - ac: AC2
+    status: PASS
+    evidence: "RealtimeConnectionBadge.tsx renders red dot with aria-label 'Realtime desconectado'"
+  - ac: AC3
+    status: PASS
+    evidence: "RealtimeConnectionBadge.tsx renders yellow pulsing dot with aria-label 'Reconectando...'"
+  - ac: AC4
+    status: PASS
+    evidence: "useContactsQuery.ts:94 — refetchOnWindowFocus: false added to useContacts"
+  - ac: AC5
+    status: PASS
+    evidence: "useActivitiesQuery.ts:89 — refetchOnWindowFocus: false added to useActivities"
+  - ac: AC6
+    status: PASS
+    evidence: "useDealsQuery.ts:63,267 and useBoardsQuery.ts:34,77 unchanged — no regression"
+  - ac: AC7
+    status: PASS
+    evidence: "npx tsc --noEmit clean. connectionStatus added as new field, isConnected preserved"
+
+nfr_checks:
+  - nfr: Accessibility
+    status: PASS
+    notes: "role=status, aria-live=polite, aria-label per state, title tooltip"
+  - nfr: Performance
+    status: PASS
+    notes: "Badge re-renders only on connectionStatus change (rare event). No impact on header render cycle"
+  - nfr: TypeScript
+    status: PASS
+    notes: "ConnectionStatus type exported from lib/realtime/index.ts, consumed correctly"
+
+regression:
+  typecheck: PASS
+  lint: PASS
+  tests: "1218 passed (109 files)"
+
+recommended_status: Done
