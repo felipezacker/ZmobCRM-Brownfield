@@ -165,7 +165,7 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                 <div className="flex items-center gap-4 text-sm text-muted-foreground dark:text-muted-foreground">
                     {deal && (
                         <Link
-                            href={`/deals/${deal.id}`}
+                            href={`/deals/${deal.id}/cockpit`}
                             className="flex items-center gap-1.5 text-primary-600 dark:text-primary-400 font-medium hover:underline"
                             title={`Abrir negócio: ${deal.title}`}
                         >
