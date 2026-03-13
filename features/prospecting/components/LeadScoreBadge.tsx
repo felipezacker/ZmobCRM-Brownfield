@@ -21,7 +21,7 @@ export const LeadScoreBadge: React.FC<LeadScoreBadgeProps> = ({ score, size = 's
 
   const config = getScoreConfig(score)
   const iconSize = size === 'sm' ? 9 : 11
-  const textSize = size === 'sm' ? 'text-[10px]' : 'text-xs'
+  const textSize = size === 'sm' ? 'text-2xs' : 'text-xs'
   const padding = size === 'sm' ? 'px-1.5 py-0.5' : 'px-2 py-0.5'
 
   return (

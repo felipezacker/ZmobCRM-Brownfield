@@ -172,7 +172,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, variant = 'received' }) 
                         );
                     })}
                 </button>
-                <div className="flex justify-between items-center text-[10px] font-medium opacity-80 px-0.5">
+                <div className="flex justify-between items-center text-2xs font-medium opacity-80 px-0.5">
                     <span className={currentStyle.text} aria-label="Tempo atual">
                         {formatTime(currentTime)}
                     </span>

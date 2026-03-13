@@ -63,7 +63,7 @@ const DEAL_TYPE_LABELS: Record<string, string> = {
 function StageBadge({ label }: { label?: string }) {
   if (!label) return null;
   return (
-    <span className="inline-flex items-center rounded-full bg-muted dark:bg-white/[0.08] px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground dark:text-muted-foreground ring-1 ring-ring dark:ring-white/10">
+    <span className="inline-flex items-center rounded-full bg-muted dark:bg-white/[0.08] px-2 py-0.5 text-2xs font-semibold text-secondary-foreground dark:text-muted-foreground ring-1 ring-ring dark:ring-white/10">
       {label}
     </span>
   );
@@ -216,10 +216,10 @@ export function ContactCockpitRightRail({
           {tab === 'ia' && (
             <div className="p-4 space-y-4">
               <div className="rounded-xl border border-border bg-white dark:bg-white/[0.02] p-3">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                <div className="text-1xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
                   Contexto do Contato
                 </div>
-                <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap font-mono">
+                <pre className="text-1xs text-muted-foreground whitespace-pre-wrap font-mono">
                   {aiSnapshotText}
                 </pre>
               </div>
@@ -261,7 +261,7 @@ export function ContactCockpitRightRail({
                             </Chip>
                           )}
                           {deal.probability != null && (
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-2xs text-muted-foreground">
                               {deal.probability}%
                             </span>
                           )}
@@ -368,7 +368,7 @@ export function ContactCockpitRightRail({
                           {note.content}
                         </div>
                         <div className="mt-2 flex items-center justify-between">
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-2xs text-muted-foreground">
                             {formatAtISO(note.created_at)}
                           </span>
                           <div className="flex items-center gap-1.5">

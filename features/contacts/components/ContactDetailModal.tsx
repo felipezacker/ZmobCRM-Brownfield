@@ -351,18 +351,18 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                   <div className="flex items-center gap-2" id={headingId}>
                     <h1 className="text-sm font-semibold text-foreground dark:text-muted-foreground truncate">{contact.name}</h1>
                     {contact.classification && (
-                      <span className="inline-flex items-center rounded-full bg-muted dark:bg-white/[0.08] px-2.5 py-0.5 text-[10px] font-semibold text-secondary-foreground dark:text-muted-foreground ring-1 ring-ring dark:ring-white/10">
+                      <span className="inline-flex items-center rounded-full bg-muted dark:bg-white/[0.08] px-2.5 py-0.5 text-2xs font-semibold text-secondary-foreground dark:text-muted-foreground ring-1 ring-ring dark:ring-white/10">
                         {CLASSIFICATION_LABELS[contact.classification] || contact.classification}
                       </span>
                     )}
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${tempConfig.cls}`}>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-2xs font-semibold ${tempConfig.cls}`}>
                       {tempConfig.label}
                     </span>
-                    <span className="inline-flex items-center rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-[10px] font-semibold text-cyan-700 dark:text-cyan-300 ring-1 ring-cyan-500/20">
+                    <span className="inline-flex items-center rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-2xs font-semibold text-cyan-700 dark:text-cyan-300 ring-1 ring-cyan-500/20">
                       {STAGE_LABELS[contact.stage] || contact.stage}
                     </span>
                   </div>
-                  <div className="mt-0.5 text-[11px] text-muted-foreground dark:text-muted-foreground">
+                  <div className="mt-0.5 text-1xs text-muted-foreground dark:text-muted-foreground">
                     {contact.email || 'Sem email'} | {contact.phone || 'Sem telefone'}
                   </div>
                 </div>

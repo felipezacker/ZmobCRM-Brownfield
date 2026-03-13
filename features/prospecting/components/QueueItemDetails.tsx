@@ -84,7 +84,7 @@ export function QueueItemDetails({ contactId, contactEmail, contactStage, leadSc
           <span className="truncate">
             {lastActivity.title || lastActivity.type}
           </span>
-          <span className="text-[10px] shrink-0">
+          <span className="text-2xs shrink-0">
             {formatRelativeDate(lastActivity.date)}
           </span>
         </Button>

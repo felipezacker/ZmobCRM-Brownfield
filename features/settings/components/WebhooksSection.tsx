@@ -101,7 +101,7 @@ export const WebhooksSection: React.FC = () => {
                   Receba leads de Hotmart, formulários, n8n/Make e crie automaticamente um negócio no funil.
                 </p>
               </div>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase ${hasInbound ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground'}`}>
+              <span className={`text-2xs font-bold px-2 py-1 rounded uppercase ${hasInbound ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground'}`}>
                 {hasInbound ? 'Ativo' : 'Desativado'}
               </span>
             </div>
@@ -195,7 +195,7 @@ export const WebhooksSection: React.FC = () => {
                   Quando um lead mudar de etapa, enviamos um aviso para seu WhatsApp/n8n/Make.
                 </p>
               </div>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase ${endpoint?.active ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground'}`}>
+              <span className={`text-2xs font-bold px-2 py-1 rounded uppercase ${endpoint?.active ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground'}`}>
                 {endpoint?.active ? 'Ativo' : 'Desativado'}
               </span>
             </div>
@@ -684,7 +684,7 @@ export const WebhooksSection: React.FC = () => {
                                   <div className="text-xs font-bold text-secondary-foreground dark:text-muted-foreground truncate">
                                     {new Date(ev.received_at).toLocaleString()}
                                   </div>
-                                  <div className="text-[11px] text-muted-foreground dark:text-muted-foreground truncate">
+                                  <div className="text-1xs text-muted-foreground dark:text-muted-foreground truncate">
                                     {ev.external_event_id ? `event_id: ${ev.external_event_id}` : 'event_id: —'}
                                   </div>
                                 </div>

@@ -346,7 +346,7 @@ export const McpSection: React.FC = () => {
                   {testing ? 'Testando…' : 'Testar'}
                 </Button>
               </div>
-              <div className="mt-2 text-[11px] text-muted-foreground dark:text-muted-foreground">
+              <div className="mt-2 text-1xs text-muted-foreground dark:text-muted-foreground">
                 Precisa revogar/ver histórico? <Button type="button" onClick={navigateToApiKeys} className="underline">Gerenciar API keys</Button>
               </div>
             </div>

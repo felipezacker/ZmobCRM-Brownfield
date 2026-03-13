@@ -396,7 +396,7 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
           <Home size={14} />
           Perfil de Interesse
           {preferences.length > 0 && (
-            <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full">
+            <span className="inline-flex items-center justify-center w-4 h-4 text-2xs font-bold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full">
               {preferences.length}
             </span>
           )}

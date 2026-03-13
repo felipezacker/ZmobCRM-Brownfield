@@ -250,7 +250,7 @@ const KanbanListRow = React.memo(function KanbanListRow({
               {corretorAvatar ? (
                 <Image src={corretorAvatar} alt="" width={20} height={20} className="w-5 h-5 rounded-full" unoptimized />
               ) : (
-                <span className="w-5 h-5 rounded-full bg-gradient-to-br from-muted to-accent text-secondary-foreground dark:text-muted-foreground flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                <span className="w-5 h-5 rounded-full bg-gradient-to-br from-muted to-accent text-secondary-foreground dark:text-muted-foreground flex items-center justify-center text-2xs font-bold flex-shrink-0">
                   {corretorName.charAt(0).toUpperCase()}
                 </span>
               )}

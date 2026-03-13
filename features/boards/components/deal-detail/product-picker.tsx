@@ -62,7 +62,7 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
         className="flex-1 bg-transparent text-sm text-secondary-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
       />
       {productSearch && (
-        <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground">{filteredProducts.length}</span>
+        <span className="text-2xs text-muted-foreground dark:text-secondary-foreground">{filteredProducts.length}</span>
       )}
     </div>
     <div className="max-h-52 overflow-auto py-1">
@@ -111,7 +111,7 @@ export const ProductPickerDropdown: React.FC<ProductPickerDropdownProps> = ({
       )}
     </div>
     <div className="border-t border-border px-3 py-1.5">
-      <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground">{products.length} produtos no catalogo</span>
+      <span className="text-2xs text-muted-foreground dark:text-secondary-foreground">{products.length} produtos no catalogo</span>
     </div>
   </div>
   );

@@ -1,4 +1,5 @@
 import type { StageTone, MessageLogContext } from './cockpit-types';
+import { STAGE_GLOW } from '@/lib/design-tokens';
 
 // Performance: reuse Intl formatter instances (avoid creating them per call).
 const PT_BR_DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR');
@@ -108,19 +109,7 @@ export function toneToBg(tone: StageTone): string {
 }
 
 export function toneToGlowColor(tone: StageTone): string {
-  switch (tone) {
-    case 'blue':
-      return 'rgba(59, 130, 246, 0.25)';
-    case 'violet':
-      return 'rgba(139, 92, 246, 0.25)';
-    case 'amber':
-      return 'rgba(245, 158, 11, 0.25)';
-    case 'green':
-      return 'rgba(16, 185, 129, 0.25)';
-    case 'slate':
-    default:
-      return 'rgba(148, 163, 184, 0.15)';
-  }
+  return STAGE_GLOW[tone] ?? STAGE_GLOW.slate;
 }
 
 export function toneToText(tone: StageTone): string {

@@ -29,7 +29,7 @@ export const MeshBg = () => (
 
 export const SectionTitle = ({ number, title, color = ROADMAP_SECTION_COLORS.primary.hex, glow = ROADMAP_SECTION_COLORS.primary.glow }: { number: string; title: string; color?: string; glow?: string }) => (
     <Reveal>
-        <div className="font-mono text-[10px] md:text-[11px] text-zinc-500 uppercase tracking-[0.15em] mb-2">
+        <div className="font-mono text-2xs md:text-1xs text-zinc-500 uppercase tracking-[0.15em] mb-2">
             <span className="text-blue-400 mr-3">{number}</span>{title.split('—')[0].trim()}
         </div>
         <h2 className="text-xl md:text-2xl font-bold text-zinc-100 tracking-tight flex items-center gap-3 mb-6 md:mb-10">
@@ -42,9 +42,9 @@ export const SectionTitle = ({ number, title, color = ROADMAP_SECTION_COLORS.pri
 export const StatCard = ({ label, value, sub, color, delay }: { label: string; value: string | number; sub: string; color: string; delay?: number }) => (
     <Reveal delay={delay}>
         <div className="bg-zinc-900/40 backdrop-blur-md border border-white/[0.03] rounded-2xl p-5 md:p-7 transition-all hover:translate-y-[-2px] hover:border-blue-500/15 group relative overflow-hidden h-full">
-            <div className="font-mono text-[9px] md:text-[10px] text-zinc-500 uppercase tracking-wider mb-2 md:mb-3">{label}</div>
+            <div className="font-mono text-3xs md:text-2xs text-zinc-500 uppercase tracking-wider mb-2 md:mb-3">{label}</div>
             <div className="text-3xl md:text-4xl font-extrabold tracking-tighter transition-all" style={{ color }}>{value}</div>
-            <div className="text-[11px] md:text-xs text-zinc-600 mt-1.5 md:mt-2">{sub}</div>
+            <div className="text-1xs md:text-xs text-zinc-600 mt-1.5 md:mt-2">{sub}</div>
             <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block"
                 style={{
                     background: `conic-gradient(from 180deg at 50% 50%, transparent 0%, ${color}1a 25%, transparent 50%, ${color}0d 75%, transparent 100%)`
@@ -60,17 +60,17 @@ export const PhaseCard = ({ phase, delay }: { phase: RoadmapPhase; delay: number
             <div className="flex items-center gap-3 mb-4">
                 <div className="w-3.5 h-3.5 rounded-full border-[3px]" style={{ borderColor: phase.color, background: phase.phase === 'Concluido' ? phase.color : 'transparent' }} />
                 <div className="font-bold text-lg" style={{ color: phase.color }}>{phase.phase}</div>
-                <span className="font-mono text-[10px] bg-zinc-800 text-zinc-600 px-2 py-0.5 rounded-full">{phase.items.length} itens</span>
+                <span className="font-mono text-2xs bg-zinc-800 text-zinc-600 px-2 py-0.5 rounded-full">{phase.items.length} itens</span>
             </div>
             <div className="pl-6 md:pl-8 border-l-2 border-zinc-800 ml-1.5 space-y-2">
                 {phase.items.map((item, i) => (
                     <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 md:p-3.5 flex items-start gap-2.5 md:gap-3 transition-all hover:bg-zinc-800 hover:border-blue-500/10 group">
                         <div className={`w-4 h-4 md:w-5 md:h-5 rounded-full border-2 border-zinc-800 flex-shrink-0 mt-0.5 flex items-center justify-center transition-all ${phase.phase === 'Concluido' ? 'bg-emerald-500 border-emerald-500' : ''}`}>
-                            {phase.phase === 'Concluido' && <span className="text-white text-[8px] md:text-[10px] font-bold">✓</span>}
+                            {phase.phase === 'Concluido' && <span className="text-white text-[8px] md:text-2xs font-bold">✓</span>}
                         </div>
                         <div>
                             <div className="font-semibold text-[13px] md:text-[14px] text-zinc-100 tracking-tight">{item.name}</div>
-                            <div className="text-zinc-400 text-[11px] md:text-[12px] mt-0.5 leading-relaxed">{item.desc}</div>
+                            <div className="text-zinc-400 text-1xs md:text-xs mt-0.5 leading-relaxed">{item.desc}</div>
                         </div>
                     </div>
                 ))}
@@ -82,7 +82,7 @@ export const PhaseCard = ({ phase, delay }: { phase: RoadmapPhase; delay: number
 export const MilestoneTrack = ({ milestones }: { milestones: RoadmapData['milestones'] }) => (
     <Reveal>
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 mb-10 overflow-hidden relative">
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
             <h3 className="text-sm font-semibold text-zinc-100 mb-8 tracking-tight">Jornada do Produto</h3>
             <div className="flex items-center gap-0 overflow-x-auto pb-4 scrollbar-hide">
                 {milestones.map((m, i) => (
@@ -92,7 +92,7 @@ export const MilestoneTrack = ({ milestones }: { milestones: RoadmapData['milest
                                 m.status === 'current' ? 'bg-blue-500 border-blue-500 shadow-[0_0_20px_theme(colors.blue.500/0.3)] animate-pulse' :
                                     'bg-zinc-950 border-zinc-600'
                                 }`} />
-                            <div className={`text-[11px] text-center leading-tight ${m.status === 'current' ? 'text-blue-400 font-bold' : 'text-zinc-500'}`}>
+                            <div className={`text-1xs text-center leading-tight ${m.status === 'current' ? 'text-blue-400 font-bold' : 'text-zinc-500'}`}>
                                 {m.label}<br />
                                 <span className={m.status === 'done' ? 'text-emerald-500' : ''}>{m.sub}</span>
                             </div>
@@ -126,18 +126,18 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                         <p className="text-lg md:text-xl text-zinc-500 font-medium tracking-tight px-4">{staticBrandVision.tagline}</p>
 
                         <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-8 md:mt-10">
-                            <div className="flex items-center gap-2 text-[12px] md:text-[13px] text-zinc-600">
+                            <div className="flex items-center gap-2 text-xs md:text-[13px] text-zinc-600">
                                 Versão <span className="font-mono text-zinc-100 font-semibold">{data.version}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-[12px] md:text-[13px] text-zinc-600">
+                            <div className="flex items-center gap-2 text-xs md:text-[13px] text-zinc-600">
                                 Módulos <span className="font-mono text-zinc-100 font-semibold">{data.featureModules.length}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-[12px] md:text-[13px] text-zinc-600">
+                            <div className="flex items-center gap-2 text-xs md:text-[13px] text-zinc-600">
                                 Atualizado <span className="font-mono text-zinc-100 font-semibold">{data.generatedAt.split(',')[0]}</span>
                             </div>
                         </div>
                     </Reveal>
-                    <div className="absolute bottom-0 left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-transparent via-blue-600/30 to-transparent" />
+                    <div className="absolute bottom-0 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-blue-600/30 to-transparent" />
                 </header>
 
                 {/* Section 01: DNA do Produto */}
@@ -163,12 +163,12 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                             </Reveal>
                         ))}
                     </div>
-                    <div className="text-center mt-8 text-[11px] text-zinc-600 uppercase tracking-widest font-bold opacity-60">
+                    <div className="text-center mt-8 text-1xs text-zinc-600 uppercase tracking-widest font-bold opacity-60">
                         {data.brandVision.aesthetic}
                     </div>
                 </section>
 
-                <div className="h-[1px] bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
+                <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
 
                 {/* Section 02: Módulo Prospecção */}
                 <section className="py-12">
@@ -181,7 +181,7 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                     </div>
                 </section>
 
-                <div className="h-[1px] bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
+                <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
 
                 {/* Section 03: Status Atual */}
                 <section className="py-12">
@@ -214,7 +214,7 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                     </Reveal>
                 </section>
 
-                <div className="h-[1px] bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
+                <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
 
                 {/* Section 04: Funcionalidades (O que já funciona) */}
                 <section className="py-12">
@@ -225,16 +225,16 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                                 <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:bg-zinc-800 transition-all hover:border-emerald-500/20 group">
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="font-bold text-zinc-100 text-sm tracking-tight capitalize">{mod}</div>
-                                        <div className="text-[9px] font-bold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">Ativo</div>
+                                        <div className="text-3xs font-bold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">Ativo</div>
                                     </div>
-                                    <div className="text-[12px] text-zinc-500 leading-relaxed">Módulo centralizado de {mod} integrado ao ecossistema Zmob.</div>
+                                    <div className="text-xs text-zinc-500 leading-relaxed">Módulo centralizado de {mod} integrado ao ecossistema Zmob.</div>
                                 </div>
                             </Reveal>
                         ))}
                     </div>
                 </section>
 
-                <div className="h-[1px] bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
+                <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
 
                 {/* Section 05: Evolução (Roadmap) */}
                 <section className="py-12">
@@ -246,7 +246,7 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                     </div>
                 </section>
 
-                <div className="h-[1px] bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
+                <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
 
                 {/* Section 06: Histórico (Atividade Recente) */}
                 <section className="py-8 md:py-12">
@@ -255,10 +255,10 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                         {data.recentCommits.map((c, i) => (
                             <Reveal key={c.hash} delay={0.05 * i}>
                                 <div className="py-4 flex gap-4 md:gap-6 items-start hover:pl-2 transition-all group">
-                                    <div className="font-mono text-[10px] md:text-[11px] text-zinc-600 flex-shrink-0 pt-0.5">
+                                    <div className="font-mono text-2xs md:text-1xs text-zinc-600 flex-shrink-0 pt-0.5">
                                         {new Date(c.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                                     </div>
-                                    <div className="text-[12px] md:text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-100 transition-colors">
+                                    <div className="text-xs md:text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-100 transition-colors">
                                         {c.message}
                                     </div>
                                 </div>
@@ -267,14 +267,14 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                     </div>
                 </section>
 
-                <div className="h-[1px] bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
+                <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent my-4" />
 
                 {/* Section 07: Visão (O Que Esperar) */}
                 <section className="py-12 pb-32">
                     <SectionTitle number="07" title="O Que Esperar" />
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-4">
-                            <div className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest pl-1 border-l-2 border-amber-500 mb-4">Curto Prazo (1-2 sem)</div>
+                            <div className="font-mono text-2xs text-zinc-500 uppercase tracking-widest pl-1 border-l-2 border-amber-500 mb-4">Curto Prazo (1-2 sem)</div>
                             {[
                                 'IA recomenda quem ligar (Lead Score + Heatmap)',
                                 'Assistente IA conhece suas metas e métricas',
@@ -290,7 +290,7 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                             ))}
                         </div>
                         <div className="space-y-4">
-                            <div className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest pl-1 border-l-2 border-blue-500 mb-4">Médio Prazo (1-2 meses)</div>
+                            <div className="font-mono text-2xs text-zinc-500 uppercase tracking-widest pl-1 border-l-2 border-blue-500 mb-4">Médio Prazo (1-2 meses)</div>
                             {[
                                 'Módulo de Imóveis + Matching',
                                 'Permissões por Cargo/Depto',
@@ -307,7 +307,7 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                             ))}
                         </div>
                         <div className="space-y-4">
-                            <div className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest pl-1 border-l-2 border-violet-500 mb-4">Longo Prazo (3-6 meses)</div>
+                            <div className="font-mono text-2xs text-zinc-500 uppercase tracking-widest pl-1 border-l-2 border-violet-500 mb-4">Longo Prazo (3-6 meses)</div>
                             {[
                                 'Integrações com Portais',
                                 'App Mobile Nativo (PWA)',

@@ -87,7 +87,7 @@ export function CockpitPipelineBar({
       <div className="flex w-full items-center gap-3 px-4 pt-2.5 pb-2 2xl:px-8">
         <Button
           type="button"
-          className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted dark:bg-white/3 px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground dark:text-muted-foreground hover:bg-accent/60 dark:hover:bg-white/6 hover:text-foreground dark:hover:text-muted-foreground transition-colors"
+          className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted dark:bg-white/3 px-2.5 py-1.5 text-1xs font-semibold text-muted-foreground dark:text-muted-foreground hover:bg-accent/60 dark:hover:bg-white/6 hover:text-foreground dark:hover:text-muted-foreground transition-colors"
           onClick={onBack}
           title="Voltar ao board"
         >
@@ -129,7 +129,7 @@ export function CockpitPipelineBar({
                     className="flex-1 bg-transparent text-xs text-secondary-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-secondary-foreground"
                   />
                   {search && (
-                    <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground">{filtered.length}</span>
+                    <span className="text-2xs text-muted-foreground dark:text-secondary-foreground">{filtered.length}</span>
                   )}
                 </div>
 
@@ -164,7 +164,7 @@ export function CockpitPipelineBar({
                               {label}
                             </div>
                           </div>
-                          <div className="shrink-0 text-[10px] font-medium text-emerald-600 dark:text-emerald-400/70">
+                          <div className="shrink-0 text-2xs font-medium text-emerald-600 dark:text-emerald-400/70">
                             {formatCurrencyBRL(d.value ?? 0)}
                           </div>
                         </Button>
@@ -175,13 +175,13 @@ export function CockpitPipelineBar({
 
                 {/* Footer */}
                 <div className="border-t border-border px-3 py-1.5">
-                  <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground">{sortedDeals.length} negocios no board</span>
+                  <span className="text-2xs text-muted-foreground dark:text-secondary-foreground">{sortedDeals.length} negocios no board</span>
                 </div>
               </div>
             )}
           </div>
 
-          <span className="text-[10px] text-muted-foreground dark:text-secondary-foreground shrink-0">
+          <span className="text-2xs text-muted-foreground dark:text-secondary-foreground shrink-0">
             {boardName}
             {crmLoading ? ' · Sync...' : ''}
           </span>
@@ -190,7 +190,7 @@ export function CockpitPipelineBar({
         <div className="ml-auto flex items-center gap-3">
           <div className="text-right shrink-0">
             <div className="text-sm font-bold tracking-tight text-emerald-600 dark:text-emerald-300">{formatCurrencyBRL(deal.value ?? 0)}</div>
-            <div className="text-[10px] text-muted-foreground">
+            <div className="text-2xs text-muted-foreground">
               {activeStage?.label ?? '—'}
             </div>
           </div>
@@ -201,7 +201,7 @@ export function CockpitPipelineBar({
           {isWon || isLost ? (
             <div className="flex items-center gap-2">
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-1xs font-bold ${
                   isWon
                     ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-200 ring-1 ring-emerald-500/20'
                     : 'bg-rose-500/15 text-rose-700 dark:text-rose-200 ring-1 ring-rose-500/20'
@@ -213,7 +213,7 @@ export function CockpitPipelineBar({
               {onReopen ? (
                 <Button
                   type="button"
-                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted dark:bg-white/3 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground dark:text-muted-foreground hover:bg-accent/60 dark:hover:bg-white/6 hover:text-foreground dark:hover:text-muted-foreground transition-colors"
+                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted dark:bg-white/3 px-2.5 py-1 text-1xs font-semibold text-muted-foreground dark:text-muted-foreground hover:bg-accent/60 dark:hover:bg-white/6 hover:text-foreground dark:hover:text-muted-foreground transition-colors"
                   onClick={onReopen}
                   title="Reabrir deal"
                 >
@@ -226,7 +226,7 @@ export function CockpitPipelineBar({
             <div className="flex items-center gap-1.5">
               <Button
                 type="button"
-                className="inline-flex items-center gap-1 rounded-lg bg-emerald-600/90 px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-500 transition-colors"
+                className="inline-flex items-center gap-1 rounded-lg bg-emerald-600/90 px-2.5 py-1.5 text-1xs font-bold text-white hover:bg-emerald-500 transition-colors"
                 onClick={onWin}
               >
                 <Trophy className="h-3 w-3" />
@@ -234,7 +234,7 @@ export function CockpitPipelineBar({
               </Button>
               <Button
                 type="button"
-                className="inline-flex items-center gap-1 rounded-lg bg-rose-600/90 px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-rose-500 transition-colors"
+                className="inline-flex items-center gap-1 rounded-lg bg-rose-600/90 px-2.5 py-1.5 text-1xs font-bold text-white hover:bg-rose-500 transition-colors"
                 onClick={onLoss}
               >
                 <XCircle className="h-3 w-3" />
@@ -284,7 +284,7 @@ export function CockpitPipelineBar({
                 {/* Stage dot + label */}
                 <div className="mt-1 flex items-center gap-1.5 min-w-0">
                   <span
-                    className={`shrink-0 h-[6px] w-[6px] rounded-full transition-all duration-200 ${
+                    className={`shrink-0 h-1.5 w-1.5 rounded-full transition-all duration-200 ${
                       isActive
                         ? `${toneToBg(s.tone)} ring-2 ring-ring dark:ring-white/20`
                         : isDone
@@ -293,7 +293,7 @@ export function CockpitPipelineBar({
                     }`}
                   />
                   <span
-                    className={`truncate text-[10px] leading-tight transition-colors ${
+                    className={`truncate text-2xs leading-tight transition-colors ${
                       isActive
                         ? 'font-bold text-foreground dark:text-muted-foreground'
                         : isDone

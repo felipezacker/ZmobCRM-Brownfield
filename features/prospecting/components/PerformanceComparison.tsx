@@ -38,12 +38,12 @@ function ComparisonCard({ label, userValue, teamValue, format }: {
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="text-lg font-bold text-foreground">{format(userValue)}</p>
-          <p className="text-[10px] text-muted-foreground">Você</p>
+          <p className="text-2xs text-muted-foreground">Você</p>
         </div>
         <ComparisonIndicator userValue={userValue} teamValue={teamValue} />
         <div className="text-right">
           <p className="text-lg font-bold text-muted-foreground">{format(teamValue)}</p>
-          <p className="text-[10px] text-muted-foreground">Time</p>
+          <p className="text-2xs text-muted-foreground">Time</p>
         </div>
       </div>
     </div>

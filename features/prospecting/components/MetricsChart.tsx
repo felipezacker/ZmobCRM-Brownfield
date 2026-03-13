@@ -157,7 +157,7 @@ export function MetricsChart({ data, isLoading, periodStart, periodEnd }: Metric
           {OUTCOMES.map(o => (
             <div key={o.key} className="flex items-center gap-1">
               <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: o.color }} />
-              <span className="text-[10px] text-muted-foreground dark:text-muted-foreground">{o.label}</span>
+              <span className="text-2xs text-muted-foreground dark:text-muted-foreground">{o.label}</span>
             </div>
           ))}
         </div>

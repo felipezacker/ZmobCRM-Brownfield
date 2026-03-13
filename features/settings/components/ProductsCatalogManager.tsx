@@ -290,7 +290,7 @@ export const ProductsCatalogManager: React.FC = () => {
                       {isEditing ? (
                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
                           <div className="sm:col-span-5">
-                            <label className="block text-[11px] font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Nome</label>
+                            <label className="block text-1xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Nome</label>
                             <input
                               value={editName}
                               onChange={(e) => setEditName(e.target.value)}
@@ -298,7 +298,7 @@ export const ProductsCatalogManager: React.FC = () => {
                             />
                           </div>
                           <div className="sm:col-span-2">
-                            <label className="block text-[11px] font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Preço</label>
+                            <label className="block text-1xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Preço</label>
                             <input
                               value={editPrice}
                               onChange={(e) => handlePriceChange(e.target.value, setEditPrice)}
@@ -308,7 +308,7 @@ export const ProductsCatalogManager: React.FC = () => {
                             />
                           </div>
                           <div className="sm:col-span-2">
-                            <label className="block text-[11px] font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">SKU</label>
+                            <label className="block text-1xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">SKU</label>
                             <input
                               value={editSku}
                               onChange={(e) => setEditSku(e.target.value)}
@@ -316,7 +316,7 @@ export const ProductsCatalogManager: React.FC = () => {
                             />
                           </div>
                           <div className="sm:col-span-3">
-                            <label className="block text-[11px] font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Descrição</label>
+                            <label className="block text-1xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-1">Descrição</label>
                             <input
                               value={editDescription}
                               onChange={(e) => setEditDescription(e.target.value)}
@@ -329,7 +329,7 @@ export const ProductsCatalogManager: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <div className="font-semibold text-foreground truncate">{p.name}</div>
                             {!isActive && (
-                              <span className="text-[11px] px-2 py-0.5 rounded-full bg-accent dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground">
+                              <span className="text-1xs px-2 py-0.5 rounded-full bg-accent dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground">
                                 Inativo
                               </span>
                             )}

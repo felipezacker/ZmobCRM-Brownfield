@@ -93,7 +93,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                                 >
                                     {/* Timeline Node */}
                                     <div className={`absolute left-[18px] top-[18px] w-[20px] h-[20px] rounded-full flex items-center justify-center z-10
-                                    border transition-all shadow-[0_0_10px_-3px_rgba(0,0,0,0.5)]
+                                    border transition-all shadow-heavy
                                     ${activity.type === 'CALL' ? 'bg-blue-950/30 border-blue-500/30 text-blue-400 group-hover:border-blue-500 group-hover:shadow-blue-500/20' :
                                             activity.type === 'EMAIL' ? 'bg-purple-950/30 border-purple-500/30 text-purple-400 group-hover:border-purple-500 group-hover:shadow-purple-500/20' :
                                                 activity.type === 'MEETING' ? 'bg-orange-950/30 border-orange-500/30 text-orange-400 group-hover:border-orange-500 group-hover:shadow-orange-500/20' :
@@ -119,7 +119,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                                                 </p>
                                             )}
                                         </div>
-                                        <span className="text-[11px] text-secondary-foreground font-mono shrink-0 self-center">
+                                        <span className="text-1xs text-secondary-foreground font-mono shrink-0 self-center">
                                             {new Date(activity.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {new Date(activity.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
@@ -188,7 +188,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                         }}
                     />
                     <div className="absolute right-2 bottom-2 flex items-center gap-2">
-                        <span className="text-[10px] text-secondary-foreground border border-border rounded px-1.5 py-0.5">
+                        <span className="text-2xs text-secondary-foreground border border-border rounded px-1.5 py-0.5">
                             Cmd + Enter
                         </span>
                     </div>
@@ -203,7 +203,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
 function ActivityTypeBadge({ activity, board }: { activity: Activity; board?: Board }) {
     if (activity.type === 'STATUS_CHANGE' || activity.title.includes('Moveu para')) {
         return (
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide shrink-0 bg-accent/50 text-muted-foreground">
+            <span className="text-3xs px-1.5 py-0.5 rounded font-bold uppercase tracking-wide shrink-0 bg-accent/50 text-muted-foreground">
                 Status
             </span>
         );
@@ -223,7 +223,7 @@ function ActivityTypeBadge({ activity, board }: { activity: Activity; board?: Bo
                         activity.type === 'TASK' ? 'Tarefa' :
                             activity.type;
     return (
-        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide shrink-0 ${typeColor}`}>
+        <span className={`text-3xs px-1.5 py-0.5 rounded font-bold uppercase tracking-wide shrink-0 ${typeColor}`}>
             {typeLabel}
         </span>
     );
@@ -240,7 +240,7 @@ function StageMoveBadge({ title, board }: { title: string; board?: Board }) {
         <span className="flex items-center gap-2">
             Moveu para
             <span
-                className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide border"
+                className="text-2xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wide border"
                 style={{
                     backgroundColor: `${hexColor}20`,
                     color: hexColor,

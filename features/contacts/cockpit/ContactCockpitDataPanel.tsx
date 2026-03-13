@@ -56,7 +56,7 @@ function TemperatureBadge({ temperature }: { temperature?: string }) {
         <Flame className="h-5 w-5 text-red-500 dark:text-red-400" />
         <div>
           <div className="text-xs font-bold text-red-600 dark:text-red-300">Quente</div>
-          <div className="text-[10px] text-red-500/70 dark:text-red-400/70">Alta prioridade</div>
+          <div className="text-2xs text-red-500/70 dark:text-red-400/70">Alta prioridade</div>
         </div>
       </div>
     );
@@ -67,7 +67,7 @@ function TemperatureBadge({ temperature }: { temperature?: string }) {
         <Snowflake className="h-5 w-5 text-blue-500 dark:text-blue-400" />
         <div>
           <div className="text-xs font-bold text-blue-600 dark:text-blue-300">Frio</div>
-          <div className="text-[10px] text-blue-500/70 dark:text-blue-400/70">Baixa prioridade</div>
+          <div className="text-2xs text-blue-500/70 dark:text-blue-400/70">Baixa prioridade</div>
         </div>
       </div>
     );
@@ -77,7 +77,7 @@ function TemperatureBadge({ temperature }: { temperature?: string }) {
       <Thermometer className="h-5 w-5 text-amber-500 dark:text-amber-400" />
       <div>
         <div className="text-xs font-bold text-amber-600 dark:text-amber-300">Morno</div>
-        <div className="text-[10px] text-amber-500/70 dark:text-amber-400/70">Prioridade media</div>
+        <div className="text-2xs text-amber-500/70 dark:text-amber-400/70">Prioridade media</div>
       </div>
     </div>
   );
@@ -268,7 +268,7 @@ export function ContactCockpitDataPanel({
             contactTags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
+                className="inline-flex items-center gap-1 text-1xs font-medium px-2 py-1 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
               >
                 {tag}
                 <Button
@@ -337,7 +337,7 @@ export function ContactCockpitDataPanel({
           <div className="space-y-3">
             {customFieldDefinitions.map((field) => (
               <div key={field.id}>
-                <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+                <label className="block text-1xs font-medium text-muted-foreground mb-1">
                   {field.label}
                 </label>
                 {field.type === 'select' ? (
@@ -421,7 +421,7 @@ export function ContactCockpitDataPanel({
               <Row label="FGTS" value={preferences.acceptsFgts ? 'Sim' : 'Nao'} />
             )}
             {preferences.notes && (
-              <div className="mt-1 text-[11px] text-muted-foreground italic">
+              <div className="mt-1 text-1xs text-muted-foreground italic">
                 {preferences.notes}
               </div>
             )}

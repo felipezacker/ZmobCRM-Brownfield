@@ -102,7 +102,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
         >
           <Filter size={20} aria-hidden="true" />
           {activeFilterCount > 0 && !isFilterOpen && (
-            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-primary-600 text-white text-[10px] font-bold rounded-full px-1">
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-primary-600 text-white text-2xs font-bold rounded-full px-1">
               {activeFilterCount}
             </span>
           )}

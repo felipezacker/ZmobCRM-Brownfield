@@ -239,7 +239,7 @@ export function ScriptEditorModal({
                             </div>
                         )}
 
-                        <p className="text-[10px] text-secondary-foreground mt-2">
+                        <p className="text-2xs text-secondary-foreground mt-2">
                             💡 Variáveis disponíveis: {'{nome}'}, {'{empresa}'}, {'{valor}'}, {'{produto}'}
                         </p>
                     </div>

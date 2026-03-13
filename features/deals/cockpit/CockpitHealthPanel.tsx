@@ -34,10 +34,10 @@ export function CockpitHealthPanel({ health, aiLoading, onRefetchAI }: CockpitHe
         />
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <div className="text-[11px] text-muted-foreground">IA + probabilidade do deal.</div>
+        <div className="text-1xs text-muted-foreground">IA + probabilidade do deal.</div>
         <Button
           type="button"
-          className="rounded-xl border border-white/10 bg-white/3 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-white/5"
+          className="rounded-xl border border-white/10 bg-white/3 px-2.5 py-1 text-1xs font-semibold text-muted-foreground hover:bg-white/5"
           onClick={onRefetchAI}
           title="Reanalisar com IA"
         >

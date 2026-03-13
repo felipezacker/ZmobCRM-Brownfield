@@ -129,6 +129,21 @@ export const REVENUE_ACCENT = '#0ea5e9';
 export const DEFAULT_STAGE_COLOR = '#94a3b8';
 export const DEFAULT_STAGE_COLOR_ALT = '#3b82f6';
 
+/** Stage glow colors (background glow with alpha) */
+export const STAGE_GLOW = {
+  blue:   'rgba(59, 130, 246, 0.25)',
+  violet: 'rgba(139, 92, 246, 0.25)',
+  amber:  'rgba(245, 158, 11, 0.25)',
+  green:  'rgba(16, 185, 129, 0.25)',
+  slate:  'rgba(148, 163, 184, 0.15)',
+} as const;
+
+/** Warning color for stages exceeding day threshold */
+export const STAGE_WARNING_COLOR = '#fb923c';
+
+/** Inactive stage dot color */
+export const STAGE_INACTIVE_DOT = '#334155';
+
 // ---------------------------------------------------------------------------
 // Chart Theme — theme-aware Recharts style props
 // Reads from CSS vars (--chart-text, --chart-grid, etc.) with hex fallbacks.
@@ -183,6 +198,7 @@ export const PIPELINE_CONFIG_COLORS = {
 export const SHADOW_TOKENS = {
   subtle:    '2px 0 4px -2px rgba(0, 0, 0, 0.06)',
   tooltip:   '0 4px 12px rgba(0, 0, 0, 0.1)',
+  drag:      '0 8px 25px rgba(0, 0, 0, 0.15)',
   glow: {
     primary: 'rgba(59, 130, 246, 0.5)',
     success: 'rgba(34, 197, 94, 0.15)',

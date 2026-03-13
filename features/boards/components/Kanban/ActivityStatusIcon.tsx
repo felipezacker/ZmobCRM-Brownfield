@@ -172,7 +172,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
                     {/* Resultado — top section, only for open deals */}
                     {!isClosed && (onWinDeal || onLoseDeal) && (
                         <div className="p-1 border-b border-border" role="group">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase px-3 py-1">Resultado</p>
+                            <p className="text-2xs font-bold text-muted-foreground uppercase px-3 py-1">Resultado</p>
                             {onWinDeal && (
                                 <Button
                                     type="button"
@@ -204,7 +204,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
 
                     {/* Agendar */}
                     <div className="p-1 border-b border-border" role="group">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase px-3 py-1">Agendar</p>
+                        <p className="text-2xs font-bold text-muted-foreground uppercase px-3 py-1">Agendar</p>
                         <Button
                             type="button"
                             role="menuitem"
@@ -242,7 +242,7 @@ export const ActivityStatusIcon: React.FC<ActivityStatusIconProps> = ({
 
                     {/* Ações Rápidas — bottom section */}
                     <div className="p-1" role="group">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase px-3 py-1">Ações Rápidas</p>
+                        <p className="text-2xs font-bold text-muted-foreground uppercase px-3 py-1">Ações Rápidas</p>
                         {onMoveToStage && (
                             <Button
                                 type="button"

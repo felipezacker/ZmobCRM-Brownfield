@@ -139,7 +139,7 @@ export const CustomFieldsManager: React.FC<CustomFieldsManagerProps> = ({
               placeholder="Ex: Google, Facebook, Instagram, Indicação"
               className="w-full bg-white dark:bg-black/30 border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
             />
-            <p className="text-[10px] text-muted-foreground mt-1">Essas opções aparecerão em um menu dropdown no detalhe do negócio.</p>
+            <p className="text-2xs text-muted-foreground mt-1">Essas opções aparecerão em um menu dropdown no detalhe do negócio.</p>
           </div>
         )}
       </div>

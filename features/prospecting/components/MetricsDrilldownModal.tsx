@@ -238,12 +238,12 @@ export function MetricsDrilldownModal({
                           href={`/deals/${group.dealId}/cockpit`}
                           target="_blank"
                           rel="noopener"
-                          className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 hover:underline"
+                          className="inline-flex px-2 py-0.5 rounded-full text-2xs font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 hover:underline"
                         >
                           Vinculado
                         </a>
                       ) : group.dealLinked ? (
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-2xs font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400">
                           Vinculado
                         </span>
                       ) : (
@@ -317,7 +317,7 @@ export function MetricsDrilldownModal({
                           href={`/deals/${activity.deal_id}/cockpit`}
                           target="_blank"
                           rel="noopener"
-                          className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 hover:underline"
+                          className="inline-flex px-2 py-0.5 rounded-full text-2xs font-medium bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400 hover:underline"
                         >
                           Vinculado
                         </a>

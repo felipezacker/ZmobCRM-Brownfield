@@ -166,7 +166,7 @@ export default function DealJobsMockClient() {
                     {mock.nextAction.cta}
                   </Button>
 
-                  <div className="mt-2 text-right text-[11px] text-muted-foreground">
+                  <div className="mt-2 text-right text-1xs text-muted-foreground">
                     1 CTA primário. O resto é suporte.
                   </div>
                 </div>
@@ -275,7 +275,7 @@ export default function DealJobsMockClient() {
                   Enviar
                 </Button>
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">
+              <p className="mt-2 text-1xs text-muted-foreground">
                 Sem menu de features aqui — só conversa + uma recomendação ativa.
               </p>
             </div>

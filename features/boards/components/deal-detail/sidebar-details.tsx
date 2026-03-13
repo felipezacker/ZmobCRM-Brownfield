@@ -55,7 +55,7 @@ export const SidebarDetails: React.FC<SidebarDetailsProps> = ({
       </div>
       <div className="flex justify-between items-center text-sm">
         <span className="text-muted-foreground text-xs">Prioridade</span>
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+        <span className={`text-2xs font-bold px-2 py-0.5 rounded-full border ${
           deal.priority === 'high' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20' :
           deal.priority === 'medium' ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
           'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20'
@@ -89,7 +89,7 @@ export const SidebarDetails: React.FC<SidebarDetailsProps> = ({
           <span className="text-muted-foreground text-xs">Comissao Est.</span>
           <span className="text-emerald-600 dark:text-emerald-400 font-medium text-xs" title={`Taxa: ${estimatedCommission.rate}%`}>
             {BRL_CURRENCY.format(estimatedCommission.estimated)}
-            <span className="text-[10px] text-muted-foreground ml-1">({estimatedCommission.rate}%)</span>
+            <span className="text-2xs text-muted-foreground ml-1">({estimatedCommission.rate}%)</span>
           </span>
         </div>
       )}

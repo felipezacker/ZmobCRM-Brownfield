@@ -125,7 +125,7 @@ export function DailyGoalCard({ progress, isLoading, isAdminOrDirector, onConfig
           <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-0.5">ligacoes hoje</p>
 
           <div className="flex items-center gap-2 mt-2">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${colors.badge}`}>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-medium ${colors.badge}`}>
               {progress.isComplete ? 'Concluida' : progress.percentage >= 50 ? 'Em progresso' : 'Iniciar'}
             </span>
             <Button

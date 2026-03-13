@@ -30,7 +30,7 @@ const successInputStyles = 'border-[var(--color-success)] dark:border-[var(--col
 
 const labelStyles = 'block text-xs font-bold text-muted-foreground uppercase mb-1';
 const errorMessageStyles = 'text-xs text-destructive mt-1 flex items-center gap-1';
-const hintStyles = 'text-[10px] text-muted-foreground mt-1';
+const hintStyles = 'text-2xs text-muted-foreground mt-1';
 
 // ============ VALIDATION STATE ============
 

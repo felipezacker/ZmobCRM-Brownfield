@@ -148,13 +148,13 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                         {formatTitle(activity.title)}
                     </h3>
                     {activity.recurrenceType && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 rounded-full flex items-center gap-1">
+                        <span className="text-2xs font-bold px-2 py-0.5 bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 rounded-full flex items-center gap-1">
                             <Repeat size={10} />
                             {activity.recurrenceType === 'daily' ? 'Diário' : activity.recurrenceType === 'weekly' ? 'Semanal' : 'Mensal'}
                         </span>
                     )}
                     {isOverdue && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 rounded-full">
+                        <span className="text-2xs font-bold px-2 py-0.5 bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 rounded-full">
                             ATRASADO
                         </span>
                     )}

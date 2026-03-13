@@ -45,7 +45,7 @@ function KpiCard({
           <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate">{label}</p>
           <p className="text-xl font-bold text-foreground">{value}</p>
           {subtitle && (
-            <p className="text-[10px] text-muted-foreground dark:text-muted-foreground">{subtitle}</p>
+            <p className="text-2xs text-muted-foreground dark:text-muted-foreground">{subtitle}</p>
           )}
         </div>
       </div>

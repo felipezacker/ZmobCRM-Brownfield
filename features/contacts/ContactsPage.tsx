@@ -239,7 +239,7 @@ export const ContactsPage: React.FC = () => {
 
             {/* Story 3.5 — Sticky Bulk Actions Bar (bottom) */}
             {controller.selectedIds.size > 0 && (
-                <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-white/95 dark:bg-card/95 backdrop-blur-sm shadow-[0_-4px_12px_rgba(0,0,0,0.1)] px-8 py-3">
+                <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-white/95 dark:bg-card/95 backdrop-blur-sm shadow-bottom-bar px-8 py-3">
                     <div className="max-w-[1600px] mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <span className="text-sm font-medium text-primary-700 dark:text-primary-300">

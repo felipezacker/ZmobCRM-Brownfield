@@ -260,7 +260,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
 
       {/* Row 1: Avatar + Contact Name + Value */}
       <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex items-center justify-center text-[10px] font-bold shrink-0">
+        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex items-center justify-center text-2xs font-bold shrink-0">
           {getInitials(deal.contactName || deal.title || 'SN')}
         </div>
         <span className="text-sm font-semibold text-foreground truncate flex-1">
@@ -271,7 +271,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         </span>
         {stageAge && (
           <span
-            className={`text-[9px] font-medium shrink-0 ${stageAgeDays > 10 ? 'text-amber-500' : 'text-muted-foreground'}`}
+            className={`text-3xs font-medium shrink-0 ${stageAgeDays > 10 ? 'text-amber-500' : 'text-muted-foreground'}`}
             aria-label={`${stageAge} neste estagio`}
           >
             {stageAge}

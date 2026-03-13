@@ -179,7 +179,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
                   <h3 className="font-display font-bold text-sm text-foreground">
                     Estratégia do Board
                   </h3>
-                  <p className="text-[10px] text-muted-foreground font-medium">
+                  <p className="text-2xs text-muted-foreground font-medium">
                     Defina como a IA deve trabalhar aqui
                   </p>
                 </div>
@@ -203,7 +203,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
             <div className="space-y-8">
               {/* TOP SECTION: RULES (The Brain) */}
               <div className="space-y-3">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                <label className="text-2xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                   <DoorOpen size={12} /> Regras de Entrada (O Filtro)
                 </label>
                 <div className="relative">
@@ -213,7 +213,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
                     value={editedBoard.entryTrigger || ''}
                     onChange={e => setEditedBoard({ ...editedBoard, entryTrigger: e.target.value })}
                   />
-                  <div className="absolute bottom-3 right-3 text-[10px] text-muted-foreground bg-white/50 dark:bg-black/20 px-2 py-1 rounded-full backdrop-blur-sm">
+                  <div className="absolute bottom-3 right-3 text-2xs text-muted-foreground bg-white/50 dark:bg-black/20 px-2 py-1 rounded-full backdrop-blur-sm">
                     A IA usará isso para filtrar leads
                   </div>
                 </div>
@@ -223,7 +223,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* LEFT: GOAL (All Goal fields) */}
                 <div className="space-y-4 border-r border-border pr-8">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 border-b border-border pb-2">
+                  <label className="text-2xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 border-b border-border pb-2">
                     <Target size={12} /> Objetivo (O Alvo)
                   </label>
 
@@ -243,7 +243,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
                           }
                         />
                         <select
-                          className="bg-transparent text-[10px] font-bold uppercase text-muted-foreground focus:text-blue-500 focus:outline-none cursor-pointer"
+                          className="bg-transparent text-2xs font-bold uppercase text-muted-foreground focus:text-blue-500 focus:outline-none cursor-pointer"
                           value={editedBoard.goal?.type || 'number'}
                           onChange={e =>
                             setEditedBoard({
@@ -273,7 +273,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
                       />
                     </div>
                     <div className="w-24 opacity-50 pointer-events-none grayscale">
-                      <label className="text-[10px] text-muted-foreground font-medium block mb-1">
+                      <label className="text-2xs text-muted-foreground font-medium block mb-1">
                         Progresso (Auto)
                       </label>
                       <input
@@ -301,14 +301,14 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
 
                 {/* RIGHT: AGENT (All Agent fields) */}
                 <div className="space-y-4 pl-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 border-b border-border pb-2">
+                  <label className="text-2xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 border-b border-border pb-2">
                     <Bot size={12} /> Agente (O Executor)
                   </label>
 
                   {/* Agent Identity */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] text-muted-foreground font-medium">Nome</label>
+                      <label className="text-2xs text-muted-foreground font-medium">Nome</label>
                       <input
                         className="w-full bg-transparent border-b border-border py-1 text-sm font-bold text-foreground focus:outline-none focus:border-purple-500 transition-colors placeholder:text-muted-foreground"
                         placeholder="Ex: Ana"
@@ -322,7 +322,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] text-muted-foreground font-medium">Cargo</label>
+                      <label className="text-2xs text-muted-foreground font-medium">Cargo</label>
                       <input
                         className="w-full bg-transparent border-b border-border py-1 text-xs text-muted-foreground focus:outline-none focus:border-purple-500 transition-colors placeholder:text-muted-foreground"
                         placeholder="Ex: Corretora"
@@ -389,7 +389,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
               <div className="md:col-span-4 flex flex-col justify-center border-r border-border pr-6 relative">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="flex h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <span className="text-3xs font-bold uppercase tracking-widest text-muted-foreground">
                     Objetivo
                   </span>
                 </div>
@@ -410,7 +410,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
                     style={{ width: `${progress}% `, boxShadow: `0 0 8px ${SHADOW_TOKENS.glow.primary}` }}
                   ></div>
                 </div>
-                <div className="flex justify-between text-[9px] font-medium text-muted-foreground uppercase tracking-wider">
+                <div className="flex justify-between text-3xs font-medium text-muted-foreground uppercase tracking-wider">
                   <span>{calculatedProgress.display} Concluído</span>
                   <div className="group/goal relative cursor-help">
                     <span className="border-b border-dotted border-border hover:text-blue-400 transition-colors">
@@ -429,14 +429,14 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <Bot size={12} className="text-purple-500" />
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <span className="text-3xs font-bold uppercase tracking-widest text-muted-foreground">
                       Agente
                     </span>
                   </div>
                   {board.agentPersona && (
                     <Button
                       onClick={() => setIsGlobalAIOpen(true)}
-                      className="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
+                      className="text-2xs font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
                     >
                       <MessageSquare size={12} /> Falar
                     </Button>
@@ -463,7 +463,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
               <div className="md:col-span-5 flex flex-col justify-center pl-4 relative">
                 <div className="flex items-center gap-2 mb-1">
                   <DoorOpen size={12} className="text-orange-500" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <span className="text-3xs font-bold uppercase tracking-widest text-muted-foreground">
                     Entrada
                   </span>
                 </div>

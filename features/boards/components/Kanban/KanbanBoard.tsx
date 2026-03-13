@@ -345,15 +345,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <span className="text-xs font-bold text-muted-foreground [writing-mode:vertical-lr] rotate-180 max-h-[120px] overflow-hidden">
                   {stage.label}
                 </span>
-                <span className="text-[10px] font-bold bg-white dark:bg-card border border-border px-1.5 py-0.5 rounded">
+                <span className="text-2xs font-bold bg-white dark:bg-card border border-border px-1.5 py-0.5 rounded">
                   {stageDeals.length}
                 </span>
-                <span className="text-[9px] text-muted-foreground tabular-nums text-center font-mono leading-tight" title={BRL_CURRENCY.format(stageValue)}>
+                <span className="text-3xs text-muted-foreground tabular-nums text-center font-mono leading-tight" title={BRL_CURRENCY.format(stageValue)}>
                   {formatCompactBRL(stageValue)}
                 </span>
               </div>
               {isOver && (
-                <div className="pb-2 text-green-500 dark:text-green-400 text-[10px] font-bold animate-pulse">
+                <div className="pb-2 text-green-500 dark:text-green-400 text-2xs font-bold animate-pulse">
                   ✓
                 </div>
               )}
@@ -419,12 +419,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               {/* Automation Indicator - Always rendered for consistent height */}
               <div className="mb-2 flex items-center gap-1.5 min-h-[22px]">
                 {linkedStageName ? (
-                  <span className="text-[10px] uppercase font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-1.5 py-0.5 rounded border border-primary-100 dark:border-primary-800/50 flex items-center gap-1">
+                  <span className="text-2xs uppercase font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-1.5 py-0.5 rounded border border-primary-100 dark:border-primary-800/50 flex items-center gap-1">
                     <span className="w-1 h-1 rounded-full bg-primary-500 animate-pulse"></span>
                     Promove para: {linkedStageName}
                   </span>
                 ) : (
-                  <span className="text-[10px] px-1.5 py-0.5 opacity-0 select-none">
+                  <span className="text-2xs px-1.5 py-0.5 opacity-0 select-none">
                     Placeholder
                   </span>
                 )}

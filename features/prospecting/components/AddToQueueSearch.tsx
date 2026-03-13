@@ -47,13 +47,13 @@ export const AddToQueueSearch: React.FC<AddToQueueSearchProps> = ({ onAdd }) => 
                   </p>
                   <div className="flex items-center gap-2">
                     {contact.primaryPhone && (
-                      <span className="text-[11px] text-muted-foreground flex items-center gap-0.5">
+                      <span className="text-1xs text-muted-foreground flex items-center gap-0.5">
                         <Phone size={9} />
                         {contact.primaryPhone}
                       </span>
                     )}
                     {contact.stage && (
-                      <span className="text-[10px] text-muted-foreground">{contact.stage}</span>
+                      <span className="text-2xs text-muted-foreground">{contact.stage}</span>
                     )}
                   </div>
                 </div>

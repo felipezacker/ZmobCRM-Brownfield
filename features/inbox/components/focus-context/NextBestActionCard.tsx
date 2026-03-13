@@ -39,7 +39,7 @@ export const NextBestActionCard: React.FC<NextBestActionCardProps> = ({
                     <Zap size={14} className={`${nextBestAction.urgency === 'high' ? 'text-red-400' : nextBestAction.urgency === 'medium' ? 'text-yellow-400' : 'text-primary-400'}`} />
                     <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Proxima Acao</span>
                     {nextBestAction.isAI && (
-                        <span className="text-[10px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded flex items-center gap-1">
+                        <span className="text-2xs bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded flex items-center gap-1">
                             <Sparkles size={9} /> AI
                         </span>
                     )}
@@ -70,7 +70,7 @@ export const NextBestActionCard: React.FC<NextBestActionCardProps> = ({
 
             {/* Action Icons Bar */}
             <div className="flex items-center justify-between gap-2 mb-3">
-                <span className="text-[10px] text-secondary-foreground uppercase tracking-wider">Executar como:</span>
+                <span className="text-2xs text-secondary-foreground uppercase tracking-wider">Executar como:</span>
                 <div className="flex items-center gap-1">
                     {actionButtons.map(({ type, icon: Icon, label, color }) => (
                         <Button

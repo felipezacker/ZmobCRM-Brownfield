@@ -27,7 +27,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
             <div className="p-4 border-b border-white/5 flex items-center justify-between">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notas do Deal</span>
                 {isSaving && (
-                    <span className="text-[10px] text-primary-400 flex items-center gap-1">
+                    <span className="text-2xs text-primary-400 flex items-center gap-1">
                         <Loader2 size={10} className="animate-spin" /> Salvando...
                     </span>
                 )}
@@ -47,7 +47,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
                     }}
                 />
                 <div className="flex justify-between items-center mt-2">
-                    <span className="text-[10px] text-secondary-foreground">Cmd+Enter para salvar</span>
+                    <span className="text-2xs text-secondary-foreground">Cmd+Enter para salvar</span>
                     <Button
                         onClick={onSubmit}
                         disabled={!note.trim() || isSaving}
@@ -71,7 +71,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
                         <div key={n.id} className="p-3 bg-card/30 rounded-lg border border-white/5 group">
                             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{n.content}</p>
                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-[10px] text-secondary-foreground">
+                                <span className="text-2xs text-secondary-foreground">
                                     {new Date(n.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                 </span>
                                 <Button

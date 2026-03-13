@@ -78,7 +78,7 @@ export function ConversionFunnel({ metrics, isLoading }: ConversionFunnelProps) 
           Funil de Conversão
         </h3>
         <div className="text-right">
-          <p className="text-[10px] text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Conversão Geral</p>
+          <p className="text-2xs text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">Conversão Geral</p>
           <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{connectionRate}%</p>
         </div>
       </div>
@@ -97,13 +97,13 @@ export function ConversionFunnel({ metrics, isLoading }: ConversionFunnelProps) 
               {conversionFromPrev && (
                 <div className="flex items-center gap-2 py-1 pl-4">
                   <div className="w-px h-3 bg-accent dark:bg-accent" />
-                  <span className="text-[10px] text-muted-foreground dark:text-muted-foreground">{conversionFromPrev}</span>
+                  <span className="text-2xs text-muted-foreground dark:text-muted-foreground">{conversionFromPrev}</span>
                 </div>
               )}
               {i === 2 && (
                 <div className="flex items-center gap-2 py-1.5 pl-4">
                   <div className="w-px h-3 bg-accent dark:bg-accent" />
-                  <span className="text-[10px] text-muted-foreground dark:text-muted-foreground font-medium">
+                  <span className="text-2xs text-muted-foreground dark:text-muted-foreground font-medium">
                     Não atenderam: {total - connected} ({total > 0 ? (((total - connected) / total) * 100).toFixed(0) : 0}%)
                   </span>
                 </div>
@@ -131,19 +131,19 @@ export function ConversionFunnel({ metrics, isLoading }: ConversionFunnelProps) 
       <div className="grid grid-cols-4 gap-3 mt-5 pt-4 border-t border-border dark:border-border">
         <div className="text-center">
           <p className="text-lg font-bold text-foreground">{connectionRate}%</p>
-          <p className="text-[10px] text-muted-foreground dark:text-muted-foreground">Conversão</p>
+          <p className="text-2xs text-muted-foreground dark:text-muted-foreground">Conversão</p>
         </div>
         <div className="text-center">
           <p className="text-lg font-bold text-foreground">{connected}</p>
-          <p className="text-[10px] text-muted-foreground dark:text-muted-foreground">Respostas</p>
+          <p className="text-2xs text-muted-foreground dark:text-muted-foreground">Respostas</p>
         </div>
         <div className="text-center">
           <p className="text-lg font-bold text-foreground">{total - connected}</p>
-          <p className="text-[10px] text-muted-foreground dark:text-muted-foreground">Não Atenderam</p>
+          <p className="text-2xs text-muted-foreground dark:text-muted-foreground">Não Atenderam</p>
         </div>
         <div className="text-center">
           <p className="text-lg font-bold text-foreground">{metrics.uniqueContacts}</p>
-          <p className="text-[10px] text-muted-foreground dark:text-muted-foreground">Contatos Únicos</p>
+          <p className="text-2xs text-muted-foreground dark:text-muted-foreground">Contatos Únicos</p>
         </div>
       </div>
     </div>

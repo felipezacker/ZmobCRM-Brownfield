@@ -449,7 +449,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
 
             <Maximize2 size={14} className="relative z-10" />
             <span className="relative z-10">{hasResolvedContext ? 'Ver detalhes' : 'Vincular contexto'}</span>
-            <kbd className="hidden group-hover:inline-flex h-5 items-center gap-1 rounded border border-yellow-500/20 bg-yellow-500/10 px-1.5 font-mono text-[10px] font-medium text-yellow-500/50 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out translate-x-1 group-hover:translate-x-0 ml-2">
+            <kbd className="hidden group-hover:inline-flex h-5 items-center gap-1 rounded border border-yellow-500/20 bg-yellow-500/10 px-1.5 font-mono text-2xs font-medium text-yellow-500/50 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out translate-x-1 group-hover:translate-x-0 ml-2">
               SPACE
             </kbd>
           </Button>
@@ -464,7 +464,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
         >
           <Clock size={18} aria-hidden="true" className="text-muted-foreground group-hover:text-secondary-foreground dark:group-hover:text-muted-foreground" />
           <span>Adiar</span>
-          <kbd className="hidden group-hover:inline-flex h-5 items-center justify-center rounded border border-border bg-accent dark:bg-white/5 px-1.5 font-mono text-[10px] uppercase text-muted-foreground font-bold opacity-0 group-hover:opacity-100 transition-all">
+          <kbd className="hidden group-hover:inline-flex h-5 items-center justify-center rounded border border-border bg-accent dark:bg-white/5 px-1.5 font-mono text-2xs uppercase text-muted-foreground font-bold opacity-0 group-hover:opacity-100 transition-all">
             A
           </kbd>
         </Button>
@@ -487,7 +487,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
           className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/10 transition-all font-medium border border-transparent hover:border-border dark:hover:border-white/10"
         >
           <span>Pular</span>
-          <kbd className="hidden group-hover:inline-flex h-5 items-center justify-center rounded border border-border bg-accent dark:bg-white/5 px-1.5 font-mono text-[10px] uppercase text-muted-foreground font-bold opacity-0 group-hover:opacity-100 transition-all">
+          <kbd className="hidden group-hover:inline-flex h-5 items-center justify-center rounded border border-border bg-accent dark:bg-white/5 px-1.5 font-mono text-2xs uppercase text-muted-foreground font-bold opacity-0 group-hover:opacity-100 transition-all">
             P
           </kbd>
           <SkipForward size={18} aria-hidden="true" className="text-muted-foreground group-hover:text-secondary-foreground dark:group-hover:text-muted-foreground" />

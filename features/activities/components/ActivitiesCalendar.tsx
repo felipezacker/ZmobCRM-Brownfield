@@ -256,7 +256,7 @@ export const ActivitiesCalendar: React.FC<ActivitiesCalendarProps> = ({
                                     {(() => {
                                         const dayCount = countByDay.get(`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`) || 0;
                                         return dayCount > 0 ? (
-                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
+                                            <span className="text-2xs font-bold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
                                                 {dayCount}
                                             </span>
                                         ) : null;

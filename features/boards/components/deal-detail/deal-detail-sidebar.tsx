@@ -71,7 +71,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
                   const stage = lifecycleStageById.get(contact.stage);
                   if (!stage) return null;
                   return (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider text-white ${stage.color}`}>
+                    <span className={`text-2xs font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider text-white ${stage.color}`}>
                       {stage.name}
                     </span>
                   );
@@ -118,7 +118,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
           <select
             value={contact?.temperature || ''}
             onChange={e => contact && onUpdateContact(contact.id, { temperature: (e.target.value || undefined) as ContactTemperature | undefined })}
-            className={`text-[11px] font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer ${
+            className={`text-1xs font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer ${
               contact?.temperature === 'HOT' ? 'text-red-500' :
               contact?.temperature === 'WARM' ? 'text-amber-500' :
               contact?.temperature === 'COLD' ? 'text-blue-500' : 'text-muted-foreground'
@@ -132,7 +132,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
           <select
             value={contact?.classification || ''}
             onChange={e => contact && onUpdateContact(contact.id, { classification: (e.target.value || undefined) as ContactClassification | undefined })}
-            className="text-[11px] font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer text-secondary-foreground dark:text-muted-foreground"
+            className="text-1xs font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer text-secondary-foreground dark:text-muted-foreground"
           >
             <option value="">Classificacao</option>
             <option value="COMPRADOR">Comprador</option>
@@ -147,7 +147,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
         {/* Lead Score bar */}
         {contact?.leadScore != null && (
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground">Score</span>
+            <span className="text-2xs text-muted-foreground">Score</span>
             <div className="h-1.5 w-16 overflow-hidden rounded-full bg-accent dark:bg-white/10">
               <div
                 className={`h-full rounded-full transition-all ${
@@ -159,7 +159,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
             </div>
             <span className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
               {contact.leadScore}
-              <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+              <span className="ml-1 text-2xs font-normal text-muted-foreground">
                 {contact.leadScore <= 30 ? 'Frio' : contact.leadScore <= 60 ? 'Morno' : 'Quente'}
               </span>
             </span>
@@ -195,7 +195,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
             (contact?.tags || []).map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
+                className="inline-flex items-center text-2xs font-medium px-2 py-0.5 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
               >
                 {tag}
               </span>
@@ -237,10 +237,10 @@ const CustomFieldsSection: React.FC<CustomFieldsSectionProps> = ({
       <div className="space-y-1.5">
         {filledFields.map(field => (
           <div key={field.id} className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-medium text-muted-foreground dark:text-muted-foreground">
+            <span className="text-1xs font-medium text-muted-foreground dark:text-muted-foreground">
               {field.label}
             </span>
-            <span className="text-[11px] text-secondary-foreground dark:text-muted-foreground truncate text-right">
+            <span className="text-1xs text-secondary-foreground dark:text-muted-foreground truncate text-right">
               {String(contact?.customFields?.[field.key] ?? '')}
             </span>
           </div>

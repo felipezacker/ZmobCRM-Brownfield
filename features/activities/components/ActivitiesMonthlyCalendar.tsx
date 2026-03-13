@@ -309,7 +309,7 @@ const ActivitiesMonthlyCalendarInner: React.FC<ActivitiesMonthlyCalendarProps> =
             return (
                 <span
                     key={type}
-                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${color.bg} ${color.text}`}
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-2xs font-bold ${color.bg} ${color.text}`}
                     title={`${count} ${type.toLowerCase()}`}
                 >
                     <span className={`w-1.5 h-1.5 rounded-full ${color.dot}`} />
@@ -426,7 +426,7 @@ const ActivitiesMonthlyCalendarInner: React.FC<ActivitiesMonthlyCalendarProps> =
                                         {date.getDate()}
                                     </span>
                                     {dayCount > 0 && (
-                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
+                                        <span className="text-2xs font-bold px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
                                             {dayCount}
                                         </span>
                                     )}

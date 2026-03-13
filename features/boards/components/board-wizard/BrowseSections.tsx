@@ -75,7 +75,7 @@ export function TemplatesList({ onSelectTemplate }: { onSelectTemplate: (k: Boar
                 <p className="text-xs text-muted-foreground dark:text-muted-foreground leading-relaxed line-clamp-3 flex-1">{t.description}</p>
                 <div className="mt-3 pt-3 border-t border-border flex gap-2 shrink-0 overflow-hidden">
                   {t.tags.slice(0, 2).map((tag, i) => (
-                    <span key={`${key}-tag-${i}`} className="px-2 py-1 rounded-md bg-background dark:bg-white/5 text-[10px] font-medium text-muted-foreground dark:text-muted-foreground border border-border whitespace-nowrap">
+                    <span key={`${key}-tag-${i}`} className="px-2 py-1 rounded-md bg-background dark:bg-white/5 text-2xs font-medium text-muted-foreground dark:text-muted-foreground border border-border whitespace-nowrap">
                       #{tag}
                     </span>
                   ))}

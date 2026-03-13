@@ -24,7 +24,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
       {!preferences && contact && (
         <Button
           onClick={onCreatePreferences}
-          className="text-[10px] text-primary-500 hover:text-primary-600 font-medium"
+          className="text-2xs text-primary-500 hover:text-primary-600 font-medium"
           title="Criar preferencias"
         >
           + Adicionar
@@ -64,7 +64,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
                   onUpdatePreference(preferences.id, { propertyTypes: next });
                   onSetPreferences({ ...preferences, propertyTypes: next });
                 }}
-                className={`text-[9px] px-1.5 py-0.5 rounded-full border transition-colors ${
+                className={`text-3xs px-1.5 py-0.5 rounded-full border transition-colors ${
                   preferences.propertyTypes.includes(pt)
                     ? 'bg-primary-100 text-primary-700 border-primary-200 dark:bg-primary-500/10 dark:text-primary-400 dark:border-primary-500/20'
                     : 'bg-background text-muted-foreground border-border dark:bg-white/5  hover:text-secondary-foreground'

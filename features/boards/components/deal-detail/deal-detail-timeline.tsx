@@ -81,7 +81,7 @@ export const DealDetailTimeline: React.FC<DealDetailTimelineProps> = ({
               <MessageSquare size={14} className="text-primary-500 mt-1 shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-foreground dark:text-muted-foreground whitespace-pre-wrap">{note.content}</p>
-                <p className="text-[11px] text-muted-foreground dark:text-muted-foreground mt-1">
+                <p className="text-1xs text-muted-foreground dark:text-muted-foreground mt-1">
                   {new Date(note.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   {' '}
                   {new Date(note.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}

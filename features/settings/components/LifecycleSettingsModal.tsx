@@ -128,7 +128,7 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
 
                                 {/* Count Badge */}
                                 <span
-                                    className="text-[10px] font-medium text-muted-foreground bg-white dark:bg-card px-2 py-0.5 rounded-full border border-border dark:border-border"
+                                    className="text-2xs font-medium text-muted-foreground bg-white dark:bg-card px-2 py-0.5 rounded-full border border-border dark:border-border"
                                     title={`${stageCounts[stage.id] || 0} contatos neste estágio`}
                                 >
                                     {stageCounts[stage.id] || 0}

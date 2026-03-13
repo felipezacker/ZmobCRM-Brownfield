@@ -152,12 +152,12 @@ export const UsersPage: React.FC = () => {
                                             {user.email}
                                         </h3>
                                         {isCurrentUser && (
-                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                                            <span className="px-2 py-0.5 rounded-full text-2xs font-semibold uppercase tracking-wider bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
                                                 você
                                             </span>
                                         )}
                                         {user.status === 'pending' && (
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-semibold uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
                                                 <Clock className="h-3 w-3" />
                                                 Pendente
                                             </span>
@@ -284,7 +284,7 @@ export const UsersPage: React.FC = () => {
                                             <div key={invite.id} className="bg-background dark:bg-card/50 rounded-xl p-3 border border-border dark:border-border flex items-center justify-between gap-3">
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${invite.role === 'admin'
+                                                        <span className={`text-2xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${invite.role === 'admin'
                                                             ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
                                                             : 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
                                                             }`}>

@@ -109,7 +109,7 @@ export const AISuggestionsSection: React.FC<AISuggestionsSectionProps> = ({
               {/* Priority indicator */}
               {suggestion.priority === 'high' && (
                 <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
-                  <div className="absolute top-2 right-[-20px] w-[80px] text-center text-[10px] font-bold text-white bg-red-500 rotate-45 py-0.5">
+                  <div className="absolute top-2 right-[-20px] w-[80px] text-center text-2xs font-bold text-white bg-red-500 rotate-45 py-0.5">
                     URGENTE
                   </div>
                 </div>
@@ -124,7 +124,7 @@ export const AISuggestionsSection: React.FC<AISuggestionsSectionProps> = ({
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${config.color}`}>
+                    <span className={`text-2xs font-bold uppercase tracking-wider ${config.color}`}>
                       {config.label}
                     </span>
                   </div>

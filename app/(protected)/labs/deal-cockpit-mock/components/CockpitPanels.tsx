@@ -18,7 +18,7 @@ export function Chip({
         : 'bg-white/5 text-muted-foreground ring-1 ring-white/10';
 
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${cls}`}>{children}</span>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-1xs font-semibold ${cls}`}>{children}</span>
   );
 }
 
