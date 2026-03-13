@@ -20,6 +20,10 @@ import {
 } from './realtimeConfig';
 import { handleDealInsert } from './dealInsertSync';
 import { handleDealUpdate } from './dealUpdateSync';
+import { handleContactInsert } from './contactInsertSync';
+import { handleContactUpdate } from './contactUpdateSync';
+import { handleActivityInsert } from './activityInsertSync';
+import { handleActivityUpdate } from './activityUpdateSync';
 
 export { type RealtimeTable, type UseRealtimeSyncOptions } from './realtimeConfig';
 
@@ -105,6 +109,67 @@ export function useRealtimeSync(
             // Cross-tab insert ('raw'): schedule refetch for complete DealView data (Bug #17)
             const dealKeys = getTableQueryKeys(table);
             dealKeys.forEach(key => pendingInvalidationsRef.current.add(key));
+            if (!flushScheduledRef.current) {
+              flushScheduledRef.current = true;
+              queueMicrotask(() => {
+                flushScheduledRef.current = false;
+                const keysToFlush = Array.from(pendingInvalidationsRef.current);
+                pendingInvalidationsRef.current.clear();
+                keysToFlush.forEach(queryKey => {
+                  queryClient.invalidateQueries({ queryKey, exact: false, refetchType: 'all' });
+                });
+              });
+            }
+            return;
+          }
+
+          // ─── Contact UPDATE: apply directly to cache, skip pending queue (AC10) ───
+          if (payload.eventType === 'UPDATE' && table === 'contacts') {
+            handleContactUpdate(
+              queryClient,
+              payload.new as Record<string, unknown>,
+              payload.old as Record<string, unknown>,
+            );
+            return;
+          }
+
+          // ─── Contact INSERT: add to cache, refetch only for cross-tab (AC11) ───
+          if (payload.eventType === 'INSERT' && table === 'contacts') {
+            const result = handleContactInsert(queryClient, payload.new as Record<string, unknown>);
+            if (!result || result === 'enriched') return;
+            // Cross-tab insert ('raw'): schedule refetch for contacts data
+            const contactKeys = getTableQueryKeys(table);
+            contactKeys.forEach(key => pendingInvalidationsRef.current.add(key));
+            if (!flushScheduledRef.current) {
+              flushScheduledRef.current = true;
+              queueMicrotask(() => {
+                flushScheduledRef.current = false;
+                const keysToFlush = Array.from(pendingInvalidationsRef.current);
+                pendingInvalidationsRef.current.clear();
+                keysToFlush.forEach(queryKey => {
+                  queryClient.invalidateQueries({ queryKey, exact: false, refetchType: 'all' });
+                });
+              });
+            }
+            return;
+          }
+
+          // ─── Activity UPDATE: apply directly to cache + re-sort ───
+          if (payload.eventType === 'UPDATE' && table === 'activities') {
+            handleActivityUpdate(
+              queryClient,
+              payload.new as Record<string, unknown>,
+            );
+            return;
+          }
+
+          // ─── Activity INSERT: add to cache, refetch only for cross-tab ───
+          if (payload.eventType === 'INSERT' && table === 'activities') {
+            const result = handleActivityInsert(queryClient, payload.new as Record<string, unknown>);
+            if (!result || result === 'enriched') return;
+            // Cross-tab insert ('raw'): schedule refetch for activity data
+            const activityKeys = getTableQueryKeys(table);
+            activityKeys.forEach(key => pendingInvalidationsRef.current.add(key));
             if (!flushScheduledRef.current) {
               flushScheduledRef.current = true;
               queueMicrotask(() => {
