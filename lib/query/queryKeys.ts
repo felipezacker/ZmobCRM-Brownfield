@@ -55,6 +55,9 @@ export const queryKeys = {
     // Live operations (CP-5.6)
     liveOperations: createQueryKeys('liveOperations'),
 
+    // Notifications (RT-3.1)
+    notifications: createQueryKeys('notifications'),
+
     // Dashboard (non-standard structure)
     dashboard: {
         stats: ['dashboard', 'stats'] as const,
@@ -62,6 +65,12 @@ export const queryKeys = {
         timeline: ['dashboard', 'timeline'] as const,
     },
 };
+
+/**
+ * Query key base para contagem de notificações não-lidas.
+ * Usado pelo NotificationBell e invalidado via Realtime (RT-3.1).
+ */
+export const NOTIFICATION_COUNT_KEY = ['crm_notification_count'] as const;
 
 /**
  * Constante para a query key da view de deals (DealView[]).

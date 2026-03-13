@@ -266,6 +266,29 @@ export const useScheduleRetry = () => {
       if (error) throw error
       return data!
     },
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => old ? old.map(item =>
+          item.id === id
+            ? { ...item, status: 'retry_pending' as ProspectingQueueStatus, retryCount: (item.retryCount ?? 0) + 1 }
+            : item
+        ) : old
+      )
+
+      return { snapshot }
+    },
+    onError: (_error, _vars, context) => {
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
     },
@@ -282,10 +305,31 @@ export const useActivateReadyRetries = () => {
       if (error) throw error
       return data ?? 0
     },
-    onSuccess: (count) => {
-      if (count > 0) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
-      }
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => old ? old.map(item =>
+          item.status === 'retry_pending'
+            ? { ...item, status: 'pending' as ProspectingQueueStatus }
+            : item
+        ) : old
+      )
+
+      return { snapshot }
+    },
+    onError: (_error, _vars, context) => {
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
     },
   })
 }
@@ -298,6 +342,29 @@ export const useResetRetry = () => {
     mutationFn: async (id: string) => {
       const { error } = await prospectingQueuesService.resetRetry(id)
       if (error) throw error
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => old ? old.map(item =>
+          item.id === id
+            ? { ...item, status: 'pending' as ProspectingQueueStatus, retryCount: 0 }
+            : item
+        ) : old
+      )
+
+      return { snapshot }
+    },
+    onError: (_error, _vars, context) => {
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
@@ -313,7 +380,33 @@ export const useClearCompletedQueue = () => {
       const { error } = await prospectingQueuesService.clearCompleted()
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.prospectingQueue.all })
+
+      const snapshot = queryClient.getQueriesData<ProspectingQueueItem[]>({
+        queryKey: queryKeys.prospectingQueue.lists(),
+      })
+
+      const contactIdsSnapshot = queryClient.getQueriesData<string[]>({
+        queryKey: [...queryKeys.prospectingQueue.all, 'contactIds'],
+      })
+
+      queryClient.setQueriesData<ProspectingQueueItem[]>(
+        { queryKey: queryKeys.prospectingQueue.lists() },
+        (old) => old ? old.filter(item => item.status !== 'completed' && item.status !== 'skipped') : old
+      )
+
+      return { snapshot, contactIdsSnapshot }
+    },
+    onError: (_error, _vars, context) => {
+      context?.snapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+      context?.contactIdsSnapshot?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
     },
   })
@@ -479,7 +572,10 @@ export const useReorderQueue = () => {
         queryClient.setQueryData(key, data)
       })
     },
-    // No onSettled invalidation — optimistic update is authoritative.
-    // Avoids refetch flicker after drop.
+    onSettled: () => {
+      // Safety net: sync with server after optimistic update.
+      // Accepts minor flicker vs. permanent cache divergence on network failure.
+      queryClient.invalidateQueries({ queryKey: queryKeys.prospectingQueue.all })
+    },
   })
 }

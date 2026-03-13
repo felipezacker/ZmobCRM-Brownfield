@@ -1,5 +1,5 @@
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import { queryKeys } from '@/lib/query/queryKeys';
+import { queryKeys, NOTIFICATION_COUNT_KEY } from '@/lib/query/queryKeys';
 
 export const DEBUG_REALTIME = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_REALTIME === 'true';
 
@@ -31,7 +31,9 @@ export type RealtimeTable =
   | 'prospecting_saved_queues'
   | 'prospecting_daily_goals'
   | 'prospecting_sessions'
-  | 'organization_settings';
+  | 'organization_settings'
+  | 'notifications'
+  | 'deal_notes';
 
 export const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unknown[])[] => {
   const mapping: Record<RealtimeTable, readonly (readonly unknown[])[]> = {
@@ -45,6 +47,8 @@ export const getTableQueryKeys = (table: RealtimeTable): readonly (readonly unkn
     prospecting_daily_goals: [queryKeys.dailyGoals.all],
     prospecting_sessions: [queryKeys.liveOperations.all],
     organization_settings: [['settings'] as const],
+    notifications: [NOTIFICATION_COUNT_KEY],
+    deal_notes: [queryKeys.activities.all],
   };
   return mapping[table];
 };
