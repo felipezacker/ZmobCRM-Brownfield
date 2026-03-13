@@ -250,6 +250,7 @@ export const useCanDeleteBoard = (boardId: string | undefined) => {
 
 /**
  * Hook to add a stage to a board
+ * Optimistic: inserts a temporary stage immediately, replaces with server data on success
  */
 export const useAddBoardStage = () => {
   const queryClient = useQueryClient();
@@ -260,6 +261,31 @@ export const useAddBoardStage = () => {
       if (error) throw error;
       return { boardId, stage: data! };
     },
+    onMutate: async ({ boardId, stage }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.boards.all });
+      const previousBoards = queryClient.getQueryData<Board[]>(queryKeys.boards.lists());
+      const tempId = `temp-stage-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const tempStage: BoardStage = { ...stage, id: tempId, boardId } as BoardStage;
+      queryClient.setQueryData<Board[]>(queryKeys.boards.lists(), (old = []) =>
+        old.map(b => b.id === boardId ? { ...b, stages: [...(b.stages || []), tempStage] } : b)
+      );
+      return { previousBoards, tempId };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previousBoards) {
+        queryClient.setQueryData(queryKeys.boards.lists(), context.previousBoards);
+      }
+    },
+    onSuccess: (data, _vars, context) => {
+      const tempId = context?.tempId;
+      if (!tempId) return;
+      queryClient.setQueryData<Board[]>(queryKeys.boards.lists(), (old = []) =>
+        old.map(b => b.id === data.boardId
+          ? { ...b, stages: (b.stages || []).map(s => s.id === tempId ? data.stage : s) }
+          : b
+        )
+      );
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.boards.all });
     },
@@ -268,6 +294,7 @@ export const useAddBoardStage = () => {
 
 /**
  * Hook to update a board stage
+ * Optimistic: applies updates immediately across all boards
  */
 export const useUpdateBoardStage = () => {
   const queryClient = useQueryClient();
@@ -278,6 +305,22 @@ export const useUpdateBoardStage = () => {
       if (error) throw error;
       return { stageId, updates };
     },
+    onMutate: async ({ stageId, updates }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.boards.all });
+      const previousBoards = queryClient.getQueryData<Board[]>(queryKeys.boards.lists());
+      queryClient.setQueryData<Board[]>(queryKeys.boards.lists(), (old = []) =>
+        old.map(b => ({
+          ...b,
+          stages: (b.stages || []).map(s => s.id === stageId ? { ...s, ...updates } : s),
+        }))
+      );
+      return { previousBoards };
+    },
+    onError: (_error, _vars, context) => {
+      if (context?.previousBoards) {
+        queryClient.setQueryData(queryKeys.boards.lists(), context.previousBoards);
+      }
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.boards.all });
     },
@@ -286,6 +329,7 @@ export const useUpdateBoardStage = () => {
 
 /**
  * Hook to delete a board stage
+ * Optimistic: removes stage immediately from all boards
  */
 export const useDeleteBoardStage = () => {
   const queryClient = useQueryClient();
@@ -295,6 +339,19 @@ export const useDeleteBoardStage = () => {
       const { error } = await boardsService.deleteStage(stageId);
       if (error) throw error;
       return stageId;
+    },
+    onMutate: async (stageId) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.boards.all });
+      const previousBoards = queryClient.getQueryData<Board[]>(queryKeys.boards.lists());
+      queryClient.setQueryData<Board[]>(queryKeys.boards.lists(), (old = []) =>
+        old.map(b => ({ ...b, stages: (b.stages || []).filter(s => s.id !== stageId) }))
+      );
+      return { previousBoards };
+    },
+    onError: (_error, _stageId, context) => {
+      if (context?.previousBoards) {
+        queryClient.setQueryData(queryKeys.boards.lists(), context.previousBoards);
+      }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.boards.all });
