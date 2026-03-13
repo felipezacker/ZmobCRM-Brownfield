@@ -84,7 +84,7 @@ export function handleContactUpdate(
     const currentTs = detailData.updatedAt ||
       (detailData as unknown as Record<string, unknown>).updated_at as string | undefined;
     const currentMs = typeof currentTs === 'string' ? new Date(currentTs).getTime() : 0;
-    if (!(incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - 100)) {
+    if (!(incomingMs > 0 && currentMs > 0 && incomingMs < currentMs - STALE_THRESHOLD_MS)) {
       queryClient.setQueryData<Contact>(
         queryKeys.contacts.detail(contactId),
         { ...detailData, ...normalizedData } as Contact
