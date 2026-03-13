@@ -216,7 +216,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                     {contact.name}
                   </span>
                   {inQueue && (
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
+                    <span className="text-2xs font-medium px-1.5 py-0.5 rounded bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300">
                       Na fila
                     </span>
                   )}
@@ -236,7 +236,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                     </span>
                   </>
                 ) : (
-                  <span className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300">
+                  <span className="flex items-center gap-1 text-2xs font-medium px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300">
                     <PhoneOff size={10} />
                     Sem telefone
                   </span>
@@ -245,7 +245,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
 
               {/* Stage badge */}
               {contact.stage && (
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-secondary-foreground dark:bg-white/10 dark:text-muted-foreground">
+                <span className="text-2xs font-medium px-2 py-0.5 rounded-full bg-muted text-secondary-foreground dark:bg-white/10 dark:text-muted-foreground">
                   {STAGE_LABELS[contact.stage] || contact.stage}
                 </span>
               )}
@@ -255,7 +255,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
 
               {/* Temperature badge */}
               {contact.temperature && TEMPERATURE_CONFIG[contact.temperature] && (
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${TEMPERATURE_CONFIG[contact.temperature].cls}`}>
+                <span className={`text-2xs font-medium px-2 py-0.5 rounded-full ${TEMPERATURE_CONFIG[contact.temperature].cls}`}>
                   {TEMPERATURE_CONFIG[contact.temperature].label}
                 </span>
               )}

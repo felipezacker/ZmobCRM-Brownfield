@@ -615,7 +615,7 @@ export default function InstallStartPage() {
                 </div>
 
                 {/* Password strength indicators — uses design system success/muted tokens */}
-                <div className="grid grid-cols-3 gap-2 text-[11px] text-muted-foreground">
+                <div className="grid grid-cols-3 gap-2 text-xxs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <span className={`inline-block w-1.5 h-1.5 rounded-full ${passwordChecks.minLen ? 'bg-success/90' : 'bg-muted-foreground/50'}`} />
                     <span>8+ caracteres</span>

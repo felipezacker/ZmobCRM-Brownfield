@@ -42,7 +42,7 @@ export const DealDetailAIInsights: React.FC<DealDetailAIInsightsProps> = ({
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">
+                <span className="text-2xs font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">
                   Atuando como
                 </span>
               </div>

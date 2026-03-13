@@ -54,7 +54,7 @@ const ActivityItem: React.FC<{ activity: Activity; isExpanded: boolean; onToggle
             {activity.title}
           </span>
           {outcome && (
-            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${outcome.className}`}>
+            <span className={`text-2xs font-medium px-1.5 py-0.5 rounded-full ${outcome.className}`}>
               {outcome.label}
             </span>
           )}
@@ -67,15 +67,15 @@ const ActivityItem: React.FC<{ activity: Activity; isExpanded: boolean; onToggle
             className="text-left mt-0.5 group block"
             aria-label={isExpanded ? 'Recolher nota' : 'Expandir nota'}
           >
-            <p className={`text-[11px] text-muted-foreground dark:text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
+            <p className={`text-xxs text-muted-foreground dark:text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
               {activity.description}
             </p>
-            <span className="text-[10px] text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-2xs text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
               {isExpanded ? 'ver menos' : 'ver mais'}
             </span>
           </Button>
         )}
-        <span className="text-[10px] text-muted-foreground dark:text-muted-foreground mt-0.5 block">
+        <span className="text-2xs text-muted-foreground dark:text-muted-foreground mt-0.5 block">
           {formatDate(activity.date)}
         </span>
       </div>
@@ -100,7 +100,7 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
           <Clock size={14} />
           Histórico
           {activities.length > 0 && (
-            <span className="text-[10px] bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground px-1.5 py-0.5 rounded-full">
+            <span className="text-2xs bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground px-1.5 py-0.5 rounded-full">
               {activities.length}
             </span>
           )}

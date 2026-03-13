@@ -71,7 +71,7 @@ export function TemplatePickerModal({
         <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div className="min-w-0">
             <div className="text-sm font-semibold text-muted-foreground truncate">{title}</div>
-            <div className="text-[11px] text-muted-foreground">Escolha um script persistido e eu preencho a mensagem com vari\u00e1veis do deal/contato.</div>
+            <div className="text-xxs text-muted-foreground">Escolha um script persistido e eu preencho a mensagem com vari\u00e1veis do deal/contato.</div>
           </div>
           <Button
             type="button"
@@ -103,8 +103,8 @@ export function TemplatePickerModal({
                     type="button"
                     onClick={() => setCategory(c.key)}
                     className={category === c.key
-                      ? 'rounded-full bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-500/20 px-2.5 py-1 text-[11px] font-semibold'
-                      : 'rounded-full bg-white/5 text-muted-foreground ring-1 ring-white/10 px-2.5 py-1 text-[11px] font-semibold hover:bg-white/10'
+                      ? 'rounded-full bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-500/20 px-2.5 py-1 text-xxs font-semibold'
+                      : 'rounded-full bg-white/5 text-muted-foreground ring-1 ring-white/10 px-2.5 py-1 text-xxs font-semibold hover:bg-white/10'
                     }
                   >
                     {c.label}
@@ -113,7 +113,7 @@ export function TemplatePickerModal({
               </div>
             </div>
 
-            <div className="text-[11px] text-muted-foreground">
+            <div className="text-xxs text-muted-foreground">
               Vari\u00e1veis: <span className="font-mono">{'{nome}'}</span>, <span className="font-mono">{'{empresa}'}</span>,{' '}
               <span className="font-mono">{'{valor}'}</span>, <span className="font-mono">{'{produto}'}</span>
             </div>
@@ -138,13 +138,13 @@ export function TemplatePickerModal({
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>{info.label}</span>
+                              <span className={`text-2xs font-semibold px-2 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>{info.label}</span>
                               <span className="truncate text-sm font-semibold text-muted-foreground">{s.title}</span>
-                              {s.is_system ? <span className="text-[10px] text-muted-foreground">Sistema</span> : null}
+                              {s.is_system ? <span className="text-2xs text-muted-foreground">Sistema</span> : null}
                             </div>
                             <div className="mt-2 text-xs text-muted-foreground line-clamp-3 whitespace-pre-wrap">{preview}</div>
                           </div>
-                          <div className="shrink-0 text-[11px] font-semibold text-cyan-200">Usar</div>
+                          <div className="shrink-0 text-xxs font-semibold text-cyan-200">Usar</div>
                         </div>
                       </Button>
                     );

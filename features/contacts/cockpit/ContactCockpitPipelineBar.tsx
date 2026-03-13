@@ -52,7 +52,7 @@ export function ContactCockpitPipelineBar({
               />
             </div>
             <div
-              className={`mt-1 text-[11px] font-medium transition-colors ${
+              className={`mt-1 text-xxs font-medium transition-colors ${
                 isActive ? 'text-foreground dark:text-muted-foreground' : 'text-muted-foreground group-hover:text-secondary-foreground dark:group-hover:text-muted-foreground'
               }`}
             >

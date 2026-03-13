@@ -461,7 +461,7 @@ export function UIChat({
 
                                                             {/* Linha 2: contexto + botão */}
                                                             <div className="mt-1 flex items-start justify-between gap-3">
-                                                                <div className="text-[12px] text-muted-foreground flex flex-wrap gap-x-2 gap-y-1 min-w-0">
+                                                                <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2 gap-y-1 min-w-0">
                                                                     <span>{uniqueDeals.size} deal{uniqueDeals.size === 1 ? '' : 's'}</span>
                                                                     {dueSummary && (
                                                                         <>
@@ -504,7 +504,7 @@ export function UIChat({
                                                     {expanded && (
                                                         <div className="mt-3">
                                                             <div className="flex items-center justify-between gap-2 mb-2">
-                                                                <div className="text-[12px] text-muted-foreground">
+                                                                <div className="text-xs text-muted-foreground">
                                                                     {selectionMode ? `Selecionadas: ${selectedCount}/${parsedItems.length}` : 'Detalhes'}
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
@@ -515,7 +515,7 @@ export function UIChat({
                                                                                 ensureDefaultSelection();
                                                                                 setSelectionModeByGroup((prev) => ({ ...prev, [groupKey]: true }));
                                                                             }}
-                                                                            className="text-[12px] text-muted-foreground hover:text-foreground underline underline-offset-2"
+                                                                            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
                                                                         >
                                                                             Selecionar
                                                                         </Button>
@@ -524,7 +524,7 @@ export function UIChat({
                                                                             <Button
                                                                                 type="button"
                                                                                 onClick={() => setAllSelection(true)}
-                                                                                className="text-[12px] text-muted-foreground hover:text-foreground underline underline-offset-2"
+                                                                                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
                                                                             >
                                                                                 Selecionar todas
                                                                             </Button>
@@ -532,7 +532,7 @@ export function UIChat({
                                                                             <Button
                                                                                 type="button"
                                                                                 onClick={() => setAllSelection(false)}
-                                                                                className="text-[12px] text-muted-foreground hover:text-foreground underline underline-offset-2"
+                                                                                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
                                                                             >
                                                                                 Limpar
                                                                             </Button>
@@ -540,7 +540,7 @@ export function UIChat({
                                                                             <Button
                                                                                 type="button"
                                                                                 onClick={() => setSelectionModeByGroup((prev) => ({ ...prev, [groupKey]: false }))}
-                                                                                className="text-[12px] text-muted-foreground hover:text-foreground underline underline-offset-2"
+                                                                                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
                                                                             >
                                                                                 Concluir
                                                                             </Button>
@@ -553,7 +553,7 @@ export function UIChat({
                                                                 {groupedByDeal.map(([dealTitle, dealItems]) => (
                                                                     <div key={dealTitle} className="rounded-lg border border-border bg-muted/30">
                                                                         <div className="px-3 py-2 border-b border-border">
-                                                                            <div className="text-[12px] font-semibold text-foreground truncate">{dealTitle}</div>
+                                                                            <div className="text-xs font-semibold text-foreground truncate">{dealTitle}</div>
                                                                         </div>
                                                                         {!(commonMain && !selectionMode && dealItems.length === 1 && dealItems[0].extra.length === 0 && !dealItems[0].dueDate) && (
                                                                             <div className="px-2 py-2 space-y-1">
@@ -575,19 +575,19 @@ export function UIChat({
                                                                                                             {lineMain}
                                                                                                         </div>
                                                                                                     ) : (
-                                                                                                        <div className="text-[12px] text-muted-foreground">
+                                                                                                        <div className="text-xs text-muted-foreground">
                                                                                                             Incluído
                                                                                                         </div>
                                                                                                     )}
                                                                                                     {(dueBadge || dueText) && (
                                                                                                         <div className="shrink-0 flex items-center gap-2">
                                                                                                             {dueBadge && (
-                                                                                                                <span className={`px-2 py-0.5 rounded-full text-[11px] ${dueBadge.className}`}>
+                                                                                                                <span className={`px-2 py-0.5 rounded-full text-xxs ${dueBadge.className}`}>
                                                                                                                     {dueBadge.label}
                                                                                                                 </span>
                                                                                                             )}
                                                                                                             {dueText && (
-                                                                                                                <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                                                                                                                <span className="text-xxs text-muted-foreground whitespace-nowrap">
                                                                                                                     {dueText}
                                                                                                                 </span>
                                                                                                             )}
@@ -595,7 +595,7 @@ export function UIChat({
                                                                                                     )}
                                                                                                 </div>
                                                                                                 {p.extra.length > 0 && (
-                                                                                                    <div className="mt-1 text-[12px] text-muted-foreground space-y-0.5">
+                                                                                                    <div className="mt-1 text-xs text-muted-foreground space-y-0.5">
                                                                                                         {p.extra.map((l, idx) => (
                                                                                                             <div key={idx} className="leading-snug">{l}</div>
                                                                                                         ))}
@@ -628,12 +628,12 @@ export function UIChat({
                                                                                                     {(dueBadge || dueText) && (
                                                                                                         <div className="shrink-0 flex items-center gap-2">
                                                                                                             {dueBadge && (
-                                                                                                                <span className={`px-2 py-0.5 rounded-full text-[11px] ${dueBadge.className}`}>
+                                                                                                                <span className={`px-2 py-0.5 rounded-full text-xxs ${dueBadge.className}`}>
                                                                                                                     {dueBadge.label}
                                                                                                                 </span>
                                                                                                             )}
                                                                                                             {dueText && (
-                                                                                                                <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                                                                                                                <span className="text-xxs text-muted-foreground whitespace-nowrap">
                                                                                                                     {dueText}
                                                                                                                 </span>
                                                                                                             )}
@@ -642,7 +642,7 @@ export function UIChat({
                                                                                                 </div>
 
                                                                                                 {p.extra.length > 0 && (
-                                                                                                    <div className="mt-1 text-[12px] text-muted-foreground space-y-0.5">
+                                                                                                    <div className="mt-1 text-xs text-muted-foreground space-y-0.5">
                                                                                                         {p.extra.map((l, idx) => (
                                                                                                             <div key={idx} className="leading-snug">{l}</div>
                                                                                                         ))}
@@ -833,7 +833,7 @@ export function UIChat({
             {/* Input Area */}
             < form onSubmit={handleSubmit} className="p-3 border-t border-border" >
                 {hasPendingApprovals && (
-                    <div className="mb-2 rounded-xl border border-[var(--color-warning)] bg-[var(--color-warning-bg)] px-3 py-2 text-[12px] text-[var(--color-warning-text)]">
+                    <div className="mb-2 rounded-xl border border-[var(--color-warning)] bg-[var(--color-warning-bg)] px-3 py-2 text-xs text-[var(--color-warning-text)]">
                         Você tem {pendingApprovalIds.length} confirmação{pendingApprovalIds.length === 1 ? '' : 'ões'} pendente{pendingApprovalIds.length === 1 ? '' : 's'}. Aprove ou negue acima para continuar.
                     </div>
                 )}

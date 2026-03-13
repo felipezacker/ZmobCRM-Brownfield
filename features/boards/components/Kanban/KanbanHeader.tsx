@@ -131,7 +131,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                                             <div className="flex items-start gap-2">
                                                 <Target size={13} className="text-blue-500 mt-0.5 shrink-0" />
                                                 <div className="min-w-0">
-                                                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Objetivo</p>
+                                                    <p className="text-2xs font-bold uppercase text-muted-foreground">Objetivo</p>
                                                     <p className="text-sm font-semibold text-foreground">{activeBoard.goal.targetValue}</p>
                                                     {activeBoard.goal.kpi && <p className="text-xs text-muted-foreground truncate">{activeBoard.goal.kpi}</p>}
                                                 </div>
@@ -141,7 +141,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                                             <div className="flex items-start gap-2">
                                                 <Bot size={13} className="text-purple-500 mt-0.5 shrink-0" />
                                                 <div className="min-w-0">
-                                                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Agente</p>
+                                                    <p className="text-2xs font-bold uppercase text-muted-foreground">Agente</p>
                                                     <p className="text-sm font-semibold text-foreground">{activeBoard.agentPersona.name}</p>
                                                     {activeBoard.agentPersona.role && <p className="text-xs text-muted-foreground truncate">{activeBoard.agentPersona.role}</p>}
                                                 </div>
@@ -151,7 +151,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                                             <div className="flex items-start gap-2">
                                                 <DoorOpen size={13} className="text-orange-500 mt-0.5 shrink-0" />
                                                 <div className="min-w-0">
-                                                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Entrada</p>
+                                                    <p className="text-2xs font-bold uppercase text-muted-foreground">Entrada</p>
                                                     <p className="text-xs text-muted-foreground line-clamp-2">{activeBoard.entryTrigger}</p>
                                                 </div>
                                             </div>
@@ -347,7 +347,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                         <SlidersHorizontal size={16} />
                         {showExtraFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                         {collapsibleFilterCount > 0 && !showExtraFilters && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary-500 text-white rounded-full leading-none">
+                            <span className="px-1.5 py-0.5 text-2xs font-bold bg-primary-500 text-white rounded-full leading-none">
                                 {collapsibleFilterCount}
                             </span>
                         )}
@@ -442,13 +442,13 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                             </div>
                             <div className="p-3 space-y-2">
                                 <div>
-                                    <label className="text-[10px] text-muted-foreground uppercase font-bold block mb-0.5">De</label>
+                                    <label className="text-2xs text-muted-foreground uppercase font-bold block mb-0.5">De</label>
                                     <input type="date" value={dateRange.start}
                                         onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
                                         className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-white/50 dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] text-muted-foreground uppercase font-bold block mb-0.5">Até</label>
+                                    <label className="text-2xs text-muted-foreground uppercase font-bold block mb-0.5">Até</label>
                                     <input type="date" value={dateRange.end}
                                         onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
                                         className="w-full px-2 py-1.5 text-xs rounded-lg border border-border bg-white/50 dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500" />
@@ -475,7 +475,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                         <Filter size={16} />
                         Filtros
                         {activeAdvancedFilterCount > 0 && (
-                            <span className="ml-0.5 px-1.5 py-0.5 text-[10px] font-bold bg-primary-500 text-white rounded-full leading-none">
+                            <span className="ml-0.5 px-1.5 py-0.5 text-2xs font-bold bg-primary-500 text-white rounded-full leading-none">
                                 {activeAdvancedFilterCount}
                             </span>
                         )}

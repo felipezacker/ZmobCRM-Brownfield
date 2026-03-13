@@ -119,7 +119,7 @@ export function TemplatePickerModal({
                     onClick={() => onPick(s)}
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>
+                      <span className={`shrink-0 text-2xs font-semibold px-2 py-0.5 rounded ${scriptCategoryChipClass(info.color)}`}>
                         {info.label}
                       </span>
                       <span className="truncate text-sm font-semibold text-muted-foreground">{s.title}</span>

@@ -311,7 +311,7 @@ export function ContactsImportExportModal(props: {
                               })}
                             </select>
                             {isDuplicate && (
-                              <div className="text-[10px] text-red-500 mt-0.5">Duplicado!</div>
+                              <div className="text-2xs text-red-500 mt-0.5">Duplicado!</div>
                             )}
                           </th>
                         );
@@ -521,7 +521,7 @@ export function ContactsImportExportModal(props: {
                                   })}
                                 </select>
                                 {isDealDup && (
-                                  <div className="text-[10px] text-red-500 mt-0.5">Duplicado!</div>
+                                  <div className="text-2xs text-red-500 mt-0.5">Duplicado!</div>
                                 )}
                               </th>
                               );

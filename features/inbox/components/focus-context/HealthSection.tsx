@@ -27,7 +27,7 @@ export const HealthSection: React.FC<HealthSectionProps> = ({
                     )}
                     <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Health</span>
                     {hasAIAnalysis && (
-                        <span className="text-[9px] bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded flex items-center gap-1">
+                        <span className="text-3xs bg-primary-500/20 text-primary-400 px-1.5 py-0.5 rounded flex items-center gap-1">
                             <Sparkles size={10} /> AI
                         </span>
                     )}

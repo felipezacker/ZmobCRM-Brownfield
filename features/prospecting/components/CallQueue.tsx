@@ -217,7 +217,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
             </Button>
             {/* CP-4.7: Tooltip when drag disabled due to sort=score */}
             {sortBy === 'score' && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-foreground text-background text-[10px] rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-foreground text-background text-2xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                 Arraste requer ordenação por posição
               </div>
             )}
@@ -358,7 +358,7 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
             <h3 className="text-xs font-medium text-red-500 dark:text-red-400 uppercase tracking-wider">
               Esgotados
             </h3>
-            <span className="text-[10px] text-muted-foreground dark:text-muted-foreground">
+            <span className="text-2xs text-muted-foreground dark:text-muted-foreground">
               ({exhaustedItems.length})
             </span>
           </div>

@@ -132,7 +132,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
               variant="unstyled"
               size="unstyled"
               onClick={() => setPeriod(p.value)}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+              className={`px-2.5 py-1 rounded-md text-xxs font-medium transition-colors ${
                 period === p.value
                   ? 'bg-white dark:bg-white/15 text-foreground  shadow-sm'
                   : 'text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
@@ -159,7 +159,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
             {/* Header row — time labels */}
             <div />
             {TIME_LABELS.map(label => (
-              <div key={label} className="text-[10px] text-muted-foreground dark:text-muted-foreground text-center font-medium pb-1 min-w-[48px]">
+              <div key={label} className="text-2xs text-muted-foreground dark:text-muted-foreground text-center font-medium pb-1 min-w-[48px]">
                 {label}
               </div>
             ))}
@@ -167,7 +167,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
             {/* Data rows */}
             {DAYS.map(day => (
               <React.Fragment key={day}>
-                <div className="text-[11px] text-muted-foreground dark:text-muted-foreground font-medium pr-2 flex items-center">
+                <div className="text-xxs text-muted-foreground dark:text-muted-foreground font-medium pr-2 flex items-center">
                   {day}
                 </div>
                 {TIME_SLOTS.map(slot => {
@@ -215,7 +215,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-3 mt-3 text-[10px] text-muted-foreground dark:text-muted-foreground">
+          <div className="flex items-center gap-3 mt-3 text-2xs text-muted-foreground dark:text-muted-foreground">
             <span>Menor</span>
             <div className="flex gap-0.5">
               {['bg-muted dark:bg-card', 'bg-amber-200 dark:bg-amber-300/30', 'bg-amber-400 dark:bg-amber-500', 'bg-orange-400 dark:bg-orange-500', 'bg-emerald-500 dark:bg-emerald-600'].map((c, i) => (

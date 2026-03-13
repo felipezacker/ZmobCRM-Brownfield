@@ -97,7 +97,7 @@ export function SavedQueuesList({
                     )}
                   </div>
                   {queue.ownerId !== currentUserId && (
-                    <span className="text-[10px] text-muted-foreground dark:text-muted-foreground">
+                    <span className="text-2xs text-muted-foreground dark:text-muted-foreground">
                       compartilhada
                     </span>
                   )}

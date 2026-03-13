@@ -39,7 +39,7 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
             <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-600 dark:from-indigo-400 dark:to-pink-400">
               Criar com IA
             </span>
-            <span className="text-[11px] text-muted-foreground dark:text-muted-foreground">
+            <span className="text-xxs text-muted-foreground dark:text-muted-foreground">
               Em 1 frase, eu monto o board pra voce.
             </span>
           </div>
@@ -62,7 +62,7 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
               <div className="font-semibold text-foreground">
                 Usar um playbook (recomendado)
               </div>
-              <div className="text-[11px] text-muted-foreground dark:text-muted-foreground">
+              <div className="text-xxs text-muted-foreground dark:text-muted-foreground">
                 Jornada completa pronta para usar.
               </div>
             </div>
@@ -83,7 +83,7 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
               <div className="font-semibold text-foreground">
                 Usar template individual
               </div>
-              <div className="text-[11px] text-muted-foreground dark:text-muted-foreground">
+              <div className="text-xxs text-muted-foreground dark:text-muted-foreground">
                 Um board pronto (Pre-venda, Vendas, CS...).
               </div>
             </div>
@@ -102,7 +102,7 @@ export const SelectHomeStep: React.FC<SelectHomeStepProps> = ({
             </div>
             <div className="min-w-0">
               <div className="font-semibold text-foreground">Comecar do zero</div>
-              <div className="text-[11px] text-muted-foreground dark:text-muted-foreground">
+              <div className="text-xxs text-muted-foreground dark:text-muted-foreground">
                 Um board em branco.
               </div>
             </div>

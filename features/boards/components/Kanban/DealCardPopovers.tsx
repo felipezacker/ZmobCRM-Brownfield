@@ -97,7 +97,7 @@ export const ProductPicker: React.FC<ProductPickerProps> = ({
               className={`w-full text-left px-3 py-1.5 text-xs hover:bg-muted dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-2 ${deal.items?.[0]?.productId === p.id ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-secondary-foreground dark:text-muted-foreground'}`}
             >
               <span className="truncate">{p.name}</span>
-              <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">
+              <span className="text-2xs text-muted-foreground shrink-0 tabular-nums">
                 {BRL_CURRENCY.format(p.price)}
               </span>
             </Button>
@@ -204,7 +204,7 @@ export const OwnerPicker: React.FC<OwnerPickerProps> = ({
             onClick={(e) => { e.stopPropagation(); onSelectOwner(null); }}
             className={`w-full text-left px-2.5 py-1.5 text-xs hover:bg-background dark:hover:bg-white/5 transition-colors flex items-center gap-2 ${!deal.ownerId ? 'bg-background dark:bg-white/5' : ''}`}
           >
-            <span className="w-5 h-5 rounded-full bg-muted dark:bg-white/10 text-muted-foreground flex items-center justify-center text-[9px] shrink-0">
+            <span className="w-5 h-5 rounded-full bg-muted dark:bg-white/10 text-muted-foreground flex items-center justify-center text-3xs shrink-0">
 
             </span>
             <span className={`flex-1 ${!deal.ownerId ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-muted-foreground dark:text-muted-foreground'}`}>
@@ -223,7 +223,7 @@ export const OwnerPicker: React.FC<OwnerPickerProps> = ({
                 onClick={(e) => { e.stopPropagation(); onSelectOwner(m); }}
                 className={`w-full text-left px-2.5 py-1.5 text-xs hover:bg-background dark:hover:bg-white/5 transition-colors flex items-center gap-2 ${isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
               >
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${isSelected
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs font-bold shrink-0 ${isSelected
                     ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 ring-1 ring-blue-300/50 dark:ring-blue-600/30'
                     : 'bg-muted dark:bg-white/10 text-muted-foreground dark:text-muted-foreground'
                   }`}>
@@ -232,7 +232,7 @@ export const OwnerPicker: React.FC<OwnerPickerProps> = ({
                 <span className={`flex-1 truncate ${isSelected ? 'text-blue-700 dark:text-blue-300 font-medium' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
                   {m.name}
                 </span>
-                <span className={`text-[9px] px-1 py-0.5 rounded ${m.role === 'admin' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-500 dark:text-purple-400' :
+                <span className={`text-3xs px-1 py-0.5 rounded ${m.role === 'admin' ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-500 dark:text-purple-400' :
                     m.role === 'diretor' ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-500 dark:text-sky-400' :
                       'bg-background dark:bg-white/5 text-muted-foreground dark:text-muted-foreground'
                   }`}>

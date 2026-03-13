@@ -19,7 +19,7 @@ const SourceBadge: React.FC<{ source?: string }> = ({ source }) => {
     const config = SOURCE_CONFIG[source];
     if (!config) return <span className="text-xs text-muted-foreground">{source}</span>;
     return (
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
+        <span className={`text-2xs font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
             {config.label}
         </span>
     );
@@ -83,7 +83,7 @@ const ClassificationBadge: React.FC<{ classification?: ContactClassification }> 
     const config = CLASSIFICATION_CONFIG[classification];
     if (!config) return <span className="text-xs text-muted-foreground">{classification}</span>;
     return (
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
+        <span className={`text-2xs font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
             {config.label}
         </span>
     );
@@ -117,7 +117,7 @@ const TemperatureIcon: React.FC<{ temperature?: ContactTemperature }> = ({ tempe
     return (
         <span className={`flex items-center gap-1 ${config.color}`} title={config.label}>
             {config.icon}
-            <span className="text-[10px] font-bold">{config.label}</span>
+            <span className="text-2xs font-bold">{config.label}</span>
         </span>
     );
 };
@@ -135,7 +135,7 @@ const LeadScoreBadge: React.FC<{ score?: number }> = ({ score }) => {
     if (score == null) return <span className="text-xs text-muted-foreground">---</span>;
     const config = SCORE_CONFIG.find(c => score <= c.max) || SCORE_CONFIG[2];
     return (
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
+        <span className={`text-2xs font-bold px-2 py-0.5 rounded-full border ${config.color}`}>
             {score}
         </span>
     );
@@ -183,7 +183,7 @@ const StatusDropdown: React.FC<{
                 aria-label={`Status de ${contactName}: ${current.label}. Clique para alterar.`}
                 aria-expanded={open}
                 aria-haspopup="listbox"
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all inline-flex items-center gap-1 ${current.color}`}
+                className={`text-2xs font-bold px-2 py-0.5 rounded-full border transition-all inline-flex items-center gap-1 ${current.color}`}
             >
                 {current.label}
                 <ChevronDown size={10} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -206,7 +206,7 @@ const StatusDropdown: React.FC<{
                             }}
                             className={`w-full justify-start px-3 py-1.5 text-xs font-medium transition-colors hover:bg-background dark:hover:bg-white/5 h-auto rounded-none ${option.value === status ? 'font-bold' : ''}`}
                         >
-                            <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${option.color}`}>
+                            <span className={`inline-block text-2xs font-bold px-2 py-0.5 rounded-full border ${option.color}`}>
                                 {option.label}
                             </span>
                         </Button>
@@ -500,7 +500,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     <td className="px-6 py-4">
                                         {contact.ownerId && profilesMap.has(contact.ownerId) ? (
                                             <div className="flex items-center gap-2">
-                                                <span className="w-6 h-6 rounded-full bg-gradient-to-br from-muted to-accent text-secondary-foreground dark:text-muted-foreground flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                                                <span className="w-6 h-6 rounded-full bg-gradient-to-br from-muted to-accent text-secondary-foreground dark:text-muted-foreground flex items-center justify-center text-2xs font-bold flex-shrink-0">
                                                     {(profilesMap.get(contact.ownerId)!.name || '?').charAt(0).toUpperCase()}
                                                 </span>
                                                 <span className="text-xs text-secondary-foreground dark:text-muted-foreground truncate max-w-[120px]">

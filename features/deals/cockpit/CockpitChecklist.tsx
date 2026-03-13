@@ -25,10 +25,10 @@ export function CockpitChecklist({ checklist, onPersistChecklist, onReload }: Co
       bodyClassName="min-h-0 flex-1 overflow-auto"
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[11px] text-muted-foreground">Checklist persistido por deal (salvo em metadata).</div>
+        <div className="text-xxs text-muted-foreground">Checklist persistido por deal (salvo em metadata).</div>
         <Button
           type="button"
-          className="rounded-lg border border-border bg-background dark:bg-white/2 px-2.5 py-1.5 text-[11px] font-semibold text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5"
+          className="rounded-lg border border-border bg-background dark:bg-white/2 px-2.5 py-1.5 text-xxs font-semibold text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5"
           onClick={onReload}
           title="Recarregar do deal"
         >
@@ -98,7 +98,7 @@ export function CockpitChecklist({ checklist, onPersistChecklist, onReload }: Co
         </Button>
       </div>
 
-      <div className="mt-2 text-[11px] text-muted-foreground dark:text-secondary-foreground">Dica: isso fica no deal atual e aparece igual quando você trocar de deal.</div>
+      <div className="mt-2 text-xxs text-muted-foreground dark:text-secondary-foreground">Dica: isso fica no deal atual e aparece igual quando você trocar de deal.</div>
     </Panel>
   );
 }

@@ -115,7 +115,7 @@ export const LiveOperationsPanel: React.FC<LiveOperationsPanelProps> = ({
                   </span>
                   {session.isInactive && (
                     <span
-                      className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 animate-pulse"
+                      className="px-1.5 py-0.5 rounded text-2xs font-semibold bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400 animate-pulse"
                       aria-label="Corretor inativo há mais de 15 minutos"
                     >
                       Inativo
@@ -131,7 +131,7 @@ export const LiveOperationsPanel: React.FC<LiveOperationsPanelProps> = ({
                   {badge && (
                     <>
                       <span>·</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${badge.color}`}>
+                      <span className={`px-1.5 py-0.5 rounded text-2xs font-medium ${badge.color}`}>
                         {badge.label}
                       </span>
                     </>

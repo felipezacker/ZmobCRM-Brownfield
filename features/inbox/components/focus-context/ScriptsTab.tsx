@@ -52,7 +52,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                 </p>
                 <Button
                     onClick={() => onOpenEditor(null)}
-                    className="flex items-center gap-1 text-[10px] px-2 py-1 bg-primary-500/20 text-primary-400 hover:bg-primary-500/30 rounded-md transition-colors"
+                    className="flex items-center gap-1 text-2xs px-2 py-1 bg-primary-500/20 text-primary-400 hover:bg-primary-500/30 rounded-md transition-colors"
                 >
                     <Plus size={12} />
                     Criar
@@ -84,7 +84,7 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                                     console.error('AI Script error:', err);
                                 }
                             }}
-                            className="flex-1 text-[9px] px-2 py-1.5 bg-card/60 hover:bg-accent text-muted-foreground hover:text-foreground rounded transition-colors capitalize"
+                            className="flex-1 text-3xs px-2 py-1.5 bg-card/60 hover:bg-accent text-muted-foreground hover:text-foreground rounded transition-colors capitalize"
                         >
                             {type === 'followup' ? 'Follow-up' : type === 'closing' ? 'Fechamento' : type === 'objection' ? 'Objecao' : 'Resgate'}
                         </Button>
@@ -106,17 +106,17 @@ export const ScriptsTab: React.FC<ScriptsTabProps> = ({
                         >
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
-                                    <div className={`px-2 py-0.5 rounded text-[10px] font-medium bg-${categoryInfo.color}-500/20 text-${categoryInfo.color}-400`}>
+                                    <div className={`px-2 py-0.5 rounded text-2xs font-medium bg-${categoryInfo.color}-500/20 text-${categoryInfo.color}-400`}>
                                         {categoryInfo.label}
                                     </div>
                                     <span className="text-sm font-semibold text-foreground">{script.title}</span>
                                     {script.is_system && (
-                                        <span className="text-[9px] text-muted-foreground bg-accent/50 px-1.5 py-0.5 rounded">Sistema</span>
+                                        <span className="text-3xs text-muted-foreground bg-accent/50 px-1.5 py-0.5 rounded">Sistema</span>
                                     )}
                                 </div>
                                 <div className="flex items-center gap-1">
                                     {copiedScript === script.id && (
-                                        <span className="text-[10px] text-emerald-400 flex items-center gap-1">
+                                        <span className="text-2xs text-emerald-400 flex items-center gap-1">
                                             <CheckCircle2 size={10} /> Copiado!
                                         </span>
                                     )}

@@ -144,7 +144,7 @@ export function GoalConfigModal({
                 const currentVal = teamEdits[p.id] ?? 30
                 return (
                   <div key={p.id} className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground shrink-0">
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-2xs font-bold bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground shrink-0">
                       {p.name.charAt(0).toUpperCase()}
                     </span>
                     <span className="text-sm text-secondary-foreground dark:text-muted-foreground flex-1 truncate">

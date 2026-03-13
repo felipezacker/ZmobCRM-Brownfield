@@ -3,7 +3,7 @@ import { CheckCircle2, Target } from 'lucide-react';
 import type { Board } from '@/types';
 import { Button } from '@/components/ui/button';
 import { TAILWIND_TO_HEX } from './constants';
-import { DEFAULT_STAGE_COLOR } from '@/lib/design-tokens';
+import { DEFAULT_STAGE_COLOR, STAGE_WARNING_COLOR, STAGE_INACTIVE_DOT } from '@/lib/design-tokens';
 
 interface PipelineStagesProps {
     board?: Board;
@@ -20,7 +20,7 @@ export const PipelineStages: React.FC<PipelineStagesProps> = ({
 }) => {
     return (
         <div className="p-4 border-t border-white/5">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-secondary-foreground font-medium mb-3">Pipeline</p>
+            <p className="text-3xs uppercase tracking-[0.1em] text-secondary-foreground font-medium mb-3">Pipeline</p>
             <div className="space-y-2">
                 {board?.stages.map((stage, idx) => {
                     const isActive = idx === currentIdx;
@@ -49,7 +49,7 @@ export const PipelineStages: React.FC<PipelineStagesProps> = ({
                                 <div
                                     className="w-2 h-2 rounded-full"
                                     style={{
-                                        backgroundColor: (isActive || isPassed) ? hexColor : '#334155',
+                                        backgroundColor: (isActive || isPassed) ? hexColor : STAGE_INACTIVE_DOT,
                                         opacity: isPassed ? 0.5 : 1,
                                     }}
                                 />
@@ -61,9 +61,9 @@ export const PipelineStages: React.FC<PipelineStagesProps> = ({
                             <div className="flex items-center gap-1.5">
                                 {(isActive || isPassed) && (
                                     <span
-                                        className="text-[10px] font-mono"
+                                        className="text-2xs font-mono"
                                         style={{
-                                            color: isActive && daysInThisStage > 7 ? '#fb923c' : (isActive || isPassed) ? hexColor : DEFAULT_STAGE_COLOR,
+                                            color: isActive && daysInThisStage > 7 ? STAGE_WARNING_COLOR : (isActive || isPassed) ? hexColor : DEFAULT_STAGE_COLOR,
                                         }}
                                     >
                                         {daysInThisStage}d
@@ -79,7 +79,7 @@ export const PipelineStages: React.FC<PipelineStagesProps> = ({
 
             {/* Journey Summary */}
             <div className="mt-4 pt-3 border-t border-white/5">
-                <div className="flex items-center justify-between text-[10px]">
+                <div className="flex items-center justify-between text-2xs">
                     <span className="text-secondary-foreground uppercase tracking-wider">Tempo no funil</span>
                     <span className="text-muted-foreground font-mono font-medium">
                         {(() => {

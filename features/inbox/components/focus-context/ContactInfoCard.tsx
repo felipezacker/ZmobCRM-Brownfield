@@ -50,12 +50,12 @@ export const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contact }) => 
                     {/* Extra info */}
                     <div className="mt-2 flex flex-wrap gap-2">
                         {contact.source && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded border border-blue-500/20">
+                            <span className="text-2xs px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded border border-blue-500/20">
                                 {contact.source}
                             </span>
                         )}
                         {contact.status && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${contact.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                            <span className={`text-2xs px-1.5 py-0.5 rounded border ${contact.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
                                 contact.status === 'INACTIVE' ? 'bg-accent/10 text-muted-foreground border-border/20' :
                                     'bg-red-500/10 text-red-400 border-red-500/20'
                                 }`}>
@@ -63,7 +63,7 @@ export const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contact }) => 
                             </span>
                         )}
                         {contact.totalValue && contact.totalValue > 0 && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20">
+                            <span className="text-2xs px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20">
                                 LTV: R$ {contact.totalValue.toLocaleString('pt-BR')}
                             </span>
                         )}
@@ -71,7 +71,7 @@ export const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contact }) => 
 
                     {/* Notes preview */}
                     {contact.notes && (
-                        <p className="mt-2 text-[11px] text-muted-foreground line-clamp-2 italic">
+                        <p className="mt-2 text-xxs text-muted-foreground line-clamp-2 italic">
                             &quot;{contact.notes}&quot;
                         </p>
                     )}

@@ -3,6 +3,7 @@ import { CheckCircle2 } from 'lucide-react';
 import type { Deal, Board } from '@/types';
 import { Button } from '@/components/ui/button';
 import { TAILWIND_TO_HEX } from './constants';
+import { DEFAULT_STAGE_COLOR } from '@/lib/design-tokens';
 
 interface PipelineHeaderProps {
     deal: Deal;
@@ -27,7 +28,7 @@ export const PipelineHeader: React.FC<PipelineHeaderProps> = ({
                     </h1>
                 </div>
                 <div className="absolute left-1/2 -translate-x-1/2">
-                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
+                    <span className="text-xxs font-semibold text-muted-foreground uppercase tracking-widest">
                         {board?.name || 'Board'}
                     </span>
                 </div>
@@ -45,7 +46,7 @@ export const PipelineHeader: React.FC<PipelineHeaderProps> = ({
                         const isActive = idx === currentIdx;
                         const isPassed = idx < currentIdx;
                         const isLast = idx === (board?.stages?.length || 0) - 1;
-                        const hexColor = TAILWIND_TO_HEX[stage.color] || '#64748b';
+                        const hexColor = TAILWIND_TO_HEX[stage.color] || DEFAULT_STAGE_COLOR;
 
                         return (
                             <React.Fragment key={stage.id}>
@@ -75,7 +76,7 @@ export const PipelineHeader: React.FC<PipelineHeaderProps> = ({
                                         )}
                                     </div>
                                     <span
-                                        className={`text-[10px] font-medium whitespace-nowrap transition-all duration-200
+                                        className={`text-2xs font-medium whitespace-nowrap transition-all duration-200
                                         ${isActive ? 'font-bold' : isPassed ? 'opacity-70' : 'text-muted-foreground group-hover:text-muted-foreground'}`}
                                         style={{
                                             color: (isActive || isPassed) ? hexColor : undefined,

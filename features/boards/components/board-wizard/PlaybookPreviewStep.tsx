@@ -33,7 +33,7 @@ export const PlaybookPreviewStep: React.FC<PlaybookPreviewStepProps> = ({
           <div className="flex-1">
             <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
               {journey.name}
-              <span className="px-2.5 py-0.5 rounded-full bg-muted dark:bg-white/5 text-muted-foreground dark:text-muted-foreground text-[10px] font-bold uppercase tracking-wide border border-border">
+              <span className="px-2.5 py-0.5 rounded-full bg-muted dark:bg-white/5 text-muted-foreground dark:text-muted-foreground text-2xs font-bold uppercase tracking-wide border border-border">
                 Playbook Oficial
               </span>
             </h3>
@@ -98,12 +98,12 @@ export const PlaybookPreviewStep: React.FC<PlaybookPreviewStepProps> = ({
                     </h4>
                     <div className="flex gap-2">
                       {index === 0 && (
-                        <span className="px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold uppercase tracking-wide">
+                        <span className="px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-2xs font-bold uppercase tracking-wide">
                           Inicio
                         </span>
                       )}
                       {index === boards.length - 1 && (
-                        <span className="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-[10px] font-bold uppercase tracking-wide">
+                        <span className="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-2xs font-bold uppercase tracking-wide">
                           Fim
                         </span>
                       )}

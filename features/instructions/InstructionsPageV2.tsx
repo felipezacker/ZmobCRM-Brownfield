@@ -44,7 +44,7 @@ function SectionCard({
           {section.title}
         </span>
         {section.roles && (
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
+          <span className="text-2xs text-muted-foreground uppercase tracking-wider block">
             {section.roles.join(' · ')}
           </span>
         )}

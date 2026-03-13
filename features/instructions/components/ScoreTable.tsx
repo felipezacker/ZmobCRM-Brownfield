@@ -21,9 +21,9 @@ export function ScoreTable() {
       <table className="w-full text-xs">
         <thead>
           <tr className="bg-muted/40 dark:bg-white/[0.03]">
-            <th className="text-left py-2.5 px-3 font-semibold text-foreground/80 dark:text-muted-foreground text-[11px] uppercase tracking-wider">Fator</th>
-            <th className="text-left py-2.5 px-3 font-semibold text-foreground/80 dark:text-muted-foreground text-[11px] uppercase tracking-wider">Condição</th>
-            <th className="text-right py-2.5 px-3 font-semibold text-foreground/80 dark:text-muted-foreground text-[11px] uppercase tracking-wider">Pontos</th>
+            <th className="text-left py-2.5 px-3 font-semibold text-foreground/80 dark:text-muted-foreground text-xxs uppercase tracking-wider">Fator</th>
+            <th className="text-left py-2.5 px-3 font-semibold text-foreground/80 dark:text-muted-foreground text-xxs uppercase tracking-wider">Condição</th>
+            <th className="text-right py-2.5 px-3 font-semibold text-foreground/80 dark:text-muted-foreground text-xxs uppercase tracking-wider">Pontos</th>
           </tr>
         </thead>
         <tbody>

@@ -434,7 +434,7 @@ export const ProspectingPage: React.FC = () => {
                     : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
                 }`}
               >
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs font-bold shrink-0 ${
                   viewQueueOwnerId === p.id
                     ? 'bg-white/20 text-white'
                     : 'bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground'
@@ -648,7 +648,7 @@ export const ProspectingPage: React.FC = () => {
                         : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
                     }`}
                   >
-                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs font-bold shrink-0 ${
                       metricsFilterOwnerId === p.id
                         ? 'bg-white/20 text-white'
                         : 'bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground'

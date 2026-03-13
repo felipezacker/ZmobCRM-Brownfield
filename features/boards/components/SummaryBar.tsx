@@ -30,7 +30,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, alert, warn
       {icon}
     </span>
     <div className="min-w-0">
-      <p className="text-[10px] text-muted-foreground leading-none mb-0.5 truncate">{label}</p>
+      <p className="text-2xs text-muted-foreground leading-none mb-0.5 truncate">{label}</p>
       <p className={`text-sm font-semibold leading-none truncate ${
         alert ? 'text-red-600 dark:text-red-400' :
         warn ? 'text-amber-600 dark:text-amber-400' :

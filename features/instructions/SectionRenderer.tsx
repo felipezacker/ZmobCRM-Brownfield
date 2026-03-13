@@ -60,7 +60,7 @@ function RenderFeatureGrid({ block }: { block: FeatureGridBlock }) {
             >
               <span className={`font-semibold text-xs ${c.text} ${c.darkText}`}>{item.label}</span>
               {item.description && (
-                <p className={`text-[11px] leading-relaxed mt-1 ${c.text} ${c.darkText} opacity-80`}>
+                <p className={`text-xxs leading-relaxed mt-1 ${c.text} ${c.darkText} opacity-80`}>
                   {item.description}
                 </p>
               )}

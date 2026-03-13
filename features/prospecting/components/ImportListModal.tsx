@@ -48,7 +48,7 @@ function StepIndicator({ current }: { current: ImportStep }) {
     <div className="flex items-center gap-1.5">
       {STEPS.map((s, i) => (
         <div key={s.key} className="flex items-center gap-1.5">
-          <div className={`flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold transition-colors ${
+          <div className={`flex items-center justify-center w-6 h-6 rounded-full text-2xs font-bold transition-colors ${
             i < currentIdx
               ? 'bg-emerald-500 text-white'
               : i === currentIdx

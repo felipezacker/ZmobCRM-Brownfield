@@ -110,7 +110,7 @@ export const ActivityFeedItem: React.FC<ActivityFeedItemProps> = ({ activity }) 
                     </p>
                 )}
             </div>
-            <span className="text-[10px] text-muted-foreground whitespace-nowrap bg-muted dark:bg-white/5 px-1.5 py-0.5 rounded">
+            <span className="text-2xs text-muted-foreground whitespace-nowrap bg-muted dark:bg-white/5 px-1.5 py-0.5 rounded">
                 {formattedDate}
             </span>
         </div>

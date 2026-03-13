@@ -91,7 +91,7 @@ export const NoteTemplates: React.FC<NoteTemplatesProps> = ({
           size="unstyled"
           type="button"
           onClick={onManageTemplates}
-          className="flex items-center gap-1 text-[11px] text-primary-500 hover:text-primary-600 transition-colors"
+          className="flex items-center gap-1 text-xxs text-primary-500 hover:text-primary-600 transition-colors"
         >
           <Settings size={11} />
           Gerenciar templates

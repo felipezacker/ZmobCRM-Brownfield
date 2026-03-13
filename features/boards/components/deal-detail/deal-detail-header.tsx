@@ -145,7 +145,7 @@ export const DealDetailHeader: React.FC<DealDetailHeaderProps> = ({
             <>
               <Button
                 onClick={onWin}
-                className="px-4 py-1.5 bg-green-600 hover:bg-green-500 dark:bg-green-600/90 dark:hover:bg-green-500 text-white rounded-lg font-bold text-sm shadow-sm dark:shadow-[0_0_16px_rgba(34,197,94,0.2)] flex items-center gap-1.5 transition-all hover:scale-[1.02]"
+                className="px-4 py-1.5 bg-green-600 hover:bg-green-500 dark:bg-green-600/90 dark:hover:bg-green-500 text-white rounded-lg font-bold text-sm shadow-sm dark:shadow-glow-success flex items-center gap-1.5 transition-all hover:scale-[1.02]"
               >
                 <ThumbsUp size={14} /> GANHO
               </Button>

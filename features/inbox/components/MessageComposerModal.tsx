@@ -350,7 +350,7 @@ export function MessageComposerModal({
                             )}
                         </div>
                         {aiBadge && (
-                            <p className="mt-1 text-[11px] text-primary-600 dark:text-primary-400 flex items-center gap-1">
+                            <p className="mt-1 text-xxs text-primary-600 dark:text-primary-400 flex items-center gap-1">
                                 <Sparkles size={12} /> Reescrito com IA
                             </p>
                         )}
@@ -379,7 +379,7 @@ export function MessageComposerModal({
                             </Button>
                         </div>
                         {copied === 'subject' && (
-                            <p className="text-[11px] text-emerald-600 dark:text-emerald-400">Assunto copiado</p>
+                            <p className="text-xxs text-emerald-600 dark:text-emerald-400">Assunto copiado</p>
                         )}
                     </div>
                 )}
@@ -401,7 +401,7 @@ export function MessageComposerModal({
                         }
                     />
                     <div className="flex items-center justify-between">
-                        <div className="text-[11px] text-muted-foreground dark:text-muted-foreground">
+                        <div className="text-xxs text-muted-foreground dark:text-muted-foreground">
                             {message.length} caracteres
                         </div>
                         <div className="flex items-center gap-2">

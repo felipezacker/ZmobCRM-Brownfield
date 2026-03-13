@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { LeadScoreBadge } from '@/features/prospecting/components/LeadScoreBadge'
 import { QueueItemDetails } from '@/features/prospecting/components/QueueItemDetails'
 import type { ProspectingQueueItem } from '@/types'
+import { SHADOW_TOKENS } from '@/lib/design-tokens'
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: 'Pendente', color: 'bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground' },
@@ -55,7 +56,7 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
     transition: transition || 'transform 200ms ease',
     opacity: isDragging ? 0.4 : undefined,
     zIndex: isDragging ? 50 : undefined,
-    boxShadow: isDragging ? '0 8px 25px rgba(0,0,0,0.15)' : undefined,
+    boxShadow: isDragging ? SHADOW_TOKENS.drag : undefined,
     scale: isDragging ? '1.02' : undefined,
   }
 
@@ -120,7 +121,7 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
             {item.contactTemperature && TEMP_ICONS[item.contactTemperature]}
             <LeadScoreBadge score={item.leadScore} />
             {item.retryCount > 0 && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">
+              <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">
                 <RotateCcw size={9} />
                 Retry #{item.retryCount}
               </span>
@@ -134,7 +135,7 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
               </span>
             )}
             {item.contactStage && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground">
+              <span className="text-2xs px-1.5 py-0.5 rounded bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground">
                 {item.contactStage}
               </span>
             )}
@@ -142,7 +143,7 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
         </div>
 
         {/* Status badge */}
-        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${status.color}`}>
+        <span className={`text-2xs font-medium px-2 py-0.5 rounded-full ${status.color}`}>
           {status.label}
         </span>
 

@@ -156,7 +156,7 @@ function Chip({ children, tone = 'neutral' }: { children: React.ReactNode; tone?
         ? 'bg-rose-500/15 text-rose-200 ring-1 ring-rose-500/20'
         : 'bg-white/5 text-muted-foreground ring-1 ring-white/10';
 
-  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${cls}`}>{children}</span>;
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xxs font-semibold ${cls}`}>{children}</span>;
 }
 
 function Panel({
@@ -435,12 +435,12 @@ export default function DealCockpitMockClient() {
                 <div className="text-xs text-muted-foreground">|</div>
                 <div className="truncate text-xs text-muted-foreground">{mock.deal.company}</div>
               </div>
-              <div className="mt-1 text-[11px] text-secondary-foreground">2. Pipeline de Vendas</div>
+              <div className="mt-1 text-xxs text-secondary-foreground">2. Pipeline de Vendas</div>
             </div>
 
             <div className="shrink-0 text-right">
               <div className="text-sm font-semibold text-emerald-300">{formatCurrencyBRL(mock.deal.valueBRL)}</div>
-              <div className="mt-0.5 text-[11px] text-muted-foreground">
+              <div className="mt-0.5 text-xxs text-muted-foreground">
                 Etapa: <span className="font-semibold text-muted-foreground">{activeStage.label}</span>
               </div>
             </div>
@@ -464,13 +464,13 @@ export default function DealCockpitMockClient() {
                     />
                     <div className={`h-2 w-2 rounded-full ${isActive ? toneToBg(s.tone) : isDone ? 'bg-white/30' : 'bg-white/10'}`} />
                   </div>
-                  <div className={`mt-1 text-[11px] ${isActive ? 'text-muted-foreground' : 'text-muted-foreground'}`}>{s.label}</div>
+                  <div className={`mt-1 text-xxs ${isActive ? 'text-muted-foreground' : 'text-muted-foreground'}`}>{s.label}</div>
                 </Button>
               );
             })}
           </div>
 
-          <div className="ml-8 hidden text-[11px] text-secondary-foreground xl:block">Clique nas etapas para simular movimentação (mock)</div>
+          <div className="ml-8 hidden text-xxs text-secondary-foreground xl:block">Clique nas etapas para simular movimentação (mock)</div>
         </div>
       </div>
 
@@ -488,13 +488,13 @@ export default function DealCockpitMockClient() {
               <div className="h-2 w-full rounded-full bg-white/10">
                 <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${mock.deal.healthPct}%` }} />
               </div>
-              <div className="mt-2 text-[11px] text-muted-foreground">Indicador sintético (mock) — objetivo é te dar leitura rápida.</div>
+              <div className="mt-2 text-xxs text-muted-foreground">Indicador sintético (mock) — objetivo é te dar leitura rápida.</div>
             </Panel>
 
             <Panel title="Próxima ação" icon={<BadgeCheck className="h-4 w-4 text-cyan-300" />} className="shrink-0">
               <div className="text-sm font-semibold text-muted-foreground">{mock.nextAction.title}</div>
               <div className="mt-1 text-xs text-muted-foreground">{mock.nextAction.description}</div>
-              <div className="mt-2 text-[11px] text-muted-foreground">
+              <div className="mt-2 text-xxs text-muted-foreground">
                 Ações aqui EXECUTAM (discador, rascunho, agendar). No rodapé da timeline você REGISTRA atividades rápidas.
               </div>
 
@@ -528,7 +528,7 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-[10px] font-semibold text-muted-foreground">Ligar</span>
+                    <span className="text-2xs font-semibold text-muted-foreground">Ligar</span>
                   </Button>
                   <Button
                     type="button"
@@ -541,7 +541,7 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     <Sparkles className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-[10px] font-semibold text-muted-foreground">Gerar WA</span>
+                    <span className="text-2xs font-semibold text-muted-foreground">Gerar WA</span>
                   </Button>
                   <Button
                     type="button"
@@ -554,7 +554,7 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     <Inbox className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-[10px] font-semibold text-muted-foreground">E-mail</span>
+                    <span className="text-2xs font-semibold text-muted-foreground">E-mail</span>
                   </Button>
                   <Button
                     type="button"
@@ -567,7 +567,7 @@ export default function DealCockpitMockClient() {
                     }}
                   >
                     <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-[10px] font-semibold text-muted-foreground">Agendar</span>
+                    <span className="text-2xs font-semibold text-muted-foreground">Agendar</span>
                   </Button>
                 </div>
               </div>
@@ -581,8 +581,8 @@ export default function DealCockpitMockClient() {
                   <Button
                     type="button"
                     className={leftDataTab ==='contato'
-                        ? 'rounded-full bg-white/8 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10'
-                        : 'rounded-full bg-white/3 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
+                        ? 'rounded-full bg-white/8 px-2.5 py-1 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10'
+                        : 'rounded-full bg-white/3 px-2.5 py-1 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
                     }
                     onClick={() => setLeftDataTab('contato')}
                   >
@@ -591,8 +591,8 @@ export default function DealCockpitMockClient() {
                   <Button
                     type="button"
                     className={leftDataTab ==='negocio'
-                        ? 'rounded-full bg-white/8 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10'
-                        : 'rounded-full bg-white/3 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
+                        ? 'rounded-full bg-white/8 px-2.5 py-1 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10'
+                        : 'rounded-full bg-white/3 px-2.5 py-1 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
                     }
                     onClick={() => setLeftDataTab('negocio')}
                   >
@@ -649,7 +649,7 @@ export default function DealCockpitMockClient() {
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-white/2 p-3">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Sinais</div>
+                    <div className="text-xxs font-semibold uppercase tracking-wide text-muted-foreground">Sinais</div>
                     <div className="mt-2 space-y-1 text-xs text-muted-foreground">
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-muted-foreground">Último evento</span>
@@ -688,7 +688,7 @@ export default function DealCockpitMockClient() {
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-white/2 p-3">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Resumo</div>
+                    <div className="text-xxs font-semibold uppercase tracking-wide text-muted-foreground">Resumo</div>
                     <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                       <div className="rounded-lg border border-white/10 bg-white/2 p-2">
                         <div className="text-muted-foreground">Valor</div>
@@ -724,8 +724,8 @@ export default function DealCockpitMockClient() {
                   <Button
                     type="button"
                     className={kindFilter ==='all'
-                        ? 'rounded-full bg-white/8 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10'
-                        : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
+                        ? 'rounded-full bg-white/8 px-3 py-1.5 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10'
+                        : 'rounded-full bg-white/3 px-3 py-1.5 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
                     }
                     onClick={() => setKindFilter('all')}
                   >
@@ -736,8 +736,8 @@ export default function DealCockpitMockClient() {
                       key={k}
                       type="button"
                       className={kindFilter === k
- ?'rounded-full bg-cyan-500/15 px-3 py-1.5 text-[11px] font-semibold text-cyan-100 ring-1 ring-cyan-500/20'
-                          : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
+ ?'rounded-full bg-cyan-500/15 px-3 py-1.5 text-xxs font-semibold text-cyan-100 ring-1 ring-cyan-500/20'
+                          : 'rounded-full bg-white/3 px-3 py-1.5 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
                       }
                       onClick={() => setKindFilter(k)}
                       title={`Filtrar por ${k}`}
@@ -749,8 +749,8 @@ export default function DealCockpitMockClient() {
                   <Button
                     type="button"
                     className={showSystemEvents
- ?'rounded-full bg-amber-500/15 px-3 py-1.5 text-[11px] font-semibold text-amber-100 ring-1 ring-amber-500/20'
-                        : 'rounded-full bg-white/3 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
+ ?'rounded-full bg-amber-500/15 px-3 py-1.5 text-xxs font-semibold text-amber-100 ring-1 ring-amber-500/20'
+                        : 'rounded-full bg-white/3 px-3 py-1.5 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/5'
                     }
                     onClick={() => setShowSystemEvents((v) => !v)}
                     title="Mostrar/ocultar automações"
@@ -808,10 +808,10 @@ export default function DealCockpitMockClient() {
                             ) : null}
                           </div>
                           {t.title !== 'Moveu para' && t.subtitle ? (
-                            <div className="mt-0.5 text-[11px] text-muted-foreground">{t.subtitle}</div>
+                            <div className="mt-0.5 text-xxs text-muted-foreground">{t.subtitle}</div>
                           ) : null}
                         </div>
-                        <div className="shrink-0 text-[11px] text-muted-foreground">{t.at}</div>
+                        <div className="shrink-0 text-xxs text-muted-foreground">{t.at}</div>
                       </div>
                     </div>
                   ))}
@@ -820,7 +820,7 @@ export default function DealCockpitMockClient() {
               <div className="border-t border-white/10 px-4 py-3">
                 <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                   <span
-                    className="text-[11px] font-semibold uppercase tracking-wide text-secondary-foreground"
+                    className="text-xxs font-semibold uppercase tracking-wide text-secondary-foreground"
                     title="Use quando a atividade aconteceu fora do CRM (ex.: WhatsApp/telefone externo)"
                   >
                     Registrar (fora do CRM):
@@ -890,7 +890,7 @@ export default function DealCockpitMockClient() {
                   placeholder="Notas, resumo da call, próximos passos…"
                 />
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="text-[11px] text-muted-foreground">Dica: salve highlights curtos; a timeline vira seu log.</div>
+                  <div className="text-xxs text-muted-foreground">Dica: salve highlights curtos; a timeline vira seu log.</div>
                   <Button
                     type="button"
                     className="rounded-xl bg-white px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted"
@@ -924,7 +924,7 @@ export default function DealCockpitMockClient() {
                 <div className="h-2 w-full rounded-full bg-white/10">
                   <div className="h-2 rounded-full bg-amber-400" style={{ width: `${executionPct}%` }} />
                 </div>
-                <div className="mt-2 text-[11px] text-muted-foreground">
+                <div className="mt-2 text-xxs text-muted-foreground">
                   Checklist rápido por etapa — use isso para preencher o “espaço vazio” com ação.
                 </div>
 
@@ -953,13 +953,13 @@ export default function DealCockpitMockClient() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="font-semibold">{item.label}</div>
-                            {item.hint ? <div className="mt-0.5 text-[11px] text-muted-foreground">{item.hint}</div> : null}
+                            {item.hint ? <div className="mt-0.5 text-xxs text-muted-foreground">{item.hint}</div> : null}
                           </div>
                           <div className="shrink-0">
                             <span
                               className={checked
- ?'inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-100 ring-1 ring-emerald-500/20'
-                                  : 'inline-flex items-center rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10'
+ ?'inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-1 text-xxs font-semibold text-emerald-100 ring-1 ring-emerald-500/20'
+                                  : 'inline-flex items-center rounded-full bg-white/5 px-2.5 py-1 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10'
                               }
                             >
                               {checked ? 'Feito' : 'Pendente'}
@@ -984,7 +984,7 @@ export default function DealCockpitMockClient() {
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-muted-foreground">ZmobCRM Pilot</div>
-                    <div className="text-[11px] text-muted-foreground">Deal: {mock.deal.title}</div>
+                    <div className="text-xxs text-muted-foreground">Deal: {mock.deal.title}</div>
                   </div>
                 </div>
                 <Chip tone="success">Pronto</Chip>
@@ -1006,7 +1006,7 @@ export default function DealCockpitMockClient() {
                           <Sparkles className="h-4 w-4" />
                           Copilot (mock)
                         </div>
-                        <span className="text-[11px] text-muted-foreground">Sem chamadas externas</span>
+                        <span className="text-xxs text-muted-foreground">Sem chamadas externas</span>
                       </div>
 
                       <div className="min-h-0 flex-1 overflow-auto p-3">
@@ -1017,7 +1017,7 @@ export default function DealCockpitMockClient() {
                               className={m.role ==='user'
                                   ? 'ml-auto w-fit max-w-[85%] rounded-2xl bg-cyan-500/15 px-3 py-2 text-sm text-cyan-50 ring-1 ring-cyan-500/20'
                                   : m.role === 'system'
-                                    ? 'mx-auto w-fit max-w-[90%] rounded-full bg-white/5 px-3 py-1.5 text-[11px] text-muted-foreground ring-1 ring-white/10'
+                                    ? 'mx-auto w-fit max-w-[90%] rounded-full bg-white/5 px-3 py-1.5 text-xxs text-muted-foreground ring-1 ring-white/10'
                                     : 'w-fit max-w-[85%] rounded-2xl bg-white/5 px-3 py-2 text-sm text-muted-foreground ring-1 ring-white/10'
                               }
                             >
@@ -1027,7 +1027,7 @@ export default function DealCockpitMockClient() {
                                 <div className="mt-2 flex flex-wrap gap-2">
                                   <Button
                                     type="button"
-                                    className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/10"
+                                    className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-xxs font-semibold text-muted-foreground ring-1 ring-white/10 hover:bg-white/10"
                                     onClick={() => {
                                       const msg = lastGeneratedWhatsAppMessage ?? buildWhatsAppMessage();
                                       void copyToClipboard('Mensagem WhatsApp', msg);
@@ -1040,7 +1040,7 @@ export default function DealCockpitMockClient() {
 
                                   <Button
                                     type="button"
-                                    className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1.5 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20"
+                                    className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1.5 text-xxs font-semibold text-emerald-200 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20"
                                     onClick={() => {
                                       const msg = lastGeneratedWhatsAppMessage ?? buildWhatsAppMessage();
                                       openWhatsApp(msg);
@@ -1115,7 +1115,7 @@ export default function DealCockpitMockClient() {
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <div className="whitespace-pre-wrap text-sm text-muted-foreground">{n.text}</div>
-                                <div className="mt-2 text-[11px] text-muted-foreground">{n.at}</div>
+                                <div className="mt-2 text-xxs text-muted-foreground">{n.at}</div>
                               </div>
                               <div className="shrink-0">
                                 <Button
