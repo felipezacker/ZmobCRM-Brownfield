@@ -35,7 +35,7 @@ interface BoardStrategyHeaderProps {
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
 export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board, initialEditing = false, onClose }) => {
-  const { updateBoard, boards } = useBoards();
+  const { updateBoard } = useBoards();
   const { deals } = useCRMActions();
   const setIsGlobalAIOpen = useUIStore((s) => s.setIsGlobalAIOpen);
   const [isEditing, setIsEditing] = useState(initialEditing);

@@ -60,6 +60,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
     const [ownerOpen, setOwnerOpen] = useState(false);
     const [ownerSearch, setOwnerSearch] = useState('');
     const [showExtraFilters, setShowExtraFilters] = useState(false);
+    const [strategyPopoverOpen, setStrategyPopoverOpen] = useState(false);
 
     const filteredOrgMembers = orgMembers.filter(
         m => !ownerSearch || m.name.toLowerCase().includes(ownerSearch.toLowerCase())
@@ -104,16 +105,19 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                     )}
 
                     {/* Strategy Popover */}
-                    {(activeBoard.goal || activeBoard.agentPersona || activeBoard.entryTrigger) && (
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    className="p-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                    title="Estratégia do Board"
-                                >
-                                    <Target size={20} />
-                                </Button>
-                            </PopoverTrigger>
+                    <Popover open={strategyPopoverOpen} onOpenChange={setStrategyPopoverOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                className={`p-2 rounded-lg transition-colors ${
+                                    (activeBoard.goal || activeBoard.agentPersona || activeBoard.entryTrigger)
+                                        ? 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-white/5'
+                                }`}
+                                title="Estratégia do Board"
+                            >
+                                <Target size={20} />
+                            </Button>
+                        </PopoverTrigger>
                             <PopoverContent className="w-80 p-0" align="start">
                                 <div className="p-3 border-b border-border bg-background dark:bg-card/50">
                                     <h4 className="font-semibold text-foreground text-sm flex items-center gap-2">
@@ -121,50 +125,55 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                                         Estratégia do Board
                                     </h4>
                                 </div>
-                                <div className="p-3 space-y-3">
-                                    {activeBoard.goal?.targetValue && (
-                                        <div className="flex items-start gap-2">
-                                            <Target size={13} className="text-blue-500 mt-0.5 shrink-0" />
-                                            <div className="min-w-0">
-                                                <p className="text-[10px] font-bold uppercase text-muted-foreground">Objetivo</p>
-                                                <p className="text-sm font-semibold text-foreground">{activeBoard.goal.targetValue}</p>
-                                                {activeBoard.goal.kpi && <p className="text-xs text-muted-foreground truncate">{activeBoard.goal.kpi}</p>}
+                                {(activeBoard.goal || activeBoard.agentPersona || activeBoard.entryTrigger) ? (
+                                    <div className="p-3 space-y-3">
+                                        {activeBoard.goal?.targetValue && (
+                                            <div className="flex items-start gap-2">
+                                                <Target size={13} className="text-blue-500 mt-0.5 shrink-0" />
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Objetivo</p>
+                                                    <p className="text-sm font-semibold text-foreground">{activeBoard.goal.targetValue}</p>
+                                                    {activeBoard.goal.kpi && <p className="text-xs text-muted-foreground truncate">{activeBoard.goal.kpi}</p>}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                    {activeBoard.agentPersona?.name && (
-                                        <div className="flex items-start gap-2">
-                                            <Bot size={13} className="text-purple-500 mt-0.5 shrink-0" />
-                                            <div className="min-w-0">
-                                                <p className="text-[10px] font-bold uppercase text-muted-foreground">Agente</p>
-                                                <p className="text-sm font-semibold text-foreground">{activeBoard.agentPersona.name}</p>
-                                                {activeBoard.agentPersona.role && <p className="text-xs text-muted-foreground truncate">{activeBoard.agentPersona.role}</p>}
+                                        )}
+                                        {activeBoard.agentPersona?.name && (
+                                            <div className="flex items-start gap-2">
+                                                <Bot size={13} className="text-purple-500 mt-0.5 shrink-0" />
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Agente</p>
+                                                    <p className="text-sm font-semibold text-foreground">{activeBoard.agentPersona.name}</p>
+                                                    {activeBoard.agentPersona.role && <p className="text-xs text-muted-foreground truncate">{activeBoard.agentPersona.role}</p>}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                    {activeBoard.entryTrigger && (
-                                        <div className="flex items-start gap-2">
-                                            <DoorOpen size={13} className="text-orange-500 mt-0.5 shrink-0" />
-                                            <div className="min-w-0">
-                                                <p className="text-[10px] font-bold uppercase text-muted-foreground">Entrada</p>
-                                                <p className="text-xs text-muted-foreground line-clamp-2">{activeBoard.entryTrigger}</p>
+                                        )}
+                                        {activeBoard.entryTrigger && (
+                                            <div className="flex items-start gap-2">
+                                                <DoorOpen size={13} className="text-orange-500 mt-0.5 shrink-0" />
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Entrada</p>
+                                                    <p className="text-xs text-muted-foreground line-clamp-2">{activeBoard.entryTrigger}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="p-4 text-center">
+                                        <p className="text-xs text-muted-foreground">Nenhuma estratégia definida.</p>
+                                    </div>
+                                )}
                                 {onEditStrategy && (
                                     <div className="p-2 border-t border-border">
                                         <Button
-                                            onClick={onEditStrategy}
+                                            onClick={() => { setStrategyPopoverOpen(false); onEditStrategy(); }}
                                             className="w-full text-center text-xs text-primary-600 dark:text-primary-400 hover:bg-muted py-1.5 rounded transition-colors font-medium"
                                         >
-                                            Editar Estratégia
+                                            {(activeBoard.goal || activeBoard.agentPersona || activeBoard.entryTrigger) ? 'Editar Estratégia' : 'Definir Estratégia'}
                                         </Button>
                                     </div>
                                 )}
                             </PopoverContent>
                         </Popover>
-                    )}
 
                     {/* Export Template Button */}
                     {onExportTemplates && (
