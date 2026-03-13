@@ -18,11 +18,10 @@ export function normalizeDealPayload(data: Record<string, unknown>): Record<stri
   ];
 
   for (const [snake, camel] of snakeToCamel) {
-    if (result[snake] !== undefined && result[camel] === undefined) {
-      // Skip null/undefined values to avoid overwriting existing deal data (e.g., boardId)
-      if (result[snake] !== null) {
-        result[camel] = result[snake];
-      }
+    if (result[snake] !== undefined) {
+      // Propagate value including null — null means field was explicitly cleared (e.g., board removed)
+      // Absent fields (undefined) are intentionally skipped to avoid overwriting enriched cache data
+      result[camel] = result[snake];
       delete result[snake];
     }
   }

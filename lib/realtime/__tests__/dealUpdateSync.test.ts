@@ -5,7 +5,14 @@ import { DEALS_VIEW_KEY } from '@/lib/query/queryKeys';
 import type { DealView } from '@/types';
 
 vi.mock('../normalizeDealPayload', () => ({
-  normalizeDealPayload: (data: Record<string, unknown>) => ({ ...data, status: data.stage_id ?? data.status }),
+  normalizeDealPayload: (data: Record<string, unknown>) => {
+    const result = { ...data, status: data.stage_id ?? data.status };
+    if ('board_id' in data) {
+      (result as Record<string, unknown>).boardId = data.board_id;
+      delete (result as Record<string, unknown>).board_id;
+    }
+    return result;
+  },
 }));
 
 const makeDeal = (overrides: Partial<DealView> = {}): DealView => ({
@@ -130,6 +137,20 @@ describe('handleDealUpdate', () => {
 
     const cache = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
     expect(cache?.[0].status).toBe('stage-a');
+  });
+
+  it('updates boardId to null when Realtime sends board_id: null (AC2)', () => {
+    const deal = makeDeal({ id: 'deal-1', status: 'stage-a', boardId: 'board-1', updatedAt: '2026-01-01T10:00:00Z' });
+    queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, [deal]);
+
+    handleDealUpdate(
+      queryClient,
+      { id: 'deal-1', stage_id: 'stage-a', board_id: null, updated_at: '2026-01-01T11:00:00Z' },
+      { stage_id: 'stage-a' },
+    );
+
+    const cache = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+    expect(cache?.[0].boardId).toBeNull();
   });
 
   it('merges non-status fields preserving existing deal data', () => {
