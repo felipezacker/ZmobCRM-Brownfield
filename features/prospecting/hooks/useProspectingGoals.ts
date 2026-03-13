@@ -7,7 +7,6 @@
 import { useMemo, useCallback, useState } from 'react'
 import { useMyDailyGoal, useDailyGoalByOwner, useTeamDailyGoals, useUpsertDailyGoal } from '@/lib/query/hooks/useDailyGoalsQuery'
 import { useAuth } from '@/context/AuthContext'
-import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import type { CallActivity } from './useProspectingMetrics'
 
 const DEFAULT_CALLS_TARGET = 30
@@ -28,8 +27,6 @@ export function useProspectingGoals(todayActivities: CallActivity[], viewOwnerId
   const ownerGoalQuery = useDailyGoalByOwner(isViewingOther ? viewOwnerId : undefined)
   const teamGoalsQuery = useTeamDailyGoals()
   const upsertMutation = useUpsertDailyGoal()
-
-  useRealtimeSync('prospecting_daily_goals')
 
   const [showGoalModal, setShowGoalModal] = useState(false)
 

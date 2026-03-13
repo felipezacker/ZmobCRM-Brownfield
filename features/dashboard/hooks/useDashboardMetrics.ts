@@ -1,5 +1,4 @@
 import React from 'react';
-import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 import { useDeals } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/lib/query/hooks/useContactsQuery';
 import { useBoards, useDefaultBoard } from '@/lib/query/hooks/useBoardsQuery';
@@ -166,9 +165,6 @@ function calculateChange(current: number, previous: number): number {
  * @returns {{ isLoading: boolean; deals: Deal[]; totalValue: number; wonDeals: Deal[]; wonRevenue: number; winRate: number; pipelineValue: number; topDeals: Deal[]; funnelData: { name: string; count: number; fill: string; }[]; ... 19 more ...; activeSnapshotDeals: Deal[]; }} Retorna um valor do tipo `{ isLoading: boolean; deals: Deal[]; totalValue: number; wonDeals: Deal[]; wonRevenue: number; winRate: number; pipelineValue: number; topDeals: Deal[]; funnelData: { name: string; count: number; fill: string; }[]; ... 19 more ...; activeSnapshotDeals: Deal[]; }`.
  */
 export const useDashboardMetrics = (period: PeriodFilter = 'this_month', boardId?: string) => {
-  // Realtime: refresh dashboard when deals or activities change
-  useRealtimeSync(['deals', 'activities']);
-
   const { data: allDeals = [], isLoading: dealsLoading } = useDeals();
   const { data: allContacts = [], isLoading: contactsLoading } = useContacts();
   const { data: boards = [] } = useBoards();

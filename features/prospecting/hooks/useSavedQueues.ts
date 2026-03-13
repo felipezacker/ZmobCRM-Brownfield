@@ -7,7 +7,6 @@
 
 import { useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { queryKeys } from '@/lib/query/queryKeys'
@@ -19,9 +18,6 @@ import { migrateFilters, type ProspectingFiltersState } from '../components/Pros
 
 export function useSavedQueues() {
   const { user, loading: authLoading } = useAuth()
-
-  // Realtime sync for saved queues shared by other users
-  useRealtimeSync('prospecting_saved_queues')
 
   const { addToast, showToast } = useToast()
   const toast = addToast || showToast

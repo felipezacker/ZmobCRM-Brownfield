@@ -8,7 +8,6 @@ import {
   useDealsView,
 } from '@/lib/query/hooks/useDealsQuery';
 import { useDefaultBoard } from '@/lib/query/hooks/useBoardsQuery';
-import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 
 // Re-exported types for backward compatibility
 export type AISuggestionType = 'UPSELL' | 'RESCUE' | 'STALLED';
@@ -45,10 +44,6 @@ export const useInboxMessages = () => {
   const { data: contacts = [], isLoading: contactsLoading } = useContacts();
   const { data: deals = [], isLoading: dealsLoading } = useDealsView();
   const { data: defaultBoard } = useDefaultBoard();
-
-  // Realtime sync
-  useRealtimeSync('activities');
-  useRealtimeSync('deals');
 
   const isLoading = activitiesLoading || contactsLoading || dealsLoading;
 

@@ -4,7 +4,6 @@ import { useBoards, useDefaultBoard } from '@/lib/query/hooks/useBoardsQuery';
 import { useDealsByBoard, useDeleteDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useMoveDeal } from '@/lib/query/hooks/useMoveDeal';
 import { usePersistedState } from '@/hooks/usePersistedState';
-import { useRealtimeSyncKanban } from '@/lib/realtime/useRealtimeSync';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSettings } from '@/context/settings/SettingsContext';
@@ -51,8 +50,6 @@ export const useBoardsController = () => {
   const { data: deals = [] } = useDealsByBoard(activeBoardId || '');
   const moveDealMutation = useMoveDeal();
   const deleteDealMutation = useDeleteDeal();
-
-  useRealtimeSyncKanban();
 
   // View mode (lifted here to avoid circular dep between filters and view)
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
