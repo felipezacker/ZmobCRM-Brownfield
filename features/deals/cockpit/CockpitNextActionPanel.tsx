@@ -55,7 +55,7 @@ export function CockpitNextActionPanel({
     <Panel title="Próxima ação" icon={<BadgeCheck className="h-4 w-4 text-cyan-300" />} className="shrink-0">
       <div className="text-sm font-semibold text-muted-foreground">{nextBestAction.action}</div>
       <div className="mt-1 text-xs text-muted-foreground">{nextBestAction.reason}</div>
-      <div className="mt-2 text-xxs text-muted-foreground">
+      <div className="mt-2 text-1xs text-muted-foreground">
         Aqui EXECUTA (e tenta registrar o que dá). No rodapé da timeline você REGISTRA atividades rápidas que aconteceram fora do CRM.
       </div>
 
@@ -120,7 +120,7 @@ export function CockpitNextActionPanel({
         <div className="grid w-full grid-cols-2 gap-2">
           <Button
             type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-xxs font-semibold text-muted-foreground hover:bg-white/5 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-1xs font-semibold text-muted-foreground hover:bg-white/5 disabled:opacity-50"
             title="Usar um template persistido (Quick Scripts)"
             onClick={() => onOpenTemplatePicker('WHATSAPP')}
             disabled={isScriptsLoading || scriptsCount === 0}
@@ -131,7 +131,7 @@ export function CockpitNextActionPanel({
 
           <Button
             type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-xxs font-semibold text-muted-foreground hover:bg-white/5 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/2 px-3 py-2 text-1xs font-semibold text-muted-foreground hover:bg-white/5 disabled:opacity-50"
             title="Usar um template persistido (Quick Scripts)"
             onClick={() => onOpenTemplatePicker('EMAIL')}
             disabled={isScriptsLoading || scriptsCount === 0}

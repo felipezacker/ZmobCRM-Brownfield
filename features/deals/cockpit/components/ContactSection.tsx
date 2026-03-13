@@ -98,7 +98,7 @@ export function ContactSection({
 
           {/* Lead Score (read-only) */}
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-xxs text-muted-foreground">Score</span>
+            <span className="text-1xs text-muted-foreground">Score</span>
             <div className="h-1.5 w-16 overflow-hidden rounded-full bg-accent dark:bg-white/10">
               <div
                 className={`h-full rounded-full transition-all ${

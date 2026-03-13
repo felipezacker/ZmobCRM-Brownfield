@@ -306,7 +306,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                 </Button>
                             )}
                         </div>
-                        <div className="text-xxs text-muted-foreground text-center">
+                        <div className="text-1xs text-muted-foreground text-center">
                             {!phone ? (
                                 'Sem número de telefone para discar.'
                             ) : timerPaused ? (
@@ -403,7 +403,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                         WhatsApp
                                     </Button>
                                 </div>
-                                <p className="text-xxs text-muted-foreground text-center">
+                                <p className="text-1xs text-muted-foreground text-center">
                                     {qrMode === 'call'
                                         ? 'Aponte a câmera do celular para ligar'
                                         : 'Aponte a câmera do celular para abrir WhatsApp'}

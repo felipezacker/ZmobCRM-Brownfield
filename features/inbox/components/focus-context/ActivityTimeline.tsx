@@ -119,7 +119,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                                                 </p>
                                             )}
                                         </div>
-                                        <span className="text-xxs text-secondary-foreground font-mono shrink-0 self-center">
+                                        <span className="text-1xs text-secondary-foreground font-mono shrink-0 self-center">
                                             {new Date(activity.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {new Date(activity.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>

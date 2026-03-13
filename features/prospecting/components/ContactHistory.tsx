@@ -67,7 +67,7 @@ const ActivityItem: React.FC<{ activity: Activity; isExpanded: boolean; onToggle
             className="text-left mt-0.5 group block"
             aria-label={isExpanded ? 'Recolher nota' : 'Expandir nota'}
           >
-            <p className={`text-xxs text-muted-foreground dark:text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
+            <p className={`text-1xs text-muted-foreground dark:text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
               {activity.description}
             </p>
             <span className="text-2xs text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">

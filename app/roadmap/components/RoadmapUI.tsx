@@ -29,7 +29,7 @@ export const MeshBg = () => (
 
 export const SectionTitle = ({ number, title, color = ROADMAP_SECTION_COLORS.primary.hex, glow = ROADMAP_SECTION_COLORS.primary.glow }: { number: string; title: string; color?: string; glow?: string }) => (
     <Reveal>
-        <div className="font-mono text-2xs md:text-xxs text-zinc-500 uppercase tracking-[0.15em] mb-2">
+        <div className="font-mono text-2xs md:text-1xs text-zinc-500 uppercase tracking-[0.15em] mb-2">
             <span className="text-blue-400 mr-3">{number}</span>{title.split('—')[0].trim()}
         </div>
         <h2 className="text-xl md:text-2xl font-bold text-zinc-100 tracking-tight flex items-center gap-3 mb-6 md:mb-10">
@@ -44,7 +44,7 @@ export const StatCard = ({ label, value, sub, color, delay }: { label: string; v
         <div className="bg-zinc-900/40 backdrop-blur-md border border-white/[0.03] rounded-2xl p-5 md:p-7 transition-all hover:translate-y-[-2px] hover:border-blue-500/15 group relative overflow-hidden h-full">
             <div className="font-mono text-3xs md:text-2xs text-zinc-500 uppercase tracking-wider mb-2 md:mb-3">{label}</div>
             <div className="text-3xl md:text-4xl font-extrabold tracking-tighter transition-all" style={{ color }}>{value}</div>
-            <div className="text-xxs md:text-xs text-zinc-600 mt-1.5 md:mt-2">{sub}</div>
+            <div className="text-1xs md:text-xs text-zinc-600 mt-1.5 md:mt-2">{sub}</div>
             <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block"
                 style={{
                     background: `conic-gradient(from 180deg at 50% 50%, transparent 0%, ${color}1a 25%, transparent 50%, ${color}0d 75%, transparent 100%)`
@@ -70,7 +70,7 @@ export const PhaseCard = ({ phase, delay }: { phase: RoadmapPhase; delay: number
                         </div>
                         <div>
                             <div className="font-semibold text-[13px] md:text-[14px] text-zinc-100 tracking-tight">{item.name}</div>
-                            <div className="text-zinc-400 text-xxs md:text-xs mt-0.5 leading-relaxed">{item.desc}</div>
+                            <div className="text-zinc-400 text-1xs md:text-xs mt-0.5 leading-relaxed">{item.desc}</div>
                         </div>
                     </div>
                 ))}
@@ -92,7 +92,7 @@ export const MilestoneTrack = ({ milestones }: { milestones: RoadmapData['milest
                                 m.status === 'current' ? 'bg-blue-500 border-blue-500 shadow-[0_0_20px_theme(colors.blue.500/0.3)] animate-pulse' :
                                     'bg-zinc-950 border-zinc-600'
                                 }`} />
-                            <div className={`text-xxs text-center leading-tight ${m.status === 'current' ? 'text-blue-400 font-bold' : 'text-zinc-500'}`}>
+                            <div className={`text-1xs text-center leading-tight ${m.status === 'current' ? 'text-blue-400 font-bold' : 'text-zinc-500'}`}>
                                 {m.label}<br />
                                 <span className={m.status === 'done' ? 'text-emerald-500' : ''}>{m.sub}</span>
                             </div>
@@ -163,7 +163,7 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                             </Reveal>
                         ))}
                     </div>
-                    <div className="text-center mt-8 text-xxs text-zinc-600 uppercase tracking-widest font-bold opacity-60">
+                    <div className="text-center mt-8 text-1xs text-zinc-600 uppercase tracking-widest font-bold opacity-60">
                         {data.brandVision.aesthetic}
                     </div>
                 </section>
@@ -255,7 +255,7 @@ export default function RoadmapClient({ data }: { data: RoadmapData }) {
                         {data.recentCommits.map((c, i) => (
                             <Reveal key={c.hash} delay={0.05 * i}>
                                 <div className="py-4 flex gap-4 md:gap-6 items-start hover:pl-2 transition-all group">
-                                    <div className="font-mono text-2xs md:text-xxs text-zinc-600 flex-shrink-0 pt-0.5">
+                                    <div className="font-mono text-2xs md:text-1xs text-zinc-600 flex-shrink-0 pt-0.5">
                                         {new Date(c.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                                     </div>
                                     <div className="text-xs md:text-[13px] text-zinc-400 leading-relaxed group-hover:text-zinc-100 transition-colors">

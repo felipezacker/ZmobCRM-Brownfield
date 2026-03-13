@@ -132,7 +132,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
               variant="unstyled"
               size="unstyled"
               onClick={() => setPeriod(p.value)}
-              className={`px-2.5 py-1 rounded-md text-xxs font-medium transition-colors ${
+              className={`px-2.5 py-1 rounded-md text-1xs font-medium transition-colors ${
                 period === p.value
                   ? 'bg-white dark:bg-white/15 text-foreground  shadow-sm'
                   : 'text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground'
@@ -167,7 +167,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
             {/* Data rows */}
             {DAYS.map(day => (
               <React.Fragment key={day}>
-                <div className="text-xxs text-muted-foreground dark:text-muted-foreground font-medium pr-2 flex items-center">
+                <div className="text-1xs text-muted-foreground dark:text-muted-foreground font-medium pr-2 flex items-center">
                   {day}
                 </div>
                 {TIME_SLOTS.map(slot => {

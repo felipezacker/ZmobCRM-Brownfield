@@ -68,7 +68,7 @@ export const DealInfoCard: React.FC<DealInfoCardProps> = ({ deal, contact }) => 
                         <Sparkles size={10} className="text-primary-400" />
                         <span className="text-2xs text-primary-400 font-medium">Resumo IA</span>
                     </div>
-                    <p className="text-xxs text-muted-foreground line-clamp-2">{deal.aiSummary}</p>
+                    <p className="text-1xs text-muted-foreground line-clamp-2">{deal.aiSummary}</p>
                 </div>
             )}
         </div>

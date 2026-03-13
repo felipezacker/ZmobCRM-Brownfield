@@ -582,12 +582,12 @@ export function UIChat({
                                                                                                     {(dueBadge || dueText) && (
                                                                                                         <div className="shrink-0 flex items-center gap-2">
                                                                                                             {dueBadge && (
-                                                                                                                <span className={`px-2 py-0.5 rounded-full text-xxs ${dueBadge.className}`}>
+                                                                                                                <span className={`px-2 py-0.5 rounded-full text-1xs ${dueBadge.className}`}>
                                                                                                                     {dueBadge.label}
                                                                                                                 </span>
                                                                                                             )}
                                                                                                             {dueText && (
-                                                                                                                <span className="text-xxs text-muted-foreground whitespace-nowrap">
+                                                                                                                <span className="text-1xs text-muted-foreground whitespace-nowrap">
                                                                                                                     {dueText}
                                                                                                                 </span>
                                                                                                             )}
@@ -628,12 +628,12 @@ export function UIChat({
                                                                                                     {(dueBadge || dueText) && (
                                                                                                         <div className="shrink-0 flex items-center gap-2">
                                                                                                             {dueBadge && (
-                                                                                                                <span className={`px-2 py-0.5 rounded-full text-xxs ${dueBadge.className}`}>
+                                                                                                                <span className={`px-2 py-0.5 rounded-full text-1xs ${dueBadge.className}`}>
                                                                                                                     {dueBadge.label}
                                                                                                                 </span>
                                                                                                             )}
                                                                                                             {dueText && (
-                                                                                                                <span className="text-xxs text-muted-foreground whitespace-nowrap">
+                                                                                                                <span className="text-1xs text-muted-foreground whitespace-nowrap">
                                                                                                                     {dueText}
                                                                                                                 </span>
                                                                                                             )}

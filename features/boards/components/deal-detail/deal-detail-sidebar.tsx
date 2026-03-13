@@ -118,7 +118,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
           <select
             value={contact?.temperature || ''}
             onChange={e => contact && onUpdateContact(contact.id, { temperature: (e.target.value || undefined) as ContactTemperature | undefined })}
-            className={`text-xxs font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer ${
+            className={`text-1xs font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer ${
               contact?.temperature === 'HOT' ? 'text-red-500' :
               contact?.temperature === 'WARM' ? 'text-amber-500' :
               contact?.temperature === 'COLD' ? 'text-blue-500' : 'text-muted-foreground'
@@ -132,7 +132,7 @@ export const DealDetailSidebar: React.FC<DealDetailSidebarProps> = ({
           <select
             value={contact?.classification || ''}
             onChange={e => contact && onUpdateContact(contact.id, { classification: (e.target.value || undefined) as ContactClassification | undefined })}
-            className="text-xxs font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer text-secondary-foreground dark:text-muted-foreground"
+            className="text-1xs font-semibold bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 cursor-pointer text-secondary-foreground dark:text-muted-foreground"
           >
             <option value="">Classificacao</option>
             <option value="COMPRADOR">Comprador</option>
@@ -237,10 +237,10 @@ const CustomFieldsSection: React.FC<CustomFieldsSectionProps> = ({
       <div className="space-y-1.5">
         {filledFields.map(field => (
           <div key={field.id} className="flex items-center justify-between gap-2">
-            <span className="text-xxs font-medium text-muted-foreground dark:text-muted-foreground">
+            <span className="text-1xs font-medium text-muted-foreground dark:text-muted-foreground">
               {field.label}
             </span>
-            <span className="text-xxs text-secondary-foreground dark:text-muted-foreground truncate text-right">
+            <span className="text-1xs text-secondary-foreground dark:text-muted-foreground truncate text-right">
               {String(contact?.customFields?.[field.key] ?? '')}
             </span>
           </div>

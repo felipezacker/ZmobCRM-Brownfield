@@ -12,10 +12,10 @@ export function Chip({
 }) {
   const cls =
     tone === 'success'
-      ? 'inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-1 text-xxs font-semibold text-emerald-700 dark:text-emerald-200 ring-1 ring-emerald-500/20'
+      ? 'inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-1 text-1xs font-semibold text-emerald-700 dark:text-emerald-200 ring-1 ring-emerald-500/20'
       : tone === 'danger'
-        ? 'inline-flex items-center rounded-full bg-rose-500/15 px-2.5 py-1 text-xxs font-semibold text-rose-700 dark:text-rose-200 ring-1 ring-rose-500/20'
-        : 'inline-flex items-center rounded-full bg-accent/60 dark:bg-white/8 px-2.5 py-1 text-xxs font-semibold text-secondary-foreground dark:text-muted-foreground ring-1 ring-ring dark:ring-white/10';
+        ? 'inline-flex items-center rounded-full bg-rose-500/15 px-2.5 py-1 text-1xs font-semibold text-rose-700 dark:text-rose-200 ring-1 ring-rose-500/20'
+        : 'inline-flex items-center rounded-full bg-accent/60 dark:bg-white/8 px-2.5 py-1 text-1xs font-semibold text-secondary-foreground dark:text-muted-foreground ring-1 ring-ring dark:ring-white/10';
   return <span className={cls}>{children}</span>;
 }
 

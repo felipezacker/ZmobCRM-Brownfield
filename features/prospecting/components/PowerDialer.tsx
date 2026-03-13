@@ -230,7 +230,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
         {statsChips.length > 0 && (
           <div className="flex items-center justify-center gap-2 flex-wrap pt-1">
             {statsChips.map(({ count, label, color }) => (
-              <span key={label} className={`inline-flex items-center gap-1 text-xxs font-medium px-2 py-0.5 rounded-full ${color}`}>
+              <span key={label} className={`inline-flex items-center gap-1 text-1xs font-medium px-2 py-0.5 rounded-full ${color}`}>
                 {count} {label}
               </span>
             ))}

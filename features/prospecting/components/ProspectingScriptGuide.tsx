@@ -118,7 +118,7 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
                 variant="unstyled"
                 size="unstyled"
                 onClick={() => setCurrentSectionIndex(idx)}
-                className={`shrink-0 text-xxs px-2.5 py-1 rounded-full transition-colors ${
+                className={`shrink-0 text-1xs px-2.5 py-1 rounded-full transition-colors ${
                   idx === currentSectionIndex
                     ? 'bg-primary-500 text-white font-medium'
                     : 'bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-accent'
@@ -178,7 +178,7 @@ export const ProspectingScriptGuide: React.FC<ProspectingScriptGuideProps> = ({
                   variant="unstyled"
                   size="unstyled"
                   onClick={() => handleToggleObjection(objection)}
-                  className={`text-xxs px-2.5 py-1 rounded-full border transition-colors ${
+                  className={`text-1xs px-2.5 py-1 rounded-full border transition-colors ${
                     isMarked
                       ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
                       : isPrioritized

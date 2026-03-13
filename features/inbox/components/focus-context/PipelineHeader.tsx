@@ -28,7 +28,7 @@ export const PipelineHeader: React.FC<PipelineHeaderProps> = ({
                     </h1>
                 </div>
                 <div className="absolute left-1/2 -translate-x-1/2">
-                    <span className="text-xxs font-semibold text-muted-foreground uppercase tracking-widest">
+                    <span className="text-1xs font-semibold text-muted-foreground uppercase tracking-widest">
                         {board?.name || 'Board'}
                     </span>
                 </div>

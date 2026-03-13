@@ -83,7 +83,7 @@ export function CockpitActionPanel({
       <div className="mt-2 flex items-center gap-1.5">
         <Button
           type="button"
-          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-rose-600 px-2 py-1.5 text-xxs font-semibold text-white hover:bg-rose-500"
+          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-rose-600 px-2 py-1.5 text-1xs font-semibold text-white hover:bg-rose-500"
           onClick={onExecuteNext}
         >
           <Zap className="h-3 w-3" />

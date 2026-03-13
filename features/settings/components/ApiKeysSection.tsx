@@ -304,7 +304,7 @@ export const ApiKeysSection: React.FC = () => {
                       placeholder="email@exemplo.com"
                     />
                   )}
-                  <div className="mt-1 text-xxs text-muted-foreground dark:text-muted-foreground">
+                  <div className="mt-1 text-1xs text-muted-foreground dark:text-muted-foreground">
                     No board deve existir só 1 deal aberto para essa identidade.
                   </div>
                 </div>

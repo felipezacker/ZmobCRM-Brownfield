@@ -71,7 +71,7 @@ export const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ contact }) => 
 
                     {/* Notes preview */}
                     {contact.notes && (
-                        <p className="mt-2 text-xxs text-muted-foreground line-clamp-2 italic">
+                        <p className="mt-2 text-1xs text-muted-foreground line-clamp-2 italic">
                             &quot;{contact.notes}&quot;
                         </p>
                     )}

@@ -684,7 +684,7 @@ export const WebhooksSection: React.FC = () => {
                                   <div className="text-xs font-bold text-secondary-foreground dark:text-muted-foreground truncate">
                                     {new Date(ev.received_at).toLocaleString()}
                                   </div>
-                                  <div className="text-xxs text-muted-foreground dark:text-muted-foreground truncate">
+                                  <div className="text-1xs text-muted-foreground dark:text-muted-foreground truncate">
                                     {ev.external_event_id ? `event_id: ${ev.external_event_id}` : 'event_id: —'}
                                   </div>
                                 </div>

@@ -251,7 +251,7 @@ export function ContactCockpitTimeline({
               disabled={isDisabled}
               aria-label={`Filtrar por ${opt.label} (${count})`}
               aria-pressed={isActive}
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xxs font-semibold transition-colors ${
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-1xs font-semibold transition-colors ${
                 isActive
                   ? 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 ring-1 ring-cyan-500/20'
                   : isDisabled
@@ -333,7 +333,7 @@ export function ContactCockpitTimeline({
                             className="mt-0.5 text-left group block cursor-pointer"
                             aria-label={isExpanded ? 'Recolher descrição' : 'Expandir descrição'}
                           >
-                            <div className={`text-xxs text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
+                            <div className={`text-1xs text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
                               {a.description}
                             </div>
                             <span className="text-2xs text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -343,7 +343,7 @@ export function ContactCockpitTimeline({
                         )}
                       </div>
                     </div>
-                    <div className="shrink-0 text-xxs text-muted-foreground whitespace-nowrap">
+                    <div className="shrink-0 text-1xs text-muted-foreground whitespace-nowrap">
                       {formatAtISO(a.date)}
                     </div>
                   </div>
@@ -369,7 +369,7 @@ export function ContactCockpitTimeline({
           <p className="mt-1 text-xs text-red-400">{saveError}</p>
         )}
         <div className="mt-3 flex items-center justify-between gap-2">
-          <div className="text-xxs text-muted-foreground">
+          <div className="text-1xs text-muted-foreground">
             {firstDealId
               ? `Salva como nota no deal "${firstDealTitle || 'Principal'}"`
               : 'Salva como nota do contato'}

@@ -268,7 +268,7 @@ export function ContactCockpitDataPanel({
             contactTags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 text-xxs font-medium px-2 py-1 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
+                className="inline-flex items-center gap-1 text-1xs font-medium px-2 py-1 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
               >
                 {tag}
                 <Button
@@ -337,7 +337,7 @@ export function ContactCockpitDataPanel({
           <div className="space-y-3">
             {customFieldDefinitions.map((field) => (
               <div key={field.id}>
-                <label className="block text-xxs font-medium text-muted-foreground mb-1">
+                <label className="block text-1xs font-medium text-muted-foreground mb-1">
                   {field.label}
                 </label>
                 {field.type === 'select' ? (
@@ -421,7 +421,7 @@ export function ContactCockpitDataPanel({
               <Row label="FGTS" value={preferences.acceptsFgts ? 'Sim' : 'Nao'} />
             )}
             {preferences.notes && (
-              <div className="mt-1 text-xxs text-muted-foreground italic">
+              <div className="mt-1 text-1xs text-muted-foreground italic">
                 {preferences.notes}
               </div>
             )}

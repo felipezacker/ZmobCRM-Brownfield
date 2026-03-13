@@ -120,7 +120,7 @@ export function CockpitRightRail({
             <div className="h-full min-h-0 rounded-xl border border-border bg-white dark:bg-white/2 p-3 overflow-auto">
               {/* Notas do contato */}
               <div className="mb-3">
-                <div className="flex items-center gap-2 text-xxs font-semibold text-muted-foreground dark:text-muted-foreground mb-1.5">
+                <div className="flex items-center gap-2 text-1xs font-semibold text-muted-foreground dark:text-muted-foreground mb-1.5">
                   <StickyNote className="h-3.5 w-3.5" />
                   Notas do contato
                 </div>
@@ -137,7 +137,7 @@ export function CockpitRightRail({
               </div>
 
               <div className="border-t border-border pt-3">
-              <div className="flex items-center gap-2 text-xxs font-semibold text-muted-foreground dark:text-muted-foreground">
+              <div className="flex items-center gap-2 text-1xs font-semibold text-muted-foreground dark:text-muted-foreground">
                 <StickyNote className="h-3.5 w-3.5" />
                 Notas do deal
               </div>
@@ -151,7 +151,7 @@ export function CockpitRightRail({
                 <div className="mt-1.5 flex items-center justify-end">
                   <Button
                     type="button"
-                    className="rounded-lg bg-white px-3 py-1.5 text-xxs font-semibold text-foreground hover:bg-muted disabled:opacity-50"
+                    className="rounded-lg bg-white px-3 py-1.5 text-1xs font-semibold text-foreground hover:bg-muted disabled:opacity-50"
                     disabled={!dealNoteDraft.trim() || createNote.isPending}
                     onClick={async () => {
                       const content = dealNoteDraft.trim();
@@ -201,7 +201,7 @@ export function CockpitRightRail({
           ) : tab === 'scripts' ? (
             <div className="h-full min-h-0 rounded-xl border border-border bg-white dark:bg-white/2 p-3 overflow-auto">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-xxs font-semibold text-muted-foreground dark:text-muted-foreground">
+                <div className="flex items-center gap-2 text-1xs font-semibold text-muted-foreground dark:text-muted-foreground">
                   <FileText className="h-3.5 w-3.5" /> Scripts
                 </div>
                 <div className="text-2xs text-muted-foreground dark:text-secondary-foreground">{isScriptsLoading ? 'Carregando...' : `${scripts.length}`}</div>
@@ -220,7 +220,7 @@ export function CockpitRightRail({
                             </span>
                             <div className="truncate text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">{s.title}</div>
                           </div>
-                          <div className="mt-1 line-clamp-2 text-xxs text-muted-foreground whitespace-pre-wrap">{preview}</div>
+                          <div className="mt-1 line-clamp-2 text-1xs text-muted-foreground whitespace-pre-wrap">{preview}</div>
                         </div>
                         <Button type="button" className="shrink-0 rounded p-1.5 text-muted-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 hover:text-foreground dark:hover:text-muted-foreground" title="Copiar" onClick={() => onCopy('Script', preview)}>
                           <Copy className="h-3.5 w-3.5" />
@@ -234,7 +234,7 @@ export function CockpitRightRail({
           ) : (
             <div className="h-full min-h-0 rounded-xl border border-border bg-white dark:bg-white/2 p-3 overflow-auto">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-xxs font-semibold text-muted-foreground dark:text-muted-foreground">
+                <div className="flex items-center gap-2 text-1xs font-semibold text-muted-foreground dark:text-muted-foreground">
                   <Inbox className="h-3.5 w-3.5" /> Arquivos
                 </div>
                 <div className="text-2xs text-muted-foreground dark:text-secondary-foreground">{isFilesLoading ? 'Carregando...' : `${files.length}`}</div>
@@ -249,7 +249,7 @@ export function CockpitRightRail({
                     e.currentTarget.value = '';
                     pushToast('Arquivo enviado', 'success');
                   }}
-                  className="block w-full text-xxs text-muted-foreground dark:text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-muted dark:file:bg-white/10 file:px-2.5 file:py-1.5 file:text-xxs file:font-semibold file:text-secondary-foreground dark:file:text-muted-foreground hover:file:bg-accent dark:hover:file:bg-white/15"
+                  className="block w-full text-1xs text-muted-foreground dark:text-muted-foreground file:mr-2 file:rounded-lg file:border-0 file:bg-muted dark:file:bg-white/10 file:px-2.5 file:py-1.5 file:text-1xs file:font-semibold file:text-secondary-foreground dark:file:text-muted-foreground hover:file:bg-accent dark:hover:file:bg-white/15"
                 />
               </div>
               <div className="mt-2 space-y-1.5">

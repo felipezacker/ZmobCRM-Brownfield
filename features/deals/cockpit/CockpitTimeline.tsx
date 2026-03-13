@@ -138,7 +138,7 @@ export function CockpitTimeline({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar..."
-            className="w-28 bg-transparent text-xxs text-secondary-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-secondary-foreground"
+            className="w-28 bg-transparent text-1xs text-secondary-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-secondary-foreground"
           />
         </div>
       </div>
@@ -151,7 +151,7 @@ export function CockpitTimeline({
               <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
                 {unifiedItems.length === 0 ? 'Sem atividades ainda' : 'Sem resultados'}
               </div>
-              <div className="mt-1 text-xxs text-muted-foreground">
+              <div className="mt-1 text-1xs text-muted-foreground">
                 {unifiedItems.length === 0
                   ? 'Registre uma nota, ligação ou mude a etapa.'
                   : 'Limpe filtros para ver tudo.'}
@@ -159,7 +159,7 @@ export function CockpitTimeline({
               {unifiedItems.length !== 0 ? (
                 <Button
                   type="button"
-                  className="mt-3 rounded-lg bg-accent dark:bg-white/10 px-3 py-1.5 text-xxs font-semibold text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15"
+                  className="mt-3 rounded-lg bg-accent dark:bg-white/10 px-3 py-1.5 text-1xs font-semibold text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15"
                   onClick={() => {
                     setQuery('');
                     setKindFilter('all');
@@ -179,18 +179,18 @@ export function CockpitTimeline({
                       {t.kind === 'deal_note' ? (
                         <StickyNote className="h-3 w-3 shrink-0 text-amber-400" />
                       ) : null}
-                      <span className="text-xxs font-semibold text-secondary-foreground dark:text-muted-foreground">{t.title}</span>
+                      <span className="text-1xs font-semibold text-secondary-foreground dark:text-muted-foreground">{t.title}</span>
                       {t.subtitle ? (
                         t.title === 'Moveu para' ? (
                           <Chip tone={t.tone === 'success' ? 'success' : t.tone === 'danger' ? 'danger' : 'neutral'}>{t.subtitle}</Chip>
                         ) : t.kind === 'deal_note' ? null : (
-                          <span className="truncate text-xxs text-muted-foreground">{t.subtitle}</span>
+                          <span className="truncate text-1xs text-muted-foreground">{t.subtitle}</span>
                         )
                       ) : null}
                     </div>
                     {/* Deal note content rendered below title */}
                     {t.kind === 'deal_note' && t.subtitle ? (
-                      <div className="mt-0.5 text-xxs text-muted-foreground dark:text-muted-foreground whitespace-pre-wrap line-clamp-2">{t.subtitle}</div>
+                      <div className="mt-0.5 text-1xs text-muted-foreground dark:text-muted-foreground whitespace-pre-wrap line-clamp-2">{t.subtitle}</div>
                     ) : null}
                   </div>
                   <div className="shrink-0 text-2xs text-muted-foreground dark:text-secondary-foreground">{t.at}</div>

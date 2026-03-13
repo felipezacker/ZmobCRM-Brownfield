@@ -216,10 +216,10 @@ export function ContactCockpitRightRail({
           {tab === 'ia' && (
             <div className="p-4 space-y-4">
               <div className="rounded-xl border border-border bg-white dark:bg-white/[0.02] p-3">
-                <div className="text-xxs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                <div className="text-1xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
                   Contexto do Contato
                 </div>
-                <pre className="text-xxs text-muted-foreground whitespace-pre-wrap font-mono">
+                <pre className="text-1xs text-muted-foreground whitespace-pre-wrap font-mono">
                   {aiSnapshotText}
                 </pre>
               </div>

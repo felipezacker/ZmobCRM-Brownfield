@@ -362,7 +362,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                       {STAGE_LABELS[contact.stage] || contact.stage}
                     </span>
                   </div>
-                  <div className="mt-0.5 text-xxs text-muted-foreground dark:text-muted-foreground">
+                  <div className="mt-0.5 text-1xs text-muted-foreground dark:text-muted-foreground">
                     {contact.email || 'Sem email'} | {contact.phone || 'Sem telefone'}
                   </div>
                 </div>

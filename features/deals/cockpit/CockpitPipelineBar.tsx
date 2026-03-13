@@ -87,7 +87,7 @@ export function CockpitPipelineBar({
       <div className="flex w-full items-center gap-3 px-4 pt-2.5 pb-2 2xl:px-8">
         <Button
           type="button"
-          className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted dark:bg-white/3 px-2.5 py-1.5 text-xxs font-semibold text-muted-foreground dark:text-muted-foreground hover:bg-accent/60 dark:hover:bg-white/6 hover:text-foreground dark:hover:text-muted-foreground transition-colors"
+          className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted dark:bg-white/3 px-2.5 py-1.5 text-1xs font-semibold text-muted-foreground dark:text-muted-foreground hover:bg-accent/60 dark:hover:bg-white/6 hover:text-foreground dark:hover:text-muted-foreground transition-colors"
           onClick={onBack}
           title="Voltar ao board"
         >
@@ -201,7 +201,7 @@ export function CockpitPipelineBar({
           {isWon || isLost ? (
             <div className="flex items-center gap-2">
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xxs font-bold ${
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-1xs font-bold ${
                   isWon
                     ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-200 ring-1 ring-emerald-500/20'
                     : 'bg-rose-500/15 text-rose-700 dark:text-rose-200 ring-1 ring-rose-500/20'
@@ -213,7 +213,7 @@ export function CockpitPipelineBar({
               {onReopen ? (
                 <Button
                   type="button"
-                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted dark:bg-white/3 px-2.5 py-1 text-xxs font-semibold text-muted-foreground dark:text-muted-foreground hover:bg-accent/60 dark:hover:bg-white/6 hover:text-foreground dark:hover:text-muted-foreground transition-colors"
+                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted dark:bg-white/3 px-2.5 py-1 text-1xs font-semibold text-muted-foreground dark:text-muted-foreground hover:bg-accent/60 dark:hover:bg-white/6 hover:text-foreground dark:hover:text-muted-foreground transition-colors"
                   onClick={onReopen}
                   title="Reabrir deal"
                 >
@@ -226,7 +226,7 @@ export function CockpitPipelineBar({
             <div className="flex items-center gap-1.5">
               <Button
                 type="button"
-                className="inline-flex items-center gap-1 rounded-lg bg-emerald-600/90 px-2.5 py-1.5 text-xxs font-bold text-white hover:bg-emerald-500 transition-colors"
+                className="inline-flex items-center gap-1 rounded-lg bg-emerald-600/90 px-2.5 py-1.5 text-1xs font-bold text-white hover:bg-emerald-500 transition-colors"
                 onClick={onWin}
               >
                 <Trophy className="h-3 w-3" />
@@ -234,7 +234,7 @@ export function CockpitPipelineBar({
               </Button>
               <Button
                 type="button"
-                className="inline-flex items-center gap-1 rounded-lg bg-rose-600/90 px-2.5 py-1.5 text-xxs font-bold text-white hover:bg-rose-500 transition-colors"
+                className="inline-flex items-center gap-1 rounded-lg bg-rose-600/90 px-2.5 py-1.5 text-1xs font-bold text-white hover:bg-rose-500 transition-colors"
                 onClick={onLoss}
               >
                 <XCircle className="h-3 w-3" />
