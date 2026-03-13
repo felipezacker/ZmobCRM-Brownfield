@@ -20,7 +20,6 @@ const REALTIME_DIR = path.join(__dirname, '../../realtime');
 const CRITICAL_FILES = [
   path.join(LIB_QUERY_DIR, 'hooks/useDealsQuery.ts'),
   path.join(LIB_QUERY_DIR, 'hooks/useMoveDeal.ts'),
-  path.join(CONTEXT_DIR, 'deals/DealsContext.tsx'),
   path.join(REALTIME_DIR, 'useRealtimeSync.ts'),
   path.join(REALTIME_DIR, 'dealInsertSync.ts'),
   path.join(REALTIME_DIR, 'dealUpdateSync.ts'),
@@ -35,8 +34,8 @@ const DANGEROUS_PATTERNS = [
     severity: 'error' as const,
   },
   // setQueryData com queryKeys.deals.lists() sem 'view'
-  // Severidade 'warning': dual-cache sync é intencional para manter DealsContext/DealDetailModal
-  // sincronizados junto com DEALS_VIEW_KEY. Ambos os caches devem ser escritos em mutations.
+  // Severidade 'warning': dual-cache sync é intencional para manter DealDetailModal
+  // sincronizado junto com DEALS_VIEW_KEY. Ambos os caches devem ser escritos em mutations.
   {
     pattern: /setQueryData\s*<[^>]*>\s*\(\s*queryKeys\.deals\.lists\(\)/g,
     description: 'setQueryData com queryKeys.deals.lists() (deve usar DEALS_VIEW_KEY)',
@@ -53,7 +52,7 @@ const DANGEROUS_PATTERNS = [
 // Padrões obrigatórios que devem estar presentes
 const REQUIRED_PATTERNS = [
   {
-    files: ['useDealsQuery.ts', 'useMoveDeal.ts', 'DealsContext.tsx', 'dealInsertSync.ts', 'dealUpdateSync.ts'],
+    files: ['useDealsQuery.ts', 'useMoveDeal.ts', 'dealInsertSync.ts', 'dealUpdateSync.ts'],
     pattern: /import\s*\{[^}]*DEALS_VIEW_KEY[^}]*\}\s*from/,
     description: 'DEALS_VIEW_KEY deve ser importado',
   },

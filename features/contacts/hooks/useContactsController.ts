@@ -3,7 +3,6 @@ import { useSearchParams } from 'next/navigation';
 import { ContactSortableColumn } from '@/types';
 import { useToast } from '@/context/ToastContext';
 import { useBoards } from '@/lib/query/hooks/useBoardsQuery';
-import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 import { useContactCRUD } from '@/features/contacts/hooks/useContactCRUD';
 import { useContactSearch } from '@/features/contacts/hooks/useContactSearch';
 import { useContactFilters } from '@/features/contacts/hooks/useContactFilters';
@@ -21,9 +20,6 @@ export const useContactsController = () => {
   const toast = addToast || showToast;
   const { data: boards = [] } = useBoards();
   const searchParams = useSearchParams();
-
-  // Enable realtime sync
-  useRealtimeSync('contacts');
 
   // Detail modal state (query param ?cockpit=<id>)
   const [detailContactId, setDetailContactId] = useState<string | null>(

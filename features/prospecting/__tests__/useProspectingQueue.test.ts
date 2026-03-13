@@ -28,10 +28,6 @@ let mockQueueData: ProspectingQueueItem[] = []
 const mockScheduleRetryAsync = vi.fn()
 const mockResetRetryAsync = vi.fn()
 
-vi.mock('@/lib/realtime/useRealtimeSync', () => ({
-  useRealtimeSync: vi.fn(),
-}))
-
 vi.mock('@/lib/query/hooks/useProspectingQueueQuery', () => ({
   useProspectingQueueItems: () => ({
     data: mockQueueData,

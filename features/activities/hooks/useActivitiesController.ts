@@ -11,7 +11,6 @@ import {
 } from '@/lib/query/hooks/useActivitiesQuery';
 import { useDeals } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/lib/query/hooks/useContactsQuery';
-import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 import type { DatePreset, RecurrenceType, SortOrder } from '@/features/activities/types';
 
 export const useActivitiesController = () => {
@@ -26,9 +25,6 @@ export const useActivitiesController = () => {
   const createActivityMutation = useCreateActivity();
   const updateActivityMutation = useUpdateActivity();
   const deleteActivityMutation = useDeleteActivity();
-
-  // Enable realtime sync
-  useRealtimeSync('activities');
 
   const { showToast } = useToast();
 

@@ -106,8 +106,8 @@ describe('useImportToQueue', () => {
     expect(result.current.step).toBe('upload')
   })
 
-  it('should reject files with more than 500 rows', async () => {
-    const rows = Array.from({ length: 501 }, (_, i) => [`nome${i}`, `1199999${String(i).padStart(4, '0')}`, `e${i}@test.com`])
+  it('should reject files with more than 5000 rows', async () => {
+    const rows = Array.from({ length: 5001 }, (_, i) => [`nome${i}`, `1199999${String(i).padStart(4, '0')}`, `e${i}@test.com`])
     mockParseCsv.mockReturnValue({
       headers: ['Nome', 'Telefone', 'Email'],
       rows,
@@ -123,7 +123,7 @@ describe('useImportToQueue', () => {
       await result.current.handleFileSelect(file)
     })
 
-    expect(result.current.error).toContain('500')
+    expect(result.current.error).toContain('5000')
     expect(result.current.step).toBe('upload')
   })
 

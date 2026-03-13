@@ -11,7 +11,6 @@ import { SettingsProvider } from '@/context/settings/SettingsContext'
 import { BoardsProvider } from '@/context/boards/BoardsContext'
 import { ContactsProvider } from '@/context/contacts/ContactsContext'
 import { ActivitiesProvider } from '@/context/activities/ActivitiesContext'
-import { DealsProvider } from '@/context/deals/DealsContext'
 import { AIProvider } from '@/context/AIContext'
 import Layout from '@/components/Layout'
 
@@ -43,7 +42,6 @@ const ComposedProviders = composeProviders(
     BoardsProvider,
     ContactsProvider,
     ActivitiesProvider,
-    DealsProvider,
     AIProvider,
 )
 

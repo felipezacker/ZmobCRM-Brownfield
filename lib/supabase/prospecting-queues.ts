@@ -593,21 +593,19 @@ export const prospectingQueuesService = {
         .order('position', { ascending: true });
 
       if (fetchError) return { error: fetchError };
-      if (!allItems) return { error: null };
+      if (!allItems || allItems.length === 0) return { error: null };
 
       const selectedSet = new Set(ids);
       const selected = allItems.filter(i => selectedSet.has(i.id));
       const rest = allItems.filter(i => !selectedSet.has(i.id));
       const reordered = [...selected, ...rest];
 
-      // Atualiza posições em batch
-      const updates = reordered.map((item, index) =>
-        sb.from('prospecting_queues').update({ position: index }).eq('id', item.id)
-      );
-
-      const results = await Promise.all(updates);
-      const firstError = results.find(r => r.error);
-      if (firstError?.error) return { error: new Error(firstError.error.message) };
+      // Atualiza posições via RPC atômico (RT-4.2)
+      const updates = reordered.map((item, index) => ({ id: item.id, position: index }));
+      const { error } = await sb.rpc('batch_update_queue_positions', {
+        p_updates: JSON.stringify(updates),
+      });
+      if (error) return { error: new Error(error.message) };
 
       return { error: null };
     } catch (e) {

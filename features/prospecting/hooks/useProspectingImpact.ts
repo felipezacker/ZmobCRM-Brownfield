@@ -11,7 +11,6 @@
 
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import { useAuth } from '@/context/AuthContext'
 import { queryKeys } from '@/lib/query/queryKeys'
 import { supabase } from '@/lib/supabase/client'
@@ -47,8 +46,6 @@ export function useProspectingImpact(
 ) {
   const { user, loading: authLoading } = useAuth()
 
-  useRealtimeSync('activities')
-
   const range = useMemo(() => getDateRange(period, customRange), [period, customRange])
 
   // Step 1: Fetch prospecting call activities in the period
@@ -64,6 +61,7 @@ export function useProspectingImpact(
         .gte('date', `${range.start}T00:00:00`)
         .lte('date', `${range.end}T23:59:59`)
         .is('deleted_at', null)
+        .contains('metadata', JSON.stringify({ source: 'prospecting' }))
 
       if (filterOwnerId) {
         query = query.eq('owner_id', filterOwnerId)
@@ -77,12 +75,9 @@ export function useProspectingImpact(
     staleTime: 30 * 1000,
   })
 
-  // Filter client-side for source=prospecting
+  // source=prospecting filter is now pushed to the DB query via .contains()
   const prospectingCalls = useMemo(() => {
-    if (!activitiesQuery.data) return []
-    return activitiesQuery.data.filter(
-      a => a.metadata?.source === 'prospecting'
-    )
+    return activitiesQuery.data || []
   }, [activitiesQuery.data])
 
   // Unique deal IDs from prospecting calls

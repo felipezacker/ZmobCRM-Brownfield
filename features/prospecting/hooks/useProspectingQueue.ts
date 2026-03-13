@@ -5,7 +5,6 @@
  * Calls: lib/query/hooks/useProspectingQueueQuery.ts
  */
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
-import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 import { useToast } from '@/context/ToastContext'
 import { supabase } from '@/lib/supabase/client'
 import {
@@ -54,9 +53,6 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
       return next
     })
   }, [])
-
-  // Realtime sync for prospecting queue changes from other users
-  useRealtimeSync('prospecting_queues')
 
   // '__all__' means no filter (admin sees all via RLS)
   const effectiveOwnerId = options?.viewOwnerId === '__all__' ? undefined : options?.viewOwnerId

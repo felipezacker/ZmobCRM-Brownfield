@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useMemo } from 'react';
 import { streamText, tool, ModelMessage, stepCountIs } from 'ai';
 import { z } from 'zod';
 import { useCRMActions } from '@/hooks/useCRMActions';
-import { useDeals } from '@/context/deals/DealsContext';
+import { useUpdateDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
@@ -33,7 +33,7 @@ interface UseCRMAgentOptions {
  */
 export function useCRMAgent(options: UseCRMAgentOptions = {}) {
   const { deals, addDeal } = useCRMActions();
-  const { updateDeal } = useDeals();
+  const updateDealMutation = useUpdateDeal();
   const { contacts } = useContacts();
   const { activeBoard } = useBoards();
   const { activities, addActivity, updateActivity } = useActivities();
@@ -262,7 +262,7 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
         return { success: false, message: 'Deal não encontrado.' };
       }
 
-      updateDeal(dealId, { status: newStatus as Deal['status'] });
+      updateDealMutation.mutate({ id: dealId, updates: { status: newStatus as Deal['status'] } });
 
       return {
         success: true,
@@ -279,7 +279,7 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
       }
 
       const oldValue = deal.value;
-      updateDeal(dealId, { value: newValue });
+      updateDealMutation.mutate({ id: dealId, updates: { value: newValue } });
 
       return {
         success: true,
@@ -403,7 +403,7 @@ export function useCRMAgent(options: UseCRMAgentOptions = {}) {
         },
       };
     },
-  }), [deals, contacts, activities, addActivity, updateActivity, updateDeal, addDeal, activeBoard]);
+  }), [deals, contacts, activities, addActivity, updateActivity, updateDealMutation, addDeal, activeBoard]);
 
   // ============================================
   // FUNÇÃO PRINCIPAL DE ENVIO

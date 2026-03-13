@@ -86,6 +86,7 @@ export const useActivities = (filters?: ActivitiesFilters) => {
     },
     enabled: !authLoading && !!user, // Only fetch when auth is ready
     staleTime: 30 * 1000, // 30 seconds - short staleTime for Realtime updates
+    refetchOnWindowFocus: false, // Realtime handles sync — avoid unnecessary refetch on window focus
   });
 };
 

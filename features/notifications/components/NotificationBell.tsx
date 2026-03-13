@@ -6,12 +6,14 @@ import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { fetchUnreadCount } from '@/app/actions/notifications'
+import { NOTIFICATION_COUNT_KEY } from '@/lib/query/queryKeys'
+import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync'
 
 export function NotificationBell() {
   const { organizationId, profile } = useAuth()
 
   const { data: count = 0 } = useQuery({
-    queryKey: ['crm_notification_count', organizationId, profile?.id],
+    queryKey: [...NOTIFICATION_COUNT_KEY, organizationId, profile?.id],
     queryFn: async () => {
       if (!organizationId) return 0
       const { count } = await fetchUnreadCount(organizationId, profile?.id)
@@ -19,8 +21,9 @@ export function NotificationBell() {
     },
     enabled: !!organizationId,
     staleTime: 1000 * 60, // 1 min
-    refetchInterval: 1000 * 60 * 2, // refetch every 2 min
   })
+
+  useRealtimeSync('notifications', { enabled: !!organizationId, organizationId: organizationId ?? undefined })
 
   return (
     <Link

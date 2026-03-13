@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown, Upload } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
@@ -228,16 +228,18 @@ export const ProspectingPage: React.FC = () => {
   // CP-1.3: Filtered contacts
   const filteredContactsHook = useProspectingFilteredContacts()
 
-  // --- Sync deps to pageState ref (runs every render, no-op cost) ---
-  setDeps({
-    toast,
-    profiles,
-    resolvedViewOwnerId,
-    queueDeps: queueHook,
-    metricsDeps: metricsHook,
-    filteredContacts: filteredContactsHook,
-    savedQueuesDeps: savedQueuesHook,
-  })
+  // --- Sync deps to pageState ref ---
+  useEffect(() => {
+    setDeps({
+      toast,
+      profiles,
+      resolvedViewOwnerId,
+      queueDeps: queueHook,
+      metricsDeps: metricsHook,
+      filteredContacts: filteredContactsHook,
+      savedQueuesDeps: savedQueuesHook,
+    })
+  }, [setDeps, toast, profiles, resolvedViewOwnerId, queueHook, metricsHook, filteredContactsHook, savedQueuesHook])
 
   // CP-3.4: Compute suggested return time from heatmap data (AC6-AC8)
   const suggestedReturnTime = useMemo(

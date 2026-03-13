@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../index'
 import { prospectingGoalsService } from '@/lib/supabase/prospecting-goals'
 import { useAuth } from '@/context/AuthContext'
-import type { UpsertGoalInput } from '@/lib/supabase/prospecting-goals'
+import type { UpsertGoalInput, DbDailyGoal } from '@/lib/supabase/prospecting-goals'
 
 export const useMyDailyGoal = () => {
   const { user, loading: authLoading } = useAuth()
@@ -62,11 +62,29 @@ export const useUpsertDailyGoal = () => {
       if (error) throw error
       return data!
     },
-    onSuccess: (data, variables) => {
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.dailyGoals.all })
+
+      const previousGoal = queryClient.getQueryData<DbDailyGoal | null>(
+        queryKeys.dailyGoals.detail(variables.ownerId)
+      )
+
+      queryClient.setQueryData<DbDailyGoal | null>(
+        queryKeys.dailyGoals.detail(variables.ownerId),
+        (old) => old
+          ? { ...old, calls_target: variables.callsTarget, connection_rate_target: variables.connectionRateTarget ?? old.connection_rate_target, updated_at: new Date().toISOString() }
+          : old
+      )
+
+      return { previousGoal }
+    },
+    onError: (_error, variables, context) => {
       queryClient.setQueryData(
         queryKeys.dailyGoals.detail(variables.ownerId),
-        data,
+        context?.previousGoal
       )
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dailyGoals.all })
     },
   })

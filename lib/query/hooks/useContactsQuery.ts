@@ -91,6 +91,7 @@ export const useContacts = (filters?: ContactsFilters) => {
       return contacts;
     },
     enabled: !authLoading && !!user, // Only fetch when auth is ready
+    refetchOnWindowFocus: false, // Realtime handles sync — avoid unnecessary refetch on window focus
   });
 };
 

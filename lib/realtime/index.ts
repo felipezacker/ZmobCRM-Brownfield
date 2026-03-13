@@ -3,5 +3,5 @@
  *
  * Real-time synchronization for multi-user CRM
  */
-export { useRealtimeSync, useRealtimeSyncAll, useRealtimeSyncKanban } from './useRealtimeSync';
+export { useRealtimeSync, useRealtimeSyncAll, useRealtimeSyncKanban, type ConnectionStatus } from './useRealtimeSync';
 export { useRealtimePreset, getPresetTables, REALTIME_PRESETS, type RealtimePreset } from './presets';

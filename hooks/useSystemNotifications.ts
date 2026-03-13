@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useMemo } from 'react';
+import { useRealtimeSync } from '@/lib/realtime/useRealtimeSync';
 
 export interface SystemNotification {
     id: string;
@@ -62,6 +63,9 @@ export const useSystemNotifications = () => {
         enabled: !!user && !!sb,
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
+
+    // RT-3.1: Realtime subscription for system_notifications
+    useRealtimeSync('system_notifications', { enabled: !!user && !!sb });
 
     // Derived state
     const unreadCount = useMemo(() =>

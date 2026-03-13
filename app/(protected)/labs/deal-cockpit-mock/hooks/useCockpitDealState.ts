@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useContacts } from '@/context/contacts/ContactsContext';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
-import { useDeals } from '@/context/deals/DealsContext';
+import { useUpdateDeal } from '@/lib/query/hooks/useDealsQuery';
 import { useMoveDealSimple } from '@/lib/query/hooks';
 
 import { useAIDealAnalysis, deriveHealthFromProbability } from '@/features/inbox/hooks/useAIDealAnalysis';
@@ -25,7 +25,10 @@ export function useCockpitDealState(dealId?: string) {
   const { contacts } = useContacts();
   const { boards } = useBoards();
   const { activities, addActivity } = useActivities();
-  const { updateDeal } = useDeals();
+  const { mutate: mutateUpdateDeal } = useUpdateDeal();
+  const updateDeal = useCallback((id: string, updates: Partial<import('@/types').Deal>) => {
+    mutateUpdateDeal({ id, updates });
+  }, [mutateUpdateDeal]);
 
   const actor = useMemo(() => {
     const name =
