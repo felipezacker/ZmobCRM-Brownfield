@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown, Upload } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { CallQueue } from './components/CallQueue'
@@ -26,6 +26,10 @@ import { ConnectionHeatmap } from './components/ConnectionHeatmap'
 import { NeglectedContactsAlert } from './components/NeglectedContactsAlert'
 import { PerformanceComparison } from './components/PerformanceComparison'
 import { TopObjections } from './components/TopObjections'
+import { SkipReasonsChart } from './components/SkipReasonsChart'
+import { RetryEffectiveness } from './components/RetryEffectiveness'
+import { QueueThroughput } from './components/QueueThroughput'
+import { MetricsSection } from './components/MetricsSection'
 import { ProspectingErrorBoundary } from './components/ProspectingErrorBoundary'
 import { GoalConfigModal } from './components/GoalConfigModal'
 import { NoteTemplatesManager } from './components/NoteTemplatesManager'
@@ -39,6 +43,8 @@ import { useProspectingFilteredContacts } from './hooks/useProspectingFilteredCo
 import { useProspectingMetrics } from './hooks/useProspectingMetrics'
 import { useProspectingImpact } from './hooks/useProspectingImpact'
 import { useLiveOperations } from './hooks/useLiveOperations'
+import { useSkipReasons } from './hooks/useSkipReasons'
+import { useRetryEffectiveness } from './hooks/useRetryEffectiveness'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { useTags } from '@/hooks/useTags'
@@ -160,6 +166,10 @@ export const ProspectingPage: React.FC = () => {
 
   // CP-5.6: Live operations (admin/director only)
   const liveOps = useLiveOperations(profile?.organization_id, profiles, isAdminOrDirector)
+
+  // New metrics: skip reasons + retry effectiveness
+  const skipReasonsQuery = useSkipReasons({ filterOwnerId: metricsFilterOwnerId || undefined })
+  const retryQuery = useRetryEffectiveness(metricsFilterOwnerId || undefined)
 
   // CP-3.6: Team average + user metrics for PerformanceComparison
   const teamAverage = useMemo(() => {
@@ -680,92 +690,117 @@ export const ProspectingPage: React.FC = () => {
               </div>
             )}
 
-            {/* CP-2.3: Daily goal card */}
-            <DailyGoalCard
-              progress={goalsHook.progress}
-              isLoading={goalsHook.isLoading}
-              isAdminOrDirector={goalsHook.isAdminOrDirector}
-              onConfigureClick={() => goalsHook.setShowGoalModal(true)}
-            />
-
-            {/* CP-3.6: PerformanceComparison — corretores only, below DailyGoalCard */}
-            <PerformanceComparison
-              userMetrics={userMetrics}
-              teamAverage={teamAverage}
-              isAdminOrDirector={isAdminOrDirector}
-              periodDays={periodDays}
-            />
-
-            {/* CP-3.6: NeglectedContactsAlert — above MetricsCards */}
-            <NeglectedContactsAlert
-              onAddAllToQueue={handleAddBatchToQueue}
-              onError={() => toast('Erro ao buscar contatos negligenciados', 'error')}
-            />
-
-            {/* CP-5.5: Broker summary card when filtering by corretor */}
-            {metricsFilterOwnerId && metricsHook.metrics && (
-              <BrokerSummaryCard
-                brokerName={profiles.find(p => p.id === metricsFilterOwnerId)?.name || 'Corretor'}
-                metrics={metricsHook.metrics}
-                impact={impactHook.impact}
+            {/* ═══ SECTION: Visao Geral ═══ */}
+            <MetricsSection title="Visao Geral" icon={Eye} iconColor="text-blue-500">
+              {/* CP-2.3: Daily goal card */}
+              <DailyGoalCard
+                progress={goalsHook.progress}
+                isLoading={goalsHook.isLoading}
+                isAdminOrDirector={goalsHook.isAdminOrDirector}
+                onConfigureClick={() => goalsHook.setShowGoalModal(true)}
               />
-            )}
 
-            <ProspectingErrorBoundary section="Métricas">
-              <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} onCardClick={setDrilldownCard} />
+              {/* CP-3.6: PerformanceComparison — corretores only */}
+              <PerformanceComparison
+                userMetrics={userMetrics}
+                teamAverage={teamAverage}
+                isAdminOrDirector={isAdminOrDirector}
+                periodDays={periodDays}
+              />
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-                <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
-                <MetricsChart
-                  data={metricsHook.metrics?.byDay || []}
-                  isLoading={metricsHook.isLoading}
-                  periodStart={metricsHook.range.start}
-                  periodEnd={metricsHook.range.end}
+              {/* CP-3.6: NeglectedContactsAlert */}
+              <NeglectedContactsAlert
+                onAddAllToQueue={handleAddBatchToQueue}
+                onError={() => toast('Erro ao buscar contatos negligenciados', 'error')}
+              />
+
+              {/* CP-5.5: Broker summary card when filtering by corretor */}
+              {metricsFilterOwnerId && metricsHook.metrics && (
+                <BrokerSummaryCard
+                  brokerName={profiles.find(p => p.id === metricsFilterOwnerId)?.name || 'Corretor'}
+                  metrics={metricsHook.metrics}
+                  impact={impactHook.impact}
                 />
+              )}
+
+              <ProspectingErrorBoundary section="Metricas">
+                <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} onCardClick={setDrilldownCard} />
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                  <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+                  <MetricsChart
+                    data={metricsHook.metrics?.byDay || []}
+                    isLoading={metricsHook.isLoading}
+                    periodStart={metricsHook.range.start}
+                    periodEnd={metricsHook.range.end}
+                  />
+                </div>
+              </ProspectingErrorBoundary>
+            </MetricsSection>
+
+            {/* ═══ SECTION: Analise Detalhada ═══ */}
+            <MetricsSection title="Analise Detalhada" icon={Search} iconColor="text-violet-500">
+              <ProspectingErrorBoundary section="Heatmap">
+                <ConnectionHeatmap
+                  activities={metricsHook.activities}
+                  isLoading={metricsHook.isLoading}
+                />
+              </ProspectingErrorBoundary>
+
+              <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <TopObjections activities={metricsHook.activities} isLoading={metricsHook.isLoading} />
+                <SkipReasonsChart data={skipReasonsQuery.data || []} isLoading={skipReasonsQuery.isLoading} />
               </div>
-            </ProspectingErrorBoundary>
 
-            {/* CP-2.3: Connection heatmap */}
-            <ProspectingErrorBoundary section="Heatmap">
-              <ConnectionHeatmap
-                activities={metricsHook.activities}
-                isLoading={metricsHook.isLoading}
+              <RetryEffectiveness data={retryQuery.data} isLoading={retryQuery.isLoading} />
+            </MetricsSection>
+
+            {/* ═══ SECTION: Fila ═══ */}
+            <MetricsSection title="Fila" icon={ListChecks} iconColor="text-amber-500">
+              <QueueThroughput
+                queue={queue}
+                exhaustedItems={exhaustedItems}
+                isLoading={isLoading}
               />
-            </ProspectingErrorBoundary>
+            </MetricsSection>
 
-            <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
-
-            {/* CP-3.6: Top objections widget */}
-            <TopObjections activities={metricsHook.activities} isLoading={metricsHook.isLoading} />
-
-            {/* CP-3.4: Session history */}
-            <ProspectingErrorBoundary section="Historico de Sessoes">
-              <SessionHistory
-                sessions={sessionHistory}
-                isLoading={isLoadingSessions}
-              />
-            </ProspectingErrorBoundary>
-
+            {/* ═══ SECTION: Equipe ═══ */}
             {isAdminOrDirector && !metricsFilterOwnerId && (
-              <CorretorRanking
-                brokers={metricsHook.metrics?.byBroker || []}
-                isLoading={metricsHook.isLoading}
-              />
+              <MetricsSection title="Equipe" icon={Trophy} iconColor="text-amber-500">
+                <CorretorRanking
+                  brokers={metricsHook.metrics?.byBroker || []}
+                  isLoading={metricsHook.isLoading}
+                />
+              </MetricsSection>
             )}
 
-            <CallDetailsTable
-              activities={metricsHook.activities}
-              profiles={profiles}
-              isLoading={metricsHook.isLoading}
-            />
+            {/* ═══ SECTION: Pipeline ═══ */}
+            <MetricsSection title="Pipeline" icon={TrendingUp} iconColor="text-emerald-500" defaultOpen={false}>
+              <ProspectingErrorBoundary section="Impacto">
+                <ProspectingImpactSection
+                  impact={impactHook.impact}
+                  isLoading={impactHook.isLoading}
+                />
+              </ProspectingErrorBoundary>
+            </MetricsSection>
 
-            {/* CP-5.3: Prospecting impact on pipeline */}
-            <ProspectingErrorBoundary section="Impacto">
-              <ProspectingImpactSection
-                impact={impactHook.impact}
-                isLoading={impactHook.isLoading}
+            {/* ═══ SECTION: Sessoes ═══ */}
+            <MetricsSection title="Sessoes" icon={Clock} iconColor="text-gray-500" defaultOpen={false}>
+              <ProspectingErrorBoundary section="Historico de Sessoes">
+                <SessionHistory
+                  sessions={sessionHistory}
+                  isLoading={isLoadingSessions}
+                />
+              </ProspectingErrorBoundary>
+
+              <CallDetailsTable
+                activities={metricsHook.activities}
+                profiles={profiles}
+                isLoading={metricsHook.isLoading}
               />
-            </ProspectingErrorBoundary>
+            </MetricsSection>
           </div>
         ) : (
           <div className="space-y-4">

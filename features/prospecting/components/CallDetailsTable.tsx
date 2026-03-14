@@ -13,7 +13,7 @@ interface CallDetailsTableProps {
   isLoading: boolean
 }
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 10
 
 function formatDateTime(dateStr: string): string {
   const d = new Date(dateStr)

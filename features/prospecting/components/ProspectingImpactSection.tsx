@@ -28,6 +28,59 @@ function formatDate(dateStr: string): string {
   return `${day}/${month}`
 }
 
+function ImpactTooltip({ active, payload, label, isDark }: {
+  active?: boolean
+  payload?: Array<{ dataKey: string; value: number; color: string; name: string }>
+  label?: string
+  isDark: boolean
+}) {
+  if (!active || !payload) return null
+
+  const t = chartTheme(isDark)
+  const nonZero = payload.filter(p => p.value > 0)
+  const total = payload.reduce((sum, p) => sum + p.value, 0)
+
+  if (total === 0) return null
+
+  return (
+    <div
+      className="rounded-lg shadow-lg px-3 py-2.5 text-xs"
+      style={{
+        backgroundColor: t.tooltipBg,
+        border: `1px solid ${t.tooltipBorder}`,
+      }}
+    >
+      <p className="font-medium mb-1.5" style={{ color: t.text }}>
+        {label ? formatDate(label) : ''}
+      </p>
+      {nonZero.map(entry => (
+        <div key={entry.dataKey} className="flex items-center gap-2 py-0.5">
+          <span
+            className="w-2.5 h-2.5 rounded-sm shrink-0"
+            style={{ backgroundColor: entry.color }}
+          />
+          <span style={{ color: t.tick }}>{entry.name}</span>
+          <span className="ml-auto font-medium" style={{ color: t.text }}>
+            {entry.value}
+          </span>
+        </div>
+      ))}
+      {nonZero.length > 1 && (
+        <div
+          className="flex items-center justify-between pt-1.5 mt-1.5 font-medium"
+          style={{
+            borderTop: `1px solid ${t.tooltipBorder}`,
+            color: t.text,
+          }}
+        >
+          <span>Total</span>
+          <span>{total}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function KpiCard({
   icon: Icon,
   label,
@@ -164,13 +217,8 @@ export function ProspectingImpactSection({ impact, isLoading }: ProspectingImpac
                 width={30}
               />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: theme.tooltipBg,
-                  border: `1px solid ${theme.tooltipBorder}`,
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                }}
-                labelFormatter={formatDate}
+                content={<ImpactTooltip isDark={isDark} />}
+                cursor={{ fill: theme.cursor }}
               />
               <Bar
                 dataKey="linked"
