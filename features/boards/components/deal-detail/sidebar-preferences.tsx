@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ContactPreference } from '@/types';
 import type { PreferencePurpose, PreferenceUrgency, PropertyType } from '@/types';
@@ -19,6 +19,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
   onSetPreferences,
   onUpdatePreference,
 }) => {
+  const [collapsed, setCollapsed] = useState(true);
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
 
@@ -65,8 +66,19 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
 
   return (
     <div className="pt-3 border-t border-border">
-      <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2 flex items-center gap-2">
-        Preferencias
+      <div className="flex items-center justify-between mb-2">
+        <button
+          type="button"
+          onClick={() => setCollapsed(c => !c)}
+          aria-expanded={!collapsed}
+          className="flex items-center gap-1 cursor-pointer"
+        >
+          <span className="text-xs font-bold text-muted-foreground uppercase">Preferencias</span>
+          <ChevronDown
+            size={14}
+            className={`text-muted-foreground transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
+          />
+        </button>
         {!preferences && contact && (
           <Button
             onClick={() => onCreatePreferences()}
@@ -76,8 +88,9 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
             + Adicionar
           </Button>
         )}
-      </h3>
+      </div>
 
+      {!collapsed && (<>
       {/* AI extraction input */}
       <div className="mb-2.5">
         <div className="flex gap-1.5">
@@ -292,6 +305,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
       ) : (
         <p className="text-xs text-muted-foreground italic">Sem preferencias cadastradas</p>
       )}
+      </>)}
     </div>
   );
 };
