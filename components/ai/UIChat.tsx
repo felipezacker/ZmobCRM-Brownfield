@@ -113,6 +113,34 @@ export function UIChat({
         messages,
     });
 
+    // --- Detect AI tool mutations and notify cockpit for data refresh ---
+    const emittedToolsRef = useRef(new Set<string>());
+    useEffect(() => {
+        const MUTATION_TOOLS = new Set([
+            'createContactPreference', 'updateContactPreference',
+            'createContact', 'updateContact',
+            'createDeal', 'updateDeal', 'moveDeal', 'markDealAsWon', 'markDealAsLost',
+        ]);
+        for (const m of messages) {
+            if (m.role !== 'assistant') continue;
+            for (const part of m.parts ?? []) {
+                if (!isToolLikePart(part)) continue;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const tp = part as any;
+                const toolName = tp.toolName ?? tp.name ?? tp.toolCallId;
+                const state = tp.state;
+                if (state === 'output-available' && toolName && MUTATION_TOOLS.has(toolName)) {
+                    const output = tp.output ?? tp.result;
+                    const key = `${toolName}-${tp.toolCallId ?? m.id}`;
+                    if (output?.success && !emittedToolsRef.current.has(key)) {
+                        emittedToolsRef.current.add(key);
+                        window.dispatchEvent(new CustomEvent('zmob:data-mutated', { detail: { tool: toolName } }));
+                    }
+                }
+            }
+        }
+    }, [messages]);
+
     // --- Local helpers ---
     const isLoading = status === 'streaming' || status === 'submitted';
     const canSend = status === 'ready' && !hasPendingApprovals;

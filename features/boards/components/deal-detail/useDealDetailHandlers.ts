@@ -174,15 +174,27 @@ export function createDealDetailHandlers(d: DealDetailHandlerDeps) {
     if (e.key === 'Escape' && !d.isEditingValue) d.onClose();
   };
 
-  const handleCreatePreferences = async () => {
+  const handleCreatePreferences = async (initialData?: Partial<ContactPreference>) => {
     const orgId = d.profile?.organization_id;
-    if (!d.contact || !orgId) return;
-    const { data } = await contactPreferencesService.create({
-      contactId: d.contact.id, propertyTypes: [], purpose: null,
-      priceMin: null, priceMax: null, regions: [], bedroomsMin: null,
-      parkingMin: null, areaMin: null, acceptsFinancing: null,
-      acceptsFgts: null, urgency: null, notes: null, organizationId: orgId,
+    if (!d.contact) { d.addToast('Contato não encontrado para criar preferências.', 'warning'); return; }
+    if (!orgId) { d.addToast('Organização não encontrada. Faça login novamente.', 'warning'); return; }
+    const { data, error } = await contactPreferencesService.create({
+      contactId: d.contact.id,
+      organizationId: orgId,
+      propertyTypes: initialData?.propertyTypes || [],
+      purpose: initialData?.purpose || null,
+      priceMin: initialData?.priceMin ?? null,
+      priceMax: initialData?.priceMax ?? null,
+      regions: initialData?.regions || [],
+      bedroomsMin: initialData?.bedroomsMin ?? null,
+      parkingMin: initialData?.parkingMin ?? null,
+      areaMin: initialData?.areaMin ?? null,
+      acceptsFinancing: initialData?.acceptsFinancing ?? null,
+      acceptsFgts: initialData?.acceptsFgts ?? null,
+      urgency: initialData?.urgency || null,
+      notes: initialData?.notes || null,
     });
+    if (error) { console.error('[DealDetail] createPreferences failed:', error); d.addToast('Erro ao criar preferências.', 'warning'); return; }
     if (data) d.setPreferences(data);
   };
 

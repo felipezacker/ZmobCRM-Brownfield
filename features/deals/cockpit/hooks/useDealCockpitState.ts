@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useCRMActions } from '@/hooks/useCRMActions';
 import { useDeals as useDealsQuery, useUpdateDeal, useAddDealItem, useRemoveDealItem } from '@/lib/query/hooks/useDealsQuery';
 import { useContacts } from '@/context/contacts/ContactsContext';
+import { useContact as useContactQuery } from '@/lib/query/hooks/useContactsQuery';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useSettings } from '@/context/settings/SettingsContext';
@@ -107,10 +108,11 @@ export function useDealCockpitState(dealId?: string) {
     return (deals ?? []).slice().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
   }, [deals]);
 
+  const { data: contactDirect } = useContactQuery(selectedDeal?.contactId || undefined);
   const selectedContact = useMemo(() => {
     if (!selectedDeal) return null;
-    return contactsById.get(selectedDeal.contactId) ?? null;
-  }, [contactsById, selectedDeal]);
+    return contactDirect ?? contactsById.get(selectedDeal.contactId) ?? null;
+  }, [contactDirect, contactsById, selectedDeal]);
 
   const selectedBoard = useMemo(() => {
     if (!selectedDeal) return null;
@@ -141,14 +143,28 @@ export function useDealCockpitState(dealId?: string) {
   }, [selectedDeal?.ownerId, user?.id, profile?.commission_rate]);
 
   // --- Contact preferences ---
-  useEffect(() => {
+  const refreshPreferences = useCallback(() => {
     if (!selectedContact?.id) { setPreferences(null); return; }
-    let cancelled = false;
     contactPreferencesService.getByContactId(selectedContact.id)
-      .then(({ data }) => { if (!cancelled) setPreferences(data?.[0] ?? null); })
+      .then(({ data }) => setPreferences(data?.[0] ?? null))
       .catch(err => console.error('[Cockpit] fetch preferences failed:', err));
-    return () => { cancelled = true; };
   }, [selectedContact?.id]);
+
+  useEffect(() => {
+    refreshPreferences();
+  }, [refreshPreferences]);
+
+  // Re-fetch preferences when AI tools mutate data
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.tool === 'createContactPreference' || detail?.tool === 'updateContactPreference') {
+        refreshPreferences();
+      }
+    };
+    window.addEventListener('zmob:data-mutated', handler);
+    return () => window.removeEventListener('zmob:data-mutated', handler);
+  }, [refreshPreferences]);
 
   // --- Commission calculation ---
   const estimatedCommission = useMemo(() => {

@@ -191,14 +191,28 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
     return () => { cancelled = true; };
   }, [deal?.ownerId, profile?.id, profile?.commission_rate]);
 
-  useEffect(() => {
+  const refreshPreferences = useCallback(() => {
     if (!contact?.id) { setPreferences(null); return; }
-    let cancelled = false;
     contactPreferencesService.getByContactId(contact.id).then(({ data }) => {
-      if (!cancelled) setPreferences(data?.[0] ?? null);
+      setPreferences(data?.[0] ?? null);
     }).catch(err => console.error('[DealDetailModal] fetch preferences failed:', err));
-    return () => { cancelled = true; };
   }, [contact?.id]);
+
+  useEffect(() => {
+    refreshPreferences();
+  }, [refreshPreferences]);
+
+  // Re-fetch preferences when AI tools mutate data
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.tool === 'createContactPreference' || detail?.tool === 'updateContactPreference') {
+        refreshPreferences();
+      }
+    };
+    window.addEventListener('zmob:data-mutated', handler);
+    return () => window.removeEventListener('zmob:data-mutated', handler);
+  }, [refreshPreferences]);
 
   const fetchDealNotes = useMemo(() => {
     if (!deal?.id) return () => {};

@@ -338,17 +338,28 @@ export function useDealCockpitActions(deps: CockpitActionsDeps) {
     setPreferences(p => p ? { ...p, ...updates } : p);
   }, [preferences?.id, setPreferences]);
 
-  const handleCreatePreferences = useCallback(async () => {
-    if (!selectedContact?.id || !profile?.organization_id) return;
-    const { data } = await contactPreferencesService.create({
+  const handleCreatePreferences = useCallback(async (initialData?: Partial<ContactPreference>) => {
+    if (!selectedContact?.id) { pushToast('Contato não encontrado para criar preferências.', 'danger'); return; }
+    if (!profile?.organization_id) { pushToast('Organização não encontrada. Faça login novamente.', 'danger'); return; }
+    const { data, error } = await contactPreferencesService.create({
       contactId: selectedContact.id,
       organizationId: profile.organization_id,
-      propertyTypes: [], purpose: null, priceMin: null, priceMax: null,
-      regions: [], bedroomsMin: null, parkingMin: null, areaMin: null,
-      acceptsFinancing: null, acceptsFgts: null, urgency: null, notes: null,
+      propertyTypes: initialData?.propertyTypes || [],
+      purpose: initialData?.purpose || null,
+      priceMin: initialData?.priceMin ?? null,
+      priceMax: initialData?.priceMax ?? null,
+      regions: initialData?.regions || [],
+      bedroomsMin: initialData?.bedroomsMin ?? null,
+      parkingMin: initialData?.parkingMin ?? null,
+      areaMin: initialData?.areaMin ?? null,
+      acceptsFinancing: initialData?.acceptsFinancing ?? null,
+      acceptsFgts: initialData?.acceptsFgts ?? null,
+      urgency: initialData?.urgency || null,
+      notes: initialData?.notes || null,
     });
+    if (error) { console.error('[Cockpit] createPreferences failed:', error); pushToast('Erro ao criar preferências.', 'danger'); return; }
     if (data) setPreferences(data);
-  }, [selectedContact?.id, profile?.organization_id, setPreferences]);
+  }, [selectedContact?.id, profile?.organization_id, setPreferences, pushToast]);
 
   const handleAddItem = useCallback(async (item: { productId?: string; name: string; price: number; quantity: number }) => {
     if (!selectedDeal?.id) return;
