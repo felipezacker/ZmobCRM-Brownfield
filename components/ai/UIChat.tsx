@@ -11,7 +11,7 @@ import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import type { ToolLikePart, ToolInputPayload } from './types';
 export type { UIChatProps } from './types';
 import type { UIChatProps } from './types';
-import { isToolLikePart } from './utils';
+import { isToolLikePart, getToolPartInfo } from './utils';
 import { useChatContext } from './hooks/useChatContext';
 import { useChatApprovals } from './hooks/useChatApprovals';
 import { useChatErrors } from './hooks/useChatErrors';
@@ -125,14 +125,12 @@ export function UIChat({
             if (m.role !== 'assistant') continue;
             for (const part of m.parts ?? []) {
                 if (!isToolLikePart(part)) continue;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const tp = part as any;
-                const toolName = tp.toolName ?? tp.name ?? tp.toolCallId;
-                const state = tp.state;
-                if (state === 'output-available' && toolName && MUTATION_TOOLS.has(toolName)) {
-                    const output = tp.output ?? tp.result;
-                    const key = `${toolName}-${tp.toolCallId ?? m.id}`;
-                    if (output?.success && !emittedToolsRef.current.has(key)) {
+                const info = getToolPartInfo(part);
+                if (!info) continue;
+                const { toolName, state, output, toolCallId } = info;
+                if (state === 'output-available' && MUTATION_TOOLS.has(toolName)) {
+                    const key = `${toolName}-${toolCallId ?? m.id}`;
+                    if ((output as Record<string, unknown> | null)?.success && !emittedToolsRef.current.has(key)) {
                         emittedToolsRef.current.add(key);
                         window.dispatchEvent(new CustomEvent('zmob:data-mutated', { detail: { tool: toolName } }));
                     }
