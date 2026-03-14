@@ -61,6 +61,7 @@ export interface DealDetailTimelineProps {
   activitiesById: Map<string, Activity>;
   onNewNoteChange: (value: string) => void;
   onAddNote: () => void;
+  onNewActivity: () => void;
   onToggleActivity: (id: string) => void;
   onEditActivity: (activity: Activity) => void;
   onDeleteActivity: (id: string) => void;

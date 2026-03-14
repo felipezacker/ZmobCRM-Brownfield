@@ -24,6 +24,7 @@ export interface DealDetailHandlerDeps {
   addItemToDeal: (dealId: string, item: { productId: string; name: string; price: number; quantity: number }) => Promise<unknown>;
   removeItemFromDeal?: (dealId: string, itemId: string) => void;
   updateContact: (id: string, data: Partial<Contact>) => void;
+  addActivity: (activity: Omit<Activity, 'id' | 'createdAt'>) => Promise<Activity | null>;
   updateActivity: (id: string, data: Partial<Activity>) => void;
   moveDeal: (...args: Parameters<ReturnType<typeof import('@/lib/query/hooks').useMoveDealSimple>['moveDeal']>) => unknown;
   addToast: ReturnType<typeof import('@/context/ToastContext').useToast>['addToast'];
@@ -266,17 +267,46 @@ export function createDealDetailHandlers(d: DealDetailHandlerDeps) {
     d.setIsActivityFormOpen(true);
   };
 
-  const handleSubmitActivityForm = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!d.editingActivity) return;
-    const dateTime = new Date(`${d.activityFormData.date}T${d.activityFormData.time}`);
-    d.updateActivity(d.editingActivity.id, {
-      title: d.activityFormData.title, type: d.activityFormData.type,
-      date: dateTime.toISOString(), description: d.activityFormData.description,
-      dealId: d.activityFormData.dealId,
-      recurrenceType: d.activityFormData.recurrenceType === 'none' ? undefined : d.activityFormData.recurrenceType,
-      recurrenceEndDate: d.activityFormData.recurrenceEndDate || undefined,
+  const handleOpenNewActivityForm = () => {
+    const now = new Date();
+    d.setEditingActivity(null);
+    d.setActivityFormData({
+      title: '', type: 'TASK',
+      date: now.toISOString().split('T')[0],
+      time: now.toTimeString().slice(0, 5),
+      description: '', dealId: d.deal?.id || '',
+      recurrenceType: 'none', recurrenceEndDate: '',
     });
+    d.setIsActivityFormOpen(true);
+  };
+
+  const handleSubmitActivityForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const dateTime = new Date(`${d.activityFormData.date}T${d.activityFormData.time}`);
+
+    if (d.editingActivity) {
+      d.updateActivity(d.editingActivity.id, {
+        title: d.activityFormData.title, type: d.activityFormData.type,
+        date: dateTime.toISOString(), description: d.activityFormData.description,
+        dealId: d.activityFormData.dealId,
+        recurrenceType: d.activityFormData.recurrenceType === 'none' ? undefined : d.activityFormData.recurrenceType,
+        recurrenceEndDate: d.activityFormData.recurrenceEndDate || undefined,
+      });
+    } else {
+      await d.addActivity({
+        title: d.activityFormData.title,
+        type: d.activityFormData.type,
+        date: dateTime.toISOString(),
+        description: d.activityFormData.description,
+        dealId: d.activityFormData.dealId || undefined,
+        dealTitle: d.deal?.title || '',
+        completed: false,
+        user: { name: d.profile?.first_name || '', avatar: d.profile?.avatar_url || '' },
+        recurrenceType: d.activityFormData.recurrenceType === 'none' ? undefined : d.activityFormData.recurrenceType,
+        recurrenceEndDate: d.activityFormData.recurrenceEndDate || undefined,
+      });
+    }
+
     d.setIsActivityFormOpen(false);
     d.setEditingActivity(null);
   };
@@ -297,7 +327,7 @@ export function createDealDetailHandlers(d: DealDetailHandlerDeps) {
     handleAddProduct, handleAddCustomItem, confirmDeleteDeal, saveValue,
     handleKeyDown, handleCreatePreferences, handleOwnerChange, handleWin,
     handleLose, handleReopen, handleStageClick, handleToggleActivity,
-    handleEditActivity, handleSubmitActivityForm, handleSelectProduct,
-    handleCopyPhone,
+    handleEditActivity, handleOpenNewActivityForm, handleSubmitActivityForm,
+    handleSelectProduct, handleCopyPhone,
   };
 }

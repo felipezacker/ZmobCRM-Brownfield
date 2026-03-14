@@ -48,7 +48,7 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
     try { await removeItemMutation.mutateAsync({ dealId, itemId }); }
     catch { /* Error handled by mutation's onError */ }
   }, [removeItemMutation]);
-  const { activities, updateActivity, deleteActivity } = useActivities();
+  const { activities, addActivity, updateActivity, deleteActivity } = useActivities();
   const { activeBoard, boards } = useBoards();
   const { products, customFieldDefinitions, lifecycleStages } = useSettings();
   const { profile } = useAuth();
@@ -273,7 +273,7 @@ export function useDealDetail(dealId: string | null, isOpen: boolean, onClose: (
   // ---------- Handlers (extracted) ----------
   const handlers = createDealDetailHandlers({
     deal, contact, dealBoard, profile, orgMembers, productsById, activitiesById, stageLabel,
-    updateDeal, deleteDeal, addItemToDeal, removeItemFromDeal, updateContact, updateActivity,
+    updateDeal, deleteDeal, addItemToDeal, removeItemFromDeal, updateContact, addActivity, updateActivity,
     moveDeal, addToast, onClose,
     setIsAnalyzing, setAiResult, setIsDrafting, setEmailDraft,
     setIsGeneratingObjections, setObjectionResponses, setNewNote, setDealNotes,
