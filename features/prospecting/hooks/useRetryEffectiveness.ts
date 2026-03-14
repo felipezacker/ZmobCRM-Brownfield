@@ -12,6 +12,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query/queryKeys'
 import { supabase } from '@/lib/supabase/client'
+import { useAuth } from '@/context/AuthContext'
 
 export interface RetryBucket {
   label: string
@@ -83,8 +84,10 @@ function buildBuckets(rows: QueueRow[]): RetryEffectivenessData {
 }
 
 export function useRetryEffectiveness(filterOwnerId?: string) {
+  const { profile } = useAuth()
+
   return useQuery({
-    queryKey: [...queryKeys.prospectingQueue.all, 'retry-effectiveness', filterOwnerId || ''],
+    queryKey: [...queryKeys.prospectingQueue.all, 'retry-effectiveness', filterOwnerId || '', profile?.organization_id],
     queryFn: async (): Promise<RetryEffectivenessData> => {
       if (!supabase) {
         return buildBuckets([])
@@ -93,6 +96,10 @@ export function useRetryEffectiveness(filterOwnerId?: string) {
       let query = supabase
         .from('prospecting_queues')
         .select('retry_count, status')
+
+      if (profile?.organization_id) {
+        query = query.eq('organization_id', profile.organization_id)
+      }
 
       if (filterOwnerId) {
         query = query.eq('owner_id', filterOwnerId)

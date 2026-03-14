@@ -19,10 +19,10 @@ interface UseSkipReasonsOptions {
 }
 
 export const useSkipReasons = (options?: UseSkipReasonsOptions) => {
-  const { user, loading: authLoading } = useAuth()
+  const { user, profile, loading: authLoading } = useAuth()
 
   return useQuery({
-    queryKey: [...queryKeys.prospectingQueue.all, 'skipReasons', options?.filterOwnerId],
+    queryKey: [...queryKeys.prospectingQueue.all, 'skipReasons', options?.filterOwnerId, profile?.organization_id],
     queryFn: async (): Promise<SkipReasonCount[]> => {
       if (!supabase) throw new Error('Supabase not configured')
 
@@ -31,6 +31,10 @@ export const useSkipReasons = (options?: UseSkipReasonsOptions) => {
         .select('skip_reason')
         .eq('status', 'skipped')
         .not('skip_reason', 'is', null)
+
+      if (profile?.organization_id) {
+        query = query.eq('organization_id', profile.organization_id)
+      }
 
       if (options?.filterOwnerId) {
         query = query.eq('owner_id', options.filterOwnerId)
