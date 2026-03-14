@@ -233,7 +233,7 @@ describe('ContactHistory', () => {
     await waitFor(() => {
       expect(screen.getByText('Sala Comercial')).toBeInTheDocument()
     })
-    expect(screen.queryByText(/Imóvel:/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Sala Comercial')).toBeInTheDocument()
   })
 
   it('exibe property_ref quando presente', async () => {
@@ -248,7 +248,7 @@ describe('ContactHistory', () => {
     }
     render(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
-      expect(screen.getByText('Imóvel: COB-501')).toBeInTheDocument()
+      expect(screen.getByText('COB-501')).toBeInTheDocument()
     })
   })
 
@@ -264,7 +264,7 @@ describe('ContactHistory', () => {
     }
     render(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
-      expect(screen.getByText('Imóvel: Liv Residencial')).toBeInTheDocument()
+      expect(screen.getByText('Liv Residencial')).toBeInTheDocument()
     })
   })
 
@@ -284,6 +284,6 @@ describe('ContactHistory', () => {
     })
     expect(screen.queryByText(/R\$/)).not.toBeInTheDocument()
     expect(screen.getByText('Qualificação')).toBeInTheDocument()
-    expect(screen.getByText('Imóvel: TER-10')).toBeInTheDocument()
+    expect(screen.getByText('TER-10')).toBeInTheDocument()
   })
 })

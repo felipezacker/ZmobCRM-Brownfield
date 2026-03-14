@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock, Building2 } from 'lucide-react'
+import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock, Landmark, Home } from 'lucide-react'
 import { useContactActivities } from '@/lib/query/hooks/useActivitiesQuery'
 import { getOpenDealsByContact } from '@/lib/supabase/deals'
 import { Button } from '@/components/ui/button'
@@ -152,33 +152,44 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
               <div className="h-14 bg-muted dark:bg-muted/50 rounded-lg" />
             </div>
           ) : deal ? (
-            <section aria-label="Deal em andamento" className="mb-3 p-3 bg-muted/50 dark:bg-muted/20 border-l-2 border-primary rounded-r-lg">
-              <div className="flex items-start gap-2">
-                <Building2 size={14} className="text-primary mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{deal.title}</p>
-                  <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                    {deal.value !== null && (
-                      <span className="text-xs font-semibold text-primary">{formatBRL(deal.value)}</span>
-                    )}
-                    {deal.stage_name && (
-                      <span className="text-2xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{deal.stage_name}</span>
-                    )}
-                    {(deal.product_name || deal.property_ref) && (
-                      <span className="text-2xs text-muted-foreground">Imóvel: {deal.product_name || deal.property_ref}</span>
-                    )}
-                  </div>
+            <section aria-label="Deal em andamento" className="mb-3 rounded-lg border border-border/60 dark:border-border/30 bg-card dark:bg-card/50 overflow-hidden">
+              <div className="px-3 py-2 bg-primary/5 dark:bg-primary/10 border-b border-border/40 dark:border-border/20 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Landmark size={12} className="text-primary" />
+                  <span className="text-2xs font-medium text-primary">Deal em andamento</span>
                 </div>
+                {deal.stage_name && (
+                  <span className="text-2xs font-medium bg-primary/10 dark:bg-primary/20 text-primary px-2 py-0.5 rounded-full">{deal.stage_name}</span>
+                )}
+              </div>
+              <div className="px-3 py-2.5 space-y-1.5">
+                <p className="text-sm font-medium text-foreground truncate">{deal.title}</p>
+                {deal.value !== null && (
+                  <p className="text-base font-bold text-primary tracking-tight">{formatBRL(deal.value)}</p>
+                )}
+                {(deal.product_name || deal.property_ref) && (
+                  <div className="flex items-center gap-1.5 pt-0.5">
+                    <Home size={11} className="text-muted-foreground shrink-0" />
+                    <span className="text-xs text-muted-foreground truncate">{deal.product_name || deal.property_ref}</span>
+                  </div>
+                )}
               </div>
             </section>
           ) : null}
 
           {/* Last Note Highlight Block (AC3, AC4) */}
           {lastNote && (
-            <section aria-label="Última nota" className="mb-3 p-3 bg-amber-50 dark:bg-amber-950/20 border-l-2 border-amber-400 rounded-r-lg">
-              <p className="text-2xs font-medium text-amber-700 dark:text-amber-400 mb-1">Última nota</p>
-              <p className="text-xs text-foreground line-clamp-3">{lastNote.description || lastNote.title}</p>
-              <p className="text-2xs text-muted-foreground mt-1">{formatDate(lastNote.date)}</p>
+            <section aria-label="Última nota" className="mb-3 rounded-lg border border-amber-200/60 dark:border-amber-800/30 bg-amber-50/50 dark:bg-amber-950/15 overflow-hidden">
+              <div className="px-3 py-1.5 border-b border-amber-200/40 dark:border-amber-800/20 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <FileText size={11} className="text-amber-600 dark:text-amber-400" />
+                  <span className="text-2xs font-medium text-amber-700 dark:text-amber-400">Última nota</span>
+                </div>
+                <span className="text-2xs text-amber-600/70 dark:text-amber-500/60">{formatDate(lastNote.date)}</span>
+              </div>
+              <div className="px-3 py-2">
+                <p className="text-xs text-foreground/90 line-clamp-3 leading-relaxed">{lastNote.description || lastNote.title}</p>
+              </div>
             </section>
           )}
 
