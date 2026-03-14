@@ -341,12 +341,13 @@ export const ProspectingPage: React.FC = () => {
     useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
   )
 
+  const { reorder: reorderSections } = layout
   const handleSectionDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event
     if (over && active.id !== over.id) {
-      layout.reorder(active.id as string, over.id as string)
+      reorderSections(active.id as string, over.id as string)
     }
-  }, [layout])
+  }, [reorderSections])
 
   // CP-8.1: Filter sections by role visibility, compute rendered list
   // QA#2 fix: Always render all sections (hidden ones use display:none to preserve collapse state)

@@ -259,18 +259,18 @@ describe('EditableSectionWrapper', () => {
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
-  // QA#2 fix: hidden sections use display:none instead of return null
-  it('renders hidden section with display:none when not editing (preserves collapse state)', () => {
+  // PR review fix: hidden sections render empty container (no children = no active queries)
+  it('renders hidden section as empty container when not editing (no children mounted)', () => {
     const { container } = render(
       <EditableSectionWrapper id="test" isEditing={false} isHidden={true} canHideMore={true} onToggleVisibility={vi.fn()}>
         <div data-testid="content">Content</div>
       </EditableSectionWrapper>,
     )
 
-    // Content is in the DOM but hidden via display:none
+    // Container is in the DOM but hidden, children are NOT mounted
     const wrapper = container.firstChild as HTMLElement
-    expect(wrapper).toHaveStyle({ display: 'none' })
-    expect(screen.getByTestId('content')).toBeInTheDocument()
+    expect(wrapper).toHaveAttribute('hidden')
+    expect(screen.queryByTestId('content')).not.toBeInTheDocument()
   })
 
   it('shows drag handle and visibility toggle in edit mode', () => {

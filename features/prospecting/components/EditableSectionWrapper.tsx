@@ -32,9 +32,9 @@ export function EditableSectionWrapper({
     isDragging,
   } = useSortable({ id })
 
-  // Normal mode: hidden sections use display:none to preserve collapse state (QA#2)
+  // Normal mode: hidden sections render empty container (no children = no active queries)
   if (!isEditing && isHidden) {
-    return <div ref={setNodeRef} style={{ display: 'none' }}>{children}</div>
+    return <div ref={setNodeRef} hidden />
   }
 
   // Normal mode: render children without wrapper overhead
