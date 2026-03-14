@@ -128,6 +128,27 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
   }, [contact, contactId]);
 
   // ---- Refresh functions ----
+  const refreshPreferences = useCallback(() => {
+    contactPreferencesService.getByContactId(contactId)
+      .then(({ data }) => {
+        const arr = data as ContactPreference[] | null;
+        setPreferences(arr && arr.length > 0 ? arr[0] : null);
+      })
+      .catch(err => console.error('[ContactModal] refresh preferences failed:', err));
+  }, [contactId]);
+
+  // Re-fetch preferences when AI tools mutate data
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.tool === 'createContactPreference' || detail?.tool === 'updateContactPreference') {
+        refreshPreferences();
+      }
+    };
+    window.addEventListener('zmob:data-mutated', handler);
+    return () => window.removeEventListener('zmob:data-mutated', handler);
+  }, [refreshPreferences]);
+
   const refreshActivities = useCallback(async () => {
     if (!supabase) return;
     const dealIds = deals.map((d) => d.id);

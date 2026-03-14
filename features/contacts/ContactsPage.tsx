@@ -207,6 +207,42 @@ export const ContactsPage: React.FC = () => {
                 contactsCount={controller.totalCount}
             />
 
+            {/* Bulk Actions Bar (top, inline) */}
+            {controller.selectedIds.size > 0 && (
+                <div className="flex items-center justify-between rounded-xl border border-border bg-white/95 dark:bg-card/95 backdrop-blur-sm px-4 py-2.5">
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
+                            {controller.selectedIds.size} contato{controller.selectedIds.size !== 1 ? 's' : ''} selecionado{controller.selectedIds.size !== 1 ? 's' : ''}
+                        </span>
+                        <Button
+                            onClick={controller.clearSelection}
+                            className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                        >
+                            Limpar
+                        </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <BulkActionsToolbar
+                            selectedCount={controller.selectedIds.size}
+                            onClearSelection={controller.clearSelection}
+                            onReassign={controller.bulkReassignOwner}
+                            onExportCsv={handleExportCsv}
+                            profiles={controller.profiles}
+                            contactLists={controller.contactLists}
+                            onAddToList={handleAddToList}
+                            onRemoveFromList={controller.selectedListId && controller.selectedListId !== NO_LIST_FILTER ? handleRemoveFromList : undefined}
+                        />
+                        <Button
+                            onClick={() => controller.setBulkDeleteConfirm(true)}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                            <Trash2 size={14} />
+                            Excluir
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* CL-1: Sidebar + Table layout */}
             <div className="flex gap-0 rounded-xl border border-border overflow-hidden">
                 <ContactListsSidebar
@@ -218,12 +254,11 @@ export const ContactsPage: React.FC = () => {
                     totalContactsCount={controller.totalCount}
                     noListCount={noListCount}
                     isLoading={controller.listsLoading}
+                    collapsed={controller.listsSidebarCollapsed}
+                    onToggleCollapse={controller.toggleListsSidebar}
                 />
 
                 <div className="flex-1 min-w-0">
-                    {/* Spacer to prevent sticky bar from hiding content */}
-                    {controller.selectedIds.size > 0 && <div className="h-16" />}
-
                     <ContactsList
                         filteredContacts={controller.filteredContacts}
                         selectedIds={controller.selectedIds}
@@ -349,43 +384,6 @@ export const ContactsPage: React.FC = () => {
                 variant="danger"
             />
 
-            {/* Story 3.5 — Sticky Bulk Actions Bar (bottom) */}
-            {controller.selectedIds.size > 0 && (
-                <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-white/95 dark:bg-card/95 backdrop-blur-sm shadow-bottom-bar px-8 py-3">
-                    <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
-                                {controller.selectedIds.size} contato{controller.selectedIds.size !== 1 ? 's' : ''} selecionado{controller.selectedIds.size !== 1 ? 's' : ''}
-                            </span>
-                            <Button
-                                onClick={controller.clearSelection}
-                                className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
-                            >
-                                Limpar
-                            </Button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <BulkActionsToolbar
-                                selectedCount={controller.selectedIds.size}
-                                onClearSelection={controller.clearSelection}
-                                onReassign={controller.bulkReassignOwner}
-                                onExportCsv={handleExportCsv}
-                                profiles={controller.profiles}
-                                contactLists={controller.contactLists}
-                                onAddToList={handleAddToList}
-                                onRemoveFromList={controller.selectedListId && controller.selectedListId !== NO_LIST_FILTER ? handleRemoveFromList : undefined}
-                            />
-                            <Button
-                                onClick={() => controller.setBulkDeleteConfirm(true)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors"
-                            >
-                                <Trash2 size={14} />
-                                Excluir
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

@@ -9,6 +9,7 @@ import { PowerDialer } from './components/PowerDialer'
 import { SessionSummary } from './components/SessionSummary'
 import { AddToQueueSearch } from './components/AddToQueueSearch'
 import { ProspectingFilters } from './components/ProspectingFilters'
+import { useContactLists } from '@/lib/query/hooks/useContactListsQuery'
 import { FilteredContactsList } from './components/FilteredContactsList'
 import { MetricsCards } from './components/MetricsCards'
 import { MetricsDrilldownModal } from './components/MetricsDrilldownModal'
@@ -79,6 +80,9 @@ export const ProspectingPage: React.FC = () => {
     },
     staleTime: 5 * 60 * 1000,
   })
+
+  // CL-1: Contact lists for filter dropdown
+  const { data: contactLists = [] } = useContactLists()
 
   // --- Page state hook (all useState + handlers) ---
   const pageState = useProspectingPageState(profile?.id, profile?.organization_id)
@@ -757,6 +761,7 @@ export const ProspectingPage: React.FC = () => {
                   filters={filters}
                   onFiltersChange={setFilters}
                   profiles={profiles}
+                  contactLists={contactLists}
                   availableTags={availableTags}
                   showCorretorFilter={isAdminOrDirector}
                   onApply={handleApplyFilters}

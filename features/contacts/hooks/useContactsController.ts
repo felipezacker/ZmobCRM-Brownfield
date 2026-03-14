@@ -47,6 +47,7 @@ export const useContactsController = () => {
 
   // CL-1: List filter state
   const [selectedListId, setSelectedListId] = useState<ListFilterValue>(null);
+  const [listsSidebarCollapsed, setListsSidebarCollapsed] = useState(false);
   const { data: contactLists = [], isLoading: listsLoading } = useContactLists();
 
   // --- Sub-hooks (no circular deps) ---
@@ -174,6 +175,8 @@ export const useContactsController = () => {
     setSelectedListId,
     contactLists,
     listsLoading,
+    listsSidebarCollapsed,
+    toggleListsSidebar: useCallback(() => setListsSidebarCollapsed(prev => !prev), []),
 
     // Shared
     boards,

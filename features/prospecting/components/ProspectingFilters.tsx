@@ -29,6 +29,7 @@ export interface ProspectingFiltersState {
   tags: string[]
   sources: string[]
   dealOwnerIds: string[]
+  contactListIds: string[]
   inactiveDays: number | null
   onlyWithPhone: boolean
   hasActiveDeal: boolean | null
@@ -41,6 +42,7 @@ export const INITIAL_FILTERS: ProspectingFiltersState = {
   tags: [],
   sources: [],
   dealOwnerIds: [],
+  contactListIds: [],
   inactiveDays: null,
   onlyWithPhone: false,
   hasActiveDeal: null,
@@ -63,6 +65,7 @@ export function migrateFilters(raw: Record<string, unknown>): ProspectingFilters
       : typeof raw.dealOwnerId === 'string' && raw.dealOwnerId.trim()
         ? [raw.dealOwnerId.trim()]
         : [],
+    contactListIds: (raw.contactListIds as string[]) ?? [],
     inactiveDays: (raw.inactiveDays as number) ?? null,
     onlyWithPhone: (raw.onlyWithPhone as boolean) ?? false,
     hasActiveDeal: (raw.hasActiveDeal as boolean | null) ?? null,
@@ -73,6 +76,7 @@ interface ProspectingFiltersProps {
   filters: ProspectingFiltersState
   onFiltersChange: (filters: ProspectingFiltersState) => void
   profiles: Array<{ id: string; name: string }>
+  contactLists: Array<{ id: string; name: string; color: string }>
   availableTags: string[]
   showCorretorFilter: boolean
   onApply: () => void
@@ -239,6 +243,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
   filters,
   onFiltersChange,
   profiles,
+  contactLists,
   availableTags,
   showCorretorFilter,
   onApply,
@@ -251,6 +256,7 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
     filters.tags.length > 0 ||
     filters.sources.length > 0 ||
     filters.dealOwnerIds.length > 0 ||
+    filters.contactListIds.length > 0 ||
     filters.inactiveDays !== null ||
     filters.onlyWithPhone ||
     filters.hasActiveDeal !== null
@@ -266,6 +272,9 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
 
   const sourceOptions = useMemo(() =>
     Object.entries(SOURCE_LABELS).map(([value, label]) => ({ value, label })), [])
+
+  const listOptions = useMemo(() =>
+    contactLists.map(l => ({ value: l.id, label: l.name })), [contactLists])
 
   const corretorOptions = useMemo(() =>
     profiles.map(p => ({ value: p.id, label: p.name })), [profiles])
@@ -335,6 +344,11 @@ export const ProspectingFilters: React.FC<ProspectingFiltersProps> = ({
 
       {/* Row 2: Relacionamento */}
       <div className="flex flex-wrap gap-4 items-end">
+        {listOptions.length > 0 && (
+          <MultiSelectDropdown label="Lista" options={listOptions} selected={filters.contactListIds}
+            onChange={(next) => onFiltersChange({ ...filters, contactListIds: next })} placeholder="Todas" />
+        )}
+
         {showCorretorFilter && (
           <MultiSelectDropdown label="Corretor (negócios)" options={corretorOptions} selected={filters.dealOwnerIds}
             onChange={(next) => onFiltersChange({ ...filters, dealOwnerIds: next })} placeholder="Todos" />
