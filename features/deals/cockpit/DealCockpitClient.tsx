@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bug, Check, Moon, Sun, X } from 'lucide-react';
+import { Bug, Check, Monitor, Moon, Sun, X } from 'lucide-react';
 
 import { useTheme } from '@/context/ThemeContext';
 import { isDebugMode, enableDebugMode, disableDebugMode } from '@/lib/debug';
@@ -68,7 +68,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     isScriptsLoading: state.isScriptsLoading,
   });
 
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { themeMode, cycleTheme } = useTheme();
   const [debugEnabled, setDebugEnabled] = useState(() => isDebugMode());
 
   // --- Render ---
@@ -185,11 +185,11 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             </div>
             <Button
               type="button"
-              onClick={toggleDarkMode}
+              onClick={cycleTheme}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 transition-colors"
               title="Alternar tema"
             >
-              {darkMode ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              {themeMode === 'system' ? <Monitor className="h-3.5 w-3.5" /> : themeMode === 'light' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
             </Button>
           </div>
         }

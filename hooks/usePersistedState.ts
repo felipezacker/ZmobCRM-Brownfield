@@ -27,7 +27,7 @@
  * ```
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 /**
  * Opções para usePersistedState
@@ -94,7 +94,6 @@ export const usePersistedState = <T>(
   // Always start with initialValue to match server-rendered HTML (prevents hydration mismatch)
   const [state, setState] = useState<T>(initialValue);
   const [hydrated, setHydrated] = useState(false);
-  const isFirstMount = useRef(true);
 
   // After mount: read persisted value from localStorage
   useEffect(() => {
@@ -106,7 +105,6 @@ export const usePersistedState = <T>(
     } catch (error) {
       console.error(`Error reading localStorage key "${storageKey}":`, error);
     }
-    isFirstMount.current = false;
     setHydrated(true);
   }, [storageKey]);
 

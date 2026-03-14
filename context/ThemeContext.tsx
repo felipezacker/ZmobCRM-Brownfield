@@ -1,60 +1,46 @@
-/**
- * @fileoverview Contexto de Tema (Dark Mode)
- * 
- * Provider React que gerencia preferência de tema (claro/escuro) com
- * persistência em localStorage e sincronização com classe CSS do documento.
- * 
- * @module context/ThemeContext
- * 
- * @example
- * ```tsx
- * // No App.tsx
- * <ThemeProvider>
- *   <App />
- * </ThemeProvider>
- * 
- * // Em qualquer componente
- * function ThemeToggle() {
- *   const { darkMode, toggleDarkMode } = useTheme();
- *   
- *   return (
- *     <button onClick={toggleDarkMode}>
- *       {darkMode ? '☀️ Claro' : '🌙 Escuro'}
- *     </button>
- *   );
- * }
- * ```
- */
-
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { usePersistedState } from '../hooks/usePersistedState';
 
-/**
- * Tipo do contexto de tema
- * 
- * @interface ThemeContextType
- * @property {boolean} darkMode - Se o modo escuro está ativo
- * @property {() => void} toggleDarkMode - Alterna entre claro e escuro
- */
+export type ThemeMode = 'system' | 'light' | 'dark';
+
+const THEME_LABELS: Record<ThemeMode, string> = {
+  system: 'Tema do sistema',
+  light: 'Tema claro',
+  dark: 'Tema escuro',
+};
+
 interface ThemeContextType {
+  themeMode: ThemeMode;
   darkMode: boolean;
+  cycleTheme: () => void;
   toggleDarkMode: () => void;
+  themeLabel: string;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-/**
- * Provider de tema da aplicação
- * 
- * Gerencia preferência de tema e aplica classe 'dark' ao documento.
- * O tema é persistido em localStorage com a chave 'crm_dark_mode'.
- * O padrão é modo escuro (true).
- * 
- * @param {Object} props - Props do componente
- * @param {ReactNode} props.children - Componentes filhos
- */
+const CYCLE_ORDER: ThemeMode[] = ['system', 'light', 'dark'];
+
+function useSystemDarkMode() {
+  const [systemDark, setSystemDark] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    setSystemDark(mq.matches);
+
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return systemDark;
+}
+
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [darkMode, setDarkMode] = usePersistedState<boolean>('crm_dark_mode', true);
+  const [themeMode, setThemeMode] = usePersistedState<ThemeMode>('crm_theme_mode', 'system');
+  const systemDark = useSystemDarkMode();
+
+  const darkMode = themeMode === 'system' ? systemDark : themeMode === 'dark';
 
   useEffect(() => {
     if (darkMode) {
@@ -64,32 +50,24 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [darkMode]);
 
-  const toggleDarkMode = () => setDarkMode(!darkMode);
+  const cycleTheme = useCallback(() => {
+    setThemeMode((current) => {
+      const idx = CYCLE_ORDER.indexOf(current as ThemeMode);
+      return CYCLE_ORDER[(idx + 1) % CYCLE_ORDER.length];
+    });
+  }, [setThemeMode]);
+
+  const toggleDarkMode = cycleTheme;
+
+  const themeLabel = THEME_LABELS[themeMode];
 
   return (
-    <ThemeContext.Provider value={{ darkMode, toggleDarkMode }}>
+    <ThemeContext.Provider value={{ themeMode, darkMode, cycleTheme, toggleDarkMode, themeLabel }}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-/**
- * Hook para acessar contexto de tema
- * 
- * Retorna estado do tema e função para alternar.
- * Deve ser usado dentro de um ThemeProvider.
- * 
- * @returns {ThemeContextType} Estado e controles do tema
- * @throws {Error} Se usado fora do ThemeProvider
- * 
- * @example
- * ```tsx
- * function Header() {
- *   const { darkMode } = useTheme();
- *   return <header className={darkMode ?'bg-card' : 'bg-white'}>...</header>;
- * }
- * ```
- */
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
