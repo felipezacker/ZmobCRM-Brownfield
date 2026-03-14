@@ -83,8 +83,8 @@ export const useUpdateQueueItemStatus = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: ProspectingQueueStatus }) => {
-      const { error } = await prospectingQueuesService.updateStatus(id, status)
+    mutationFn: async ({ id, status, skipReason }: { id: string; status: ProspectingQueueStatus; skipReason?: string }) => {
+      const { error } = await prospectingQueuesService.updateStatus(id, status, skipReason)
       if (error) throw error
       return { id, status }
     },

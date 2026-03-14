@@ -51,6 +51,7 @@ interface DbQueueItem {
   assigned_by: string | null;
   retry_at: string | null;
   retry_count: number;
+  skip_reason: string | null;
   created_at: string;
   updated_at: string;
   contacts?: {
@@ -78,6 +79,7 @@ const transformQueueItem = (db: DbQueueItem): ProspectingQueueItem => ({
   assignedBy: db.assigned_by || undefined,
   retryAt: db.retry_at || undefined,
   retryCount: db.retry_count ?? 0,
+  skipReason: db.skip_reason || undefined,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
   contactName: db.contacts?.name,
@@ -200,14 +202,19 @@ export const prospectingQueuesService = {
   /**
    * Update queue item status.
    */
-  async updateStatus(id: string, status: ProspectingQueueStatus): Promise<{ error: Error | null }> {
+  async updateStatus(id: string, status: ProspectingQueueStatus, skipReason?: string): Promise<{ error: Error | null }> {
     try {
       const sb = supabase;
       if (!sb) return { error: new Error('Supabase não configurado') };
 
+      const updateData: Record<string, unknown> = { status }
+      if (status === 'skipped' && skipReason) {
+        updateData.skip_reason = skipReason
+      }
+
       const { error } = await sb
         .from('prospecting_queues')
-        .update({ status })
+        .update(updateData)
         .eq('id', id);
 
       return { error };

@@ -183,11 +183,11 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     advanceToNext()
   }, [advanceToNext])
 
-  const skip = useCallback(async () => {
+  const skip = useCallback(async (reason?: string) => {
     const item = queue[currentIndex]
     if (!item) return
     try {
-      await updateStatusMutation.mutateAsync({ id: item.id, status: 'skipped' })
+      await updateStatusMutation.mutateAsync({ id: item.id, status: 'skipped', skipReason: reason })
       advanceToNext()
     } catch {
       toast('Erro ao pular contato', 'error')

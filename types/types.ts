@@ -350,6 +350,7 @@ export interface ProspectingQueueItem {
   assignedBy?: string;
   retryAt?: string;
   retryCount: number;
+  skipReason?: string;
   createdAt: string;
   updatedAt: string;
   // Joined data
