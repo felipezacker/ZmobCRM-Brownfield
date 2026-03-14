@@ -21,6 +21,7 @@ interface GeneratePdfOptions {
   range: PeriodRange
   isAdminOrDirector: boolean
   organizationName: string
+  comparisonMetrics?: ProspectingMetrics
 }
 
 function formatDate(dateStr: string): string {
@@ -28,8 +29,19 @@ function formatDate(dateStr: string): string {
   return `${d}/${m}/${y}`
 }
 
+function formatDelta(current: number, previous: number, invertDirection = false): string {
+  if (previous === 0 && current === 0) return ''
+  if (previous === 0) return '(Novo)'
+  const delta = ((current - previous) / previous) * 100
+  if (delta === 0) return '(= 0%)'
+  const arrow = delta > 0 ? '↑' : '↓'
+  const isPositive = invertDirection ? delta < 0 : delta > 0
+  const sign = isPositive ? '+' : ''
+  return `${arrow} ${sign}${delta.toFixed(1)}%`
+}
+
 export async function generateMetricsPDF(options: GeneratePdfOptions) {
-  const { metrics, brokers, range, isAdminOrDirector, organizationName } = options
+  const { metrics, brokers, range, isAdminOrDirector, organizationName, comparisonMetrics } = options
 
   if (!metrics) throw new Error('Métricas não disponíveis')
 
@@ -73,19 +85,32 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   doc.setFontSize(13)
   doc.setFont('helvetica', 'bold')
   doc.text('KPIs Resumidos', 14, y)
+
+  if (comparisonMetrics) {
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100, 100, 100)
+    doc.text('(vs período anterior)', 14 + doc.getTextWidth('KPIs Resumidos ') + 2, y)
+  }
   y += 8
 
+  const noAnswer = metrics.byOutcome.find(o => o.outcome === 'no_answer')?.count || 0
+  const voicemailCount = metrics.byOutcome.find(o => o.outcome === 'voicemail')?.count || 0
+  const compNoAnswer = comparisonMetrics?.byOutcome?.find(o => o.outcome === 'no_answer')?.count ?? 0
+  const compVoicemail = comparisonMetrics?.byOutcome?.find(o => o.outcome === 'voicemail')?.count ?? 0
+  const connectionImproved = comparisonMetrics ? (metrics.connectionRate > comparisonMetrics.connectionRate) : false
+
   const kpis = [
-    { label: 'Ligações Discadas', value: String(metrics.totalCalls) },
-    { label: 'Atendidas', value: String(metrics.connectedCalls) },
-    { label: 'Sem Resposta', value: String(metrics.byOutcome.find(o => o.outcome === 'no_answer')?.count || 0) },
-    { label: 'Correio de Voz', value: String(metrics.byOutcome.find(o => o.outcome === 'voicemail')?.count || 0) },
-    { label: 'Tempo Médio', value: formatDuration(metrics.avgDuration) },
-    { label: 'Contatos Prospectados', value: String(metrics.uniqueContacts) },
+    { label: 'Ligações Discadas', value: String(metrics.totalCalls), delta: comparisonMetrics ? formatDelta(metrics.totalCalls, comparisonMetrics.totalCalls) : '' },
+    { label: 'Atendidas', value: String(metrics.connectedCalls), delta: comparisonMetrics ? formatDelta(metrics.connectedCalls, comparisonMetrics.connectedCalls) : '' },
+    { label: 'Sem Resposta', value: String(noAnswer), delta: comparisonMetrics ? formatDelta(noAnswer, compNoAnswer, true) : '' },
+    { label: 'Correio de Voz', value: String(voicemailCount), delta: comparisonMetrics ? formatDelta(voicemailCount, compVoicemail, true) : '' },
+    { label: 'Tempo Médio', value: formatDuration(metrics.avgDuration), delta: comparisonMetrics ? formatDelta(metrics.avgDuration, comparisonMetrics.avgDuration, !connectionImproved) : '' },
+    { label: 'Contatos Prospectados', value: String(metrics.uniqueContacts), delta: comparisonMetrics ? formatDelta(metrics.uniqueContacts, comparisonMetrics.uniqueContacts) : '' },
   ]
 
   const colWidth = (pageWidth - 28) / 3
-  const rowHeight = 18
+  const rowHeight = comparisonMetrics ? 22 : 18
 
   kpis.forEach((kpi, i) => {
     const col = i % 3
@@ -108,6 +133,22 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(30, 30, 30)
     doc.text(kpi.value, x + 4, yPos + 12)
+
+    // Delta (CP-6.4)
+    if (kpi.delta) {
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'bold')
+      const isPositive = kpi.delta.includes('+') || kpi.delta === '(Novo)'
+      const isNeutral = kpi.delta === '(= 0%)' || kpi.delta === '(Novo)'
+      if (isNeutral) {
+        doc.setTextColor(100, 100, 100)
+      } else if (isPositive) {
+        doc.setTextColor(34, 197, 94)
+      } else {
+        doc.setTextColor(239, 68, 68)
+      }
+      doc.text(kpi.delta, x + 4, yPos + 17)
+    }
   })
 
   y += Math.ceil(kpis.length / 3) * rowHeight + 6

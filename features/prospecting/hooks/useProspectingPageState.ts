@@ -62,6 +62,7 @@ export interface MetricsDeps {
   range: PeriodRange
   isAdminOrDirector: boolean
   invalidateMetrics: () => void
+  comparisonMetrics?: ProspectingMetrics | null
 }
 
 /** Subset of useProspectingFilteredContacts return needed by handlers */
@@ -525,6 +526,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
         range: deps.metricsDeps.range,
         isAdminOrDirector: deps.metricsDeps.isAdminOrDirector,
         organizationName: 'ZmobCRM',
+        comparisonMetrics: deps.metricsDeps.comparisonMetrics ?? undefined,
       })
       deps.toast('PDF exportado com sucesso', 'success')
     } catch {
