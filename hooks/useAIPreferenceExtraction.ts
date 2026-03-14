@@ -27,7 +27,7 @@ export function useAIPreferenceExtraction({
 }: UseAIPreferenceExtractionOptions): UseAIPreferenceExtractionReturn {
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-  const toast = useOptionalToast();
+  const { addToast } = useOptionalToast();
 
   const handleAIExtract = useCallback(async () => {
     const text = aiInput.trim();
@@ -63,11 +63,11 @@ export function useAIPreferenceExtraction({
       setAiInput('');
     } catch (err) {
       console.error('[useAIPreferenceExtraction] AI extract failed:', err);
-      toast?.('Erro ao extrair preferências. Tente novamente.', 'error');
+      addToast('Erro ao extrair preferências. Tente novamente.', 'error');
     } finally {
       setAiLoading(false);
     }
-  }, [aiInput, aiLoading, preferences, onUpdate, onCreate, toast]);
+  }, [aiInput, aiLoading, preferences, onUpdate, onCreate, addToast]);
 
   return { aiInput, setAiInput, aiLoading, handleAIExtract };
 }

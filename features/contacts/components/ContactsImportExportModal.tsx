@@ -68,7 +68,7 @@ export function ContactsImportExportModal(props: {
   const [delimiter, setDelimiter] = useState<'auto' | CsvDelimiter>('auto');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const wizard = useContactImportWizard({ toast, isOpen, panel, delimiter, organizationId, userId: user?.id });
+  const wizard = useContactImportWizard({ toast, isOpen, panel, delimiter, organizationId: organizationId ?? undefined, userId: user?.id ?? undefined });
   const {
     isExporting,
     handleExport,
