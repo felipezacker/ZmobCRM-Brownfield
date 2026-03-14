@@ -601,6 +601,34 @@ export function ContactsImportExportModal(props: {
                 </div>
               )}
 
+              {/* CL-1: List assignment */}
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
+                  Vincular a lista (opcional)
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={wizard.importListId}
+                    onChange={e => { wizard.setImportListId(e.target.value); wizard.setNewListName(''); }}
+                    className="flex-1 text-sm rounded-lg border border-border bg-white dark:bg-white/5 px-2 py-1.5"
+                  >
+                    <option value="">Nenhuma lista</option>
+                    {wizard.availableLists.map(l => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                  {!wizard.importListId && (
+                    <input
+                      type="text"
+                      placeholder="Ou criar nova lista..."
+                      value={wizard.newListName}
+                      onChange={e => wizard.setNewListName(e.target.value)}
+                      className="flex-1 text-sm rounded-lg border border-border bg-white dark:bg-white/5 px-2 py-1.5"
+                    />
+                  )}
+                </div>
+              </div>
+
               {/* Duplicate mode */}
               <div className="space-y-2">
                 <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">

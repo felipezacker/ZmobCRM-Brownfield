@@ -105,6 +105,11 @@ export function useContactImportWizard({ toast, isOpen, panel, delimiter }: UseC
   const [selectedStageId, setSelectedStageId] = useState('');
   const [dealColumnMapping, setDealColumnMapping] = useState<Record<number, string>>({});
 
+  // CL-1: List assignment on import
+  const [importListId, setImportListId] = useState<string>('');
+  const [availableLists, setAvailableLists] = useState<Array<{ id: string; name: string; color: string }>>([]);
+  const [newListName, setNewListName] = useState('');
+
   useEffect(() => {
     if (!isOpen || panel !== 'import') return;
     let cancelled = false;
@@ -115,6 +120,26 @@ export function useContactImportWizard({ toast, isOpen, panel, delimiter }: UseC
         const data = await res.json();
         if (!cancelled && Array.isArray(data)) {
           setCustomFieldDefs(data);
+        }
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+  }, [isOpen, panel]);
+
+  // CL-1: Fetch available lists when import panel opens
+  useEffect(() => {
+    if (!isOpen || panel !== 'import') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { supabase } = await import('@/lib/supabase/client');
+        if (!supabase) return;
+        const { data } = await supabase
+          .from('contact_lists')
+          .select('id, name, color')
+          .order('name');
+        if (!cancelled && data) {
+          setAvailableLists(data);
         }
       } catch { /* silent */ }
     })();
@@ -193,6 +218,8 @@ export function useContactImportWizard({ toast, isOpen, panel, delimiter }: UseC
     setBoards([]);
     setShowNewCfInput(false);
     setNewCfLabel('');
+    setImportListId('');
+    setNewListName('');
   }, []);
 
   const usedFields = useMemo(() => {
@@ -299,11 +326,49 @@ export function useContactImportWizard({ toast, isOpen, panel, delimiter }: UseC
         }));
       }
 
+      // CL-1: If creating a new list inline, do it before import
+      let resolvedListId = importListId;
+      if (newListName.trim() && !importListId) {
+        try {
+          const { contactListsService } = await import('@/lib/supabase/contact-lists');
+          const { supabase } = await import('@/lib/supabase/client');
+          if (supabase) {
+            const { data: { user } } = await supabase.auth.getUser();
+            const { data: profile } = user ? await supabase
+              .from('profiles')
+              .select('organization_id')
+              .eq('id', user.id)
+              .single() : { data: null };
+            if (profile?.organization_id) {
+              const { data: newList } = await contactListsService.create({
+                name: newListName.trim(),
+                organizationId: profile.organization_id,
+                createdBy: user?.id,
+              });
+              if (newList) resolvedListId = newList.id;
+            }
+          }
+        } catch { /* continue without list */ }
+      }
+
       const res = await fetch('/api/contacts/import', { method: 'POST', body: fd });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         throw new Error(data?.error || `Falha ao importar (HTTP ${res.status})`);
       }
+
+      // CL-1: Add imported contacts to list
+      const allImportedIds = [
+        ...((data?.importedContactIds as string[]) || []),
+        ...((data?.reusedContactIds as string[]) || []),
+      ];
+      if (resolvedListId && allImportedIds.length > 0) {
+        try {
+          const { contactListsService } = await import('@/lib/supabase/contact-lists');
+          await contactListsService.addContacts(resolvedListId, allImportedIds);
+        } catch { /* list assignment failed but import succeeded */ }
+      }
+
       setImportResult(data);
       const totals = data?.totals as Record<string, number> | undefined;
       const scoreMsg = data?.scoresQueued
@@ -323,7 +388,7 @@ export function useContactImportWizard({ toast, isOpen, panel, delimiter }: UseC
     } finally {
       setIsImporting(false);
     }
-  }, [file, mode, resolvedDelimiter, ignoreHeader, columnMapping, enableDealMapping, selectedBoardId, selectedStageId, dealColumnMapping, toast]);
+  }, [file, mode, resolvedDelimiter, ignoreHeader, columnMapping, enableDealMapping, selectedBoardId, selectedStageId, dealColumnMapping, toast, importListId, newListName]);
 
   return {
     wizardStep, setWizardStep,
@@ -354,5 +419,9 @@ export function useContactImportWizard({ toast, isOpen, panel, delimiter }: UseC
     handleMappingChange,
     handleImport,
     handleCreateCustomField,
+    // CL-1: List assignment
+    importListId, setImportListId,
+    availableLists,
+    newListName, setNewListName,
   };
 }

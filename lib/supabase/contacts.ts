@@ -420,6 +420,35 @@ export const contactsService = {
           query = query.eq('source', filters.source);
         }
 
+        // CL-1: Filter by contact list membership
+        if (filters.contactListId) {
+          const { data: members } = await supabase
+            .from('contact_list_members')
+            .select('contact_id')
+            .eq('list_id', filters.contactListId);
+
+          const memberIds = (members || []).map(r => r.contact_id);
+          if (memberIds.length === 0) {
+            return {
+              data: { data: [], totalCount: 0, pageIndex, pageSize, hasMore: false },
+              error: null,
+            };
+          }
+          query = query.in('id', memberIds);
+        }
+
+        // CL-1: Filter contacts not in any list
+        if (filters.noList) {
+          const { data: allMembers } = await supabase
+            .from('contact_list_members')
+            .select('contact_id');
+
+          const memberedIds = [...new Set((allMembers || []).map(r => r.contact_id))];
+          if (memberedIds.length > 0) {
+            query = query.not('id', 'in', `(${memberedIds.join(',')})`);
+          }
+        }
+
       }
 
       // Apply pagination and ordering
