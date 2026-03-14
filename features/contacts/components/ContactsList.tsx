@@ -331,7 +331,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     }
 
     return (
-        <div className="glass rounded-xl border border-border shadow-sm overflow-hidden w-full max-w-full">
+        <div className="glass overflow-hidden w-full max-w-full">
             {/* Story 3.5 — Result count (fixed, not scrollable) */}
             {totalCount !== undefined && (
                 <div className="px-6 py-2 border-b border-border bg-background/50 dark:bg-white/[0.02]">

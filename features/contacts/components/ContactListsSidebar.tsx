@@ -34,7 +34,7 @@ export const ContactListsSidebar: React.FC<ContactListsSidebarProps> = ({
 }) => {
   return (
     <aside
-      className={`hidden md:flex flex-col shrink-0 border-r border-border bg-background/50 dark:bg-white/[0.02] rounded-l-xl overflow-hidden transition-all duration-200 ${
+      className={`hidden md:flex flex-col shrink-0 border-r border-border bg-background/50 dark:bg-white/[0.02] overflow-hidden transition-all duration-200 ${
         collapsed ? 'w-11' : 'w-48'
       }`}
     >
