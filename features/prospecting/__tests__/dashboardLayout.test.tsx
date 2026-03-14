@@ -5,6 +5,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { renderHook, act } from '@testing-library/react'
 import { useDashboardLayout } from '../hooks/useDashboardLayout'
 import { EditableSectionWrapper } from '../components/EditableSectionWrapper'
+import { MetricsSection } from '../components/MetricsSection'
 
 // --- Mock @dnd-kit ---
 
@@ -248,84 +249,74 @@ describe('useDashboardLayout', () => {
   })
 })
 
-describe('EditableSectionWrapper', () => {
-  it('renders children in normal mode', () => {
-    render(
-      <EditableSectionWrapper id="test" isEditing={false} isHidden={false} canHideMore={true} onToggleVisibility={vi.fn()}>
-        <div data-testid="content">Content</div>
-      </EditableSectionWrapper>,
-    )
+// Helper: simple icon component for tests
+const TestIcon = (props: { size?: number; className?: string }) =>
+  React.createElement('span', { 'data-testid': 'test-icon', className: props.className })
 
+// Helper: render MetricsSection inside EditableSectionWrapper (edit mode needs cloneElement)
+function renderWithWrapper(wrapperProps: Omit<React.ComponentProps<typeof EditableSectionWrapper>, 'children'>) {
+  return render(
+    <EditableSectionWrapper {...wrapperProps}>
+      <MetricsSection title="Test Section" icon={TestIcon} iconColor="text-blue-500">
+        <div data-testid="content">Content</div>
+      </MetricsSection>
+    </EditableSectionWrapper>,
+  )
+}
+
+describe('EditableSectionWrapper + MetricsSection', () => {
+  it('renders children in normal mode with collapse controls', () => {
+    renderWithWrapper({ id: 'test', isEditing: false, isHidden: false, canHideMore: true, onToggleVisibility: vi.fn() })
+
+    expect(screen.getByText('Test Section')).toBeInTheDocument()
     expect(screen.getByTestId('content')).toBeInTheDocument()
+    // Normal mode: no drag handle, no eye toggle
+    expect(screen.queryByLabelText('Arrastar para reordenar')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Esconder seção')).not.toBeInTheDocument()
   })
 
-  // PR review fix: hidden sections render empty container (no children = no active queries)
-  it('renders hidden section as empty container when not editing (no children mounted)', () => {
-    const { container } = render(
-      <EditableSectionWrapper id="test" isEditing={false} isHidden={true} canHideMore={true} onToggleVisibility={vi.fn()}>
-        <div data-testid="content">Content</div>
-      </EditableSectionWrapper>,
-    )
+  it('renders hidden section as empty container when not editing', () => {
+    const { container } = renderWithWrapper({ id: 'test', isEditing: false, isHidden: true, canHideMore: true, onToggleVisibility: vi.fn() })
 
-    // Container is in the DOM but hidden, children are NOT mounted
     const wrapper = container.firstChild as HTMLElement
     expect(wrapper).toHaveAttribute('hidden')
     expect(screen.queryByTestId('content')).not.toBeInTheDocument()
   })
 
-  it('shows drag handle and visibility toggle in edit mode', () => {
-    render(
-      <EditableSectionWrapper id="test" isEditing={true} isHidden={false} canHideMore={true} onToggleVisibility={vi.fn()}>
-        <div data-testid="content">Content</div>
-      </EditableSectionWrapper>,
-    )
+  it('shows drag handle and eye toggle in edit mode (on MetricsSection header)', () => {
+    renderWithWrapper({ id: 'test', isEditing: true, isHidden: false, canHideMore: true, onToggleVisibility: vi.fn() })
 
     expect(screen.getByLabelText('Arrastar para reordenar')).toBeInTheDocument()
     expect(screen.getByLabelText('Esconder seção')).toBeInTheDocument()
+    expect(screen.getByText('Test Section')).toBeInTheDocument()
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
-  it('shows hidden section with reduced opacity in edit mode', () => {
-    render(
-      <EditableSectionWrapper id="test" isEditing={true} isHidden={true} canHideMore={true} onToggleVisibility={vi.fn()}>
-        <div data-testid="content">Content</div>
-      </EditableSectionWrapper>,
-    )
+  it('shows hidden section with eye toggle in edit mode', () => {
+    renderWithWrapper({ id: 'test', isEditing: true, isHidden: true, canHideMore: true, onToggleVisibility: vi.fn() })
 
     expect(screen.getByLabelText('Mostrar seção')).toBeInTheDocument()
     expect(screen.getByTestId('content')).toBeInTheDocument()
   })
 
-  it('calls onToggleVisibility when toggle button is clicked', () => {
+  it('calls onToggleVisibility when eye toggle is clicked', () => {
     const onToggle = vi.fn()
-    render(
-      <EditableSectionWrapper id="my-section" isEditing={true} isHidden={false} canHideMore={true} onToggleVisibility={onToggle}>
-        <div>Content</div>
-      </EditableSectionWrapper>,
-    )
+    renderWithWrapper({ id: 'my-section', isEditing: true, isHidden: false, canHideMore: true, onToggleVisibility: onToggle })
 
     fireEvent.click(screen.getByLabelText('Esconder seção'))
     expect(onToggle).toHaveBeenCalledWith('my-section')
   })
 
-  it('does not show controls in normal mode', () => {
-    render(
-      <EditableSectionWrapper id="test" isEditing={false} isHidden={false} canHideMore={true} onToggleVisibility={vi.fn()}>
-        <div data-testid="content">Content</div>
-      </EditableSectionWrapper>,
-    )
+  it('content has pointer-events-none in edit mode', () => {
+    renderWithWrapper({ id: 'test', isEditing: true, isHidden: false, canHideMore: true, onToggleVisibility: vi.fn() })
 
-    expect(screen.queryByLabelText('Arrastar para reordenar')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Esconder seção')).not.toBeInTheDocument()
+    const content = screen.getByTestId('content')
+    // Content's parent div should have pointer-events-none class
+    expect(content.parentElement).toHaveClass('pointer-events-none')
   })
 
-  // QA#3 fix: toggle disabled when canHideMore is false and section is visible
   it('disables hide toggle when canHideMore is false and section is visible', () => {
-    render(
-      <EditableSectionWrapper id="test" isEditing={true} isHidden={false} canHideMore={false} onToggleVisibility={vi.fn()}>
-        <div>Content</div>
-      </EditableSectionWrapper>,
-    )
+    renderWithWrapper({ id: 'test', isEditing: true, isHidden: false, canHideMore: false, onToggleVisibility: vi.fn() })
 
     const toggleBtn = screen.getByLabelText('Esconder seção')
     expect(toggleBtn).toBeDisabled()
@@ -333,11 +324,7 @@ describe('EditableSectionWrapper', () => {
 
   it('allows showing hidden section even when canHideMore is false', () => {
     const onToggle = vi.fn()
-    render(
-      <EditableSectionWrapper id="test" isEditing={true} isHidden={true} canHideMore={false} onToggleVisibility={onToggle}>
-        <div>Content</div>
-      </EditableSectionWrapper>,
-    )
+    renderWithWrapper({ id: 'test', isEditing: true, isHidden: true, canHideMore: false, onToggleVisibility: onToggle })
 
     const toggleBtn = screen.getByLabelText('Mostrar seção')
     expect(toggleBtn).not.toBeDisabled()

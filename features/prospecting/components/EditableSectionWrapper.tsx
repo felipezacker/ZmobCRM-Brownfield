@@ -3,8 +3,6 @@
 import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Eye, EyeOff } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
 interface EditableSectionWrapperProps {
   id: string
@@ -42,20 +40,33 @@ export function EditableSectionWrapper({
     return <div ref={setNodeRef}>{children}</div>
   }
 
-  // Edit mode
+  // Edit mode: inject editMode prop into MetricsSection child
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const canToggle = isHidden || canHideMore
+  const editModeProps = {
+    editMode: {
+      dragAttributes: attributes,
+      dragListeners: listeners,
+      isHidden,
+      canHideMore,
+      onToggleVisibility: () => onToggleVisibility(id),
+    },
+  }
+
+  const child = React.Children.only(children)
+  const editChild = React.isValidElement(child)
+    ? React.cloneElement(child as React.ReactElement<Record<string, unknown>>, editModeProps)
+    : child
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-xl border-2 border-dashed transition-colors overflow-hidden ${
+      className={`rounded-xl border-2 border-dashed px-1 transition-colors ${
         isHidden
           ? 'border-muted-foreground/20 opacity-40'
           : isDragging
@@ -63,41 +74,7 @@ export function EditableSectionWrapper({
             : 'border-border dark:border-border/50 hover:border-primary-500/50'
       }`}
     >
-      {/* Full-width drag handle bar */}
-      <div className="flex items-center">
-        <div
-          {...attributes}
-          {...listeners}
-          className="flex-1 flex items-center gap-2 px-3 py-1.5 cursor-grab active:cursor-grabbing select-none bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-colors"
-          aria-label="Arrastar para reordenar"
-        >
-          <GripVertical size={14} className="text-muted-foreground shrink-0" />
-          <div className="flex-1 h-px bg-border/50 dark:bg-border/30" />
-        </div>
-
-        {/* Visibility toggle — outside drag listeners */}
-        <Button
-          variant="unstyled"
-          size="unstyled"
-          type="button"
-          onClick={() => onToggleVisibility(id)}
-          disabled={!canToggle}
-          className={`shrink-0 px-2.5 py-1.5 transition-colors ${
-            isHidden
-              ? 'bg-red-100 text-red-500 dark:bg-red-500/20 dark:text-red-400'
-              : !canToggle
-                ? 'bg-muted/50 text-muted-foreground/30 cursor-not-allowed dark:bg-white/5 dark:text-muted-foreground/30'
-                : 'bg-muted/50 text-muted-foreground hover:bg-muted dark:bg-white/5 dark:text-muted-foreground dark:hover:bg-white/10'
-          }`}
-          aria-label={isHidden ? 'Mostrar seção' : 'Esconder seção'}
-          aria-pressed={!isHidden}
-        >
-          {isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
-        </Button>
-      </div>
-
-      {/* Section content */}
-      <div>{children}</div>
+      {editChild}
     </div>
   )
 }
