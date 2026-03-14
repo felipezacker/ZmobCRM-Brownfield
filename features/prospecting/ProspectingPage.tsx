@@ -609,7 +609,7 @@ export const ProspectingPage: React.FC = () => {
                     : 'bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15'
                 }`}
               >
-                vs Anterior
+                Comparar
               </Button>
 
               {metricsHook.isFetching && !metricsHook.isLoading && (
