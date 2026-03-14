@@ -437,8 +437,10 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                             <input
                                                 type="checkbox"
                                                 checked={isSelected}
-                                                onClick={(e) => toggleSelect(contact.id, e)}
-                                                readOnly
+                                                onChange={(e) => {
+                                                    const mouseEvent = e.nativeEvent as MouseEvent;
+                                                    toggleSelect(contact.id, { shiftKey: mouseEvent.shiftKey });
+                                                }}
                                                 aria-label={`Selecionar ${contact.name}`}
                                                 className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5 flex-shrink-0"
                                             />

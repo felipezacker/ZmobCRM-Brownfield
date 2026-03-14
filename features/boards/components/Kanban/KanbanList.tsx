@@ -163,11 +163,11 @@ const KanbanListRow = React.memo(function KanbanListRow({
             <input
               type="checkbox"
               checked={isSelected}
-              onClick={(e) => {
-                e.stopPropagation()
-                onToggleCheck(deal.id, e)
+              onChange={(e) => {
+                e.stopPropagation();
+                const mouseEvent = e.nativeEvent as MouseEvent;
+                onToggleCheck(deal.id, { shiftKey: mouseEvent.shiftKey });
               }}
-              readOnly
               aria-label={`Selecionar ${deal.title}`}
               className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5 flex-shrink-0"
             />

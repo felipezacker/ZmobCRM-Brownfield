@@ -124,8 +124,10 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                 <input
                     type="checkbox"
                     checked={isSelected}
-                    onClick={(e) => onSelect(activity.id, !isSelected, e)}
-                    readOnly
+                    onChange={(e) => {
+                        const mouseEvent = e.nativeEvent as MouseEvent;
+                        onSelect(activity.id, e.target.checked, mouseEvent);
+                    }}
                     className="w-4 h-4 text-primary-600 bg-muted border-border rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-accent dark:border-border cursor-pointer"
                 />
             )}
