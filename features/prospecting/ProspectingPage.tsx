@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock, RefreshCw } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock, RefreshCw, Calendar } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { CallQueue } from './components/CallQueue'
 import { PowerDialer } from './components/PowerDialer'
 import { SessionSummary } from './components/SessionSummary'
@@ -563,39 +564,40 @@ export const ProspectingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Filters: period + broker on same row */}
+            {/* Filters: period select + DateRangePicker + comparison toggle */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Broker filter (admin/director) — left aligned */}
-              {isAdminOrDirector && profiles.length > 0 && (
-                <BrokerFilterDropdown
-                  profiles={profiles}
-                  selectedId={metricsFilterOwnerId}
-                  onSelect={setMetricsFilterOwnerId}
-                />
-              )}
-              {isAdminOrDirector && profiles.length > 0 && (
-                <div className="w-px h-4 bg-border dark:bg-border/50 shrink-0" />
-              )}
-              {([
-                { key: 'today', label: 'Hoje' },
-                { key: 'yesterday', label: 'Ontem' },
-                { key: '7d', label: '7 dias' },
-                { key: '30d', label: '30 dias' },
-              ] as const).map(({ key, label }) => (
-                <Button
-                  variant="unstyled"
-                  size="unstyled"
-                  key={key}
-                  onClick={() => { setMetricsPeriod(key); setCustomRange(undefined) }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    metricsPeriod === key && !customRange
-                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
-                      : 'bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15'
-                  }`}
+              <div className="flex items-center gap-2">
+                <Calendar size={14} className="text-muted-foreground shrink-0" />
+                <select
+                  aria-label="Período"
+                  value={metricsPeriod}
+                  onChange={(e) => {
+                    const val = e.target.value as typeof metricsPeriod
+                    setMetricsPeriod(val)
+                    if (val !== 'custom') setCustomRange(undefined)
+                  }}
+                  className="px-3 py-2 bg-white dark:bg-card border border-border dark:border-border rounded-lg text-sm font-medium text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
-                  {label}
-                </Button>
-              ))}
+                  <option value="today">Hoje</option>
+                  <option value="yesterday">Ontem</option>
+                  <option value="7d">Últimos 7 dias</option>
+                  <option value="30d">Últimos 30 dias</option>
+                  <option value="custom">Personalizado</option>
+                </select>
+                {metricsPeriod === 'custom' && (
+                  <DateRangePicker
+                    from={customRange?.start || ''}
+                    to={customRange?.end || ''}
+                    onChangeFrom={(date) => {
+                      setCustomRange(prev => ({ start: date, end: prev?.end || '' }))
+                    }}
+                    onChangeTo={(date) => {
+                      setCustomRange(prev => ({ start: prev?.start || '', end: date }))
+                    }}
+                  />
+                )}
+              </div>
+
               {/* CP-6.4: Comparison toggle */}
               <Button
                 variant="unstyled"
@@ -610,43 +612,19 @@ export const ProspectingPage: React.FC = () => {
                 vs Anterior
               </Button>
 
-              <div className="flex items-center gap-1.5 ml-1">
-                <input
-                  type="date"
-                  className="px-2 py-1 text-xs border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500"
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const newStart = e.target.value
-                      setCustomRange(prev => {
-                        const next = { start: newStart, end: prev?.end || '' }
-                        if (next.start && next.end) setMetricsPeriod('custom')
-                        return next
-                      })
-                    }
-                  }}
-                  value={customRange?.start || ''}
-                />
-                <span className="text-muted-foreground text-xs">-</span>
-                <input
-                  type="date"
-                  className="px-2 py-1 text-xs border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500"
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const newEnd = e.target.value
-                      setCustomRange(prev => {
-                        const next = { start: prev?.start || '', end: newEnd }
-                        if (next.start && next.end) setMetricsPeriod('custom')
-                        return next
-                      })
-                    }
-                  }}
-                  value={customRange?.end || ''}
-                />
-              </div>
               {metricsHook.isFetching && !metricsHook.isLoading && (
-                <span className="text-xs text-muted-foreground dark:text-muted-foreground animate-pulse">Atualizando...</span>
+                <span className="text-xs text-muted-foreground animate-pulse">Atualizando...</span>
               )}
             </div>
+
+            {/* Broker filter dropdown (admin/director only) */}
+            {isAdminOrDirector && profiles.length > 0 && (
+              <BrokerFilterDropdown
+                profiles={profiles}
+                selectedId={metricsFilterOwnerId}
+                onSelect={setMetricsFilterOwnerId}
+              />
+            )}
 
             {/* ═══ SECTION: Visao Geral ═══ */}
             <MetricsSection title="Visao Geral" icon={Eye} iconColor="text-blue-500">
