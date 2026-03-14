@@ -112,7 +112,7 @@ type KanbanListRowProps = {
   corretorName: string;
   corretorAvatar: string | null;
   onSelect: (dealId: string) => void;
-  onToggleCheck: (dealId: string) => void;
+  onToggleCheck: (dealId: string, event?: React.MouseEvent | { shiftKey: boolean }) => void;
   onToggleMenu: (e: React.MouseEvent, dealId: string) => void;
   onQuickAdd: (dealId: string, type: QuickAddType, dealTitle: string) => void;
   onCloseMenu: () => void;
@@ -163,8 +163,11 @@ const KanbanListRow = React.memo(function KanbanListRow({
             <input
               type="checkbox"
               checked={isSelected}
-              onClick={(e) => e.stopPropagation()}
-              onChange={() => onToggleCheck(deal.id)}
+              onChange={(e) => {
+                e.stopPropagation();
+                const mouseEvent = e.nativeEvent as MouseEvent;
+                onToggleCheck(deal.id, { shiftKey: mouseEvent.shiftKey });
+              }}
               aria-label={`Selecionar ${deal.title}`}
               className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5 flex-shrink-0"
             />
@@ -377,8 +380,8 @@ interface KanbanListProps {
   onMoveDealToStage?: (dealId: string, newStageId: string) => void;
   // New props
   selectedDealIds: Set<string>;
-  toggleDealSelect: (dealId: string) => void;
-  toggleDealSelectAll: (allIds: string[]) => void;
+  toggleDealSelect: (dealId: string, event?: React.MouseEvent | { shiftKey: boolean }) => void;
+  toggleDealSelectAll: () => void;
   sortBy: DealSortableColumn;
   sortOrder: 'asc' | 'desc';
   onSort: (column: DealSortableColumn) => void;
@@ -491,7 +494,7 @@ export const KanbanList: React.FC<KanbanListProps> = ({
                     type="checkbox"
                     checked={allSelected}
                     ref={(el) => { if (el) el.indeterminate = someSelected; }}
-                    onChange={() => toggleDealSelectAll(allIds)}
+                    onChange={() => toggleDealSelectAll()}
                     aria-label={allSelected ? 'Desmarcar todos os negocios' : 'Selecionar todos os negocios'}
                     className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5"
                   />

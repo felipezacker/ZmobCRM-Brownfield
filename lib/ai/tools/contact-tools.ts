@@ -135,7 +135,7 @@ export function createContactTools({ supabase, organizationId, context, userId, 
         }),
 
         getContactDetails: tool({
-            description: 'Mostra detalhes de um contato, incluindo tags e campos customizados.',
+            description: 'Mostra detalhes de um contato, incluindo tags, campos customizados e preferências de imóvel.',
             inputSchema: z.object({
                 contactId: z.string(),
             }),
@@ -150,10 +150,32 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                 if (error) return { error: formatSupabaseFailure(error) };
                 if (!data) return { error: 'Contato não encontrado nesta organização.' };
                 const row = data as typeof data & { tags?: string[] | null; custom_fields?: Record<string, unknown> | null };
+
+                const { data: prefs } = await supabase
+                    .from('contact_preferences')
+                    .select('id, property_types, purpose, price_min, price_max, regions, bedrooms_min, parking_min, area_min, accepts_financing, accepts_fgts, urgency, notes')
+                    .eq('contact_id', contactId)
+                    .eq('organization_id', organizationId);
+
                 return {
                     ...data,
                     tags: row.tags || [],
                     customFields: row.custom_fields || {},
+                    preferences: (prefs || []).map((p: Record<string, unknown>) => ({
+                        id: p.id,
+                        propertyTypes: p.property_types || [],
+                        purpose: p.purpose,
+                        priceMin: p.price_min,
+                        priceMax: p.price_max,
+                        regions: p.regions || [],
+                        bedroomsMin: p.bedrooms_min,
+                        parkingMin: p.parking_min,
+                        areaMin: p.area_min,
+                        acceptsFinancing: p.accepts_financing,
+                        acceptsFgts: p.accepts_fgts,
+                        urgency: p.urgency,
+                        notes: p.notes,
+                    })),
                 };
             },
         }),
@@ -190,6 +212,131 @@ export function createContactTools({ supabase, organizationId, context, userId, 
                 if (error) return { error: formatSupabaseFailure(error) };
 
                 return { success: true, message: `Deal "${dealGuard.deal.title}" associado ao contato "${contact.name}".` };
+            },
+        }),
+
+        // Preferências de imóvel do contato
+        getContactPreferences: tool({
+            description: 'Retorna as preferências de imóvel de um contato (tipos, faixa de preço, regiões, quartos, etc.).',
+            inputSchema: z.object({
+                contactId: z.string().describe('ID do contato'),
+            }),
+            execute: async ({ contactId }) => {
+                const { data, error } = await supabase
+                    .from('contact_preferences')
+                    .select('id, property_types, purpose, price_min, price_max, regions, bedrooms_min, parking_min, area_min, accepts_financing, accepts_fgts, urgency, notes, created_at, updated_at')
+                    .eq('contact_id', contactId)
+                    .eq('organization_id', organizationId)
+                    .order('created_at', { ascending: true });
+                if (error) return { error: formatSupabaseFailure(error) };
+                return {
+                    count: data?.length || 0,
+                    preferences: (data || []).map((p: Record<string, unknown>) => ({
+                        id: p.id,
+                        propertyTypes: p.property_types || [],
+                        purpose: p.purpose,
+                        priceMin: p.price_min,
+                        priceMax: p.price_max,
+                        regions: p.regions || [],
+                        bedroomsMin: p.bedrooms_min,
+                        parkingMin: p.parking_min,
+                        areaMin: p.area_min,
+                        acceptsFinancing: p.accepts_financing,
+                        acceptsFgts: p.accepts_fgts,
+                        urgency: p.urgency,
+                        notes: p.notes,
+                    })),
+                };
+            },
+        }),
+
+        createContactPreference: tool({
+            description: 'Cria uma preferência de imóvel para um contato. Requer aprovação no card (Aprovar/Negar).',
+            inputSchema: z.object({
+                contactId: z.string().describe('ID do contato'),
+                propertyTypes: z.array(z.string()).optional().describe('Tipos de imóvel (ex: ["Apartamento", "Casa", "Terreno"])'),
+                purpose: z.enum(['MORADIA', 'INVESTIMENTO', 'VERANEIO']).optional().describe('Finalidade'),
+                priceMin: z.number().optional().describe('Preço mínimo em reais'),
+                priceMax: z.number().optional().describe('Preço máximo em reais'),
+                regions: z.array(z.string()).optional().describe('Regiões de interesse (ex: ["Centro", "Zona Sul"])'),
+                bedroomsMin: z.number().optional().describe('Mínimo de quartos'),
+                parkingMin: z.number().optional().describe('Mínimo de vagas'),
+                areaMin: z.number().optional().describe('Área mínima em m²'),
+                acceptsFinancing: z.boolean().optional().describe('Aceita financiamento?'),
+                acceptsFgts: z.boolean().optional().describe('Aceita FGTS?'),
+                urgency: z.enum(['IMMEDIATE', '3_MONTHS', '6_MONTHS', '1_YEAR']).optional().describe('Urgência da compra'),
+                notes: z.string().optional().describe('Observações adicionais'),
+            }),
+            needsApproval: !bypassApproval,
+            execute: async ({ contactId, propertyTypes, purpose, priceMin, priceMax, regions, bedroomsMin, parkingMin, areaMin, acceptsFinancing, acceptsFgts, urgency, notes }) => {
+                const { data, error } = await supabase
+                    .from('contact_preferences')
+                    .insert({
+                        contact_id: contactId,
+                        organization_id: organizationId,
+                        property_types: propertyTypes || [],
+                        purpose: purpose || null,
+                        price_min: priceMin ?? null,
+                        price_max: priceMax ?? null,
+                        regions: regions || [],
+                        bedrooms_min: bedroomsMin ?? null,
+                        parking_min: parkingMin ?? null,
+                        area_min: areaMin ?? null,
+                        accepts_financing: acceptsFinancing ?? null,
+                        accepts_fgts: acceptsFgts ?? null,
+                        urgency: urgency || null,
+                        notes: notes || null,
+                    })
+                    .select('id')
+                    .single();
+                if (error) return { error: formatSupabaseFailure(error) };
+                return { success: true, preferenceId: data.id, message: 'Preferência de imóvel criada.' };
+            },
+        }),
+
+        updateContactPreference: tool({
+            description: 'Atualiza uma preferência de imóvel existente. Requer aprovação no card (Aprovar/Negar).',
+            inputSchema: z.object({
+                preferenceId: z.string().describe('ID da preferência'),
+                propertyTypes: z.array(z.string()).optional().describe('Tipos de imóvel'),
+                purpose: z.enum(['MORADIA', 'INVESTIMENTO', 'VERANEIO']).optional().describe('Finalidade'),
+                priceMin: z.number().optional().describe('Preço mínimo em reais'),
+                priceMax: z.number().optional().describe('Preço máximo em reais'),
+                regions: z.array(z.string()).optional().describe('Regiões de interesse'),
+                bedroomsMin: z.number().optional().describe('Mínimo de quartos'),
+                parkingMin: z.number().optional().describe('Mínimo de vagas'),
+                areaMin: z.number().optional().describe('Área mínima em m²'),
+                acceptsFinancing: z.boolean().optional().describe('Aceita financiamento?'),
+                acceptsFgts: z.boolean().optional().describe('Aceita FGTS?'),
+                urgency: z.enum(['IMMEDIATE', '3_MONTHS', '6_MONTHS', '1_YEAR']).optional().describe('Urgência da compra'),
+                notes: z.string().optional().describe('Observações adicionais'),
+            }),
+            needsApproval: !bypassApproval,
+            execute: async ({ preferenceId, ...patch }) => {
+                const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+                if (patch.propertyTypes !== undefined) updateData.property_types = patch.propertyTypes;
+                if (patch.purpose !== undefined) updateData.purpose = patch.purpose;
+                if (patch.priceMin !== undefined) updateData.price_min = patch.priceMin;
+                if (patch.priceMax !== undefined) updateData.price_max = patch.priceMax;
+                if (patch.regions !== undefined) updateData.regions = patch.regions;
+                if (patch.bedroomsMin !== undefined) updateData.bedrooms_min = patch.bedroomsMin;
+                if (patch.parkingMin !== undefined) updateData.parking_min = patch.parkingMin;
+                if (patch.areaMin !== undefined) updateData.area_min = patch.areaMin;
+                if (patch.acceptsFinancing !== undefined) updateData.accepts_financing = patch.acceptsFinancing;
+                if (patch.acceptsFgts !== undefined) updateData.accepts_fgts = patch.acceptsFgts;
+                if (patch.urgency !== undefined) updateData.urgency = patch.urgency;
+                if (patch.notes !== undefined) updateData.notes = patch.notes;
+
+                const { data, error } = await supabase
+                    .from('contact_preferences')
+                    .update(updateData)
+                    .eq('id', preferenceId)
+                    .eq('organization_id', organizationId)
+                    .select('id')
+                    .maybeSingle();
+                if (error) return { error: formatSupabaseFailure(error) };
+                if (!data) return { error: 'Preferência não encontrada nesta organização.' };
+                return { success: true, preferenceId: data.id, message: 'Preferência de imóvel atualizada.' };
             },
         }),
 

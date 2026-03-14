@@ -63,6 +63,44 @@ function formatCockpitSnapshotForPrompt(snapshot: Record<string, unknown>): stri
         if (phone) lines.push(`   - Telefone: ${phone}`);
         const notes = clampText(c.notes, 220);
         if (notes) lines.push(`   - Notas do contato: ${notes}`);
+
+    }
+
+    // Preferências de imóvel: pode vir como snapshot.contact.preferences (array)
+    // ou como snapshot.preferences (objeto único do ContactDetailModal)
+    const rawPrefs = (contact && typeof contact === 'object' && (contact as AnyObj).preferences)
+        || snapshot.preferences;
+    const prefsArray: AnyObj[] = Array.isArray(rawPrefs)
+        ? rawPrefs as AnyObj[]
+        : (rawPrefs && typeof rawPrefs === 'object' ? [rawPrefs as AnyObj] : []);
+
+    if (prefsArray.length > 0) {
+        lines.push(`   🏠 Preferências de imóvel:`);
+        for (const pref of prefsArray) {
+            const types = Array.isArray(pref.propertyTypes) ? (pref.propertyTypes as string[]).join(', ') : undefined;
+            const purpose = clampText(pref.purpose, 30);
+            const regions = Array.isArray(pref.regions) ? (pref.regions as string[]).join(', ') : undefined;
+            const priceMin = typeof pref.priceMin === 'number' ? pref.priceMin : undefined;
+            const priceMax = typeof pref.priceMax === 'number' ? pref.priceMax : undefined;
+            const bedrooms = typeof pref.bedroomsMin === 'number' ? pref.bedroomsMin : undefined;
+            const parking = typeof pref.parkingMin === 'number' ? pref.parkingMin : undefined;
+            const area = typeof pref.areaMin === 'number' ? pref.areaMin : undefined;
+            const urgency = clampText(pref.urgency, 20);
+
+            if (types) lines.push(`      - Tipo: ${types}`);
+            if (purpose) lines.push(`      - Finalidade: ${purpose}`);
+            if (priceMin != null || priceMax != null) {
+                const range = priceMin != null && priceMax != null
+                    ? `R$ ${priceMin.toLocaleString('pt-BR')} — R$ ${priceMax.toLocaleString('pt-BR')}`
+                    : priceMin != null ? `a partir de R$ ${priceMin.toLocaleString('pt-BR')}` : `até R$ ${priceMax!.toLocaleString('pt-BR')}`;
+                lines.push(`      - Faixa: ${range}`);
+            }
+            if (regions) lines.push(`      - Regiões: ${regions}`);
+            if (bedrooms != null) lines.push(`      - Quartos: ${bedrooms}+`);
+            if (parking != null) lines.push(`      - Vagas: ${parking}+`);
+            if (area != null) lines.push(`      - Área: ${area}+ m²`);
+            if (urgency) lines.push(`      - Urgência: ${urgency}`);
+        }
     }
 
     const signals = snapshot.cockpitSignals;
@@ -425,14 +463,15 @@ PERSONALIDADE:
 - Respostas naturais (evite listas robóticas)
 - Máximo 2 parágrafos por resposta
 
-FERRAMENTAS (41 disponíveis):
+FERRAMENTAS (44 disponíveis):
 📊 ANÁLISE: analyzePipeline, getBoardMetrics
-🔍 BUSCA: searchDeals (aceita query por título E/OU productName por imóvel/produto), searchContacts (aceita query, tag, customFieldKey+customFieldValue — todos opcionais, funcionam sozinhos), listDealsByStage, listStagnantDeals, listOverdueDeals, getDealDetails, getContactDetails
+🔍 BUSCA: searchDeals (aceita query por título E/OU productName por imóvel/produto), searchContacts (aceita query, tag, customFieldKey+customFieldValue — todos opcionais, funcionam sozinhos), listDealsByStage, listStagnantDeals, listOverdueDeals, getDealDetails, getContactDetails (inclui preferências de imóvel)
 🏷️ PIPELINE: listStages, updateStage, reorderStages
 ⚡ AÇÕES: moveDeal, createDeal, updateDeal, markDealAsWon, markDealAsLost, assignDeal, moveDealsBulk
 📝 NOTAS: addDealNote, listDealNotes
 📞 ATIVIDADES: createTask, listActivities, completeActivity, rescheduleActivity, logActivity
 👤 CONTATOS: createContact, updateContact, linkDealToContact, getLeadScore
+🏠 PREFERÊNCIAS: getContactPreferences, createContactPreference, updateContactPreference
 🎯 PROSPECÇÃO: listProspectingQueues, getProspectingMetrics, getProspectingGoals, listQuickScripts, createQuickScript, generateAndSaveScript, suggestScript, listSavedQueues, addContactsToQueue, suggestContactsForProspecting, analyzeProspectingPatterns
 
 MEMÓRIA DA CONVERSA (MUITO IMPORTANTE):
@@ -446,6 +485,22 @@ MEMÓRIA DA CONVERSA (MUITO IMPORTANTE):
 LEAD SCORE:
 - Quando o usuário perguntar sobre score, qualidade ou temperatura de um lead/contato, use a tool getLeadScore proativamente.
 - O score vai de 0 a 100: Frio (<31), Morno (31-60), Quente (>60).
+
+PREFERÊNCIAS DE IMÓVEL (EXTRAÇÃO AUTOMÁTICA):
+- getContactDetails já retorna as preferências do contato automaticamente.
+- Use getContactPreferences para ver preferências detalhadas de um contato.
+- Use createContactPreference quando o usuário descrever o que o cliente busca.
+- Use updateContactPreference para ajustar preferências existentes.
+- EXTRAÇÃO DE TEXTO NATURAL: Quando o usuário escrever em linguagem livre o que o cliente quer, extraia os campos automaticamente e chame createContactPreference. Exemplos:
+    - "cliente quer ap de 3 quartos na zona sul até 500k com vaga" → createContactPreference(propertyTypes=["Apartamento"], bedroomsMin=3, regions=["Zona Sul"], priceMax=500000, parkingMin=1)
+    - "ele busca casa para investimento entre 300 e 800 mil, aceita financiamento, urgente" → createContactPreference(propertyTypes=["Casa"], purpose="INVESTIMENTO", priceMin=300000, priceMax=800000, acceptsFinancing=true, urgency="IMMEDIATE")
+    - "quer terreno ou casa no centro ou barra, 2+ quartos, usa FGTS, prazo de 6 meses" → createContactPreference(propertyTypes=["Terreno", "Casa"], regions=["Centro", "Barra"], bedroomsMin=2, acceptsFgts=true, urgency="6_MONTHS")
+    - "moradia, apto acima de 80m², 2 vagas, até 1 milhão" → createContactPreference(propertyTypes=["Apartamento"], purpose="MORADIA", areaMin=80, parkingMin=2, priceMax=1000000)
+- MAPEAMENTO de urgência: "urgente"/"imediato"/"agora" → IMMEDIATE, "3 meses" → 3_MONTHS, "6 meses"/"semestre" → 6_MONTHS, "1 ano"/"sem pressa" → 1_YEAR
+- MAPEAMENTO de finalidade: "morar"/"moradia"/"pra ele" → MORADIA, "investir"/"investimento"/"renda" → INVESTIMENTO, "praia"/"veraneio"/"férias" → VERANEIO
+- Se o contato já tem preferência, use updateContactPreference ao invés de criar duplicada (cheque com getContactPreferences primeiro).
+- Se não tiver contactId no contexto, pergunte qual contato antes de salvar.
+- Campos: propertyTypes (tipos de imóvel), purpose (MORADIA/INVESTIMENTO/VERANEIO), priceMin/priceMax (faixa em reais), regions (bairros/regiões), bedroomsMin (quartos), parkingMin (vagas), areaMin (área m²), acceptsFinancing, acceptsFgts, urgency (IMMEDIATE/3_MONTHS/6_MONTHS/1_YEAR), notes (observações livres).
 
 REGRAS:
 - Sempre explique os resultados das ferramentas

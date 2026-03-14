@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, MessageSquare, StickyNote } from 'lucide-react';
+import { Check, MessageSquare, StickyNote, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ActivityRow } from '@/features/activities/components/ActivityRow';
 import type { DealDetailTimelineProps } from '@/features/boards/components/deal-detail/types';
@@ -13,6 +13,7 @@ export const DealDetailTimeline: React.FC<DealDetailTimelineProps> = ({
   activitiesById,
   onNewNoteChange,
   onAddNote,
+  onNewActivity,
   onToggleActivity,
   onEditActivity,
   onDeleteActivity,
@@ -28,7 +29,12 @@ export const DealDetailTimeline: React.FC<DealDetailTimelineProps> = ({
           onChange={e => onNewNoteChange(e.target.value)}
         ></textarea>
         <div className="flex justify-between items-center mt-2 pt-2 border-t border-border">
-          <div />
+          <Button
+            onClick={onNewActivity}
+            className="text-primary-600 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all"
+          >
+            <Plus size={14} /> Nova Atividade
+          </Button>
           <Button
             onClick={onAddNote}
             disabled={!newNote.trim()}

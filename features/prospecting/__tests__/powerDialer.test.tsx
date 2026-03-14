@@ -121,12 +121,12 @@ describe('PowerDialer — Keyboard Shortcuts', () => {
     expect(screen.getByTestId('call-modal')).toBeInTheDocument()
   })
 
-  it('P calls onSkip', () => {
+  it('P key does NOT skip (shortcut removed for friction)', () => {
     const props = defaultProps()
     render(<PowerDialer {...props} />)
 
     pressKey('p')
-    expect(props.onSkip).toHaveBeenCalledOnce()
+    expect(props.onSkip).not.toHaveBeenCalled()
   })
 
   it('E calls onEnd', () => {
@@ -157,11 +157,7 @@ describe('PowerDialer — Keyboard Shortcuts', () => {
     pressKey('l')
     expect(screen.getByTestId('call-modal')).toBeInTheDocument()
 
-    // P should not call onSkip while modal is open
-    pressKey('p')
-    expect(props.onSkip).not.toHaveBeenCalled()
-
-    // E should not call onEnd
+    // E should not call onEnd while modal is open
     pressKey('e')
     expect(props.onEnd).not.toHaveBeenCalled()
   })
@@ -173,10 +169,6 @@ describe('PowerDialer — Keyboard Shortcuts', () => {
     // Open dropdown
     pressKey('s')
     expect(screen.getByText('Script Intro')).toBeInTheDocument()
-
-    // P should not call onSkip
-    pressKey('p')
-    expect(props.onSkip).not.toHaveBeenCalled()
 
     // E should not call onEnd
     pressKey('e')
@@ -385,5 +377,54 @@ describe('PowerDialer — Purple Dot Indicator', () => {
 
     const purpleDot = container.querySelector('.bg-purple-500.rounded-full')
     expect(purpleDot).not.toBeInTheDocument()
+  })
+})
+
+// ── Skip Reason Dropdown ──────────────────────────────────
+
+describe('PowerDialer — Skip Reason Dropdown', () => {
+  it('clicking Pular opens reason dropdown instead of skipping immediately', () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    fireEvent.click(screen.getByText('Pular'))
+    expect(props.onSkip).not.toHaveBeenCalled()
+    expect(screen.getByText('Motivo do pulo:')).toBeInTheDocument()
+    expect(screen.getByText('Número errado')).toBeInTheDocument()
+    expect(screen.getByText('Já tentei hoje')).toBeInTheDocument()
+  })
+
+  it('selecting a reason calls onSkip with the reason id', () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    fireEvent.click(screen.getByText('Pular'))
+    fireEvent.click(screen.getByText('Número errado'))
+    expect(props.onSkip).toHaveBeenCalledWith('wrong_number')
+  })
+
+  it('closes dropdown after selecting a reason', () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    fireEvent.click(screen.getByText('Pular'))
+    fireEvent.click(screen.getByText('Já tentei hoje'))
+    expect(screen.queryByText('Motivo do pulo:')).not.toBeInTheDocument()
+  })
+
+  it('closes dropdown on outside click', () => {
+    const props = defaultProps()
+    render(
+      <div>
+        <PowerDialer {...props} />
+        <div data-testid="outside">Outside</div>
+      </div>
+    )
+
+    fireEvent.click(screen.getByText('Pular'))
+    expect(screen.getByText('Motivo do pulo:')).toBeInTheDocument()
+
+    fireEvent.mouseDown(screen.getByTestId('outside'))
+    expect(screen.queryByText('Motivo do pulo:')).not.toBeInTheDocument()
   })
 })

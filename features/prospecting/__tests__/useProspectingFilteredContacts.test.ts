@@ -89,6 +89,8 @@ describe('useProspectingFilteredContacts', () => {
         tags: ['VIP'],
         sources: ['WEBSITE'],
         dealOwnerIds: ['u-2'],
+        contactListIds: [],
+        productIds: [],
         inactiveDays: 30,
         onlyWithPhone: true,
         hasActiveDeal: null,

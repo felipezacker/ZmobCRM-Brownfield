@@ -260,7 +260,7 @@ const STICKY_ROW_SELECTED_BG = 'bg-primary-50 dark:bg-card';
 interface ContactsListProps {
     filteredContacts: Contact[];
     selectedIds: Set<string>;
-    toggleSelect: (id: string) => void;
+    toggleSelect: (id: string, event?: React.MouseEvent | { shiftKey: boolean }) => void;
     toggleSelectAll: () => void;
     updateContact: (id: string, data: Partial<Contact>) => void;
     convertContactToDeal: (id: string) => void;
@@ -331,7 +331,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     }
 
     return (
-        <div className="glass rounded-xl border border-border shadow-sm overflow-hidden w-full max-w-full">
+        <div className="glass overflow-hidden w-full max-w-full">
             {/* Story 3.5 — Result count (fixed, not scrollable) */}
             {totalCount !== undefined && (
                 <div className="px-6 py-2 border-b border-border bg-background/50 dark:bg-white/[0.02]">
@@ -437,7 +437,10 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                             <input
                                                 type="checkbox"
                                                 checked={isSelected}
-                                                onChange={() => toggleSelect(contact.id)}
+                                                onChange={(e) => {
+                                                    const mouseEvent = e.nativeEvent as MouseEvent;
+                                                    toggleSelect(contact.id, { shiftKey: mouseEvent.shiftKey });
+                                                }}
                                                 aria-label={`Selecionar ${contact.name}`}
                                                 className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5 flex-shrink-0"
                                             />

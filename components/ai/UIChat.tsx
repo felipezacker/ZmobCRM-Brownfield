@@ -11,7 +11,7 @@ import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import type { ToolLikePart, ToolInputPayload } from './types';
 export type { UIChatProps } from './types';
 import type { UIChatProps } from './types';
-import { isToolLikePart } from './utils';
+import { isToolLikePart, getToolPartInfo } from './utils';
 import { useChatContext } from './hooks/useChatContext';
 import { useChatApprovals } from './hooks/useChatApprovals';
 import { useChatErrors } from './hooks/useChatErrors';
@@ -112,6 +112,32 @@ export function UIChat({
         context,
         messages,
     });
+
+    // --- Detect AI tool mutations and notify cockpit for data refresh ---
+    const emittedToolsRef = useRef(new Set<string>());
+    useEffect(() => {
+        const MUTATION_TOOLS = new Set([
+            'createContactPreference', 'updateContactPreference',
+            'createContact', 'updateContact',
+            'createDeal', 'updateDeal', 'moveDeal', 'markDealAsWon', 'markDealAsLost',
+        ]);
+        for (const m of messages) {
+            if (m.role !== 'assistant') continue;
+            for (const part of m.parts ?? []) {
+                if (!isToolLikePart(part)) continue;
+                const info = getToolPartInfo(part);
+                if (!info) continue;
+                const { toolName, state, output, toolCallId } = info;
+                if (state === 'output-available' && MUTATION_TOOLS.has(toolName)) {
+                    const key = `${toolName}-${toolCallId ?? m.id}`;
+                    if ((output as Record<string, unknown> | null)?.success && !emittedToolsRef.current.has(key)) {
+                        emittedToolsRef.current.add(key);
+                        window.dispatchEvent(new CustomEvent('zmob:data-mutated', { detail: { tool: toolName } }));
+                    }
+                }
+            }
+        }
+    }, [messages]);
 
     // --- Local helpers ---
     const isLoading = status === 'streaming' || status === 'submitted';

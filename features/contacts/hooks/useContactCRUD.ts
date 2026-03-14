@@ -54,14 +54,14 @@ export const useContactCRUD = ({ toast }: { toast: (msg: string, type?: 'success
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const bufferedPrefsRef = useRef<ContactPreference[]>([]);
+  const bufferedPrefsRef = useRef<ContactPreference | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteWithDeals, setDeleteWithDeals] = useState<{ id: string; dealCount: number; deals: Array<{ id: string; title: string }> } | null>(null);
   const [formData, setFormData] = useState<ContactFormData>(emptyFormData);
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
 
   const openCreateModal = useCallback(() => {
-    setEditingContact(null); setFormData(emptyFormData); bufferedPrefsRef.current = []; setIsModalOpen(true);
+    setEditingContact(null); setFormData(emptyFormData); bufferedPrefsRef.current = null; setIsModalOpen(true);
   }, []);
 
   const openEditModal = useCallback((contact: Contact) => {
@@ -139,17 +139,15 @@ export const useContactCRUD = ({ toast }: { toast: (msg: string, type?: 'success
         {
           onSuccess: async (data) => {
             if (phones.length > 0) await syncPhones(data.id, phones).catch(() => {});
-            const prefs = bufferedPrefsRef.current; let failed = 0;
-            if (prefs.length > 0) {
-              bufferedPrefsRef.current = [];
-              for (const p of prefs) {
-                try {
-                  const r = await contactPreferencesService.create({ contactId: data.id, organizationId: data.organizationId || '', propertyTypes: p.propertyTypes, purpose: p.purpose, priceMin: p.priceMin, priceMax: p.priceMax, regions: p.regions, bedroomsMin: p.bedroomsMin, parkingMin: p.parkingMin, areaMin: p.areaMin, acceptsFinancing: p.acceptsFinancing, acceptsFgts: p.acceptsFgts, urgency: p.urgency, notes: p.notes } as Omit<ContactPreference, 'id' | 'createdAt' | 'updatedAt'>);
-                  if (r.error) failed++;
-                } catch { failed++; }
-              }
+            const pref = bufferedPrefsRef.current; let prefFailed = false;
+            if (pref) {
+              bufferedPrefsRef.current = null;
+              try {
+                const r = await contactPreferencesService.create({ contactId: data.id, organizationId: data.organizationId || '', propertyTypes: pref.propertyTypes, purpose: pref.purpose, priceMin: pref.priceMin, priceMax: pref.priceMax, regions: pref.regions, bedroomsMin: pref.bedroomsMin, parkingMin: pref.parkingMin, areaMin: pref.areaMin, acceptsFinancing: pref.acceptsFinancing, acceptsFgts: pref.acceptsFgts, urgency: pref.urgency, notes: pref.notes } as Omit<ContactPreference, 'id' | 'createdAt' | 'updatedAt'>);
+                if (r.error) prefFailed = true;
+              } catch { prefFailed = true; }
             }
-            toast(failed > 0 ? `Contato criado, mas ${failed} preferencia(s) nao foram salvas.` : 'Contato criado!', failed > 0 ? 'warning' : 'success');
+            toast(prefFailed ? 'Contato criado, mas preferencia nao foi salva.' : 'Contato criado!', prefFailed ? 'warning' : 'success');
             setIsModalOpen(false);
           },
           onError: (e: Error) => { toast(`Erro ao criar contato: ${e.message}`, 'error'); },

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Download, Upload, FileDown, ChevronLeft, ChevronRight, Check, Plus } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 import { type CsvDelimiter } from '@/lib/utils/csv';
 import { Button } from '@/components/ui/button';
 import { useContactImportWizard, WIZARD_STEPS, DEAL_CRM_FIELDS } from '@/features/contacts/hooks/useContactImportWizard';
@@ -61,12 +62,13 @@ export function ContactsImportExportModal(props: {
   const { isOpen, onClose, exportParams } = props;
   const { addToast, showToast } = useToast();
   const toast = addToast || showToast;
+  const { user, organizationId } = useAuth();
 
   const [panel, setPanel] = useState<Panel>('export');
   const [delimiter, setDelimiter] = useState<'auto' | CsvDelimiter>('auto');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const wizard = useContactImportWizard({ toast, isOpen, panel, delimiter });
+  const wizard = useContactImportWizard({ toast, isOpen, panel, delimiter, organizationId: organizationId ?? undefined, userId: user?.id ?? undefined });
   const {
     isExporting,
     handleExport,
@@ -97,7 +99,7 @@ export function ContactsImportExportModal(props: {
             onClick={() => handlePanelSwitch('export')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
               panel === 'export'
-                ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+                ? 'bg-foreground dark:bg-white text-background dark:text-gray-900 border-foreground dark:border-white'
                 : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
             }`}
           >
@@ -108,7 +110,7 @@ export function ContactsImportExportModal(props: {
             onClick={() => handlePanelSwitch('import')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
               panel === 'import'
-                ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+                ? 'bg-foreground dark:bg-white text-background dark:text-gray-900 border-foreground dark:border-white'
                 : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
             }`}
           >
@@ -188,7 +190,7 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={handleDownloadTemplate}
-                  className="px-3 py-2 rounded-lg bg-card dark:bg-white text-white dark:text-foreground text-sm font-semibold flex items-center gap-2"
+                  className="px-3 py-2 rounded-lg bg-foreground dark:bg-white text-background dark:text-gray-900 text-sm font-semibold flex items-center gap-2"
                 >
                   <Download size={16} /> Baixar template
                 </Button>
@@ -600,6 +602,34 @@ export function ContactsImportExportModal(props: {
                   </div>
                 </div>
               )}
+
+              {/* CL-1: List assignment */}
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">
+                  Vincular a lista (opcional)
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={wizard.importListId}
+                    onChange={e => { wizard.setImportListId(e.target.value); wizard.setNewListName(''); }}
+                    className="flex-1 text-sm rounded-lg border border-border bg-white dark:bg-white/5 px-2 py-1.5"
+                  >
+                    <option value="">Nenhuma lista</option>
+                    {wizard.availableLists.map(l => (
+                      <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                  </select>
+                  {!wizard.importListId && (
+                    <input
+                      type="text"
+                      placeholder="Ou criar nova lista..."
+                      value={wizard.newListName}
+                      onChange={e => wizard.setNewListName(e.target.value)}
+                      className="flex-1 text-sm rounded-lg border border-border bg-white dark:bg-white/5 px-2 py-1.5"
+                    />
+                  )}
+                </div>
+              </div>
 
               {/* Duplicate mode */}
               <div className="space-y-2">

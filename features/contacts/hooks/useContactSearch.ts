@@ -20,6 +20,7 @@ interface UseContactSearchParams {
   contactTypeFilter: string;
   ownerFilter: string;
   sourceFilter: string;
+  selectedListId?: string | null;
 }
 
 export const useContactSearch = ({
@@ -30,6 +31,7 @@ export const useContactSearch = ({
   contactTypeFilter,
   ownerFilter,
   sourceFilter,
+  selectedListId,
 }: UseContactSearchParams) => {
   const searchParams = useSearchParams();
 
@@ -68,13 +70,19 @@ export const useContactSearch = ({
     if (contactTypeFilter !== 'ALL') filters.contactType = contactTypeFilter;
     if (ownerFilter) filters.ownerId = ownerFilter;
     if (sourceFilter !== 'ALL') filters.source = sourceFilter;
+    // CL-1: List filter
+    if (selectedListId === '__no_list__') {
+      filters.noList = true;
+    } else if (selectedListId) {
+      filters.contactListId = selectedListId;
+    }
     filters.sortBy = sortBy;
     filters.sortOrder = sortOrder;
     return filters;
-  }, [search, stageFilter, statusFilter, dateRange, sortBy, sortOrder, classificationFilter, temperatureFilter, contactTypeFilter, ownerFilter, sourceFilter]);
+  }, [search, stageFilter, statusFilter, dateRange, sortBy, sortOrder, classificationFilter, temperatureFilter, contactTypeFilter, ownerFilter, sourceFilter, selectedListId]);
 
   // Track filter changes to reset pagination
-  const filterKey = `${search}-${stageFilter}-${statusFilter}-${dateRange.start}-${dateRange.end}-${classificationFilter.join(',')}-${temperatureFilter}-${contactTypeFilter}-${ownerFilter}-${sourceFilter}`;
+  const filterKey = `${search}-${stageFilter}-${statusFilter}-${dateRange.start}-${dateRange.end}-${classificationFilter.join(',')}-${temperatureFilter}-${contactTypeFilter}-${ownerFilter}-${sourceFilter}-${selectedListId || ''}`;
   const prevFilterKeyRef = React.useRef<string>(filterKey);
 
   useEffect(() => {

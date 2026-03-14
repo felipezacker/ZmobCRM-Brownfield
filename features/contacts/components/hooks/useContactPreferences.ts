@@ -5,20 +5,20 @@ import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
 interface UseContactPreferencesParams {
   contactId?: string;
   organizationId?: string;
-  externalBufferRef?: React.MutableRefObject<ContactPreference[]>;
+  externalBufferRef?: React.MutableRefObject<ContactPreference | null>;
 }
 
 export function useContactPreferences({ contactId, organizationId, externalBufferRef }: UseContactPreferencesParams) {
-  const [preferences, setPreferences] = useState<ContactPreference[]>([]);
+  const [preference, setPreference] = useState<ContactPreference | null>(null);
   const [loading, setLoading] = useState(!!contactId);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  const internalBufferRef = useRef<ContactPreference[]>([]);
-  const bufferedPrefsRef = externalBufferRef || internalBufferRef;
+  const internalBufferRef = useRef<ContactPreference | null>(null);
+  const bufferedPrefRef = externalBufferRef || internalBufferRef;
 
-  const loadPreferences = useCallback(async () => {
+  const loadPreference = useCallback(async () => {
     if (!contactId) {
       setLoading(false);
       return;
@@ -29,110 +29,105 @@ export function useContactPreferences({ contactId, organizationId, externalBuffe
     if (result.error) {
       setError(result.error.message);
     } else {
-      setPreferences(result.data || []);
+      const first = result.data && result.data.length > 0 ? result.data[0] : null;
+      setPreference(first);
     }
     setLoading(false);
   }, [contactId]);
 
   useEffect(() => {
-    loadPreferences();
-  }, [loadPreferences]);
+    loadPreference();
+  }, [loadPreference]);
 
-  const saveEdit = async (
-    expandedId: string,
+  /** Upsert: create if no preference exists, update if one does */
+  const save = async (
     payload: Record<string, unknown>,
     callbacks: { onSuccess: () => void },
   ) => {
     if (!contactId) {
-      const updater = (prev: ContactPreference[]) => prev.map(p =>
-        p.id === expandedId ? { ...p, ...payload } : p
-      );
-      setPreferences(updater);
-      bufferedPrefsRef.current = updater(bufferedPrefsRef.current);
-      callbacks.onSuccess();
-      return;
-    }
-
-    setSaving(true);
-    const result = await contactPreferencesService.update(expandedId, payload);
-    setSaving(false);
-
-    if (result.error) {
-      setError(`Erro ao atualizar: ${result.error.message}`);
-      return;
-    }
-    callbacks.onSuccess();
-    await loadPreferences();
-  };
-
-  const saveNew = async (
-    payload: Record<string, unknown>,
-    callbacks: { onSuccess: () => void },
-  ) => {
-    if (!contactId) {
+      // Buffer mode (new contact, no ID yet)
       const tempPref = {
-        id: `temp-${Date.now()}`,
+        id: preference?.id || `temp-${Date.now()}`,
         contactId: '',
         organizationId: organizationId || '',
+        propertyTypes: [] as string[],
+        purpose: null,
+        priceMin: null,
+        priceMax: null,
+        regions: [] as string[],
+        bedroomsMin: null,
+        parkingMin: null,
+        areaMin: null,
+        acceptsFinancing: null,
+        acceptsFgts: null,
+        urgency: null,
+        notes: null,
         ...payload,
-        createdAt: new Date().toISOString(),
+        createdAt: preference?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       } as ContactPreference;
-      setPreferences(prev => [...prev, tempPref]);
-      bufferedPrefsRef.current = [...bufferedPrefsRef.current, tempPref];
+      setPreference(tempPref);
+      bufferedPrefRef.current = tempPref;
       callbacks.onSuccess();
       return;
     }
 
     setSaving(true);
-    const result = await contactPreferencesService.create({
-      ...payload,
-      contactId,
-      organizationId,
-    } as Omit<ContactPreference, 'id' | 'createdAt' | 'updatedAt'>);
-    setSaving(false);
-
-    if (result.error) {
-      setError(`Erro ao criar: ${result.error.message}`);
-      return;
+    if (preference) {
+      // Update existing
+      const result = await contactPreferencesService.update(preference.id, payload);
+      setSaving(false);
+      if (result.error) {
+        setError(`Erro ao atualizar: ${result.error.message}`);
+        return;
+      }
+    } else {
+      // Create new
+      const result = await contactPreferencesService.create({
+        ...payload,
+        contactId,
+        organizationId,
+      } as Omit<ContactPreference, 'id' | 'createdAt' | 'updatedAt'>);
+      setSaving(false);
+      if (result.error) {
+        setError(`Erro ao criar: ${result.error.message}`);
+        return;
+      }
     }
     callbacks.onSuccess();
-    await loadPreferences();
+    await loadPreference();
   };
 
-  const handleDelete = async (id: string, expandedId: string | null, setExpandedId: (id: string | null) => void) => {
+  const handleDelete = async () => {
     if (!contactId) {
-      setPreferences(prev => prev.filter(p => p.id !== id));
-      bufferedPrefsRef.current = bufferedPrefsRef.current.filter(p => p.id !== id);
-      if (expandedId === id) setExpandedId(null);
+      setPreference(null);
+      bufferedPrefRef.current = null;
       return;
     }
-    setConfirmDeleteId(id);
+    if (preference) setConfirmDeleteId(preference.id);
   };
 
-  const executeDelete = async (id: string, expandedId: string | null, setExpandedId: (id: string | null) => void) => {
+  const executeDelete = async (id: string) => {
     const result = await contactPreferencesService.delete(id);
     if (result.error) {
       setError(`Erro ao excluir: ${result.error.message}`);
       return;
     }
-    if (expandedId === id) setExpandedId(null);
-    await loadPreferences();
+    setPreference(null);
   };
 
   return {
-    preferences,
-    setPreferences,
+    preference,
+    setPreference,
     loading,
     error,
     setError,
     saving,
     confirmDeleteId,
     setConfirmDeleteId,
-    bufferedPrefsRef,
-    loadPreferences,
-    saveEdit,
-    saveNew,
+    bufferedPrefRef,
+    loadPreference,
+    save,
     handleDelete,
     executeDelete,
   };

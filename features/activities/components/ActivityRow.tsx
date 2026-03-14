@@ -15,7 +15,7 @@ interface ActivityRowProps {
     onDelete: (id: string) => void;
     onDuplicate?: (activity: Activity) => void;
     isSelected?: boolean;
-    onSelect?: (id: string, selected: boolean) => void;
+    onSelect?: (id: string, selected: boolean, event?: React.MouseEvent) => void;
 }
 
 /**
@@ -124,7 +124,11 @@ const ActivityRowComponent: React.FC<ActivityRowProps> = ({
                 <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={(e) => onSelect(activity.id, e.target.checked)}
+                    onChange={(e) => {
+                        const mouseEvent = e.nativeEvent as MouseEvent;
+                        // Construct a minimal MouseEvent-like object with shiftKey for range selection
+                        onSelect(activity.id, e.target.checked, { shiftKey: mouseEvent.shiftKey } as React.MouseEvent);
+                    }}
                     className="w-4 h-4 text-primary-600 bg-muted border-border rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-accent dark:border-border cursor-pointer"
                 />
             )}

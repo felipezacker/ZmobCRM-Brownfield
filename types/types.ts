@@ -198,6 +198,19 @@ export interface Contact {
   customFields?: Record<string, unknown>;
 }
 
+// Lista de contatos (tabela contact_lists — Story CL-1)
+export interface ContactList {
+  id: string;
+  organizationId: string;
+  name: string;
+  color: string;
+  description?: string;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt?: string;
+  memberCount?: number; // Computed via COUNT, nao na tabela
+}
+
 // Telefone de contato (tabela contact_phones)
 export interface ContactPhone {
   id: string;
@@ -337,6 +350,7 @@ export interface ProspectingQueueItem {
   assignedBy?: string;
   retryAt?: string;
   retryCount: number;
+  skipReason?: string;
   createdAt: string;
   updatedAt: string;
   // Joined data
@@ -563,6 +577,10 @@ export interface ContactsServerFilters {
   ownerId?: string;
   /** Story 3.5 — Filtro por origem. */
   source?: string;
+  /** CL-1 — Filtro por lista de contatos (ID da lista). */
+  contactListId?: string;
+  /** CL-1 — Filtro contatos sem nenhuma lista. */
+  noList?: boolean;
 }
 
 /** Colunas ordenáveis na tabela de contatos. */

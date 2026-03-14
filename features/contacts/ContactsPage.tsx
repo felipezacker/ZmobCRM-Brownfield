@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
@@ -14,18 +14,44 @@ import { SelectBoardModal } from './components/SelectBoardModal';
 import { PaginationControls } from './components/PaginationControls';
 import { ContactsImportExportModal } from './components/ContactsImportExportModal';
 import { BulkActionsToolbar } from './components/BulkActionsToolbar';
+import { ContactListsSidebar, NO_LIST_FILTER } from './components/ContactListsSidebar';
+import { ContactListModal } from './components/ContactListModal';
 import { exportContactsCsv } from './utils/exportCsv';
 import ConfirmModal from '@/components/ConfirmModal';
 import { Button } from '@/components/ui/button';
+import {
+    useCreateContactList,
+    useUpdateContactList,
+    useDeleteContactList,
+    useAddContactsToList,
+    useRemoveContactsFromList,
+    useNoListCount,
+} from '@/lib/query/hooks/useContactListsQuery';
+import { useToast } from '@/context/ToastContext';
+import type { ContactList } from '@/types';
 
 /**
  * Componente React `ContactsPage`.
  * Story 3.5 — Lista de Contatos Enriquecida.
+ * Story CL-1 — Sidebar de Listas de Contatos.
  */
 export const ContactsPage: React.FC = () => {
     const controller = useContactsController();
     const router = useRouter();
     const [isImportExportOpen, setIsImportExportOpen] = React.useState(false);
+    const { addToast, showToast } = useToast();
+    const toast = addToast || showToast;
+
+    // CL-1: List modal state
+    const [isListModalOpen, setIsListModalOpen] = useState(false);
+    const [editingList, setEditingList] = useState<ContactList | null>(null);
+
+    // CL-1: List mutations
+    const createList = useCreateContactList();
+    const updateList = useUpdateContactList();
+    const deleteList = useDeleteContactList();
+    const addToList = useAddContactsToList();
+    const removeFromList = useRemoveContactsFromList();
 
     const goToDeal = (dealId: string) => {
         controller.setDeleteWithDeals(null);
@@ -60,6 +86,66 @@ export const ContactsPage: React.FC = () => {
             : controller.filteredContacts;
         exportContactsCsv(selectedContacts, profilesNameMap);
     }, [controller.filteredContacts, controller.selectedIds, profilesNameMap]);
+
+    // CL-1: "Sem Lista" count — server-side via RPC (accurate, handles overlap)
+    const { data: noListCount = 0 } = useNoListCount();
+
+    // CL-1: List CRUD handlers
+    const handleSaveList = useCallback(async (data: { name: string; color: string; description?: string }) => {
+        try {
+            if (editingList) {
+                await updateList.mutateAsync({ id: editingList.id, updates: data });
+                toast?.('Lista atualizada.', 'success');
+            } else {
+                await createList.mutateAsync(data);
+                toast?.('Lista criada.', 'success');
+            }
+            setIsListModalOpen(false);
+            setEditingList(null);
+        } catch {
+            toast?.('Erro ao salvar lista.', 'error');
+        }
+    }, [editingList, updateList, createList, toast]);
+
+    const handleDeleteList = useCallback(async (id: string) => {
+        try {
+            // If deleting the currently selected list, reset to "Todas"
+            if (controller.selectedListId === id) {
+                controller.setSelectedListId(null);
+            }
+            await deleteList.mutateAsync(id);
+            toast?.('Lista excluida.', 'success');
+            setIsListModalOpen(false);
+            setEditingList(null);
+        } catch {
+            toast?.('Erro ao excluir lista.', 'error');
+        }
+    }, [deleteList, toast, controller]);
+
+    // CL-1: Add selected contacts to list
+    const handleAddToList = useCallback(async (listId: string) => {
+        const ids = Array.from(controller.selectedIds);
+        try {
+            await addToList.mutateAsync({ listId, contactIds: ids });
+            toast?.(`${ids.length} contato(s) adicionado(s) a lista.`, 'success');
+            controller.clearSelection();
+        } catch {
+            toast?.('Erro ao adicionar contatos a lista.', 'error');
+        }
+    }, [controller, addToList, toast]);
+
+    // CL-1: Remove selected contacts from current list
+    const handleRemoveFromList = useCallback(async () => {
+        if (!controller.selectedListId || controller.selectedListId === NO_LIST_FILTER) return;
+        const ids = Array.from(controller.selectedIds);
+        try {
+            await removeFromList.mutateAsync({ listId: controller.selectedListId, contactIds: ids });
+            toast?.(`${ids.length} contato(s) removido(s) da lista.`, 'success');
+            controller.clearSelection();
+        } catch {
+            toast?.('Erro ao remover contatos da lista.', 'error');
+        }
+    }, [controller, removeFromList, toast]);
 
     return (
         <div className="space-y-6 max-w-[1600px] mx-auto">
@@ -121,25 +207,76 @@ export const ContactsPage: React.FC = () => {
                 contactsCount={controller.totalCount}
             />
 
-            {/* Spacer to prevent sticky bar from hiding content */}
-            {controller.selectedIds.size > 0 && <div className="h-16" />}
+            {/* Bulk Actions Bar (top, inline) */}
+            {controller.selectedIds.size > 0 && (
+                <div className="flex items-center justify-between rounded-xl border border-border bg-white/95 dark:bg-card/95 backdrop-blur-sm px-4 py-2.5">
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
+                            {controller.selectedIds.size} contato{controller.selectedIds.size !== 1 ? 's' : ''} selecionado{controller.selectedIds.size !== 1 ? 's' : ''}
+                        </span>
+                        <Button
+                            onClick={controller.clearSelection}
+                            className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
+                        >
+                            Limpar
+                        </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <BulkActionsToolbar
+                            selectedCount={controller.selectedIds.size}
+                            onClearSelection={controller.clearSelection}
+                            onReassign={controller.bulkReassignOwner}
+                            onExportCsv={handleExportCsv}
+                            profiles={controller.profiles}
+                            contactLists={controller.contactLists}
+                            onAddToList={handleAddToList}
+                            onRemoveFromList={controller.selectedListId && controller.selectedListId !== NO_LIST_FILTER ? handleRemoveFromList : undefined}
+                        />
+                        <Button
+                            onClick={() => controller.setBulkDeleteConfirm(true)}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                            <Trash2 size={14} />
+                            Excluir
+                        </Button>
+                    </div>
+                </div>
+            )}
 
-            <ContactsList
-                filteredContacts={controller.filteredContacts}
-                selectedIds={controller.selectedIds}
-                toggleSelect={controller.toggleSelect}
-                toggleSelectAll={controller.toggleSelectAll}
-                updateContact={controller.updateContact}
-                convertContactToDeal={controller.convertContactToDeal}
-                openEditModal={controller.openEditModal}
-                setDeleteId={controller.setDeleteId}
-                sortBy={controller.sortBy}
-                sortOrder={controller.sortOrder}
-                onSort={controller.handleSort}
-                profiles={controller.profiles}
-                totalCount={controller.totalCount}
-                openDetailModal={controller.openDetailModal}
-            />
+            {/* CL-1: Sidebar + Table layout */}
+            <div className="flex gap-0 rounded-xl border border-border overflow-hidden">
+                <ContactListsSidebar
+                    lists={controller.contactLists}
+                    selectedListId={controller.selectedListId}
+                    onSelectList={controller.setSelectedListId}
+                    onCreateList={() => { setEditingList(null); setIsListModalOpen(true); }}
+                    onEditList={(list) => { setEditingList(list); setIsListModalOpen(true); }}
+                    totalContactsCount={controller.totalCount}
+                    noListCount={noListCount}
+                    isLoading={controller.listsLoading}
+                    collapsed={controller.listsSidebarCollapsed}
+                    onToggleCollapse={controller.toggleListsSidebar}
+                />
+
+                <div className="flex-1 min-w-0">
+                    <ContactsList
+                        filteredContacts={controller.filteredContacts}
+                        selectedIds={controller.selectedIds}
+                        toggleSelect={controller.toggleSelect}
+                        toggleSelectAll={controller.toggleSelectAll}
+                        updateContact={controller.updateContact}
+                        convertContactToDeal={controller.convertContactToDeal}
+                        openEditModal={controller.openEditModal}
+                        setDeleteId={controller.setDeleteId}
+                        sortBy={controller.sortBy}
+                        sortOrder={controller.sortOrder}
+                        onSort={controller.handleSort}
+                        profiles={controller.profiles}
+                        totalCount={controller.totalCount}
+                        openDetailModal={controller.openDetailModal}
+                    />
+                </div>
+            </div>
 
             {/* T021: Pagination Controls */}
             {controller.viewMode === 'people' && controller.totalCount > 0 && (
@@ -167,7 +304,7 @@ export const ContactsPage: React.FC = () => {
                 editingContact={controller.editingContact}
                 createFakeContactsBatch={controller.createFakeContactsBatch}
                 isSubmitting={controller.isSubmittingContact}
-                bufferedPrefsRef={controller.bufferedPrefsRef}
+                bufferedPrefRef={controller.bufferedPrefRef}
                 onOpenDetail={controller.openDetailModal}
             />
 
@@ -177,6 +314,16 @@ export const ContactsPage: React.FC = () => {
                 onSelect={controller.createDealForContact}
                 boards={controller.boards}
                 contactName={controller.contactForDeal?.name || ''}
+            />
+
+            {/* CL-1: List CRUD modal */}
+            <ContactListModal
+                isOpen={isListModalOpen}
+                onClose={() => { setIsListModalOpen(false); setEditingList(null); }}
+                onSave={handleSaveList}
+                onDelete={handleDeleteList}
+                editingList={editingList}
+                isSaving={createList.isPending || updateList.isPending}
             />
 
             <ConfirmModal
@@ -237,40 +384,6 @@ export const ContactsPage: React.FC = () => {
                 variant="danger"
             />
 
-            {/* Story 3.5 — Sticky Bulk Actions Bar (bottom) */}
-            {controller.selectedIds.size > 0 && (
-                <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-white/95 dark:bg-card/95 backdrop-blur-sm shadow-bottom-bar px-8 py-3">
-                    <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
-                                {controller.selectedIds.size} contato{controller.selectedIds.size !== 1 ? 's' : ''} selecionado{controller.selectedIds.size !== 1 ? 's' : ''}
-                            </span>
-                            <Button
-                                onClick={controller.clearSelection}
-                                className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
-                            >
-                                Limpar
-                            </Button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <BulkActionsToolbar
-                                selectedCount={controller.selectedIds.size}
-                                onClearSelection={controller.clearSelection}
-                                onReassign={controller.bulkReassignOwner}
-                                onExportCsv={handleExportCsv}
-                                profiles={controller.profiles}
-                            />
-                            <Button
-                                onClick={() => controller.setBulkDeleteConfirm(true)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors"
-                            >
-                                <Trash2 size={14} />
-                                Excluir
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

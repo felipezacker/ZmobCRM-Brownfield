@@ -102,6 +102,7 @@ export const DealDetailModal: React.FC<DealDetailModalProps> = ({ dealId, isOpen
                   activitiesById={s.activitiesById}
                   onNewNoteChange={s.setNewNote}
                   onAddNote={s.handleAddNote}
+                  onNewActivity={s.handleOpenNewActivityForm}
                   onToggleActivity={s.handleToggleActivity}
                   onEditActivity={s.handleEditActivity}
                   onDeleteActivity={s.deleteActivity}

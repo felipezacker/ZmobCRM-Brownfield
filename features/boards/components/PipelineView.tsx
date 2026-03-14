@@ -75,8 +75,8 @@ interface PipelineViewProps {
   handleDeleteDeal: (dealId: string) => void;
   // Deal Selection & Sort (list view)
   selectedDealIds: Set<string>;
-  toggleDealSelect: (dealId: string) => void;
-  toggleDealSelectAll: (allIds: string[]) => void;
+  toggleDealSelect: (dealId: string, event?: React.MouseEvent | { shiftKey: boolean }) => void;
+  toggleDealSelectAll: () => void;
   clearDealSelection: () => void;
   dealSortBy: DealSortableColumn;
   dealSortOrder: 'asc' | 'desc';

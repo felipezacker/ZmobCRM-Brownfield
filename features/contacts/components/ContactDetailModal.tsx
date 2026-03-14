@@ -128,6 +128,27 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
   }, [contact, contactId]);
 
   // ---- Refresh functions ----
+  const refreshPreferences = useCallback(() => {
+    contactPreferencesService.getByContactId(contactId)
+      .then(({ data }) => {
+        const arr = data as ContactPreference[] | null;
+        setPreferences(arr && arr.length > 0 ? arr[0] : null);
+      })
+      .catch(err => console.error('[ContactModal] refresh preferences failed:', err));
+  }, [contactId]);
+
+  // Re-fetch preferences when AI tools mutate data
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.tool === 'createContactPreference' || detail?.tool === 'updateContactPreference') {
+        refreshPreferences();
+      }
+    };
+    window.addEventListener('zmob:data-mutated', handler);
+    return () => window.removeEventListener('zmob:data-mutated', handler);
+  }, [refreshPreferences]);
+
   const refreshActivities = useCallback(async () => {
     if (!supabase) return;
     const dealIds = deals.map((d) => d.id);
@@ -149,6 +170,41 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
     setNotes((data as DealNote[]) || []);
     setIsNotesLoading(false);
   }, [deals]);
+
+  // ---- Preference handlers ----
+  const emitPreferenceChange = useCallback((tool: string) => {
+    window.dispatchEvent(new CustomEvent('zmob:data-mutated', { detail: { tool } }));
+  }, []);
+
+  const handleUpdatePreferences = useCallback(async (updates: Partial<ContactPreference>) => {
+    if (!preferences?.id) return;
+    await contactPreferencesService.update(preferences.id, updates);
+    setPreferences(p => p ? { ...p, ...updates } : p);
+    emitPreferenceChange('updateContactPreference');
+  }, [preferences?.id, emitPreferenceChange]);
+
+  const handleCreatePreferences = useCallback(async (initialData?: Partial<ContactPreference>) => {
+    if (!contact?.organizationId) return;
+    const { data, error } = await contactPreferencesService.create({
+      contactId,
+      organizationId: contact.organizationId,
+      propertyTypes: initialData?.propertyTypes || [],
+      purpose: initialData?.purpose || null,
+      priceMin: initialData?.priceMin ?? null,
+      priceMax: initialData?.priceMax ?? null,
+      regions: initialData?.regions || [],
+      bedroomsMin: initialData?.bedroomsMin ?? null,
+      parkingMin: initialData?.parkingMin ?? null,
+      areaMin: initialData?.areaMin ?? null,
+      acceptsFinancing: initialData?.acceptsFinancing ?? null,
+      acceptsFgts: initialData?.acceptsFgts ?? null,
+      urgency: initialData?.urgency || null,
+      notes: initialData?.notes || null,
+    });
+    if (error) { console.error('[ContactModal] createPreferences failed:', error); return; }
+    if (data) setPreferences(data);
+    emitPreferenceChange('createContactPreference');
+  }, [contactId, contact?.organizationId, emitPreferenceChange]);
 
   // ---- Tag handlers ----
   const handleAddTag = useCallback(async (tag: string) => {
@@ -441,6 +497,8 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                 onRemoveTag={handleRemoveTag}
                 onUpdateCustomField={handleUpdateCustomField}
                 onUpdateContact={handleInlineUpdate}
+                onUpdatePreference={handleUpdatePreferences}
+                onCreatePreference={handleCreatePreferences}
               />
 
               {/* Center: Timeline */}

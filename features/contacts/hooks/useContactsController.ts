@@ -3,10 +3,12 @@ import { useSearchParams } from 'next/navigation';
 import { ContactSortableColumn } from '@/types';
 import { useToast } from '@/context/ToastContext';
 import { useBoards } from '@/lib/query/hooks/useBoardsQuery';
+import { useContactLists } from '@/lib/query/hooks/useContactListsQuery';
 import { useContactCRUD } from '@/features/contacts/hooks/useContactCRUD';
 import { useContactSearch } from '@/features/contacts/hooks/useContactSearch';
 import { useContactFilters } from '@/features/contacts/hooks/useContactFilters';
 import { useContactImport } from '@/features/contacts/hooks/useContactImport';
+import type { ListFilterValue } from '@/features/contacts/components/ContactListsSidebar';
 
 // Re-export for backward compatibility
 export type { ContactFormData } from '@/features/contacts/components/ContactFormModal';
@@ -43,6 +45,11 @@ export const useContactsController = () => {
     window.history.replaceState(null, '', newUrl);
   }, []);
 
+  // CL-1: List filter state
+  const [selectedListId, setSelectedListId] = useState<ListFilterValue>(null);
+  const [listsSidebarCollapsed, setListsSidebarCollapsed] = useState(false);
+  const { data: contactLists = [], isLoading: listsLoading } = useContactLists();
+
   // --- Sub-hooks (no circular deps) ---
 
   const filters = useContactFilters();
@@ -55,6 +62,7 @@ export const useContactsController = () => {
     contactTypeFilter: filters.contactTypeFilter,
     ownerFilter: filters.ownerFilter,
     sourceFilter: filters.sourceFilter,
+    selectedListId,
   });
 
   const crud = useContactCRUD({ toast });
@@ -138,7 +146,7 @@ export const useContactsController = () => {
     setDeleteId: crud.setDeleteId,
     deleteWithDeals: crud.deleteWithDeals,
     setDeleteWithDeals: crud.setDeleteWithDeals,
-    bufferedPrefsRef: crud.bufferedPrefsRef,
+    bufferedPrefRef: crud.bufferedPrefsRef,
     openCreateModal: crud.openCreateModal,
     openEditModal: crud.openEditModal,
     confirmDelete: crud.confirmDelete,
@@ -161,6 +169,14 @@ export const useContactsController = () => {
     contactForDeal: imports.contactForDeal,
     createFakeContactsBatch: imports.createFakeContactsBatch,
     updateContact: imports.updateContact,
+
+    // CL-1: Contact lists
+    selectedListId,
+    setSelectedListId,
+    contactLists,
+    listsLoading,
+    listsSidebarCollapsed,
+    toggleListsSidebar: useCallback(() => setListsSidebarCollapsed(prev => !prev), []),
 
     // Shared
     boards,

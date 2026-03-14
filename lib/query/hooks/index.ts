@@ -66,6 +66,18 @@ export {
   useInvalidateBoards,
 } from './useBoardsQuery';
 
+// Contact Lists (CL-1)
+export {
+  useContactLists,
+  useContactListMembers,
+  useNoListCount,
+  useCreateContactList,
+  useUpdateContactList,
+  useDeleteContactList,
+  useAddContactsToList,
+  useRemoveContactsFromList,
+} from './useContactListsQuery';
+
 // Unified Deal Movement
 export {
   useMoveDeal,

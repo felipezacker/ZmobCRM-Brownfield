@@ -3,6 +3,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { DealView, Board, CustomFieldDefinition, LifecycleStage } from '@/types';
 import { useAI } from '@/context/AIContext';
 import { isDealRotting } from './boardUtils';
+import { useRangeSelection } from '@/hooks/useRangeSelection';
 
 interface UseBoardViewParams {
   activeBoard: Board | null;
@@ -34,22 +35,8 @@ export const useBoardView = ({
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [openActivityMenuId, setOpenActivityMenuId] = useState<string | null>(null);
-  const [selectedDealIds, setSelectedDealIds] = useState<Set<string>>(new Set());
+  const { selectedIds: selectedDealIds, toggle: toggleDealSelect, toggleAll: toggleDealSelectAll, clear: clearDealSelection } = useRangeSelection({ items: filteredDeals });
   const customFieldDefinitions: CustomFieldDefinition[] = [];
-
-  const toggleDealSelect = useCallback((dealId: string) => {
-    setSelectedDealIds(prev => {
-      const next = new Set(prev);
-      if (next.has(dealId)) next.delete(dealId); else next.add(dealId);
-      return next;
-    });
-  }, []);
-
-  const toggleDealSelectAll = useCallback((allIds: string[]) => {
-    setSelectedDealIds(prev => prev.size === allIds.length ? new Set() : new Set(allIds));
-  }, []);
-
-  const clearDealSelection = useCallback(() => setSelectedDealIds(new Set()), []);
 
   // Clear selection on view mode switch
   useEffect(() => { clearDealSelection(); }, [clearDealSelectionTrigger, clearDealSelection]);
