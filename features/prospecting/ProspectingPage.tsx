@@ -60,7 +60,7 @@ import { useProspectingPageState, type OrgProfile } from '@/features/prospecting
 import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 import type { DrilldownCardType } from '@/features/prospecting/constants'
 
-export type { SessionStats } from '@/features/prospecting/hooks/useProspectingPageState'
+export type { SessionStats, SessionContact } from '@/features/prospecting/hooks/useProspectingPageState'
 
 function formatTimeAgo(timestamp: number): string {
   const diff = Math.floor((Date.now() - timestamp) / 1000)
@@ -142,6 +142,7 @@ export const ProspectingPage: React.FC = () => {
     selectedScript, setSelectedScript,
     sessionStats,
     sessionStartTime,
+    sessionContacts,
     pendingActiveSession,
     activeSessionCount,
     handleResumeSession,
@@ -476,6 +477,7 @@ export const ProspectingPage: React.FC = () => {
             stats={sessionStats}
             startTime={sessionStartTime}
             onClose={() => setShowSummary(false)}
+            sessionContacts={sessionContacts}
           />
         ) : sessionActive && currentContact ? (
           <ProspectingErrorBoundary section="Power Dialer">
