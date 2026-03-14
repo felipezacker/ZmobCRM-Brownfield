@@ -211,7 +211,7 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
             </p>
           ) : (
             <div>
-              {activities.map(activity => (
+              {activities.filter(a => !lastNote || a.id !== lastNote.id).map(activity => (
                 <ActivityItem
                   key={activity.id}
                   activity={activity}
