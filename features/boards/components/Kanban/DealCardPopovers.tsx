@@ -58,9 +58,21 @@ export const ProductPicker: React.FC<ProductPickerProps> = ({
   // "switching" forces the list view even when a product is selected
   const [switching, setSwitching] = useState(false);
 
+  // Prevents flash to list view during async remove→add swap
+  const [pendingSwap, setPendingSwap] = useState(false);
+
   // Local editable fields for qty/price
   const [editQty, setEditQty] = useState<number>(currentItem?.quantity ?? 1);
   const [editPrice, setEditPrice] = useState<string>(currentItem?.price?.toString() ?? '');
+
+  // Clear pendingSwap when the new product arrives via optimistic update
+  React.useEffect(() => {
+    if (pendingSwap && hasProduct) {
+      setPendingSwap(false);
+      setEditQty(currentItem?.quantity ?? 1);
+      setEditPrice(currentItem?.price?.toString() ?? '');
+    }
+  }, [pendingSwap, hasProduct, currentItem?.quantity, currentItem?.price]);
 
   // Sync local state when popover opens
   const handleOpenChange = (open: boolean) => {
@@ -68,14 +80,17 @@ export const ProductPicker: React.FC<ProductPickerProps> = ({
       setEditQty(currentItem.quantity ?? 1);
       setEditPrice(currentItem.price?.toString() ?? '');
       setSwitching(false);
+      setPendingSwap(false);
     }
     if (!open) {
       setSwitching(false);
+      setPendingSwap(false);
     }
     onProductPickerOpenChange(open);
   };
 
-  const showEditView = hasProduct && !switching;
+  const showEditView = (hasProduct || pendingSwap) && !switching;
+  const isPriceValid = editPrice === '' || !isNaN(parseFloat(editPrice.replace(',', '.')));
 
   const handleSaveItem = () => {
     if (!currentItem || !onUpdateItem) return;
@@ -92,7 +107,7 @@ export const ProductPicker: React.FC<ProductPickerProps> = ({
       if (catalogProduct && catalogProduct.price === 0) {
         productsService.update(catalogProduct.id, { price: finalPrice }).then(() => {
           window.dispatchEvent(new CustomEvent('crm:products-updated'));
-        });
+        }).catch((err) => console.error('Falha ao sincronizar preco do catalogo:', err));
       }
     }
 
@@ -100,11 +115,13 @@ export const ProductPicker: React.FC<ProductPickerProps> = ({
   };
 
   const handleRemove = () => {
+    setPendingSwap(false);
     onSelectProduct(null);
     setSwitching(false);
   };
 
   const handleSelectAndReset = (product: Product | null) => {
+    if (product) setPendingSwap(true);
     onSelectProduct(product);
     setSwitching(false);
   };
@@ -151,8 +168,12 @@ export const ProductPicker: React.FC<ProductPickerProps> = ({
                       <span className="text-xs font-semibold text-green-600 dark:text-green-400 truncate">
                         {currentItem.name}
                       </span>
-                      <span className="text-2xs bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded shrink-0">
-                        Catalogo
+                      <span className={`text-2xs px-1.5 py-0.5 rounded shrink-0 ${
+                        currentItem.productId
+                          ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                          : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400'
+                      }`}>
+                        {currentItem.productId ? 'Catalogo' : 'Personalizado'}
                       </span>
                     </div>
                   </div>
@@ -202,7 +223,9 @@ export const ProductPicker: React.FC<ProductPickerProps> = ({
                         onChange={(e) => setEditPrice(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleSaveItem(); }}
-                        className="w-20 text-right text-xs font-semibold bg-transparent border border-border rounded py-0.5 px-1.5 outline-none focus:ring-1 focus:ring-primary-500 tabular-nums transition-shadow"
+                        className={`w-20 text-right text-xs font-semibold bg-transparent border rounded py-0.5 px-1.5 outline-none focus:ring-1 tabular-nums transition-shadow ${
+                          isPriceValid ? 'border-border focus:ring-primary-500' : 'border-red-400 focus:ring-red-400 text-red-600'
+                        }`}
                       />
                     </div>
                   </div>

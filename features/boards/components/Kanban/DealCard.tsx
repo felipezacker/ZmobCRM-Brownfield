@@ -288,6 +288,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
       <ProductPicker
         deal={deal}
         productName={productName}
+        products={products}
         productSearch={popovers.productSearch}
         onProductSearchChange={popovers.setProductSearch}
         productPickerOpen={popovers.productPickerOpen}
