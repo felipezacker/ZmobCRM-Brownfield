@@ -564,8 +564,17 @@ export const ProspectingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Filters: period select + DateRangePicker + comparison toggle */}
+            {/* Filters: broker + period select + DateRangePicker + comparison toggle */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Broker filter dropdown (admin/director only) */}
+              {isAdminOrDirector && profiles.length > 0 && (
+                <BrokerFilterDropdown
+                  profiles={profiles}
+                  selectedId={metricsFilterOwnerId}
+                  onSelect={setMetricsFilterOwnerId}
+                />
+              )}
+
               <div className="flex items-center gap-2">
                 <Calendar size={14} className="text-muted-foreground shrink-0" />
                 <select
@@ -611,15 +620,6 @@ export const ProspectingPage: React.FC = () => {
               >
                 Comparar
               </Button>
-
-              {/* Broker filter dropdown (admin/director only) */}
-              {isAdminOrDirector && profiles.length > 0 && (
-                <BrokerFilterDropdown
-                  profiles={profiles}
-                  selectedId={metricsFilterOwnerId}
-                  onSelect={setMetricsFilterOwnerId}
-                />
-              )}
 
               {metricsHook.isFetching && !metricsHook.isLoading && (
                 <span className="text-xs text-muted-foreground animate-pulse">Atualizando...</span>
