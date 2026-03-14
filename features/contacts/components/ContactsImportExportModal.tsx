@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Download, Upload, FileDown, ChevronLeft, ChevronRight, Check, Plus } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 import { type CsvDelimiter } from '@/lib/utils/csv';
 import { Button } from '@/components/ui/button';
 import { useContactImportWizard, WIZARD_STEPS, DEAL_CRM_FIELDS } from '@/features/contacts/hooks/useContactImportWizard';
@@ -61,12 +62,13 @@ export function ContactsImportExportModal(props: {
   const { isOpen, onClose, exportParams } = props;
   const { addToast, showToast } = useToast();
   const toast = addToast || showToast;
+  const { user, organizationId } = useAuth();
 
   const [panel, setPanel] = useState<Panel>('export');
   const [delimiter, setDelimiter] = useState<'auto' | CsvDelimiter>('auto');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const wizard = useContactImportWizard({ toast, isOpen, panel, delimiter });
+  const wizard = useContactImportWizard({ toast, isOpen, panel, delimiter, organizationId, userId: user?.id });
   const {
     isExporting,
     handleExport,

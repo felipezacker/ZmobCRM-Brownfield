@@ -81,9 +81,11 @@ interface UseContactImportWizardParams {
   isOpen: boolean;
   panel: Panel;
   delimiter: 'auto' | CsvDelimiter;
+  organizationId?: string;
+  userId?: string;
 }
 
-export function useContactImportWizard({ toast, isOpen, panel, delimiter }: UseContactImportWizardParams) {
+export function useContactImportWizard({ toast, isOpen, panel, delimiter, organizationId, userId }: UseContactImportWizardParams) {
   const [wizardStep, setWizardStep] = useState<WizardStep>('upload');
   const [file, setFile] = useState<File | null>(null);
   const [ignoreHeader, setIgnoreHeader] = useState(false);
@@ -328,26 +330,15 @@ export function useContactImportWizard({ toast, isOpen, panel, delimiter }: UseC
 
       // CL-1: If creating a new list inline, do it before import
       let resolvedListId = importListId;
-      if (newListName.trim() && !importListId) {
+      if (newListName.trim() && !importListId && organizationId) {
         try {
           const { contactListsService } = await import('@/lib/supabase/contact-lists');
-          const { supabase } = await import('@/lib/supabase/client');
-          if (supabase) {
-            const { data: { user } } = await supabase.auth.getUser();
-            const { data: profile } = user ? await supabase
-              .from('profiles')
-              .select('organization_id')
-              .eq('id', user.id)
-              .single() : { data: null };
-            if (profile?.organization_id) {
-              const { data: newList } = await contactListsService.create({
-                name: newListName.trim(),
-                organizationId: profile.organization_id,
-                createdBy: user?.id,
-              });
-              if (newList) resolvedListId = newList.id;
-            }
-          }
+          const { data: newList } = await contactListsService.create({
+            name: newListName.trim(),
+            organizationId,
+            createdBy: userId,
+          });
+          if (newList) resolvedListId = newList.id;
         } catch { /* continue without list */ }
       }
 
@@ -388,7 +379,7 @@ export function useContactImportWizard({ toast, isOpen, panel, delimiter }: UseC
     } finally {
       setIsImporting(false);
     }
-  }, [file, mode, resolvedDelimiter, ignoreHeader, columnMapping, enableDealMapping, selectedBoardId, selectedStageId, dealColumnMapping, toast, importListId, newListName]);
+  }, [file, mode, resolvedDelimiter, ignoreHeader, columnMapping, enableDealMapping, selectedBoardId, selectedStageId, dealColumnMapping, toast, importListId, newListName, organizationId, userId]);
 
   return {
     wizardStep, setWizardStep,
