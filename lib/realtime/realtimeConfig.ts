@@ -26,8 +26,13 @@ export function shouldProcessInsert(key: string): boolean {
     }
   }
 
-  if (processedInserts.has(key)) {
-    return false;
+  const existingTimestamp = processedInserts.get(key);
+  if (existingTimestamp !== undefined) {
+    if (now - existingTimestamp > PROCESSED_CACHE_TTL) {
+      processedInserts.delete(key);
+    } else {
+      return false;
+    }
   }
   processedInserts.set(key, now);
   return true;

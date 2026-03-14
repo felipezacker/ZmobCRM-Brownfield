@@ -43,14 +43,17 @@ describe('handleDealUpdate', () => {
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   });
 
-  it('adds deal to cache when not found', () => {
+  it('invalidates cache when deal not found (triggers refetch for enriched data)', () => {
+    const spy = vi.spyOn(queryClient, 'invalidateQueries');
     queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, []);
 
     handleDealUpdate(queryClient, { id: 'new-deal', stage_id: 'stage-b', updated_at: '2026-01-02' }, {});
 
+    // Should not add raw payload (missing contactName/contactEmail etc)
     const cache = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
-    expect(cache).toHaveLength(1);
-    expect(cache?.[0].id).toBe('new-deal');
+    expect(cache).toHaveLength(0);
+    // Should trigger refetch to get complete enriched data
+    expect(spy).toHaveBeenCalledWith({ queryKey: DEALS_VIEW_KEY });
   });
 
   it('updates deal when same status and newer timestamp', () => {
