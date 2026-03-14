@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-7.4
 - **Epic:** CP-7 (Prospeccao — Produtividade & Conversao do Corretor)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 5 (S-M)
 - **Wave:** 2
@@ -289,6 +289,7 @@ Secondary Focus:
 | 2026-03-14 | 1.0 | Story criada | @sm (River) |
 | 2026-03-14 | 1.1 | Validacao GO. Correcao CRITICA: Schedule Return usa type='CALL' com metadata.scheduled_return=true (boolean) e data no campo `date`, NAO type='TASK' com data em metadata. Task 3, AC2 e Dev Notes corrigidos. Status Draft → Ready | @po (Pax) |
 | 2026-03-14 | 2.0 | Implementacao completa: Tasks 1-6 done, 12 testes, lint+typecheck limpos, 727 testes no suite passando. Status Ready → InProgress | @dev (Dex) |
+| 2026-03-14 | 2.1 | QA PASS — fixes aplicados (flash loading, non-null assertion). Pushed ae04795. Status Ready for Review → Done | @devops (Gage) |
 
 ---
 
