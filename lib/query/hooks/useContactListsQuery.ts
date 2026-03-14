@@ -14,6 +14,27 @@ const CONTACT_LISTS_KEY = ['contactLists'] as const;
 // ============ QUERIES ============
 
 /**
+ * Count contacts not in any list (server-side via RPC).
+ */
+export const useNoListCount = () => {
+  const { user, organizationId, loading: authLoading } = useAuth();
+
+  return useQuery({
+    queryKey: [...CONTACT_LISTS_KEY, 'noListCount', organizationId] as const,
+    queryFn: async () => {
+      const { supabase } = await import('@/lib/supabase/client');
+      if (!supabase || !organizationId) return 0;
+      const { data, error } = await supabase
+        .rpc('count_contacts_without_list', { p_org_id: organizationId });
+      if (error) return 0;
+      return (data as number) ?? 0;
+    },
+    enabled: !authLoading && !!user && !!organizationId,
+    staleTime: 30 * 1000,
+  });
+};
+
+/**
  * Fetch all contact lists with member counts.
  */
 export const useContactLists = () => {

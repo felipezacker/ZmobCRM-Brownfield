@@ -29,7 +29,7 @@ export const ContactListsSidebar: React.FC<ContactListsSidebarProps> = ({
   isLoading,
 }) => {
   return (
-    <aside className="w-60 shrink-0 border-r border-border bg-background/50 dark:bg-white/[0.02] rounded-l-xl overflow-y-auto">
+    <aside className="hidden md:block w-60 shrink-0 border-r border-border bg-background/50 dark:bg-white/[0.02] rounded-l-xl overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-3 border-b border-border">
         <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">

@@ -359,9 +359,14 @@ export const contactsService = {
       const to = from + pageSize - 1;
 
       // Build query with count
+      // CL-1: Use !inner join when filtering by list (server-side, no URL limit)
+      const selectStr = filters?.contactListId
+        ? '*, contact_list_members!inner(list_id)'
+        : '*';
+
       let query = supabase
         .from('contacts')
-        .select('*', { count: 'exact' })
+        .select(selectStr, { count: 'exact' })
         .is('deleted_at', null);
 
       // Apply filters
@@ -420,24 +425,13 @@ export const contactsService = {
           query = query.eq('source', filters.source);
         }
 
-        // CL-1: Filter by contact list membership
+        // CL-1: Filter by contact list membership (server-side !inner join)
         if (filters.contactListId) {
-          const { data: members } = await supabase
-            .from('contact_list_members')
-            .select('contact_id')
-            .eq('list_id', filters.contactListId);
-
-          const memberIds = (members || []).map(r => r.contact_id);
-          if (memberIds.length === 0) {
-            return {
-              data: { data: [], totalCount: 0, pageIndex, pageSize, hasMore: false },
-              error: null,
-            };
-          }
-          query = query.in('id', memberIds);
+          query = query.eq('contact_list_members.list_id', filters.contactListId);
         }
 
         // CL-1: Filter contacts not in any list
+        // Uses NOT IN with member IDs. Safe for org-level volumes (<500 unique members).
         if (filters.noList) {
           const { data: allMembers } = await supabase
             .from('contact_list_members')
@@ -462,7 +456,7 @@ export const contactsService = {
       if (error) return { data: null, error };
 
       const totalCount = count ?? 0;
-      const contacts = (data || []).map(c => transformContact(c as DbContact));
+      const contacts = (data || []).map(c => transformContact(c as unknown as DbContact));
       const hasMore = (pageIndex + 1) * pageSize < totalCount;
 
       return {

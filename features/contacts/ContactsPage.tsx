@@ -25,6 +25,7 @@ import {
     useDeleteContactList,
     useAddContactsToList,
     useRemoveContactsFromList,
+    useNoListCount,
 } from '@/lib/query/hooks/useContactListsQuery';
 import { useToast } from '@/context/ToastContext';
 import type { ContactList } from '@/types';
@@ -86,13 +87,8 @@ export const ContactsPage: React.FC = () => {
         exportContactsCsv(selectedContacts, profilesNameMap);
     }, [controller.filteredContacts, controller.selectedIds, profilesNameMap]);
 
-    // CL-1: "Sem Lista" count — contacts without list minus contacts with list
-    const noListCount = useMemo(() => {
-        const totalMembers = controller.contactLists.reduce((sum, l) => sum + (l.memberCount ?? 0), 0);
-        // Approximate: total - members (may have overlap since contacts can be in multiple lists)
-        // Exact count would require server query, but this is a reasonable approximation
-        return Math.max(0, controller.totalCount - totalMembers);
-    }, [controller.contactLists, controller.totalCount]);
+    // CL-1: "Sem Lista" count — server-side via RPC (accurate, handles overlap)
+    const { data: noListCount = 0 } = useNoListCount();
 
     // CL-1: List CRUD handlers
     const handleSaveList = useCallback(async (data: { name: string; color: string; description?: string }) => {
