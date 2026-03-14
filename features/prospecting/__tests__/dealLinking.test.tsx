@@ -240,8 +240,12 @@ vi.mock('@/lib/supabase/deals', () => ({
   dealsService: { update: vi.fn().mockResolvedValue({ error: null }) },
 }))
 
-vi.mock('@/features/prospecting/hooks/useBoardStages', () => ({
-  useBoardStages: () => ({ stages: [], isLoading: false }),
+vi.mock('@/features/prospecting/hooks/useBoards', () => ({
+  useBoards: () => ({ boards: [], isLoading: false }),
+}))
+
+vi.mock('@/features/boards/components/deal-detail/DealDetailModal', () => ({
+  DealDetailModal: () => null,
 }))
 
 describe('QuickActionsPanel — Deal Linking (CP-5.1 AC6)', () => {

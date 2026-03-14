@@ -11,13 +11,14 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CreateDealModal } from '@/features/boards/components/Modals/CreateDealModal'
+import { DealDetailModal } from '@/features/boards/components/deal-detail/DealDetailModal'
 import { DoNotContactModal } from '@/features/prospecting/components/DoNotContactModal'
 import { NoteTemplatesManager } from '@/features/prospecting/components/NoteTemplatesManager'
 import { useCreateActivity, useUpdateActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { contactsService } from '@/lib/supabase'
 import { getOpenDealsByContact, dealsService } from '@/lib/supabase/deals'
 import type { OpenDeal } from '@/lib/supabase/deals'
-import { useBoardStages } from '@/features/prospecting/hooks/useBoardStages'
+import { useBoards } from '@/features/prospecting/hooks/useBoards'
 import { useSettings } from '@/context/settings/SettingsContext'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
@@ -85,14 +86,16 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   const [openDeal, setOpenDeal] = useState<OpenDeal | null>(null)
   const [isDealLoading, setIsDealLoading] = useState(true)
   const [dealFetchError, setDealFetchError] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editTitle, setEditTitle] = useState('')
-  const [editValue, setEditValue] = useState('')
-  const [isSavingEdit, setIsSavingEdit] = useState(false)
+  const [showDealDetail, setShowDealDetail] = useState(false)
+  const [selectedBoardId, setSelectedBoardId] = useState('')
   const [selectedDealStage, setSelectedDealStage] = useState('')
   const [isMovingDealStage, setIsMovingDealStage] = useState(false)
 
-  const { stages: boardStages } = useBoardStages(openDeal?.board_id ?? null)
+  const { boards } = useBoards()
+  const selectedBoardStages = useMemo(() => {
+    const board = boards.find(b => b.id === selectedBoardId)
+    return board?.stages ?? []
+  }, [boards, selectedBoardId])
 
   // CP-7.3: Fetch open deal for contact
   useEffect(() => {
@@ -101,7 +104,10 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
     setDealFetchError(false)
     getOpenDealsByContact(contactId)
       .then((result) => {
-        if (!cancelled) setOpenDeal(result)
+        if (!cancelled) {
+          setOpenDeal(result)
+          if (result?.board_id) setSelectedBoardId(result.board_id)
+        }
       })
       .catch(() => {
         if (!cancelled) setDealFetchError(true)
@@ -121,14 +127,6 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
       .finally(() => setIsDealLoading(false))
   }, [contactId])
 
-  // CP-7.3: Edit deal handler (start only — save/move defined after toast)
-  const handleStartEdit = useCallback(() => {
-    if (!openDeal) return
-    setEditTitle(openDeal.title)
-    setEditValue(openDeal.value != null ? String(openDeal.value) : '')
-    setIsEditing(true)
-  }, [openDeal])
-
   const [returnDate, setReturnDate] = useState(() => {
     const d = suggestedReturnTime?.suggestedDate ?? getNextBusinessDay()
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
@@ -142,42 +140,29 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   const toast = addToast || showToast
   const isAdminOrDirector = profile?.role === 'admin' || profile?.role === 'diretor'
 
-  // CP-7.3: Save deal edit handler (needs toast)
-  const handleSaveEdit = useCallback(async () => {
-    if (!openDeal) return
-    setIsSavingEdit(true)
-    try {
-      const { error } = await dealsService.update(openDeal.id, {
-        title: editTitle,
-        value: parseFloat(editValue) || 0,
-      })
-      if (error) throw error
-      setOpenDeal(prev => prev ? { ...prev, title: editTitle, value: parseFloat(editValue) || 0 } : null)
-      setIsEditing(false)
-    } catch {
-      toast('Erro ao salvar deal', 'error')
-    } finally {
-      setIsSavingEdit(false)
-    }
-  }, [openDeal, editTitle, editValue, toast])
-
   // CP-7.3: Move deal stage handler (needs toast)
   const handleMoveDealStage = useCallback(async () => {
-    if (!openDeal || !selectedDealStage) return
+    if (!openDeal || !selectedDealStage || !selectedBoardId) return
     setIsMovingDealStage(true)
     try {
-      const { error } = await dealsService.update(openDeal.id, { status: selectedDealStage })
+      const updates: Record<string, unknown> = { status: selectedDealStage }
+      if (selectedBoardId !== openDeal.board_id) {
+        updates.boardId = selectedBoardId
+      }
+      const { error } = await dealsService.update(openDeal.id, updates)
       if (error) throw error
-      const newStageName = boardStages.find(s => s.id === selectedDealStage)?.name || ''
-      setOpenDeal(prev => prev ? { ...prev, stage_id: selectedDealStage, stage_name: newStageName } : null)
+      const newStageName = selectedBoardStages.find(s => s.id === selectedDealStage)?.name || ''
+      const newBoardName = boards.find(b => b.id === selectedBoardId)?.name || ''
+      setOpenDeal(prev => prev ? { ...prev, stage_id: selectedDealStage, stage_name: newStageName, board_id: selectedBoardId } : null)
       setSelectedDealStage('')
-      toast(`Deal movido para ${newStageName}`, 'success')
+      setStageUpdated(true)
+      toast(`Deal movido para ${newBoardName} → ${newStageName}`, 'success')
     } catch {
       toast('Erro ao mover deal', 'error')
     } finally {
       setIsMovingDealStage(false)
     }
-  }, [openDeal, selectedDealStage, boardStages, toast])
+  }, [openDeal, selectedDealStage, selectedBoardId, selectedBoardStages, boards, toast])
 
   const availableActions = ACTIONS_BY_OUTCOME[outcome] || []
 
@@ -352,7 +337,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                     <Button
                       variant="unstyled"
                       size="unstyled"
-                      onClick={handleStartEdit}
+                      onClick={() => setShowDealDetail(true)}
                       className="p-1.5 rounded-md text-muted-foreground hover:text-secondary-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-card/50 transition-colors"
                       aria-label="Editar deal"
                     >
@@ -360,77 +345,6 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
                     </Button>
                   </div>
 
-                  {/* Inline edit */}
-                  {isEditing && (
-                    <div className="px-3 pb-2.5 space-y-2 border-t border-border dark:border-border/50 pt-2">
-                      <input
-                        type="text"
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        placeholder="Título"
-                        aria-label="Título do deal"
-                        className="w-full text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-blue-500/50"
-                      />
-                      <input
-                        type="number"
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        placeholder="Valor"
-                        aria-label="Valor do deal"
-                        min="0"
-                        step="0.01"
-                        className="w-full text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-blue-500/50"
-                      />
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="unstyled"
-                          size="unstyled"
-                          onClick={handleSaveEdit}
-                          disabled={isSavingEdit || !editTitle.trim()}
-                          className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-colors disabled:opacity-40"
-                        >
-                          {isSavingEdit ? <Loader2 size={12} className="animate-spin" /> : 'Salvar'}
-                        </Button>
-                        <Button
-                          variant="unstyled"
-                          size="unstyled"
-                          onClick={() => setIsEditing(false)}
-                          className="px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-secondary-foreground transition-colors"
-                        >
-                          Cancelar
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Move stage dropdown */}
-                  {boardStages.length > 0 && (
-                    <div className="px-3 pb-2.5 flex items-center gap-2 border-t border-border dark:border-border/50 pt-2">
-                      <span className="text-xs text-muted-foreground shrink-0">Mover para:</span>
-                      <select
-                        value={selectedDealStage}
-                        onChange={(e) => setSelectedDealStage(e.target.value)}
-                        className="flex-1 text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-blue-500/50"
-                        aria-label="Selecionar stage do deal"
-                      >
-                        <option value="">Selecionar stage...</option>
-                        {boardStages
-                          .filter(s => s.id !== openDeal.stage_id)
-                          .map((stage) => (
-                            <option key={stage.id} value={stage.id}>{stage.name}</option>
-                          ))}
-                      </select>
-                      <Button
-                        variant="unstyled"
-                        size="unstyled"
-                        onClick={handleMoveDealStage}
-                        disabled={!selectedDealStage || isMovingDealStage}
-                        className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {isMovingDealStage ? <Loader2 size={12} className="animate-spin" /> : 'Mover'}
-                      </Button>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <Button
@@ -515,50 +429,52 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
             </div>
           )}
 
-          {/* Mover Stage */}
-          {availableActions.includes('move_stage') && (
-            <div className={`rounded-lg border transition-colors ${
-              stageUpdated
-                ? 'border-green-500/30 bg-green-500/10'
-                : 'border-border dark:border-border/50'
-            }`}>
+          {/* Mover Etapa — pipeline + stage do deal */}
+          {availableActions.includes('move_stage') && openDeal && !isDealLoading && (
+            <div className="rounded-lg border border-border dark:border-border/50">
               <div className="flex items-center gap-3 px-3 py-2.5">
-                {stageUpdated ? (
-                  <Check size={18} className="text-green-600 dark:text-green-400" />
-                ) : (
-                  <ArrowRightLeft size={18} className="text-purple-500" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <span className={`text-sm font-medium ${stageUpdated ? 'text-green-600 dark:text-green-400' : 'text-secondary-foreground dark:text-muted-foreground'}`}>
-                    {stageUpdated ? 'Stage atualizado' : 'Mover Stage'}
-                  </span>
-                </div>
+                <ArrowRightLeft size={18} className="text-purple-500" />
+                <span className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground">Mover Etapa</span>
               </div>
-              {!stageUpdated && otherStages.length > 0 && (
-                <div className="px-3 pb-2.5 flex items-center gap-2">
-                  <select
-                    value={selectedStage}
-                    onChange={(e) => setSelectedStage(e.target.value)}
-                    className="flex-1 text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/50"
-                  >
-                    <option value="">Selecionar stage...</option>
-                    {otherStages.map((stage) => (
-                      <option key={stage.id} value={stage.id}>
-                        {stage.name}
-                      </option>
-                    ))}
-                  </select>
-                  <Button
-                    variant="unstyled"
-                    size="unstyled"
-                    onClick={handleMoveStage}
-                    disabled={!selectedStage || isMovingStage}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-purple-500 hover:bg-purple-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {isMovingStage ? <Loader2 size={12} className="animate-spin" /> : 'Mover'}
-                  </Button>
-                </div>
-              )}
+              <div className="px-3 pb-2.5 space-y-2">
+                <select
+                  value={selectedBoardId}
+                  onChange={(e) => { setSelectedBoardId(e.target.value); setSelectedDealStage('') }}
+                  className="w-full text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/50"
+                  aria-label="Selecionar pipeline"
+                >
+                  <option value="">Selecionar pipeline...</option>
+                  {boards.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+                {selectedBoardId && (
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedDealStage}
+                      onChange={(e) => setSelectedDealStage(e.target.value)}
+                      className="flex-1 text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-purple-500/50"
+                      aria-label="Selecionar etapa"
+                    >
+                      <option value="">Selecionar etapa...</option>
+                      {selectedBoardStages
+                        .filter(s => !(s.id === openDeal.stage_id && selectedBoardId === openDeal.board_id))
+                        .map(s => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                    </select>
+                    <Button
+                      variant="unstyled"
+                      size="unstyled"
+                      onClick={handleMoveDealStage}
+                      disabled={!selectedDealStage || isMovingDealStage}
+                      className="px-3 py-1.5 text-xs font-medium rounded-md bg-purple-500 hover:bg-purple-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {isMovingDealStage ? <Loader2 size={12} className="animate-spin" /> : 'Mover'}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           {/* CP-7.1: Nao ligar mais */}
@@ -652,6 +568,15 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
         contactId={contactId}
         onBlocked={onDismiss}
       />
+
+      {/* CP-7.3: Deal detail modal for editing */}
+      {openDeal && (
+        <DealDetailModal
+          dealId={openDeal.id}
+          isOpen={showDealDetail}
+          onClose={() => { setShowDealDetail(false); refetchDeal() }}
+        />
+      )}
     </>
   )
 }

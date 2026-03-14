@@ -20,6 +20,11 @@ vi.mock('@/features/boards/components/Modals/CreateDealModal', () => ({
     isOpen ? <div data-testid="create-deal-modal"><button onClick={() => onCreated('new-deal-1')}>Criar</button></div> : null,
 }))
 
+vi.mock('@/features/boards/components/deal-detail/DealDetailModal', () => ({
+  DealDetailModal: ({ isOpen, dealId }: { isOpen: boolean; dealId: string }) =>
+    isOpen ? <div data-testid="deal-detail-modal" data-deal-id={dealId}>DealDetail</div> : null,
+}))
+
 vi.mock('@/features/prospecting/components/DoNotContactModal', () => ({
   DoNotContactModal: () => null,
 }))
@@ -57,12 +62,18 @@ vi.mock('@/lib/supabase/deals', () => ({
   dealsService: { update: (...args: unknown[]) => mockDealsServiceUpdate(...args) },
 }))
 
-vi.mock('@/features/prospecting/hooks/useBoardStages', () => ({
-  useBoardStages: () => ({
-    stages: [
-      { id: 'stage-1', name: 'Novo', position: 0 },
-      { id: 'stage-2', name: 'Qualificação', position: 1 },
-      { id: 'stage-3', name: 'Proposta', position: 2 },
+vi.mock('@/features/prospecting/hooks/useBoards', () => ({
+  useBoards: () => ({
+    boards: [
+      { id: 'board-1', name: 'Vendas', stages: [
+        { id: 'stage-1', name: 'Novo' },
+        { id: 'stage-2', name: 'Qualificação' },
+        { id: 'stage-3', name: 'Proposta' },
+      ]},
+      { id: 'board-2', name: 'Pós-Venda', stages: [
+        { id: 'stage-4', name: 'Onboarding' },
+        { id: 'stage-5', name: 'Ativo' },
+      ]},
     ],
     isLoading: false,
   }),
@@ -131,7 +142,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
     expect(screen.getByTestId('create-deal-modal')).toBeInTheDocument()
   })
 
-  it('shows edit inputs when edit button is clicked (AC3)', async () => {
+  it('opens DealDetailModal when edit button is clicked (AC3)', async () => {
     mockGetOpenDealsByContact.mockResolvedValue({
       id: 'deal-1',
       title: 'Apartamento Centro',
@@ -147,49 +158,11 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
       expect(screen.getByText('Apartamento Centro')).toBeInTheDocument()
     })
     fireEvent.click(screen.getByLabelText('Editar deal'))
-    expect(screen.getByDisplayValue('Apartamento Centro')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('450000')).toBeInTheDocument()
-    expect(screen.getByText('Salvar')).toBeInTheDocument()
-    expect(screen.getByText('Cancelar')).toBeInTheDocument()
+    expect(screen.getByTestId('deal-detail-modal')).toBeInTheDocument()
+    expect(screen.getByTestId('deal-detail-modal').getAttribute('data-deal-id')).toBe('deal-1')
   })
 
-  it('saves edited title and value via dealsService.update (AC8)', async () => {
-    mockGetOpenDealsByContact.mockResolvedValue({
-      id: 'deal-1',
-      title: 'Apartamento Centro',
-      value: 450000,
-      property_ref: null,
-      product_name: null,
-      stage_id: 'stage-1',
-      stage_name: 'Novo',
-      board_id: 'board-1',
-    })
-    mockDealsServiceUpdate.mockResolvedValue({ error: null })
-    render(<QuickActionsPanel {...defaultProps} />)
-    await waitFor(() => {
-      expect(screen.getByText('Apartamento Centro')).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByLabelText('Editar deal'))
-    const titleInput = screen.getByDisplayValue('Apartamento Centro')
-    const valueInput = screen.getByDisplayValue('450000')
-    fireEvent.change(titleInput, { target: { value: 'Cobertura Leblon' } })
-    fireEvent.change(valueInput, { target: { value: '850000' } })
-    fireEvent.click(screen.getByText('Salvar'))
-
-    await waitFor(() => {
-      expect(mockDealsServiceUpdate).toHaveBeenCalledWith('deal-1', {
-        title: 'Cobertura Leblon',
-        value: 850000,
-      })
-    })
-    // Card should update optimistically
-    await waitFor(() => {
-      expect(screen.getByText('Cobertura Leblon')).toBeInTheDocument()
-    })
-  })
-
-  it('populates stage dropdown from boardStages (AC4)', async () => {
+  it('shows pipeline dropdown and stage dropdown when deal exists (AC4)', async () => {
     mockGetOpenDealsByContact.mockResolvedValue({
       id: 'deal-1',
       title: 'Deal Test',
@@ -204,14 +177,19 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
     await waitFor(() => {
       expect(screen.getByText('Deal Test')).toBeInTheDocument()
     })
-    const dropdown = screen.getByLabelText('Selecionar stage do deal')
-    expect(dropdown).toBeInTheDocument()
-    // stage-1 (Novo) is current, so only Qualificação and Proposta should be options
+    expect(screen.getByText('Mover Etapa')).toBeInTheDocument()
+    // Pipeline dropdown pre-selected with board-1
+    const pipelineDropdown = screen.getByLabelText('Selecionar pipeline')
+    expect(pipelineDropdown).toBeInTheDocument()
+    // Stage dropdown should show after pipeline is selected (pre-selected)
+    const stageDropdown = screen.getByLabelText('Selecionar etapa')
+    expect(stageDropdown).toBeInTheDocument()
+    // Current stage (stage-1/Novo) should be filtered out in same board
     expect(screen.getByText('Qualificação')).toBeInTheDocument()
     expect(screen.getByText('Proposta')).toBeInTheDocument()
   })
 
-  it('moves deal stage via dealsService.update (AC4, AC9)', async () => {
+  it('moves deal to selected pipeline + stage (AC4, AC9)', async () => {
     mockGetOpenDealsByContact.mockResolvedValue({
       id: 'deal-1',
       title: 'Deal Test',
@@ -228,14 +206,18 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
       expect(screen.getByText('Deal Test')).toBeInTheDocument()
     })
 
-    const dropdown = screen.getByLabelText('Selecionar stage do deal')
-    fireEvent.change(dropdown, { target: { value: 'stage-2' } })
+    // Select a different pipeline
+    const pipelineDropdown = screen.getByLabelText('Selecionar pipeline')
+    fireEvent.change(pipelineDropdown, { target: { value: 'board-2' } })
 
-    const moveButton = screen.getByText('Mover')
-    fireEvent.click(moveButton)
+    // Select stage in new pipeline
+    const stageDropdown = screen.getByLabelText('Selecionar etapa')
+    fireEvent.change(stageDropdown, { target: { value: 'stage-4' } })
+
+    fireEvent.click(screen.getByText('Mover'))
 
     await waitFor(() => {
-      expect(mockDealsServiceUpdate).toHaveBeenCalledWith('deal-1', { status: 'stage-2' })
+      expect(mockDealsServiceUpdate).toHaveBeenCalledWith('deal-1', { status: 'stage-4', boardId: 'board-2' })
     })
   })
 

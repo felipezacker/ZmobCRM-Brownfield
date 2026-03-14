@@ -57,6 +57,11 @@ vi.mock('@/features/boards/components/Modals/CreateDealModal', () => ({
     ) : null,
 }))
 
+vi.mock('@/features/boards/components/deal-detail/DealDetailModal', () => ({
+  DealDetailModal: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div data-testid="deal-detail-modal">DealDetail</div> : null,
+}))
+
 vi.mock('@/features/prospecting/components/NoteTemplatesManager', () => ({
   NoteTemplatesManager: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? (
@@ -71,13 +76,22 @@ vi.mock('@/features/prospecting/components/DoNotContactModal', () => ({
 }))
 
 // CP-7.3: Mock deal fetch and board stages
+const mockGetOpenDealsByContact = vi.fn().mockResolvedValue(null)
 vi.mock('@/lib/supabase/deals', () => ({
-  getOpenDealsByContact: vi.fn().mockResolvedValue(null),
+  getOpenDealsByContact: (...args: unknown[]) => mockGetOpenDealsByContact(...args),
   dealsService: { update: vi.fn().mockResolvedValue({ error: null }) },
 }))
 
-vi.mock('@/features/prospecting/hooks/useBoardStages', () => ({
-  useBoardStages: () => ({ stages: [], isLoading: false }),
+vi.mock('@/features/prospecting/hooks/useBoards', () => ({
+  useBoards: () => ({
+    boards: [
+      { id: 'board-1', name: 'Vendas', stages: [
+        { id: 'stage-a', name: 'Novo' },
+        { id: 'stage-b', name: 'Proposta' },
+      ]},
+    ],
+    isLoading: false,
+  }),
 }))
 
 // ── Helpers ──────────────────────────────────────────────
@@ -98,35 +112,37 @@ describe('QuickActionsPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockProfile = { role: 'corretor' }
+    mockGetOpenDealsByContact.mockResolvedValue(null)
   })
 
   describe('Rendering by outcome (AC6)', () => {
-    it('shows all 3 actions for "connected" outcome', async () => {
+    it('shows create deal + agendar retorno for "connected" without deal', async () => {
       render(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
       await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
-      expect(screen.getByText('Mover Stage')).toBeInTheDocument()
+      // Mover Etapa only shows when deal exists
+      expect(screen.queryByText('Mover Etapa')).not.toBeInTheDocument()
     })
 
     it('shows only "Agendar Retorno" for "no_answer" outcome', () => {
       render(<QuickActionsPanel {...defaultProps()} outcome="no_answer" />)
       expect(screen.queryByText('+ Criar Deal')).not.toBeInTheDocument()
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
-      expect(screen.queryByText('Mover Stage')).not.toBeInTheDocument()
+      expect(screen.queryByText('Mover Etapa')).not.toBeInTheDocument()
     })
 
     it('shows only "Agendar Retorno" for "voicemail" outcome', () => {
       render(<QuickActionsPanel {...defaultProps()} outcome="voicemail" />)
       expect(screen.queryByText('+ Criar Deal')).not.toBeInTheDocument()
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
-      expect(screen.queryByText('Mover Stage')).not.toBeInTheDocument()
+      expect(screen.queryByText('Mover Etapa')).not.toBeInTheDocument()
     })
 
     it('shows only "Agendar Retorno" for "busy" outcome', () => {
       render(<QuickActionsPanel {...defaultProps()} outcome="busy" />)
       expect(screen.queryByText('+ Criar Deal')).not.toBeInTheDocument()
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
-      expect(screen.queryByText('Mover Stage')).not.toBeInTheDocument()
+      expect(screen.queryByText('Mover Etapa')).not.toBeInTheDocument()
     })
   })
 
@@ -196,21 +212,26 @@ describe('QuickActionsPanel', () => {
     })
   })
 
-  describe('Move Stage (AC4)', () => {
-    it('shows stage dropdown for "connected" outcome', () => {
+  describe('Move Etapa (AC4) — requires deal', () => {
+    const dealMock = {
+      id: 'deal-1', title: 'Test Deal', value: 100000,
+      property_ref: null, product_name: null,
+      stage_id: 'stage-a', stage_name: 'Novo', board_id: 'board-1',
+    }
+
+    it('shows pipeline + stage dropdowns for "connected" with deal', async () => {
+      mockGetOpenDealsByContact.mockResolvedValue(dealMock)
       render(<QuickActionsPanel {...defaultProps()} />)
-      expect(screen.getByText('Selecionar stage...')).toBeInTheDocument()
+      await waitFor(() => { expect(screen.getByText('Mover Etapa')).toBeInTheDocument() })
+      expect(screen.getByLabelText('Selecionar pipeline')).toBeInTheDocument()
+      expect(screen.getByLabelText('Selecionar etapa')).toBeInTheDocument()
     })
 
-    it('filters out current stage from dropdown', () => {
-      render(<QuickActionsPanel {...defaultProps()} contactStage="lead" />)
-      // 'lead' should be filtered out, other 3 should be present
-      const options = screen.getAllByRole('option')
-      const optionTexts = options.map(o => o.textContent)
-      expect(optionTexts).not.toContain('LEAD')
-      expect(optionTexts).toContain('MQL')
-      expect(optionTexts).toContain('PROSPECT')
-      expect(optionTexts).toContain('CUSTOMER')
+    it('hides "Mover Etapa" when no deal', async () => {
+      mockGetOpenDealsByContact.mockResolvedValue(null)
+      render(<QuickActionsPanel {...defaultProps()} />)
+      await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
+      expect(screen.queryByText('Mover Etapa')).not.toBeInTheDocument()
     })
   })
 
