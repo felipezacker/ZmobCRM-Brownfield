@@ -17,21 +17,21 @@ vi.mock('@/components/ui/button', () => ({
 }))
 
 vi.mock('@/features/inbox/components/CallModal', () => ({
-  // eslint-disable-next-line no-restricted-syntax -- mock component
   CallModal: ({ isOpen, onClose, onSave }: { isOpen: boolean; onClose: () => void; onSave?: (data: { title: string; notes: string; outcome: string; duration: number }) => void }) =>
     isOpen ? (
-      // eslint-disable-next-line no-restricted-syntax -- mock component
       <div data-testid="call-modal">
+        {/* eslint-disable-next-line no-restricted-syntax -- mock component */}
         <button onClick={onClose}>Close</button>
+        {/* eslint-disable-next-line no-restricted-syntax -- mock component */}
         <button onClick={() => onSave?.({ title: 'Test Call', notes: '', outcome: 'connected', duration: 60 })}>SaveCall</button>
       </div>
     ) : null,
 }))
 
 vi.mock('@/features/prospecting/components/QuickActionsPanel', () => ({
-  // eslint-disable-next-line no-restricted-syntax -- mock component
   QuickActionsPanel: ({ onDismiss }: { onDismiss: () => void }) => (
     <div data-testid="quick-actions-panel">
+      {/* eslint-disable-next-line no-restricted-syntax -- mock component */}
       <button onClick={onDismiss}>DismissPanel</button>
     </div>
   ),
@@ -39,6 +39,10 @@ vi.mock('@/features/prospecting/components/QuickActionsPanel', () => ({
 
 vi.mock('@/features/prospecting/components/ProspectingScriptGuide', () => ({
   ProspectingScriptGuide: () => <div data-testid="script-guide" />,
+}))
+
+vi.mock('@/features/prospecting/components/DoNotContactModal', () => ({
+  DoNotContactModal: () => null,
 }))
 
 const mockMutateAsync = vi.fn().mockResolvedValue({ id: 'activity-123' })
@@ -83,6 +87,26 @@ vi.mock('@/features/inbox/hooks/useQuickScripts', () => ({
     error: null,
   }),
 }))
+
+// CP-7.1: Mock DoNotContactModal and ContactHistory (newly imported by PowerDialer)
+vi.mock('@/features/prospecting/components/DoNotContactModal', () => ({
+  DoNotContactModal: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div data-testid="do-not-contact-modal" /> : null,
+}))
+
+vi.mock('@/features/prospecting/components/ContactHistory', () => ({
+  ContactHistory: () => <div data-testid="contact-history" />,
+}))
+
+vi.mock('@/context/ToastContext', () => ({
+  useOptionalToast: () => ({ addToast: vi.fn() }),
+}))
+
+vi.mock('@/features/prospecting/components/LeadScoreBadge', () => ({
+  LeadScoreBadge: () => null,
+}))
+
+vi.mock('@/features/prospecting/utils/suggestBestTime', () => ({}))
 
 // ── Helpers ──────────────────────────────────────────────
 
@@ -395,16 +419,27 @@ describe('PowerDialer — Purple Dot Indicator', () => {
   })
 })
 
-// ── Skip Button (direct action, no dropdown) ──────────────────────────────────
+// ── Skip Button (CP-7.1: dropdown with reasons) ──────────────────────────────────
 
 describe('PowerDialer — Skip Button', () => {
-  it('clicking Pular calls onSkip directly without dropdown', () => {
+  it('clicking Pular opens a dropdown with skip reasons', () => {
     const props = defaultProps()
     render(<PowerDialer {...props} />)
 
     fireEvent.click(screen.getByText('Pular'))
-    expect(props.onSkip).toHaveBeenCalledTimes(1)
-    expect(screen.queryByText('Motivo do pulo:')).not.toBeInTheDocument()
+    // Should show skip reason options
+    expect(screen.getByText('Número errado')).toBeInTheDocument()
+    expect(screen.getByText('Sem interesse')).toBeInTheDocument()
+    expect(screen.getByText('Não ligar mais')).toBeInTheDocument()
+  })
+
+  it('selecting a skip reason calls onSkip with that reason', () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    fireEvent.click(screen.getByText('Pular'))
+    fireEvent.click(screen.getByText('Sem interesse'))
+    expect(props.onSkip).toHaveBeenCalledWith('Sem interesse')
   })
 })
 

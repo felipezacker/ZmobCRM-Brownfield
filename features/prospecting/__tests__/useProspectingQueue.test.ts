@@ -217,9 +217,8 @@ describe('useProspectingQueue', () => {
 
     expect(mockScheduleRetryAsync).toHaveBeenCalledWith({
       id: 'q-1',
-      retryIntervalDays: 3, // default interval
     })
-    expect(mockToast).toHaveBeenCalledWith('Retry agendado para 3 dias', 'info')
+    expect(mockToast).toHaveBeenCalledWith(expect.stringContaining('Retry agendado'), 'info')
   })
 
   it('markCompleted com no_answer mostra toast de esgotado quando exhausted', async () => {
@@ -263,15 +262,7 @@ describe('useProspectingQueue', () => {
     expect(mockToast).toHaveBeenCalledWith('Contato resetado para fila', 'success')
   })
 
-  it('retryInterval default é 3 e pode ser alterado', () => {
-    const { result } = renderHook(() => useProspectingQueue())
-    expect(result.current.retryInterval).toBe(3)
-
-    act(() => {
-      result.current.setRetryInterval(7)
-    })
-    expect(result.current.retryInterval).toBe(7)
-  })
+  // retryInterval was removed — shift-based cadence is server-side (CP-6.3)
 
   // ── QV-1.7: Queue limit & duplicate validation ──────────
 
