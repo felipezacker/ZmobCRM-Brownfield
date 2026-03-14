@@ -294,6 +294,15 @@ export const ProspectingPage: React.FC = () => {
   const skippedCount = queue.filter(q => q.status === 'skipped').length
   const canStartSession = pendingCount + skippedCount > 0
 
+  // CP-7.4: Auto-show summary when session auto-ends (last contact advanceToNext)
+  // advanceToNext sets sessionActive=false but never sets showSummary=true.
+  // This effect catches that case and shows the summary automatically.
+  useEffect(() => {
+    if (!sessionActive && sessionStartTime && !showSummary && sessionStats.completed > 0) {
+      setShowSummary(true)
+    }
+  }, [sessionActive]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const viewingOwnerProfile = viewQueueOwnerId && !isViewingAll ? profiles.find(p => p.id === viewQueueOwnerId) : null
 
   return (
