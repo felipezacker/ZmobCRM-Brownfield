@@ -563,8 +563,19 @@ export const ProspectingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Filters: period + broker */}
+            {/* Filters: period + broker on same row */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Broker filter (admin/director) — left aligned */}
+              {isAdminOrDirector && profiles.length > 0 && (
+                <BrokerFilterDropdown
+                  profiles={profiles}
+                  selectedId={metricsFilterOwnerId}
+                  onSelect={setMetricsFilterOwnerId}
+                />
+              )}
+              {isAdminOrDirector && profiles.length > 0 && (
+                <div className="w-px h-4 bg-border dark:bg-border/50 shrink-0" />
+              )}
               {([
                 { key: 'today', label: 'Hoje' },
                 { key: 'yesterday', label: 'Ontem' },
@@ -636,15 +647,6 @@ export const ProspectingPage: React.FC = () => {
                 <span className="text-xs text-muted-foreground dark:text-muted-foreground animate-pulse">Atualizando...</span>
               )}
             </div>
-
-            {/* Broker filter dropdown (admin/director only) */}
-            {isAdminOrDirector && profiles.length > 0 && (
-              <BrokerFilterDropdown
-                profiles={profiles}
-                selectedId={metricsFilterOwnerId}
-                onSelect={setMetricsFilterOwnerId}
-              />
-            )}
 
             {/* ═══ SECTION: Visao Geral ═══ */}
             <MetricsSection title="Visao Geral" icon={Eye} iconColor="text-blue-500">
