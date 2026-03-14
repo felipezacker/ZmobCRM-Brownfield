@@ -228,7 +228,7 @@ export function ConnectionHeatmap({ activities, isLoading }: ConnectionHeatmapPr
           {/* Tooltip */}
           {tooltip && (
             <div
-              className="fixed z-50 px-3 py-2 bg-card dark:bg-accent text-white text-xs rounded-lg shadow-lg pointer-events-none -translate-x-1/2 -translate-y-full"
+              className="fixed z-50 px-3 py-2 bg-foreground text-background text-xs rounded-lg shadow-lg pointer-events-none -translate-x-1/2 -translate-y-full"
               style={{ left: tooltip.x, top: tooltip.y }}
             >
               <p className="font-medium">{tooltip.day} {tooltip.time}</p>
