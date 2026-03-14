@@ -84,7 +84,7 @@ export function CockpitChecklist({ checklist, onPersistChecklist, onReload }: Co
         />
         <Button
           type="button"
-          className="h-10 rounded-xl bg-muted px-4 text-xs font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+          className="h-10 rounded-xl bg-white dark:bg-white px-4 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50"
           disabled={!checklistDraft.trim()}
           onClick={() => {
             const text = checklistDraft.trim();

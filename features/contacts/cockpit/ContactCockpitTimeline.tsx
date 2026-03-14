@@ -376,7 +376,7 @@ export function ContactCockpitTimeline({
           </div>
           <Button
             type="button"
-            className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            className="rounded-xl bg-primary-600 dark:bg-white px-4 py-2 text-xs font-semibold text-white dark:text-foreground hover:bg-primary-500 dark:hover:bg-muted disabled:opacity-50"
             onClick={handleSaveNote}
             disabled={saving || !noteDraft.trim()}
           >

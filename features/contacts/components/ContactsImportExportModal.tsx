@@ -94,26 +94,22 @@ export function ContactsImportExportModal(props: {
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
-            variant="unstyled"
-            size="unstyled"
             onClick={() => handlePanelSwitch('export')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
               panel === 'export'
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-transparent text-muted-foreground border-border hover:bg-accent'
+                ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+                : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
             }`}
           >
             Exportar
           </Button>
           <Button
             type="button"
-            variant="unstyled"
-            size="unstyled"
             onClick={() => handlePanelSwitch('import')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
               panel === 'import'
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-transparent text-muted-foreground border-border hover:bg-accent'
+                ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+                : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
             }`}
           >
             Importar CSV
@@ -129,7 +125,7 @@ export function ContactsImportExportModal(props: {
             <select
               value={delimiter}
               onChange={e => setDelimiter(e.target.value as 'auto' | CsvDelimiter)}
-              className="text-sm rounded-lg border border-border bg-background text-foreground px-2 py-1"
+              className="text-sm rounded-lg border border-border bg-white dark:bg-white/5 px-2 py-1"
             >
               <option value="auto">Auto</option>
               <option value=",">, (vírgula)</option>
@@ -162,7 +158,7 @@ export function ContactsImportExportModal(props: {
             disabled={isExporting}
             className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
               isExporting
-                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                 : 'bg-primary-600 hover:bg-primary-700 text-white'
             }`}
           >
@@ -192,7 +188,7 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={handleDownloadTemplate}
-                  className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2 hover:bg-primary/90"
+                  className="px-3 py-2 rounded-lg bg-card dark:bg-white text-white dark:text-foreground text-sm font-semibold flex items-center gap-2"
                 >
                   <Download size={16} /> Baixar template
                 </Button>
@@ -244,7 +240,7 @@ export function ContactsImportExportModal(props: {
                   disabled={!wizard.file}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
                     !wizard.file
-                      ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                      ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                       : 'bg-primary-600 hover:bg-primary-700 text-white'
                   }`}
                 >
@@ -398,7 +394,7 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={() => wizard.setWizardStep('upload')}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-muted text-foreground border border-border hover:bg-accent"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border hover:bg-background dark:hover:bg-white/10"
                 >
                   <ChevronLeft size={16} /> Voltar
                 </Button>
@@ -408,7 +404,7 @@ export function ContactsImportExportModal(props: {
                   disabled={wizard.mappedFieldsSummary.length === 0 || wizard.hasDuplicates}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
                     wizard.mappedFieldsSummary.length === 0 || wizard.hasDuplicates
-                      ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                      ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                       : 'bg-primary-600 hover:bg-primary-700 text-white'
                   }`}
                 >
@@ -542,7 +538,7 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={() => wizard.setWizardStep('mapping')}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-muted text-foreground border border-border hover:bg-accent"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border hover:bg-background dark:hover:bg-white/10"
                 >
                   <ChevronLeft size={16} /> Voltar
                 </Button>
@@ -673,7 +669,7 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={() => wizard.setWizardStep('deal_mapping')}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-muted text-foreground border border-border hover:bg-accent"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border hover:bg-background dark:hover:bg-white/10"
                 >
                   <ChevronLeft size={16} /> Voltar
                 </Button>
@@ -683,7 +679,7 @@ export function ContactsImportExportModal(props: {
                   disabled={wizard.isImporting}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
                     wizard.isImporting
-                      ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                      ? 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                       : 'bg-primary-600 hover:bg-primary-700 text-white'
                   }`}
                 >
@@ -733,7 +729,7 @@ export function ContactsImportExportModal(props: {
                   wizard.setWizardStep('upload');
                   wizard.setFile(null);
                 }}
-                className="px-3 py-2 rounded-lg text-sm font-semibold bg-muted text-foreground border border-border hover:bg-accent"
+                className="px-3 py-2 rounded-lg text-sm font-semibold bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border hover:bg-background dark:hover:bg-white/10"
               >
                 Nova importação
               </Button>

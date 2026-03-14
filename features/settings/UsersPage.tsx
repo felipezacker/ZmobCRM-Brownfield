@@ -413,8 +413,8 @@ export const UsersPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => setExpirationDays(opt.value)}
                                                 className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all ${expirationDays === opt.value
-                                                    ? 'bg-primary text-primary-foreground border-primary'
-                                                    : 'bg-muted text-foreground border-border hover:bg-accent'
+                                                    ? 'bg-card text-white border-border dark:bg-white dark:text-foreground dark:border-white'
+                                                    : 'bg-white text-secondary-foreground border-border hover:border-border dark:bg-card dark:text-muted-foreground dark:border-border'
                                                     }`}
                                             >
                                                 {opt.label}

@@ -193,7 +193,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
                 </Button>
                 <Button
                   onClick={handleSave}
-                  className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded-lg hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                  className="px-4 py-1.5 bg-card dark:bg-white text-white dark:text-black text-xs font-bold rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all"
                 >
                   Salvar Alterações
                 </Button>
