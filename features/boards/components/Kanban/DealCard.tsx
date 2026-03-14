@@ -37,6 +37,7 @@ interface DealCardProps {
   onKeyboardMove?: (e: React.KeyboardEvent) => void;
   products: Product[];
   onProductChange: (dealId: string, product: Product | null) => void;
+  onItemUpdate?: (dealId: string, itemId: string, updates: { quantity?: number; price?: number }) => void;
   members: OrgMember[];
   onOwnerChange: (dealId: string, member: OrgMember | null) => void;
   onWinDeal?: (dealId: string) => void;
@@ -80,6 +81,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
   onKeyboardMove,
   products,
   onProductChange,
+  onItemUpdate,
   members,
   onOwnerChange,
   onWinDeal,
@@ -294,6 +296,7 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         creatingProduct={popovers.creatingProduct}
         onCreateProduct={popovers.handleCreateProduct}
         onSelectProduct={popovers.handleSelectProduct}
+        onUpdateItem={onItemUpdate}
       />
 
       {/* Row 3: Owner */}

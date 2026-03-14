@@ -17,7 +17,8 @@
     "e2e:ui": "npx playwright test --ui",
     "e2e:report": "npx playwright show-report",
     "token-coverage": "node scripts/token-coverage.mjs",
-    "stakeholder-dashboard": "node scripts/generate-stakeholder-dashboard.mjs"
+    "stakeholder-dashboard": "node scripts/generate-stakeholder-dashboard.mjs",
+    "map": "node scripts/aios-map.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.58",

@@ -17,6 +17,7 @@ export {
   useDeleteDeal,
   useAddDealItem,
   useRemoveDealItem,
+  useUpdateDealItem,
   useInvalidateDeals,
   usePrefetchDeal,
   type DealsFilters,

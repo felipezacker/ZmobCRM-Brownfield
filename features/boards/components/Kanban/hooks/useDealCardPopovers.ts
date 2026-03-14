@@ -50,7 +50,7 @@ export function useDealCardPopovers({
       }
       window.dispatchEvent(new CustomEvent('crm:products-updated'));
       onProductChange(dealId, newProduct);
-      setProductPickerOpen(false);
+      // Popover stays open — transitions to edit view via optimistic update
       setProductSearch('');
     } finally {
       setCreatingProduct(false);
@@ -60,7 +60,11 @@ export function useDealCardPopovers({
   const handleSelectProduct = useCallback(
     (product: Product | null) => {
       onProductChange(dealId, product);
-      setProductPickerOpen(false);
+      // Only close when removing; selecting keeps popover open for edit view
+      if (!product) {
+        setProductPickerOpen(false);
+      }
+      setProductSearch('');
     },
     [dealId, onProductChange],
   );

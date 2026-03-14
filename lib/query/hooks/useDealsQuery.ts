@@ -681,6 +681,61 @@ export const useRemoveDealItem = () => {
   });
 };
 
+/**
+ * Hook to update an item on a deal (quantity/price)
+ * Usa DEALS_VIEW_KEY para optimistic update no Kanban
+ */
+export const useUpdateDealItem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ dealId, itemId, updates }: { dealId: string; itemId: string; updates: { quantity?: number; price?: number } }) => {
+      const { error } = await dealsService.updateItem(dealId, itemId, updates);
+      if (error) throw error;
+      return { dealId, itemId, updates };
+    },
+    onMutate: async ({ dealId, itemId, updates }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.deals.all });
+      const previousDeals = queryClient.getQueryData<DealView[]>(DEALS_VIEW_KEY);
+      const previousRawDeals = queryClient.getQueryData<Deal[]>(queryKeys.deals.lists());
+
+      const applyUpdate = (deal: Deal | DealView) => {
+        if (deal.id !== dealId) return deal;
+        const items = (deal.items || []).map(i => {
+          if (i.id !== itemId) return i;
+          return {
+            ...i,
+            ...(updates.quantity !== undefined ? { quantity: updates.quantity } : {}),
+            ...(updates.price !== undefined ? { price: updates.price } : {}),
+          };
+        });
+        const value = items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 1), 0);
+        return { ...deal, items, value, updatedAt: new Date().toISOString() };
+      };
+
+      queryClient.setQueryData<DealView[]>(DEALS_VIEW_KEY, (old = []) =>
+        old.map(deal => applyUpdate(deal) as DealView)
+      );
+      queryClient.setQueryData<Deal[]>(queryKeys.deals.lists(), (old = []) =>
+        old.map(deal => applyUpdate(deal) as Deal)
+      );
+
+      return { previousDeals, previousRawDeals };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousDeals) {
+        queryClient.setQueryData(DEALS_VIEW_KEY, context.previousDeals);
+      }
+      if (context?.previousRawDeals) {
+        queryClient.setQueryData(queryKeys.deals.lists(), context.previousRawDeals);
+      }
+    },
+    onSettled: (_data, _error, { dealId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(dealId) });
+    },
+  });
+};
+
 // ============ UTILITY HOOKS ============
 
 /**
