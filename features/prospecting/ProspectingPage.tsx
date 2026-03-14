@@ -415,60 +415,17 @@ export const ProspectingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Team queue selector — horizontal pills */}
+        {/* Team queue selector — Popover dropdown (same pattern as boards) */}
         {isAdminOrDirector && !sessionActive && !showSummary && activeTab === 'queue' && (
-          <div className="flex items-center gap-1.5 px-4 pb-3 overflow-x-auto scrollbar-hide">
-            <Button
-              variant="unstyled"
-              size="unstyled"
-              type="button"
-              onClick={() => setViewQueueOwnerId('__all__')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                isViewingAll
-                  ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-              }`}
-            >
-              <Users size={12} />
-              Todos
-            </Button>
-            <Button
-              variant="unstyled"
-              size="unstyled"
-              type="button"
-              onClick={() => setViewQueueOwnerId('')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                !viewQueueOwnerId
-                  ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-              }`}
-            >
-              Minha fila
-            </Button>
-            <div className="w-px h-4 bg-accent dark:bg-accent shrink-0 mx-0.5" />
-            {profiles.map(p => (
-              <Button
-                key={p.id}
-                variant="unstyled"
-                size="unstyled"
-                type="button"
-                onClick={() => setViewQueueOwnerId(p.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                  viewQueueOwnerId === p.id
-                    ? 'bg-primary-500 text-white shadow-sm'
-                    : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-                }`}
-              >
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs font-bold shrink-0 ${
-                  viewQueueOwnerId === p.id
-                    ? 'bg-white/20 text-white'
-                    : 'bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground'
-                }`}>
-                  {p.name.charAt(0).toUpperCase()}
-                </span>
-                {p.name.split(' ')[0]}
-              </Button>
-            ))}
+          <div className="px-4 pb-3">
+            <BrokerFilterDropdown
+              profiles={profiles}
+              selectedId={viewQueueOwnerId}
+              onSelect={setViewQueueOwnerId}
+              showMineOption
+              allLabel="Todos os Corretores"
+              mineLabel="Minha Fila"
+            />
           </div>
         )}
       </div>
