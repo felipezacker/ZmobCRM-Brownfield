@@ -143,6 +143,9 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const [customRange, setCustomRange] = useState<PeriodRange | undefined>()
   const [metricsFilterOwnerId, setMetricsFilterOwnerId] = useState<string>('')
 
+  // CP-6.4: Comparison mode (persists in session via useState, resets on reload)
+  const [comparisonMode, setComparisonMode] = useState<'none' | 'previous'>('none')
+
   // --- Save queue modal ---
   const [showSaveQueueModal, setShowSaveQueueModal] = useState(false)
 
@@ -557,6 +560,10 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     setCustomRange,
     metricsFilterOwnerId,
     setMetricsFilterOwnerId,
+
+    // CP-6.4: Comparison
+    comparisonMode,
+    setComparisonMode,
 
     // Save queue modal
     showSaveQueueModal,

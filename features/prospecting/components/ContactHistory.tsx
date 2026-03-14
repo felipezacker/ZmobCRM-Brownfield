@@ -1,8 +1,10 @@
-import React, { useState } from 'react'
-import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock } from 'lucide-react'
+import React, { useState, useEffect, useMemo } from 'react'
+import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock, Building2 } from 'lucide-react'
 import { useContactActivities } from '@/lib/query/hooks/useActivitiesQuery'
+import { getOpenDealsByContact } from '@/lib/supabase/deals'
 import { Button } from '@/components/ui/button'
 import type { Activity } from '@/types'
+import type { OpenDeal } from '@/lib/supabase/deals'
 
 interface ContactHistoryProps {
   contactId: string
@@ -15,6 +17,31 @@ const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
   MEETING: <Calendar size={14} className="text-purple-500" />,
   NOTE: <FileText size={14} className="text-amber-500" />,
   TASK: <Clock size={14} className="text-muted-foreground" />,
+}
+
+const formatBRL = (value: number | null): string => {
+  if (value === null) return ''
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}
+
+function useContactDeal(contactId: string) {
+  const [deal, setDeal] = useState<OpenDeal | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    setIsLoading(true)
+    getOpenDealsByContact(contactId)
+      .then((result) => { if (!cancelled) setDeal(result) })
+      .catch((err) => {
+        console.error('[ContactHistory] Failed to fetch deal:', err)
+        if (!cancelled) setDeal(null)
+      })
+      .finally(() => { if (!cancelled) setIsLoading(false) })
+    return () => { cancelled = true }
+  }, [contactId])
+
+  return { deal, isLoading }
 }
 
 const OUTCOME_BADGES: Record<string, { label: string; className: string }> = {
@@ -87,6 +114,15 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const { data: activities = [], isLoading } = useContactActivities(contactId)
+  const { deal, isLoading: isDealLoading } = useContactDeal(contactId)
+
+  const lastNote = useMemo(() => {
+    const notes = activities.filter(a => a.type === 'NOTE')
+    if (notes.length === 0) return undefined
+    return notes.reduce((latest, note) =>
+      new Date(note.date).getTime() > new Date(latest.date).getTime() ? note : latest
+    )
+  }, [activities])
 
   return (
     <div className="bg-white dark:bg-card border border-border dark:border-border/50 rounded-xl overflow-hidden">
@@ -110,6 +146,42 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
 
       {isOpen && (
         <div className="px-4 pb-3">
+          {/* Deal Context Block (AC1, AC2, AC6, AC8, AC9) */}
+          {isDealLoading ? (
+            <div className="animate-pulse mb-3">
+              <div className="h-14 bg-muted dark:bg-muted/50 rounded-lg" />
+            </div>
+          ) : deal ? (
+            <section aria-label="Deal em andamento" className="mb-3 p-3 bg-muted/50 dark:bg-muted/20 border-l-2 border-primary rounded-r-lg">
+              <div className="flex items-start gap-2">
+                <Building2 size={14} className="text-primary mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{deal.title}</p>
+                  <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                    {deal.value !== null && (
+                      <span className="text-xs font-semibold text-primary">{formatBRL(deal.value)}</span>
+                    )}
+                    {deal.stage_name && (
+                      <span className="text-2xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{deal.stage_name}</span>
+                    )}
+                    {deal.property_ref && (
+                      <span className="text-2xs text-muted-foreground">Imóvel: {deal.property_ref}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {/* Last Note Highlight Block (AC3, AC4) */}
+          {lastNote && (
+            <section aria-label="Última nota" className="mb-3 p-3 bg-amber-50 dark:bg-amber-950/20 border-l-2 border-amber-400 rounded-r-lg">
+              <p className="text-2xs font-medium text-amber-700 dark:text-amber-400 mb-1">Última nota</p>
+              <p className="text-xs text-foreground line-clamp-3">{lastNote.description || lastNote.title}</p>
+              <p className="text-2xs text-muted-foreground mt-1">{formatDate(lastNote.date)}</p>
+            </section>
+          )}
+
           {isLoading ? (
             <div className="space-y-3 py-2">
               {[1, 2, 3].map(i => (

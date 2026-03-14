@@ -114,6 +114,7 @@ export const ProspectingPage: React.FC = () => {
     metricsPeriod, setMetricsPeriod,
     customRange, setCustomRange,
     metricsFilterOwnerId, setMetricsFilterOwnerId,
+    comparisonMode, setComparisonMode,
     showSaveQueueModal, setShowSaveQueueModal,
     isGeneratingPdf,
     viewQueueOwnerId, setViewQueueOwnerId,
@@ -157,8 +158,8 @@ export const ProspectingPage: React.FC = () => {
 
   // --- External feature hooks (use state values from pageState) ---
 
-  // CP-1.4: Metrics
-  const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined)
+  // CP-1.4: Metrics (CP-6.4: comparison support)
+  const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined, comparisonMode === 'previous')
   const { invalidateMetrics, isAdminOrDirector } = metricsHook
 
   // CP-5.3: Prospecting impact metrics
@@ -609,6 +610,20 @@ export const ProspectingPage: React.FC = () => {
                   {label}
                 </Button>
               ))}
+              {/* CP-6.4: Comparison toggle */}
+              <Button
+                variant="unstyled"
+                size="unstyled"
+                onClick={() => setComparisonMode(comparisonMode === 'none' ? 'previous' : 'none')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  comparisonMode === 'previous'
+                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
+                    : 'bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15'
+                }`}
+              >
+                vs Anterior
+              </Button>
+
               <div className="flex items-center gap-1.5 ml-1">
                 <input
                   type="date"
@@ -724,7 +739,13 @@ export const ProspectingPage: React.FC = () => {
               )}
 
               <ProspectingErrorBoundary section="Metricas">
-                <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} onCardClick={setDrilldownCard} />
+                <MetricsCards
+                  metrics={metricsHook.metrics}
+                  isLoading={metricsHook.isLoading}
+                  onCardClick={setDrilldownCard}
+                  comparisonMetrics={metricsHook.comparisonMetrics}
+                  isComparisonLoading={metricsHook.isComparisonLoading}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                   <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />

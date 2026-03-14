@@ -263,11 +263,30 @@ export function transformRpcResponse(rpcData: Record<string, unknown>): Prospect
   }
 }
 
+/** CP-6.4: Compute comparison date range by shifting current range backwards by its duration */
+export function getComparisonDateRange(period: MetricsPeriod, currentRange: PeriodRange): PeriodRange {
+  const startDate = new Date(currentRange.start + 'T00:00:00')
+  const endDate = new Date(currentRange.end + 'T00:00:00')
+  const durationDays = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+
+  const compEnd = new Date(startDate)
+  compEnd.setDate(compEnd.getDate() - 1)
+
+  const compStart = new Date(compEnd)
+  compStart.setDate(compStart.getDate() - (durationDays - 1))
+
+  return {
+    start: compStart.toISOString().split('T')[0],
+    end: compEnd.toISOString().split('T')[0],
+  }
+}
+
 export function useProspectingMetrics(
   period: MetricsPeriod = '7d',
   customRange?: PeriodRange,
   profiles: { id: string; name: string }[] = [],
   filterOwnerId?: string,
+  comparisonEnabled = false,
 ) {
   const { user, profile, loading: authLoading } = useAuth()
   const queryClient = useQueryClient()
@@ -375,6 +394,35 @@ export function useProspectingMetrics(
     queryClient.invalidateQueries({ queryKey: queryKeys.prospectingMetrics.all })
   }, [queryClient])
 
+  // CP-6.4: Comparison period query (independent, parallel fetch)
+  const comparisonRange = useMemo(
+    () => comparisonEnabled ? getComparisonDateRange(period, range) : null,
+    [comparisonEnabled, period, range],
+  )
+
+  const comparisonQuery = useQuery({
+    queryKey: [...queryKeys.prospectingMetrics.all, 'comparison', comparisonRange?.start, comparisonRange?.end, filterOwnerId || ''],
+    queryFn: async () => {
+      if (!supabase || !comparisonRange) throw new Error('No supabase client or range')
+      const { data, error } = await supabase.rpc('get_prospecting_metrics_aggregated', {
+        p_owner_id: filterOwnerId || null,
+        p_org_id: null,
+        p_start_date: comparisonRange.start,
+        p_end_date: comparisonRange.end,
+      })
+      if (error) throw error
+      return data as Record<string, unknown>
+    },
+    enabled: comparisonEnabled && !!comparisonRange && !authLoading && !!user,
+    staleTime: 30 * 1000,
+    retry: 1,
+  })
+
+  const comparisonMetrics = useMemo(() => {
+    if (!comparisonEnabled || !comparisonQuery.data) return null
+    return transformRpcResponse(comparisonQuery.data)
+  }, [comparisonEnabled, comparisonQuery.data])
+
   return {
     metrics,
     activities,
@@ -385,5 +433,7 @@ export function useProspectingMetrics(
     isDataTruncated,
     range,
     invalidateMetrics,
+    comparisonMetrics,
+    isComparisonLoading: comparisonEnabled && comparisonQuery.isLoading,
   }
 }
