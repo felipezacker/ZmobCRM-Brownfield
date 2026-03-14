@@ -21,6 +21,7 @@ vi.mock('@/context/ToastContext', () => ({
   useToast: () => ({
     addToast: vi.fn(),
   }),
+  useOptionalToast: () => ({ addToast: vi.fn() }),
 }));
 
 vi.mock('@/lib/query/hooks', () => ({

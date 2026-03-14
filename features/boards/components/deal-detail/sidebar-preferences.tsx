@@ -38,7 +38,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
   return (
     <div className="pt-3 border-t border-border">
       <div className="flex items-center justify-between mb-2">
-        <button
+        <Button
           type="button"
           onClick={() => setCollapsed(c => !c)}
           aria-expanded={!collapsed}
@@ -49,7 +49,7 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
             size={14}
             className={`text-muted-foreground transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
           />
-        </button>
+        </Button>
         {!preferences && contact && (
           <Button
             onClick={() => onCreatePreferences()}
