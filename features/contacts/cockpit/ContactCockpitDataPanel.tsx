@@ -15,6 +15,8 @@ import {
   PenTool,
   ChevronDown,
   ChevronRight,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Chip } from '@/features/deals/cockpit/cockpit-ui';
@@ -42,7 +44,11 @@ const URGENCY_LABELS: Record<string, string> = {
 const PURPOSE_LABELS: Record<string, string> = {
   MORADIA: 'Moradia',
   INVESTIMENTO: 'Investimento',
-  VERANEIO: 'Veraneio',
+};
+
+const PROPERTY_TYPES = ['APARTAMENTO', 'CASA', 'TERRENO', 'COMERCIAL'] as const;
+const PROPERTY_TYPE_LABELS: Record<string, string> = {
+  APARTAMENTO: 'Apto', CASA: 'Casa', TERRENO: 'Terreno', COMERCIAL: 'Comercial',
 };
 
 // ---------------------------------------------------------------------------
@@ -99,28 +105,33 @@ function CollapsibleSection({
   icon,
   children,
   defaultOpen = true,
+  action,
 }: {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  action?: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(defaultOpen);
   return (
     <div className="rounded-2xl border border-border bg-background dark:bg-white/[0.03]">
-      <Button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left"
-      >
-        {icon}
-        <span className="flex-1 text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">{title}</span>
-        {open ? (
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-        ) : (
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-        )}
-      </Button>
+      <div className="flex items-center">
+        <Button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex flex-1 items-center gap-2 px-4 py-2.5 text-left"
+        >
+          {icon}
+          <span className="flex-1 text-xs font-semibold text-secondary-foreground dark:text-muted-foreground">{title}</span>
+          {open ? (
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+          )}
+        </Button>
+        {action && <div className="pr-3">{action}</div>}
+      </div>
       {open && <div className="px-4 pb-3">{children}</div>}
     </div>
   );
@@ -141,6 +152,9 @@ interface ContactCockpitDataPanelProps {
   onUpdateCustomField: (key: string, value: string) => void;
   /** When provided, fields become inline-editable with onBlur save */
   onUpdateContact?: (updates: Partial<Contact>) => void;
+  /** When provided, preferences section becomes editable */
+  onUpdatePreference?: (updates: Partial<ContactPreference>) => void;
+  onCreatePreference?: (initialData?: Partial<ContactPreference>) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -157,9 +171,12 @@ export function ContactCockpitDataPanel({
   onRemoveTag,
   onUpdateCustomField,
   onUpdateContact,
+  onUpdatePreference,
+  onCreatePreference,
 }: ContactCockpitDataPanelProps) {
   const editable = !!onUpdateContact;
   const [tagQuery, setTagQuery] = React.useState('');
+  const [customFieldsModalOpen, setCustomFieldsModalOpen] = React.useState(false);
   const contactTags = contact.tags || [];
   const contactTagsLower = new Set(contactTags.map(t => t.toLowerCase()));
 
@@ -328,104 +345,198 @@ export function ContactCockpitDataPanel({
         </div>
       </CollapsibleSection>
 
-      {/* Custom Fields */}
-      {customFieldDefinitions.length > 0 && (
-        <CollapsibleSection
-          title="Campos Personalizados"
-          icon={<PenTool className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
-        >
-          <div className="space-y-3">
-            {customFieldDefinitions.map((field) => (
-              <div key={field.id}>
-                <label className="block text-1xs font-medium text-muted-foreground mb-1">
-                  {field.label}
-                </label>
-                {field.type === 'select' ? (
-                  <select
-                    value={String(contact.customFields?.[field.key] ?? '')}
-                    onChange={(e) => onUpdateCustomField(field.key, e.target.value)}
-                    className="w-full bg-muted dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500"
-                  >
-                    <option value="">Selecione...</option>
-                    {field.options?.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <CustomFieldInput
-                    fieldKey={field.key}
-                    fieldType={field.type}
-                    value={String(contact.customFields?.[field.key] ?? '')}
-                    onSave={onUpdateCustomField}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </CollapsibleSection>
-      )}
+      {/* Custom Fields — only filled + edit button */}
+      {customFieldDefinitions.length > 0 && (() => {
+        const filledFields = customFieldDefinitions.filter((f) => {
+          const v = contact.customFields?.[f.key];
+          return v !== undefined && v !== null && v !== '';
+        });
+        return (
+          <>
+            <CollapsibleSection
+              title="Campos Personalizados"
+              icon={<PenTool className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
+              defaultOpen={filledFields.length > 0}
+            >
+              {filledFields.length > 0 ? (
+                <div className="space-y-2 text-xs">
+                  {filledFields.map((field) => (
+                    <Row key={field.id} label={field.label} value={String(contact.customFields?.[field.key] ?? '')} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">Nenhum campo preenchido.</p>
+              )}
+              <Button
+                type="button"
+                variant="unstyled"
+                size="unstyled"
+                onClick={() => setCustomFieldsModalOpen(true)}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/50 dark:hover:bg-white/5 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Editar campos</span>
+              </Button>
+            </CollapsibleSection>
+            {customFieldsModalOpen && (
+              <CustomFieldsEditModal
+                definitions={customFieldDefinitions}
+                values={contact.customFields || {}}
+                onSave={onUpdateCustomField}
+                onClose={() => setCustomFieldsModalOpen(false)}
+              />
+            )}
+          </>
+        );
+      })()}
 
       {/* Preferences */}
-      {preferences && (
+      {(preferences || onCreatePreference) && (
         <CollapsibleSection
           title="Preferencias"
           icon={<Search className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
-          defaultOpen={false}
+          defaultOpen={!!preferences}
         >
-          <div className="space-y-2 text-xs">
-            {preferences.propertyTypes.length > 0 && (
-              <Row
-                label="Tipos"
-                value={preferences.propertyTypes.join(', ')}
-              />
-            )}
-            {preferences.purpose && (
-              <Row
-                label="Finalidade"
-                value={PURPOSE_LABELS[preferences.purpose] || preferences.purpose}
-              />
-            )}
-            {(preferences.priceMin != null || preferences.priceMax != null) && (
-              <Row
-                label="Faixa"
-                value={`${preferences.priceMin != null ? formatCurrencyBRL(preferences.priceMin) : '\u2014'} ~ ${preferences.priceMax != null ? formatCurrencyBRL(preferences.priceMax) : '\u2014'}`}
-              />
-            )}
-            {preferences.regions.length > 0 && (
-              <Row label="Regioes" value={preferences.regions.join(', ')} />
-            )}
-            {preferences.bedroomsMin != null && (
-              <Row label="Quartos min" value={String(preferences.bedroomsMin)} />
-            )}
-            {preferences.parkingMin != null && (
-              <Row label="Vagas min" value={String(preferences.parkingMin)} />
-            )}
-            {preferences.areaMin != null && (
-              <Row label="Area min" value={`${preferences.areaMin} m\u00B2`} />
-            )}
-            {preferences.urgency && (
-              <Row
-                label="Urgencia"
-                value={URGENCY_LABELS[preferences.urgency] || preferences.urgency}
-              />
-            )}
-            {preferences.acceptsFinancing != null && (
-              <Row
-                label="Financiamento"
-                value={preferences.acceptsFinancing ? 'Sim' : 'Nao'}
-              />
-            )}
-            {preferences.acceptsFgts != null && (
-              <Row label="FGTS" value={preferences.acceptsFgts ? 'Sim' : 'Nao'} />
-            )}
-            {preferences.notes && (
-              <div className="mt-1 text-1xs text-muted-foreground italic">
-                {preferences.notes}
-              </div>
-            )}
-          </div>
+          {/* AI extraction input */}
+          {onUpdatePreference && <AiPreferenceExtractor preferences={preferences} onUpdate={onUpdatePreference} onCreate={onCreatePreference} />}
+
+          {preferences ? (
+            <div className="space-y-2 text-xs">
+              {onUpdatePreference ? (
+                <>
+                  <SelectRow
+                    label="Finalidade"
+                    value={preferences.purpose || ''}
+                    options={Object.entries(PURPOSE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                    onSave={(v) => onUpdatePreference({ purpose: (v || null) as ContactPreference['purpose'] })}
+                  />
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-muted-foreground shrink-0 pt-0.5">Tipos</span>
+                    <div className="flex flex-wrap justify-end gap-1">
+                      {PROPERTY_TYPES.map((pt) => {
+                        const active = preferences.propertyTypes.includes(pt);
+                        return (
+                          <Button key={pt} type="button"
+                            className={`rounded-full px-2 py-0.5 text-2xs font-medium transition-colors ${
+                              active
+                                ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-200 ring-1 ring-cyan-500/30'
+                                : 'bg-muted dark:bg-white/5 text-muted-foreground hover:bg-accent dark:hover:bg-white/10'
+                            }`}
+                            onClick={() => {
+                              const next = active
+                                ? preferences.propertyTypes.filter(t => t !== pt)
+                                : [...preferences.propertyTypes, pt];
+                              onUpdatePreference({ propertyTypes: next });
+                            }}
+                          >
+                            {PROPERTY_TYPE_LABELS[pt] ?? pt}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground shrink-0">Faixa R$</span>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        className={INPUT_CLASS + ' w-20 text-right'}
+                        defaultValue={preferences.priceMin ?? ''}
+                        placeholder="Min"
+                        key={`pmin-${preferences.priceMin}`}
+                        onBlur={(e) => {
+                          const v = e.target.value.trim();
+                          onUpdatePreference({ priceMin: v ? parseFloat(v) : null });
+                        }}
+                        min={0}
+                      />
+                      <span className="text-muted-foreground">-</span>
+                      <input
+                        type="number"
+                        className={INPUT_CLASS + ' w-20 text-right'}
+                        defaultValue={preferences.priceMax ?? ''}
+                        placeholder="Max"
+                        key={`pmax-${preferences.priceMax}`}
+                        onBlur={(e) => {
+                          const v = e.target.value.trim();
+                          onUpdatePreference({ priceMax: v ? parseFloat(v) : null });
+                        }}
+                        min={0}
+                      />
+                    </div>
+                  </div>
+                  <EditableRow
+                    label="Regioes"
+                    value={preferences.regions.join(', ')}
+                    onSave={(v) => {
+                      const regions = v ? v.split(',').map(r => r.trim()).filter(Boolean) : [];
+                      onUpdatePreference({ regions });
+                    }}
+                  />
+                  <EditableNumberRow label="Quartos min" value={preferences.bedroomsMin} onSave={(v) => onUpdatePreference({ bedroomsMin: v })} />
+                  <EditableNumberRow label="Vagas min" value={preferences.parkingMin} onSave={(v) => onUpdatePreference({ parkingMin: v })} />
+                  <EditableNumberRow label="Area min (m²)" value={preferences.areaMin} onSave={(v) => onUpdatePreference({ areaMin: v })} />
+                  <SelectRow
+                    label="Urgencia"
+                    value={preferences.urgency || ''}
+                    options={Object.entries(URGENCY_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                    onSave={(v) => onUpdatePreference({ urgency: (v || null) as ContactPreference['urgency'] })}
+                  />
+                  <EditableTextarea
+                    label="Observacoes"
+                    value={preferences.notes || ''}
+                    onSave={(v) => onUpdatePreference({ notes: v || null })}
+                  />
+                </>
+              ) : (
+                <>
+                  {preferences.propertyTypes.length > 0 && (
+                    <Row label="Tipos" value={preferences.propertyTypes.join(', ')} />
+                  )}
+                  {preferences.purpose && (
+                    <Row label="Finalidade" value={PURPOSE_LABELS[preferences.purpose] || preferences.purpose} />
+                  )}
+                  {(preferences.priceMin != null || preferences.priceMax != null) && (
+                    <Row
+                      label="Faixa"
+                      value={`${preferences.priceMin != null ? formatCurrencyBRL(preferences.priceMin) : '\u2014'} ~ ${preferences.priceMax != null ? formatCurrencyBRL(preferences.priceMax) : '\u2014'}`}
+                    />
+                  )}
+                  {preferences.regions.length > 0 && (
+                    <Row label="Regioes" value={preferences.regions.join(', ')} />
+                  )}
+                  {preferences.bedroomsMin != null && (
+                    <Row label="Quartos min" value={String(preferences.bedroomsMin)} />
+                  )}
+                  {preferences.parkingMin != null && (
+                    <Row label="Vagas min" value={String(preferences.parkingMin)} />
+                  )}
+                  {preferences.areaMin != null && (
+                    <Row label="Area min" value={`${preferences.areaMin} m\u00B2`} />
+                  )}
+                  {preferences.urgency && (
+                    <Row label="Urgencia" value={URGENCY_LABELS[preferences.urgency] || preferences.urgency} />
+                  )}
+                  {preferences.notes && (
+                    <div className="mt-1 text-1xs text-muted-foreground italic">
+                      {preferences.notes}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          ) : onCreatePreference ? (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Sem preferencias cadastradas</span>
+              <Button
+                type="button"
+                onClick={() => onCreatePreference()}
+                className="rounded-lg bg-cyan-500/15 px-2 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-200 hover:bg-cyan-500/25 transition-colors"
+              >
+                Cadastrar
+              </Button>
+            </div>
+          ) : null}
         </CollapsibleSection>
       )}
     </div>
@@ -496,6 +607,111 @@ function CustomFieldInput({ fieldKey, fieldType, value, onSave }: { fieldKey: st
   );
 }
 
+function AiPreferenceExtractor({
+  preferences,
+  onUpdate,
+  onCreate,
+}: {
+  preferences: ContactPreference | null;
+  onUpdate: (updates: Partial<ContactPreference>) => void;
+  onCreate?: (initialData?: Partial<ContactPreference>) => void;
+}) {
+  const [aiInput, setAiInput] = React.useState('');
+  const [aiLoading, setAiLoading] = React.useState(false);
+
+  const handleExtract = async () => {
+    const text = aiInput.trim();
+    if (!text || aiLoading) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch('/api/ai/tasks/contacts/extract-preferences', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error('Falha na extração');
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message || 'Erro');
+
+      const updates: Partial<ContactPreference> = {};
+      if (data.propertyTypes?.length) updates.propertyTypes = data.propertyTypes;
+      if (data.purpose) updates.purpose = data.purpose;
+      if (data.priceMin != null) updates.priceMin = data.priceMin;
+      if (data.priceMax != null) updates.priceMax = data.priceMax;
+      if (data.regions?.length) updates.regions = data.regions;
+      if (data.bedroomsMin != null) updates.bedroomsMin = data.bedroomsMin;
+      if (data.parkingMin != null) updates.parkingMin = data.parkingMin;
+      if (data.areaMin != null) updates.areaMin = data.areaMin;
+      if (data.urgency) updates.urgency = data.urgency;
+      if (data.notes) updates.notes = data.notes;
+
+      if (!preferences && onCreate) {
+        onCreate(updates);
+      } else {
+        onUpdate(updates);
+      }
+      setAiInput('');
+    } catch (err) {
+      console.error('[AiPreferenceExtractor] AI extract failed:', err);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  return (
+    <div className="mb-2">
+      <div className="flex gap-1.5">
+        <input
+          type="text"
+          className="flex-1 min-w-0 rounded-lg border border-violet-500/20 bg-violet-500/5 dark:bg-violet-500/10 px-2 py-1.5 text-xs text-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-violet-500/30"
+          placeholder="Ex: ap 3 quartos zona sul até 500k..."
+          value={aiInput}
+          onChange={(e) => setAiInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleExtract(); }}
+          disabled={aiLoading}
+        />
+        <Button
+          type="button"
+          variant="unstyled"
+          size="unstyled"
+          className="shrink-0 rounded-lg bg-violet-500/15 px-2 py-1.5 text-xs font-semibold text-violet-700 dark:text-violet-200 hover:bg-violet-500/25 transition-colors disabled:opacity-50"
+          disabled={aiLoading || !aiInput.trim()}
+          onClick={handleExtract}
+        >
+          {aiLoading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Sparkles className="h-3.5 w-3.5" />
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function EditableNumberRow({ label, value, onSave }: { label: string; value: number | null; onSave: (v: number | null) => void }) {
+  const [draft, setDraft] = React.useState(value != null ? String(value) : '');
+  React.useEffect(() => { setDraft(value != null ? String(value) : ''); }, [value]);
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-muted-foreground shrink-0">{label}</span>
+      <input
+        type="number"
+        className={INPUT_CLASS + ' max-w-[100px] text-right'}
+        value={draft}
+        placeholder="--"
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          const v = draft.trim() ? Number(draft) : null;
+          if (v !== value) onSave(v);
+        }}
+        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+        min={0}
+      />
+    </div>
+  );
+}
+
 function EditableTextarea({ label, value, onSave }: { label: string; value: string; onSave: (v: string) => void }) {
   const [draft, setDraft] = React.useState(value);
   React.useEffect(() => { setDraft(value); }, [value]);
@@ -508,6 +724,203 @@ function EditableTextarea({ label, value, onSave }: { label: string; value: stri
         onChange={(e) => setDraft(e.target.value)}
         onBlur={() => { if (draft !== value) onSave(draft); }}
       />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Custom Fields Edit Modal — select field + value + confirm
+// ---------------------------------------------------------------------------
+
+const FIELD_TYPE_ICONS: Record<string, string> = { text: 'T', number: '#', date: 'D', select: 'S' };
+
+function CustomFieldsEditModal({
+  definitions,
+  values,
+  onSave,
+  onClose,
+}: {
+  definitions: CustomFieldDefinition[];
+  values: Record<string, unknown>;
+  onSave: (key: string, value: string) => void;
+  onClose: () => void;
+}) {
+  const [selectedKey, setSelectedKey] = React.useState('');
+  const [fieldValue, setFieldValue] = React.useState('');
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const [search, setSearch] = React.useState('');
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const selectedField = definitions.find((d) => d.key === selectedKey) ?? null;
+
+  // When selecting a field, load its current value
+  const handleSelectField = (field: CustomFieldDefinition) => {
+    setSelectedKey(field.key);
+    setFieldValue(String(values[field.key] ?? ''));
+    setDropdownOpen(false);
+    setSearch('');
+  };
+
+  const filteredDefs = definitions.filter((d) =>
+    d.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Close dropdown on outside click
+  React.useEffect(() => {
+    if (!dropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [dropdownOpen]);
+
+  const handleConfirm = () => {
+    if (!selectedKey) return;
+    onSave(selectedKey, fieldValue);
+    // Reset for next field
+    setSelectedKey('');
+    setFieldValue('');
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl border border-border bg-white dark:bg-background shadow-2xl flex flex-col animate-in zoom-in-95 fade-in duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 pt-5 pb-4">
+          <div>
+            <h3 className="text-base font-bold text-foreground dark:text-muted-foreground">Editar campo personalizado</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Preencher campo personalizado do contato</p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="unstyled"
+            onClick={onClose}
+            className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors -mt-1"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 pb-6 space-y-5">
+          {/* Field selector */}
+          <div>
+            <label className="block text-sm font-medium text-foreground dark:text-muted-foreground mb-1.5">Campo adicional</label>
+            <div className="relative" ref={dropdownRef}>
+              <Button
+                type="button"
+                variant="unstyled"
+                size="unstyled"
+                onClick={() => setDropdownOpen((v) => !v)}
+                className="flex w-full items-center justify-between rounded-lg border border-border bg-muted/50 dark:bg-black/20 px-3 py-2.5 text-sm text-left transition-colors hover:bg-muted dark:hover:bg-black/30"
+              >
+                <span className={selectedField ? 'text-foreground dark:text-muted-foreground' : 'text-muted-foreground'}>
+                  {selectedField ? selectedField.label : 'Selecionar'}
+                </span>
+                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+              </Button>
+
+              {dropdownOpen && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-10 rounded-lg border border-border bg-white dark:bg-background shadow-lg overflow-hidden">
+                  {/* Search */}
+                  <div className="p-2 border-b border-border">
+                    <input
+                      type="text"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Pesquisar..."
+                      className="w-full bg-transparent text-sm text-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground px-1 py-0.5"
+                      autoFocus
+                    />
+                  </div>
+                  {/* List */}
+                  <div className="max-h-64 overflow-auto">
+                    {filteredDefs.length === 0 ? (
+                      <div className="px-3 py-3 text-xs text-muted-foreground text-center">Nenhum campo encontrado</div>
+                    ) : (
+                      filteredDefs.map((def) => {
+                        const hasFill = values[def.key] !== undefined && values[def.key] !== null && values[def.key] !== '';
+                        return (
+                          <Button
+                            key={def.id}
+                            type="button"
+                            variant="unstyled"
+                            size="unstyled"
+                            onClick={() => handleSelectField(def)}
+                            className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors hover:bg-muted/70 dark:hover:bg-white/5 ${
+                              def.key === selectedKey ? 'bg-muted dark:bg-white/5' : ''
+                            }`}
+                          >
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-2xs font-bold text-muted-foreground bg-muted dark:bg-white/10">
+                              {FIELD_TYPE_ICONS[def.type] ?? 'T'}
+                            </span>
+                            <span className="flex-1 text-foreground dark:text-muted-foreground truncate">{def.label}</span>
+                            {hasFill && (
+                              <span className="inline-block h-2 w-2 rounded-full bg-cyan-500 shrink-0" title="Preenchido" />
+                            )}
+                          </Button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Value input — only shows when a field is selected */}
+          {selectedField && (
+            <div>
+              <label className="block text-sm font-medium text-foreground dark:text-muted-foreground mb-1.5">Valor</label>
+              {selectedField.type === 'select' ? (
+                <select
+                  value={fieldValue}
+                  onChange={(e) => setFieldValue(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-muted/50 dark:bg-black/20 px-3 py-2.5 text-sm text-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-cyan-500"
+                >
+                  <option value="">Selecione...</option>
+                  {selectedField.options?.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type={selectedField.type}
+                  value={fieldValue}
+                  onChange={(e) => setFieldValue(e.target.value)}
+                  placeholder="Valor do campo adicional"
+                  className="w-full rounded-lg border border-border bg-muted/50 dark:bg-black/20 px-3 py-2.5 text-sm text-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 dark:focus:ring-cyan-500"
+                  autoFocus
+                />
+              )}
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="unstyled"
+              size="unstyled"
+              onClick={handleConfirm}
+              disabled={!selectedKey}
+              className="rounded-lg bg-primary-600 dark:bg-cyan-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 dark:hover:bg-cyan-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Confirmar
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
