@@ -32,6 +32,27 @@ vi.mock('@/features/inbox/hooks/useQuickScripts', () => ({
   useQuickScripts: () => ({ scripts: [], isLoading: false, error: null }),
 }))
 
+// CP-7.1: Mock new PowerDialer dependencies
+vi.mock('@/features/prospecting/components/DoNotContactModal', () => ({
+  DoNotContactModal: () => null,
+}))
+
+vi.mock('@/features/prospecting/components/ContactHistory', () => ({
+  ContactHistory: () => null,
+}))
+
+vi.mock('@/features/prospecting/components/QuickActionsPanel', () => ({
+  QuickActionsPanel: () => null,
+}))
+
+vi.mock('@/lib/supabase/deals', () => ({
+  getOpenDealsByContact: vi.fn().mockResolvedValue(null),
+}))
+
+vi.mock('@/features/prospecting/components/LeadScoreBadge', () => ({
+  LeadScoreBadge: () => null,
+}))
+
 const mockAddToast = vi.fn()
 vi.mock('@/context/ToastContext', () => ({
   useOptionalToast: () => ({
@@ -39,6 +60,13 @@ vi.mock('@/context/ToastContext', () => ({
     removeToast: vi.fn(),
     showToast: mockAddToast,
   }),
+}))
+
+vi.mock('@/features/prospecting/hooks/useContactAttempts', () => ({
+  useContactAttempts: () => ({ count: 0, lastAttempt: null, isLoading: false }),
+  formatRelativeDate: (d: string) => d,
+  OUTCOME_LABELS: {},
+  getAttemptColorClass: () => 'text-muted-foreground',
 }))
 
 // ── Helpers ──────────────────────────────────────────────

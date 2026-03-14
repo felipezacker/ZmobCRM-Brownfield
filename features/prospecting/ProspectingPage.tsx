@@ -255,6 +255,7 @@ export const ProspectingPage: React.FC = () => {
     retryOutcomes,
     setRetryOutcomes,
     skip,
+    next,
     addToQueue,
     removeFromQueue,
     clearQueue,
@@ -484,6 +485,7 @@ export const ProspectingPage: React.FC = () => {
               totalCount={queue.length}
               onCallComplete={handleCallComplete}
               onSkip={skip}
+              onAdvance={next}
               onEnd={handleEndSession}
               selectedScript={selectedScript}
               onScriptChange={setSelectedScript}

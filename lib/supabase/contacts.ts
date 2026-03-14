@@ -84,6 +84,14 @@ export interface DbContact {
   tags: string[];
   /** Campos customizados (JSONB). */
   custom_fields: Record<string, unknown>;
+  /** CP-7.1: LGPD opt-out flag. */
+  do_not_contact: boolean;
+  /** CP-7.1: Motivo do bloqueio. */
+  do_not_contact_reason: string | null;
+  /** CP-7.1: Data do bloqueio. */
+  do_not_contact_at: string | null;
+  /** CP-7.1: Quem bloqueou. */
+  do_not_contact_by: string | null;
 }
 
 /** Representação de contact_phones no banco de dados. */
@@ -135,6 +143,11 @@ export const transformContact = (db: DbContact): Contact => ({
   leadScore: db.lead_score || 0,
   tags: db.tags || [],
   customFields: db.custom_fields || {},
+  // CP-7.1
+  doNotContact: db.do_not_contact || false,
+  doNotContactReason: db.do_not_contact_reason || undefined,
+  doNotContactAt: db.do_not_contact_at || undefined,
+  doNotContactBy: db.do_not_contact_by || undefined,
 });
 
 /** Transforma ContactPhone do formato DB para o formato da aplicação. */
@@ -630,6 +643,45 @@ export const contactsService = {
       return { hasDeals: (count || 0) > 0, dealCount: count || 0, deals, error: null };
     } catch (e) {
       return { hasDeals: false, dealCount: 0, deals: [], error: e as Error };
+    }
+  },
+
+  /**
+   * CP-7.1: Marca contato como "nao ligar mais" (LGPD opt-out).
+   * Chama RPC que valida org membership e remove de filas ativas.
+   */
+  async markDoNotContact(contactId: string, reason: string): Promise<{ error: Error | null }> {
+    try {
+      if (!supabase) return { error: new Error('Supabase não configurado') };
+      const { error } = await supabase.rpc('mark_do_not_contact', {
+        p_contact_id: contactId,
+        p_reason: reason,
+      });
+      return { error };
+    } catch (e) {
+      return { error: e as Error };
+    }
+  },
+
+  /**
+   * CP-7.1: Reverte bloqueio "nao ligar mais". Apenas admin/diretor.
+   */
+  async revertDoNotContact(contactId: string): Promise<{ error: Error | null }> {
+    try {
+      if (!supabase) return { error: new Error('Supabase não configurado') };
+      const { error } = await supabase.rpc('revert_do_not_contact', {
+        p_contact_id: contactId,
+      });
+      if (error) {
+        // Translate permission error to user-friendly message
+        if (error.message?.includes('admin ou diretor')) {
+          return { error: new Error('Apenas admin ou diretor pode reverter bloqueio') };
+        }
+        return { error };
+      }
+      return { error: null };
+    } catch (e) {
+      return { error: e as Error };
     }
   },
 

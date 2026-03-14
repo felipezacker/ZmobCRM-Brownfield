@@ -1,7 +1,7 @@
 import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Phone, X, Flame, Snowflake, Sun, User, RotateCcw, GripVertical } from 'lucide-react'
+import { Phone, X, Flame, Snowflake, Sun, User, RotateCcw, GripVertical, Ban } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { LeadScoreBadge } from '@/features/prospecting/components/LeadScoreBadge'
@@ -157,6 +157,12 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
             </span>
             {item.contactTemperature && TEMP_ICONS[item.contactTemperature]}
             <LeadScoreBadge score={item.leadScore} />
+            {item.doNotContact && (
+              <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400">
+                <Ban size={9} />
+                Bloqueado
+              </span>
+            )}
             {item.retryCount > 0 && (() => {
               const retryInfo = item.status === 'retry_pending' ? formatRetryDate(item.retryAt) : null
               return (

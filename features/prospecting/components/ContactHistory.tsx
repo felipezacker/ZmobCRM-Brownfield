@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock, Landmark, Home } from 'lucide-react'
+import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock, Landmark, Home, Ban } from 'lucide-react'
 import { useContactActivities } from '@/lib/query/hooks/useActivitiesQuery'
 import { getOpenDealsByContact } from '@/lib/supabase/deals'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import type { OpenDeal } from '@/lib/supabase/deals'
 interface ContactHistoryProps {
   contactId: string
   defaultOpen?: boolean
+  doNotContact?: boolean
 }
 
 const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
@@ -110,7 +111,7 @@ const ActivityItem: React.FC<{ activity: Activity; isExpanded: boolean; onToggle
   )
 }
 
-export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defaultOpen = true }) => {
+export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defaultOpen = true, doNotContact }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const { data: activities = [], isLoading } = useContactActivities(contactId)
@@ -138,6 +139,12 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
           {activities.length > 0 && (
             <span className="text-2xs bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground px-1.5 py-0.5 rounded-full">
               {activities.length}
+            </span>
+          )}
+          {doNotContact && (
+            <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400">
+              <Ban size={9} />
+              Bloqueado
             </span>
           )}
         </span>

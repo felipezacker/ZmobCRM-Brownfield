@@ -6,9 +6,11 @@ import {
   X,
   Loader2,
   Check,
+  Ban,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CreateDealModal } from '@/features/boards/components/Modals/CreateDealModal'
+import { DoNotContactModal } from '@/features/prospecting/components/DoNotContactModal'
 import { NoteTemplatesManager } from '@/features/prospecting/components/NoteTemplatesManager'
 import { useCreateActivity, useUpdateActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { contactsService } from '@/lib/supabase'
@@ -63,6 +65,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
 }) => {
   const [showCreateDeal, setShowCreateDeal] = useState(false)
   const [showTemplatesManager, setShowTemplatesManager] = useState(false)
+  const [showDoNotContactModal, setShowDoNotContactModal] = useState(false)
   const [isScheduling, setIsScheduling] = useState(false)
   const [isMovingStage, setIsMovingStage] = useState(false)
   const [selectedStage, setSelectedStage] = useState('')
@@ -339,6 +342,21 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
               )}
             </div>
           )}
+          {/* CP-7.1: Nao ligar mais */}
+          <div className="pt-1 border-t border-border dark:border-border/50">
+            <Button
+              variant="unstyled"
+              size="unstyled"
+              onClick={() => setShowDoNotContactModal(true)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-red-500/30 hover:bg-red-500/10 text-red-600 dark:text-red-400 transition-colors text-left"
+            >
+              <Ban size={18} />
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium">Não ligar mais</span>
+                <p className="text-xs text-red-500/70 dark:text-red-400/60">Bloquear contato permanentemente</p>
+              </div>
+            </Button>
+          </div>
         </div>
 
         {/* Admin: manage templates */}
@@ -406,6 +424,14 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
       <NoteTemplatesManager
         isOpen={showTemplatesManager}
         onClose={() => setShowTemplatesManager(false)}
+      />
+
+      {/* CP-7.1: Do Not Contact confirmation modal */}
+      <DoNotContactModal
+        isOpen={showDoNotContactModal}
+        onClose={() => setShowDoNotContactModal(false)}
+        contactId={contactId}
+        onBlocked={onDismiss}
       />
     </>
   )

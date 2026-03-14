@@ -193,6 +193,12 @@ export interface Contact {
   // Story 3.8 — Lead Scoring
   leadScore?: number; // Score 0-100 calculado automaticamente
 
+  // CP-7.1 — LGPD Opt-out
+  doNotContact?: boolean;
+  doNotContactReason?: string;
+  doNotContactAt?: string;
+  doNotContactBy?: string;
+
   // Tags & Custom Fields (migrado de Deal para Contact)
   tags?: string[];
   customFields?: Record<string, unknown>;
@@ -360,6 +366,8 @@ export interface ProspectingQueueItem {
   contactTemperature?: string;
   contactEmail?: string;
   leadScore?: number | null;
+  // CP-7.1: LGPD opt-out
+  doNotContact?: boolean;
 }
 
 export interface DashboardStats {

@@ -108,6 +108,13 @@ vi.mock('@/features/prospecting/components/LeadScoreBadge', () => ({
 
 vi.mock('@/features/prospecting/utils/suggestBestTime', () => ({}))
 
+vi.mock('@/features/prospecting/hooks/useContactAttempts', () => ({
+  useContactAttempts: () => ({ count: 0, lastAttempt: null, isLoading: false }),
+  formatRelativeDate: (d: string) => d,
+  OUTCOME_LABELS: {},
+  getAttemptColorClass: () => 'text-muted-foreground',
+}))
+
 // ── Helpers ──────────────────────────────────────────────
 
 const makeContact = (overrides?: Partial<ProspectingQueueItem>): ProspectingQueueItem => ({

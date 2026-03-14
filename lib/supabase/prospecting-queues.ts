@@ -96,6 +96,7 @@ interface DbQueueItem {
     temperature: string | null;
     email: string | null;
     lead_score: number | null;
+    do_not_contact: boolean;
     contact_phones?: Array<{
       phone_number: string;
       is_primary: boolean;
@@ -126,6 +127,7 @@ const transformQueueItem = (db: DbQueueItem): ProspectingQueueItem => ({
   contactTemperature: db.contacts?.temperature || undefined,
   contactEmail: db.contacts?.email || undefined,
   leadScore: db.contacts?.lead_score ?? null,
+  doNotContact: db.contacts?.do_not_contact || false,
 });
 
 // ============================================
@@ -152,9 +154,12 @@ export const prospectingQueuesService = {
             temperature,
             email,
             lead_score,
+            do_not_contact,
             contact_phones (phone_number, is_primary)
           )
         `)
+        // CP-7.1: Exclude contacts with do_not_contact=true
+        .eq('contacts.do_not_contact', false)
         .order('position', { ascending: true });
 
       if (sessionId) {
@@ -419,8 +424,17 @@ export const prospectingQueuesService = {
 
       const existingSet = new Set((existing || []).map(e => (e as { contact_id: string }).contact_id));
 
-      // Filter out duplicates
-      const newContactIds = contactIds.filter(id => !existingSet.has(id));
+      // CP-7.1: Filter out contacts with do_not_contact=true
+      const { data: blockedContacts } = await sb
+        .from('contacts')
+        .select('id')
+        .in('id', contactIds)
+        .eq('do_not_contact', true);
+
+      const blockedSet = new Set((blockedContacts || []).map(c => (c as { id: string }).id));
+
+      // Filter out duplicates and blocked contacts
+      const newContactIds = contactIds.filter(id => !existingSet.has(id) && !blockedSet.has(id));
 
       if (newContactIds.length === 0) {
         return { data: { added: 0, skipped: contactIds.length }, error: null };
