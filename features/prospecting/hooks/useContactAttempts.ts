@@ -14,29 +14,35 @@ export function useContactAttempts(contactId: string | undefined): ContactAttemp
     queryFn: async () => {
       if (!supabase) throw new Error('Supabase not configured')
 
-      const { data, error } = await supabase
+      const { count, data, error } = await supabase
         .from('activities')
-        .select('date, metadata')
+        .select('date, metadata', { count: 'exact' })
         .eq('contact_id', contactId!)
         .eq('type', 'CALL')
         .order('date', { ascending: false })
+        .limit(1)
 
       if (error) throw error
-      return data ?? []
+
+      const lastRow = data?.[0] ?? null
+      const lastAttempt = lastRow
+        ? {
+            date: lastRow.date as string,
+            outcome: ((lastRow.metadata as Record<string, unknown> | null)?.outcome as string) ?? 'no_answer',
+          }
+        : null
+
+      return { count: count ?? 0, lastAttempt }
     },
     enabled: !!contactId,
     staleTime: 30 * 1000,
   })
 
-  const count = data?.length ?? 0
-  const lastAttempt = count > 0 && data?.[0]
-    ? {
-        date: data[0].date as string,
-        outcome: ((data[0].metadata as Record<string, unknown> | null)?.outcome as string) ?? 'no_answer',
-      }
-    : null
-
-  return { count, lastAttempt, isLoading }
+  return {
+    count: data?.count ?? 0,
+    lastAttempt: data?.lastAttempt ?? null,
+    isLoading,
+  }
 }
 
 export function formatRelativeDate(dateStr: string): string {
