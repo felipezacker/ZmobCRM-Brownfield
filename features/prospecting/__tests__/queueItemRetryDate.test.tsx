@@ -194,11 +194,11 @@ describe('calculateNextShift', () => {
     expect(result.getDate()).toBe(17) // Tuesday
   })
 
-  it('Friday afternoon → Saturday 09:00', () => {
+  it('Friday afternoon → Monday 09:00', () => {
     const now = new Date(2026, 2, 13, 15, 0, 0) // Friday 15:00
     const result = calculateNextShift(now)
     expect(result.getHours()).toBe(9)
-    expect(result.getDate()).toBe(14) // Saturday
+    expect(result.getDate()).toBe(16) // Monday (skips weekend)
   })
 
   it('Saturday morning → Monday 09:00', () => {

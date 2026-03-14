@@ -37,55 +37,41 @@ vi.mock('@/context/ToastContext', () => ({
   useToast: () => ({ addToast: vi.fn(), showToast: vi.fn() }),
 }))
 
-const mockGetOpenDealsByContact = vi.fn()
-vi.mock('@/lib/supabase/deals', () => ({
-  getOpenDealsByContact: (...args: unknown[]) => mockGetOpenDealsByContact(...args),
-}))
-
-// Track supabase from() calls to return different data for returns vs attempts
-let supabaseFromCallIndex = 0
+// Supabase mock data — routed by table name
+let dealsData: unknown[] | null = null
 let scheduledReturnData: unknown[] | null = null
 let attemptCountData: unknown[] | null = null
+let activitiesCallIndex = 0
 
-function createChainableMock(resolvedData: unknown[] | null) {
+function createThenableChain(resolvedData: unknown[] | null) {
   const terminal = { data: resolvedData, error: null }
   const chain: Record<string, unknown> = {}
-  const methods = ['select', 'in', 'eq', 'gte', 'lte', 'order']
+  const methods = ['select', 'in', 'eq', 'is', 'gte', 'lte', 'order']
   for (const m of methods) {
     chain[m] = vi.fn().mockReturnValue(chain)
   }
-  // order() is terminal — resolves
+  // order() resolves (terminal for returns query)
   chain['order'] = vi.fn().mockResolvedValue(terminal)
-  // eq() can also be terminal for attempts query (no gte/lte/order), so we keep it chainable
-  // but also make it resolve if accessed as a promise
+  // Also make chain thenable for queries without order()
+  ;(chain as { then: unknown }).then = (resolve: (v: unknown) => void) => {
+    resolve(terminal)
+    return Promise.resolve(terminal)
+  }
   return chain
 }
 
 vi.mock('@/lib/supabase/client', () => ({
   supabase: {
-    from: vi.fn().mockImplementation(() => {
-      const idx = supabaseFromCallIndex++
+    from: vi.fn().mockImplementation((table: string) => {
+      if (table === 'deals') {
+        return createThenableChain(dealsData)
+      }
+      // activities table — first call is returns, second is attempts
+      const idx = activitiesCallIndex++
       if (idx === 0) {
-        // First call: scheduled returns query
-        return createChainableMock(scheduledReturnData)
+        return createThenableChain(scheduledReturnData)
       }
-      // Second call: attempt counts query — shorter chain (no gte/lte/order)
-      const terminal = { data: attemptCountData, error: null }
-      const chain: Record<string, unknown> = {}
-      const methods = ['select', 'in', 'eq']
-      for (const m of methods) {
-        chain[m] = vi.fn().mockImplementation(() => {
-          // After eq('type', 'CALL') the chain should resolve
-          // But it could be called more times... make it always return chain
-          return chain
-        })
-      }
-      // Make .eq() also act as a thenable so await works
-      ;(chain as { then: unknown }).then = (resolve: (v: unknown) => void) => {
-        resolve(terminal)
-        return Promise.resolve(terminal)
-      }
-      return chain
+      return createThenableChain(attemptCountData)
     }),
   },
 }))
@@ -109,22 +95,16 @@ const defaultProps = {
 }
 
 function setupMocks(options: {
-  dealResults?: Array<{ id: string } | null>
+  dealResults?: Array<{ contact_id: string }> | null
   returnData?: Array<{ contact_id: string; date: string }> | null
   attemptData?: Array<{ contact_id: string }> | null
 } = {}) {
-  const { dealResults = [], returnData = null, attemptData = null } = options
+  const { dealResults = null, returnData = null, attemptData = null } = options
 
-  supabaseFromCallIndex = 0
+  activitiesCallIndex = 0
+  dealsData = dealResults
   scheduledReturnData = returnData
   attemptCountData = attemptData
-
-  let callIdx = 0
-  mockGetOpenDealsByContact.mockImplementation(() => {
-    const result = dealResults[callIdx] ?? null
-    callIdx++
-    return Promise.resolve(result)
-  })
 }
 
 // --- Tests ---
@@ -132,7 +112,8 @@ function setupMocks(options: {
 describe('SessionSummary', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    supabaseFromCallIndex = 0
+    activitiesCallIndex = 0
+    dealsData = null
     scheduledReturnData = null
     attemptCountData = null
   })
@@ -166,7 +147,7 @@ describe('SessionSummary', () => {
 
     it('shows connected contacts without deal', async () => {
       setupMocks({
-        dealResults: [null, null],
+        dealResults: [],
         returnData: [],
         attemptData: [],
       })
@@ -183,7 +164,7 @@ describe('SessionSummary', () => {
 
     it('hides block when all connected contacts have deals', async () => {
       setupMocks({
-        dealResults: [{ id: 'd1' }, { id: 'd2' }],
+        dealResults: [{ contact_id: 'c1' }, { contact_id: 'c2' }],
         returnData: [],
         attemptData: [],
       })
@@ -331,7 +312,7 @@ describe('SessionSummary', () => {
       ]
 
       setupMocks({
-        dealResults: [{ id: 'd1' }],
+        dealResults: [{ contact_id: 'c1' }],
         returnData: [],
         attemptData: [],
       })
@@ -345,7 +326,7 @@ describe('SessionSummary', () => {
 
     it('does not render empty blocks', async () => {
       setupMocks({
-        dealResults: [{ id: 'd1' }],
+        dealResults: [{ contact_id: 'c1' }],
         returnData: [],
         attemptData: [],
       })

@@ -3,6 +3,7 @@ import React from 'react'
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { QuickActionsPanel } from '../components/QuickActionsPanel'
 
 // ── Mocks ──────────────────────────────────────────────
@@ -96,6 +97,11 @@ vi.mock('@/features/prospecting/hooks/useBoards', () => ({
 
 // ── Helpers ──────────────────────────────────────────────
 
+function renderWithQuery(ui: React.ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>)
+}
+
 const defaultProps = () => ({
   contactId: 'c-1',
   contactName: 'Maria Silva',
@@ -117,7 +123,7 @@ describe('QuickActionsPanel', () => {
 
   describe('Rendering by outcome (AC6)', () => {
     it('shows create deal + agendar retorno for "connected" without deal', async () => {
-      render(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
       await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
       // Mover Etapa only shows when deal exists
@@ -125,21 +131,21 @@ describe('QuickActionsPanel', () => {
     })
 
     it('shows only "Agendar Retorno" for "no_answer" outcome', () => {
-      render(<QuickActionsPanel {...defaultProps()} outcome="no_answer" />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} outcome="no_answer" />)
       expect(screen.queryByText('+ Criar Deal')).not.toBeInTheDocument()
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
       expect(screen.queryByText('Mover Etapa')).not.toBeInTheDocument()
     })
 
     it('shows only "Agendar Retorno" for "voicemail" outcome', () => {
-      render(<QuickActionsPanel {...defaultProps()} outcome="voicemail" />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} outcome="voicemail" />)
       expect(screen.queryByText('+ Criar Deal')).not.toBeInTheDocument()
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
       expect(screen.queryByText('Mover Etapa')).not.toBeInTheDocument()
     })
 
     it('shows only "Agendar Retorno" for "busy" outcome', () => {
-      render(<QuickActionsPanel {...defaultProps()} outcome="busy" />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} outcome="busy" />)
       expect(screen.queryByText('+ Criar Deal')).not.toBeInTheDocument()
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
       expect(screen.queryByText('Mover Etapa')).not.toBeInTheDocument()
@@ -149,14 +155,14 @@ describe('QuickActionsPanel', () => {
   describe('Dismiss', () => {
     it('calls onDismiss when Avançar button clicked (non-connected outcome)', () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} outcome="no_answer" />)
+      renderWithQuery(<QuickActionsPanel {...props} outcome="no_answer" />)
       fireEvent.click(screen.getByText('Avançar →'))
       expect(props.onDismiss).toHaveBeenCalledOnce()
     })
 
     it('calls onDismiss when X button clicked', () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} />)
+      renderWithQuery(<QuickActionsPanel {...props} />)
       fireEvent.click(screen.getByLabelText('Dispensar'))
       expect(props.onDismiss).toHaveBeenCalledOnce()
     })
@@ -164,14 +170,14 @@ describe('QuickActionsPanel', () => {
 
   describe('Schedule Return (AC3)', () => {
     it('shows datetime picker when "Agendar Retorno" clicked', () => {
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       fireEvent.click(screen.getByText('Agendar Retorno'))
       expect(screen.getByDisplayValue(/T10:00$/)).toBeInTheDocument()
       expect(screen.getByText('Confirmar')).toBeInTheDocument()
     })
 
     it('creates activity when picker confirmed', async () => {
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       fireEvent.click(screen.getByText('Agendar Retorno'))
       fireEvent.click(screen.getByText('Confirmar'))
       await waitFor(() => {
@@ -184,7 +190,7 @@ describe('QuickActionsPanel', () => {
     })
 
     it('shows success state after scheduling', async () => {
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       fireEvent.click(screen.getByText('Agendar Retorno'))
       fireEvent.click(screen.getByText('Confirmar'))
       await waitFor(() => {
@@ -195,14 +201,14 @@ describe('QuickActionsPanel', () => {
 
   describe('Create Deal (AC2)', () => {
     it('opens CreateDealModal when clicked', async () => {
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
       fireEvent.click(screen.getByText('+ Criar Deal'))
       expect(screen.getByTestId('create-deal-modal')).toBeInTheDocument()
     })
 
     it('shows success after deal creation', async () => {
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
       fireEvent.click(screen.getByText('+ Criar Deal'))
       fireEvent.click(screen.getByText('Create'))
@@ -221,7 +227,7 @@ describe('QuickActionsPanel', () => {
 
     it('shows pipeline + stage dropdowns for "connected" with deal', async () => {
       mockGetOpenDealsByContact.mockResolvedValue(dealMock)
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       await waitFor(() => { expect(screen.getByText('Mover Etapa')).toBeInTheDocument() })
       expect(screen.getByLabelText('Selecionar pipeline')).toBeInTheDocument()
       expect(screen.getByLabelText('Selecionar etapa')).toBeInTheDocument()
@@ -229,7 +235,7 @@ describe('QuickActionsPanel', () => {
 
     it('hides "Mover Etapa" when no deal', async () => {
       mockGetOpenDealsByContact.mockResolvedValue(null)
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
       expect(screen.queryByText('Mover Etapa')).not.toBeInTheDocument()
     })
@@ -237,7 +243,7 @@ describe('QuickActionsPanel', () => {
 
   describe('Header', () => {
     it('shows "Próximos Passos" header', () => {
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       expect(screen.getByText('Próximos Passos')).toBeInTheDocument()
     })
   })
@@ -245,26 +251,26 @@ describe('QuickActionsPanel', () => {
   describe('Manage Templates (AC10)', () => {
     it('shows "Gerenciar templates" button for admin role', () => {
       mockProfile = { role: 'admin' }
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       expect(screen.getByText('Gerenciar templates de notas')).toBeInTheDocument()
     })
 
     it('shows "Gerenciar templates" button for diretor role', () => {
       mockProfile = { role: 'diretor' }
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       expect(screen.getByText('Gerenciar templates de notas')).toBeInTheDocument()
     })
 
     it('hides "Gerenciar templates" button for corretor role', () => {
       mockProfile = { role: 'corretor' }
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       expect(screen.queryByText('Gerenciar templates de notas')).not.toBeInTheDocument()
     })
   })
 
   describe('Create Deal pre-fill (AC2)', () => {
     it('passes initialContactId to CreateDealModal', async () => {
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
       fireEvent.click(screen.getByText('+ Criar Deal'))
       const modal = screen.getByTestId('create-deal-modal')
@@ -276,7 +282,7 @@ describe('QuickActionsPanel', () => {
 
   describe('CP-6.2: Follow-up confirmation prompt (AC4, AC7)', () => {
     it('shows confirmation prompt when connected + no action taken (AC4)', () => {
-      render(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
 
       fireEvent.click(screen.getByText('Avançar →'))
 
@@ -287,7 +293,7 @@ describe('QuickActionsPanel', () => {
 
     it('schedules return when user confirms "Sim, agendar"', async () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} outcome="connected" />)
+      renderWithQuery(<QuickActionsPanel {...props} outcome="connected" />)
 
       fireEvent.click(screen.getByText('Avançar →'))
       await act(async () => {
@@ -304,7 +310,7 @@ describe('QuickActionsPanel', () => {
 
     it('dismisses without scheduling when user clicks "Não, avançar"', () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} outcome="connected" />)
+      renderWithQuery(<QuickActionsPanel {...props} outcome="connected" />)
 
       fireEvent.click(screen.getByText('Avançar →'))
       fireEvent.click(screen.getByText('Não, avançar'))
@@ -315,7 +321,7 @@ describe('QuickActionsPanel', () => {
 
     it('does NOT show prompt for no_answer outcome (AC7)', () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} outcome="no_answer" />)
+      renderWithQuery(<QuickActionsPanel {...props} outcome="no_answer" />)
 
       fireEvent.click(screen.getByText('Avançar →'))
 
@@ -325,7 +331,7 @@ describe('QuickActionsPanel', () => {
 
     it('does NOT show prompt for voicemail outcome (AC7)', () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} outcome="voicemail" />)
+      renderWithQuery(<QuickActionsPanel {...props} outcome="voicemail" />)
 
       fireEvent.click(screen.getByText('Avançar →'))
 
@@ -335,7 +341,7 @@ describe('QuickActionsPanel', () => {
 
     it('does NOT show prompt for busy outcome (AC7)', () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} outcome="busy" />)
+      renderWithQuery(<QuickActionsPanel {...props} outcome="busy" />)
 
       fireEvent.click(screen.getByText('Avançar →'))
 
@@ -348,7 +354,7 @@ describe('QuickActionsPanel', () => {
     it('uses suggestedReturnTime when available', async () => {
       const suggestedDate = new Date('2026-03-18T14:00:00')
       const props = defaultProps()
-      render(
+      renderWithQuery(
         <QuickActionsPanel
           {...props}
           outcome="connected"
@@ -368,7 +374,7 @@ describe('QuickActionsPanel', () => {
 
     it('uses next business day as fallback when suggestedReturnTime is null (AC8)', async () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} outcome="connected" suggestedReturnTime={null} />)
+      renderWithQuery(<QuickActionsPanel {...props} outcome="connected" suggestedReturnTime={null} />)
 
       fireEvent.click(screen.getByText('Avançar →'))
       await act(async () => {
@@ -386,7 +392,7 @@ describe('QuickActionsPanel', () => {
 
     it('does NOT show prompt when return was manually scheduled', async () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} outcome="connected" />)
+      renderWithQuery(<QuickActionsPanel {...props} outcome="connected" />)
 
       fireEvent.click(screen.getByText('Agendar Retorno'))
       await act(async () => {
@@ -402,7 +408,7 @@ describe('QuickActionsPanel', () => {
 
     it('does NOT show prompt when deal was created', async () => {
       const props = defaultProps()
-      render(<QuickActionsPanel {...props} outcome="connected" />)
+      renderWithQuery(<QuickActionsPanel {...props} outcome="connected" />)
 
       await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
       fireEvent.click(screen.getByText('+ Criar Deal'))
@@ -420,14 +426,14 @@ describe('QuickActionsPanel', () => {
 
   describe('CP-6.2: Button styling (AC9, AC10)', () => {
     it('renders "Avançar →" as a green styled Button (AC9)', () => {
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       const button = screen.getByText('Avançar →')
       expect(button.tagName).toBe('BUTTON')
       expect(button.className).toContain('bg-green-600')
     })
 
     it('shows "Avançar →" even after action was taken (AC10)', async () => {
-      render(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
 
       fireEvent.click(screen.getByText('Agendar Retorno'))
       await act(async () => {

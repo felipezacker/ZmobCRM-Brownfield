@@ -2,6 +2,7 @@ import React from 'react'
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ContactHistory } from '../components/ContactHistory'
 import type { Activity } from '@/types'
 import type { OpenDeal } from '@/lib/supabase/deals'
@@ -64,6 +65,13 @@ vi.mock('@/components/ui/button', () => ({
   ),
 }))
 
+// ── Helpers ──────────────────────────────────────────────
+
+function renderWithQuery(ui: React.ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>)
+}
+
 // ── Tests ──────────────────────────────────────────────
 
 describe('ContactHistory', () => {
@@ -75,7 +83,7 @@ describe('ContactHistory', () => {
   })
 
   it('renderiza atividades do contato', () => {
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     expect(screen.getByText('Histórico')).toBeInTheDocument()
     expect(screen.getByText('Ligação de prospecção')).toBeInTheDocument()
     expect(screen.getByText('Follow-up email')).toBeInTheDocument()
@@ -83,17 +91,17 @@ describe('ContactHistory', () => {
   })
 
   it('mostra badge de outcome para CALL', () => {
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     expect(screen.getByText('Não atendeu')).toBeInTheDocument()
   })
 
   it('mostra contagem de atividades no badge', () => {
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     expect(screen.getByText('3')).toBeInTheDocument()
   })
 
   it('colapsa e expande ao clicar', () => {
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     expect(screen.getByText('Ligação de prospecção')).toBeInTheDocument()
 
     // Collapse
@@ -106,20 +114,20 @@ describe('ContactHistory', () => {
   })
 
   it('defaultOpen=false inicia colapsado', () => {
-    render(<ContactHistory contactId="c-1" defaultOpen={false} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={false} />)
     expect(screen.getByText('Histórico')).toBeInTheDocument()
     expect(screen.queryByText('Ligação de prospecção')).not.toBeInTheDocument()
   })
 
   it('mostra mensagem quando não há atividades', () => {
     mockData = []
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     expect(screen.getByText('Nenhuma interação registrada')).toBeInTheDocument()
   })
 
   it('mostra skeleton quando loading', () => {
     mockIsLoading = true
-    const { container } = render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    const { container } = renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     const pulses = container.querySelectorAll('.animate-pulse')
     expect(pulses.length).toBeGreaterThanOrEqual(3)
     mockIsLoading = false
@@ -137,7 +145,7 @@ describe('ContactHistory', () => {
       stage_id: 's-1',
       stage_name: 'Visita Agendada',
     }
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.getByText('Apartamento Jardins')).toBeInTheDocument()
     })
@@ -147,7 +155,7 @@ describe('ContactHistory', () => {
 
   it('não exibe bloco de deal quando retorna null', async () => {
     mockDealResult = null
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.getByText('Histórico')).toBeInTheDocument()
     })
@@ -157,14 +165,14 @@ describe('ContactHistory', () => {
   it('exibe skeleton de deal durante loading', () => {
     // Initially the deal hook is loading (useEffect async)
     mockDealResult = null
-    const { container } = render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    const { container } = renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     const pulses = container.querySelectorAll('.animate-pulse')
     expect(pulses.length).toBeGreaterThanOrEqual(1)
   })
 
   it('degrada graciosamente quando getOpenDealsByContact rejeita', async () => {
     mockDealShouldReject = true
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.queryByLabelText('Deal em andamento')).not.toBeInTheDocument()
     })
@@ -186,7 +194,7 @@ describe('ContactHistory', () => {
         user: { name: 'Você', avatar: '' },
       },
     ]
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.getByText('Última nota')).toBeInTheDocument()
     })
@@ -196,7 +204,7 @@ describe('ContactHistory', () => {
 
   it('não exibe nota em destaque quando não há notas', async () => {
     mockData = mockActivities // no NOTE type
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.getByText('Histórico')).toBeInTheDocument()
     })
@@ -213,7 +221,7 @@ describe('ContactHistory', () => {
       stage_id: 's-1',
       stage_name: 'Proposta',
     }
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.getByText('R$ 1.250.000,50')).toBeInTheDocument()
     })
@@ -229,7 +237,7 @@ describe('ContactHistory', () => {
       stage_id: 's-1',
       stage_name: 'Negociação',
     }
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.getByText('Sala Comercial')).toBeInTheDocument()
     })
@@ -246,7 +254,7 @@ describe('ContactHistory', () => {
       stage_id: 's-1',
       stage_name: 'Proposta',
     }
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.getByText('COB-501')).toBeInTheDocument()
     })
@@ -262,7 +270,7 @@ describe('ContactHistory', () => {
       stage_id: 's-1',
       stage_name: 'Visita Agendada',
     }
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.getByText('Liv Residencial')).toBeInTheDocument()
     })
@@ -278,7 +286,7 @@ describe('ContactHistory', () => {
       stage_id: 's-1',
       stage_name: 'Qualificação',
     }
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     await waitFor(() => {
       expect(screen.getByText('Terreno Rural')).toBeInTheDocument()
     })

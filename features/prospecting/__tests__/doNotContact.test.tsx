@@ -3,6 +3,7 @@ import React from 'react'
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { QuickActionsPanel } from '../components/QuickActionsPanel'
 import { QueueItem } from '../components/QueueItem'
 import { ContactHistory } from '../components/ContactHistory'
@@ -109,6 +110,13 @@ vi.mock('@/lib/design-tokens', () => ({
   SHADOW_TOKENS: { drag: '' },
 }))
 
+// ── Query wrapper ──────────────────────────────────────────────
+
+function renderWithQuery(ui: React.ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>)
+}
+
 // ── Helpers ──────────────────────────────────────────────
 
 const makeQueueItem = (overrides?: Partial<ProspectingQueueItem>): ProspectingQueueItem => ({
@@ -147,17 +155,17 @@ describe('CP-7.1: Do Not Contact (LGPD)', () => {
     })
 
     it('shows "Não ligar mais" button after any outcome', () => {
-      render(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
       expect(screen.getByText('Não ligar mais')).toBeInTheDocument()
     })
 
     it('shows "Não ligar mais" for no_answer outcome too', () => {
-      render(<QuickActionsPanel {...defaultProps()} outcome="no_answer" />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} outcome="no_answer" />)
       expect(screen.getByText('Não ligar mais')).toBeInTheDocument()
     })
 
     it('opens DoNotContact modal when clicking "Não ligar mais"', () => {
-      render(<QuickActionsPanel {...defaultProps()} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} />)
       expect(screen.queryByTestId('do-not-contact-modal')).not.toBeInTheDocument()
 
       fireEvent.click(screen.getByText('Não ligar mais'))
@@ -167,7 +175,7 @@ describe('CP-7.1: Do Not Contact (LGPD)', () => {
 
     it('calls onDismiss when block is confirmed', () => {
       const onDismiss = vi.fn()
-      render(<QuickActionsPanel {...defaultProps()} onDismiss={onDismiss} />)
+      renderWithQuery(<QuickActionsPanel {...defaultProps()} onDismiss={onDismiss} />)
 
       fireEvent.click(screen.getByText('Não ligar mais'))
       fireEvent.click(screen.getByText('ConfirmBlock'))
@@ -194,12 +202,12 @@ describe('CP-7.1: Do Not Contact (LGPD)', () => {
 
   describe('ContactHistory — "Bloqueado" badge (AC10)', () => {
     it('shows "Bloqueado" badge when doNotContact=true', () => {
-      render(<ContactHistory contactId="c-1" doNotContact={true} />)
+      renderWithQuery(<ContactHistory contactId="c-1" doNotContact={true} />)
       expect(screen.getByText('Bloqueado')).toBeInTheDocument()
     })
 
     it('does NOT show "Bloqueado" badge when doNotContact=false', () => {
-      render(<ContactHistory contactId="c-1" doNotContact={false} />)
+      renderWithQuery(<ContactHistory contactId="c-1" doNotContact={false} />)
       expect(screen.queryByText('Bloqueado')).not.toBeInTheDocument()
     })
   })

@@ -6,6 +6,7 @@ import React from 'react'
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // ── Mocks ──────────────────────
 
@@ -81,6 +82,11 @@ vi.mock('@/features/prospecting/hooks/useBoards', () => ({
 
 import { QuickActionsPanel } from '../components/QuickActionsPanel'
 
+function renderWithQuery(ui: React.ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>)
+}
+
 const defaultProps = {
   contactId: 'contact-1',
   contactName: 'João Silva',
@@ -95,7 +101,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
 
   it('shows skeleton while deal is loading (AC10)', () => {
     mockGetOpenDealsByContact.mockReturnValue(new Promise(() => {}))
-    render(<QuickActionsPanel {...defaultProps} />)
+    renderWithQuery(<QuickActionsPanel {...defaultProps} />)
     expect(screen.getByText('Próximos Passos')).toBeInTheDocument()
     const skeleton = document.querySelector('.animate-pulse')
     expect(skeleton).toBeInTheDocument()
@@ -103,7 +109,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
 
   it('shows "Nenhum deal vinculado" with create button when no deal (AC1)', async () => {
     mockGetOpenDealsByContact.mockResolvedValue(null)
-    render(<QuickActionsPanel {...defaultProps} />)
+    renderWithQuery(<QuickActionsPanel {...defaultProps} />)
     await waitFor(() => {
       expect(screen.getByText('+ Criar Deal')).toBeInTheDocument()
     })
@@ -121,7 +127,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
       stage_name: 'Novo',
       board_id: 'board-1',
     })
-    render(<QuickActionsPanel {...defaultProps} />)
+    renderWithQuery(<QuickActionsPanel {...defaultProps} />)
     await waitFor(() => {
       expect(screen.getByText('Apartamento Centro')).toBeInTheDocument()
     })
@@ -134,7 +140,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
 
   it('opens CreateDealModal when create button is clicked (AC1)', async () => {
     mockGetOpenDealsByContact.mockResolvedValue(null)
-    render(<QuickActionsPanel {...defaultProps} />)
+    renderWithQuery(<QuickActionsPanel {...defaultProps} />)
     await waitFor(() => {
       expect(screen.getByText('+ Criar Deal')).toBeInTheDocument()
     })
@@ -153,7 +159,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
       stage_name: 'Qualificação',
       board_id: 'board-1',
     })
-    render(<QuickActionsPanel {...defaultProps} />)
+    renderWithQuery(<QuickActionsPanel {...defaultProps} />)
     await waitFor(() => {
       expect(screen.getByText('Apartamento Centro')).toBeInTheDocument()
     })
@@ -173,7 +179,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
       stage_name: 'Novo',
       board_id: 'board-1',
     })
-    render(<QuickActionsPanel {...defaultProps} />)
+    renderWithQuery(<QuickActionsPanel {...defaultProps} />)
     await waitFor(() => {
       expect(screen.getByText('Deal Test')).toBeInTheDocument()
     })
@@ -201,7 +207,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
       board_id: 'board-1',
     })
     mockDealsServiceUpdate.mockResolvedValue({ error: null })
-    render(<QuickActionsPanel {...defaultProps} />)
+    renderWithQuery(<QuickActionsPanel {...defaultProps} />)
     await waitFor(() => {
       expect(screen.getByText('Deal Test')).toBeInTheDocument()
     })
@@ -223,7 +229,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
 
   it('gracefully degrades when deal fetch fails (AC11)', async () => {
     mockGetOpenDealsByContact.mockRejectedValue(new Error('Network error'))
-    render(<QuickActionsPanel {...defaultProps} />)
+    renderWithQuery(<QuickActionsPanel {...defaultProps} />)
     await waitFor(() => {
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
     })
@@ -247,7 +253,7 @@ describe('QuickActionsPanel — Deal Block (CP-7.3)', () => {
         board_id: 'board-1',
       })
 
-    render(<QuickActionsPanel {...defaultProps} />)
+    renderWithQuery(<QuickActionsPanel {...defaultProps} />)
     await waitFor(() => {
       expect(screen.getByText('+ Criar Deal')).toBeInTheDocument()
     })

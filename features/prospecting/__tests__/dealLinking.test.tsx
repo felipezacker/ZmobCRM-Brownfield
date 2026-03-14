@@ -6,6 +6,7 @@ import React from 'react'
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // NOTE: getOpenDealsByContact unit tests moved to getOpenDealsByContact.test.ts (CP-7.3)
 
@@ -18,6 +19,11 @@ vi.mock('@/components/ui/button', () => ({
     <button {...props}>{children}</button>
   ),
 }))
+
+function renderWithQuery(ui: React.ReactElement) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(<QueryClientProvider client={qc}>{ui}</QueryClientProvider>)
+}
 
 const makeActivity = (overrides?: Record<string, unknown>) => ({
   id: 'act-1',
@@ -138,13 +144,13 @@ vi.mock('@/lib/query/hooks/useActivitiesQuery', () => ({
 
 describe('ContactHistory — Notes Expand/Collapse (CP-5.1 AC4)', () => {
   it('renders notes with line-clamp-2 by default', () => {
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     const expandButtons = screen.getAllByLabelText('Expandir nota')
     expect(expandButtons.length).toBeGreaterThanOrEqual(1)
   })
 
   it('expands note on click and shows "ver menos"', () => {
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     const expandButtons = screen.getAllByLabelText('Expandir nota')
     fireEvent.click(expandButtons[0])
 
@@ -152,7 +158,7 @@ describe('ContactHistory — Notes Expand/Collapse (CP-5.1 AC4)', () => {
   })
 
   it('collapses note when clicking again', () => {
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     const expandButtons = screen.getAllByLabelText('Expandir nota')
 
     // Expand
@@ -166,7 +172,7 @@ describe('ContactHistory — Notes Expand/Collapse (CP-5.1 AC4)', () => {
   })
 
   it('only one note expanded at a time', () => {
-    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    renderWithQuery(<ContactHistory contactId="c-1" defaultOpen={true} />)
     const expandButtons = screen.getAllByLabelText('Expandir nota')
 
     // Expand first
@@ -254,7 +260,7 @@ describe('QuickActionsPanel — Deal Linking (CP-5.1 AC6)', () => {
   })
 
   it('updates activity with dealId when deal is created and lastActivityId provided', async () => {
-    render(
+    renderWithQuery(
       <QuickActionsPanel
         contactId="c-1"
         contactName="Maria"
@@ -279,7 +285,7 @@ describe('QuickActionsPanel — Deal Linking (CP-5.1 AC6)', () => {
   })
 
   it('does not update activity when lastActivityId is not provided', async () => {
-    render(
+    renderWithQuery(
       <QuickActionsPanel
         contactId="c-1"
         contactName="Maria"
