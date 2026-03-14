@@ -162,10 +162,9 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     )
     if (nextPending >= 0) {
       setCurrentIndex(nextPending)
-    } else {
-      // No more pending — session complete
-      setSessionActive(false)
     }
+    // No more pending — don't auto-end. PowerDialer will show QuickActionsPanel
+    // for the current contact, then call onEnd() when dismissed.
   }, [queue, currentIndex, setCurrentIndex])
 
   const next = useCallback(() => {

@@ -28,6 +28,7 @@ interface PowerDialerProps {
   onSkip: (reason?: string) => void
   onAdvance?: () => void
   onEnd: () => void
+  pendingCount?: number
   selectedScript?: QuickScript | null
   onScriptChange?: (script: QuickScript | null) => void
   sessionStats?: SessionStats
@@ -51,6 +52,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   onSkip,
   onAdvance,
   onEnd,
+  pendingCount = 0,
   selectedScript,
   onScriptChange,
   sessionStats,
@@ -202,7 +204,11 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     setShowQuickActions(false)
     setLastCallData(null)
     setCalledContact(null)
-  }, [])
+    // CP-7.4: If no more pending contacts, end session → show summary
+    if (pendingCount === 0) {
+      onEnd()
+    }
+  }, [pendingCount, onEnd])
 
   // CP-7.1: Skip with reason
   const handleSkipWithReason = useCallback((reason: string) => {
