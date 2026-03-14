@@ -7,86 +7,7 @@ import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
-// ── getOpenDealsByContact unit tests ──────────────────────
-
-describe('getOpenDealsByContact', () => {
-  const mockMaybeSingle = vi.fn()
-  const mockLimit = vi.fn(() => ({ maybeSingle: mockMaybeSingle }))
-  const mockOrder = vi.fn(() => ({ limit: mockLimit }))
-  const mockIs = vi.fn(() => ({ order: mockOrder }))
-  const mockEqIsLost = vi.fn(() => ({ is: mockIs }))
-  const mockEqIsWon = vi.fn(() => ({ eq: mockEqIsLost }))
-  const mockEqContactId = vi.fn(() => ({ eq: mockEqIsWon }))
-  const mockSelect = vi.fn(() => ({ eq: mockEqContactId }))
-  const mockFrom = vi.fn(() => ({ select: mockSelect }))
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    vi.resetModules()
-  })
-
-  it('returns deal when contact has open deal', async () => {
-    mockMaybeSingle.mockResolvedValue({
-      data: { id: 'deal-1', title: 'Apt 101' },
-      error: null,
-    })
-
-    vi.doMock('@/lib/supabase/client', () => ({
-      supabase: { from: mockFrom },
-    }))
-
-    const { getOpenDealsByContact } = await import('@/lib/supabase/deals')
-    const result = await getOpenDealsByContact('contact-1')
-
-    expect(result).toEqual({ id: 'deal-1', title: 'Apt 101', value: null, property_ref: null, product_name: null, stage_id: null, stage_name: null })
-    expect(mockFrom).toHaveBeenCalledWith('deals')
-    expect(mockSelect).toHaveBeenCalledWith('id, title, value, property_ref, stage_id, board_stages(name), deal_items(name)')
-    expect(mockEqContactId).toHaveBeenCalledWith('contact_id', 'contact-1')
-    expect(mockEqIsWon).toHaveBeenCalledWith('is_won', false)
-    expect(mockEqIsLost).toHaveBeenCalledWith('is_lost', false)
-  })
-
-  it('returns null when contact has no open deals', async () => {
-    mockMaybeSingle.mockResolvedValue({ data: null, error: null })
-
-    vi.doMock('@/lib/supabase/client', () => ({
-      supabase: { from: mockFrom },
-    }))
-
-    const { getOpenDealsByContact } = await import('@/lib/supabase/deals')
-    const result = await getOpenDealsByContact('contact-2')
-
-    expect(result).toBeNull()
-  })
-
-  it('returns null on query error', async () => {
-    mockMaybeSingle.mockResolvedValue({
-      data: null,
-      error: new Error('DB error'),
-    })
-
-    vi.doMock('@/lib/supabase/client', () => ({
-      supabase: { from: mockFrom },
-    }))
-
-    const { getOpenDealsByContact } = await import('@/lib/supabase/deals')
-    const result = await getOpenDealsByContact('contact-3')
-
-    expect(result).toBeNull()
-  })
-
-  it('returns null when contactId is empty', async () => {
-    vi.doMock('@/lib/supabase/client', () => ({
-      supabase: { from: mockFrom },
-    }))
-
-    const { getOpenDealsByContact } = await import('@/lib/supabase/deals')
-    const result = await getOpenDealsByContact('')
-
-    expect(result).toBeNull()
-    expect(mockFrom).not.toHaveBeenCalled()
-  })
-})
+// NOTE: getOpenDealsByContact unit tests moved to getOpenDealsByContact.test.ts (CP-7.3)
 
 // ── CallDetailsTable notes column tests ──────────────────────
 
@@ -309,6 +230,20 @@ vi.mock('@/features/prospecting/components/NoteTemplatesManager', () => ({
   NoteTemplatesManager: () => null,
 }))
 
+vi.mock('@/features/prospecting/components/DoNotContactModal', () => ({
+  DoNotContactModal: () => null,
+}))
+
+// CP-7.3: Mock for deal fetch in QuickActionsPanel
+vi.mock('@/lib/supabase/deals', () => ({
+  getOpenDealsByContact: vi.fn().mockResolvedValue(null),
+  dealsService: { update: vi.fn().mockResolvedValue({ error: null }) },
+}))
+
+vi.mock('@/features/prospecting/hooks/useBoardStages', () => ({
+  useBoardStages: () => ({ stages: [], isLoading: false }),
+}))
+
 describe('QuickActionsPanel — Deal Linking (CP-5.1 AC6)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -325,7 +260,10 @@ describe('QuickActionsPanel — Deal Linking (CP-5.1 AC6)', () => {
       />,
     )
 
-    fireEvent.click(screen.getByText('Criar Negócio'))
+    await waitFor(() => {
+      expect(screen.getByText('+ Criar Deal')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByText('+ Criar Deal'))
     fireEvent.click(screen.getByText('CreateDeal'))
 
     await waitFor(() => {
@@ -346,7 +284,10 @@ describe('QuickActionsPanel — Deal Linking (CP-5.1 AC6)', () => {
       />,
     )
 
-    fireEvent.click(screen.getByText('Criar Negócio'))
+    await waitFor(() => {
+      expect(screen.getByText('+ Criar Deal')).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByText('+ Criar Deal'))
     fireEvent.click(screen.getByText('CreateDeal'))
 
     await waitFor(() => {

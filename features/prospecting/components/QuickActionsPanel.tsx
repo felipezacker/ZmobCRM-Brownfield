@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   Briefcase,
   CalendarClock,
@@ -7,6 +7,7 @@ import {
   Loader2,
   Check,
   Ban,
+  Pencil,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CreateDealModal } from '@/features/boards/components/Modals/CreateDealModal'
@@ -14,6 +15,9 @@ import { DoNotContactModal } from '@/features/prospecting/components/DoNotContac
 import { NoteTemplatesManager } from '@/features/prospecting/components/NoteTemplatesManager'
 import { useCreateActivity, useUpdateActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { contactsService } from '@/lib/supabase'
+import { getOpenDealsByContact, dealsService } from '@/lib/supabase/deals'
+import type { OpenDeal } from '@/lib/supabase/deals'
+import { useBoardStages } from '@/features/prospecting/hooks/useBoardStages'
 import { useSettings } from '@/context/settings/SettingsContext'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
@@ -40,6 +44,8 @@ const ACTIONS_BY_OUTCOME: Record<Outcome, Array<'create_deal' | 'schedule_return
   voicemail: ['schedule_return'],
   busy: ['schedule_return'],
 }
+
+const brlFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
 function getNextBusinessDay(): Date {
   const date = new Date()
@@ -74,6 +80,55 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   const [dealCreated, setDealCreated] = useState(false)
   const [showReturnPicker, setShowReturnPicker] = useState(false)
   const [showFollowupPrompt, setShowFollowupPrompt] = useState(false)
+
+  // CP-7.3: Deal state
+  const [openDeal, setOpenDeal] = useState<OpenDeal | null>(null)
+  const [isDealLoading, setIsDealLoading] = useState(true)
+  const [dealFetchError, setDealFetchError] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editValue, setEditValue] = useState('')
+  const [isSavingEdit, setIsSavingEdit] = useState(false)
+  const [selectedDealStage, setSelectedDealStage] = useState('')
+  const [isMovingDealStage, setIsMovingDealStage] = useState(false)
+
+  const { stages: boardStages } = useBoardStages(openDeal?.board_id ?? null)
+
+  // CP-7.3: Fetch open deal for contact
+  useEffect(() => {
+    let cancelled = false
+    setIsDealLoading(true)
+    setDealFetchError(false)
+    getOpenDealsByContact(contactId)
+      .then((result) => {
+        if (!cancelled) setOpenDeal(result)
+      })
+      .catch(() => {
+        if (!cancelled) setDealFetchError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setIsDealLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [contactId])
+
+  // CP-7.3: Refetch deal helper
+  const refetchDeal = useCallback(() => {
+    setIsDealLoading(true)
+    getOpenDealsByContact(contactId)
+      .then((result) => setOpenDeal(result))
+      .catch(() => {})
+      .finally(() => setIsDealLoading(false))
+  }, [contactId])
+
+  // CP-7.3: Edit deal handler (start only — save/move defined after toast)
+  const handleStartEdit = useCallback(() => {
+    if (!openDeal) return
+    setEditTitle(openDeal.title)
+    setEditValue(openDeal.value != null ? String(openDeal.value) : '')
+    setIsEditing(true)
+  }, [openDeal])
+
   const [returnDate, setReturnDate] = useState(() => {
     const d = suggestedReturnTime?.suggestedDate ?? getNextBusinessDay()
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
@@ -86,6 +141,43 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   const { addToast, showToast } = useToast()
   const toast = addToast || showToast
   const isAdminOrDirector = profile?.role === 'admin' || profile?.role === 'diretor'
+
+  // CP-7.3: Save deal edit handler (needs toast)
+  const handleSaveEdit = useCallback(async () => {
+    if (!openDeal) return
+    setIsSavingEdit(true)
+    try {
+      const { error } = await dealsService.update(openDeal.id, {
+        title: editTitle,
+        value: parseFloat(editValue) || 0,
+      })
+      if (error) throw error
+      setOpenDeal(prev => prev ? { ...prev, title: editTitle, value: parseFloat(editValue) || 0 } : null)
+      setIsEditing(false)
+    } catch {
+      toast('Erro ao salvar deal', 'error')
+    } finally {
+      setIsSavingEdit(false)
+    }
+  }, [openDeal, editTitle, editValue, toast])
+
+  // CP-7.3: Move deal stage handler (needs toast)
+  const handleMoveDealStage = useCallback(async () => {
+    if (!openDeal || !selectedDealStage) return
+    setIsMovingDealStage(true)
+    try {
+      const { error } = await dealsService.update(openDeal.id, { status: selectedDealStage })
+      if (error) throw error
+      const newStageName = boardStages.find(s => s.id === selectedDealStage)?.name || ''
+      setOpenDeal(prev => prev ? { ...prev, stage_id: selectedDealStage, stage_name: newStageName } : null)
+      setSelectedDealStage('')
+      toast(`Deal movido para ${newStageName}`, 'success')
+    } catch {
+      toast('Erro ao mover deal', 'error')
+    } finally {
+      setIsMovingDealStage(false)
+    }
+  }, [openDeal, selectedDealStage, boardStages, toast])
 
   const availableActions = ACTIONS_BY_OUTCOME[outcome] || []
 
@@ -139,6 +231,9 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
     setShowCreateDeal(false)
     setDealCreated(true)
     toast('Negócio criado com sucesso', 'success')
+
+    // CP-7.3: Refetch deal to show the newly created deal card
+    refetchDeal()
 
     // CP-5.1: Retroactively link the last call activity to the new deal
     if (lastActivityId && dealId) {
@@ -214,27 +309,151 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
 
         {/* Action buttons */}
         <div className="space-y-2">
-          {/* Criar Negócio */}
-          {availableActions.includes('create_deal') && (
-            <Button
-              variant="unstyled"
-              size="unstyled"
-              onClick={() => setShowCreateDeal(true)}
-              disabled={dealCreated}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors text-left ${
-                dealCreated
-                  ? 'border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400'
-                  : 'border-border dark:border-border/50 hover:bg-background dark:hover:bg-card/50 text-secondary-foreground dark:text-muted-foreground'
-              }`}
-            >
-              {dealCreated ? <Check size={18} /> : <Briefcase size={18} className="text-blue-500" />}
-              <div className="flex-1 min-w-0">
-                <span className="text-sm font-medium">{dealCreated ? 'Negócio criado' : 'Criar Negócio'}</span>
-                {!dealCreated && (
-                  <p className="text-xs text-muted-foreground dark:text-muted-foreground">Abre formulário pré-preenchido</p>
-                )}
-              </div>
-            </Button>
+          {/* CP-7.3: Deal block */}
+          {availableActions.includes('create_deal') && !dealFetchError && (
+            <>
+              {isDealLoading ? (
+                <div className="rounded-lg border border-border dark:border-border/50 px-3 py-3 animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="w-[18px] h-[18px] rounded bg-muted dark:bg-muted/50" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3.5 w-24 rounded bg-muted dark:bg-muted/50" />
+                      <div className="h-3 w-36 rounded bg-muted dark:bg-muted/50" />
+                    </div>
+                  </div>
+                </div>
+              ) : openDeal ? (
+                <div className="rounded-lg border border-border dark:border-border/50">
+                  {/* Deal card header */}
+                  <div className="flex items-center gap-3 px-3 py-2.5">
+                    <Briefcase size={18} className="text-blue-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground truncate" title={openDeal.title}>
+                        {openDeal.title.length > 40 ? `${openDeal.title.slice(0, 40)}…` : openDeal.title}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        {openDeal.value != null && (
+                          <span>{brlFormatter.format(openDeal.value)}</span>
+                        )}
+                        {openDeal.stage_name && (
+                          <>
+                            <span>·</span>
+                            <span>{openDeal.stage_name}</span>
+                          </>
+                        )}
+                        {openDeal.product_name && (
+                          <>
+                            <span>·</span>
+                            <span className="truncate">{openDeal.product_name}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="unstyled"
+                      size="unstyled"
+                      onClick={handleStartEdit}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-secondary-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-card/50 transition-colors"
+                      aria-label="Editar deal"
+                    >
+                      <Pencil size={14} />
+                    </Button>
+                  </div>
+
+                  {/* Inline edit */}
+                  {isEditing && (
+                    <div className="px-3 pb-2.5 space-y-2 border-t border-border dark:border-border/50 pt-2">
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        placeholder="Título"
+                        aria-label="Título do deal"
+                        className="w-full text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-blue-500/50"
+                      />
+                      <input
+                        type="number"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        placeholder="Valor"
+                        aria-label="Valor do deal"
+                        min="0"
+                        step="0.01"
+                        className="w-full text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-blue-500/50"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
+                          onClick={handleSaveEdit}
+                          disabled={isSavingEdit || !editTitle.trim()}
+                          className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-colors disabled:opacity-40"
+                        >
+                          {isSavingEdit ? <Loader2 size={12} className="animate-spin" /> : 'Salvar'}
+                        </Button>
+                        <Button
+                          variant="unstyled"
+                          size="unstyled"
+                          onClick={() => setIsEditing(false)}
+                          className="px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-secondary-foreground transition-colors"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Move stage dropdown */}
+                  {boardStages.length > 0 && (
+                    <div className="px-3 pb-2.5 flex items-center gap-2 border-t border-border dark:border-border/50 pt-2">
+                      <span className="text-xs text-muted-foreground shrink-0">Mover para:</span>
+                      <select
+                        value={selectedDealStage}
+                        onChange={(e) => setSelectedDealStage(e.target.value)}
+                        className="flex-1 text-xs bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-2 py-1.5 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-blue-500/50"
+                        aria-label="Selecionar stage do deal"
+                      >
+                        <option value="">Selecionar stage...</option>
+                        {boardStages
+                          .filter(s => s.id !== openDeal.stage_id)
+                          .map((stage) => (
+                            <option key={stage.id} value={stage.id}>{stage.name}</option>
+                          ))}
+                      </select>
+                      <Button
+                        variant="unstyled"
+                        size="unstyled"
+                        onClick={handleMoveDealStage}
+                        disabled={!selectedDealStage || isMovingDealStage}
+                        className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {isMovingDealStage ? <Loader2 size={12} className="animate-spin" /> : 'Mover'}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
+                  onClick={() => setShowCreateDeal(true)}
+                  disabled={dealCreated}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors text-left ${
+                    dealCreated
+                      ? 'border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400'
+                      : 'border-border dark:border-border/50 hover:bg-background dark:hover:bg-card/50 text-secondary-foreground dark:text-muted-foreground'
+                  }`}
+                >
+                  {dealCreated ? <Check size={18} /> : <Briefcase size={18} className="text-blue-500" />}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium">{dealCreated ? 'Negócio criado' : '+ Criar Deal'}</span>
+                    {!dealCreated && (
+                      <p className="text-xs text-muted-foreground dark:text-muted-foreground">Nenhum deal vinculado</p>
+                    )}
+                  </div>
+                </Button>
+              )}
+            </>
           )}
 
           {/* Agendar Retorno */}

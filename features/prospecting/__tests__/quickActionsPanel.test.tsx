@@ -66,6 +66,20 @@ vi.mock('@/features/prospecting/components/NoteTemplatesManager', () => ({
     ) : null,
 }))
 
+vi.mock('@/features/prospecting/components/DoNotContactModal', () => ({
+  DoNotContactModal: () => null,
+}))
+
+// CP-7.3: Mock deal fetch and board stages
+vi.mock('@/lib/supabase/deals', () => ({
+  getOpenDealsByContact: vi.fn().mockResolvedValue(null),
+  dealsService: { update: vi.fn().mockResolvedValue({ error: null }) },
+}))
+
+vi.mock('@/features/prospecting/hooks/useBoardStages', () => ({
+  useBoardStages: () => ({ stages: [], isLoading: false }),
+}))
+
 // ── Helpers ──────────────────────────────────────────────
 
 const defaultProps = () => ({
@@ -87,30 +101,30 @@ describe('QuickActionsPanel', () => {
   })
 
   describe('Rendering by outcome (AC6)', () => {
-    it('shows all 3 actions for "connected" outcome', () => {
+    it('shows all 3 actions for "connected" outcome', async () => {
       render(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
-      expect(screen.getByText('Criar Negócio')).toBeInTheDocument()
+      await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
       expect(screen.getByText('Mover Stage')).toBeInTheDocument()
     })
 
     it('shows only "Agendar Retorno" for "no_answer" outcome', () => {
       render(<QuickActionsPanel {...defaultProps()} outcome="no_answer" />)
-      expect(screen.queryByText('Criar Negócio')).not.toBeInTheDocument()
+      expect(screen.queryByText('+ Criar Deal')).not.toBeInTheDocument()
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
       expect(screen.queryByText('Mover Stage')).not.toBeInTheDocument()
     })
 
     it('shows only "Agendar Retorno" for "voicemail" outcome', () => {
       render(<QuickActionsPanel {...defaultProps()} outcome="voicemail" />)
-      expect(screen.queryByText('Criar Negócio')).not.toBeInTheDocument()
+      expect(screen.queryByText('+ Criar Deal')).not.toBeInTheDocument()
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
       expect(screen.queryByText('Mover Stage')).not.toBeInTheDocument()
     })
 
     it('shows only "Agendar Retorno" for "busy" outcome', () => {
       render(<QuickActionsPanel {...defaultProps()} outcome="busy" />)
-      expect(screen.queryByText('Criar Negócio')).not.toBeInTheDocument()
+      expect(screen.queryByText('+ Criar Deal')).not.toBeInTheDocument()
       expect(screen.getByText('Agendar Retorno')).toBeInTheDocument()
       expect(screen.queryByText('Mover Stage')).not.toBeInTheDocument()
     })
@@ -164,15 +178,17 @@ describe('QuickActionsPanel', () => {
   })
 
   describe('Create Deal (AC2)', () => {
-    it('opens CreateDealModal when clicked', () => {
+    it('opens CreateDealModal when clicked', async () => {
       render(<QuickActionsPanel {...defaultProps()} />)
-      fireEvent.click(screen.getByText('Criar Negócio'))
+      await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
+      fireEvent.click(screen.getByText('+ Criar Deal'))
       expect(screen.getByTestId('create-deal-modal')).toBeInTheDocument()
     })
 
     it('shows success after deal creation', async () => {
       render(<QuickActionsPanel {...defaultProps()} />)
-      fireEvent.click(screen.getByText('Criar Negócio'))
+      await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
+      fireEvent.click(screen.getByText('+ Criar Deal'))
       fireEvent.click(screen.getByText('Create'))
       await waitFor(() => {
         expect(screen.getByText('Negócio criado')).toBeInTheDocument()
@@ -226,9 +242,10 @@ describe('QuickActionsPanel', () => {
   })
 
   describe('Create Deal pre-fill (AC2)', () => {
-    it('passes initialContactId to CreateDealModal', () => {
+    it('passes initialContactId to CreateDealModal', async () => {
       render(<QuickActionsPanel {...defaultProps()} />)
-      fireEvent.click(screen.getByText('Criar Negócio'))
+      await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
+      fireEvent.click(screen.getByText('+ Criar Deal'))
       const modal = screen.getByTestId('create-deal-modal')
       expect(modal).toHaveAttribute('data-initial-contact-id', 'c-1')
     })
@@ -366,7 +383,8 @@ describe('QuickActionsPanel', () => {
       const props = defaultProps()
       render(<QuickActionsPanel {...props} outcome="connected" />)
 
-      fireEvent.click(screen.getByText('Criar Negócio'))
+      await waitFor(() => { expect(screen.getByText('+ Criar Deal')).toBeInTheDocument() })
+      fireEvent.click(screen.getByText('+ Criar Deal'))
       fireEvent.click(screen.getByText('Create'))
       await waitFor(() => {
         expect(screen.getByText('Negócio criado')).toBeInTheDocument()
