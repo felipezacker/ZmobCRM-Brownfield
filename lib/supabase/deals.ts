@@ -90,6 +90,7 @@ export interface OpenDeal {
   title: string
   value: number | null
   property_ref: string | null
+  product_name: string | null
   stage_id: string | null
   stage_name: string | null
 }
@@ -100,7 +101,7 @@ export async function getOpenDealsByContact(
   if (!supabase || !contactId) return null
   const { data, error } = await supabase
     .from('deals')
-    .select('id, title, value, property_ref, stage_id, board_stages(name)')
+    .select('id, title, value, property_ref, stage_id, board_stages(name), deal_items(name)')
     .eq('contact_id', contactId)
     .eq('is_won', false)
     .eq('is_lost', false)
@@ -113,11 +114,16 @@ export async function getOpenDealsByContact(
   const stageData = Array.isArray(rawStage)
     ? (rawStage[0] as { name: string } | undefined) ?? null
     : (rawStage as { name: string } | null)
+  const rawItems = data.deal_items as unknown
+  const firstItem = Array.isArray(rawItems)
+    ? (rawItems[0] as { name: string } | undefined) ?? null
+    : null
   return {
     id: data.id,
     title: data.title,
     value: data.value ?? null,
     property_ref: data.property_ref ?? null,
+    product_name: firstItem?.name ?? null,
     stage_id: data.stage_id ?? null,
     stage_name: stageData?.name ?? null,
   }

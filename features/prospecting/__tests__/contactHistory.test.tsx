@@ -133,6 +133,7 @@ describe('ContactHistory', () => {
       title: 'Apartamento Jardins',
       value: 450000,
       property_ref: 'APT-101',
+      product_name: null,
       stage_id: 's-1',
       stage_name: 'Visita Agendada',
     }
@@ -208,6 +209,7 @@ describe('ContactHistory', () => {
       title: 'Casa Praia',
       value: 1250000.5,
       property_ref: null,
+      product_name: null,
       stage_id: 's-1',
       stage_name: 'Proposta',
     }
@@ -223,6 +225,7 @@ describe('ContactHistory', () => {
       title: 'Sala Comercial',
       value: 200000,
       property_ref: null,
+      product_name: null,
       stage_id: 's-1',
       stage_name: 'Negociação',
     }
@@ -239,6 +242,7 @@ describe('ContactHistory', () => {
       title: 'Cobertura Centro',
       value: 800000,
       property_ref: 'COB-501',
+      product_name: null,
       stage_id: 's-1',
       stage_name: 'Proposta',
     }
@@ -248,12 +252,29 @@ describe('ContactHistory', () => {
     })
   })
 
+  it('exibe product_name como imóvel quando disponível', async () => {
+    mockDealResult = {
+      id: 'd-6',
+      title: 'Deal com produto',
+      value: 350000,
+      property_ref: null,
+      product_name: 'Liv Residencial',
+      stage_id: 's-1',
+      stage_name: 'Visita Agendada',
+    }
+    render(<ContactHistory contactId="c-1" defaultOpen={true} />)
+    await waitFor(() => {
+      expect(screen.getByText('Imóvel: Liv Residencial')).toBeInTheDocument()
+    })
+  })
+
   it('omite valor quando deal.value é null', async () => {
     mockDealResult = {
       id: 'd-5',
       title: 'Terreno Rural',
       value: null,
       property_ref: 'TER-10',
+      product_name: null,
       stage_id: 's-1',
       stage_name: 'Qualificação',
     }

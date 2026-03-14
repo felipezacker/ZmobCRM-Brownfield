@@ -164,8 +164,8 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
                     {deal.stage_name && (
                       <span className="text-2xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{deal.stage_name}</span>
                     )}
-                    {deal.property_ref && (
-                      <span className="text-2xs text-muted-foreground">Imóvel: {deal.property_ref}</span>
+                    {(deal.product_name || deal.property_ref) && (
+                      <span className="text-2xs text-muted-foreground">Imóvel: {deal.product_name || deal.property_ref}</span>
                     )}
                   </div>
                 </div>
