@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock, RefreshCw } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { CallQueue } from './components/CallQueue'
@@ -560,16 +560,30 @@ export const ProspectingPage: React.FC = () => {
             {/* CP-2.4: PDF export button */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">Dashboard de Métricas</span>
-              <Button
-                variant="unstyled"
-                size="unstyled"
-                onClick={handleExportPdf}
-                disabled={isGeneratingPdf || metricsHook.isLoading || !metricsHook.metrics}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors disabled:opacity-50"
-              >
-                <FileDown size={14} />
-                {isGeneratingPdf ? 'Gerando PDF...' : 'Exportar PDF'}
-              </Button>
+              <div className="flex items-center gap-2">
+                {isAdminOrDirector && (
+                  <Button
+                    variant="unstyled"
+                    size="unstyled"
+                    onClick={() => invalidateMetrics()}
+                    disabled={metricsHook.isLoading}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw size={14} className={metricsHook.isLoading ? 'animate-spin' : ''} />
+                    Atualizar
+                  </Button>
+                )}
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
+                  onClick={handleExportPdf}
+                  disabled={isGeneratingPdf || metricsHook.isLoading || !metricsHook.metrics}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors disabled:opacity-50"
+                >
+                  <FileDown size={14} />
+                  {isGeneratingPdf ? 'Gerando PDF...' : 'Exportar PDF'}
+                </Button>
+              </div>
             </div>
 
             {/* Filters: period + broker */}
