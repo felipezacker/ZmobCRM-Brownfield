@@ -60,6 +60,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   const [showScriptDropdown, setShowScriptDropdown] = useState(false)
   const [showQuickActions, setShowQuickActions] = useState(false)
   const [lastCallData, setLastCallData] = useState<CallLogData | null>(null)
+  const [calledContact, setCalledContact] = useState<{ id: string; name: string; phone?: string; stage?: string } | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const goalCelebratedRef = useRef(false)
   const lastActivityIdRef = useRef<string | null>(null)
@@ -170,16 +171,26 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     setShowCallModal(false)
     setMarkedObjections([])
     setLastCallData(data)
+    // Snapshot contact data before queue advances to next
+    setCalledContact({
+      id: contact.contactId,
+      name: contact.contactName || 'Sem nome',
+      phone: contact.contactPhone,
+      stage: contact.contactStage,
+    })
     setShowQuickActions(true)
-  }, [contact.contactId, createActivity, markedObjections])
+
+    // Mark queue item immediately — don't wait for QuickActions dismiss.
+    // This ensures the queue advances even if the user closes the page,
+    // ends the session, or navigates away before clicking "Avançar".
+    onCallComplete(data.outcome)
+  }, [contact.contactId, contact.contactName, contact.contactPhone, contact.contactStage, createActivity, markedObjections, onCallComplete])
 
   const handleQuickActionsDismiss = useCallback(() => {
     setShowQuickActions(false)
-    if (lastCallData) {
-      onCallComplete(lastCallData.outcome)
-    }
     setLastCallData(null)
-  }, [lastCallData, onCallComplete])
+    setCalledContact(null)
+  }, [])
 
   const handleSelectScript = useCallback((script: QuickScript) => {
     if (onScriptChange) {
@@ -385,12 +396,12 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
       </div>
 
       {/* CP-2.2: Quick Actions Panel (shown after call log saved) */}
-      {showQuickActions && lastCallData && (
+      {showQuickActions && lastCallData && calledContact && (
         <QuickActionsPanel
-          contactId={contact.contactId}
-          contactName={contact.contactName || 'Sem nome'}
-          contactPhone={contact.contactPhone}
-          contactStage={contact.contactStage}
+          contactId={calledContact.id}
+          contactName={calledContact.name}
+          contactPhone={calledContact.phone}
+          contactStage={calledContact.stage}
           outcome={lastCallData.outcome}
           callNotes={lastCallData.notes}
           onDismiss={handleQuickActionsDismiss}
