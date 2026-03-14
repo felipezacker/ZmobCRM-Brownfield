@@ -11,6 +11,7 @@ import { BulkActionsToolbar } from './components/BulkActionsToolbar';
 import ConfirmModal from '@/components/ConfirmModal';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { useRangeSelection } from '@/hooks/useRangeSelection';
 
 export const ActivitiesPage: React.FC = () => {
     const {
@@ -65,7 +66,7 @@ export const ActivitiesPage: React.FC = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const editProcessedRef = useRef<string | null>(null);
-    const [selectedActivities, setSelectedActivities] = useState<Set<string>>(new Set());
+    const { selectedIds: selectedActivities, toggle: toggleActivity, clear: clearActivitySelection } = useRangeSelection({ items: filteredActivities });
     const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
     // Open edit modal from URL param (e.g., from Inbox)
@@ -81,33 +82,21 @@ export const ActivitiesPage: React.FC = () => {
         }
     }, [searchParams, filteredActivities, handleEditActivity, router]);
 
-    const handleSelectActivity = useCallback((id: string, selected: boolean) => {
-        setSelectedActivities(prev => {
-            const newSet = new Set(prev);
-            if (selected) {
-                newSet.add(id);
-            } else {
-                newSet.delete(id);
-            }
-            return newSet;
-        });
-    }, []);
-
-    const handleClearSelection = useCallback(() => {
-        setSelectedActivities(new Set());
-    }, []);
+    const handleSelectActivity = useCallback((id: string, _selected: boolean, event?: React.MouseEvent) => {
+        toggleActivity(id, event);
+    }, [toggleActivity]);
 
     // Limpa seleção ao trocar de tab
     const handleTabChange = useCallback((tab: 'activities' | 'history') => {
         setActiveTab(tab);
-        setSelectedActivities(new Set());
-    }, [setActiveTab]);
+        clearActivitySelection();
+    }, [setActiveTab, clearActivitySelection]);
 
     const handleCompleteAll = useCallback(() => {
         handleBulkComplete(Array.from(selectedActivities));
         showToast(`${selectedActivities.size} atividade(s) sendo concluída(s)...`, 'success');
-        setSelectedActivities(new Set());
-    }, [selectedActivities, handleBulkComplete, showToast]);
+        clearActivitySelection();
+    }, [selectedActivities, handleBulkComplete, showToast, clearActivitySelection]);
 
     const handleSnoozeAll = useCallback(() => {
         const ids = Array.from(selectedActivities);
@@ -115,8 +104,8 @@ export const ActivitiesPage: React.FC = () => {
             handleSnoozeActivity(id);
         }
         showToast(`${ids.length} atividade(s) sendo adiada(s) para amanhã...`, 'success');
-        setSelectedActivities(new Set());
-    }, [selectedActivities, handleSnoozeActivity, showToast]);
+        clearActivitySelection();
+    }, [selectedActivities, handleSnoozeActivity, showToast, clearActivitySelection]);
 
     const handleDeleteAll = useCallback(() => {
         setShowBulkDeleteConfirm(true);
@@ -130,9 +119,9 @@ export const ActivitiesPage: React.FC = () => {
         } else {
             showToast(`${count} atividade(s) excluída(s)`, 'success');
         }
-        setSelectedActivities(new Set());
+        clearActivitySelection();
         setShowBulkDeleteConfirm(false);
-    }, [selectedActivities, handleBulkDelete, showToast]);
+    }, [selectedActivities, handleBulkDelete, showToast, clearActivitySelection]);
 
     if (isLoading) {
         return (
@@ -265,7 +254,7 @@ export const ActivitiesPage: React.FC = () => {
                     onCompleteAll={handleCompleteAll}
                     onSnoozeAll={handleSnoozeAll}
                     onDeleteAll={handleDeleteAll}
-                    onClearSelection={handleClearSelection}
+                    onClearSelection={clearActivitySelection}
                 />
             )}
 

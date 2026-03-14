@@ -10,6 +10,7 @@ import { useCreateDeal } from '@/lib/query/hooks/useDealsQuery';
 import { normalizePhoneE164 } from '@/lib/phone';
 import { generateFakeContacts } from '@/lib/debug';
 import { supabase } from '@/lib/supabase/client';
+import { useRangeSelection } from '@/hooks/useRangeSelection';
 
 interface UseContactImportParams {
   toast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
@@ -24,33 +25,13 @@ export const useContactImport = ({ toast, contacts, boards }: UseContactImportPa
   const bulkDeleteContactsMutation = useBulkDeleteContacts();
   const createDealMutation = useCreateDeal();
 
-  // Selection state
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // Selection state (with shift+click range support)
+  const { selectedIds, toggle: toggleSelect, toggleAll: toggleSelectAll, clear: clearSelection } = useRangeSelection({ items: contacts });
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   // Create Deal state
   const [createDealContactId, setCreateDealContactId] = useState<string | null>(null);
   const contactForDeal = contacts.find(c => c.id === createDealContactId);
-
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const toggleSelectAll = useCallback(() => {
-    const ids = contacts.map(c => c.id);
-    setSelectedIds(prev =>
-      prev.size === ids.length ? new Set() : new Set(ids)
-    );
-  }, [contacts]);
-
-  const clearSelection = useCallback(() => {
-    setSelectedIds(new Set());
-  }, []);
 
   // Bulk delete
   const confirmBulkDelete = useCallback(async () => {
@@ -73,9 +54,9 @@ export const useContactImport = ({ toast, contacts, boards }: UseContactImportPa
     if (successCount > 0) toast(`${successCount} contato(s) excluido(s)`, 'success');
     if (errorCount > 0) toast(`Falha ao excluir ${errorCount} contato(s)`, 'error');
 
-    setSelectedIds(new Set());
+    clearSelection();
     setBulkDeleteConfirm(false);
-  }, [selectedIds, bulkDeleteContactsMutation, toast]);
+  }, [selectedIds, bulkDeleteContactsMutation, toast, clearSelection]);
 
   // Bulk reassign owner
   const bulkReassignOwner = useCallback(async (newOwnerId: string) => {
@@ -90,10 +71,10 @@ export const useContactImport = ({ toast, contacts, boards }: UseContactImportPa
       toast(`Erro ao reatribuir: ${error.message}`, 'error');
     } else {
       toast(`${ids.length} contato(s) reatribuido(s)`, 'success');
-      setSelectedIds(new Set());
+      clearSelection();
       queryClient.invalidateQueries({ queryKey: ['contacts'] });
     }
-  }, [selectedIds, toast, queryClient]);
+  }, [selectedIds, toast, queryClient, clearSelection]);
 
   const createDealDirectly = useCallback((contactId: string, board: typeof boards[0]) => {
     const contact = contacts.find(c => c.id === contactId);

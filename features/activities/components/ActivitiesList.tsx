@@ -13,7 +13,7 @@ interface ActivitiesListProps {
     onDelete: (id: string) => void;
     onDuplicate?: (activity: Activity) => void;
     selectedActivities?: Set<string>;
-    onSelectActivity?: (id: string, selected: boolean) => void;
+    onSelectActivity?: (id: string, selected: boolean, event?: React.MouseEvent) => void;
     onNewActivity?: () => void;
 }
 

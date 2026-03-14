@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -16,6 +16,7 @@ import {
 import { ListOrdered, Trash2, RotateCcw, ArrowDownWideNarrow, ArrowUpToLine, CheckSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { QueueItem } from './QueueItem'
+import { useRangeSelection } from '@/hooks/useRangeSelection'
 import type { ProspectingQueueItem } from '@/types'
 
 interface CallQueueProps {
@@ -40,20 +41,8 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
   const [confirmClear, setConfirmClear] = useState(false)
   const [sortBy, setSortBy] = useState<'position' | 'score'>('position')
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [confirmBatchRemove, setConfirmBatchRemove] = useState(false)
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
-  const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null)
-
-  // CP-4.5 QA fix: limpar selectedIds stale quando items mudam (ex: remove individual)
-  const itemIds = useMemo(() => new Set(items.map(i => i.id)), [items])
-  useEffect(() => {
-    setSelectedIds(prev => {
-      if (prev.size === 0) return prev
-      const cleaned = new Set([...prev].filter(id => itemIds.has(id)))
-      return cleaned.size === prev.size ? prev : cleaned
-    })
-  }, [itemIds])
 
   const handleToggleExpand = useCallback((id: string) => {
     setExpandedId(prev => prev === id ? null : id)
@@ -65,6 +54,8 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
     }
     return items
   }, [items, sortBy])
+
+  const { selectedIds, toggle: handleToggle, toggleAll: handleSelectAll, clear: clearSelection, allSelected } = useRangeSelection({ items: sortedItems })
 
   // CP-4.7: DnD sensors
   const pointerSensor = useSensor(PointerSensor, {
@@ -90,66 +81,30 @@ export const CallQueue: React.FC<CallQueueProps> = ({ items, exhaustedItems = []
     onReorder(reordered)
   }, [sortedItems, onReorder])
 
-  // CP-4.5: Selection handlers (with shift+click range select)
-  const handleToggle = useCallback((id: string, event?: React.MouseEvent) => {
-    const clickedIndex = sortedItems.findIndex(i => i.id === id)
-
-    if (event?.shiftKey && lastClickedIndex !== null && clickedIndex !== -1) {
-      const start = Math.min(lastClickedIndex, clickedIndex)
-      const end = Math.max(lastClickedIndex, clickedIndex)
-      const rangeIds = sortedItems.slice(start, end + 1).map(i => i.id)
-      setSelectedIds(prev => {
-        const next = new Set(prev)
-        rangeIds.forEach(rid => next.add(rid))
-        return next
-      })
-    } else {
-      setSelectedIds(prev => {
-        const next = new Set(prev)
-        if (next.has(id)) {
-          next.delete(id)
-        } else {
-          next.add(id)
-        }
-        return next
-      })
-    }
-    setLastClickedIndex(clickedIndex)
-  }, [sortedItems, lastClickedIndex])
-
-  const handleSelectAll = useCallback(() => {
-    if (selectedIds.size === items.length) {
-      setSelectedIds(new Set())
-    } else {
-      setSelectedIds(new Set(items.map(i => i.id)))
-    }
-  }, [items, selectedIds.size])
-
   const handleBatchRemove = useCallback(async () => {
     if (!onBatchRemove || selectedIds.size === 0) return
     setIsBatchProcessing(true)
     try {
       await onBatchRemove(Array.from(selectedIds))
-      setSelectedIds(new Set())
+      clearSelection()
       setConfirmBatchRemove(false)
     } finally {
       setIsBatchProcessing(false)
     }
-  }, [onBatchRemove, selectedIds])
+  }, [onBatchRemove, selectedIds, clearSelection])
 
   const handleBatchMoveToTop = useCallback(async () => {
     if (!onBatchMoveToTop || selectedIds.size === 0) return
     setIsBatchProcessing(true)
     try {
       await onBatchMoveToTop(Array.from(selectedIds))
-      setSelectedIds(new Set())
+      clearSelection()
     } finally {
       setIsBatchProcessing(false)
     }
-  }, [onBatchMoveToTop, selectedIds])
+  }, [onBatchMoveToTop, selectedIds, clearSelection])
 
   const showBatchActions = !isSessionActive && selectedIds.size > 0
-  const allSelected = items.length > 0 && selectedIds.size === items.length
 
   if (isLoading) {
     return (

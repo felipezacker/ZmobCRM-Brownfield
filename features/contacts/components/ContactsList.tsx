@@ -260,7 +260,7 @@ const STICKY_ROW_SELECTED_BG = 'bg-primary-50 dark:bg-card';
 interface ContactsListProps {
     filteredContacts: Contact[];
     selectedIds: Set<string>;
-    toggleSelect: (id: string) => void;
+    toggleSelect: (id: string, event?: React.MouseEvent | { shiftKey: boolean }) => void;
     toggleSelectAll: () => void;
     updateContact: (id: string, data: Partial<Contact>) => void;
     convertContactToDeal: (id: string) => void;
@@ -437,7 +437,8 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                             <input
                                                 type="checkbox"
                                                 checked={isSelected}
-                                                onChange={() => toggleSelect(contact.id)}
+                                                onClick={(e) => toggleSelect(contact.id, e)}
+                                                readOnly
                                                 aria-label={`Selecionar ${contact.name}`}
                                                 className="rounded border-border text-primary-600 focus:ring-primary-500 dark:bg-white/5 flex-shrink-0"
                                             />
