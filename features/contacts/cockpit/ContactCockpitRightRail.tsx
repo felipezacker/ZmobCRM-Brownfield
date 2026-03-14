@@ -16,7 +16,7 @@ import { formatCurrencyBRL, formatAtISO } from '@/features/deals/cockpit/cockpit
 import { UIChat } from '@/components/ai/UIChat';
 import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import type { Contact, Deal } from '@/types';
+import type { Contact, Deal, Activity } from '@/types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -24,19 +24,10 @@ import type { Contact, Deal } from '@/types';
 
 type RightTab = 'ia' | 'deals' | 'notas';
 
-interface DealNote {
-  id: string;
-  deal_id: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  created_by: string | null;
-}
-
 interface ContactCockpitRightRailProps {
   contact: Contact;
   deals: Deal[];
-  notes: DealNote[];
+  notes: Activity[];
   isNotesLoading: boolean;
   onNoteCreated: () => void;
   onNoteDeleted: (noteId: string) => void;
@@ -117,17 +108,21 @@ export function ContactCockpitRightRail({
         orgId = (profile as Record<string, unknown>)?.organization_id as string | undefined;
       }
 
-      const dealId = deals[0]?.id;
-      if (!dealId || !orgId) {
-        setNoteError('Nao foi possivel salvar: sem deal ou organizacao vinculada.');
+      if (!orgId) {
+        setNoteError('Nao foi possivel salvar: organizacao nao encontrada.');
         return;
       }
 
-      const { error } = await supabase.from('deal_notes').insert({
-        deal_id: dealId,
-        content: text,
+      const { error } = await supabase.from('activities').insert({
+        contact_id: contact.id,
+        deal_id: deals[0]?.id || null,
+        type: 'NOTE',
+        title: 'Nota',
+        description: text,
+        date: new Date().toISOString(),
+        completed: true,
         organization_id: orgId,
-        created_by: user?.id ?? null,
+        owner_id: user?.id ?? null,
       });
 
       if (error) {
@@ -151,8 +146,8 @@ export function ContactCockpitRightRail({
 
     try {
       await supabase
-        .from('deal_notes')
-        .update({ content: text, updated_at: new Date().toISOString() })
+        .from('activities')
+        .update({ description: text })
         .eq('id', noteId);
       setEditingNoteId(null);
       setEditingContent('');
@@ -165,7 +160,7 @@ export function ContactCockpitRightRail({
   const handleDeleteNote = async (noteId: string) => {
     if (!supabase) return;
     try {
-      await supabase.from('deal_notes').delete().eq('id', noteId);
+      await supabase.from('activities').update({ deleted_at: new Date().toISOString() }).eq('id', noteId);
       setConfirmDeleteId(null);
       onNoteDeleted(noteId);
     } catch (e) {
@@ -289,33 +284,25 @@ export function ContactCockpitRightRail({
           {tab === 'notas' && (
             <div className="p-4 space-y-3">
               {/* Create note */}
-              {deals.length > 0 && (
-                <div className="space-y-2">
-                  <textarea
-                    value={noteDraft}
-                    onChange={(e) => setNoteDraft(e.target.value)}
-                    placeholder="Escreva uma nota..."
-                    className="w-full resize-none rounded-xl border border-border bg-white dark:bg-white/[0.02] p-3 text-xs text-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-secondary-foreground min-h-[60px]"
-                  />
-                  {noteError && (
-                    <p className="text-xs text-red-400">{noteError}</p>
-                  )}
-                  <Button
-                    type="button"
-                    className="rounded-xl bg-primary-600 dark:bg-white px-4 py-2 text-xs font-semibold text-white dark:text-gray-900 hover:bg-primary-500 dark:hover:bg-muted disabled:opacity-50"
-                    onClick={handleCreateNote}
-                    disabled={savingNote || !noteDraft.trim()}
-                  >
-                    {savingNote ? 'Salvando...' : 'Salvar nota'}
-                  </Button>
-                </div>
-              )}
-
-              {deals.length === 0 && (
-                <div className="text-center py-4 text-xs text-muted-foreground">
-                  Vincule um deal para criar notas.
-                </div>
-              )}
+              <div className="space-y-2">
+                <textarea
+                  value={noteDraft}
+                  onChange={(e) => setNoteDraft(e.target.value)}
+                  placeholder="Escreva uma nota..."
+                  className="w-full resize-none rounded-xl border border-border bg-white dark:bg-white/[0.02] p-3 text-xs text-foreground dark:text-muted-foreground outline-none placeholder:text-muted-foreground dark:placeholder:text-secondary-foreground min-h-[60px]"
+                />
+                {noteError && (
+                  <p className="text-xs text-red-400">{noteError}</p>
+                )}
+                <Button
+                  type="button"
+                  className="rounded-xl bg-primary-600 dark:bg-white px-4 py-2 text-xs font-semibold text-white dark:text-gray-900 hover:bg-primary-500 dark:hover:bg-muted disabled:opacity-50"
+                  onClick={handleCreateNote}
+                  disabled={savingNote || !noteDraft.trim()}
+                >
+                  {savingNote ? 'Salvando...' : 'Salvar nota'}
+                </Button>
+              </div>
 
               {/* Notes list */}
               {isNotesLoading ? (
@@ -365,11 +352,11 @@ export function ContactCockpitRightRail({
                       /* Read mode */
                       <>
                         <div className="text-xs text-foreground dark:text-muted-foreground whitespace-pre-wrap">
-                          {note.content}
+                          {note.description || note.title}
                         </div>
                         <div className="mt-2 flex items-center justify-between">
                           <span className="text-2xs text-muted-foreground">
-                            {formatAtISO(note.created_at)}
+                            {formatAtISO(note.date)}
                           </span>
                           <div className="flex items-center gap-1.5">
                             <Button
@@ -377,7 +364,7 @@ export function ContactCockpitRightRail({
                               className="rounded-lg p-1 text-muted-foreground hover:text-muted-foreground hover:bg-white/5"
                               onClick={() => {
                                 setEditingNoteId(note.id);
-                                setEditingContent(note.content);
+                                setEditingContent(note.description || '');
                               }}
                               title="Editar"
                             >

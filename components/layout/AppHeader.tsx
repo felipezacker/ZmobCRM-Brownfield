@@ -1,10 +1,18 @@
 import React from 'react';
-import { Sparkles, Bug, Sun, Moon } from 'lucide-react';
+import { Sparkles, Bug, Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { NotificationPopover } from '@/components/notifications/NotificationPopover';
 import { Button } from '@/components/ui/button';
 import { RealtimeConnectionBadge } from '@/components/ui/RealtimeConnectionBadge';
 import type { ConnectionStatus } from '@/lib/realtime';
+import type { ThemeMode } from '@/context/ThemeContext';
+
+const THEME_ICONS: Record<ThemeMode, React.ReactNode> = {
+  system: <Monitor size={20} aria-hidden="true" />,
+  light: <Sun size={20} aria-hidden="true" />,
+  dark: <Moon size={20} aria-hidden="true" />,
+};
 
 interface AppHeaderProps {
   isGlobalAIOpen: boolean;
@@ -21,7 +29,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onToggleDebug,
   connectionStatus,
 }) => {
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { themeMode, cycleTheme, themeLabel } = useTheme();
+  const { addToast } = useToast();
+
+  const handleCycleTheme = () => {
+    cycleTheme();
+    // Toast shows the NEXT theme (what it will become after state update)
+    const order: ThemeMode[] = ['system', 'light', 'dark'];
+    const nextIdx = (order.indexOf(themeMode) + 1) % order.length;
+    const nextMode = order[nextIdx];
+    const labels: Record<ThemeMode, string> = {
+      system: 'Tema do sistema',
+      light: 'Tema claro',
+      dark: 'Tema escuro',
+    };
+    addToast(labels[nextMode], 'info', { duration: 1500 });
+  };
 
   return (
     <header className="h-16 glass border-b border-[var(--color-border-subtle)] flex items-center justify-end px-6 shrink-0" role="banner">
@@ -52,10 +75,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <NotificationPopover />
         <Button
           type="button"
-          onClick={toggleDarkMode}
+          onClick={handleCycleTheme}
           className="p-2 text-muted-foreground hover:text-secondary-foreground dark:text-muted-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-white/10 rounded-full transition-all active:scale-95 focus-visible-ring"
+          title={themeLabel}
         >
-          {darkMode ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
+          {THEME_ICONS[themeMode]}
         </Button>
       </div>
     </header>

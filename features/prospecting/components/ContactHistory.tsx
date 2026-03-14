@@ -1,12 +1,16 @@
-import React, { useState } from 'react'
-import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock } from 'lucide-react'
+import React, { useState, useMemo } from 'react'
+import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock, Landmark, Home, Ban } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useContactActivities } from '@/lib/query/hooks/useActivitiesQuery'
+import { getOpenDealsByContact } from '@/lib/supabase/deals'
 import { Button } from '@/components/ui/button'
 import type { Activity } from '@/types'
+import type { OpenDeal } from '@/lib/supabase/deals'
 
 interface ContactHistoryProps {
   contactId: string
   defaultOpen?: boolean
+  doNotContact?: boolean
 }
 
 const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
@@ -15,6 +19,21 @@ const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
   MEETING: <Calendar size={14} className="text-purple-500" />,
   NOTE: <FileText size={14} className="text-amber-500" />,
   TASK: <Clock size={14} className="text-muted-foreground" />,
+}
+
+const formatBRL = (value: number | null): string => {
+  if (value === null) return ''
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}
+
+function useContactDeal(contactId: string) {
+  const { data: deal = null, isLoading } = useQuery<OpenDeal | null>({
+    queryKey: ['openDeal', contactId],
+    queryFn: () => getOpenDealsByContact(contactId),
+    enabled: !!contactId,
+  })
+
+  return { deal, isLoading: !!contactId && isLoading }
 }
 
 const OUTCOME_BADGES: Record<string, { label: string; className: string }> = {
@@ -83,10 +102,19 @@ const ActivityItem: React.FC<{ activity: Activity; isExpanded: boolean; onToggle
   )
 }
 
-export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defaultOpen = true }) => {
+export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defaultOpen = true, doNotContact }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const { data: activities = [], isLoading } = useContactActivities(contactId)
+  const { deal, isLoading: isDealLoading } = useContactDeal(contactId)
+
+  const lastNote = useMemo(() => {
+    const notes = activities.filter(a => a.type === 'NOTE')
+    if (notes.length === 0) return undefined
+    return notes.reduce((latest, note) =>
+      new Date(note.date).getTime() > new Date(latest.date).getTime() ? note : latest
+    )
+  }, [activities])
 
   return (
     <div className="bg-white dark:bg-card border border-border dark:border-border/50 rounded-xl overflow-hidden">
@@ -104,12 +132,65 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
               {activities.length}
             </span>
           )}
+          {doNotContact && (
+            <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400">
+              <Ban size={9} />
+              Bloqueado
+            </span>
+          )}
         </span>
         {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </Button>
 
       {isOpen && (
         <div className="px-4 pb-3">
+          {/* Deal Context Block (AC1, AC2, AC6, AC8, AC9) */}
+          {isDealLoading ? (
+            <div className="animate-pulse mb-3">
+              <div className="h-14 bg-muted dark:bg-muted/50 rounded-lg" />
+            </div>
+          ) : deal ? (
+            <section aria-label="Deal em andamento" className="mb-3 rounded-lg border border-border/60 dark:border-border/30 bg-card dark:bg-card/50 overflow-hidden">
+              <div className="px-3 py-2 bg-primary/5 dark:bg-primary/10 border-b border-border/40 dark:border-border/20 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Landmark size={12} className="text-primary" />
+                  <span className="text-2xs font-medium text-primary">Deal em andamento</span>
+                </div>
+                {deal.stage_name && (
+                  <span className="text-2xs font-medium bg-primary/10 dark:bg-primary/20 text-primary px-2 py-0.5 rounded-full">{deal.stage_name}</span>
+                )}
+              </div>
+              <div className="px-3 py-2.5 space-y-1.5">
+                <p className="text-sm font-medium text-foreground truncate">{deal.title}</p>
+                {deal.value !== null && (
+                  <p className="text-base font-bold text-primary tracking-tight">{formatBRL(deal.value)}</p>
+                )}
+                {(deal.product_name || deal.property_ref) && (
+                  <div className="flex items-center gap-1.5 pt-0.5">
+                    <Home size={11} className="text-muted-foreground shrink-0" />
+                    <span className="text-xs text-muted-foreground truncate">{deal.product_name || deal.property_ref}</span>
+                  </div>
+                )}
+              </div>
+            </section>
+          ) : null}
+
+          {/* Last Note Highlight Block (AC3, AC4) */}
+          {lastNote && (
+            <section aria-label="Última nota" className="mb-3 rounded-lg border border-amber-200/60 dark:border-amber-800/30 bg-amber-50/50 dark:bg-amber-950/15 overflow-hidden">
+              <div className="px-3 py-1.5 border-b border-amber-200/40 dark:border-amber-800/20 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <FileText size={11} className="text-amber-600 dark:text-amber-400" />
+                  <span className="text-2xs font-medium text-amber-700 dark:text-amber-400">Última nota</span>
+                </div>
+                <span className="text-2xs text-amber-600/70 dark:text-amber-500/60">{formatDate(lastNote.date)}</span>
+              </div>
+              <div className="px-3 py-2">
+                <p className="text-xs text-foreground/90 line-clamp-3 leading-relaxed">{lastNote.description || lastNote.title}</p>
+              </div>
+            </section>
+          )}
+
           {isLoading ? (
             <div className="space-y-3 py-2">
               {[1, 2, 3].map(i => (
@@ -128,7 +209,7 @@ export const ContactHistory: React.FC<ContactHistoryProps> = ({ contactId, defau
             </p>
           ) : (
             <div>
-              {activities.map(activity => (
+              {activities.filter(a => !lastNote || a.id !== lastNote.id).map(activity => (
                 <ActivityItem
                   key={activity.id}
                   activity={activity}

@@ -91,34 +91,33 @@ export const usePersistedState = <T>(
   // Chave versionada: "my-key" -> "my-key:v1" (se version fornecida)
   const storageKey = options?.version ? `${key}:v${options.version}` : key;
 
-  const [state, setState] = useState<T>(() => {
-    // SSR safety: only access localStorage in browser
-    if (typeof window === 'undefined') {
-      return initialValue;
-    }
+  // Always start with initialValue to match server-rendered HTML (prevents hydration mismatch)
+  const [state, setState] = useState<T>(initialValue);
+  const [hydrated, setHydrated] = useState(false);
+
+  // After mount: read persisted value from localStorage
+  useEffect(() => {
     try {
       const item = localStorage.getItem(storageKey);
-      return item ? JSON.parse(item) : initialValue;
+      if (item !== null) {
+        setState(JSON.parse(item));
+      }
+      setHydrated(true);
     } catch (error) {
-      // Em caso de erro de parse (JSON inválido), retorna valor inicial
-      // Isso pode acontecer se o schema mudou e o dado antigo é incompatível
-      console.error(`Error reading localStorage key "${storageKey}":`, error);
-      return initialValue;
+      console.warn(`Failed to parse persisted state for key "${storageKey}"`, error);
+      setHydrated(true);
     }
-  });
+  }, [storageKey]);
 
+  // Persist state changes to localStorage (skip until hydrated to avoid overwriting with initialValue)
   useEffect(() => {
-    // SSR safety: only access localStorage in browser
-    if (typeof window === 'undefined') {
-      return;
-    }
+    if (!hydrated) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(state));
     } catch (error) {
-      // localStorage pode falhar por quota excedida ou modo privado
       console.error(`Error writing localStorage key "${storageKey}":`, error);
     }
-  }, [storageKey, state]);
+  }, [storageKey, state, hydrated]);
 
   return [state, setState];
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bug, Check, Moon, Sun, X } from 'lucide-react';
+import { Bug, Check, Monitor, Moon, Sun, X } from 'lucide-react';
 
 import { useTheme } from '@/context/ThemeContext';
 import { isDebugMode, enableDebugMode, disableDebugMode } from '@/lib/debug';
@@ -68,7 +68,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
     isScriptsLoading: state.isScriptsLoading,
   });
 
-  const { darkMode, toggleDarkMode } = useTheme();
+  const { themeMode, cycleTheme } = useTheme();
   const [debugEnabled, setDebugEnabled] = useState(() => isDebugMode());
 
   // --- Render ---
@@ -185,18 +185,18 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
             </div>
             <Button
               type="button"
-              onClick={toggleDarkMode}
+              onClick={cycleTheme}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 transition-colors"
               title="Alternar tema"
             >
-              {darkMode ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              {themeMode === 'system' ? <Monitor className="h-3.5 w-3.5" /> : themeMode === 'light' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
             </Button>
           </div>
         }
       />
 
       <div className="flex-1 min-h-0 w-full overflow-hidden px-6 py-4 2xl:px-10">
-        <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[340px_1fr_400px] lg:items-stretch">
+        <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[340px_1fr_400px] overflow-hidden">
           {/* Left rail */}
           <div className="flex min-h-0 flex-col gap-3 overflow-auto pr-1">
             <CockpitActionPanel
@@ -238,7 +238,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
           </div>
 
           {/* Center */}
-          <div className="flex min-h-0 flex-col gap-4">
+          <div className="flex min-h-0 flex-col gap-4 overflow-auto">
             <CockpitTimeline
               timelineItems={state.timelineItems}
               actor={state.actor}

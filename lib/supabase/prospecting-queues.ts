@@ -14,6 +14,95 @@ import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config';
 // HELPERS
 // ============================================
 
+/**
+ * Get date components in America/Sao_Paulo timezone from a Date object.
+ * Returns year, month (1-based), day, hour, minute, and dayOfWeek (0=Sun..6=Sat).
+ */
+function getBRTComponents(date: Date) {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+    weekday: 'short',
+  })
+  const parts = formatter.formatToParts(date)
+  const get = (type: string) => parseInt(parts.find(p => p.type === type)?.value || '0')
+  const weekdayStr = parts.find(p => p.type === 'weekday')?.value || ''
+  const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  return {
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hour: get('hour'),
+    minute: get('minute'),
+    dayOfWeek: weekdayMap[weekdayStr] ?? 0,
+  }
+}
+
+/**
+ * Build a Date from BRT components. The returned Date represents the correct
+ * absolute time for the given BRT wall-clock values.
+ */
+function dateFromBRT(year: number, month: number, day: number, hour: number, minute = 0, second = 0): Date {
+  // Build an ISO string with the BRT offset. Brazil standard time is UTC-3.
+  // Note: Brazil no longer observes DST (since 2019), so -03:00 is stable.
+  const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}-03:00`
+  return new Date(iso)
+}
+
+/**
+ * Calculate next shift for retry scheduling.
+ * All arithmetic uses BRT (America/Sao_Paulo) components to avoid local-TZ drift.
+ *
+ * Weekday before 13h → same day 14:00 BRT.
+ * Weekday after/at 13h → next day 09:00 BRT (skip weekends).
+ * Saturday (any) → Monday 09:00 BRT.
+ * Sunday (any) → Monday 09:00 BRT.
+ */
+export function calculateNextShift(now: Date): Date {
+  const { RETRY_SHIFT_MORNING_HOUR, RETRY_SHIFT_AFTERNOON_HOUR, RETRY_SHIFT_CUTOFF_HOUR } = PROSPECTING_CONFIG
+
+  const br = getBRTComponents(now)
+
+  // Helper: add N days to BRT date components and return a new Date in BRT
+  const addDays = (daysToAdd: number, targetHour: number) =>
+    dateFromBRT(br.year, br.month, br.day + daysToAdd, targetHour)
+
+  // Saturday → Monday morning (+2 days)
+  if (br.dayOfWeek === 6) {
+    return addDays(2, RETRY_SHIFT_MORNING_HOUR)
+  }
+
+  // Sunday → Monday morning (+1 day)
+  if (br.dayOfWeek === 0) {
+    return addDays(1, RETRY_SHIFT_MORNING_HOUR)
+  }
+
+  // Weekday before cutoff → same day afternoon
+  if (br.hour < RETRY_SHIFT_CUTOFF_HOUR) {
+    return addDays(0, RETRY_SHIFT_AFTERNOON_HOUR)
+  }
+
+  // Weekday at/after cutoff → next day morning, skip weekends
+  const nextDate = addDays(1, RETRY_SHIFT_MORNING_HOUR)
+  const nextBr = getBRTComponents(nextDate)
+
+  if (nextBr.dayOfWeek === 6) {
+    // Saturday → skip to Monday (+2 more days)
+    return dateFromBRT(nextBr.year, nextBr.month, nextBr.day + 2, RETRY_SHIFT_MORNING_HOUR)
+  }
+  if (nextBr.dayOfWeek === 0) {
+    // Sunday → skip to Monday (+1 more day)
+    return dateFromBRT(nextBr.year, nextBr.month, nextBr.day + 1, RETRY_SHIFT_MORNING_HOUR)
+  }
+
+  return nextDate
+}
+
 let cachedOrgUserId: string | null = null;
 let cachedOrgId: string | null = null;
 
@@ -61,6 +150,7 @@ interface DbQueueItem {
     temperature: string | null;
     email: string | null;
     lead_score: number | null;
+    do_not_contact: boolean;
     contact_phones?: Array<{
       phone_number: string;
       is_primary: boolean;
@@ -91,6 +181,7 @@ const transformQueueItem = (db: DbQueueItem): ProspectingQueueItem => ({
   contactTemperature: db.contacts?.temperature || undefined,
   contactEmail: db.contacts?.email || undefined,
   leadScore: db.contacts?.lead_score ?? null,
+  doNotContact: db.contacts?.do_not_contact || false,
 });
 
 // ============================================
@@ -117,9 +208,12 @@ export const prospectingQueuesService = {
             temperature,
             email,
             lead_score,
+            do_not_contact,
             contact_phones (phone_number, is_primary)
           )
         `)
+        // CP-7.1: Exclude contacts with do_not_contact=true
+        .eq('contacts.do_not_contact', false)
         .order('position', { ascending: true });
 
       if (sessionId) {
@@ -375,17 +469,25 @@ export const prospectingQueuesService = {
       const ownerId = targetOwnerId || user.id;
       const assignedBy = targetOwnerId && targetOwnerId !== user.id ? user.id : null;
 
-      // Get existing queue contact_ids for this owner to skip duplicates
-      const { data: existing } = await sb
-        .from('prospecting_queues')
-        .select('contact_id')
-        .eq('owner_id', ownerId)
-        .in('status', ['pending', 'in_progress']);
+      // Get existing queue contact_ids and blocked contacts in parallel
+      const [existingResult, blockedResult] = await Promise.all([
+        sb
+          .from('prospecting_queues')
+          .select('contact_id')
+          .eq('owner_id', ownerId)
+          .in('status', ['pending', 'in_progress']),
+        sb
+          .from('contacts')
+          .select('id')
+          .in('id', contactIds)
+          .eq('do_not_contact', true),
+      ]);
 
-      const existingSet = new Set((existing || []).map(e => (e as { contact_id: string }).contact_id));
+      const existingSet = new Set((existingResult.data || []).map(e => (e as { contact_id: string }).contact_id));
+      const blockedSet = new Set((blockedResult.data || []).map(c => (c as { id: string }).id));
 
-      // Filter out duplicates
-      const newContactIds = contactIds.filter(id => !existingSet.has(id));
+      // Filter out duplicates and blocked contacts
+      const newContactIds = contactIds.filter(id => !existingSet.has(id) && !blockedSet.has(id));
 
       if (newContactIds.length === 0) {
         return { data: { added: 0, skipped: contactIds.length }, error: null };
@@ -440,7 +542,7 @@ export const prospectingQueuesService = {
    * Sets status to retry_pending, increments retry_count, sets retry_at.
    * If retry_count >= 3, sets status to exhausted instead.
    */
-  async scheduleRetry(id: string, retryIntervalDays: number): Promise<{ data: { exhausted: boolean } | null; error: Error | null }> {
+  async scheduleRetry(id: string): Promise<{ data: { exhausted: boolean; retryAt?: string } | null; error: Error | null }> {
     try {
       const sb = supabase;
       if (!sb) return { data: null, error: new Error('Supabase não configurado') };
@@ -466,9 +568,8 @@ export const prospectingQueuesService = {
         return { data: { exhausted: true }, error };
       }
 
-      // Schedule retry
-      const retryAt = new Date();
-      retryAt.setDate(retryAt.getDate() + retryIntervalDays);
+      // Schedule retry for next shift
+      const retryAt = calculateNextShift(new Date());
 
       const { error } = await sb
         .from('prospecting_queues')
@@ -479,7 +580,7 @@ export const prospectingQueuesService = {
         })
         .eq('id', id);
 
-      return { data: { exhausted: false }, error };
+      return { data: { exhausted: false, retryAt: retryAt.toISOString() }, error };
     } catch (e) {
       return { data: null, error: e as Error };
     }

@@ -117,18 +117,32 @@ export const sections: InstructionSection[] = [
     content: [
       {
         type: 'paragraph',
-        text: 'O **Cockpit** é a central de comando de cada negócio individual. Ao clicar em um card no Board, você acessa o cockpit com todas as informações e ferramentas para conduzir aquele deal.',
+        text: 'O **Cockpit** é a central de comando de cada negócio. Ao clicar em um card no Board, você acessa uma tela completa com todas as informações e ferramentas para conduzir aquele deal até o fechamento.',
       },
       {
         type: 'feature-list',
-        title: 'Estrutura do cockpit:',
+        title: 'Barra de pipeline (topo):',
         items: [
-          { title: 'Barra de pipeline', description: 'Visualize em qual estágio está e tempo em cada etapa' },
-          { title: 'Dados do negócio', description: 'Valor, contato, produtos, campos customizados' },
-          { title: 'Timeline', description: 'Histórico completo de interações e movimentações' },
-          { title: 'Checklist', description: 'Tarefas necessárias para avançar o negócio' },
-          { title: 'Saúde do deal', description: 'Barra colorida (verde/amarelo/vermelho) com indicador de risco' },
-          { title: 'Notas', description: 'Anotações livres sobre o negócio' },
+          { title: 'Estágios visuais', description: 'Veja em qual etapa o negócio está com indicador colorido' },
+          { title: 'Mover de estágio', description: 'Clique em qualquer etapa para mover o negócio' },
+          { title: 'Ganhar ou perder', description: 'Botões "GANHOU" e "PERDEU" para fechar o negócio, ou "REABRIR" para reativar' },
+          { title: 'Valor do negócio', description: 'Exibido em destaque no topo' },
+          { title: 'Trocar de deal', description: 'Seletor com busca para navegar entre negócios sem voltar ao Board' },
+        ],
+      },
+      {
+        type: 'feature-list',
+        title: 'Painel esquerdo — Ações e Dados:',
+        items: [
+          { title: 'Próxima Melhor Ação (IA)', description: 'Recomendação da IA com motivo e botão "Executar" em destaque' },
+          { title: 'Saúde do negócio', description: 'Barra de porcentagem colorida (verde/amarelo/vermelho) indicando o risco' },
+          { title: 'Contato', description: 'Nome, telefone, email e estágio do ciclo de vida' },
+          { title: 'Notas do contato', description: 'Campo de anotações rápidas sobre o contato' },
+          { title: 'Produtos', description: 'Itens vinculados ao negócio com nome, preço e quantidade' },
+          { title: 'Preferências', description: 'Canais preferidos (WhatsApp, ligação, email) e melhor horário para contato' },
+          { title: 'Dados do deal', description: 'Valor, descrição, comissão estimada e responsável' },
+          { title: 'Campos customizados', description: 'Campos extras configurados pelo admin' },
+          { title: 'Tags', description: 'Etiquetas do contato' },
         ],
       },
       {
@@ -145,10 +159,35 @@ export const sections: InstructionSection[] = [
         ],
       },
       {
+        type: 'feature-list',
+        title: 'Centro — Timeline e Checklist:',
+        items: [
+          { title: 'Timeline', description: 'Histórico completo de ligações, notas, movimentações e eventos do sistema' },
+          { title: 'Filtros da timeline', description: 'Filtre por tipo: Tudo, Ligações, Notas, Notas do Deal, Movimentações, Sistema' },
+          { title: 'Busca', description: 'Pesquise dentro do histórico do negócio' },
+          { title: 'Registrar atividade', description: 'Registre ações feitas fora do CRM: WhatsApp, email, ligação, reunião ou tarefa' },
+          { title: 'Checklist de execução', description: 'Lista de tarefas do negócio — adicione itens e marque conforme conclui' },
+        ],
+      },
+      {
+        type: 'feature-list',
+        title: 'Painel direito — IA e Anotações:',
+        items: [
+          { title: 'Chat IA', description: 'Converse com a IA sobre o negócio — ela conhece todos os dados e histórico do deal' },
+          { title: 'Notas do deal', description: 'Anotações específicas deste negócio, separadas das notas do contato' },
+          { title: 'Scripts', description: 'Modelos prontos de mensagens para WhatsApp e email com dados preenchidos automaticamente' },
+          { title: 'Arquivos', description: 'Envie e gerencie documentos, propostas ou fotos do imóvel vinculados ao negócio' },
+        ],
+      },
+      {
         type: 'info-box',
         title: 'Próxima Melhor Ação (IA):',
-        text: 'A IA analisa o histórico do deal e sugere a próxima ação ideal. O botão "Executar" aparece no topo do cockpit com a recomendação e o motivo. Você pode aceitar ou atualizar a sugestão.',
+        text: 'A IA analisa o histórico do deal e sugere a próxima ação ideal com o motivo. O botão "Executar" aparece no topo do painel esquerdo. Ao clicar, a ação já abre pré-preenchida (mensagem, ligação ou agendamento).',
         color: 'rose',
+      },
+      {
+        type: 'tip',
+        text: 'Dica: Use o seletor de deals no topo para navegar entre negócios sem voltar ao Board. As notas do contato e as notas do deal são separadas — use cada uma para o contexto certo.',
       },
     ],
   },

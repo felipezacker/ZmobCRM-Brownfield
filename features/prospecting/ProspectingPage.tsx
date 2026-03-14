@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock, RefreshCw, Calendar } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { CallQueue } from './components/CallQueue'
 import { PowerDialer } from './components/PowerDialer'
 import { SessionSummary } from './components/SessionSummary'
@@ -11,6 +12,7 @@ import { AddToQueueSearch } from './components/AddToQueueSearch'
 import { ProspectingFilters } from './components/ProspectingFilters'
 import { useContactLists } from '@/lib/query/hooks/useContactListsQuery'
 import { FilteredContactsList } from './components/FilteredContactsList'
+import { BrokerFilterDropdown } from './components/BrokerFilterDropdown'
 import { MetricsCards } from './components/MetricsCards'
 import { MetricsDrilldownModal } from './components/MetricsDrilldownModal'
 import { LiveOperationsPanel } from './components/LiveOperationsPanel'
@@ -58,7 +60,17 @@ import { useProspectingPageState, type OrgProfile } from '@/features/prospecting
 import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 import type { DrilldownCardType } from '@/features/prospecting/constants'
 
-export type { SessionStats } from '@/features/prospecting/hooks/useProspectingPageState'
+export type { SessionStats, SessionContact } from '@/features/prospecting/hooks/useProspectingPageState'
+
+function formatTimeAgo(timestamp: number): string {
+  const diff = Math.floor((Date.now() - timestamp) / 1000)
+  if (diff < 10) return 'agora'
+  if (diff < 60) return `há ${diff}s`
+  const mins = Math.floor(diff / 60)
+  if (mins < 60) return `há ${mins} min`
+  const hours = Math.floor(mins / 60)
+  return `há ${hours}h`
+}
 
 export const ProspectingPage: React.FC = () => {
   const { profile } = useAuth()
@@ -114,6 +126,7 @@ export const ProspectingPage: React.FC = () => {
     metricsPeriod, setMetricsPeriod,
     customRange, setCustomRange,
     metricsFilterOwnerId, setMetricsFilterOwnerId,
+    comparisonMode, setComparisonMode,
     showSaveQueueModal, setShowSaveQueueModal,
     isGeneratingPdf,
     viewQueueOwnerId, setViewQueueOwnerId,
@@ -129,6 +142,7 @@ export const ProspectingPage: React.FC = () => {
     selectedScript, setSelectedScript,
     sessionStats,
     sessionStartTime,
+    sessionContacts,
     pendingActiveSession,
     activeSessionCount,
     handleResumeSession,
@@ -157,8 +171,8 @@ export const ProspectingPage: React.FC = () => {
 
   // --- External feature hooks (use state values from pageState) ---
 
-  // CP-1.4: Metrics
-  const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined)
+  // CP-1.4: Metrics (CP-6.4: comparison support)
+  const metricsHook = useProspectingMetrics(metricsPeriod, customRange, profiles, metricsFilterOwnerId || undefined, comparisonMode === 'previous')
   const { invalidateMetrics, isAdminOrDirector } = metricsHook
 
   // CP-5.3: Prospecting impact metrics
@@ -239,11 +253,10 @@ export const ProspectingPage: React.FC = () => {
     isLoading,
     isClearingQueue,
     removingId,
-    retryInterval,
-    setRetryInterval,
     retryOutcomes,
     setRetryOutcomes,
     skip,
+    next,
     addToQueue,
     removeFromQueue,
     clearQueue,
@@ -335,20 +348,6 @@ export const ProspectingPage: React.FC = () => {
 
             {!sessionActive && !showSummary && activeTab === 'queue' && (
               <>
-                {/* CP-2.1: Retry interval selector */}
-                <div className="flex items-center gap-1.5">
-                  <RotateCcw size={13} className="text-muted-foreground dark:text-muted-foreground" />
-                  <select
-                    value={retryInterval}
-                    onChange={(e) => setRetryInterval(Number(e.target.value))}
-                    className="bg-muted dark:bg-white/10 border-0 rounded-lg px-2 py-1.5 text-xs font-medium text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
-                  >
-                    <option value={3}>Retry: 3 dias</option>
-                    <option value={5}>Retry: 5 dias</option>
-                    <option value={7}>Retry: 7 dias</option>
-                  </select>
-                </div>
-
                 {/* CP-IMP-1: Import list button */}
                 <Button
                   variant="unstyled"
@@ -419,60 +418,17 @@ export const ProspectingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Team queue selector — horizontal pills */}
+        {/* Team queue selector — Popover dropdown (same pattern as boards) */}
         {isAdminOrDirector && !sessionActive && !showSummary && activeTab === 'queue' && (
-          <div className="flex items-center gap-1.5 px-4 pb-3 overflow-x-auto scrollbar-hide">
-            <Button
-              variant="unstyled"
-              size="unstyled"
-              type="button"
-              onClick={() => setViewQueueOwnerId('__all__')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                isViewingAll
-                  ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-              }`}
-            >
-              <Users size={12} />
-              Todos
-            </Button>
-            <Button
-              variant="unstyled"
-              size="unstyled"
-              type="button"
-              onClick={() => setViewQueueOwnerId('')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                !viewQueueOwnerId
-                  ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-              }`}
-            >
-              Minha fila
-            </Button>
-            <div className="w-px h-4 bg-accent dark:bg-accent shrink-0 mx-0.5" />
-            {profiles.map(p => (
-              <Button
-                key={p.id}
-                variant="unstyled"
-                size="unstyled"
-                type="button"
-                onClick={() => setViewQueueOwnerId(p.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                  viewQueueOwnerId === p.id
-                    ? 'bg-primary-500 text-white shadow-sm'
-                    : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-                }`}
-              >
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs font-bold shrink-0 ${
-                  viewQueueOwnerId === p.id
-                    ? 'bg-white/20 text-white'
-                    : 'bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground'
-                }`}>
-                  {p.name.charAt(0).toUpperCase()}
-                </span>
-                {p.name.split(' ')[0]}
-              </Button>
-            ))}
+          <div className="px-4 pb-3">
+            <BrokerFilterDropdown
+              profiles={profiles}
+              selectedId={viewQueueOwnerId}
+              onSelect={setViewQueueOwnerId}
+              showMineOption
+              allLabel="Todos os Corretores"
+              mineLabel="Minha Fila"
+            />
           </div>
         )}
       </div>
@@ -521,6 +477,7 @@ export const ProspectingPage: React.FC = () => {
             stats={sessionStats}
             startTime={sessionStartTime}
             onClose={() => setShowSummary(false)}
+            sessionContacts={sessionContacts}
           />
         ) : sessionActive && currentContact ? (
           <ProspectingErrorBoundary section="Power Dialer">
@@ -530,7 +487,9 @@ export const ProspectingPage: React.FC = () => {
               totalCount={queue.length}
               onCallComplete={handleCallComplete}
               onSkip={skip}
+              onAdvance={next}
               onEnd={handleEndSession}
+              pendingCount={pendingCount}
               selectedScript={selectedScript}
               onScriptChange={setSelectedScript}
               sessionStats={sessionStats}
@@ -572,123 +531,105 @@ export const ProspectingPage: React.FC = () => {
               </ProspectingErrorBoundary>
             )}
 
-            {/* CP-2.4: PDF export button */}
+            {/* Dashboard header with dynamic title + actions */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">Dashboard de Métricas</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">
+                  Métricas — {metricsPeriod === 'today' ? 'Hoje' : metricsPeriod === 'yesterday' ? 'Ontem' : metricsPeriod === '7d' ? 'Últimos 7 dias' : metricsPeriod === '30d' ? 'Últimos 30 dias' : 'Período personalizado'}
+                </span>
+                {metricsHook.dataUpdatedAt > 0 && (
+                  <span className="text-2xs text-muted-foreground">
+                    Atualizado {formatTimeAgo(metricsHook.dataUpdatedAt)}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {isAdminOrDirector && (
+                  <Button
+                    variant="unstyled"
+                    size="unstyled"
+                    onClick={() => invalidateMetrics()}
+                    disabled={metricsHook.isLoading}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw size={14} className={metricsHook.isLoading ? 'animate-spin' : ''} />
+                    Atualizar
+                  </Button>
+                )}
+                <Button
+                  variant="unstyled"
+                  size="unstyled"
+                  onClick={handleExportPdf}
+                  disabled={isGeneratingPdf || metricsHook.isLoading || !metricsHook.metrics}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors disabled:opacity-50"
+                >
+                  <FileDown size={14} />
+                  {isGeneratingPdf ? 'Gerando PDF...' : 'Exportar PDF'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Filters: broker + period select + DateRangePicker + comparison toggle */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Broker filter dropdown (admin/director only) */}
+              {isAdminOrDirector && profiles.length > 0 && (
+                <BrokerFilterDropdown
+                  profiles={profiles}
+                  selectedId={metricsFilterOwnerId}
+                  onSelect={setMetricsFilterOwnerId}
+                />
+              )}
+
+              <div className="flex items-center gap-2">
+                <Calendar size={14} className="text-muted-foreground shrink-0" />
+                <select
+                  aria-label="Período"
+                  value={metricsPeriod}
+                  onChange={(e) => {
+                    const val = e.target.value as typeof metricsPeriod
+                    setMetricsPeriod(val)
+                    if (val !== 'custom') setCustomRange(undefined)
+                  }}
+                  className="px-3 py-2 bg-white dark:bg-card border border-border dark:border-border rounded-lg text-sm font-medium text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="today">Hoje</option>
+                  <option value="yesterday">Ontem</option>
+                  <option value="7d">Últimos 7 dias</option>
+                  <option value="30d">Últimos 30 dias</option>
+                  <option value="custom">Personalizado</option>
+                </select>
+                {metricsPeriod === 'custom' && (
+                  <DateRangePicker
+                    from={customRange?.start || ''}
+                    to={customRange?.end || ''}
+                    onChangeFrom={(date) => {
+                      setCustomRange(prev => ({ start: date, end: prev?.end || '' }))
+                    }}
+                    onChangeTo={(date) => {
+                      setCustomRange(prev => ({ start: prev?.start || '', end: date }))
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* CP-6.4: Comparison toggle */}
               <Button
                 variant="unstyled"
                 size="unstyled"
-                onClick={handleExportPdf}
-                disabled={isGeneratingPdf || metricsHook.isLoading || !metricsHook.metrics}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors disabled:opacity-50"
+                onClick={() => setComparisonMode(comparisonMode === 'none' ? 'previous' : 'none')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  comparisonMode === 'previous'
+                    ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
+                    : 'bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15'
+                }`}
               >
-                <FileDown size={14} />
-                {isGeneratingPdf ? 'Gerando PDF...' : 'Exportar PDF'}
+                Comparar
               </Button>
-            </div>
 
-            {/* Filters: period + broker */}
-            <div className="flex flex-wrap items-center gap-2">
-              {([
-                { key: 'today', label: 'Hoje' },
-                { key: 'yesterday', label: 'Ontem' },
-                { key: '7d', label: '7 dias' },
-                { key: '30d', label: '30 dias' },
-              ] as const).map(({ key, label }) => (
-                <Button
-                  variant="unstyled"
-                  size="unstyled"
-                  key={key}
-                  onClick={() => { setMetricsPeriod(key); setCustomRange(undefined) }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    metricsPeriod === key && !customRange
-                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-300'
-                      : 'bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15'
-                  }`}
-                >
-                  {label}
-                </Button>
-              ))}
-              <div className="flex items-center gap-1.5 ml-1">
-                <input
-                  type="date"
-                  className="px-2 py-1 text-xs border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500"
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const newStart = e.target.value
-                      setCustomRange(prev => {
-                        const next = { start: newStart, end: prev?.end || '' }
-                        if (next.start && next.end) setMetricsPeriod('custom')
-                        return next
-                      })
-                    }
-                  }}
-                  value={customRange?.start || ''}
-                />
-                <span className="text-muted-foreground text-xs">-</span>
-                <input
-                  type="date"
-                  className="px-2 py-1 text-xs border border-border dark:border-border rounded-lg bg-white dark:bg-white/5 outline-none focus:ring-2 focus:ring-primary-500"
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      const newEnd = e.target.value
-                      setCustomRange(prev => {
-                        const next = { start: prev?.start || '', end: newEnd }
-                        if (next.start && next.end) setMetricsPeriod('custom')
-                        return next
-                      })
-                    }
-                  }}
-                  value={customRange?.end || ''}
-                />
-              </div>
               {metricsHook.isFetching && !metricsHook.isLoading && (
-                <span className="text-xs text-muted-foreground dark:text-muted-foreground animate-pulse">Atualizando...</span>
+                <span className="text-xs text-muted-foreground animate-pulse">Atualizando...</span>
               )}
             </div>
-
-            {/* Broker filter pills */}
-            {isAdminOrDirector && (
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
-                <Button
-                  variant="unstyled"
-                  size="unstyled"
-                  type="button"
-                  onClick={() => setMetricsFilterOwnerId('')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                    !metricsFilterOwnerId
-                      ? 'bg-primary-500 text-white shadow-sm'
-                      : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-                  }`}
-                >
-                  <Users size={12} />
-                  Todos
-                </Button>
-                {profiles.map(p => (
-                  <Button
-                    key={p.id}
-                    variant="unstyled"
-                    size="unstyled"
-                    type="button"
-                    onClick={() => setMetricsFilterOwnerId(p.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                      metricsFilterOwnerId === p.id
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-                    }`}
-                  >
-                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs font-bold shrink-0 ${
-                      metricsFilterOwnerId === p.id
-                        ? 'bg-white/20 text-white'
-                        : 'bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground'
-                    }`}>
-                      {p.name.charAt(0).toUpperCase()}
-                    </span>
-                    {p.name.split(' ')[0]}
-                  </Button>
-                ))}
-              </div>
-            )}
 
             {/* ═══ SECTION: Visao Geral ═══ */}
             <MetricsSection title="Visao Geral" icon={Eye} iconColor="text-blue-500">
@@ -724,7 +665,13 @@ export const ProspectingPage: React.FC = () => {
               )}
 
               <ProspectingErrorBoundary section="Metricas">
-                <MetricsCards metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} onCardClick={setDrilldownCard} />
+                <MetricsCards
+                  metrics={metricsHook.metrics}
+                  isLoading={metricsHook.isLoading}
+                  onCardClick={setDrilldownCard}
+                  comparisonMetrics={metricsHook.comparisonMetrics}
+                  isComparisonLoading={metricsHook.isComparisonLoading}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                   <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />

@@ -9,7 +9,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { useKanbanKeyboard } from '@/features/boards/hooks/useKanbanKeyboard';
 
 import { useSettings } from '@/context/settings/SettingsContext';
-import { useAddDealItem, useRemoveDealItem, useUpdateDeal } from '@/lib/query/hooks/useDealsQuery';
+import { useAddDealItem, useRemoveDealItem, useUpdateDeal, useUpdateDealItem } from '@/lib/query/hooks/useDealsQuery';
 import { useOrganizationMembers, type OrgMember } from '@/hooks/useOrganizationMembers';
 import type { Product } from '@/types';
 
@@ -120,6 +120,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const { lifecycleStages, products } = useSettings();
   const addItem = useAddDealItem();
   const removeItem = useRemoveDealItem();
+  const updateItem = useUpdateDealItem();
   const updateDeal = useUpdateDeal();
   const { members } = useOrganizationMembers();
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
@@ -248,6 +249,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       }
     },
     [dealsById, addItem, removeItem]
+  );
+
+  const handleItemUpdate = useCallback(
+    (dealId: string, itemId: string, updates: { quantity?: number; price?: number }) => {
+      updateItem.mutate({ dealId, itemId, updates });
+    },
+    [updateItem]
   );
 
   const handleOwnerChange = useCallback(
@@ -481,6 +489,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onKeyboardMove={keyboardHandlers.get(deal.id)}
                   products={products}
                   onProductChange={handleProductChange}
+                  onItemUpdate={handleItemUpdate}
                   members={members}
                   onOwnerChange={handleOwnerChange}
                   onWinDeal={onWinDeal}

@@ -112,6 +112,8 @@ describe('handleContactInsert', () => {
       id: 'temp-789',
       name: 'Enriched Contact',
       avatar: 'https://example.com/enriched.jpg',
+      email: undefined,
+      phone: undefined,
     });
     const otherContact = makeContact({ id: 'other-1', name: 'Other' });
     queryClient.setQueryData<Contact[]>(queryKeys.contacts.lists(), [otherContact, tempContact]);

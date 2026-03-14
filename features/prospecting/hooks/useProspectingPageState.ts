@@ -37,6 +37,13 @@ export type SessionStats = {
   busy: number
 }
 
+export type SessionContact = {
+  contactId: string
+  contactName: string
+  contactPhone: string
+  outcome: string
+}
+
 export interface OrgProfile {
   id: string
   name: string
@@ -46,7 +53,7 @@ export interface OrgProfile {
 
 /** Subset of useProspectingQueue return needed by handlers */
 export interface QueueDeps {
-  queue: { status: string; contactId: string }[]
+  queue: { status: string; contactId: string; contactName?: string; contactPhone?: string }[]
   startSession: () => Promise<unknown>
   endSession: () => void
   markCompleted: (outcome: string) => void
@@ -62,6 +69,7 @@ export interface MetricsDeps {
   range: PeriodRange
   isAdminOrDirector: boolean
   invalidateMetrics: () => void
+  comparisonMetrics?: ProspectingMetrics | null
 }
 
 /** Subset of useProspectingFilteredContacts return needed by handlers */
@@ -143,6 +151,9 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const [customRange, setCustomRange] = useState<PeriodRange | undefined>()
   const [metricsFilterOwnerId, setMetricsFilterOwnerId] = useState<string>('')
 
+  // CP-6.4: Comparison mode (persists in session via useState, resets on reload)
+  const [comparisonMode, setComparisonMode] = useState<'none' | 'previous'>('none')
+
   // --- Save queue modal ---
   const [showSaveQueueModal, setShowSaveQueueModal] = useState(false)
 
@@ -192,6 +203,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const [selectedScript, setSelectedScript] = useState<QuickScript | null>(null)
   const [sessionStats, setSessionStats] = useState<SessionStats>(INITIAL_SESSION_STATS)
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
+  const [sessionContacts, setSessionContacts] = useState<SessionContact[]>([])
 
   // --- Debounced session progress flush (stats + currentIndex) ---
   const progressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -277,6 +289,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     await deps.queueDeps.startSession()
     setSessionStartTime(new Date())
     setShowSummary(false)
+    setSessionContacts([])
     setSessionStats({
       total: deps.queueDeps.queue.length,
       completed: 0,
@@ -336,6 +349,16 @@ export function useProspectingPageState(userId?: string, organizationId?: string
   const handleCallComplete = useCallback((outcome: string) => {
     const deps = depsRef.current
     if (!deps) return
+    // CP-7.4: Capture current contact data before advancing queue
+    const currentContact = deps.queueDeps.queue[currentIndexRef.current]
+    if (currentContact) {
+      setSessionContacts(prev => [...prev, {
+        contactId: currentContact.contactId,
+        contactName: currentContact.contactName || '',
+        contactPhone: currentContact.contactPhone || '',
+        outcome,
+      }])
+    }
     setSessionStats(prev => ({
       ...prev,
       completed: prev.completed + 1,
@@ -522,6 +545,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
         range: deps.metricsDeps.range,
         isAdminOrDirector: deps.metricsDeps.isAdminOrDirector,
         organizationName: 'ZmobCRM',
+        comparisonMetrics: deps.metricsDeps.comparisonMetrics ?? undefined,
       })
       deps.toast('PDF exportado com sucesso', 'success')
     } catch {
@@ -557,6 +581,10 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     setCustomRange,
     metricsFilterOwnerId,
     setMetricsFilterOwnerId,
+
+    // CP-6.4: Comparison
+    comparisonMode,
+    setComparisonMode,
 
     // Save queue modal
     showSaveQueueModal,
@@ -597,6 +625,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     setSelectedScript,
     sessionStats,
     sessionStartTime,
+    sessionContacts,
 
     // CP-3.4 + CP-4.8: Session persistence
     pendingActiveSession,

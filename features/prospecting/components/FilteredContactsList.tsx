@@ -5,6 +5,7 @@ import { Phone, PhoneOff, UserPlus, ChevronLeft, ChevronRight, AlertTriangle } f
 import { Button } from '@/components/ui/button'
 import { STAGE_LABELS, TEMPERATURE_CONFIG } from '@/features/contacts/constants'
 import { LeadScoreBadge } from '@/features/prospecting/components/LeadScoreBadge'
+import { useRangeSelection } from '@/hooks/useRangeSelection'
 import type { ProspectingFilteredContact } from '@/lib/supabase/prospecting-filtered-contacts'
 
 const QUEUE_LIMIT = 100
@@ -36,10 +37,10 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
   onAddToQueue,
   onSelectAllFiltered,
 }) => {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isAdding, setIsAdding] = useState(false)
   const [isLoadingAllIds, setIsLoadingAllIds] = useState(false)
   const [allFilteredSelected, setAllFilteredSelected] = useState(false)
+  const [allFilteredIds, setAllFilteredIds] = useState<Set<string>>(new Set())
 
   // Only selectable contacts (have phone and not already in queue)
   const selectableContacts = useMemo(
@@ -47,26 +48,12 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
     [contacts, existingQueueContactIds]
   )
 
-  const allSelectableSelected = selectableContacts.length > 0 &&
-    selectableContacts.every(c => selectedIds.has(c.id))
-
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }, [])
+  const { selectedIds, toggle: toggleSelect, toggleAll, clear: clearSelection, allSelected: allSelectableSelected } = useRangeSelection({ items: selectableContacts })
 
   const toggleSelectAll = useCallback(() => {
-    if (allSelectableSelected) {
-      setSelectedIds(new Set())
-      setAllFilteredSelected(false)
-    } else {
-      setSelectedIds(new Set(selectableContacts.map(c => c.id)))
-    }
-  }, [allSelectableSelected, selectableContacts])
+    toggleAll()
+    if (allSelectableSelected) setAllFilteredSelected(false)
+  }, [toggleAll, allSelectableSelected])
 
   const handleSelectAllFiltered = useCallback(async () => {
     if (!onSelectAllFiltered) return
@@ -74,21 +61,23 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
     try {
       const allIds = await onSelectAllFiltered()
       const filtered = allIds.filter(id => !existingQueueContactIds.has(id))
-      setSelectedIds(new Set(filtered))
+      setAllFilteredIds(new Set(filtered))
       setAllFilteredSelected(true)
     } finally {
       setIsLoadingAllIds(false)
     }
   }, [onSelectAllFiltered, existingQueueContactIds])
 
-  const selectedCount = selectedIds.size
+  // Merge: page selection + all-filtered selection
+  const effectiveSelectedIds = allFilteredSelected ? allFilteredIds : selectedIds
+  const selectedCount = effectiveSelectedIds.size
   const wouldExceedLimit = currentQueueSize + selectedCount > QUEUE_LIMIT
   const maxAddable = Math.max(0, QUEUE_LIMIT - currentQueueSize)
 
   const handleAddToQueue = useCallback(async () => {
     if (selectedCount === 0) return
 
-    const ids = Array.from(selectedIds)
+    const ids = Array.from(effectiveSelectedIds)
     const toAdd = wouldExceedLimit ? ids.slice(0, maxAddable) : ids
 
     if (toAdd.length === 0) return
@@ -96,18 +85,20 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
     setIsAdding(true)
     try {
       await onAddToQueue(toAdd)
-      setSelectedIds(new Set())
+      clearSelection()
+      setAllFilteredIds(new Set())
+      setAllFilteredSelected(false)
     } finally {
       setIsAdding(false)
     }
-  }, [selectedIds, selectedCount, wouldExceedLimit, maxAddable, onAddToQueue])
+  }, [effectiveSelectedIds, selectedCount, wouldExceedLimit, maxAddable, onAddToQueue, clearSelection])
 
   // Reset selection on page change (but not if all filtered are selected)
   React.useEffect(() => {
     if (!allFilteredSelected) {
-      setSelectedIds(new Set())
+      clearSelection()
     }
-  }, [page, allFilteredSelected])
+  }, [page, allFilteredSelected, clearSelection])
 
   if (isLoading) {
     return (
@@ -189,7 +180,7 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
         {contacts.map(contact => {
           const inQueue = existingQueueContactIds.has(contact.id)
           const disabled = !contact.hasPhone || inQueue
-          const isSelected = selectedIds.has(contact.id)
+          const isSelected = effectiveSelectedIds.has(contact.id)
 
           return (
             <div
@@ -205,7 +196,23 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                 type="checkbox"
                 checked={isSelected}
                 disabled={disabled}
-                onChange={() => toggleSelect(contact.id)}
+                onChange={(e) => {
+                  if (allFilteredSelected) {
+                    // Convert bulk selection to individual deselection: remove this contact from the set
+                    const remaining = new Set(allFilteredIds)
+                    remaining.delete(contact.id)
+                    setAllFilteredIds(remaining)
+                    // When all contacts have been individually unchecked, exit bulk mode.
+                    // effectiveSelectedIds will switch to selectedIds (empty) — this is
+                    // correct: the user explicitly deselected every contact.
+                    if (remaining.size === 0) {
+                      setAllFilteredSelected(false)
+                    }
+                    return
+                  }
+                  const mouseEvent = e.nativeEvent as MouseEvent
+                  toggleSelect(contact.id, { shiftKey: mouseEvent.shiftKey })
+                }}
                 className="rounded border-border dark:border-border text-primary-500 focus:ring-primary-500 disabled:opacity-40"
               />
 

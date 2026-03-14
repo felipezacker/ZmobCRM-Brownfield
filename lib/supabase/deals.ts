@@ -85,13 +85,24 @@ export function calculateEstimatedCommission(
  * @param contactId - ID do contato.
  * @returns Deal aberto mais recente ou null.
  */
+export interface OpenDeal {
+  id: string
+  title: string
+  value: number | null
+  property_ref: string | null
+  product_name: string | null
+  stage_id: string | null
+  stage_name: string | null
+  board_id: string | null
+}
+
 export async function getOpenDealsByContact(
   contactId: string,
-): Promise<{ id: string; title: string } | null> {
+): Promise<OpenDeal | null> {
   if (!supabase || !contactId) return null
   const { data, error } = await supabase
     .from('deals')
-    .select('id, title')
+    .select('id, title, value, property_ref, stage_id, board_stages(name, board_id), deal_items(name)')
     .eq('contact_id', contactId)
     .eq('is_won', false)
     .eq('is_lost', false)
@@ -100,7 +111,24 @@ export async function getOpenDealsByContact(
     .limit(1)
     .maybeSingle()
   if (error || !data) return null
-  return { id: data.id, title: data.title }
+  const rawStage = data.board_stages as unknown
+  const stageData = Array.isArray(rawStage)
+    ? (rawStage[0] as { name: string; board_id: string } | undefined) ?? null
+    : (rawStage as { name: string; board_id: string } | null)
+  const rawItems = data.deal_items as unknown
+  const firstItem = Array.isArray(rawItems)
+    ? (rawItems[0] as { name: string } | undefined) ?? null
+    : null
+  return {
+    id: data.id,
+    title: data.title,
+    value: data.value ?? null,
+    property_ref: data.property_ref ?? null,
+    product_name: firstItem?.name ?? null,
+    stage_id: data.stage_id ?? null,
+    stage_name: stageData?.name ?? null,
+    board_id: stageData?.board_id ?? null,
+  }
 }
 
 // ============================================
@@ -630,6 +658,31 @@ export const dealsService = {
       if (error) return { error };
 
       // Update deal value
+      await this.recalculateDealValue(dealId);
+
+      return { error: null };
+    } catch (e) {
+      return { error: e as Error };
+    }
+  },
+
+  async updateItem(dealId: string, itemId: string, updates: { quantity?: number; price?: number }): Promise<{ error: Error | null }> {
+    try {
+      if (!supabase) {
+        return { error: new Error('Supabase não configurado') };
+      }
+      const updatePayload: Record<string, unknown> = {};
+      if (updates.quantity !== undefined) updatePayload.quantity = updates.quantity;
+      if (updates.price !== undefined) updatePayload.price = updates.price;
+
+      const { error } = await supabase
+        .from('deal_items')
+        .update(updatePayload)
+        .eq('id', itemId)
+        .eq('deal_id', sanitizeUUID(dealId));
+
+      if (error) return { error };
+
       await this.recalculateDealValue(dealId);
 
       return { error: null };

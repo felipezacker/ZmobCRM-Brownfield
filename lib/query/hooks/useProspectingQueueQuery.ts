@@ -261,8 +261,8 @@ export const useScheduleRetry = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, retryIntervalDays }: { id: string; retryIntervalDays: number }) => {
-      const { data, error } = await prospectingQueuesService.scheduleRetry(id, retryIntervalDays)
+    mutationFn: async ({ id }: { id: string }) => {
+      const { data, error } = await prospectingQueuesService.scheduleRetry(id)
       if (error) throw error
       return data!
     },

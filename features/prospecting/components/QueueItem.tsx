@@ -1,12 +1,49 @@
 import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Phone, X, Flame, Snowflake, Sun, User, RotateCcw, GripVertical } from 'lucide-react'
+import { Phone, X, Flame, Snowflake, Sun, User, RotateCcw, GripVertical, Ban } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { LeadScoreBadge } from '@/features/prospecting/components/LeadScoreBadge'
 import { QueueItemDetails } from '@/features/prospecting/components/QueueItemDetails'
 import type { ProspectingQueueItem } from '@/types'
 import { SHADOW_TOKENS } from '@/lib/design-tokens'
+
+export function formatRetryDate(retryAt: string | undefined | null): { label: string; color: string; exactLabel: string } | null {
+  if (!retryAt) return null
+  const now = new Date()
+  const retry = new Date(retryAt)
+  if (isNaN(retry.getTime())) return null
+  const diffMs = retry.getTime() - now.getTime()
+
+  const isToday = retry.getFullYear() === now.getFullYear()
+    && retry.getMonth() === now.getMonth()
+    && retry.getDate() === now.getDate()
+
+  const isTomorrow = (() => {
+    const tom = new Date(now)
+    tom.setDate(tom.getDate() + 1)
+    return retry.getFullYear() === tom.getFullYear()
+      && retry.getMonth() === tom.getMonth()
+      && retry.getDate() === tom.getDate()
+  })()
+
+  const shift = retry.getHours() < 13 ? 'de manhã' : 'à tarde'
+
+  const exactLabel = 'Agendado para ' + retry.toLocaleDateString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  }) + ' às ' + retry.toLocaleTimeString('pt-BR', {
+    hour: '2-digit', minute: '2-digit'
+  })
+
+  if (diffMs <= 0 && !isToday) return { label: 'Pronto para retry', color: 'text-green-600 dark:text-green-400', exactLabel }
+  if (isToday) return { label: `Retry hoje ${shift}`, color: 'text-amber-600 dark:text-amber-400', exactLabel }
+  if (isTomorrow) return { label: `Retry amanhã ${shift}`, color: 'text-amber-600 dark:text-amber-400', exactLabel }
+
+  const diffDays = Math.ceil(diffMs / 86400000)
+  const weekday = retry.toLocaleDateString('pt-BR', { weekday: 'short' })
+  return { label: `Retry ${weekday} ${shift}`, color: 'text-muted-foreground', exactLabel }
+}
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending: { label: 'Pendente', color: 'bg-muted dark:bg-card text-muted-foreground dark:text-muted-foreground' },
@@ -59,6 +96,35 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
     boxShadow: isDragging ? SHADOW_TOKENS.drag : undefined,
     scale: isDragging ? '1.02' : undefined,
   }
+
+  const retryInfo = item.retryCount > 0 && !item.doNotContact && item.status === 'retry_pending'
+    ? formatRetryDate(item.retryAt)
+    : null
+
+  const retryBadge = item.retryCount > 0 && !item.doNotContact ? (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex flex-col items-start">
+            <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">
+              <RotateCcw size={9} />
+              Retry #{item.retryCount}
+            </span>
+            {retryInfo && (
+              <span className={`text-2xs px-1.5 ${retryInfo.color}`}>
+                {retryInfo.label}
+              </span>
+            )}
+          </span>
+        </TooltipTrigger>
+        {retryInfo && (
+          <TooltipContent>
+            <p className="text-xs">{retryInfo.exactLabel}</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  ) : null
 
   return (
     <div
@@ -120,12 +186,13 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
             </span>
             {item.contactTemperature && TEMP_ICONS[item.contactTemperature]}
             <LeadScoreBadge score={item.leadScore} />
-            {item.retryCount > 0 && (
-              <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">
-                <RotateCcw size={9} />
-                Retry #{item.retryCount}
+            {item.doNotContact && (
+              <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400">
+                <Ban size={9} />
+                Bloqueado
               </span>
             )}
+            {retryBadge}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             {item.contactPhone && (

@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { Phone, SkipForward, Square, Flame, Snowflake, Sun, User, Mail, FileText, ChevronDown, Check, ChevronUp } from 'lucide-react'
+import { Phone, SkipForward, Square, Flame, Snowflake, Sun, User, Mail, FileText, ChevronDown, Check, Ban, PhoneCall } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CallModal, CallLogData } from '@/features/inbox/components/CallModal'
 import { ProspectingScriptGuide } from '@/features/prospecting/components/ProspectingScriptGuide'
 import { ContactHistory } from '@/features/prospecting/components/ContactHistory'
 import { QuickActionsPanel } from '@/features/prospecting/components/QuickActionsPanel'
+import { DoNotContactModal } from '@/features/prospecting/components/DoNotContactModal'
 import { useQuickScripts } from '@/features/inbox/hooks/useQuickScripts'
 import { useCreateActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { getOpenDealsByContact } from '@/lib/supabase/deals'
@@ -16,22 +17,18 @@ import type { SessionStats } from '@/features/prospecting/ProspectingPage'
 import type { GoalProgress } from '@/features/prospecting/hooks/useProspectingGoals'
 import { useOptionalToast } from '@/context/ToastContext'
 import type { SuggestedTime } from '@/features/prospecting/utils/suggestBestTime'
+import { useContactAttempts, formatRelativeDate, OUTCOME_LABELS, getAttemptColorClass } from '@/features/prospecting/hooks/useContactAttempts'
 
-const SKIP_REASONS = [
-  { id: 'wrong_number', label: 'Número errado' },
-  { id: 'already_tried', label: 'Já tentei hoje' },
-  { id: 'bad_timing', label: 'Não é hora boa' },
-  { id: 'no_interest', label: 'Sem interesse prévio' },
-  { id: 'other', label: 'Outro motivo' },
-] as const
 
 interface PowerDialerProps {
   contact: ProspectingQueueItem
   currentIndex: number
   totalCount: number
   onCallComplete: (outcome: string) => void
-  onSkip: (reason: string) => void
+  onSkip: (reason?: string) => void
+  onAdvance?: () => void
   onEnd: () => void
+  pendingCount?: number
   selectedScript?: QuickScript | null
   onScriptChange?: (script: QuickScript | null) => void
   sessionStats?: SessionStats
@@ -53,7 +50,9 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   totalCount,
   onCallComplete,
   onSkip,
+  onAdvance,
   onEnd,
+  pendingCount = 0,
   selectedScript,
   onScriptChange,
   sessionStats,
@@ -65,9 +64,11 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   const [showCallModal, setShowCallModal] = useState(false)
   const [markedObjections, setMarkedObjections] = useState<string[]>([])
   const [showScriptDropdown, setShowScriptDropdown] = useState(false)
-  const [showSkipReasons, setShowSkipReasons] = useState(false)
+  const [showSkipDropdown, setShowSkipDropdown] = useState(false)
+  const [showDoNotContactModal, setShowDoNotContactModal] = useState(false)
   const [showQuickActions, setShowQuickActions] = useState(false)
   const [lastCallData, setLastCallData] = useState<CallLogData | null>(null)
+  const [calledContact, setCalledContact] = useState<{ id: string; name: string; phone?: string; stage?: string } | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const skipDropdownRef = useRef<HTMLDivElement>(null)
   const goalCelebratedRef = useRef(false)
@@ -75,6 +76,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   const createActivity = useCreateActivity()
   const { scripts } = useQuickScripts()
   const { addToast } = useOptionalToast()
+  const attempts = useContactAttempts(contact.contactId)
 
   // CP-4.3: Celebrate when daily goal is reached (once per mount)
   useEffect(() => {
@@ -87,42 +89,34 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   const progress = totalCount > 0 ? ((currentIndex + 1) / totalCount) * 100 : 0
   const temp = contact.contactTemperature ? TEMP_DISPLAY[contact.contactTemperature] : null
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
-    if (!showScriptDropdown) return
+    if (!showScriptDropdown && !showSkipDropdown) return
     const handleClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (showScriptDropdown && dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowScriptDropdown(false)
       }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [showScriptDropdown])
-
-  // Close skip dropdown on outside click
-  useEffect(() => {
-    if (!showSkipReasons) return
-    const handleClick = (e: MouseEvent) => {
-      if (skipDropdownRef.current && !skipDropdownRef.current.contains(e.target as Node)) {
-        setShowSkipReasons(false)
+      if (showSkipDropdown && skipDropdownRef.current && !skipDropdownRef.current.contains(e.target as Node)) {
+        setShowSkipDropdown(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
-  }, [showSkipReasons])
+  }, [showScriptDropdown, showSkipDropdown])
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Escape closes dropdown
-      if (e.key === 'Escape' && showScriptDropdown) {
+      // Escape closes dropdowns
+      if (e.key === 'Escape' && (showScriptDropdown || showSkipDropdown)) {
         e.preventDefault()
         setShowScriptDropdown(false)
+        setShowSkipDropdown(false)
         return
       }
 
       // Other shortcuts disabled when modal/dropdown/quickactions open
-      if (showCallModal || showScriptDropdown || showSkipReasons || showQuickActions) return
+      if (showCallModal || showScriptDropdown || showSkipDropdown || showQuickActions) return
 
       // Ignore when typing in inputs
       const tag = (e.target as HTMLElement).tagName
@@ -145,7 +139,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showCallModal, showScriptDropdown, showSkipReasons, showQuickActions, onEnd])
+  }, [showCallModal, showScriptDropdown, showSkipDropdown, showQuickActions, onEnd])
 
   const handleCallSave = useCallback(async (data: CallLogData) => {
     // CP-5.1: Best-effort deal auto-linking
@@ -191,16 +185,36 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     setShowCallModal(false)
     setMarkedObjections([])
     setLastCallData(data)
+    // Snapshot contact data before queue advances to next
+    setCalledContact({
+      id: contact.contactId,
+      name: contact.contactName || 'Sem nome',
+      phone: contact.contactPhone,
+      stage: contact.contactStage,
+    })
     setShowQuickActions(true)
-  }, [contact.contactId, createActivity, markedObjections])
+
+    // Mark queue item immediately — don't wait for QuickActions dismiss.
+    // This ensures the queue advances even if the user closes the page,
+    // ends the session, or navigates away before clicking "Avançar".
+    onCallComplete(data.outcome)
+  }, [contact.contactId, contact.contactName, contact.contactPhone, contact.contactStage, createActivity, markedObjections, onCallComplete])
 
   const handleQuickActionsDismiss = useCallback(() => {
     setShowQuickActions(false)
-    if (lastCallData) {
-      onCallComplete(lastCallData.outcome)
-    }
     setLastCallData(null)
-  }, [lastCallData, onCallComplete])
+    setCalledContact(null)
+    // CP-7.4: If no more pending contacts, end session → show summary
+    if (pendingCount === 0) {
+      onEnd()
+    }
+  }, [pendingCount, onEnd])
+
+  // CP-7.1: Skip with reason
+  const handleSkipWithReason = useCallback((reason: string) => {
+    setShowSkipDropdown(false)
+    onSkip(reason)
+  }, [onSkip])
 
   const handleSelectScript = useCallback((script: QuickScript) => {
     if (onScriptChange) {
@@ -306,6 +320,21 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
               )}
               <LeadScoreBadge score={contact.leadScore} size="md" />
             </div>
+            {/* CP-7.2: Call attempts badge */}
+            {attempts.count > 0 && (
+              <p
+                className={`flex items-center gap-1 text-xs mt-1.5 ${getAttemptColorClass(attempts.count)}`}
+                aria-label={`${attempts.count} ${attempts.count === 1 ? 'tentativa' : 'tentativas'} de ligação anteriores`}
+              >
+                <PhoneCall size={12} />
+                <span>
+                  {attempts.count}a tentativa
+                  {attempts.lastAttempt && (
+                    <> — ultima: {formatRelativeDate(attempts.lastAttempt.date)} ({OUTCOME_LABELS[attempts.lastAttempt.outcome] ?? attempts.lastAttempt.outcome})</>
+                  )}
+                </span>
+              </p>
+            )}
           </div>
         </div>
 
@@ -377,43 +406,53 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             )}
           </Button>
 
+          {/* CP-7.1: Skip dropdown with reasons */}
           <div className="relative" ref={skipDropdownRef}>
             <Button
               variant="unstyled"
               size="unstyled"
-              onClick={() => setShowSkipReasons(prev => !prev)}
+              onClick={() => !showQuickActions && setShowSkipDropdown(prev => !prev)}
+              disabled={showQuickActions}
+              title={showQuickActions ? 'Registre ou avance pelo painel abaixo' : undefined}
               className={`w-full flex flex-col items-center gap-1.5 py-3 rounded-lg transition-colors ${
-                showSkipReasons
-                  ? 'bg-accent dark:bg-accent text-secondary-foreground dark:text-white'
+                showQuickActions
+                  ? 'opacity-50 cursor-not-allowed bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground'
                   : 'bg-muted dark:bg-card hover:bg-accent dark:hover:bg-accent text-secondary-foreground dark:text-muted-foreground'
               }`}
             >
               <SkipForward size={20} />
-              <span className="text-xs font-medium flex items-center gap-0.5">
-                Pular
-                {showSkipReasons ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-              </span>
+              <span className="text-xs font-medium">Pular</span>
             </Button>
-
-            {showSkipReasons && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 z-50 w-48 bg-white dark:bg-card border border-border dark:border-border/50 rounded-lg shadow-xl overflow-hidden">
-                <p className="px-3 py-1.5 text-1xs text-muted-foreground border-b border-border dark:border-border/50">
-                  Motivo do pulo:
-                </p>
-                {SKIP_REASONS.map((reason) => (
+            {showSkipDropdown && (
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 z-50 w-48 bg-white dark:bg-card border border-border dark:border-border/50 rounded-lg shadow-xl overflow-hidden">
+                {[
+                  { label: 'Número errado', value: 'Numero errado' },
+                  { label: 'Já tentei hoje', value: 'Ja tentei hoje' },
+                  { label: 'Não é hora boa', value: 'Nao e hora boa' },
+                  { label: 'Sem interesse', value: 'Sem interesse' },
+                  { label: 'Outro', value: 'Outro' },
+                ].map(({ label, value }) => (
                   <Button
-                    key={reason.id}
+                    key={value}
                     variant="unstyled"
                     size="unstyled"
-                    onClick={() => {
-                      setShowSkipReasons(false)
-                      onSkip(reason.id)
-                    }}
+                    onClick={() => handleSkipWithReason(value)}
                     className="w-full px-3 py-2 text-left text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-card/50 transition-colors"
                   >
-                    {reason.label}
+                    {label}
                   </Button>
                 ))}
+                <div className="border-t border-border dark:border-border/50">
+                  <Button
+                    variant="unstyled"
+                    size="unstyled"
+                    onClick={() => { setShowSkipDropdown(false); setShowDoNotContactModal(true) }}
+                    className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                  >
+                    <Ban size={14} />
+                    Não ligar mais
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -431,12 +470,12 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
       </div>
 
       {/* CP-2.2: Quick Actions Panel (shown after call log saved) */}
-      {showQuickActions && lastCallData && (
+      {showQuickActions && lastCallData && calledContact && (
         <QuickActionsPanel
-          contactId={contact.contactId}
-          contactName={contact.contactName || 'Sem nome'}
-          contactPhone={contact.contactPhone}
-          contactStage={contact.contactStage}
+          contactId={calledContact.id}
+          contactName={calledContact.name}
+          contactPhone={calledContact.phone}
+          contactStage={calledContact.stage}
           outcome={lastCallData.outcome}
           callNotes={lastCallData.notes}
           onDismiss={handleQuickActionsDismiss}
@@ -451,9 +490,18 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
           <ContactHistory
             contactId={contact.contactId}
             defaultOpen={typeof window !== 'undefined' && window.innerWidth >= 768}
+            doNotContact={contact.doNotContact}
           />
         </div>
       )}
+
+      {/* CP-7.1: Do Not Contact modal (reused from skip dropdown) */}
+      <DoNotContactModal
+        isOpen={showDoNotContactModal}
+        onClose={() => setShowDoNotContactModal(false)}
+        contactId={contact.contactId}
+        onBlocked={() => { setShowDoNotContactModal(false); onAdvance ? onAdvance() : onSkip('do_not_contact') }}
+      />
 
       {/* CallModal with script guide side panel */}
       <CallModal

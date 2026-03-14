@@ -304,14 +304,14 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                                 <Button
                                     type="button"
                                     onClick={() => { setOwnerFilter('all'); setOwnerOpen(false); }}
-                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === 'all' ? 'font-semibold bg-muted' : ''}`}
+                                    className={`w-full justify-start text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === 'all' ? 'font-semibold bg-muted' : ''}`}
                                 >
                                     Todos os Donos
                                 </Button>
                                 <Button
                                     type="button"
                                     onClick={() => { setOwnerFilter('mine'); setOwnerOpen(false); }}
-                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === 'mine' ? 'font-semibold bg-muted' : ''}`}
+                                    className={`w-full justify-start text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === 'mine' ? 'font-semibold bg-muted' : ''}`}
                                 >
                                     Meus Negócios
                                 </Button>
@@ -321,7 +321,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({
                                         key={m.id}
                                         type="button"
                                         onClick={() => { setOwnerFilter(m.id); setOwnerOpen(false); }}
-                                        className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === m.id ? 'font-semibold bg-muted' : ''}`}
+                                        className={`w-full justify-start text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${ownerFilter === m.id ? 'font-semibold bg-muted' : ''}`}
                                     >
                                         {m.name}
                                     </Button>

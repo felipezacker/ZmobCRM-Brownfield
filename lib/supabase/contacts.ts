@@ -84,6 +84,14 @@ export interface DbContact {
   tags: string[];
   /** Campos customizados (JSONB). */
   custom_fields: Record<string, unknown>;
+  /** CP-7.1: LGPD opt-out flag. */
+  do_not_contact: boolean;
+  /** CP-7.1: Motivo do bloqueio. */
+  do_not_contact_reason: string | null;
+  /** CP-7.1: Data do bloqueio. */
+  do_not_contact_at: string | null;
+  /** CP-7.1: Quem bloqueou. */
+  do_not_contact_by: string | null;
 }
 
 /** Representação de contact_phones no banco de dados. */
@@ -109,32 +117,37 @@ export const transformContact = (db: DbContact): Contact => ({
   id: db.id,
   organizationId: db.organization_id,
   name: db.name,
-  email: db.email || '',
+  email: db.email ?? '',
   phone: normalizePhoneE164(db.phone),
-  avatar: db.avatar || '',
-  notes: db.notes || '',
+  avatar: db.avatar ?? '',
+  notes: db.notes ?? '',
   status: db.status as Contact['status'],
   stage: db.stage,
-  source: db.source as Contact['source'] || undefined,
-  birthDate: db.birth_date || undefined,
-  lastInteraction: db.last_interaction || undefined,
-  lastPurchaseDate: db.last_purchase_date || undefined,
-  totalValue: db.total_value || 0,
+  source: (db.source as Contact['source']) ?? undefined,
+  birthDate: db.birth_date ?? undefined,
+  lastInteraction: db.last_interaction ?? undefined,
+  lastPurchaseDate: db.last_purchase_date ?? undefined,
+  totalValue: db.total_value ?? 0,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
-  ownerId: db.owner_id || undefined,
+  ownerId: db.owner_id ?? undefined,
   // Story 3.1
-  cpf: db.cpf || undefined,
-  contactType: (db.contact_type as Contact['contactType']) || undefined,
-  classification: (db.classification as Contact['classification']) || undefined,
-  temperature: (db.temperature as Contact['temperature']) || undefined,
-  addressCep: db.address_cep || undefined,
-  addressCity: db.address_city || undefined,
-  addressState: db.address_state || undefined,
-  profileData: db.profile_data || undefined,
-  leadScore: db.lead_score || 0,
-  tags: db.tags || [],
-  customFields: db.custom_fields || {},
+  cpf: db.cpf ?? undefined,
+  contactType: (db.contact_type as Contact['contactType']) ?? undefined,
+  classification: (db.classification as Contact['classification']) ?? undefined,
+  temperature: (db.temperature as Contact['temperature']) ?? undefined,
+  addressCep: db.address_cep ?? undefined,
+  addressCity: db.address_city ?? undefined,
+  addressState: db.address_state ?? undefined,
+  profileData: db.profile_data ?? undefined,
+  leadScore: db.lead_score ?? 0,
+  tags: db.tags ?? [],
+  customFields: db.custom_fields ?? {},
+  // CP-7.1
+  doNotContact: db.do_not_contact ?? false,
+  doNotContactReason: db.do_not_contact_reason ?? undefined,
+  doNotContactAt: db.do_not_contact_at ?? undefined,
+  doNotContactBy: db.do_not_contact_by ?? undefined,
 });
 
 /** Transforma ContactPhone do formato DB para o formato da aplicação. */
@@ -145,9 +158,9 @@ export const transformContactPhone = (db: DbContactPhone): ContactPhone => ({
   phoneType: db.phone_type as ContactPhone['phoneType'],
   isWhatsapp: db.is_whatsapp,
   isPrimary: db.is_primary,
-  organizationId: db.organization_id || undefined,
+  organizationId: db.organization_id ?? undefined,
   createdAt: db.created_at,
-  updatedAt: db.updated_at || undefined,
+  updatedAt: db.updated_at ?? undefined,
 });
 
 /**
@@ -386,7 +399,7 @@ export const contactsService = {
           query = query.eq('stage', filters.stage);
         }
 
-        // T009 & T010: Status filter (including RISK logic)
+        // T009 & T010: Status filter (including RISK and BLOCKED logic)
         if (filters.status && filters.status !== 'ALL') {
           if (filters.status === 'RISK') {
             // T010: RISK = ACTIVE + lastPurchaseDate > 30 days ago
@@ -395,6 +408,9 @@ export const contactsService = {
             query = query
               .eq('status', 'ACTIVE')
               .lt('last_purchase_date', thirtyDaysAgo.toISOString());
+          } else if (filters.status === 'BLOCKED') {
+            // CP-7.1: BLOCKED = do_not_contact = true
+            query = query.eq('do_not_contact', true);
           } else {
             query = query.eq('status', filters.status);
           }
@@ -630,6 +646,45 @@ export const contactsService = {
       return { hasDeals: (count || 0) > 0, dealCount: count || 0, deals, error: null };
     } catch (e) {
       return { hasDeals: false, dealCount: 0, deals: [], error: e as Error };
+    }
+  },
+
+  /**
+   * CP-7.1: Marca contato como "nao ligar mais" (LGPD opt-out).
+   * Chama RPC que valida org membership e remove de filas ativas.
+   */
+  async markDoNotContact(contactId: string, reason: string): Promise<{ error: Error | null }> {
+    try {
+      if (!supabase) return { error: new Error('Supabase não configurado') };
+      const { error } = await supabase.rpc('mark_do_not_contact', {
+        p_contact_id: contactId,
+        p_reason: reason,
+      });
+      return { error };
+    } catch (e) {
+      return { error: e as Error };
+    }
+  },
+
+  /**
+   * CP-7.1: Reverte bloqueio "nao ligar mais". Apenas admin/diretor.
+   */
+  async revertDoNotContact(contactId: string): Promise<{ error: Error | null }> {
+    try {
+      if (!supabase) return { error: new Error('Supabase não configurado') };
+      const { error } = await supabase.rpc('revert_do_not_contact', {
+        p_contact_id: contactId,
+      });
+      if (error) {
+        // Translate permission error to user-friendly message
+        if (error.message?.includes('admin ou diretor')) {
+          return { error: new Error('Apenas admin ou diretor pode reverter bloqueio') };
+        }
+        return { error };
+      }
+      return { error: null };
+    } catch (e) {
+      return { error: e as Error };
     }
   },
 

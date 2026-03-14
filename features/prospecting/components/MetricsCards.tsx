@@ -6,11 +6,14 @@ import { Button } from '@/components/ui/button'
 import type { ProspectingMetrics } from '../hooks/useProspectingMetrics'
 import type { DrilldownCardType } from '../constants'
 import { formatDuration } from '../utils/formatDuration'
+import { DeltaIndicator } from './DeltaIndicator'
 
 interface MetricsCardsProps {
   metrics: ProspectingMetrics | null
   isLoading: boolean
   onCardClick?: (cardType: DrilldownCardType) => void
+  comparisonMetrics?: ProspectingMetrics | null
+  isComparisonLoading?: boolean
 }
 
 function KpiCard({
@@ -20,6 +23,7 @@ function KpiCard({
   subtitle,
   color,
   onClick,
+  delta,
 }: {
   icon: React.ElementType
   label: string
@@ -27,6 +31,7 @@ function KpiCard({
   subtitle?: string
   color: string
   onClick?: () => void
+  delta?: React.ReactNode
 }) {
   return (
     <Button
@@ -43,7 +48,10 @@ function KpiCard({
         </div>
         <div className="min-w-0">
           <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate">{label}</p>
-          <p className="text-xl font-bold text-foreground">{value}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xl font-bold text-foreground">{value}</p>
+            {delta}
+          </div>
           {subtitle && (
             <p className="text-2xs text-muted-foreground dark:text-muted-foreground">{subtitle}</p>
           )}
@@ -67,7 +75,7 @@ function SkeletonCard() {
   )
 }
 
-export function MetricsCards({ metrics, isLoading, onCardClick }: MetricsCardsProps) {
+export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetrics, isComparisonLoading }: MetricsCardsProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
@@ -83,6 +91,17 @@ export function MetricsCards({ metrics, isLoading, onCardClick }: MetricsCardsPr
   const noAnswer = metrics?.byOutcome?.find(o => o.outcome === 'no_answer')?.count || 0
   const voicemailCount = metrics?.byOutcome?.find(o => o.outcome === 'voicemail')?.count || 0
 
+  const compTotal = comparisonMetrics?.totalCalls ?? 0
+  const compConnected = comparisonMetrics?.connectedCalls ?? 0
+  const compNoAnswer = comparisonMetrics?.byOutcome?.find(o => o.outcome === 'no_answer')?.count ?? 0
+  const compVoicemail = comparisonMetrics?.byOutcome?.find(o => o.outcome === 'voicemail')?.count ?? 0
+
+  // CP-6.4 AC9: Tempo Medio direction — lower is better unless connection rate improved
+  const connectionImproved = (metrics?.connectionRate ?? 0) > (comparisonMetrics?.connectionRate ?? 0)
+  const avgDurationInvertDirection = !connectionImproved
+
+  const hasDelta = comparisonMetrics != null || isComparisonLoading
+
   const pct = (n: number) => total > 0 ? `${((n / total) * 100).toFixed(0)}% do total` : undefined
 
   return (
@@ -93,6 +112,7 @@ export function MetricsCards({ metrics, isLoading, onCardClick }: MetricsCardsPr
         value={total.toString()}
         color="bg-blue-500"
         onClick={() => onCardClick?.('totalCalls')}
+        delta={hasDelta ? <DeltaIndicator current={total} previous={compTotal} isLoading={isComparisonLoading} /> : undefined}
       />
       <KpiCard
         icon={PhoneCall}
@@ -101,6 +121,7 @@ export function MetricsCards({ metrics, isLoading, onCardClick }: MetricsCardsPr
         subtitle={pct(connected)}
         color="bg-emerald-500"
         onClick={() => onCardClick?.('connected')}
+        delta={hasDelta ? <DeltaIndicator current={connected} previous={compConnected} isLoading={isComparisonLoading} /> : undefined}
       />
       <KpiCard
         icon={PhoneOff}
@@ -109,6 +130,7 @@ export function MetricsCards({ metrics, isLoading, onCardClick }: MetricsCardsPr
         subtitle={pct(noAnswer)}
         color="bg-red-500"
         onClick={() => onCardClick?.('noAnswer')}
+        delta={hasDelta ? <DeltaIndicator current={noAnswer} previous={compNoAnswer} invertDirection isLoading={isComparisonLoading} /> : undefined}
       />
       <KpiCard
         icon={Voicemail}
@@ -117,6 +139,7 @@ export function MetricsCards({ metrics, isLoading, onCardClick }: MetricsCardsPr
         subtitle={pct(voicemailCount)}
         color="bg-amber-500"
         onClick={() => onCardClick?.('voicemail')}
+        delta={hasDelta ? <DeltaIndicator current={voicemailCount} previous={compVoicemail} invertDirection isLoading={isComparisonLoading} /> : undefined}
       />
       <KpiCard
         icon={Clock}
@@ -125,6 +148,7 @@ export function MetricsCards({ metrics, isLoading, onCardClick }: MetricsCardsPr
         subtitle={connected > 0 ? 'por ligação conectada' : undefined}
         color="bg-violet-500"
         onClick={() => onCardClick?.('avgDuration')}
+        delta={hasDelta ? <DeltaIndicator current={metrics?.avgDuration || 0} previous={comparisonMetrics?.avgDuration ?? 0} invertDirection={avgDurationInvertDirection} isLoading={isComparisonLoading} /> : undefined}
       />
       <KpiCard
         icon={Users}
@@ -132,6 +156,7 @@ export function MetricsCards({ metrics, isLoading, onCardClick }: MetricsCardsPr
         value={metrics?.uniqueContacts?.toString() || '0'}
         color="bg-primary-500"
         onClick={() => onCardClick?.('uniqueContacts')}
+        delta={hasDelta ? <DeltaIndicator current={metrics?.uniqueContacts || 0} previous={comparisonMetrics?.uniqueContacts ?? 0} isLoading={isComparisonLoading} /> : undefined}
       />
     </div>
   )

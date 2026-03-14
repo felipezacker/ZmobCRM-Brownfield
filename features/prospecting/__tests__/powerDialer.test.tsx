@@ -17,13 +17,32 @@ vi.mock('@/components/ui/button', () => ({
 }))
 
 vi.mock('@/features/inbox/components/CallModal', () => ({
-  CallModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
-    // eslint-disable-next-line no-restricted-syntax -- mock component
-    isOpen ? <div data-testid="call-modal"><button onClick={onClose}>Close</button></div> : null,
+  CallModal: ({ isOpen, onClose, onSave }: { isOpen: boolean; onClose: () => void; onSave?: (data: { title: string; notes: string; outcome: string; duration: number }) => void }) =>
+    isOpen ? (
+      <div data-testid="call-modal">
+        {/* eslint-disable-next-line no-restricted-syntax -- mock component */}
+        <button onClick={onClose}>Close</button>
+        {/* eslint-disable-next-line no-restricted-syntax -- mock component */}
+        <button onClick={() => onSave?.({ title: 'Test Call', notes: '', outcome: 'connected', duration: 60 })}>SaveCall</button>
+      </div>
+    ) : null,
+}))
+
+vi.mock('@/features/prospecting/components/QuickActionsPanel', () => ({
+  QuickActionsPanel: ({ onDismiss }: { onDismiss: () => void }) => (
+    <div data-testid="quick-actions-panel">
+      {/* eslint-disable-next-line no-restricted-syntax -- mock component */}
+      <button onClick={onDismiss}>DismissPanel</button>
+    </div>
+  ),
 }))
 
 vi.mock('@/features/prospecting/components/ProspectingScriptGuide', () => ({
   ProspectingScriptGuide: () => <div data-testid="script-guide" />,
+}))
+
+vi.mock('@/features/prospecting/components/DoNotContactModal', () => ({
+  DoNotContactModal: () => null,
 }))
 
 const mockMutateAsync = vi.fn().mockResolvedValue({ id: 'activity-123' })
@@ -67,6 +86,33 @@ vi.mock('@/features/inbox/hooks/useQuickScripts', () => ({
     isLoading: false,
     error: null,
   }),
+}))
+
+// CP-7.1: Mock DoNotContactModal and ContactHistory (newly imported by PowerDialer)
+vi.mock('@/features/prospecting/components/DoNotContactModal', () => ({
+  DoNotContactModal: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div data-testid="do-not-contact-modal" /> : null,
+}))
+
+vi.mock('@/features/prospecting/components/ContactHistory', () => ({
+  ContactHistory: () => <div data-testid="contact-history" />,
+}))
+
+vi.mock('@/context/ToastContext', () => ({
+  useOptionalToast: () => ({ addToast: vi.fn() }),
+}))
+
+vi.mock('@/features/prospecting/components/LeadScoreBadge', () => ({
+  LeadScoreBadge: () => null,
+}))
+
+vi.mock('@/features/prospecting/utils/suggestBestTime', () => ({}))
+
+vi.mock('@/features/prospecting/hooks/useContactAttempts', () => ({
+  useContactAttempts: () => ({ count: 0, lastAttempt: null, isLoading: false }),
+  formatRelativeDate: (d: string) => d,
+  OUTCOME_LABELS: {},
+  getAttemptColorClass: () => 'text-muted-foreground',
 }))
 
 // ── Helpers ──────────────────────────────────────────────
@@ -380,51 +426,110 @@ describe('PowerDialer — Purple Dot Indicator', () => {
   })
 })
 
-// ── Skip Reason Dropdown ──────────────────────────────────
+// ── Skip Button (CP-7.1: dropdown with reasons) ──────────────────────────────────
 
-describe('PowerDialer — Skip Reason Dropdown', () => {
-  it('clicking Pular opens reason dropdown instead of skipping immediately', () => {
+describe('PowerDialer — Skip Button', () => {
+  it('clicking Pular opens a dropdown with skip reasons', () => {
     const props = defaultProps()
     render(<PowerDialer {...props} />)
 
     fireEvent.click(screen.getByText('Pular'))
-    expect(props.onSkip).not.toHaveBeenCalled()
-    expect(screen.getByText('Motivo do pulo:')).toBeInTheDocument()
+    // Should show skip reason options
     expect(screen.getByText('Número errado')).toBeInTheDocument()
-    expect(screen.getByText('Já tentei hoje')).toBeInTheDocument()
+    expect(screen.getByText('Sem interesse')).toBeInTheDocument()
+    expect(screen.getByText('Não ligar mais')).toBeInTheDocument()
   })
 
-  it('selecting a reason calls onSkip with the reason id', () => {
+  it('selecting a skip reason calls onSkip with that reason', () => {
     const props = defaultProps()
     render(<PowerDialer {...props} />)
 
     fireEvent.click(screen.getByText('Pular'))
-    fireEvent.click(screen.getByText('Número errado'))
-    expect(props.onSkip).toHaveBeenCalledWith('wrong_number')
+    fireEvent.click(screen.getByText('Sem interesse'))
+    expect(props.onSkip).toHaveBeenCalledWith('Sem interesse')
   })
+})
 
-  it('closes dropdown after selecting a reason', () => {
+// ── CP-6.2: Skip Button Disabled When QuickActionsPanel Visible ──────────
+
+describe('PowerDialer — CP-6.2: Skip Protection', () => {
+  it('disables Pular button when QuickActionsPanel is visible (AC1)', async () => {
     const props = defaultProps()
     render(<PowerDialer {...props} />)
 
-    fireEvent.click(screen.getByText('Pular'))
-    fireEvent.click(screen.getByText('Já tentei hoje'))
-    expect(screen.queryByText('Motivo do pulo:')).not.toBeInTheDocument()
+    // Open CallModal and save a call to trigger QuickActionsPanel
+    fireEvent.click(screen.getByText('Ligar'))
+    expect(screen.getByTestId('call-modal')).toBeInTheDocument()
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('SaveCall'))
+    })
+
+    // QuickActionsPanel should be visible
+    expect(screen.getByTestId('quick-actions-panel')).toBeInTheDocument()
+
+    // Pular button should be disabled
+    const pularButton = screen.getByText('Pular').closest('button')
+    expect(pularButton).toHaveAttribute('disabled')
+    expect(pularButton?.className).toContain('opacity-50')
+    expect(pularButton?.className).toContain('cursor-not-allowed')
   })
 
-  it('closes dropdown on outside click', () => {
+  it('shows tooltip on disabled Pular button (AC1)', async () => {
     const props = defaultProps()
-    render(
-      <div>
-        <PowerDialer {...props} />
-        <div data-testid="outside">Outside</div>
-      </div>
-    )
+    render(<PowerDialer {...props} />)
 
-    fireEvent.click(screen.getByText('Pular'))
-    expect(screen.getByText('Motivo do pulo:')).toBeInTheDocument()
+    // Trigger QuickActionsPanel
+    fireEvent.click(screen.getByText('Ligar'))
+    await act(async () => {
+      fireEvent.click(screen.getByText('SaveCall'))
+    })
 
-    fireEvent.mouseDown(screen.getByTestId('outside'))
-    expect(screen.queryByText('Motivo do pulo:')).not.toBeInTheDocument()
+    const pularButton = screen.getByText('Pular').closest('button')
+    expect(pularButton).toHaveAttribute('title', 'Registre ou avance pelo painel abaixo')
+  })
+
+  it('Ligar and Encerrar remain active when QuickActionsPanel is visible (AC2)', async () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    // Trigger QuickActionsPanel
+    fireEvent.click(screen.getByText('Ligar'))
+    await act(async () => {
+      fireEvent.click(screen.getByText('SaveCall'))
+    })
+
+    // Ligar should not be disabled
+    const ligarButton = screen.getByText('Ligar').closest('button')
+    expect(ligarButton).not.toHaveAttribute('disabled')
+
+    // Encerrar should not be disabled
+    const encerrarButton = screen.getByText('Encerrar').closest('button')
+    expect(encerrarButton).not.toHaveAttribute('disabled')
+  })
+
+  it('Pular button works normally when QuickActionsPanel is NOT visible (AC3)', () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    // QuickActionsPanel not visible — Pular should work
+    const pularButton = screen.getByText('Pular').closest('button')
+    expect(pularButton).not.toHaveAttribute('disabled')
+    expect(pularButton?.className).not.toContain('opacity-50')
+  })
+
+  it('keyboard shortcuts remain blocked when QuickActionsPanel is visible (AC11)', async () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    // Trigger QuickActionsPanel
+    fireEvent.click(screen.getByText('Ligar'))
+    await act(async () => {
+      fireEvent.click(screen.getByText('SaveCall'))
+    })
+
+    // E should NOT call onEnd while QuickActionsPanel is open
+    pressKey('e')
+    expect(props.onEnd).not.toHaveBeenCalled()
   })
 })

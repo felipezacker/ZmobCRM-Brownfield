@@ -45,29 +45,43 @@ import { Button } from '@/components/ui/button';
 /** Tipos de notificação toast */
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
+/** Ação opcional em um toast (ex: botão "Desfazer") */
+export interface ToastAction {
+    label: string;
+    onClick: () => void;
+}
+
+/** Opções adicionais ao criar um toast */
+export interface ToastOptions {
+    action?: ToastAction;
+    duration?: number;
+}
+
 /**
  * Estrutura de uma notificação toast
- * 
+ *
  * @interface Toast
  * @property {string} id - Identificador único gerado automaticamente
  * @property {string} message - Mensagem da notificação
  * @property {ToastType} type - Tipo visual e semântico
+ * @property {ToastAction} [action] - Ação opcional (botão no toast)
  */
 export interface Toast {
     id: string;
     message: string;
     type: ToastType;
+    action?: ToastAction;
 }
 
 /**
  * Tipo do contexto de toast
- * 
+ *
  * @interface ToastContextType
- * @property {(message: string, type?: ToastType) => void} addToast - Adiciona notificação
+ * @property {(message: string, type?: ToastType, options?: ToastOptions) => void} addToast - Adiciona notificação
  * @property {(id: string) => void} removeToast - Remove notificação por ID
  */
 interface ToastContextType {
-    addToast: (message: string, type?: ToastType) => void;
+    addToast: (message: string, type?: ToastType, options?: ToastOptions) => void;
     removeToast: (id: string) => void;
 }
 
@@ -89,14 +103,14 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, []);
 
-    const addToast = useCallback((message: string, type: ToastType = 'info') => {
+    const addToast = useCallback((message: string, type: ToastType = 'info', options?: ToastOptions) => {
         const id = Math.random().toString(36).substr(2, 9);
-        setToasts((prev) => [...prev, { id, message, type }]);
+        setToasts((prev) => [...prev, { id, message, type, action: options?.action }]);
 
-        // Auto remove after 3 seconds
+        const duration = options?.duration ?? 3000;
         setTimeout(() => {
             removeToast(id);
-        }, 3000);
+        }, duration);
     }, [removeToast]);
 
     // Get accessible role based on toast type
@@ -134,6 +148,18 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                         {toast.type === 'warning' && <AlertCircle size={18} aria-hidden="true" />}
                         {toast.type === 'info' && <Info size={18} aria-hidden="true" />}
                         <span className="text-sm font-medium text-foreground">{toast.message}</span>
+                        {toast.action && (
+                            <Button
+                                type="button"
+                                onClick={() => {
+                                    toast.action!.onClick();
+                                    removeToast(toast.id);
+                                }}
+                                className="text-xs font-semibold underline text-foreground hover:text-foreground/80 transition-colors px-1"
+                            >
+                                {toast.action.label}
+                            </Button>
+                        )}
                         <Button
                             type="button"
                             onClick={() => removeToast(toast.id)}

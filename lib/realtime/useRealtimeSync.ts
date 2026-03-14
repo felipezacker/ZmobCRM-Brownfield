@@ -301,11 +301,12 @@ export function useRealtimeSync(
     });
 
     channelRef.current = channel;
+    const timers = debounceTimerRef.current;
 
     return () => {
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-      debounceTimerRef.current.forEach(timer => clearTimeout(timer));
-      debounceTimerRef.current.clear();
+      timers.forEach(timer => clearTimeout(timer));
+      timers.clear();
       if (channelRef.current) {
         sb.removeChannel(channelRef.current);
         channelRef.current = null;
