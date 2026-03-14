@@ -14,6 +14,7 @@ interface MetricsCardsProps {
   onCardClick?: (cardType: DrilldownCardType) => void
   comparisonMetrics?: ProspectingMetrics | null
   isComparisonLoading?: boolean
+  variant?: 'primary' | 'secondary'
 }
 
 function KpiCard({
@@ -75,11 +76,15 @@ function SkeletonCard() {
   )
 }
 
-export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetrics, isComparisonLoading }: MetricsCardsProps) {
+export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetrics, isComparisonLoading, variant }: MetricsCardsProps) {
+  const showPrimary = !variant || variant === 'primary'
+  const showSecondary = !variant || variant === 'secondary'
+
   if (isLoading) {
+    const skeletonCount = variant ? 3 : 6
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-        {[1, 2, 3, 4, 5, 6].map(i => (
+        {Array.from({ length: skeletonCount }, (_, i) => (
           <SkeletonCard key={i} />
         ))}
       </div>
@@ -106,58 +111,66 @@ export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetric
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-      <KpiCard
-        icon={Phone}
-        label="Ligações Discadas"
-        value={total.toString()}
-        color="bg-blue-500"
-        onClick={() => onCardClick?.('totalCalls')}
-        delta={hasDelta ? <DeltaIndicator current={total} previous={compTotal} isLoading={isComparisonLoading} /> : undefined}
-      />
-      <KpiCard
-        icon={PhoneCall}
-        label="Atendidas"
-        value={connected.toString()}
-        subtitle={pct(connected)}
-        color="bg-emerald-500"
-        onClick={() => onCardClick?.('connected')}
-        delta={hasDelta ? <DeltaIndicator current={connected} previous={compConnected} isLoading={isComparisonLoading} /> : undefined}
-      />
-      <KpiCard
-        icon={PhoneOff}
-        label="Sem Resposta"
-        value={noAnswer.toString()}
-        subtitle={pct(noAnswer)}
-        color="bg-red-500"
-        onClick={() => onCardClick?.('noAnswer')}
-        delta={hasDelta ? <DeltaIndicator current={noAnswer} previous={compNoAnswer} invertDirection isLoading={isComparisonLoading} /> : undefined}
-      />
-      <KpiCard
-        icon={Voicemail}
-        label="Correio de Voz"
-        value={voicemailCount.toString()}
-        subtitle={pct(voicemailCount)}
-        color="bg-amber-500"
-        onClick={() => onCardClick?.('voicemail')}
-        delta={hasDelta ? <DeltaIndicator current={voicemailCount} previous={compVoicemail} invertDirection isLoading={isComparisonLoading} /> : undefined}
-      />
-      <KpiCard
-        icon={Clock}
-        label="Tempo Médio"
-        value={formatDuration(metrics?.avgDuration || 0)}
-        subtitle={connected > 0 ? 'por ligação conectada' : undefined}
-        color="bg-violet-500"
-        onClick={() => onCardClick?.('avgDuration')}
-        delta={hasDelta ? <DeltaIndicator current={metrics?.avgDuration || 0} previous={comparisonMetrics?.avgDuration ?? 0} invertDirection={avgDurationInvertDirection} isLoading={isComparisonLoading} /> : undefined}
-      />
-      <KpiCard
-        icon={Users}
-        label="Contatos Prospectados"
-        value={metrics?.uniqueContacts?.toString() || '0'}
-        color="bg-primary-500"
-        onClick={() => onCardClick?.('uniqueContacts')}
-        delta={hasDelta ? <DeltaIndicator current={metrics?.uniqueContacts || 0} previous={comparisonMetrics?.uniqueContacts ?? 0} isLoading={isComparisonLoading} /> : undefined}
-      />
+      {showPrimary && (
+        <>
+          <KpiCard
+            icon={Phone}
+            label="Ligações Discadas"
+            value={total.toString()}
+            color="bg-blue-500"
+            onClick={() => onCardClick?.('totalCalls')}
+            delta={hasDelta ? <DeltaIndicator current={total} previous={compTotal} isLoading={isComparisonLoading} /> : undefined}
+          />
+          <KpiCard
+            icon={PhoneCall}
+            label="Atendidas"
+            value={connected.toString()}
+            subtitle={pct(connected)}
+            color="bg-emerald-500"
+            onClick={() => onCardClick?.('connected')}
+            delta={hasDelta ? <DeltaIndicator current={connected} previous={compConnected} isLoading={isComparisonLoading} /> : undefined}
+          />
+          <KpiCard
+            icon={PhoneOff}
+            label="Sem Resposta"
+            value={noAnswer.toString()}
+            subtitle={pct(noAnswer)}
+            color="bg-red-500"
+            onClick={() => onCardClick?.('noAnswer')}
+            delta={hasDelta ? <DeltaIndicator current={noAnswer} previous={compNoAnswer} invertDirection isLoading={isComparisonLoading} /> : undefined}
+          />
+        </>
+      )}
+      {showSecondary && (
+        <>
+          <KpiCard
+            icon={Voicemail}
+            label="Correio de Voz"
+            value={voicemailCount.toString()}
+            subtitle={pct(voicemailCount)}
+            color="bg-amber-500"
+            onClick={() => onCardClick?.('voicemail')}
+            delta={hasDelta ? <DeltaIndicator current={voicemailCount} previous={compVoicemail} invertDirection isLoading={isComparisonLoading} /> : undefined}
+          />
+          <KpiCard
+            icon={Clock}
+            label="Tempo Médio"
+            value={formatDuration(metrics?.avgDuration || 0)}
+            subtitle={connected > 0 ? 'por ligação conectada' : undefined}
+            color="bg-violet-500"
+            onClick={() => onCardClick?.('avgDuration')}
+            delta={hasDelta ? <DeltaIndicator current={metrics?.avgDuration || 0} previous={comparisonMetrics?.avgDuration ?? 0} invertDirection={avgDurationInvertDirection} isLoading={isComparisonLoading} /> : undefined}
+          />
+          <KpiCard
+            icon={Users}
+            label="Contatos Prospectados"
+            value={metrics?.uniqueContacts?.toString() || '0'}
+            color="bg-primary-500"
+            onClick={() => onCardClick?.('uniqueContacts')}
+            delta={hasDelta ? <DeltaIndicator current={metrics?.uniqueContacts || 0} previous={comparisonMetrics?.uniqueContacts ?? 0} isLoading={isComparisonLoading} /> : undefined}
+          />
+        </>
+      )}
     </div>
   )
 }
