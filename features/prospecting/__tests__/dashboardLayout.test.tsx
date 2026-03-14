@@ -189,7 +189,7 @@ describe('useDashboardLayout', () => {
     expect(result.current.isEditing).toBe(false)
 
     const stored = JSON.parse(localStorageMock._store[`prospecting_dashboard_layout_${USER_ID}`])
-    expect(stored.version).toBe(1)
+    expect(stored.version).toBe(2)
     expect(stored.sectionOrder[0]).toBe('section-c')
     expect(stored.hiddenSections).toContain('section-d')
   })

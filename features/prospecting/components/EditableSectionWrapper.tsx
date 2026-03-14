@@ -3,6 +3,7 @@
 import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import type { ItemDef } from './SortableItemEditor'
 
 interface EditableSectionWrapperProps {
   id: string
@@ -10,6 +11,10 @@ interface EditableSectionWrapperProps {
   isHidden: boolean
   canHideMore: boolean
   onToggleVisibility: (id: string) => void
+  items?: ItemDef[]
+  hiddenItems?: Set<string>
+  onToggleItem?: (sectionId: string, itemId: string) => void
+  onReorderItems?: (sectionId: string, activeId: string, overId: string) => void
   children: React.ReactNode
 }
 
@@ -19,6 +24,10 @@ export function EditableSectionWrapper({
   isHidden,
   canHideMore,
   onToggleVisibility,
+  items,
+  hiddenItems,
+  onToggleItem,
+  onReorderItems,
   children,
 }: EditableSectionWrapperProps) {
   const {
@@ -47,6 +56,14 @@ export function EditableSectionWrapper({
     opacity: isDragging ? 0.5 : 1,
   }
 
+  // Build ordered items list for the item editor
+  const orderedItems = items && items.length > 0 ? (() => {
+    // If we have a saved order, use it; otherwise use default
+    const defaultIds = items.map(i => i.id)
+    // items are already in default order, just pass them through
+    return items
+  })() : undefined
+
   const editModeProps = {
     editMode: {
       dragAttributes: attributes,
@@ -54,6 +71,10 @@ export function EditableSectionWrapper({
       isHidden,
       canHideMore,
       onToggleVisibility: () => onToggleVisibility(id),
+      items: orderedItems,
+      hiddenItems,
+      onToggleItem: onToggleItem ? (itemId: string) => onToggleItem(id, itemId) : undefined,
+      onReorderItems: onReorderItems ? (activeId: string, overId: string) => onReorderItems(id, activeId, overId) : undefined,
     },
   }
 
