@@ -67,8 +67,7 @@ export type { SessionStats, SessionContact } from '@/features/prospecting/hooks/
 // CP-8.1: Default section order for the dashboard
 const DEFAULT_SECTION_ORDER = [
   'live-ops',
-  'kpi-primary',
-  'kpi-secondary',
+  'kpi-cards',
   'ranking',
   'daily-goal',
   'charts',
@@ -91,8 +90,7 @@ interface SectionConfig {
 
 const SECTION_CONFIGS: Record<string, SectionConfig> = {
   'live-ops': { title: 'Operação ao Vivo', icon: Users, iconColor: 'text-green-500', defaultOpen: true },
-  'kpi-primary': { title: 'KPIs Principais', icon: BarChart3, iconColor: 'text-blue-500', defaultOpen: true },
-  'kpi-secondary': { title: 'KPIs Secundários', icon: BarChart3, iconColor: 'text-violet-500', defaultOpen: true },
+  'kpi-cards': { title: 'KPIs', icon: BarChart3, iconColor: 'text-blue-500', defaultOpen: true },
   'ranking': { title: 'Ranking de Corretores', icon: Trophy, iconColor: 'text-amber-500', defaultOpen: true },
   'daily-goal': { title: 'Meta do Dia', icon: TrendingUp, iconColor: 'text-emerald-500', defaultOpen: true },
   'charts': { title: 'Gráficos', icon: BarChart3, iconColor: 'text-blue-500', defaultOpen: true },
@@ -368,16 +366,15 @@ export const ProspectingPage: React.FC = () => {
             <LiveOperationsPanel sessions={liveOps.sessions} activeCount={liveOps.activeCount} isLoading={liveOps.isLoading} />
           </ProspectingErrorBoundary>
         )
-      case 'kpi-primary':
+      case 'kpi-cards':
         return (
-          <ProspectingErrorBoundary section="KPIs Principais">
+          <ProspectingErrorBoundary section="KPIs">
             <MetricsCards
               metrics={metricsHook.metrics}
               isLoading={metricsHook.isLoading}
               onCardClick={setDrilldownCard}
               comparisonMetrics={metricsHook.comparisonMetrics}
               isComparisonLoading={metricsHook.isComparisonLoading}
-              variant="primary"
             />
             {metricsFilterOwnerId && metricsHook.metrics && (
               <BrokerSummaryCard
@@ -386,19 +383,6 @@ export const ProspectingPage: React.FC = () => {
                 impact={impactHook.impact}
               />
             )}
-          </ProspectingErrorBoundary>
-        )
-      case 'kpi-secondary':
-        return (
-          <ProspectingErrorBoundary section="KPIs Secundários">
-            <MetricsCards
-              metrics={metricsHook.metrics}
-              isLoading={metricsHook.isLoading}
-              onCardClick={setDrilldownCard}
-              comparisonMetrics={metricsHook.comparisonMetrics}
-              isComparisonLoading={metricsHook.isComparisonLoading}
-              variant="secondary"
-            />
           </ProspectingErrorBoundary>
         )
       case 'ranking':
