@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CP-6.4
 - **Epic:** CP-6 (Prospeccao — Protecao de Leads & Contexto de Ligacao)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P2
 - **Estimated Points:** 5 (M)
 - **Wave:** 1
