@@ -22,28 +22,40 @@ import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config';
  */
 export function calculateNextShift(now: Date): Date {
   const { RETRY_SHIFT_MORNING_HOUR, RETRY_SHIFT_AFTERNOON_HOUR, RETRY_SHIFT_CUTOFF_HOUR } = PROSPECTING_CONFIG
-  const day = now.getDay()
+
+  // Use Brazil timezone to avoid client-local timezone issues
+  const brHour = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/Sao_Paulo' }))
+  const brDay = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })).getDay()
+
   const result = new Date(now)
   result.setMinutes(0, 0, 0)
 
   // Saturday or Sunday → Monday morning
-  if (day === 6) {
+  if (brDay === 6) {
     result.setDate(result.getDate() + 2)
     result.setHours(RETRY_SHIFT_MORNING_HOUR)
     return result
   }
-  if (day === 0) {
+  if (brDay === 0) {
     result.setDate(result.getDate() + 1)
     result.setHours(RETRY_SHIFT_MORNING_HOUR)
     return result
   }
 
   // Weekday
-  if (now.getHours() < RETRY_SHIFT_CUTOFF_HOUR) {
+  if (brHour < RETRY_SHIFT_CUTOFF_HOUR) {
     result.setHours(RETRY_SHIFT_AFTERNOON_HOUR)
   } else {
     result.setDate(result.getDate() + 1)
     result.setHours(RETRY_SHIFT_MORNING_HOUR)
+
+    // After incrementing the date, skip weekends
+    const newDay = result.getDay()
+    if (newDay === 6) { // Saturday
+      result.setDate(result.getDate() + 2) // Skip to Monday
+    } else if (newDay === 0) { // Sunday
+      result.setDate(result.getDate() + 1) // Skip to Monday
+    }
   }
 
   return result
@@ -415,23 +427,22 @@ export const prospectingQueuesService = {
       const ownerId = targetOwnerId || user.id;
       const assignedBy = targetOwnerId && targetOwnerId !== user.id ? user.id : null;
 
-      // Get existing queue contact_ids for this owner to skip duplicates
-      const { data: existing } = await sb
-        .from('prospecting_queues')
-        .select('contact_id')
-        .eq('owner_id', ownerId)
-        .in('status', ['pending', 'in_progress']);
+      // Get existing queue contact_ids and blocked contacts in parallel
+      const [existingResult, blockedResult] = await Promise.all([
+        sb
+          .from('prospecting_queues')
+          .select('contact_id')
+          .eq('owner_id', ownerId)
+          .in('status', ['pending', 'in_progress']),
+        sb
+          .from('contacts')
+          .select('id')
+          .in('id', contactIds)
+          .eq('do_not_contact', true),
+      ]);
 
-      const existingSet = new Set((existing || []).map(e => (e as { contact_id: string }).contact_id));
-
-      // CP-7.1: Filter out contacts with do_not_contact=true
-      const { data: blockedContacts } = await sb
-        .from('contacts')
-        .select('id')
-        .in('id', contactIds)
-        .eq('do_not_contact', true);
-
-      const blockedSet = new Set((blockedContacts || []).map(c => (c as { id: string }).id));
+      const existingSet = new Set((existingResult.data || []).map(e => (e as { contact_id: string }).contact_id));
+      const blockedSet = new Set((blockedResult.data || []).map(c => (c as { id: string }).id));
 
       // Filter out duplicates and blocked contacts
       const newContactIds = contactIds.filter(id => !existingSet.has(id) && !blockedSet.has(id));

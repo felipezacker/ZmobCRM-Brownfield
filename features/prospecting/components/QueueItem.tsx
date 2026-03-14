@@ -97,6 +97,35 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
     scale: isDragging ? '1.02' : undefined,
   }
 
+  const retryInfo = item.retryCount > 0 && !item.doNotContact && item.status === 'retry_pending'
+    ? formatRetryDate(item.retryAt)
+    : null
+
+  const retryBadge = item.retryCount > 0 && !item.doNotContact ? (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex flex-col items-start">
+            <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">
+              <RotateCcw size={9} />
+              Retry #{item.retryCount}
+            </span>
+            {retryInfo && (
+              <span className={`text-2xs px-1.5 ${retryInfo.color}`}>
+                {retryInfo.label}
+              </span>
+            )}
+          </span>
+        </TooltipTrigger>
+        {retryInfo && (
+          <TooltipContent>
+            <p className="text-xs">{retryInfo.exactLabel}</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  ) : null
+
   return (
     <div
       ref={setNodeRef}
@@ -163,33 +192,7 @@ export const QueueItem: React.FC<QueueItemProps> = ({ item, onRemove, isRemoving
                 Bloqueado
               </span>
             )}
-            {item.retryCount > 0 && (() => {
-              const retryInfo = item.status === 'retry_pending' ? formatRetryDate(item.retryAt) : null
-              return (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="inline-flex flex-col items-start">
-                        <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">
-                          <RotateCcw size={9} />
-                          Retry #{item.retryCount}
-                        </span>
-                        {retryInfo && (
-                          <span className={`text-2xs px-1.5 ${retryInfo.color}`}>
-                            {retryInfo.label}
-                          </span>
-                        )}
-                      </span>
-                    </TooltipTrigger>
-                    {retryInfo && (
-                      <TooltipContent>
-                        <p className="text-xs">{retryInfo.exactLabel}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-              )
-            })()}
+            {retryBadge}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             {item.contactPhone && (

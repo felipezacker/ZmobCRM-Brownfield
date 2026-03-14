@@ -29,7 +29,7 @@ export function DeltaIndicator({ current, previous, invertDirection, isLoading }
   return (
     <span
       className={`text-xs font-medium ${isPositive ? 'text-green-500' : 'text-red-500'}`}
-      aria-label={`${delta > 0 ? 'Aumento' : 'Reducao'} de ${Math.abs(delta).toFixed(1)} por cento em relacao ao periodo anterior`}
+      aria-label={`${delta > 0 ? 'Aumento' : 'Redução'} de ${Math.abs(delta).toFixed(1)} por cento em relação ao período anterior`}
     >
       {delta > 0 ? '↑' : '↓'} {Math.abs(delta).toFixed(1)}%
     </span>

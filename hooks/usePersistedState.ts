@@ -102,10 +102,11 @@ export const usePersistedState = <T>(
       if (item !== null) {
         setState(JSON.parse(item));
       }
+      setHydrated(true);
     } catch (error) {
-      console.error(`Error reading localStorage key "${storageKey}":`, error);
+      console.warn(`Failed to parse persisted state for key "${storageKey}"`, error);
+      setHydrated(true);
     }
-    setHydrated(true);
   }, [storageKey]);
 
   // Persist state changes to localStorage (skip until hydrated to avoid overwriting with initialValue)

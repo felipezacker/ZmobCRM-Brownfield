@@ -138,7 +138,14 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
       setSessionActive(true)
       // Start at first pending item (skip retry_pending items)
       const firstPending = queue.findIndex(item => item.status === 'pending')
-      setCurrentIndex(firstPending >= 0 ? firstPending : 0)
+      if (firstPending === -1) {
+        // No pending items available — cannot start session
+        setSessionActive(false)
+        setSessionId(undefined)
+        toast('Nenhum contato pendente na fila', 'warning')
+        return
+      }
+      setCurrentIndex(firstPending)
       toast('Sessão de prospecção iniciada', 'success')
     } catch (e) {
       toast('Erro ao iniciar sessão', 'error')

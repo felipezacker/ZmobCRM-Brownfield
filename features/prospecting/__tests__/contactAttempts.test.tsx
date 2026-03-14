@@ -92,7 +92,7 @@ const AttemptsBadge: React.FC<{
   return (
     <p
       className={`flex items-center gap-1 text-xs mt-1.5 ${getAttemptColorClass(count)}`}
-      aria-label={`${count} tentativas de ligação anteriores`}
+      aria-label={`${count} ${count === 1 ? 'tentativa' : 'tentativas'} de ligação anteriores`}
     >
       <span>
         {count}a tentativa
@@ -156,7 +156,7 @@ describe('AttemptsBadge', () => {
         lastAttempt={{ date: now.toISOString(), outcome: 'voicemail' }}
       />
     )
-    const badge = screen.getByLabelText('1 tentativas de ligação anteriores')
+    const badge = screen.getByLabelText('1 tentativa de ligação anteriores')
     expect(badge.className).toContain('text-muted-foreground')
   })
 

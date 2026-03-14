@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { boardsService } from '@/lib/supabase/boards'
 
 interface BoardOption {
@@ -8,33 +8,18 @@ interface BoardOption {
 }
 
 export function useBoards() {
-  const [boards, setBoards] = useState<BoardOption[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    setIsLoading(true)
-
-    boardsService.getAll()
-      .then(({ data }) => {
-        if (cancelled) return
-        setBoards(
-          (data || []).map(b => ({
-            id: b.id,
-            name: b.name,
-            stages: b.stages.map(s => ({ id: s.id, name: s.label })),
-          }))
-        )
-      })
-      .catch(() => {
-        if (!cancelled) setBoards([])
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
-
-    return () => { cancelled = true }
-  }, [])
+  const { data: boards = [], isLoading } = useQuery<BoardOption[]>({
+    queryKey: ['boards'],
+    queryFn: async () => {
+      const { data } = await boardsService.getAll()
+      return (data || []).map(b => ({
+        id: b.id,
+        name: b.name,
+        stages: b.stages.map(s => ({ id: s.id, name: s.label })),
+      }))
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 
   return { boards, isLoading }
 }

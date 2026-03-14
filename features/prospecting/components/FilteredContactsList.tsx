@@ -198,8 +198,15 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                 disabled={disabled}
                 onChange={(e) => {
                   if (allFilteredSelected) {
-                    setAllFilteredSelected(false)
-                    setAllFilteredIds(new Set())
+                    // Convert bulk selection to individual selection minus the clicked contact
+                    const remaining = new Set(allFilteredIds)
+                    remaining.delete(contact.id)
+                    setAllFilteredIds(remaining)
+                    // If no remaining contacts, exit bulk mode
+                    if (remaining.size === 0) {
+                      setAllFilteredSelected(false)
+                    }
+                    return
                   }
                   const mouseEvent = e.nativeEvent as MouseEvent
                   toggleSelect(contact.id, { shiftKey: mouseEvent.shiftKey })

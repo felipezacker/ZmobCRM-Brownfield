@@ -19,7 +19,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { CreateDealModal } from '@/features/boards/components/Modals/CreateDealModal'
 import { DoNotContactModal } from '@/features/prospecting/components/DoNotContactModal'
-import { getOpenDealsByContact } from '@/lib/supabase/deals'
 import { supabase } from '@/lib/supabase/client'
 import type { SessionStats, SessionContact } from '../ProspectingPage'
 
@@ -49,8 +48,9 @@ interface ExhaustedContact {
   attempts: number
 }
 
-const formatWhatsAppLink = (phone: string): string => {
+const formatWhatsAppLink = (phone: string): string | null => {
   const cleaned = phone.replace(/\D/g, '')
+  if (cleaned.length < 10) return null
   const withCountry = cleaned.startsWith('55') ? cleaned : `55${cleaned}`
   return `https://wa.me/${withCountry}`
 }
@@ -112,12 +112,19 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
       const connectedContacts = sessionContacts.filter(c => c.outcome === 'connected')
       let withoutDeal: ConnectedWithoutDeal[] = []
 
-      if (connectedContacts.length > 0) {
-        const dealResults = await Promise.all(
-          connectedContacts.map(c => getOpenDealsByContact(c.contactId).catch(() => null))
-        )
+      if (connectedContacts.length > 0 && supabase) {
+        const connectedContactIds = connectedContacts.map(c => c.contactId)
+        const { data: openDeals } = await supabase
+          .from('deals')
+          .select('contact_id')
+          .in('contact_id', connectedContactIds)
+          .eq('is_won', false)
+          .eq('is_lost', false)
+          .is('deleted_at', null)
+
+        const contactsWithDeal = new Set((openDeals || []).map(d => d.contact_id))
         withoutDeal = connectedContacts
-          .filter((_, i) => !dealResults[i])
+          .filter(c => !contactsWithDeal.has(c.contactId))
           .map(c => ({
             contactId: c.contactId,
             contactName: c.contactName,
@@ -401,9 +408,9 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
                     </p>
                   </div>
                   <div className="shrink-0 ml-2 flex items-center gap-1.5">
-                    {contact.contactPhone && (
+                    {contact.contactPhone && formatWhatsAppLink(contact.contactPhone) && (
                       <a
-                        href={formatWhatsAppLink(contact.contactPhone)}
+                        href={formatWhatsAppLink(contact.contactPhone)!}
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Enviar WhatsApp para ${contact.contactName}`}

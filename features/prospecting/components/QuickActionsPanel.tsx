@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import {
   Briefcase,
   CalendarClock,
@@ -9,6 +9,7 @@ import {
   Ban,
   Pencil,
 } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { CreateDealModal } from '@/features/boards/components/Modals/CreateDealModal'
 import { DealDetailModal } from '@/features/boards/components/deal-detail/DealDetailModal'
@@ -83,13 +84,24 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   const [showFollowupPrompt, setShowFollowupPrompt] = useState(false)
 
   // CP-7.3: Deal state
-  const [openDeal, setOpenDeal] = useState<OpenDeal | null>(null)
-  const [isDealLoading, setIsDealLoading] = useState(true)
-  const [dealFetchError, setDealFetchError] = useState(false)
+  const queryClient = useQueryClient()
   const [showDealDetail, setShowDealDetail] = useState(false)
   const [selectedBoardId, setSelectedBoardId] = useState('')
   const [selectedDealStage, setSelectedDealStage] = useState('')
   const [isMovingDealStage, setIsMovingDealStage] = useState(false)
+
+  const { data: openDeal = null, isLoading: isDealLoading, isError: dealFetchError } = useQuery<OpenDeal | null>({
+    queryKey: ['openDeal', contactId],
+    queryFn: () => getOpenDealsByContact(contactId),
+    enabled: !!contactId,
+  })
+
+  // Sync selectedBoardId when deal loads
+  React.useEffect(() => {
+    if (openDeal?.board_id && !selectedBoardId) {
+      setSelectedBoardId(openDeal.board_id)
+    }
+  }, [openDeal, selectedBoardId])
 
   const { boards } = useBoards()
   const selectedBoardStages = useMemo(() => {
@@ -97,35 +109,10 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
     return board?.stages ?? []
   }, [boards, selectedBoardId])
 
-  // CP-7.3: Fetch open deal for contact
-  useEffect(() => {
-    let cancelled = false
-    setIsDealLoading(true)
-    setDealFetchError(false)
-    getOpenDealsByContact(contactId)
-      .then((result) => {
-        if (!cancelled) {
-          setOpenDeal(result)
-          if (result?.board_id) setSelectedBoardId(result.board_id)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setDealFetchError(true)
-      })
-      .finally(() => {
-        if (!cancelled) setIsDealLoading(false)
-      })
-    return () => { cancelled = true }
-  }, [contactId])
-
   // CP-7.3: Refetch deal helper
   const refetchDeal = useCallback(() => {
-    setIsDealLoading(true)
-    getOpenDealsByContact(contactId)
-      .then((result) => setOpenDeal(result))
-      .catch(() => {})
-      .finally(() => setIsDealLoading(false))
-  }, [contactId])
+    queryClient.invalidateQueries({ queryKey: ['openDeal', contactId] })
+  }, [contactId, queryClient])
 
   const [returnDate, setReturnDate] = useState(() => {
     const d = suggestedReturnTime?.suggestedDate ?? getNextBusinessDay()
@@ -136,11 +123,10 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   const updateActivity = useUpdateActivity()
   const { lifecycleStages } = useSettings()
   const { profile } = useAuth()
-  const { addToast, showToast } = useToast()
-  const toast = addToast || showToast
+  const { addToast } = useToast()
   const isAdminOrDirector = profile?.role === 'admin' || profile?.role === 'diretor'
 
-  // CP-7.3: Move deal stage handler (needs toast)
+  // CP-7.3: Move deal stage handler
   const handleMoveDealStage = useCallback(async () => {
     if (!openDeal || !selectedDealStage || !selectedBoardId) return
     setIsMovingDealStage(true)
@@ -153,16 +139,19 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
       if (error) throw error
       const newStageName = selectedBoardStages.find(s => s.id === selectedDealStage)?.name || ''
       const newBoardName = boards.find(b => b.id === selectedBoardId)?.name || ''
-      setOpenDeal(prev => prev ? { ...prev, stage_id: selectedDealStage, stage_name: newStageName, board_id: selectedBoardId } : null)
+      // Update the query cache optimistically
+      queryClient.setQueryData<OpenDeal | null>(['openDeal', contactId], (prev) =>
+        prev ? { ...prev, stage_id: selectedDealStage, stage_name: newStageName, board_id: selectedBoardId } : null
+      )
       setSelectedDealStage('')
       setStageUpdated(true)
-      toast(`Deal movido para ${newBoardName} → ${newStageName}`, 'success')
+      addToast(`Deal movido para ${newBoardName} → ${newStageName}`, 'success')
     } catch {
-      toast('Erro ao mover deal', 'error')
+      addToast('Erro ao mover deal', 'error')
     } finally {
       setIsMovingDealStage(false)
     }
-  }, [openDeal, selectedDealStage, selectedBoardId, selectedBoardStages, boards, toast])
+  }, [openDeal, selectedDealStage, selectedBoardId, selectedBoardStages, boards, addToast, queryClient, contactId])
 
   const availableActions = ACTIONS_BY_OUTCOME[outcome] || []
 
@@ -188,9 +177,9 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
         },
       })
       setReturnScheduled(true)
-      toast(`Retorno agendado para ${scheduledDate.toLocaleDateString('pt-BR')} às ${scheduledDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`, 'success')
+      addToast(`Retorno agendado para ${scheduledDate.toLocaleDateString('pt-BR')} às ${scheduledDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`, 'success')
     } catch {
-      toast('Erro ao agendar retorno', 'error')
+      addToast('Erro ao agendar retorno', 'error')
     } finally {
       setIsScheduling(false)
     }
@@ -204,9 +193,9 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
       const { error } = await contactsService.update(contactId, { stage: selectedStage })
       if (error) throw error
       setStageUpdated(true)
-      toast(`Stage atualizado para ${stage?.name || selectedStage}`, 'success')
+      addToast(`Stage atualizado para ${stage?.name || selectedStage}`, 'success')
     } catch {
-      toast('Erro ao atualizar stage', 'error')
+      addToast('Erro ao atualizar stage', 'error')
     } finally {
       setIsMovingStage(false)
     }
@@ -215,7 +204,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   const handleDealCreated = (dealId: string) => {
     setShowCreateDeal(false)
     setDealCreated(true)
-    toast('Negócio criado com sucesso', 'success')
+    addToast('Negócio criado com sucesso', 'success')
 
     // CP-7.3: Refetch deal to show the newly created deal card
     refetchDeal()
@@ -226,7 +215,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
         { id: lastActivityId, updates: { dealId } },
         {
           onError: () => {
-            toast('Ligação criada, mas não foi possível vincular ao negócio', 'warning')
+            addToast('Ligação criada, mas não foi possível vincular ao negócio', 'warning')
           },
         },
       )
@@ -259,19 +248,19 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
           contactId,
           dealTitle: '',
           user: { name: 'Você', avatar: '' },
-          metadata: { source: 'auto_followup', suggested_by: 'suggestBestTime' },
+          metadata: { source: 'auto_followup', suggested_by: 'suggestBestTime', scheduled_return: true },
         },
       })
 
       const formattedDate = returnDateValue.toLocaleDateString('pt-BR')
       const formattedTime = returnDateValue.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      toast(`Retorno agendado para ${formattedDate} às ${formattedTime}`, 'success')
+      addToast(`Retorno agendado para ${formattedDate} às ${formattedTime}`, 'success')
     } catch {
       // Best-effort — if it fails, proceed without scheduling
     }
 
     onDismiss()
-  }, [suggestedReturnTime, contactName, contactId, createActivity, toast, onDismiss])
+  }, [suggestedReturnTime, contactName, contactId, createActivity, addToast, onDismiss])
 
   return (
     <>

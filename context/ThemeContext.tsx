@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { usePersistedState } from '../hooks/usePersistedState';
+import { usePersistedState } from '@/hooks/usePersistedState';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 

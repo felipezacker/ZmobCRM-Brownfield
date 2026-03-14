@@ -731,7 +731,9 @@ export const useUpdateDealItem = () => {
       }
     },
     onSettled: (_data, _error, { dealId }) => {
+      // Invalidate detail and all list queries (including filtered) to ensure consistency
       queryClient.invalidateQueries({ queryKey: queryKeys.deals.detail(dealId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.deals.lists() });
     },
   });
 };

@@ -324,7 +324,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             {attempts.count > 0 && (
               <p
                 className={`flex items-center gap-1 text-xs mt-1.5 ${getAttemptColorClass(attempts.count)}`}
-                aria-label={`${attempts.count} tentativas de ligação anteriores`}
+                aria-label={`${attempts.count} ${attempts.count === 1 ? 'tentativa' : 'tentativas'} de ligação anteriores`}
               >
                 <PhoneCall size={12} />
                 <span>

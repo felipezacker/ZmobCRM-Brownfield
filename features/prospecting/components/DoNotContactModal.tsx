@@ -20,8 +20,7 @@ export const DoNotContactModal: React.FC<DoNotContactModalProps> = ({
 }) => {
   const [reason, setReason] = useState('')
   const [isBlocking, setIsBlocking] = useState(false)
-  const { addToast, showToast } = useToast()
-  const toast = addToast || showToast
+  const { addToast } = useToast()
 
   const handleClose = useCallback(() => {
     setReason('')
@@ -34,15 +33,15 @@ export const DoNotContactModal: React.FC<DoNotContactModalProps> = ({
     try {
       const { error } = await contactsService.markDoNotContact(contactId, reason)
       if (error) throw error
-      toast('Contato bloqueado — não receberá mais ligações', 'success')
+      addToast('Contato bloqueado — não receberá mais ligações', 'success')
       setReason('')
       onBlocked?.()
     } catch {
-      toast('Erro ao bloquear contato', 'error')
+      addToast('Erro ao bloquear contato', 'error')
     } finally {
       setIsBlocking(false)
     }
-  }, [contactId, reason, toast, onBlocked])
+  }, [contactId, reason, addToast, onBlocked])
 
   return (
     <Modal
@@ -61,8 +60,8 @@ export const DoNotContactModal: React.FC<DoNotContactModalProps> = ({
           className="w-full text-sm bg-background dark:bg-card/50 border border-border dark:border-border/50 rounded-md px-3 py-2 text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-red-500/50"
         >
           <option value="">Selecione o motivo...</option>
-          <option value="Pediu para nao ligar">Pediu para não ligar</option>
-          <option value="Numero invalido">Número inválido</option>
+          <option value="Pediu para não ligar">Pediu para não ligar</option>
+          <option value="Número inválido">Número inválido</option>
           <option value="Faleceu">Faleceu</option>
           <option value="Duplicado">Duplicado</option>
         </select>

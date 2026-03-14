@@ -59,7 +59,7 @@ function calcDelta(current: number, previous: number): number | null {
   return d
 }
 
-function formatDeltaText(current: number, previous: number, invertDirection = false): string {
+function formatDeltaText(current: number, previous: number): string {
   if (previous === 0 && current === 0) return ''
   if (previous === 0 && current > 0) return 'Novo'
   const delta = ((current - previous) / previous) * 100
@@ -209,7 +209,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
 
     // Delta
     if (comparisonMetrics) {
-      const deltaText = formatDeltaText(kpi.curr, kpi.prev, kpi.invert)
+      const deltaText = formatDeltaText(kpi.curr, kpi.prev)
       if (deltaText) {
         doc.setFontSize(7)
         doc.setFont('helvetica', 'bold')
@@ -284,7 +284,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
     y += 2
 
     const compRows = kpis.map(kpi => {
-      const deltaText = formatDeltaText(kpi.curr, kpi.prev, kpi.invert)
+      const deltaText = formatDeltaText(kpi.curr, kpi.prev)
       return [kpi.label, kpi.value, kpi.prev === 0 && kpi.curr === 0 ? '0' : String(kpi.prev), deltaText || '—']
     })
 

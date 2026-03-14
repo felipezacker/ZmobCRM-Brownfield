@@ -58,7 +58,7 @@ export function getDateRange(period: MetricsPeriod, custom?: PeriodRange): Perio
   const now = new Date()
   const end = now.toISOString().split('T')[0]
 
-  if (period === 'custom' && custom) return custom
+  if (period === 'custom' && custom && custom.start && custom.end) return custom
 
   if (period === 'today') {
     return { start: end, end }

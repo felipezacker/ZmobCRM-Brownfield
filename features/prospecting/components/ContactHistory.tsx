@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Phone, Mail, Calendar, FileText, ChevronDown, ChevronUp, Clock, Landmark, Home, Ban } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useContactActivities } from '@/lib/query/hooks/useActivitiesQuery'
 import { getOpenDealsByContact } from '@/lib/supabase/deals'
 import { Button } from '@/components/ui/button'
@@ -26,23 +27,13 @@ const formatBRL = (value: number | null): string => {
 }
 
 function useContactDeal(contactId: string) {
-  const [deal, setDeal] = useState<OpenDeal | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { data: deal = null, isLoading } = useQuery<OpenDeal | null>({
+    queryKey: ['openDeal', contactId],
+    queryFn: () => getOpenDealsByContact(contactId),
+    enabled: !!contactId,
+  })
 
-  useEffect(() => {
-    let cancelled = false
-    setIsLoading(true)
-    getOpenDealsByContact(contactId)
-      .then((result) => { if (!cancelled) setDeal(result) })
-      .catch((err) => {
-        console.error('[ContactHistory] Failed to fetch deal:', err)
-        if (!cancelled) setDeal(null)
-      })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
-    return () => { cancelled = true }
-  }, [contactId])
-
-  return { deal, isLoading }
+  return { deal, isLoading: !!contactId && isLoading }
 }
 
 const OUTCOME_BADGES: Record<string, { label: string; className: string }> = {
