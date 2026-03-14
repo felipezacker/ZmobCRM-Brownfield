@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, RotateCcw, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock } from 'lucide-react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { CallQueue } from './components/CallQueue'
@@ -240,8 +240,6 @@ export const ProspectingPage: React.FC = () => {
     isLoading,
     isClearingQueue,
     removingId,
-    retryInterval,
-    setRetryInterval,
     retryOutcomes,
     setRetryOutcomes,
     skip,
@@ -336,20 +334,6 @@ export const ProspectingPage: React.FC = () => {
 
             {!sessionActive && !showSummary && activeTab === 'queue' && (
               <>
-                {/* CP-2.1: Retry interval selector */}
-                <div className="flex items-center gap-1.5">
-                  <RotateCcw size={13} className="text-muted-foreground dark:text-muted-foreground" />
-                  <select
-                    value={retryInterval}
-                    onChange={(e) => setRetryInterval(Number(e.target.value))}
-                    className="bg-muted dark:bg-white/10 border-0 rounded-lg px-2 py-1.5 text-xs font-medium text-secondary-foreground dark:text-muted-foreground outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
-                  >
-                    <option value={3}>Retry: 3 dias</option>
-                    <option value={5}>Retry: 5 dias</option>
-                    <option value={7}>Retry: 7 dias</option>
-                  </select>
-                </div>
-
                 {/* CP-IMP-1: Import list button */}
                 <Button
                   variant="unstyled"

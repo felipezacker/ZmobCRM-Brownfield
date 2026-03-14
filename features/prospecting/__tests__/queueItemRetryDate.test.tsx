@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { formatRetryDate } from '../components/QueueItem'
 import { QueueItem } from '../components/QueueItem'
+import { calculateNextShift } from '@/lib/supabase/prospecting-queues'
 import type { ProspectingQueueItem } from '@/types'
 
 // ── Mocks ──────────────────────────────────────────────
@@ -85,7 +86,7 @@ const makeItem = (overrides?: Partial<ProspectingQueueItem>): ProspectingQueueIt
 describe('formatRetryDate', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-03-14T12:00:00Z'))
+    vi.setSystemTime(new Date(2026, 2, 14, 12, 0, 0))
   })
 
   afterEach(() => {
@@ -101,38 +102,59 @@ describe('formatRetryDate', () => {
   })
 
   it('returns "Pronto para retry" with green color when retryAt is in the past', () => {
-    const result = formatRetryDate('2026-03-12T10:00:00Z')
+    const pastDate = new Date(2026, 2, 12, 10, 0, 0)
+    const result = formatRetryDate(pastDate.toISOString())
     expect(result).not.toBeNull()
     expect(result!.label).toBe('Pronto para retry')
     expect(result!.color).toContain('text-green-600')
     expect(result!.color).toContain('dark:text-green-400')
   })
 
-  it('returns "Retry hoje" with amber color when retryAt is today', () => {
-    const result = formatRetryDate('2026-03-14T18:00:00Z')
+  it('returns "Retry hoje à tarde" when retryAt is today afternoon', () => {
+    // Use local date for today at 15:00 (afternoon)
+    const todayAfternoon = new Date(2026, 2, 14, 15, 0, 0) // March 14 15:00 local
+    const result = formatRetryDate(todayAfternoon.toISOString())
     expect(result).not.toBeNull()
-    expect(result!.label).toBe('Retry hoje')
+    expect(result!.label).toBe('Retry hoje à tarde')
     expect(result!.color).toContain('text-amber-600')
   })
 
-  it('returns "Retry amanhã" with amber color when retryAt is tomorrow', () => {
-    const result = formatRetryDate('2026-03-15T10:00:00Z')
+  it('returns "Retry hoje de manhã" when retryAt is today morning', () => {
+    vi.setSystemTime(new Date(2026, 2, 14, 6, 0, 0)) // 06:00 local
+    const todayMorning = new Date(2026, 2, 14, 10, 0, 0) // 10:00 local
+    const result = formatRetryDate(todayMorning.toISOString())
     expect(result).not.toBeNull()
-    expect(result!.label).toBe('Retry amanhã')
+    expect(result!.label).toBe('Retry hoje de manhã')
+  })
+
+  it('returns "Retry amanhã de manhã" when retryAt is tomorrow morning', () => {
+    const tomorrowMorning = new Date(2026, 2, 15, 9, 0, 0)
+    const result = formatRetryDate(tomorrowMorning.toISOString())
+    expect(result).not.toBeNull()
+    expect(result!.label).toBe('Retry amanhã de manhã')
     expect(result!.color).toContain('text-amber-600')
   })
 
-  it('returns "Retry em N dias" with muted color when retryAt is 5 days ahead', () => {
-    const result = formatRetryDate('2026-03-19T10:00:00Z')
+  it('returns "Retry amanhã à tarde" when retryAt is tomorrow afternoon', () => {
+    const tomorrowAfternoon = new Date(2026, 2, 15, 14, 0, 0)
+    const result = formatRetryDate(tomorrowAfternoon.toISOString())
     expect(result).not.toBeNull()
-    expect(result!.label).toBe('Retry em 5 dias')
+    expect(result!.label).toBe('Retry amanhã à tarde')
+  })
+
+  it('returns weekday + shift when retryAt is further away', () => {
+    const futureDate = new Date(2026, 2, 19, 9, 0, 0)
+    const result = formatRetryDate(futureDate.toISOString())
+    expect(result).not.toBeNull()
+    expect(result!.label).toContain('de manhã')
     expect(result!.color).toBe('text-muted-foreground')
   })
 
-  it('returns "Retry em 2 dias" when retryAt is 2 days ahead', () => {
-    const result = formatRetryDate('2026-03-16T10:00:00Z')
+  it('returns weekday + shift for 2 days ahead afternoon', () => {
+    const futureDate = new Date(2026, 2, 16, 14, 0, 0)
+    const result = formatRetryDate(futureDate.toISOString())
     expect(result).not.toBeNull()
-    expect(result!.label).toBe('Retry em 2 dias')
+    expect(result!.label).toContain('à tarde')
   })
 
   it('returns null when retryAt is an invalid date string', () => {
@@ -141,9 +163,72 @@ describe('formatRetryDate', () => {
   })
 
   it('includes exactLabel with formatted date', () => {
-    const result = formatRetryDate('2026-03-16T10:00:00Z')
+    const futureDate = new Date(2026, 2, 16, 10, 0, 0)
+    const result = formatRetryDate(futureDate.toISOString())
     expect(result).not.toBeNull()
     expect(result!.exactLabel).toContain('Agendado para')
+  })
+})
+
+// ── calculateNextShift unit tests ──────────────────────
+
+describe('calculateNextShift', () => {
+  it('morning (10:00 Mon) → same day 14:00', () => {
+    const now = new Date(2026, 2, 16, 10, 0, 0) // Monday 10:00
+    const result = calculateNextShift(now)
+    expect(result.getHours()).toBe(14)
+    expect(result.getDate()).toBe(16)
+  })
+
+  it('afternoon (15:00 Mon) → next day 09:00', () => {
+    const now = new Date(2026, 2, 16, 15, 0, 0) // Monday 15:00
+    const result = calculateNextShift(now)
+    expect(result.getHours()).toBe(9)
+    expect(result.getDate()).toBe(17) // Tuesday
+  })
+
+  it('exactly at cutoff (13:00) → next day 09:00', () => {
+    const now = new Date(2026, 2, 16, 13, 0, 0) // Monday 13:00
+    const result = calculateNextShift(now)
+    expect(result.getHours()).toBe(9)
+    expect(result.getDate()).toBe(17) // Tuesday
+  })
+
+  it('Friday afternoon → Saturday 09:00', () => {
+    const now = new Date(2026, 2, 13, 15, 0, 0) // Friday 15:00
+    const result = calculateNextShift(now)
+    expect(result.getHours()).toBe(9)
+    expect(result.getDate()).toBe(14) // Saturday
+  })
+
+  it('Saturday morning → Monday 09:00', () => {
+    const now = new Date(2026, 2, 14, 10, 0, 0) // Saturday 10:00
+    const result = calculateNextShift(now)
+    expect(result.getDay()).toBe(1) // Monday
+    expect(result.getHours()).toBe(9)
+    expect(result.getDate()).toBe(16)
+  })
+
+  it('Saturday afternoon → Monday 09:00', () => {
+    const now = new Date(2026, 2, 14, 15, 0, 0) // Saturday 15:00
+    const result = calculateNextShift(now)
+    expect(result.getDay()).toBe(1) // Monday
+    expect(result.getHours()).toBe(9)
+    expect(result.getDate()).toBe(16)
+  })
+
+  it('Sunday → Monday 09:00', () => {
+    const now = new Date(2026, 2, 15, 10, 0, 0) // Sunday 10:00
+    const result = calculateNextShift(now)
+    expect(result.getDay()).toBe(1) // Monday
+    expect(result.getHours()).toBe(9)
+  })
+
+  it('result has minutes/seconds zeroed', () => {
+    const now = new Date(2026, 2, 16, 10, 35, 42)
+    const result = calculateNextShift(now)
+    expect(result.getMinutes()).toBe(0)
+    expect(result.getSeconds()).toBe(0)
   })
 })
 
@@ -152,27 +237,28 @@ describe('formatRetryDate', () => {
 describe('QueueItem retry date indicator (CP-6.3)', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-03-14T12:00:00Z'))
+    vi.setSystemTime(new Date(2026, 2, 14, 12, 0, 0))
   })
 
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  it('AC1/AC2: shows retry date below badge when status=retry_pending and retryAt is set', () => {
+  it('AC1/AC2: shows retry date with shift below badge when status=retry_pending and retryAt is set', () => {
+    const futureAfternoon = new Date(2026, 2, 16, 14, 0, 0) // Monday 14:00 local
     render(
       <QueueItem
         item={makeItem({
           status: 'retry_pending',
           retryCount: 2,
-          retryAt: '2026-03-16T10:00:00Z',
+          retryAt: futureAfternoon.toISOString(),
         })}
         onToggleExpand={vi.fn()}
       />
     )
 
     expect(screen.getByText('Retry #2')).toBeInTheDocument()
-    expect(screen.getByText('Retry em 2 dias')).toBeInTheDocument()
+    expect(screen.getByText(/à tarde/)).toBeInTheDocument()
   })
 
   it('AC3: shows "Pronto para retry" in green when retryAt is in the past', () => {
@@ -181,7 +267,7 @@ describe('QueueItem retry date indicator (CP-6.3)', () => {
         item={makeItem({
           status: 'retry_pending',
           retryCount: 1,
-          retryAt: '2026-03-12T10:00:00Z',
+          retryAt: new Date(2026, 2, 12, 10, 0, 0).toISOString(),
         })}
         onToggleExpand={vi.fn()}
       />
@@ -199,7 +285,7 @@ describe('QueueItem retry date indicator (CP-6.3)', () => {
         item={makeItem({
           status: 'pending',
           retryCount: 1,
-          retryAt: '2026-03-16T10:00:00Z',
+          retryAt: new Date(2026, 2, 16, 10, 0, 0).toISOString(),
         })}
         onToggleExpand={vi.fn()}
       />
@@ -216,7 +302,7 @@ describe('QueueItem retry date indicator (CP-6.3)', () => {
         item={makeItem({
           status: 'retry_pending',
           retryCount: 1,
-          retryAt: '2026-03-16T10:00:00Z',
+          retryAt: new Date(2026, 2, 16, 10, 0, 0).toISOString(),
         })}
         onToggleExpand={vi.fn()}
       />

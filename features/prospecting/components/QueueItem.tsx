@@ -15,11 +15,20 @@ export function formatRetryDate(retryAt: string | undefined | null): { label: st
   const retry = new Date(retryAt)
   if (isNaN(retry.getTime())) return null
   const diffMs = retry.getTime() - now.getTime()
-  const diffDays = Math.ceil(diffMs / 86400000)
 
   const isToday = retry.getFullYear() === now.getFullYear()
     && retry.getMonth() === now.getMonth()
     && retry.getDate() === now.getDate()
+
+  const isTomorrow = (() => {
+    const tom = new Date(now)
+    tom.setDate(tom.getDate() + 1)
+    return retry.getFullYear() === tom.getFullYear()
+      && retry.getMonth() === tom.getMonth()
+      && retry.getDate() === tom.getDate()
+  })()
+
+  const shift = retry.getHours() < 13 ? 'de manhã' : 'à tarde'
 
   const exactLabel = 'Agendado para ' + retry.toLocaleDateString('pt-BR', {
     day: '2-digit', month: '2-digit', year: 'numeric'
@@ -27,10 +36,13 @@ export function formatRetryDate(retryAt: string | undefined | null): { label: st
     hour: '2-digit', minute: '2-digit'
   })
 
-  if (diffDays <= 0 && !isToday) return { label: 'Pronto para retry', color: 'text-green-600 dark:text-green-400', exactLabel }
-  if (isToday) return { label: 'Retry hoje', color: 'text-amber-600 dark:text-amber-400', exactLabel }
-  if (diffDays === 1) return { label: 'Retry amanhã', color: 'text-amber-600 dark:text-amber-400', exactLabel }
-  return { label: `Retry em ${diffDays} dias`, color: 'text-muted-foreground', exactLabel }
+  if (diffMs <= 0 && !isToday) return { label: 'Pronto para retry', color: 'text-green-600 dark:text-green-400', exactLabel }
+  if (isToday) return { label: `Retry hoje ${shift}`, color: 'text-amber-600 dark:text-amber-400', exactLabel }
+  if (isTomorrow) return { label: `Retry amanhã ${shift}`, color: 'text-amber-600 dark:text-amber-400', exactLabel }
+
+  const diffDays = Math.ceil(diffMs / 86400000)
+  const weekday = retry.toLocaleDateString('pt-BR', { weekday: 'short' })
+  return { label: `Retry ${weekday} ${shift}`, color: 'text-muted-foreground', exactLabel }
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {

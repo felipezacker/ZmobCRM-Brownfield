@@ -14,6 +14,41 @@ import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config';
 // HELPERS
 // ============================================
 
+/**
+ * Calculate next shift for retry scheduling.
+ * Weekday before 13h → same day 14:00. Weekday after 13h → next day 09:00.
+ * Saturday (any) → Monday 09:00. Sunday (any) → Monday 09:00.
+ * Friday afternoon → Saturday 09:00 (normal flow, no weekend skip).
+ */
+export function calculateNextShift(now: Date): Date {
+  const { RETRY_SHIFT_MORNING_HOUR, RETRY_SHIFT_AFTERNOON_HOUR, RETRY_SHIFT_CUTOFF_HOUR } = PROSPECTING_CONFIG
+  const day = now.getDay()
+  const result = new Date(now)
+  result.setMinutes(0, 0, 0)
+
+  // Saturday or Sunday → Monday morning
+  if (day === 6) {
+    result.setDate(result.getDate() + 2)
+    result.setHours(RETRY_SHIFT_MORNING_HOUR)
+    return result
+  }
+  if (day === 0) {
+    result.setDate(result.getDate() + 1)
+    result.setHours(RETRY_SHIFT_MORNING_HOUR)
+    return result
+  }
+
+  // Weekday
+  if (now.getHours() < RETRY_SHIFT_CUTOFF_HOUR) {
+    result.setHours(RETRY_SHIFT_AFTERNOON_HOUR)
+  } else {
+    result.setDate(result.getDate() + 1)
+    result.setHours(RETRY_SHIFT_MORNING_HOUR)
+  }
+
+  return result
+}
+
 let cachedOrgUserId: string | null = null;
 let cachedOrgId: string | null = null;
 
@@ -440,7 +475,7 @@ export const prospectingQueuesService = {
    * Sets status to retry_pending, increments retry_count, sets retry_at.
    * If retry_count >= 3, sets status to exhausted instead.
    */
-  async scheduleRetry(id: string, retryIntervalDays: number): Promise<{ data: { exhausted: boolean } | null; error: Error | null }> {
+  async scheduleRetry(id: string): Promise<{ data: { exhausted: boolean; retryAt?: string } | null; error: Error | null }> {
     try {
       const sb = supabase;
       if (!sb) return { data: null, error: new Error('Supabase não configurado') };
@@ -466,9 +501,8 @@ export const prospectingQueuesService = {
         return { data: { exhausted: true }, error };
       }
 
-      // Schedule retry
-      const retryAt = new Date();
-      retryAt.setDate(retryAt.getDate() + retryIntervalDays);
+      // Schedule retry for next shift
+      const retryAt = calculateNextShift(new Date());
 
       const { error } = await sb
         .from('prospecting_queues')
@@ -479,7 +513,7 @@ export const prospectingQueuesService = {
         })
         .eq('id', id);
 
-      return { data: { exhausted: false }, error };
+      return { data: { exhausted: false, retryAt: retryAt.toISOString() }, error };
     } catch (e) {
       return { data: null, error: e as Error };
     }

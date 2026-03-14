@@ -24,7 +24,6 @@ import {
 import type { ProspectingQueueItem } from '@/types'
 import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 
-const RETRY_INTERVAL_KEY = 'prospecting_retry_interval'
 const RETRY_OUTCOMES_KEY = 'prospecting_retry_outcomes'
 const DEFAULT_RETRY_OUTCOMES = ['no_answer']
 
@@ -70,18 +69,6 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
   const reorderMutation = useReorderQueue()
   const { addToast, showToast } = useToast()
   const toast = addToast || showToast
-
-  // CP-2.1: Retry interval from localStorage
-  const [retryInterval, setRetryIntervalState] = useState<number>(() => {
-    if (typeof window === 'undefined') return PROSPECTING_CONFIG.DEFAULT_RETRY_INTERVAL_DAYS
-    const stored = localStorage.getItem(RETRY_INTERVAL_KEY)
-    return stored ? parseInt(stored, 10) : PROSPECTING_CONFIG.DEFAULT_RETRY_INTERVAL_DAYS
-  })
-
-  const setRetryInterval = useCallback((days: number) => {
-    setRetryIntervalState(days)
-    localStorage.setItem(RETRY_INTERVAL_KEY, String(days))
-  }, [])
 
   // CP-3.2: Configurable retry outcomes
   const [retryOutcomes, setRetryOutcomesState] = useState<string[]>(() => {
@@ -202,12 +189,16 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
       if (outcome && retryOutcomes.includes(outcome)) {
         const result = await scheduleRetryMutation.mutateAsync({
           id: item.id,
-          retryIntervalDays: retryInterval,
         })
         if (result.exhausted) {
           toast('Contato esgotou tentativas de retry', 'info')
         } else {
-          toast(`Retry agendado para ${retryInterval} dias`, 'info')
+          const retryDate = result.retryAt ? new Date(result.retryAt) : null
+          const label = retryDate
+            ? retryDate.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })
+              + ' às ' + retryDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            : 'próximo turno'
+          toast(`Retry agendado para ${label}`, 'info')
         }
       } else {
         await updateStatusMutation.mutateAsync({ id: item.id, status: 'completed' })
@@ -216,7 +207,7 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     } catch {
       toast('Erro ao marcar como completo', 'error')
     }
-  }, [queue, currentIndex, updateStatusMutation, scheduleRetryMutation, retryInterval, retryOutcomes, advanceToNext, toast])
+  }, [queue, currentIndex, updateStatusMutation, scheduleRetryMutation, retryOutcomes, advanceToNext, toast])
 
   const addToQueue = useCallback(async (contactId: string) => {
     // QV-1.7 Bug #6: Validate queue limit (100)
@@ -315,8 +306,6 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
     isLoading,
     isClearingQueue: clearAllMutation.isPending,
     removingId: removeMutation.isPending ? (removeMutation.variables as string | undefined) : undefined,
-    retryInterval,
-    setRetryInterval,
     retryOutcomes,
     setRetryOutcomes,
     startSession,

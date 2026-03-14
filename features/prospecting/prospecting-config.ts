@@ -10,8 +10,14 @@ export const PROSPECTING_CONFIG = {
   HEATMAP_MIN_CALLS: 10,
   /** Max retry attempts before marking contact as exhausted */
   MAX_RETRY_COUNT: 3,
-  /** Default days between retry attempts */
+  /** Default days between retry attempts (legacy — kept for backwards compat) */
   DEFAULT_RETRY_INTERVAL_DAYS: 3,
+  /** Shift-based retry: morning shift starts at this hour */
+  RETRY_SHIFT_MORNING_HOUR: 9,
+  /** Shift-based retry: afternoon shift starts at this hour */
+  RETRY_SHIFT_AFTERNOON_HOUR: 14,
+  /** Shift-based retry: cutoff hour — before this = morning, after = afternoon */
+  RETRY_SHIFT_CUTOFF_HOUR: 13,
   /** Max sessions shown in session history */
   SESSION_HISTORY_LIMIT: 20,
   /** Legacy: max records for client-side fallback query */
