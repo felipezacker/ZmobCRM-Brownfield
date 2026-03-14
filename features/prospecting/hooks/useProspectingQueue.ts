@@ -136,12 +136,14 @@ export const useProspectingQueue = (options?: UseProspectingQueueOptions) => {
       const sid = await startSessionMutation.mutateAsync()
       setSessionId(sid)
       setSessionActive(true)
-      setCurrentIndex(0)
+      // Start at first pending item (skip retry_pending items)
+      const firstPending = queue.findIndex(item => item.status === 'pending')
+      setCurrentIndex(firstPending >= 0 ? firstPending : 0)
       toast('Sessão de prospecção iniciada', 'success')
     } catch (e) {
       toast('Erro ao iniciar sessão', 'error')
     }
-  }, [startSessionMutation, toast, setCurrentIndex])
+  }, [startSessionMutation, queue, toast, setCurrentIndex])
 
   const endSession = useCallback(() => {
     setSessionActive(false)
