@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { CreateDealModal } from '@/features/boards/components/Modals/CreateDealModal'
 import { NoteTemplatesManager } from '@/features/prospecting/components/NoteTemplatesManager'
-import { useCreateActivity, useUpdateActivity, useDeleteActivity } from '@/lib/query/hooks/useActivitiesQuery'
+import { useCreateActivity, useUpdateActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { contactsService } from '@/lib/supabase'
 import { useSettings } from '@/context/settings/SettingsContext'
 import { useAuth } from '@/context/AuthContext'
@@ -70,6 +70,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
   const [returnScheduled, setReturnScheduled] = useState(false)
   const [dealCreated, setDealCreated] = useState(false)
   const [showReturnPicker, setShowReturnPicker] = useState(false)
+  const [showFollowupPrompt, setShowFollowupPrompt] = useState(false)
   const [returnDate, setReturnDate] = useState(() => {
     const d = suggestedReturnTime?.suggestedDate ?? getNextBusinessDay()
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
@@ -77,7 +78,6 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
 
   const createActivity = useCreateActivity()
   const updateActivity = useUpdateActivity()
-  const deleteActivity = useDeleteActivity()
   const { lifecycleStages } = useSettings()
   const { profile } = useAuth()
   const { addToast, showToast } = useToast()
@@ -150,57 +150,45 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
     }
   }
 
-  // CP-6.2: Auto-schedule return when dismissing connected call with no action taken
-  const handleDismiss = useCallback(async () => {
+  // CP-6.2: Show confirmation prompt when dismissing connected call with no action taken
+  const handleDismiss = useCallback(() => {
     const noActionTaken = !dealCreated && !returnScheduled && !stageUpdated
 
     if (outcome === 'connected' && noActionTaken) {
-      const returnDateValue = suggestedReturnTime?.suggestedDate ?? getNextBusinessDay()
-
-      try {
-        const result = await createActivity.mutateAsync({
-          activity: {
-            title: `Retorno - ${contactName}`,
-            type: 'CALL',
-            date: returnDateValue.toISOString(),
-            completed: false,
-            contactId,
-            dealTitle: '',
-            user: { name: 'Você', avatar: '' },
-            metadata: { source: 'auto_followup', suggested_by: 'suggestBestTime' },
-          },
-        })
-
-        const formattedDate = returnDateValue.toLocaleDateString('pt-BR')
-        const formattedTime = returnDateValue.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-
-        toast(
-          `Retorno agendado para ${formattedDate} às ${formattedTime}`,
-          'success',
-          {
-            duration: 5000,
-            action: {
-              label: 'Desfazer',
-              onClick: () => {
-                deleteActivity.mutate(result.id, {
-                  onSuccess: () => {
-                    toast('Retorno cancelado', 'info')
-                  },
-                  onError: () => {
-                    toast('Não foi possível cancelar o retorno', 'warning')
-                  },
-                })
-              },
-            },
-          },
-        )
-      } catch {
-        // Auto-scheduling best-effort — if it fails, proceed without scheduling
-      }
+      setShowFollowupPrompt(true)
+      return
     }
 
     onDismiss()
-  }, [dealCreated, returnScheduled, stageUpdated, outcome, suggestedReturnTime, contactName, contactId, createActivity, deleteActivity, toast, onDismiss])
+  }, [dealCreated, returnScheduled, stageUpdated, outcome, onDismiss])
+
+  // CP-6.2: Schedule return from confirmation prompt, then dismiss
+  const handleConfirmSchedule = useCallback(async () => {
+    const returnDateValue = suggestedReturnTime?.suggestedDate ?? getNextBusinessDay()
+
+    try {
+      await createActivity.mutateAsync({
+        activity: {
+          title: `Retorno - ${contactName}`,
+          type: 'CALL',
+          date: returnDateValue.toISOString(),
+          completed: false,
+          contactId,
+          dealTitle: '',
+          user: { name: 'Você', avatar: '' },
+          metadata: { source: 'auto_followup', suggested_by: 'suggestBestTime' },
+        },
+      })
+
+      const formattedDate = returnDateValue.toLocaleDateString('pt-BR')
+      const formattedTime = returnDateValue.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      toast(`Retorno agendado para ${formattedDate} às ${formattedTime}`, 'success')
+    } catch {
+      // Best-effort — if it fails, proceed without scheduling
+    }
+
+    onDismiss()
+  }, [suggestedReturnTime, contactName, contactId, createActivity, toast, onDismiss])
 
   return (
     <>
@@ -366,16 +354,42 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
           </Button>
         )}
 
-        {/* Dismiss button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleDismiss}
-          aria-label="Avançar para o próximo lead"
-          className="w-full"
-        >
-          Avançar →
-        </Button>
+        {/* Dismiss / Follow-up prompt */}
+        {showFollowupPrompt ? (
+          <div className="space-y-2 pt-1">
+            <p className="text-xs text-center text-muted-foreground">
+              Nenhuma ação registrada para este lead conectado. Agendar retorno?
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="unstyled"
+                size="sm"
+                onClick={handleConfirmSchedule}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              >
+                Sim, agendar
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onDismiss}
+                className="flex-1"
+              >
+                Não, avançar
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="unstyled"
+            size="sm"
+            onClick={handleDismiss}
+            aria-label="Avançar para o próximo lead"
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+          >
+            Avançar →
+          </Button>
+        )}
       </div>
 
       {/* CreateDealModal */}

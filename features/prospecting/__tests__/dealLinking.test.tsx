@@ -38,9 +38,9 @@ describe('getOpenDealsByContact', () => {
     const { getOpenDealsByContact } = await import('@/lib/supabase/deals')
     const result = await getOpenDealsByContact('contact-1')
 
-    expect(result).toEqual({ id: 'deal-1', title: 'Apt 101', value: null, property_ref: null, stage_id: null, stage_name: null })
+    expect(result).toEqual({ id: 'deal-1', title: 'Apt 101', value: null, property_ref: null, product_name: null, stage_id: null, stage_name: null })
     expect(mockFrom).toHaveBeenCalledWith('deals')
-    expect(mockSelect).toHaveBeenCalledWith('id, title, value, property_ref, stage_id, board_stages(name)')
+    expect(mockSelect).toHaveBeenCalledWith('id, title, value, property_ref, stage_id, board_stages(name), deal_items(name)')
     expect(mockEqContactId).toHaveBeenCalledWith('contact_id', 'contact-1')
     expect(mockEqIsWon).toHaveBeenCalledWith('is_won', false)
     expect(mockEqIsLost).toHaveBeenCalledWith('is_lost', false)
