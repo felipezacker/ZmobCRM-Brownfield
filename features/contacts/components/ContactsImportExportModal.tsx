@@ -97,7 +97,7 @@ export function ContactsImportExportModal(props: {
             onClick={() => handlePanelSwitch('export')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
               panel === 'export'
-                ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+                ? 'bg-foreground dark:bg-white text-background dark:text-gray-900 border-foreground dark:border-white'
                 : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
             }`}
           >
@@ -108,7 +108,7 @@ export function ContactsImportExportModal(props: {
             onClick={() => handlePanelSwitch('import')}
             className={`px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
               panel === 'import'
-                ? 'bg-card dark:bg-white text-white dark:text-foreground border-foreground dark:border-white'
+                ? 'bg-foreground dark:bg-white text-background dark:text-gray-900 border-foreground dark:border-white'
                 : 'bg-white dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border-border  hover:bg-background dark:hover:bg-white/10'
             }`}
           >
@@ -188,7 +188,7 @@ export function ContactsImportExportModal(props: {
                 <Button
                   type="button"
                   onClick={handleDownloadTemplate}
-                  className="px-3 py-2 rounded-lg bg-card dark:bg-white text-white dark:text-foreground text-sm font-semibold flex items-center gap-2"
+                  className="px-3 py-2 rounded-lg bg-foreground dark:bg-white text-background dark:text-gray-900 text-sm font-semibold flex items-center gap-2"
                 >
                   <Download size={16} /> Baixar template
                 </Button>
