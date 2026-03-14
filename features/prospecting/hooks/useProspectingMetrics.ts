@@ -428,6 +428,7 @@ export function useProspectingMetrics(
     activities,
     isLoading: rpcQuery.isLoading || (rpcQuery.isError && fallbackQuery.isLoading),
     isFetching: rpcQuery.isFetching || fallbackQuery.isFetching,
+    dataUpdatedAt: rpcQuery.dataUpdatedAt || fallbackQuery.dataUpdatedAt || 0,
     error: rpcQuery.isError && fallbackQuery.isError ? fallbackQuery.error : null,
     isAdminOrDirector,
     isDataTruncated,

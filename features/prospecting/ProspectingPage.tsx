@@ -11,6 +11,7 @@ import { AddToQueueSearch } from './components/AddToQueueSearch'
 import { ProspectingFilters } from './components/ProspectingFilters'
 import { useContactLists } from '@/lib/query/hooks/useContactListsQuery'
 import { FilteredContactsList } from './components/FilteredContactsList'
+import { BrokerFilterDropdown } from './components/BrokerFilterDropdown'
 import { MetricsCards } from './components/MetricsCards'
 import { MetricsDrilldownModal } from './components/MetricsDrilldownModal'
 import { LiveOperationsPanel } from './components/LiveOperationsPanel'
@@ -59,6 +60,16 @@ import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 import type { DrilldownCardType } from '@/features/prospecting/constants'
 
 export type { SessionStats } from '@/features/prospecting/hooks/useProspectingPageState'
+
+function formatTimeAgo(timestamp: number): string {
+  const diff = Math.floor((Date.now() - timestamp) / 1000)
+  if (diff < 10) return 'agora'
+  if (diff < 60) return `há ${diff}s`
+  const mins = Math.floor(diff / 60)
+  if (mins < 60) return `há ${mins} min`
+  const hours = Math.floor(mins / 60)
+  return `há ${hours}h`
+}
 
 export const ProspectingPage: React.FC = () => {
   const { profile } = useAuth()
@@ -557,9 +568,18 @@ export const ProspectingPage: React.FC = () => {
               </ProspectingErrorBoundary>
             )}
 
-            {/* CP-2.4: PDF export button */}
+            {/* Dashboard header with dynamic title + actions */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">Dashboard de Métricas</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">
+                  Métricas — {metricsPeriod === 'today' ? 'Hoje' : metricsPeriod === 'yesterday' ? 'Ontem' : metricsPeriod === '7d' ? 'Últimos 7 dias' : metricsPeriod === '30d' ? 'Últimos 30 dias' : 'Período personalizado'}
+                </span>
+                {metricsHook.dataUpdatedAt > 0 && (
+                  <span className="text-2xs text-muted-foreground">
+                    Atualizado {formatTimeAgo(metricsHook.dataUpdatedAt)}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 {isAdminOrDirector && (
                   <Button
@@ -660,47 +680,13 @@ export const ProspectingPage: React.FC = () => {
               )}
             </div>
 
-            {/* Broker filter pills */}
-            {isAdminOrDirector && (
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
-                <Button
-                  variant="unstyled"
-                  size="unstyled"
-                  type="button"
-                  onClick={() => setMetricsFilterOwnerId('')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                    !metricsFilterOwnerId
-                      ? 'bg-primary-500 text-white shadow-sm'
-                      : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-                  }`}
-                >
-                  <Users size={12} />
-                  Todos
-                </Button>
-                {profiles.map(p => (
-                  <Button
-                    key={p.id}
-                    variant="unstyled"
-                    size="unstyled"
-                    type="button"
-                    onClick={() => setMetricsFilterOwnerId(p.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
-                      metricsFilterOwnerId === p.id
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'bg-muted dark:bg-white/10 text-secondary-foreground dark:text-muted-foreground hover:bg-accent dark:hover:bg-white/15'
-                    }`}
-                  >
-                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-3xs font-bold shrink-0 ${
-                      metricsFilterOwnerId === p.id
-                        ? 'bg-white/20 text-white'
-                        : 'bg-accent dark:bg-accent text-muted-foreground dark:text-muted-foreground'
-                    }`}>
-                      {p.name.charAt(0).toUpperCase()}
-                    </span>
-                    {p.name.split(' ')[0]}
-                  </Button>
-                ))}
-              </div>
+            {/* Broker filter dropdown (admin/director only) */}
+            {isAdminOrDirector && profiles.length > 0 && (
+              <BrokerFilterDropdown
+                profiles={profiles}
+                selectedId={metricsFilterOwnerId}
+                onSelect={setMetricsFilterOwnerId}
+              />
             )}
 
             {/* ═══ SECTION: Visao Geral ═══ */}

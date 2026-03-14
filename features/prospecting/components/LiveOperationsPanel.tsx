@@ -71,12 +71,12 @@ export const LiveOperationsPanel: React.FC<LiveOperationsPanelProps> = ({
     )
   }
 
-  // Empty state
+  // Empty state — compact inline badge
   if (activeCount === 0) {
     return (
-      <div className="rounded-xl border border-border dark:border-border/50 bg-white dark:bg-white/5 p-6 flex flex-col items-center justify-center gap-2 text-center">
-        <RadioTower size={28} className="text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">Nenhum corretor em sessão no momento</p>
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border dark:border-border/50 bg-white dark:bg-white/5">
+        <span className="w-2 h-2 rounded-full bg-muted-foreground/30 shrink-0" />
+        <p className="text-xs text-muted-foreground">Nenhum corretor em sessão no momento</p>
       </div>
     )
   }
