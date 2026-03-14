@@ -139,6 +139,37 @@ function CollapsibleSection({
 }
 
 // ---------------------------------------------------------------------------
+// Expandable Fields (show/hide extra fields)
+// ---------------------------------------------------------------------------
+function ExpandableFields({ children }: { children: React.ReactNode }) {
+  const [expanded, setExpanded] = React.useState(false);
+  return (
+    <>
+      {expanded && <div className="space-y-2">{children}</div>}
+      <Button
+        type="button"
+        variant="unstyled"
+        size="unstyled"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground transition-colors pt-1"
+      >
+        {expanded ? (
+          <>
+            <ChevronDown className="h-3 w-3" />
+            Menos campos
+          </>
+        ) : (
+          <>
+            <ChevronRight className="h-3 w-3" />
+            Mais campos
+          </>
+        )}
+      </Button>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
@@ -212,31 +243,38 @@ export function ContactCockpitDataPanel({
         <div className="space-y-2 text-xs">
           {editable ? (
             <>
+              {/* Always visible: Nome, Telefone, Email, Notas */}
               <EditableRow label="Nome" value={contact.name || ''} onSave={(v) => onUpdateContact!({ name: v })} />
-              <EditableRow label="Email" value={contact.email || ''} onSave={(v) => onUpdateContact!({ email: v })} />
               <EditableRow label="Telefone" value={contact.phone || ''} onSave={(v) => onUpdateContact!({ phone: v })} />
-              <EditableRow label="CPF" value={contact.cpf ? formatCPF(contact.cpf) : ''} onSave={(v) => onUpdateContact!({ cpf: v.replace(/\D/g, '') })} />
-              <SelectRow label="Classificacao" value={contact.classification || ''} options={Object.entries(CLASSIFICATION_LABELS).map(([k, v]) => ({ value: k, label: v }))} onSave={(v) => onUpdateContact!({ classification: v as Contact['classification'] })} />
-              <SelectRow label="Temperatura" value={contact.temperature || 'WARM'} options={[{ value: 'HOT', label: 'Quente' }, { value: 'WARM', label: 'Morno' }, { value: 'COLD', label: 'Frio' }]} onSave={(v) => onUpdateContact!({ temperature: v as Contact['temperature'] })} />
-              <SelectRow label="Tipo" value={contact.contactType || 'PF'} options={[{ value: 'PF', label: 'Pessoa Fisica' }, { value: 'PJ', label: 'Pessoa Juridica' }]} onSave={(v) => onUpdateContact!({ contactType: v as Contact['contactType'] })} />
-              <SelectRow label="Origem" value={contact.source || ''} options={Object.entries(SOURCE_LABELS).map(([k, v]) => ({ value: k, label: v }))} onSave={(v) => onUpdateContact!({ source: v as Contact['source'] })} />
-              <EditableRow label="CEP" value={contact.addressCep || ''} onSave={(v) => onUpdateContact!({ addressCep: v })} />
-              <EditableRow label="Cidade" value={contact.addressCity || ''} onSave={(v) => onUpdateContact!({ addressCity: v })} />
-              <EditableRow label="UF" value={contact.addressState || ''} onSave={(v) => onUpdateContact!({ addressState: v })} />
+              <EditableRow label="Email" value={contact.email || ''} onSave={(v) => onUpdateContact!({ email: v })} />
               <EditableTextarea label="Notas" value={contact.notes || ''} onSave={(v) => onUpdateContact!({ notes: v })} />
+
+              {/* Collapsible: remaining fields */}
+              <ExpandableFields>
+                <EditableRow label="CPF" value={contact.cpf ? formatCPF(contact.cpf) : ''} onSave={(v) => onUpdateContact!({ cpf: v.replace(/\D/g, '') })} />
+                <SelectRow label="Classificacao" value={contact.classification || ''} options={Object.entries(CLASSIFICATION_LABELS).map(([k, v]) => ({ value: k, label: v }))} onSave={(v) => onUpdateContact!({ classification: v as Contact['classification'] })} />
+                <SelectRow label="Temperatura" value={contact.temperature || 'WARM'} options={[{ value: 'HOT', label: 'Quente' }, { value: 'WARM', label: 'Morno' }, { value: 'COLD', label: 'Frio' }]} onSave={(v) => onUpdateContact!({ temperature: v as Contact['temperature'] })} />
+                <SelectRow label="Tipo" value={contact.contactType || 'PF'} options={[{ value: 'PF', label: 'Pessoa Fisica' }, { value: 'PJ', label: 'Pessoa Juridica' }]} onSave={(v) => onUpdateContact!({ contactType: v as Contact['contactType'] })} />
+                <SelectRow label="Origem" value={contact.source || ''} options={Object.entries(SOURCE_LABELS).map(([k, v]) => ({ value: k, label: v }))} onSave={(v) => onUpdateContact!({ source: v as Contact['source'] })} />
+                <EditableRow label="CEP" value={contact.addressCep || ''} onSave={(v) => onUpdateContact!({ addressCep: v })} />
+                <EditableRow label="Cidade" value={contact.addressCity || ''} onSave={(v) => onUpdateContact!({ addressCity: v })} />
+                <EditableRow label="UF" value={contact.addressState || ''} onSave={(v) => onUpdateContact!({ addressState: v })} />
+              </ExpandableFields>
             </>
           ) : (
             <>
-              {contact.cpf && <Row label="CPF" value={formatCPF(contact.cpf)} />}
-              <Row label="Email" value={contact.email || '\u2014'} />
               <Row label="Telefone" value={contact.phone || '\u2014'} />
-              <Row label="Classificacao" value={CLASSIFICATION_LABELS[contact.classification || ''] || '\u2014'} />
-              <Row label="Tipo" value={contact.contactType === 'PJ' ? 'Pessoa Juridica' : 'Pessoa Fisica'} />
-              <Row label="Origem" value={SOURCE_LABELS[contact.source || ''] || '\u2014'} />
-              <Row label="Status" value={contact.status || '\u2014'} />
-              {(contact.addressCep || contact.addressCity || contact.addressState) && (
-                <Row label="Endereco" value={[contact.addressCep, contact.addressCity, contact.addressState].filter(Boolean).join(' - ')} />
-              )}
+              <Row label="Email" value={contact.email || '\u2014'} />
+              <ExpandableFields>
+                {contact.cpf && <Row label="CPF" value={formatCPF(contact.cpf)} />}
+                <Row label="Classificacao" value={CLASSIFICATION_LABELS[contact.classification || ''] || '\u2014'} />
+                <Row label="Tipo" value={contact.contactType === 'PJ' ? 'Pessoa Juridica' : 'Pessoa Fisica'} />
+                <Row label="Origem" value={SOURCE_LABELS[contact.source || ''] || '\u2014'} />
+                <Row label="Status" value={contact.status || '\u2014'} />
+                {(contact.addressCep || contact.addressCity || contact.addressState) && (
+                  <Row label="Endereco" value={[contact.addressCep, contact.addressCity, contact.addressState].filter(Boolean).join(' - ')} />
+                )}
+              </ExpandableFields>
             </>
           )}
         </div>
@@ -274,124 +312,7 @@ export function ContactCockpitDataPanel({
         </CollapsibleSection>
       )}
 
-      {/* Tags */}
-      <CollapsibleSection
-        title="Tags"
-        icon={<TagIcon className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
-      >
-        <div className="flex flex-wrap gap-2">
-          {contactTags.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic">Sem tags.</p>
-          ) : (
-            contactTags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 text-1xs font-medium px-2 py-1 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
-              >
-                {tag}
-                <Button
-                  type="button"
-                  onClick={() => onRemoveTag(tag)}
-                  className="ml-0.5 text-muted-foreground hover:text-red-400"
-                  aria-label={`Remover tag ${tag}`}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </span>
-            ))
-          )}
-        </div>
-
-        <div className="mt-3">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={tagQuery}
-              onChange={(e) => setTagQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddTag(tagQuery);
-                }
-              }}
-              placeholder="Adicionar tag..."
-              className="min-w-0 flex-1 bg-muted dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500 text-foreground placeholder-muted-foreground dark:placeholder-muted-foreground"
-              aria-label="Adicionar tag"
-            />
-            <Button
-              type="button"
-              onClick={() => handleAddTag(tagQuery)}
-              disabled={!normalizeTag(tagQuery)}
-              className="shrink-0 h-8 w-8 inline-flex items-center justify-center rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
-              aria-label="Adicionar tag"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {normalizeTag(tagQuery) && tagSuggestions.length > 0 && (
-            <div className="mt-2 bg-white dark:bg-black/20 border border-border rounded-lg overflow-hidden shadow-sm">
-              {tagSuggestions.map((t) => (
-                <Button
-                  key={t}
-                  type="button"
-                  onClick={() => handleAddTag(t)}
-                  className="w-full text-left px-3 py-1.5 text-xs text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 transition-colors"
-                >
-                  {t}
-                </Button>
-              ))}
-            </div>
-          )}
-        </div>
-      </CollapsibleSection>
-
-      {/* Custom Fields — only filled + edit button */}
-      {customFieldDefinitions.length > 0 && (() => {
-        const filledFields = customFieldDefinitions.filter((f) => {
-          const v = contact.customFields?.[f.key];
-          return v !== undefined && v !== null && v !== '';
-        });
-        return (
-          <>
-            <CollapsibleSection
-              title="Campos Personalizados"
-              icon={<PenTool className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
-              defaultOpen={filledFields.length > 0}
-            >
-              {filledFields.length > 0 ? (
-                <div className="space-y-2 text-xs">
-                  {filledFields.map((field) => (
-                    <Row key={field.id} label={field.label} value={String(contact.customFields?.[field.key] ?? '')} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground italic">Nenhum campo preenchido.</p>
-              )}
-              <Button
-                type="button"
-                variant="unstyled"
-                size="unstyled"
-                onClick={() => setCustomFieldsModalOpen(true)}
-                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/50 dark:hover:bg-white/5 transition-colors"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                <span>Editar campos</span>
-              </Button>
-            </CollapsibleSection>
-            {customFieldsModalOpen && (
-              <CustomFieldsEditModal
-                definitions={customFieldDefinitions}
-                values={contact.customFields || {}}
-                onSave={onUpdateCustomField}
-                onClose={() => setCustomFieldsModalOpen(false)}
-              />
-            )}
-          </>
-        );
-      })()}
-
-      {/* Preferences */}
+      {/* Preferences (moved above Tags) */}
       {(preferences || onCreatePreference) && (
         <CollapsibleSection
           title="Preferencias"
@@ -540,6 +461,124 @@ export function ContactCockpitDataPanel({
           ) : null}
         </CollapsibleSection>
       )}
+
+      {/* Tags */}
+      <CollapsibleSection
+        title="Tags"
+        icon={<TagIcon className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
+      >
+        <div className="flex flex-wrap gap-2">
+          {contactTags.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic">Sem tags.</p>
+          ) : (
+            contactTags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 text-1xs font-medium px-2 py-1 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
+              >
+                {tag}
+                <Button
+                  type="button"
+                  onClick={() => onRemoveTag(tag)}
+                  className="ml-0.5 text-muted-foreground hover:text-red-400"
+                  aria-label={`Remover tag ${tag}`}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </span>
+            ))
+          )}
+        </div>
+
+        <div className="mt-3">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={tagQuery}
+              onChange={(e) => setTagQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddTag(tagQuery);
+                }
+              }}
+              placeholder="Adicionar tag..."
+              className="min-w-0 flex-1 bg-muted dark:bg-black/20 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-cyan-500 text-foreground placeholder-muted-foreground dark:placeholder-muted-foreground"
+              aria-label="Adicionar tag"
+            />
+            <Button
+              type="button"
+              onClick={() => handleAddTag(tagQuery)}
+              disabled={!normalizeTag(tagQuery)}
+              className="shrink-0 h-8 w-8 inline-flex items-center justify-center rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+              aria-label="Adicionar tag"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {normalizeTag(tagQuery) && tagSuggestions.length > 0 && (
+            <div className="mt-2 bg-white dark:bg-black/20 border border-border rounded-lg overflow-hidden shadow-sm">
+              {tagSuggestions.map((t) => (
+                <Button
+                  key={t}
+                  type="button"
+                  onClick={() => handleAddTag(t)}
+                  className="w-full text-left px-3 py-1.5 text-xs text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 transition-colors"
+                >
+                  {t}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+      </CollapsibleSection>
+
+      {/* Custom Fields — only filled + edit button */}
+      {customFieldDefinitions.length > 0 && (() => {
+        const filledFields = customFieldDefinitions.filter((f) => {
+          const v = contact.customFields?.[f.key];
+          return v !== undefined && v !== null && v !== '';
+        });
+        return (
+          <>
+            <CollapsibleSection
+              title="Campos Personalizados"
+              icon={<PenTool className="h-4 w-4 text-muted-foreground dark:text-muted-foreground" />}
+              defaultOpen={filledFields.length > 0}
+            >
+              {filledFields.length > 0 ? (
+                <div className="space-y-2 text-xs">
+                  {filledFields.map((field) => (
+                    <Row key={field.id} label={field.label} value={String(contact.customFields?.[field.key] ?? '')} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">Nenhum campo preenchido.</p>
+              )}
+              <Button
+                type="button"
+                variant="unstyled"
+                size="unstyled"
+                onClick={() => setCustomFieldsModalOpen(true)}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/50 dark:hover:bg-white/5 transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Editar campos</span>
+              </Button>
+            </CollapsibleSection>
+            {customFieldsModalOpen && (
+              <CustomFieldsEditModal
+                definitions={customFieldDefinitions}
+                values={contact.customFields || {}}
+                onSave={onUpdateCustomField}
+                onClose={() => setCustomFieldsModalOpen(false)}
+              />
+            )}
+          </>
+        );
+      })()}
+
     </div>
   );
 }

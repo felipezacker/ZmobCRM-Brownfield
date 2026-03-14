@@ -566,7 +566,7 @@ export interface ContactsServerFilters {
   /** Filtro por estágio do funil. */
   stage?: string | 'ALL';
   /** Filtro por status. */
-  status?: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'CHURNED' | 'RISK';
+  status?: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'CHURNED' | 'RISK' | 'BLOCKED';
   /** Data de início (created_at >= dateStart). */
   dateStart?: string;
   /** Data de fim (created_at <= dateEnd). */

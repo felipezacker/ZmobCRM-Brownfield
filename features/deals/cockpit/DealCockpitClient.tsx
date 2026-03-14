@@ -196,7 +196,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
       />
 
       <div className="flex-1 min-h-0 w-full overflow-hidden px-6 py-4 2xl:px-10">
-        <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[340px_1fr_400px] lg:items-stretch">
+        <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[340px_1fr_400px] overflow-hidden">
           {/* Left rail */}
           <div className="flex min-h-0 flex-col gap-3 overflow-auto pr-1">
             <CockpitActionPanel
@@ -238,7 +238,7 @@ export default function DealCockpitClient({ dealId }: { dealId?: string }) {
           </div>
 
           {/* Center */}
-          <div className="flex min-h-0 flex-col gap-4">
+          <div className="flex min-h-0 flex-col gap-4 overflow-auto">
             <CockpitTimeline
               timelineItems={state.timelineItems}
               actor={state.actor}

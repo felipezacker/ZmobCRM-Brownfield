@@ -1,8 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mail, Phone, Plus, Calendar, Pencil, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Users } from 'lucide-react';
+import { Mail, Phone, Plus, Calendar, Trash2, Flame, Thermometer, Snowflake, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Users, Ban } from 'lucide-react';
 import { Contact, ContactSortableColumn, ContactClassification, ContactTemperature } from '@/types';
 import { StageBadge } from './ContactsStageTabs';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { contactsService } from '@/lib/supabase';
+import { useToast } from '@/context/ToastContext';
+import { queryKeys } from '@/lib/query/queryKeys';
+import { Modal } from '@/components/ui/Modal';
+import { Loader2 } from 'lucide-react';
 
 // ============================================
 // Story 3.5 — Source Badge Config
@@ -296,6 +303,32 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     totalCount,
     openDetailModal,
 }) => {
+    // CP-7.1: Unblock contact (admin/diretor only)
+    const { profile } = useAuth()
+    const queryClient = useQueryClient()
+    const { addToast, showToast } = useToast()
+    const toast = addToast || showToast
+    const canUnblock = profile?.role === 'admin' || profile?.role === 'diretor'
+    const [unblockingId, setUnblockingId] = useState<string | null>(null)
+    const [unblockConfirm, setUnblockConfirm] = useState<{ id: string; name: string } | null>(null)
+
+    const handleUnblock = async () => {
+        if (!unblockConfirm || !canUnblock) return
+        setUnblockingId(unblockConfirm.id)
+        try {
+            const { error } = await contactsService.revertDoNotContact(unblockConfirm.id)
+            if (error) throw error
+            toast('Contato desbloqueado com sucesso', 'success')
+            setUnblockConfirm(null)
+            queryClient.invalidateQueries({ queryKey: queryKeys.contacts.all })
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : 'Erro desconhecido'
+            toast(`Falha ao desbloquear: ${msg}`, 'error')
+        } finally {
+            setUnblockingId(null)
+        }
+    }
+
     // Story 3.5 — Map profiles for quick lookup
     const profilesMap = React.useMemo(() => {
         const map = new Map<string, ProfileInfo>();
@@ -331,6 +364,7 @@ export const ContactsList: React.FC<ContactsListProps> = ({
     }
 
     return (
+        <>
         <div className="glass overflow-hidden w-full max-w-full">
             {/* Story 3.5 — Result count (fixed, not scrollable) */}
             {totalCount !== undefined && (
@@ -460,6 +494,26 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                             >
                                                 {contact.name}
                                             </Button>
+                                            {contact.doNotContact && (
+                                                canUnblock ? (
+                                                    <Button
+                                                        variant="unstyled"
+                                                        size="unstyled"
+                                                        onClick={(e) => { e.stopPropagation(); setUnblockConfirm({ id: contact.id, name: contact.name }) }}
+                                                        disabled={unblockingId === contact.id}
+                                                        className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 transition-colors cursor-pointer disabled:opacity-50"
+                                                        title="Clique para desbloquear"
+                                                    >
+                                                        <Ban size={9} />
+                                                        {unblockingId === contact.id ? 'Desbloqueando...' : 'Bloqueado'}
+                                                    </Button>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-0.5 text-2xs font-medium px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400">
+                                                        <Ban size={9} />
+                                                        Bloqueado
+                                                    </span>
+                                                )
+                                            )}
                                         </div>
                                     </td>
                                     {/* Story 3.1 — Classificacao */}
@@ -534,13 +588,6 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                             <Button
-                                                onClick={() => openEditModal(contact)}
-                                                className="p-1.5 text-muted-foreground hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded transition-colors"
-                                                aria-label={`Editar ${contact.name}`}
-                                            >
-                                                <Pencil size={16} aria-hidden="true" />
-                                            </Button>
-                                            <Button
                                                 onClick={() => setDeleteId(contact.id)}
                                                 className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-muted-foreground hover:text-red-500 transition-colors"
                                                 aria-label={`Excluir ${contact.name}`}
@@ -556,5 +603,39 @@ export const ContactsList: React.FC<ContactsListProps> = ({
                     </table>
             </div>
         </div>
+
+        {/* CP-7.1: Unblock confirmation modal */}
+        <Modal
+            isOpen={!!unblockConfirm}
+            onClose={() => setUnblockConfirm(null)}
+            title="Desbloquear contato"
+            size="sm"
+        >
+            <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                    Desbloquear <strong className="text-foreground">{unblockConfirm?.name}</strong>? Este contato voltara a receber ligacoes de prospeccao.
+                </p>
+                <div className="flex gap-2 justify-end">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setUnblockConfirm(null)}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        variant="unstyled"
+                        size="sm"
+                        onClick={handleUnblock}
+                        disabled={!!unblockingId}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 disabled:opacity-50"
+                    >
+                        {unblockingId ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
+                        Desbloquear
+                    </Button>
+                </div>
+            </div>
+        </Modal>
+        </>
     );
 };

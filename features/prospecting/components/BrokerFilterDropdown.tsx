@@ -39,8 +39,8 @@ export const BrokerFilterDropdown: React.FC<BrokerFilterDropdownProps> = ({
   }, [profiles, search])
 
   const displayName = (() => {
-    if (!selectedId || selectedId === '__all__') return allLabel
     if (selectedId === '' && showMineOption) return mineLabel
+    if (!selectedId || selectedId === '__all__') return allLabel
     const found = profiles.find(p => p.id === selectedId)
     return found ? found.name : allLabel
   })()

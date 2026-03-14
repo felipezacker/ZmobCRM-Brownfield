@@ -74,7 +74,7 @@ END;
 $$;
 
 -- Subtask 1.4: RPC revert_do_not_contact
--- Only admin or diretor can revert (validated via JWT user_role from custom_access_token_hook).
+-- Only admin or diretor can revert (validated via profiles table, not JWT).
 CREATE OR REPLACE FUNCTION public.revert_do_not_contact(
   p_contact_id UUID
 )
@@ -92,7 +92,9 @@ BEGIN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
 
-  v_user_role := (auth.jwt() ->> 'user_role');
+  SELECT role INTO v_user_role
+  FROM public.profiles
+  WHERE id = v_user_id;
 
   IF v_user_role IS NULL OR v_user_role NOT IN ('admin', 'diretor') THEN
     RAISE EXCEPTION 'Apenas admin ou diretor pode reverter bloqueio';

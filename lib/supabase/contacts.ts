@@ -399,7 +399,7 @@ export const contactsService = {
           query = query.eq('stage', filters.stage);
         }
 
-        // T009 & T010: Status filter (including RISK logic)
+        // T009 & T010: Status filter (including RISK and BLOCKED logic)
         if (filters.status && filters.status !== 'ALL') {
           if (filters.status === 'RISK') {
             // T010: RISK = ACTIVE + lastPurchaseDate > 30 days ago
@@ -408,6 +408,9 @@ export const contactsService = {
             query = query
               .eq('status', 'ACTIVE')
               .lt('last_purchase_date', thirtyDaysAgo.toISOString());
+          } else if (filters.status === 'BLOCKED') {
+            // CP-7.1: BLOCKED = do_not_contact = true
+            query = query.eq('do_not_contact', true);
           } else {
             query = query.eq('status', filters.status);
           }

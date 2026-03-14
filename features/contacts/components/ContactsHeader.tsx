@@ -80,6 +80,7 @@ export const ContactsHeader: React.FC<ContactsHeaderProps> = ({
             <option value="INACTIVE">Inativos</option>
             <option value="CHURNED">Perdidos (Churn)</option>
             <option value="RISK">Em Risco (Alerta)</option>
+            <option value="BLOCKED">Bloqueados (LGPD)</option>
           </select>
         )}
         <div className="relative flex-1 sm:w-72">

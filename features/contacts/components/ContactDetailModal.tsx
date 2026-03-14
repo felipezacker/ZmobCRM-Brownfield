@@ -15,7 +15,7 @@ import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { Button } from '@/components/ui/button';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import type { Contact, ContactPhone, ContactPreference, Deal, Activity } from '@/types';
-import type { DealNote } from '@/lib/supabase/dealNotes';
+
 
 import { ContactCockpitDataPanel } from '../cockpit/ContactCockpitDataPanel';
 import { ContactCockpitTimeline } from '../cockpit/ContactCockpitTimeline';
@@ -64,7 +64,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
   const [deals, setDeals] = useState<Deal[]>([]);
   const [dealActivities, setDealActivities] = useState<Activity[]>([]);
   const [contactActivities, setContactActivities] = useState<Activity[]>([]);
-  const [notes, setNotes] = useState<DealNote[]>([]);
+  const [notes, setNotes] = useState<Activity[]>([]);
   const [scoreHistory, setScoreHistory] = useState<{ id: string; old_score: number; new_score: number; change: number; created_at: string }[]>([]);
   const [isNotesLoading, setIsNotesLoading] = useState(false);
 
@@ -112,15 +112,13 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
           ? supabase.from('activities').select('*').in('deal_id', dealIds).is('deleted_at', null).order('date', { ascending: false }).limit(100)
           : Promise.resolve({ data: [] }),
         supabase.from('activities').select('*').eq('contact_id', contactId).is('deleted_at', null).order('date', { ascending: false }).limit(100),
-        dealIds.length > 0
-          ? supabase.from('deal_notes').select('*').in('deal_id', dealIds).order('created_at', { ascending: false })
-          : Promise.resolve({ data: [] }),
       ]);
 
       if (cancelled) return;
       setDealActivities((secondaryResults[0].status === 'fulfilled' ? secondaryResults[0].value : { data: [] })?.data as Activity[] || []);
-      setContactActivities((secondaryResults[1].status === 'fulfilled' ? secondaryResults[1].value : { data: [] })?.data as Activity[] || []);
-      setNotes((secondaryResults[2].status === 'fulfilled' ? secondaryResults[2].value : { data: [] })?.data as DealNote[] || []);
+      const contactActs = (secondaryResults[1].status === 'fulfilled' ? secondaryResults[1].value : { data: [] })?.data as Activity[] || [];
+      setContactActivities(contactActs);
+      setNotes(contactActs.filter(a => a.type === 'NOTE'));
     };
 
     loadAll();
@@ -163,13 +161,12 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
   }, [deals, contactId]);
 
   const refreshNotes = useCallback(async () => {
-    if (!supabase || deals.length === 0) return;
+    if (!supabase) return;
     setIsNotesLoading(true);
-    const dealIds = deals.map((d) => d.id);
-    const { data } = await supabase.from('deal_notes').select('*').in('deal_id', dealIds).order('created_at', { ascending: false });
-    setNotes((data as DealNote[]) || []);
+    const { data } = await supabase.from('activities').select('*').eq('contact_id', contactId).eq('type', 'NOTE').is('deleted_at', null).order('date', { ascending: false });
+    setNotes((data as Activity[]) || []);
     setIsNotesLoading(false);
-  }, [deals]);
+  }, [contactId]);
 
   // ---- Preference handlers ----
   const emitPreferenceChange = useCallback((tool: string) => {
@@ -484,7 +481,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
             <div className={`h-full min-h-0 gap-4 ${
               isMobile
                 ? 'flex flex-col overflow-auto'
-                : 'grid lg:grid-cols-[340px_1fr_400px] lg:items-stretch'
+                : 'grid lg:grid-cols-[340px_1fr_400px] overflow-hidden'
             }`}>
               {/* Left: DataPanel with inline editing */}
               <ContactCockpitDataPanel
@@ -502,6 +499,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
               />
 
               {/* Center: Timeline */}
+              <div className="min-h-0 overflow-auto">
               <ContactCockpitTimeline
                 activities={timelineEntries}
                 contactId={contactId}
@@ -513,6 +511,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                   refreshNotes();
                 }}
               />
+              </div>
 
               {/* Right: RightRail */}
               <ContactCockpitRightRail
@@ -520,8 +519,8 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                 deals={deals}
                 notes={notes}
                 isNotesLoading={isNotesLoading}
-                onNoteCreated={refreshNotes}
-                onNoteDeleted={() => refreshNotes()}
+                onNoteCreated={() => { refreshNotes(); refreshActivities(); }}
+                onNoteDeleted={() => { refreshNotes(); refreshActivities(); }}
                 contactSnapshot={contactSnapshot}
                 onOpenDeal={handleOpenDeal}
               />
