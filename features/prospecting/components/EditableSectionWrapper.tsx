@@ -42,21 +42,20 @@ export function EditableSectionWrapper({
     return <div ref={setNodeRef}>{children}</div>
   }
 
-  // Edit mode: show drag handle + visibility toggle
+  // Edit mode
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
 
-  // QA#3: Disable hide toggle when this is the last visible section
   const canToggle = isHidden || canHideMore
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative rounded-xl border-2 border-dashed transition-colors ${
+      className={`rounded-xl border-2 border-dashed transition-colors overflow-hidden ${
         isHidden
           ? 'border-muted-foreground/20 opacity-40'
           : isDragging
@@ -64,30 +63,31 @@ export function EditableSectionWrapper({
             : 'border-border dark:border-border/50 hover:border-primary-500/50'
       }`}
     >
-      {/* Drag handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-2 left-2 p-1.5 rounded-lg cursor-grab active:cursor-grabbing bg-muted text-muted-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 z-10 transition-colors"
-        aria-label="Arrastar para reordenar"
-      >
-        <GripVertical size={14} />
-      </div>
+      {/* Full-width drag handle bar */}
+      <div className="flex items-center">
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex-1 flex items-center gap-2 px-3 py-1.5 cursor-grab active:cursor-grabbing select-none bg-muted/50 dark:bg-white/5 hover:bg-muted dark:hover:bg-white/10 transition-colors"
+          aria-label="Arrastar para reordenar"
+        >
+          <GripVertical size={14} className="text-muted-foreground shrink-0" />
+          <div className="flex-1 h-px bg-border/50 dark:bg-border/30" />
+        </div>
 
-      {/* Visibility toggle */}
-      <div className="absolute top-2 right-2 z-10">
+        {/* Visibility toggle — outside drag listeners */}
         <Button
           variant="unstyled"
           size="unstyled"
           type="button"
           onClick={() => onToggleVisibility(id)}
           disabled={!canToggle}
-          className={`p-1.5 rounded-lg transition-colors ${
+          className={`shrink-0 px-2.5 py-1.5 transition-colors ${
             isHidden
               ? 'bg-red-100 text-red-500 dark:bg-red-500/20 dark:text-red-400'
               : !canToggle
-                ? 'bg-muted text-muted-foreground/30 cursor-not-allowed dark:bg-white/5 dark:text-muted-foreground/30'
-                : 'bg-muted text-muted-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15'
+                ? 'bg-muted/50 text-muted-foreground/30 cursor-not-allowed dark:bg-white/5 dark:text-muted-foreground/30'
+                : 'bg-muted/50 text-muted-foreground hover:bg-muted dark:bg-white/5 dark:text-muted-foreground dark:hover:bg-white/10'
           }`}
           aria-label={isHidden ? 'Mostrar seção' : 'Esconder seção'}
           aria-pressed={!isHidden}
@@ -97,7 +97,7 @@ export function EditableSectionWrapper({
       </div>
 
       {/* Section content */}
-      <div className="pt-1">{children}</div>
+      <div>{children}</div>
     </div>
   )
 }
