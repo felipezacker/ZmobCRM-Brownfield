@@ -28,7 +28,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
   editingContact,
   createFakeContactsBatch,
   isSubmitting = false,
-  bufferedPrefsRef,
+  bufferedPrefRef,
   onOpenDetail,
 }) => {
   const headingId = useId();
@@ -451,7 +451,7 @@ export const ContactFormModal: React.FC<ContactFormModalProps> = ({
           <ContactPreferencesSection
             contactId={editingContact?.id}
             organizationId={editingContact?.organizationId || profile?.organization_id}
-            bufferedPrefsRef={!editingContact ? bufferedPrefsRef : undefined}
+            bufferedPrefRef={!editingContact ? bufferedPrefRef : undefined}
           />
 
           {/* Secao: Historico (somente edicao, read-only) */}

@@ -43,18 +43,15 @@ export const URGENCY_LABELS: Record<string, string> = {
 export const PURPOSE_LABELS: Record<string, string> = {
   MORADIA: 'Moradia',
   INVESTIMENTO: 'Investimento',
-  VERANEIO: 'Veraneio',
 };
 
-export const PROPERTY_TYPES = ['APARTAMENTO', 'CASA', 'TERRENO', 'COMERCIAL', 'RURAL', 'GALPAO'] as const;
+export const PROPERTY_TYPES = ['APARTAMENTO', 'CASA', 'TERRENO', 'COMERCIAL'] as const;
 
 export const PROPERTY_TYPE_LABELS: Record<string, string> = {
   APARTAMENTO: 'Apto',
   CASA: 'Casa',
   TERRENO: 'Terreno',
   COMERCIAL: 'Comercial',
-  RURAL: 'Rural',
-  GALPAO: 'Galpao',
 };
 
 export const INPUT_CLASS =

@@ -146,7 +146,7 @@ export const useContactsController = () => {
     setDeleteId: crud.setDeleteId,
     deleteWithDeals: crud.deleteWithDeals,
     setDeleteWithDeals: crud.setDeleteWithDeals,
-    bufferedPrefsRef: crud.bufferedPrefsRef,
+    bufferedPrefRef: crud.bufferedPrefsRef,
     openCreateModal: crud.openCreateModal,
     openEditModal: crud.openEditModal,
     confirmDelete: crud.confirmDelete,

@@ -46,27 +46,13 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
       if (data.bedroomsMin != null) updates.bedroomsMin = data.bedroomsMin;
       if (data.parkingMin != null) updates.parkingMin = data.parkingMin;
       if (data.areaMin != null) updates.areaMin = data.areaMin;
-      if (data.acceptsFinancing != null) updates.acceptsFinancing = data.acceptsFinancing;
-      if (data.acceptsFgts != null) updates.acceptsFgts = data.acceptsFgts;
       if (data.urgency) updates.urgency = data.urgency;
+      if (data.notes) updates.notes = data.notes;
 
       if (!preferences) {
         onCreatePreferences(updates);
       } else {
-        // Update DB
-        const dbUpdates: Record<string, unknown> = {};
-        if (data.propertyTypes?.length) dbUpdates.propertyTypes = data.propertyTypes;
-        if (data.purpose) dbUpdates.purpose = data.purpose;
-        if (data.priceMin != null) dbUpdates.price_min = data.priceMin;
-        if (data.priceMax != null) dbUpdates.price_max = data.priceMax;
-        if (data.regions?.length) dbUpdates.regions = data.regions;
-        if (data.bedroomsMin != null) dbUpdates.bedrooms_min = data.bedroomsMin;
-        if (data.parkingMin != null) dbUpdates.parking_min = data.parkingMin;
-        if (data.areaMin != null) dbUpdates.area_min = data.areaMin;
-        if (data.acceptsFinancing != null) dbUpdates.accepts_financing = data.acceptsFinancing;
-        if (data.acceptsFgts != null) dbUpdates.accepts_fgts = data.acceptsFgts;
-        if (data.urgency) dbUpdates.urgency = data.urgency;
-        onUpdatePreference(preferences.id, dbUpdates);
+        onUpdatePreference(preferences.id, updates);
         onSetPreferences({ ...preferences, ...updates });
       }
       setAiInput('');
@@ -137,13 +123,12 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
               <option value="">--</option>
               <option value="MORADIA">Moradia</option>
               <option value="INVESTIMENTO">Investimento</option>
-              <option value="VERANEIO">Veraneio</option>
             </select>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground text-xs">Tipos</span>
             <div className="flex flex-wrap gap-1 justify-end">
-              {(['APARTAMENTO', 'CASA', 'TERRENO', 'COMERCIAL', 'RURAL', 'GALPAO'] as PropertyType[]).map(pt => (
+              {(['APARTAMENTO', 'CASA', 'TERRENO', 'COMERCIAL'] as PropertyType[]).map(pt => (
                 <Button
                   key={pt}
                   onClick={() => {
@@ -235,6 +220,42 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
             />
           </div>
           <div className="flex justify-between items-center">
+            <span className="text-muted-foreground text-xs">Vagas min</span>
+            <input
+              type="number"
+              min={0}
+              value={preferences.parkingMin ?? ''}
+              onChange={e => {
+                const val = e.target.value ? Number(e.target.value) : null;
+                onSetPreferences({ ...preferences, parkingMin: val });
+              }}
+              onBlur={e => {
+                const val = e.target.value ? Number(e.target.value) : null;
+                onUpdatePreference(preferences.id, { parkingMin: val });
+              }}
+              placeholder="--"
+              className="w-14 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground text-right"
+            />
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground text-xs">Area min (m²)</span>
+            <input
+              type="number"
+              min={0}
+              value={preferences.areaMin ?? ''}
+              onChange={e => {
+                const val = e.target.value ? Number(e.target.value) : null;
+                onSetPreferences({ ...preferences, areaMin: val });
+              }}
+              onBlur={e => {
+                const val = e.target.value ? Number(e.target.value) : null;
+                onUpdatePreference(preferences.id, { areaMin: val });
+              }}
+              placeholder="--"
+              className="w-14 text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-primary-500 text-foreground text-right"
+            />
+          </div>
+          <div className="flex justify-between items-center">
             <span className="text-muted-foreground text-xs">Urgencia</span>
             <select
               value={preferences.urgency || ''}
@@ -251,6 +272,21 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
               <option value="6_MONTHS">6 meses</option>
               <option value="1_YEAR">1 ano</option>
             </select>
+          </div>
+          <div className="space-y-1">
+            <span className="text-muted-foreground text-xs">Observacoes</span>
+            <textarea
+              className="w-full text-xs bg-transparent border border-border dark:border-border rounded-md px-1.5 py-1 outline-none focus:ring-1 focus:ring-primary-500 text-foreground min-h-[36px] resize-none"
+              value={preferences.notes ?? ''}
+              onChange={e => {
+                onSetPreferences({ ...preferences, notes: e.target.value });
+              }}
+              onBlur={e => {
+                const val = e.target.value.trim() || null;
+                onUpdatePreference(preferences.id, { notes: val });
+              }}
+              placeholder="Detalhes adicionais..."
+            />
           </div>
         </div>
       ) : (

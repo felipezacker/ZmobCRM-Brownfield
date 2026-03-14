@@ -41,8 +41,8 @@ export interface ContactFormModalProps {
   editingContact: Contact | null;
   createFakeContactsBatch?: (count: number) => Promise<void>;
   isSubmitting?: boolean;
-  /** Ref compartilhado para preferencias buffered durante criacao */
-  bufferedPrefsRef?: React.MutableRefObject<ContactPreference[]>;
+  /** Ref compartilhado para preferencia buffered durante criacao */
+  bufferedPrefRef?: React.MutableRefObject<ContactPreference | null>;
   /** Callback to open contact detail modal instead of navigating */
   onOpenDetail?: (contactId: string) => void;
 }

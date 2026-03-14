@@ -304,7 +304,7 @@ export const ContactsPage: React.FC = () => {
                 editingContact={controller.editingContact}
                 createFakeContactsBatch={controller.createFakeContactsBatch}
                 isSubmitting={controller.isSubmittingContact}
-                bufferedPrefsRef={controller.bufferedPrefsRef}
+                bufferedPrefRef={controller.bufferedPrefRef}
                 onOpenDetail={controller.openDetailModal}
             />
 

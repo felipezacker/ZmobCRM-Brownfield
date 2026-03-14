@@ -336,6 +336,7 @@ export function useDealCockpitActions(deps: CockpitActionsDeps) {
     if (!preferences?.id) return;
     await contactPreferencesService.update(preferences.id, updates);
     setPreferences(p => p ? { ...p, ...updates } : p);
+    window.dispatchEvent(new CustomEvent('zmob:data-mutated', { detail: { tool: 'updateContactPreference' } }));
   }, [preferences?.id, setPreferences]);
 
   const handleCreatePreferences = useCallback(async (initialData?: Partial<ContactPreference>) => {
@@ -359,6 +360,7 @@ export function useDealCockpitActions(deps: CockpitActionsDeps) {
     });
     if (error) { console.error('[Cockpit] createPreferences failed:', error); pushToast('Erro ao criar preferências.', 'danger'); return; }
     if (data) setPreferences(data);
+    window.dispatchEvent(new CustomEvent('zmob:data-mutated', { detail: { tool: 'createContactPreference' } }));
   }, [selectedContact?.id, profile?.organization_id, setPreferences, pushToast]);
 
   const handleAddItem = useCallback(async (item: { productId?: string; name: string; price: number; quantity: number }) => {

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Plus, Trash2, Save, X, Home } from 'lucide-react';
+import React from 'react';
+import { ChevronDown, ChevronUp, Plus, Trash2, Home } from 'lucide-react';
 import { ContactPreference, PropertyType, PreferencePurpose, PreferenceUrgency } from '@/types';
 import { Button } from '@/components/ui/button';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -17,14 +17,11 @@ const PROPERTY_TYPE_OPTIONS: { value: PropertyType; label: string }[] = [
   { value: 'CASA', label: 'Casa' },
   { value: 'TERRENO', label: 'Terreno' },
   { value: 'COMERCIAL', label: 'Comercial' },
-  { value: 'RURAL', label: 'Rural' },
-  { value: 'GALPAO', label: 'Galpão' },
 ];
 
 const PURPOSE_OPTIONS: { value: PreferencePurpose; label: string }[] = [
   { value: 'MORADIA', label: 'Moradia' },
   { value: 'INVESTIMENTO', label: 'Investimento' },
-  { value: 'VERANEIO', label: 'Veraneio' },
 ];
 
 const URGENCY_OPTIONS: { value: PreferenceUrgency; label: string }[] = [
@@ -77,7 +74,7 @@ function PreferenceForm({
   saving: boolean;
   priceError: string | null;
 }) {
-  const [regionInput, setRegionInput] = useState('');
+  const [regionInput, setRegionInput] = React.useState('');
 
   const addRegion = () => {
     const trimmed = regionInput.trim();
@@ -219,28 +216,6 @@ function PreferenceForm({
         </div>
       </div>
 
-      {/* Financiamento + FGTS */}
-      <div className="flex items-center gap-6">
-        <label className="flex items-center gap-1.5 text-xs text-secondary-foreground dark:text-muted-foreground cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.acceptsFinancing}
-            onChange={e => onChange({ acceptsFinancing: e.target.checked })}
-            className="rounded border-border text-primary-600 focus:ring-primary-500"
-          />
-          Aceita financiamento
-        </label>
-        <label className="flex items-center gap-1.5 text-xs text-secondary-foreground dark:text-muted-foreground cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.acceptsFgts}
-            onChange={e => onChange({ acceptsFgts: e.target.checked })}
-            className="rounded border-border text-primary-600 focus:ring-primary-500"
-          />
-          Aceita FGTS
-        </label>
-      </div>
-
       {/* Regioes (tags) */}
       <div>
         <label className={LABEL_CLASS}>Regioes de Interesse</label>
@@ -280,7 +255,7 @@ function PreferenceForm({
                   className="hover:text-red-500 transition-colors"
                   aria-label={`Remover ${region}`}
                 >
-                  <X size={10} />
+                  <span className="text-xs leading-none">&times;</span>
                 </Button>
               </span>
             ))}
@@ -307,7 +282,6 @@ function PreferenceForm({
           disabled={saving}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 hover:bg-primary-500 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
         >
-          <Save size={12} />
           {saving ? 'Salvando...' : 'Salvar'}
         </Button>
         <Button
@@ -324,25 +298,25 @@ function PreferenceForm({
 }
 
 // ============================================
-// Componente principal: ContactPreferencesSection
+// Componente principal: ContactPreferencesSection (single preference)
 // ============================================
 interface ContactPreferencesSectionProps {
   contactId?: string;
   organizationId?: string;
-  /** Ref exposta para o pai ler buffered prefs antes de fechar o modal */
-  bufferedPrefsRef?: React.MutableRefObject<ContactPreference[]>;
+  /** Ref exposta para o pai ler buffered pref antes de fechar o modal */
+  bufferedPrefRef?: React.MutableRefObject<ContactPreference | null>;
 }
 
 export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps> = ({
   contactId,
   organizationId,
-  bufferedPrefsRef: externalBufferRef,
+  bufferedPrefRef: externalBufferRef,
 }) => {
   const prefData = useContactPreferences({ contactId, organizationId, externalBufferRef });
   const editor = usePreferenceEditor();
 
   const {
-    preferences, loading, error, setError,
+    preference, loading, error, setError,
     saving, confirmDeleteId, setConfirmDeleteId,
   } = prefData;
 
@@ -352,27 +326,11 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
     validatePrice, startEditing, startCreating, cancelEdit, handleFormChange,
   } = editor;
 
-  const handleSaveEdit = async () => {
+  const handleSave = async () => {
     if (!validatePrice(editForm)) return;
-    if (!expandedId) return;
-    await prefData.saveEdit(expandedId, formToPayload(editForm), {
-      onSuccess: () => setExpandedId(null),
+    await prefData.save(formToPayload(editForm), {
+      onSuccess: () => { cancelEdit(); setExpandedId(null); },
     });
-  };
-
-  const handleSaveNew = async () => {
-    if (!validatePrice(editForm)) return;
-    await prefData.saveNew(formToPayload(editForm), {
-      onSuccess: () => { editor.setIsCreating(false); editor.setEditForm(editor.editForm); cancelEdit(); },
-    });
-  };
-
-  const handleDelete = async (id: string) => {
-    await prefData.handleDelete(id, expandedId, setExpandedId);
-  };
-
-  const executeDelete = async (id: string) => {
-    await prefData.executeDelete(id, expandedId, setExpandedId);
   };
 
   if (loading) {
@@ -395,11 +353,6 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
         <span className="flex items-center gap-2">
           <Home size={14} />
           Perfil de Interesse
-          {preferences.length > 0 && (
-            <span className="inline-flex items-center justify-center w-4 h-4 text-2xs font-bold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full">
-              {preferences.length}
-            </span>
-          )}
         </span>
       </legend>
 
@@ -416,25 +369,21 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
         </div>
       )}
 
-      {/* Lista de preferencias existentes */}
-      {preferences.map(pref => (
-        <div
-          key={pref.id}
-          className="bg-background dark:bg-black/10 rounded-lg border border-border"
-        >
-          {/* Header do card */}
+      {/* Preference card (summary + expandable edit) */}
+      {preference && !isCreating && (
+        <div className="bg-background dark:bg-black/10 rounded-lg border border-border">
           <div className="flex items-center gap-2 p-3">
             <Button
               type="button"
-              onClick={() => startEditing(pref)}
+              onClick={() => startEditing(preference)}
               className="flex items-center gap-2 flex-1 min-w-0 text-left"
             >
-              {expandedId === pref.id ? <ChevronUp size={14} className="text-muted-foreground shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground shrink-0" />}
-              <PreferenceSummary pref={pref} />
+              {expandedId === preference.id ? <ChevronUp size={14} className="text-muted-foreground shrink-0" /> : <ChevronDown size={14} className="text-muted-foreground shrink-0" />}
+              <PreferenceSummary pref={preference} />
             </Button>
             <Button
               type="button"
-              onClick={() => handleDelete(pref.id)}
+              onClick={() => prefData.handleDelete()}
               className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors shrink-0"
               aria-label="Excluir perfil"
             >
@@ -442,13 +391,12 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
             </Button>
           </div>
 
-          {/* Form expandido */}
-          {expandedId === pref.id && (
+          {expandedId === preference.id && (
             <div className="px-3 pb-3">
               <PreferenceForm
                 form={editForm}
                 onChange={handleFormChange}
-                onSave={handleSaveEdit}
+                onSave={handleSave}
                 onCancel={cancelEdit}
                 saving={saving}
                 priceError={priceError}
@@ -456,18 +404,18 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
             </div>
           )}
         </div>
-      ))}
+      )}
 
-      {/* Form de criacao */}
+      {/* Create form */}
       {isCreating && (
         <div className="bg-primary-50/50 dark:bg-primary-900/10 rounded-lg border border-primary-200 dark:border-primary-800/30 p-3">
           <span className="text-xs font-bold text-primary-700 dark:text-primary-300 uppercase mb-2 block">
-            Novo Perfil de Interesse
+            {preference ? 'Editar Perfil de Interesse' : 'Novo Perfil de Interesse'}
           </span>
           <PreferenceForm
             form={editForm}
             onChange={handleFormChange}
-            onSave={handleSaveNew}
+            onSave={handleSave}
             onCancel={cancelEdit}
             saving={saving}
             priceError={priceError}
@@ -475,8 +423,8 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
         </div>
       )}
 
-      {/* Botao adicionar */}
-      {!isCreating && (
+      {/* Add button (only when no preference and not creating) */}
+      {!preference && !isCreating && (
         <Button
           type="button"
           onClick={startCreating}
@@ -490,7 +438,7 @@ export const ContactPreferencesSection: React.FC<ContactPreferencesSectionProps>
       <ConfirmModal
         isOpen={!!confirmDeleteId}
         onClose={() => setConfirmDeleteId(null)}
-        onConfirm={() => { if (confirmDeleteId) executeDelete(confirmDeleteId); }}
+        onConfirm={() => { if (confirmDeleteId) prefData.executeDelete(confirmDeleteId); setConfirmDeleteId(null); }}
         title="Excluir perfil de interesse"
         message="Tem certeza que deseja excluir este perfil de interesse?"
         confirmText="Excluir"

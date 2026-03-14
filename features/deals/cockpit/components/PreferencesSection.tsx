@@ -57,8 +57,6 @@ export function PreferencesSection({
       if (data.bedroomsMin != null) updates.bedroomsMin = data.bedroomsMin;
       if (data.parkingMin != null) updates.parkingMin = data.parkingMin;
       if (data.areaMin != null) updates.areaMin = data.areaMin;
-      if (data.acceptsFinancing != null) updates.acceptsFinancing = data.acceptsFinancing;
-      if (data.acceptsFgts != null) updates.acceptsFgts = data.acceptsFgts;
       if (data.urgency) updates.urgency = data.urgency;
       if (data.notes) updates.notes = data.notes;
 
@@ -218,6 +216,36 @@ export function PreferencesSection({
                   }}
                 />
               </div>
+              {/* Vagas min */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-muted-foreground">Vagas min.</span>
+                <input
+                  type="number"
+                  className={`${INPUT_CLASS} text-secondary-foreground dark:text-muted-foreground text-right w-16`}
+                  defaultValue={preferences.parkingMin ?? ''}
+                  placeholder="--"
+                  key={`park-${preferences.parkingMin}`}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    onUpdatePreferences?.({ parkingMin: v ? parseInt(v, 10) : null });
+                  }}
+                />
+              </div>
+              {/* Area min */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-muted-foreground">Area min. (m²)</span>
+                <input
+                  type="number"
+                  className={`${INPUT_CLASS} text-secondary-foreground dark:text-muted-foreground text-right w-16`}
+                  defaultValue={preferences.areaMin ?? ''}
+                  placeholder="--"
+                  key={`area-${preferences.areaMin}`}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    onUpdatePreferences?.({ areaMin: v ? parseFloat(v) : null });
+                  }}
+                />
+              </div>
               {/* Urgencia */}
               <div className="flex items-center justify-between gap-2">
                 <span className="text-muted-foreground">Urgencia</span>
@@ -231,6 +259,20 @@ export function PreferencesSection({
                     <option key={key} value={key}>{label}</option>
                   ))}
                 </select>
+              </div>
+              {/* Observacoes */}
+              <div className="space-y-1">
+                <span className="text-muted-foreground">Observacoes</span>
+                <textarea
+                  className={`${INPUT_CLASS} text-secondary-foreground dark:text-muted-foreground w-full min-h-[40px] resize-none`}
+                  defaultValue={preferences.notes ?? ''}
+                  placeholder="Detalhes adicionais..."
+                  key={`notes-${preferences.notes}`}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    onUpdatePreferences?.({ notes: v || null });
+                  }}
+                />
               </div>
             </div>
           ) : (
