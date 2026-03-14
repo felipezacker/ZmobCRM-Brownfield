@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Sparkles, Loader2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAIPreferenceExtraction } from '@/hooks/useAIPreferenceExtraction';
 import type { ContactPreference } from '@/types';
 import type { PreferencePurpose, PreferenceUrgency, PropertyType } from '@/types';
 
@@ -20,49 +21,19 @@ export const SidebarPreferences: React.FC<SidebarPreferencesProps> = ({
   onUpdatePreference,
 }) => {
   const [collapsed, setCollapsed] = useState(true);
-  const [aiInput, setAiInput] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
 
-  const handleAIExtract = async () => {
-    const text = aiInput.trim();
-    if (!text || aiLoading) return;
-    setAiLoading(true);
-    try {
-      const res = await fetch('/api/ai/tasks/contacts/extract-preferences', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      if (!res.ok) throw new Error('Falha na extração');
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message || 'Erro');
-
-      // Build update object from extracted data
-      const updates: Partial<ContactPreference> = {};
-      if (data.propertyTypes?.length) updates.propertyTypes = data.propertyTypes;
-      if (data.purpose) updates.purpose = data.purpose;
-      if (data.priceMin != null) updates.priceMin = data.priceMin;
-      if (data.priceMax != null) updates.priceMax = data.priceMax;
-      if (data.regions?.length) updates.regions = data.regions;
-      if (data.bedroomsMin != null) updates.bedroomsMin = data.bedroomsMin;
-      if (data.parkingMin != null) updates.parkingMin = data.parkingMin;
-      if (data.areaMin != null) updates.areaMin = data.areaMin;
-      if (data.urgency) updates.urgency = data.urgency;
-      if (data.notes) updates.notes = data.notes;
-
-      if (!preferences) {
-        onCreatePreferences(updates);
-      } else {
-        onUpdatePreference(preferences.id, updates);
-        onSetPreferences({ ...preferences, ...updates });
-      }
-      setAiInput('');
-    } catch (err) {
-      console.error('[SidebarPreferences] AI extract failed:', err);
-    } finally {
-      setAiLoading(false);
+  const handleUpdate = useCallback((updates: Partial<ContactPreference>) => {
+    if (preferences) {
+      onUpdatePreference(preferences.id, updates);
+      onSetPreferences({ ...preferences, ...updates });
     }
-  };
+  }, [preferences, onUpdatePreference, onSetPreferences]);
+
+  const { aiInput, setAiInput, aiLoading, handleAIExtract } = useAIPreferenceExtraction({
+    preferences,
+    onUpdate: handleUpdate,
+    onCreate: onCreatePreferences,
+  });
 
   return (
     <div className="pt-3 border-t border-border">

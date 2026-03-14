@@ -19,6 +19,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAIPreferenceExtraction } from '@/hooks/useAIPreferenceExtraction';
 import { Chip } from '@/features/deals/cockpit/cockpit-ui';
 import { formatCurrencyBRL } from '@/features/deals/cockpit/cockpit-utils';
 import { CLASSIFICATION_LABELS, SOURCE_LABELS } from '@/features/contacts/constants';
@@ -616,47 +617,11 @@ function AiPreferenceExtractor({
   onUpdate: (updates: Partial<ContactPreference>) => void;
   onCreate?: (initialData?: Partial<ContactPreference>) => void;
 }) {
-  const [aiInput, setAiInput] = React.useState('');
-  const [aiLoading, setAiLoading] = React.useState(false);
-
-  const handleExtract = async () => {
-    const text = aiInput.trim();
-    if (!text || aiLoading) return;
-    setAiLoading(true);
-    try {
-      const res = await fetch('/api/ai/tasks/contacts/extract-preferences', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      if (!res.ok) throw new Error('Falha na extração');
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message || 'Erro');
-
-      const updates: Partial<ContactPreference> = {};
-      if (data.propertyTypes?.length) updates.propertyTypes = data.propertyTypes;
-      if (data.purpose) updates.purpose = data.purpose;
-      if (data.priceMin != null) updates.priceMin = data.priceMin;
-      if (data.priceMax != null) updates.priceMax = data.priceMax;
-      if (data.regions?.length) updates.regions = data.regions;
-      if (data.bedroomsMin != null) updates.bedroomsMin = data.bedroomsMin;
-      if (data.parkingMin != null) updates.parkingMin = data.parkingMin;
-      if (data.areaMin != null) updates.areaMin = data.areaMin;
-      if (data.urgency) updates.urgency = data.urgency;
-      if (data.notes) updates.notes = data.notes;
-
-      if (!preferences && onCreate) {
-        onCreate(updates);
-      } else {
-        onUpdate(updates);
-      }
-      setAiInput('');
-    } catch (err) {
-      console.error('[AiPreferenceExtractor] AI extract failed:', err);
-    } finally {
-      setAiLoading(false);
-    }
-  };
+  const { aiInput, setAiInput, aiLoading, handleAIExtract } = useAIPreferenceExtraction({
+    preferences,
+    onUpdate,
+    onCreate,
+  });
 
   return (
     <div className="mb-2">
@@ -667,7 +632,7 @@ function AiPreferenceExtractor({
           placeholder="Ex: ap 3 quartos zona sul até 500k..."
           value={aiInput}
           onChange={(e) => setAiInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleExtract(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleAIExtract(); }}
           disabled={aiLoading}
         />
         <Button
@@ -676,7 +641,7 @@ function AiPreferenceExtractor({
           size="unstyled"
           className="shrink-0 rounded-lg bg-violet-500/15 px-2 py-1.5 text-xs font-semibold text-violet-700 dark:text-violet-200 hover:bg-violet-500/25 transition-colors disabled:opacity-50"
           disabled={aiLoading || !aiInput.trim()}
-          onClick={handleExtract}
+          onClick={handleAIExtract}
         >
           {aiLoading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
