@@ -293,18 +293,24 @@ export function createDealDetailHandlers(d: DealDetailHandlerDeps) {
         recurrenceEndDate: d.activityFormData.recurrenceEndDate || undefined,
       });
     } else {
-      await d.addActivity({
+      const result = await d.addActivity({
         title: d.activityFormData.title,
         type: d.activityFormData.type,
         date: dateTime.toISOString(),
         description: d.activityFormData.description,
         dealId: d.activityFormData.dealId || undefined,
+        contactId: d.contact?.id,
         dealTitle: d.deal?.title || '',
         completed: false,
         user: { name: d.profile?.first_name || '', avatar: d.profile?.avatar_url || '' },
         recurrenceType: d.activityFormData.recurrenceType === 'none' ? undefined : d.activityFormData.recurrenceType,
         recurrenceEndDate: d.activityFormData.recurrenceEndDate || undefined,
       });
+      if (!result) {
+        d.addToast('Erro ao criar atividade.', 'warning');
+        return;
+      }
+      d.addToast('Atividade criada', 'success');
     }
 
     d.setIsActivityFormOpen(false);
