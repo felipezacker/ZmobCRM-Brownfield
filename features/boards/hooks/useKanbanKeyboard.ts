@@ -60,6 +60,10 @@ export function useKanbanKeyboard(): UseKanbanKeyboardReturn {
       onMoveDealToStage?: (dealId: string, newStageId: string) => void,
       onSelect?: (dealId: string) => void
     ) => {
+      const target = e.target as HTMLElement;
+      const isTyping = target.closest('input, textarea, select, [contenteditable="true"]');
+      if (isTyping && e.key !== 'Escape') return;
+
       const isGrabbed = grabbedRef.current === deal.id;
       const stageIndex = stages.findIndex(s => s.id === stageId);
       const stageDeals = dealsByStageId.get(stageId) ?? [];

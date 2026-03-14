@@ -213,13 +213,16 @@ const DealCardComponent: React.FC<DealCardProps> = ({
         onSelect(deal.id);
       }}
       onKeyDown={e => {
+        const target = e.target as HTMLElement;
+        const isTyping = target.closest('input, textarea, select, [contenteditable="true"]');
+        if (isTyping && e.key !== 'Escape') return;
         if (onKeyboardMove && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'g', 'G', 'Escape'].includes(e.key)) {
           onKeyboardMove(e);
           return;
         }
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          if (!(e.target as HTMLElement).closest('button')) {
+          if (!target.closest('button')) {
             onSelect(deal.id);
           }
         }
