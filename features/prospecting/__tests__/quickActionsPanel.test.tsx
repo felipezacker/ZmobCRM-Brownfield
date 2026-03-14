@@ -2,7 +2,7 @@
 import React from 'react'
 import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { QuickActionsPanel } from '../components/QuickActionsPanel'
 
 // ── Mocks ──────────────────────────────────────────────
@@ -13,11 +13,13 @@ vi.mock('@/components/ui/button', () => ({
   ),
 }))
 
-const mockMutateAsync = vi.fn().mockResolvedValue({})
+const mockMutateAsync = vi.fn().mockResolvedValue({ id: 'auto-activity-123' })
 const mockUpdateMutate = vi.fn()
+const mockDeleteMutate = vi.fn()
 vi.mock('@/lib/query/hooks/useActivitiesQuery', () => ({
   useCreateActivity: () => ({ mutateAsync: mockMutateAsync }),
   useUpdateActivity: () => ({ mutate: mockUpdateMutate }),
+  useDeleteActivity: () => ({ mutate: mockDeleteMutate }),
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -116,11 +118,13 @@ describe('QuickActionsPanel', () => {
     })
   })
 
-  describe('Dismiss (AC5)', () => {
-    it('calls onDismiss when dismiss button clicked', () => {
+  describe('Dismiss', () => {
+    it('calls onDismiss when Avançar button clicked', async () => {
       const props = defaultProps()
       render(<QuickActionsPanel {...props} />)
-      fireEvent.click(screen.getByText('Pular e avançar →'))
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
       expect(props.onDismiss).toHaveBeenCalledOnce()
     })
 
@@ -231,6 +235,211 @@ describe('QuickActionsPanel', () => {
       fireEvent.click(screen.getByText('Criar Negócio'))
       const modal = screen.getByTestId('create-deal-modal')
       expect(modal).toHaveAttribute('data-initial-contact-id', 'c-1')
+    })
+  })
+
+  // ── CP-6.2: Auto-scheduling, Undo, Button ──────────────────
+
+  describe('CP-6.2: Auto-schedule return on dismiss (AC4, AC7, AC8)', () => {
+    it('auto-schedules return when connected + no action taken (AC4)', async () => {
+      const props = defaultProps()
+      render(<QuickActionsPanel {...props} outcome="connected" />)
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      expect(mockMutateAsync).toHaveBeenCalledOnce()
+      const call = mockMutateAsync.mock.calls[0][0]
+      expect(call.activity.type).toBe('CALL')
+      expect(call.activity.contactId).toBe('c-1')
+      expect(call.activity.completed).toBe(false)
+      expect(call.activity.metadata.source).toBe('auto_followup')
+      expect(props.onDismiss).toHaveBeenCalledOnce()
+    })
+
+    it('does NOT auto-schedule for no_answer outcome (AC7)', async () => {
+      const props = defaultProps()
+      render(<QuickActionsPanel {...props} outcome="no_answer" />)
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      expect(mockMutateAsync).not.toHaveBeenCalled()
+      expect(props.onDismiss).toHaveBeenCalledOnce()
+    })
+
+    it('does NOT auto-schedule for voicemail outcome (AC7)', async () => {
+      const props = defaultProps()
+      render(<QuickActionsPanel {...props} outcome="voicemail" />)
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      expect(mockMutateAsync).not.toHaveBeenCalled()
+    })
+
+    it('does NOT auto-schedule for busy outcome (AC7)', async () => {
+      const props = defaultProps()
+      render(<QuickActionsPanel {...props} outcome="busy" />)
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      expect(mockMutateAsync).not.toHaveBeenCalled()
+    })
+
+    it('uses suggestedReturnTime when available', async () => {
+      const suggestedDate = new Date('2026-03-18T14:00:00')
+      const props = defaultProps()
+      render(
+        <QuickActionsPanel
+          {...props}
+          outcome="connected"
+          suggestedReturnTime={{ suggestedDate, suggestedDay: 'Quarta', suggestedHour: 14, connectionRate: 75 }}
+        />,
+      )
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      expect(mockMutateAsync).toHaveBeenCalledOnce()
+      const call = mockMutateAsync.mock.calls[0][0]
+      expect(call.activity.date).toBe(suggestedDate.toISOString())
+    })
+
+    it('uses next business day as fallback when suggestedReturnTime is null (AC8)', async () => {
+      const props = defaultProps()
+      render(<QuickActionsPanel {...props} outcome="connected" suggestedReturnTime={null} />)
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      expect(mockMutateAsync).toHaveBeenCalledOnce()
+      const call = mockMutateAsync.mock.calls[0][0]
+      const activityDate = new Date(call.activity.date)
+      expect(activityDate.getHours()).toBe(10)
+      expect(activityDate.getMinutes()).toBe(0)
+      // Should not be a weekend
+      expect(activityDate.getDay()).not.toBe(0) // Sunday
+      expect(activityDate.getDay()).not.toBe(6) // Saturday
+    })
+
+    it('does NOT auto-schedule when return was manually scheduled', async () => {
+      const props = defaultProps()
+      render(<QuickActionsPanel {...props} outcome="connected" />)
+
+      // Schedule a return first
+      fireEvent.click(screen.getByText('Agendar Retorno'))
+      await act(async () => {
+        fireEvent.click(screen.getByText('Confirmar'))
+      })
+
+      mockMutateAsync.mockClear()
+
+      // Now click Avançar — should NOT auto-schedule
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      expect(mockMutateAsync).not.toHaveBeenCalled()
+    })
+
+    it('does NOT auto-schedule when deal was created', async () => {
+      const props = defaultProps()
+      render(<QuickActionsPanel {...props} outcome="connected" />)
+
+      // Create a deal
+      fireEvent.click(screen.getByText('Criar Negócio'))
+      fireEvent.click(screen.getByText('Create'))
+      await waitFor(() => {
+        expect(screen.getByText('Negócio criado')).toBeInTheDocument()
+      })
+
+      mockMutateAsync.mockClear()
+
+      // Now click Avançar — should NOT auto-schedule
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      expect(mockMutateAsync).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('CP-6.2: Toast with undo (AC5, AC6)', () => {
+    it('shows toast with undo action after auto-scheduling (AC5)', async () => {
+      const props = defaultProps()
+      render(<QuickActionsPanel {...props} outcome="connected" />)
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.stringMatching(/Retorno agendado para/),
+        'success',
+        expect.objectContaining({
+          duration: 5000,
+          action: expect.objectContaining({ label: 'Desfazer' }),
+        }),
+      )
+    })
+
+    it('undo deletes the auto-created activity (AC6)', async () => {
+      const props = defaultProps()
+      render(<QuickActionsPanel {...props} outcome="connected" />)
+
+      await act(async () => {
+        fireEvent.click(screen.getByText('Avançar →'))
+      })
+
+      // Extract the undo callback from the toast call
+      const toastCall = mockToast.mock.calls.find(
+        (c: unknown[]) => typeof c[2] === 'object' && c[2]?.action,
+      )
+      expect(toastCall).toBeTruthy()
+      const undoFn = toastCall![2].action.onClick
+
+      // Execute undo
+      act(() => {
+        undoFn()
+      })
+
+      expect(mockDeleteMutate).toHaveBeenCalledWith(
+        'auto-activity-123',
+        expect.objectContaining({
+          onSuccess: expect.any(Function),
+          onError: expect.any(Function),
+        }),
+      )
+    })
+  })
+
+  describe('CP-6.2: Button styling (AC9, AC10)', () => {
+    it('renders "Avançar →" as a styled Button, not a text link (AC9)', () => {
+      render(<QuickActionsPanel {...defaultProps()} />)
+      const button = screen.getByText('Avançar →')
+      expect(button.tagName).toBe('BUTTON')
+      expect(button).toHaveAttribute('aria-label', 'Avançar para o próximo lead')
+    })
+
+    it('shows "Avançar →" even after action was taken (AC10)', async () => {
+      render(<QuickActionsPanel {...defaultProps()} outcome="connected" />)
+
+      // Schedule a return
+      fireEvent.click(screen.getByText('Agendar Retorno'))
+      await act(async () => {
+        fireEvent.click(screen.getByText('Confirmar'))
+      })
+
+      // Button should still say "Avançar →"
+      expect(screen.getByText('Avançar →')).toBeInTheDocument()
     })
   })
 })

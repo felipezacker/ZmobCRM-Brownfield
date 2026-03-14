@@ -381,11 +381,15 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             <Button
               variant="unstyled"
               size="unstyled"
-              onClick={() => setShowSkipReasons(prev => !prev)}
+              onClick={() => !showQuickActions && setShowSkipReasons(prev => !prev)}
+              disabled={showQuickActions}
+              title={showQuickActions ? 'Registre ou avance pelo painel abaixo' : undefined}
               className={`w-full flex flex-col items-center gap-1.5 py-3 rounded-lg transition-colors ${
-                showSkipReasons
-                  ? 'bg-accent dark:bg-accent text-secondary-foreground dark:text-white'
-                  : 'bg-muted dark:bg-card hover:bg-accent dark:hover:bg-accent text-secondary-foreground dark:text-muted-foreground'
+                showQuickActions
+                  ? 'opacity-50 cursor-not-allowed bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground'
+                  : showSkipReasons
+                    ? 'bg-accent dark:bg-accent text-secondary-foreground dark:text-white'
+                    : 'bg-muted dark:bg-card hover:bg-accent dark:hover:bg-accent text-secondary-foreground dark:text-muted-foreground'
               }`}
             >
               <SkipForward size={20} />

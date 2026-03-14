@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import {
   Briefcase,
   CalendarClock,
@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { CreateDealModal } from '@/features/boards/components/Modals/CreateDealModal'
 import { NoteTemplatesManager } from '@/features/prospecting/components/NoteTemplatesManager'
-import { useCreateActivity, useUpdateActivity } from '@/lib/query/hooks/useActivitiesQuery'
+import { useCreateActivity, useUpdateActivity, useDeleteActivity } from '@/lib/query/hooks/useActivitiesQuery'
 import { contactsService } from '@/lib/supabase'
 import { useSettings } from '@/context/settings/SettingsContext'
 import { useAuth } from '@/context/AuthContext'
@@ -77,6 +77,7 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
 
   const createActivity = useCreateActivity()
   const updateActivity = useUpdateActivity()
+  const deleteActivity = useDeleteActivity()
   const { lifecycleStages } = useSettings()
   const { profile } = useAuth()
   const { addToast, showToast } = useToast()
@@ -148,6 +149,58 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
       )
     }
   }
+
+  // CP-6.2: Auto-schedule return when dismissing connected call with no action taken
+  const handleDismiss = useCallback(async () => {
+    const noActionTaken = !dealCreated && !returnScheduled && !stageUpdated
+
+    if (outcome === 'connected' && noActionTaken) {
+      const returnDateValue = suggestedReturnTime?.suggestedDate ?? getNextBusinessDay()
+
+      try {
+        const result = await createActivity.mutateAsync({
+          activity: {
+            title: `Retorno - ${contactName}`,
+            type: 'CALL',
+            date: returnDateValue.toISOString(),
+            completed: false,
+            contactId,
+            dealTitle: '',
+            user: { name: 'Você', avatar: '' },
+            metadata: { source: 'auto_followup', suggested_by: 'suggestBestTime' },
+          },
+        })
+
+        const formattedDate = returnDateValue.toLocaleDateString('pt-BR')
+        const formattedTime = returnDateValue.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+        toast(
+          `Retorno agendado para ${formattedDate} às ${formattedTime}`,
+          'success',
+          {
+            duration: 5000,
+            action: {
+              label: 'Desfazer',
+              onClick: () => {
+                deleteActivity.mutate(result.id, {
+                  onSuccess: () => {
+                    toast('Retorno cancelado', 'info')
+                  },
+                  onError: () => {
+                    toast('Não foi possível cancelar o retorno', 'warning')
+                  },
+                })
+              },
+            },
+          },
+        )
+      } catch {
+        // Auto-scheduling best-effort — if it fails, proceed without scheduling
+      }
+    }
+
+    onDismiss()
+  }, [dealCreated, returnScheduled, stageUpdated, outcome, suggestedReturnTime, contactName, contactId, createActivity, deleteActivity, toast, onDismiss])
 
   return (
     <>
@@ -315,12 +368,13 @@ export const QuickActionsPanel: React.FC<QuickActionsPanelProps> = ({
 
         {/* Dismiss button */}
         <Button
-          variant="unstyled"
-          size="unstyled"
-          onClick={onDismiss}
-          className="w-full py-2 text-xs text-muted-foreground dark:text-muted-foreground hover:text-secondary-foreground dark:hover:text-muted-foreground transition-colors text-center"
+          variant="outline"
+          size="sm"
+          onClick={handleDismiss}
+          aria-label="Avançar para o próximo lead"
+          className="w-full"
         >
-          Pular e avançar →
+          Avançar →
         </Button>
       </div>
 

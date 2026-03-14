@@ -17,9 +17,24 @@ vi.mock('@/components/ui/button', () => ({
 }))
 
 vi.mock('@/features/inbox/components/CallModal', () => ({
-  CallModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
-    // eslint-disable-next-line no-restricted-syntax -- mock component
-    isOpen ? <div data-testid="call-modal"><button onClick={onClose}>Close</button></div> : null,
+  // eslint-disable-next-line no-restricted-syntax -- mock component
+  CallModal: ({ isOpen, onClose, onSave }: { isOpen: boolean; onClose: () => void; onSave?: (data: { title: string; notes: string; outcome: string; duration: number }) => void }) =>
+    isOpen ? (
+      // eslint-disable-next-line no-restricted-syntax -- mock component
+      <div data-testid="call-modal">
+        <button onClick={onClose}>Close</button>
+        <button onClick={() => onSave?.({ title: 'Test Call', notes: '', outcome: 'connected', duration: 60 })}>SaveCall</button>
+      </div>
+    ) : null,
+}))
+
+vi.mock('@/features/prospecting/components/QuickActionsPanel', () => ({
+  // eslint-disable-next-line no-restricted-syntax -- mock component
+  QuickActionsPanel: ({ onDismiss }: { onDismiss: () => void }) => (
+    <div data-testid="quick-actions-panel">
+      <button onClick={onDismiss}>DismissPanel</button>
+    </div>
+  ),
 }))
 
 vi.mock('@/features/prospecting/components/ProspectingScriptGuide', () => ({
@@ -426,5 +441,89 @@ describe('PowerDialer — Skip Reason Dropdown', () => {
 
     fireEvent.mouseDown(screen.getByTestId('outside'))
     expect(screen.queryByText('Motivo do pulo:')).not.toBeInTheDocument()
+  })
+})
+
+// ── CP-6.2: Skip Button Disabled When QuickActionsPanel Visible ──────────
+
+describe('PowerDialer — CP-6.2: Skip Protection', () => {
+  it('disables Pular button when QuickActionsPanel is visible (AC1)', async () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    // Open CallModal and save a call to trigger QuickActionsPanel
+    fireEvent.click(screen.getByText('Ligar'))
+    expect(screen.getByTestId('call-modal')).toBeInTheDocument()
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('SaveCall'))
+    })
+
+    // QuickActionsPanel should be visible
+    expect(screen.getByTestId('quick-actions-panel')).toBeInTheDocument()
+
+    // Pular button should be disabled
+    const pularButton = screen.getByText('Pular').closest('button')
+    expect(pularButton).toHaveAttribute('disabled')
+    expect(pularButton?.className).toContain('opacity-50')
+    expect(pularButton?.className).toContain('cursor-not-allowed')
+  })
+
+  it('shows tooltip on disabled Pular button (AC1)', async () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    // Trigger QuickActionsPanel
+    fireEvent.click(screen.getByText('Ligar'))
+    await act(async () => {
+      fireEvent.click(screen.getByText('SaveCall'))
+    })
+
+    const pularButton = screen.getByText('Pular').closest('button')
+    expect(pularButton).toHaveAttribute('title', 'Registre ou avance pelo painel abaixo')
+  })
+
+  it('Ligar and Encerrar remain active when QuickActionsPanel is visible (AC2)', async () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    // Trigger QuickActionsPanel
+    fireEvent.click(screen.getByText('Ligar'))
+    await act(async () => {
+      fireEvent.click(screen.getByText('SaveCall'))
+    })
+
+    // Ligar should not be disabled
+    const ligarButton = screen.getByText('Ligar').closest('button')
+    expect(ligarButton).not.toHaveAttribute('disabled')
+
+    // Encerrar should not be disabled
+    const encerrarButton = screen.getByText('Encerrar').closest('button')
+    expect(encerrarButton).not.toHaveAttribute('disabled')
+  })
+
+  it('Pular button works normally when QuickActionsPanel is NOT visible (AC3)', () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    // QuickActionsPanel not visible — Pular should work
+    const pularButton = screen.getByText('Pular').closest('button')
+    expect(pularButton).not.toHaveAttribute('disabled')
+    expect(pularButton?.className).not.toContain('opacity-50')
+  })
+
+  it('keyboard shortcuts remain blocked when QuickActionsPanel is visible (AC11)', async () => {
+    const props = defaultProps()
+    render(<PowerDialer {...props} />)
+
+    // Trigger QuickActionsPanel
+    fireEvent.click(screen.getByText('Ligar'))
+    await act(async () => {
+      fireEvent.click(screen.getByText('SaveCall'))
+    })
+
+    // E should NOT call onEnd while QuickActionsPanel is open
+    pressKey('e')
+    expect(props.onEnd).not.toHaveBeenCalled()
   })
 })

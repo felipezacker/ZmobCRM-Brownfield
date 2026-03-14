@@ -269,6 +269,7 @@ const mockCreateMutateAsync = vi.fn().mockResolvedValue({})
 vi.mock('@/lib/query/hooks/useActivitiesQuery', async () => ({
   useCreateActivity: () => ({ mutateAsync: mockCreateMutateAsync }),
   useUpdateActivity: () => ({ mutate: mockUpdateMutate }),
+  useDeleteActivity: () => ({ mutate: vi.fn() }),
   useContactActivities: () => ({ data: mockActivitiesWithNotes, isLoading: false }),
 }))
 
