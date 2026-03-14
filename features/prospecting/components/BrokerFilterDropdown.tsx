@@ -72,7 +72,7 @@ export const BrokerFilterDropdown: React.FC<BrokerFilterDropdownProps> = ({
           <Button
             type="button"
             onClick={() => { onSelect(showMineOption ? '__all__' : ''); setOpen(false) }}
-            className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${
+            className={`w-full justify-start text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${
               (!selectedId || selectedId === '__all__') && !(selectedId === '' && showMineOption)
                 ? 'font-semibold bg-muted' : ''
             }`}
@@ -83,7 +83,7 @@ export const BrokerFilterDropdown: React.FC<BrokerFilterDropdownProps> = ({
             <Button
               type="button"
               onClick={() => { onSelect(''); setOpen(false) }}
-              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${
+              className={`w-full justify-start text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${
                 selectedId === '' ? 'font-semibold bg-muted' : ''
               }`}
             >
@@ -96,7 +96,7 @@ export const BrokerFilterDropdown: React.FC<BrokerFilterDropdownProps> = ({
               key={p.id}
               type="button"
               onClick={() => { onSelect(p.id); setOpen(false) }}
-              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${
+              className={`w-full justify-start text-left px-3 py-2 text-sm rounded hover:bg-muted transition-colors ${
                 selectedId === p.id ? 'font-semibold bg-muted' : ''
               }`}
             >
