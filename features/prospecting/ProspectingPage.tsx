@@ -84,6 +84,21 @@ export const ProspectingPage: React.FC = () => {
   // CL-1: Contact lists for filter dropdown
   const { data: contactLists = [] } = useContactLists()
 
+  // Products for filter dropdown
+  const { data: activeProducts = [] } = useQuery<Array<{ id: string; name: string }>>({
+    queryKey: ['productsActive'],
+    queryFn: async () => {
+      if (!supabase) return []
+      const { data } = await supabase
+        .from('products')
+        .select('id, name')
+        .eq('active', true)
+        .order('name')
+      return (data || []).map(p => ({ id: p.id, name: p.name }))
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
   // --- Page state hook (all useState + handlers) ---
   const pageState = useProspectingPageState(profile?.id, profile?.organization_id)
 
@@ -762,6 +777,7 @@ export const ProspectingPage: React.FC = () => {
                   onFiltersChange={setFilters}
                   profiles={profiles}
                   contactLists={contactLists}
+                  products={activeProducts}
                   availableTags={availableTags}
                   showCorretorFilter={isAdminOrDirector}
                   onApply={handleApplyFilters}

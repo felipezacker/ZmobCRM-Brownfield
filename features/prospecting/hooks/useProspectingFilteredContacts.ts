@@ -30,6 +30,7 @@ export const useProspectingFilteredContacts = () => {
       tags: filters.tags.length > 0 ? filters.tags : undefined,
       sources: filters.sources.length > 0 ? filters.sources : undefined,
       dealOwnerIds: filters.dealOwnerIds.length > 0 ? filters.dealOwnerIds : undefined,
+      productIds: filters.productIds.length > 0 ? filters.productIds : undefined,
       inactiveDays: filters.inactiveDays ?? undefined,
       onlyWithPhone: filters.onlyWithPhone || undefined,
       hasActiveDeal: filters.hasActiveDeal ?? undefined,

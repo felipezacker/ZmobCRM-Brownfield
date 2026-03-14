@@ -36,6 +36,7 @@ export interface FilteredContactsParams {
   sources?: string[]
   dealOwnerIds?: string[]
   contactListIds?: string[]
+  productIds?: string[]
   inactiveDays?: number
   onlyWithPhone?: boolean
   hasActiveDeal?: boolean | null
@@ -62,6 +63,7 @@ export const prospectingFilteredContactsService = {
         p_has_active_deal: params.hasActiveDeal ?? null,
         p_deal_owner_ids: params.dealOwnerIds?.length ? params.dealOwnerIds : null,
         p_contact_list_ids: params.contactListIds?.length ? params.contactListIds : null,
+        p_product_ids: params.productIds?.length ? params.productIds : null,
         p_page: params.page ?? 0,
         p_page_size: params.pageSize ?? 50,
       })
@@ -131,6 +133,7 @@ export const prospectingFilteredContactsService = {
         p_has_active_deal: params.hasActiveDeal ?? null,
         p_deal_owner_ids: params.dealOwnerIds?.length ? params.dealOwnerIds : null,
         p_contact_list_ids: params.contactListIds?.length ? params.contactListIds : null,
+        p_product_ids: params.productIds?.length ? params.productIds : null,
       })
 
       if (error) return { data: null, error }
