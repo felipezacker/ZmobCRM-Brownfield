@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { Phone, SkipForward, Square, Flame, Snowflake, Sun, User, Mail, FileText, ChevronDown, Check, ChevronUp } from 'lucide-react'
+import { Phone, SkipForward, Square, Flame, Snowflake, Sun, User, Mail, FileText, ChevronDown, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CallModal, CallLogData } from '@/features/inbox/components/CallModal'
 import { ProspectingScriptGuide } from '@/features/prospecting/components/ProspectingScriptGuide'
@@ -17,20 +17,13 @@ import type { GoalProgress } from '@/features/prospecting/hooks/useProspectingGo
 import { useOptionalToast } from '@/context/ToastContext'
 import type { SuggestedTime } from '@/features/prospecting/utils/suggestBestTime'
 
-const SKIP_REASONS = [
-  { id: 'wrong_number', label: 'Número errado' },
-  { id: 'already_tried', label: 'Já tentei hoje' },
-  { id: 'bad_timing', label: 'Não é hora boa' },
-  { id: 'no_interest', label: 'Sem interesse prévio' },
-  { id: 'other', label: 'Outro motivo' },
-] as const
 
 interface PowerDialerProps {
   contact: ProspectingQueueItem
   currentIndex: number
   totalCount: number
   onCallComplete: (outcome: string) => void
-  onSkip: (reason: string) => void
+  onSkip: (reason?: string) => void
   onEnd: () => void
   selectedScript?: QuickScript | null
   onScriptChange?: (script: QuickScript | null) => void
@@ -65,11 +58,9 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
   const [showCallModal, setShowCallModal] = useState(false)
   const [markedObjections, setMarkedObjections] = useState<string[]>([])
   const [showScriptDropdown, setShowScriptDropdown] = useState(false)
-  const [showSkipReasons, setShowSkipReasons] = useState(false)
   const [showQuickActions, setShowQuickActions] = useState(false)
   const [lastCallData, setLastCallData] = useState<CallLogData | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const skipDropdownRef = useRef<HTMLDivElement>(null)
   const goalCelebratedRef = useRef(false)
   const lastActivityIdRef = useRef<string | null>(null)
   const createActivity = useCreateActivity()
@@ -99,18 +90,6 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [showScriptDropdown])
 
-  // Close skip dropdown on outside click
-  useEffect(() => {
-    if (!showSkipReasons) return
-    const handleClick = (e: MouseEvent) => {
-      if (skipDropdownRef.current && !skipDropdownRef.current.contains(e.target as Node)) {
-        setShowSkipReasons(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [showSkipReasons])
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -122,7 +101,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
       }
 
       // Other shortcuts disabled when modal/dropdown/quickactions open
-      if (showCallModal || showScriptDropdown || showSkipReasons || showQuickActions) return
+      if (showCallModal || showScriptDropdown || showQuickActions) return
 
       // Ignore when typing in inputs
       const tag = (e.target as HTMLElement).tagName
@@ -145,7 +124,7 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [showCallModal, showScriptDropdown, showSkipReasons, showQuickActions, onEnd])
+  }, [showCallModal, showScriptDropdown, showQuickActions, onEnd])
 
   const handleCallSave = useCallback(async (data: CallLogData) => {
     // CP-5.1: Best-effort deal auto-linking
@@ -377,50 +356,21 @@ export const PowerDialer: React.FC<PowerDialerProps> = ({
             )}
           </Button>
 
-          <div className="relative" ref={skipDropdownRef}>
-            <Button
-              variant="unstyled"
-              size="unstyled"
-              onClick={() => !showQuickActions && setShowSkipReasons(prev => !prev)}
-              disabled={showQuickActions}
-              title={showQuickActions ? 'Registre ou avance pelo painel abaixo' : undefined}
-              className={`w-full flex flex-col items-center gap-1.5 py-3 rounded-lg transition-colors ${
-                showQuickActions
-                  ? 'opacity-50 cursor-not-allowed bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground'
-                  : showSkipReasons
-                    ? 'bg-accent dark:bg-accent text-secondary-foreground dark:text-white'
-                    : 'bg-muted dark:bg-card hover:bg-accent dark:hover:bg-accent text-secondary-foreground dark:text-muted-foreground'
-              }`}
-            >
-              <SkipForward size={20} />
-              <span className="text-xs font-medium flex items-center gap-0.5">
-                Pular
-                {showSkipReasons ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-              </span>
-            </Button>
-
-            {showSkipReasons && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 z-50 w-48 bg-white dark:bg-card border border-border dark:border-border/50 rounded-lg shadow-xl overflow-hidden">
-                <p className="px-3 py-1.5 text-1xs text-muted-foreground border-b border-border dark:border-border/50">
-                  Motivo do pulo:
-                </p>
-                {SKIP_REASONS.map((reason) => (
-                  <Button
-                    key={reason.id}
-                    variant="unstyled"
-                    size="unstyled"
-                    onClick={() => {
-                      setShowSkipReasons(false)
-                      onSkip(reason.id)
-                    }}
-                    className="w-full px-3 py-2 text-left text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-card/50 transition-colors"
-                  >
-                    {reason.label}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
+          <Button
+            variant="unstyled"
+            size="unstyled"
+            onClick={() => !showQuickActions && onSkip()}
+            disabled={showQuickActions}
+            title={showQuickActions ? 'Registre ou avance pelo painel abaixo' : undefined}
+            className={`flex flex-col items-center gap-1.5 py-3 rounded-lg transition-colors ${
+              showQuickActions
+                ? 'opacity-50 cursor-not-allowed bg-muted dark:bg-card text-secondary-foreground dark:text-muted-foreground'
+                : 'bg-muted dark:bg-card hover:bg-accent dark:hover:bg-accent text-secondary-foreground dark:text-muted-foreground'
+            }`}
+          >
+            <SkipForward size={20} />
+            <span className="text-xs font-medium">Pular</span>
+          </Button>
 
           <Button
             variant="unstyled"

@@ -395,51 +395,15 @@ describe('PowerDialer — Purple Dot Indicator', () => {
   })
 })
 
-// ── Skip Reason Dropdown ──────────────────────────────────
+// ── Skip Button (direct action, no dropdown) ──────────────────────────────────
 
-describe('PowerDialer — Skip Reason Dropdown', () => {
-  it('clicking Pular opens reason dropdown instead of skipping immediately', () => {
+describe('PowerDialer — Skip Button', () => {
+  it('clicking Pular calls onSkip directly without dropdown', () => {
     const props = defaultProps()
     render(<PowerDialer {...props} />)
 
     fireEvent.click(screen.getByText('Pular'))
-    expect(props.onSkip).not.toHaveBeenCalled()
-    expect(screen.getByText('Motivo do pulo:')).toBeInTheDocument()
-    expect(screen.getByText('Número errado')).toBeInTheDocument()
-    expect(screen.getByText('Já tentei hoje')).toBeInTheDocument()
-  })
-
-  it('selecting a reason calls onSkip with the reason id', () => {
-    const props = defaultProps()
-    render(<PowerDialer {...props} />)
-
-    fireEvent.click(screen.getByText('Pular'))
-    fireEvent.click(screen.getByText('Número errado'))
-    expect(props.onSkip).toHaveBeenCalledWith('wrong_number')
-  })
-
-  it('closes dropdown after selecting a reason', () => {
-    const props = defaultProps()
-    render(<PowerDialer {...props} />)
-
-    fireEvent.click(screen.getByText('Pular'))
-    fireEvent.click(screen.getByText('Já tentei hoje'))
-    expect(screen.queryByText('Motivo do pulo:')).not.toBeInTheDocument()
-  })
-
-  it('closes dropdown on outside click', () => {
-    const props = defaultProps()
-    render(
-      <div>
-        <PowerDialer {...props} />
-        <div data-testid="outside">Outside</div>
-      </div>
-    )
-
-    fireEvent.click(screen.getByText('Pular'))
-    expect(screen.getByText('Motivo do pulo:')).toBeInTheDocument()
-
-    fireEvent.mouseDown(screen.getByTestId('outside'))
+    expect(props.onSkip).toHaveBeenCalledTimes(1)
     expect(screen.queryByText('Motivo do pulo:')).not.toBeInTheDocument()
   })
 })
