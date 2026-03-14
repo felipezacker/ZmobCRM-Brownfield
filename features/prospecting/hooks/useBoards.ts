@@ -19,6 +19,7 @@ export function useBoards() {
       }))
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true, // refresh stale boards when user returns to tab
   })
 
   return { boards, isLoading }

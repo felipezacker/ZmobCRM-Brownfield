@@ -172,63 +172,99 @@ describe('formatRetryDate', () => {
 
 // ── calculateNextShift unit tests ──────────────────────
 
+/**
+ * Helper: create a Date representing a specific BRT wall-clock time.
+ * Uses explicit -03:00 offset so tests are TZ-agnostic.
+ */
+const brtDate = (year: number, month: number, day: number, hour: number, min = 0, sec = 0) =>
+  new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}-03:00`)
+
+/**
+ * Helper: extract BRT wall-clock components from a Date for assertions.
+ */
+const toBRT = (date: Date) => {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false, weekday: 'short',
+  })
+  const parts = formatter.formatToParts(date)
+  const get = (type: string) => parseInt(parts.find(p => p.type === type)?.value || '0')
+  const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  const weekdayStr = parts.find(p => p.type === 'weekday')?.value || ''
+  return {
+    year: get('year'), month: get('month'), day: get('day'),
+    hour: get('hour'), minute: get('minute'), second: get('second'),
+    dayOfWeek: weekdayMap[weekdayStr] ?? -1,
+  }
+}
+
 describe('calculateNextShift', () => {
-  it('morning (10:00 Mon) → same day 14:00', () => {
-    const now = new Date(2026, 2, 16, 10, 0, 0) // Monday 10:00
+  it('morning (10:00 Mon BRT) → same day 14:00 BRT', () => {
+    const now = brtDate(2026, 3, 16, 10) // Monday 10:00 BRT
     const result = calculateNextShift(now)
-    expect(result.getHours()).toBe(14)
-    expect(result.getDate()).toBe(16)
+    const br = toBRT(result)
+    expect(br.hour).toBe(14)
+    expect(br.day).toBe(16)
   })
 
-  it('afternoon (15:00 Mon) → next day 09:00', () => {
-    const now = new Date(2026, 2, 16, 15, 0, 0) // Monday 15:00
+  it('afternoon (15:00 Mon BRT) → next day 09:00 BRT', () => {
+    const now = brtDate(2026, 3, 16, 15) // Monday 15:00 BRT
     const result = calculateNextShift(now)
-    expect(result.getHours()).toBe(9)
-    expect(result.getDate()).toBe(17) // Tuesday
+    const br = toBRT(result)
+    expect(br.hour).toBe(9)
+    expect(br.day).toBe(17) // Tuesday
   })
 
-  it('exactly at cutoff (13:00) → next day 09:00', () => {
-    const now = new Date(2026, 2, 16, 13, 0, 0) // Monday 13:00
+  it('exactly at cutoff (13:00 BRT) → next day 09:00 BRT', () => {
+    const now = brtDate(2026, 3, 16, 13) // Monday 13:00 BRT
     const result = calculateNextShift(now)
-    expect(result.getHours()).toBe(9)
-    expect(result.getDate()).toBe(17) // Tuesday
+    const br = toBRT(result)
+    expect(br.hour).toBe(9)
+    expect(br.day).toBe(17) // Tuesday
   })
 
-  it('Friday afternoon → Monday 09:00', () => {
-    const now = new Date(2026, 2, 13, 15, 0, 0) // Friday 15:00
+  it('Friday afternoon BRT → Monday 09:00 BRT', () => {
+    const now = brtDate(2026, 3, 13, 15) // Friday 15:00 BRT
     const result = calculateNextShift(now)
-    expect(result.getHours()).toBe(9)
-    expect(result.getDate()).toBe(16) // Monday (skips weekend)
+    const br = toBRT(result)
+    expect(br.hour).toBe(9)
+    expect(br.day).toBe(16) // Monday (skips weekend)
   })
 
-  it('Saturday morning → Monday 09:00', () => {
-    const now = new Date(2026, 2, 14, 10, 0, 0) // Saturday 10:00
+  it('Saturday morning BRT → Monday 09:00 BRT', () => {
+    const now = brtDate(2026, 3, 14, 10) // Saturday 10:00 BRT
     const result = calculateNextShift(now)
-    expect(result.getDay()).toBe(1) // Monday
-    expect(result.getHours()).toBe(9)
-    expect(result.getDate()).toBe(16)
+    const br = toBRT(result)
+    expect(br.dayOfWeek).toBe(1) // Monday
+    expect(br.hour).toBe(9)
+    expect(br.day).toBe(16)
   })
 
-  it('Saturday afternoon → Monday 09:00', () => {
-    const now = new Date(2026, 2, 14, 15, 0, 0) // Saturday 15:00
+  it('Saturday afternoon BRT → Monday 09:00 BRT', () => {
+    const now = brtDate(2026, 3, 14, 15) // Saturday 15:00 BRT
     const result = calculateNextShift(now)
-    expect(result.getDay()).toBe(1) // Monday
-    expect(result.getHours()).toBe(9)
-    expect(result.getDate()).toBe(16)
+    const br = toBRT(result)
+    expect(br.dayOfWeek).toBe(1) // Monday
+    expect(br.hour).toBe(9)
+    expect(br.day).toBe(16)
   })
 
-  it('Sunday → Monday 09:00', () => {
-    const now = new Date(2026, 2, 15, 10, 0, 0) // Sunday 10:00
+  it('Sunday BRT → Monday 09:00 BRT', () => {
+    const now = brtDate(2026, 3, 15, 10) // Sunday 10:00 BRT
     const result = calculateNextShift(now)
-    expect(result.getDay()).toBe(1) // Monday
-    expect(result.getHours()).toBe(9)
+    const br = toBRT(result)
+    expect(br.dayOfWeek).toBe(1) // Monday
+    expect(br.hour).toBe(9)
   })
 
-  it('result has minutes/seconds zeroed', () => {
-    const now = new Date(2026, 2, 16, 10, 35, 42)
+  it('result has minutes/seconds zeroed (BRT)', () => {
+    const now = brtDate(2026, 3, 16, 10, 35, 42)
     const result = calculateNextShift(now)
-    expect(result.getMinutes()).toBe(0)
-    expect(result.getSeconds()).toBe(0)
+    const br = toBRT(result)
+    expect(br.minute).toBe(0)
+    expect(br.second).toBe(0)
   })
 })
 

@@ -198,11 +198,13 @@ export const FilteredContactsList: React.FC<FilteredContactsListProps> = ({
                 disabled={disabled}
                 onChange={(e) => {
                   if (allFilteredSelected) {
-                    // Convert bulk selection to individual selection minus the clicked contact
+                    // Convert bulk selection to individual deselection: remove this contact from the set
                     const remaining = new Set(allFilteredIds)
                     remaining.delete(contact.id)
                     setAllFilteredIds(remaining)
-                    // If no remaining contacts, exit bulk mode
+                    // When all contacts have been individually unchecked, exit bulk mode.
+                    // effectiveSelectedIds will switch to selectedIds (empty) — this is
+                    // correct: the user explicitly deselected every contact.
                     if (remaining.size === 0) {
                       setAllFilteredSelected(false)
                     }

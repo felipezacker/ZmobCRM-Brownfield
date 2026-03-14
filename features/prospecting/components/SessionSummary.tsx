@@ -114,6 +114,9 @@ export const SessionSummary: React.FC<SessionSummaryProps> = ({
 
       if (connectedContacts.length > 0 && supabase) {
         const connectedContactIds = connectedContacts.map(c => c.contactId)
+        // Note: organization_id filtering enforced by RLS policy on deals table.
+        // No explicit .eq('organization_id', ...) needed — the authenticated user's
+        // JWT claims restrict visibility to their organization automatically.
         const { data: openDeals } = await supabase
           .from('deals')
           .select('contact_id')

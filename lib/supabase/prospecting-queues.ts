@@ -15,50 +15,92 @@ import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config';
 // ============================================
 
 /**
+ * Get date components in America/Sao_Paulo timezone from a Date object.
+ * Returns year, month (1-based), day, hour, minute, and dayOfWeek (0=Sun..6=Sat).
+ */
+function getBRTComponents(date: Date) {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+    weekday: 'short',
+  })
+  const parts = formatter.formatToParts(date)
+  const get = (type: string) => parseInt(parts.find(p => p.type === type)?.value || '0')
+  const weekdayStr = parts.find(p => p.type === 'weekday')?.value || ''
+  const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  return {
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hour: get('hour'),
+    minute: get('minute'),
+    dayOfWeek: weekdayMap[weekdayStr] ?? 0,
+  }
+}
+
+/**
+ * Build a Date from BRT components. The returned Date represents the correct
+ * absolute time for the given BRT wall-clock values.
+ */
+function dateFromBRT(year: number, month: number, day: number, hour: number, minute = 0, second = 0): Date {
+  // Build an ISO string with the BRT offset. Brazil standard time is UTC-3.
+  // Note: Brazil no longer observes DST (since 2019), so -03:00 is stable.
+  const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}-03:00`
+  return new Date(iso)
+}
+
+/**
  * Calculate next shift for retry scheduling.
- * Weekday before 13h → same day 14:00. Weekday after 13h → next day 09:00.
- * Saturday (any) → Monday 09:00. Sunday (any) → Monday 09:00.
- * Friday afternoon → Saturday 09:00 (normal flow, no weekend skip).
+ * All arithmetic uses BRT (America/Sao_Paulo) components to avoid local-TZ drift.
+ *
+ * Weekday before 13h → same day 14:00 BRT.
+ * Weekday after/at 13h → next day 09:00 BRT (skip weekends).
+ * Saturday (any) → Monday 09:00 BRT.
+ * Sunday (any) → Monday 09:00 BRT.
  */
 export function calculateNextShift(now: Date): Date {
   const { RETRY_SHIFT_MORNING_HOUR, RETRY_SHIFT_AFTERNOON_HOUR, RETRY_SHIFT_CUTOFF_HOUR } = PROSPECTING_CONFIG
 
-  // Use Brazil timezone to avoid client-local timezone issues
-  const brHour = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/Sao_Paulo' }))
-  const brDay = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })).getDay()
+  const br = getBRTComponents(now)
 
-  const result = new Date(now)
-  result.setMinutes(0, 0, 0)
+  // Helper: add N days to BRT date components and return a new Date in BRT
+  const addDays = (daysToAdd: number, targetHour: number) =>
+    dateFromBRT(br.year, br.month, br.day + daysToAdd, targetHour)
 
-  // Saturday or Sunday → Monday morning
-  if (brDay === 6) {
-    result.setDate(result.getDate() + 2)
-    result.setHours(RETRY_SHIFT_MORNING_HOUR)
-    return result
-  }
-  if (brDay === 0) {
-    result.setDate(result.getDate() + 1)
-    result.setHours(RETRY_SHIFT_MORNING_HOUR)
-    return result
+  // Saturday → Monday morning (+2 days)
+  if (br.dayOfWeek === 6) {
+    return addDays(2, RETRY_SHIFT_MORNING_HOUR)
   }
 
-  // Weekday
-  if (brHour < RETRY_SHIFT_CUTOFF_HOUR) {
-    result.setHours(RETRY_SHIFT_AFTERNOON_HOUR)
-  } else {
-    result.setDate(result.getDate() + 1)
-    result.setHours(RETRY_SHIFT_MORNING_HOUR)
-
-    // After incrementing the date, skip weekends
-    const newDay = result.getDay()
-    if (newDay === 6) { // Saturday
-      result.setDate(result.getDate() + 2) // Skip to Monday
-    } else if (newDay === 0) { // Sunday
-      result.setDate(result.getDate() + 1) // Skip to Monday
-    }
+  // Sunday → Monday morning (+1 day)
+  if (br.dayOfWeek === 0) {
+    return addDays(1, RETRY_SHIFT_MORNING_HOUR)
   }
 
-  return result
+  // Weekday before cutoff → same day afternoon
+  if (br.hour < RETRY_SHIFT_CUTOFF_HOUR) {
+    return addDays(0, RETRY_SHIFT_AFTERNOON_HOUR)
+  }
+
+  // Weekday at/after cutoff → next day morning, skip weekends
+  const nextDate = addDays(1, RETRY_SHIFT_MORNING_HOUR)
+  const nextBr = getBRTComponents(nextDate)
+
+  if (nextBr.dayOfWeek === 6) {
+    // Saturday → skip to Monday (+2 more days)
+    return dateFromBRT(nextBr.year, nextBr.month, nextBr.day + 2, RETRY_SHIFT_MORNING_HOUR)
+  }
+  if (nextBr.dayOfWeek === 0) {
+    // Sunday → skip to Monday (+1 more day)
+    return dateFromBRT(nextBr.year, nextBr.month, nextBr.day + 1, RETRY_SHIFT_MORNING_HOUR)
+  }
+
+  return nextDate
 }
 
 let cachedOrgUserId: string | null = null;
