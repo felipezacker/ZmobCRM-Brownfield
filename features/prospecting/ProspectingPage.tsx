@@ -612,19 +612,19 @@ export const ProspectingPage: React.FC = () => {
                 Comparar
               </Button>
 
+              {/* Broker filter dropdown (admin/director only) */}
+              {isAdminOrDirector && profiles.length > 0 && (
+                <BrokerFilterDropdown
+                  profiles={profiles}
+                  selectedId={metricsFilterOwnerId}
+                  onSelect={setMetricsFilterOwnerId}
+                />
+              )}
+
               {metricsHook.isFetching && !metricsHook.isLoading && (
                 <span className="text-xs text-muted-foreground animate-pulse">Atualizando...</span>
               )}
             </div>
-
-            {/* Broker filter dropdown (admin/director only) */}
-            {isAdminOrDirector && profiles.length > 0 && (
-              <BrokerFilterDropdown
-                profiles={profiles}
-                selectedId={metricsFilterOwnerId}
-                onSelect={setMetricsFilterOwnerId}
-              />
-            )}
 
             {/* ═══ SECTION: Visao Geral ═══ */}
             <MetricsSection title="Visao Geral" icon={Eye} iconColor="text-blue-500">
