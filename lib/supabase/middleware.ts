@@ -84,12 +84,32 @@ export async function updateSession(request: NextRequest) {
 
     // Protected routes - redirect to login if not authenticated
     const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/auth')
-    const isPublicRoute = pathname === '/' || pathname.startsWith('/join') || pathname.startsWith('/lp') || pathname.startsWith('/roadmap') || isSetupRoute || isInstallRoute
+    const isBlockedRoute = pathname === '/blocked'
+    const isPublicRoute = pathname === '/' || pathname.startsWith('/join') || pathname.startsWith('/lp') || pathname.startsWith('/roadmap') || isSetupRoute || isInstallRoute || isBlockedRoute
 
     if (!user && !isAuthRoute && !isPublicRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
+    }
+
+    // Check if authenticated user is deactivated (is_active = false)
+    if (user && !isAuthRoute && !isBlockedRoute) {
+        try {
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('is_active')
+                .eq('id', user.id)
+                .single()
+
+            if (profileData?.is_active === false) {
+                const url = request.nextUrl.clone()
+                url.pathname = '/blocked'
+                return NextResponse.redirect(url)
+            }
+        } catch {
+            // Fail-open: if query fails, allow access (don't block due to infra error)
+        }
     }
 
     // Redirect authenticated users away from login
