@@ -2,22 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Board, BoardStage, LifecycleStage, Product } from '@/types';
 import { BOARD_TEMPLATES, BoardTemplateType } from '@/lib/templates/board-templates';
 import { slugify } from '@/lib/utils/slugify';
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-export const STAGE_COLORS = [
-  'bg-blue-500',
-  'bg-green-500',
-  'bg-yellow-500',
-  'bg-orange-500',
-  'bg-red-500',
-  'bg-purple-500',
-  'bg-pink-500',
-  'bg-indigo-500',
-  'bg-teal-500',
-] as const;
+import { STAGE_COLORS } from '@/features/settings/constants';
 
 export const CREATE_BOARD_DRAFT_KEY = 'createBoardDraft.v1';
 
@@ -119,7 +104,6 @@ export function useBoardForm({
   const [defaultProductId, setDefaultProductId] = useState<string>('');
   const [selectedTemplate, setSelectedTemplate] = useState<BoardTemplateType | ''>('');
   const [stages, setStages] = useState<BoardStage[]>([]);
-  const [isLifecycleModalOpen, setIsLifecycleModalOpen] = useState(false);
   const [draggingStageId, setDraggingStageId] = useState<string | null>(null);
   const [dragOverStageId, setDragOverStageId] = useState<string | null>(null);
 
@@ -417,7 +401,6 @@ export function useBoardForm({
     defaultProductId,
     selectedTemplate,
     stages,
-    isLifecycleModalOpen,
     draggingStageId,
     dragOverStageId,
 
@@ -426,7 +409,6 @@ export function useBoardForm({
     setNextBoardId,
     setLinkedLifecycleStage,
     setDefaultProductId,
-    setIsLifecycleModalOpen,
 
     // Derived
     validNextBoards,

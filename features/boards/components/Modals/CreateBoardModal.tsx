@@ -1,14 +1,15 @@
 import React, { useId } from 'react';
+import Link from 'next/link';
 import { Plus, GripVertical, Trash2, ChevronDown, Settings, Copy } from 'lucide-react';
 import { Board } from '@/types';
 import { BoardTemplateType } from '@/lib/templates/board-templates';
-import { LifecycleSettingsModal } from '@/features/settings/components/LifecycleSettingsModal';
 import { useSettings } from '@/context/settings/SettingsContext';
 import { useToast } from '@/context/ToastContext';
 import { Modal } from '@/components/ui/Modal';
 import { MODAL_FOOTER_CLASS } from '@/components/ui/modalStyles';
 import { Button } from '@/components/ui/button';
-import { useBoardForm, STAGE_COLORS } from '@/features/boards/hooks/useBoardForm';
+import { useBoardForm } from '@/features/boards/hooks/useBoardForm';
+import { STAGE_COLORS } from '@/features/settings/constants';
 
 interface CreateBoardModalProps {
   isOpen: boolean;
@@ -77,8 +78,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
         className="max-w-xl"
         // We control padding/scroll inside, so keep the Modal body wrapper flat.
         bodyClassName="p-0"
-        // Nested modal: avoid trapping focus behind the lifecycle modal.
-        focusTrapEnabled={!form.isLifecycleModalOpen}
+        focusTrapEnabled
       >
         <div className="flex flex-col">
           {/*
@@ -328,15 +328,13 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                       <Plus size={14} />
                       Adicionar etapa
                     </Button>
-                    <Button
-                      variant="unstyled"
-                      size="unstyled"
-                      onClick={() => form.setIsLifecycleModalOpen(true)}
+                    <Link
+                      href="/settings/lifecycle"
                       className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-secondary-foreground dark:text-muted-foreground hover:bg-muted dark:hover:bg-white/5 rounded-lg transition-colors"
                     >
                       <Settings size={14} />
                       Gerenciar Estágios
-                    </Button>
+                    </Link>
                   </div>
                 </div>
 
@@ -460,11 +458,6 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           </div>
         </div>
       </Modal>
-
-      <LifecycleSettingsModal
-        isOpen={form.isLifecycleModalOpen}
-        onClose={() => form.setIsLifecycleModalOpen(false)}
-      />
     </>
   );
 };
