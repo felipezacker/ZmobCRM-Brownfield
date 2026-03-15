@@ -71,6 +71,7 @@ function ColorPicker({
   return (
     <div className="flex flex-wrap gap-1.5">
       {TAG_COLOR_PALETTE.map((color) => (
+        // eslint-disable-next-line no-restricted-syntax -- color palette dot, not a standard action button
         <button
           key={color}
           type="button"

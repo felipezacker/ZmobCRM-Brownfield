@@ -38,6 +38,7 @@ function FieldTypeSelector({
 
   return (
     <div className="relative" ref={ref}>
+      {/* eslint-disable-next-line no-restricted-syntax -- custom dropdown trigger, not a standard action button */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -53,6 +54,7 @@ function FieldTypeSelector({
           {(Object.entries(FIELD_TYPE_CONFIG) as [CustomFieldType, typeof current][]).map(([type, config]) => {
             const Icon = config.icon;
             return (
+              // eslint-disable-next-line no-restricted-syntax -- dropdown menu item, not a standard action button
               <button
                 key={type}
                 type="button"
