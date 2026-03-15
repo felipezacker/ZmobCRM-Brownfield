@@ -136,11 +136,291 @@ function sectionTitle(doc: jsPDF, title: string, y: number, margin: number): num
   return y + 2
 }
 
-function stddev(values: number[]): number {
+export function stddev(values: number[]): number {
   if (values.length === 0) return 0
   const mean = values.reduce((s, v) => s + v, 0) / values.length
   const sqDiffs = values.map(v => (v - mean) ** 2)
   return Math.sqrt(sqDiffs.reduce((s, v) => s + v, 0) / values.length)
+}
+
+// ── PDF Context (shared across section renderers) ───────────
+interface PdfCtx {
+  doc: jsPDF
+  y: number
+  margin: number
+  contentWidth: number
+  pw: number
+  ph: number
+}
+
+// ── Section Renderers ───────────────────────────────────────
+
+function renderGoalProgress(ctx: PdfCtx, goalProgress: GoalProgress): number {
+  const { doc, margin, contentWidth } = ctx
+  let y = ensureSpace(doc, ctx.y, 30)
+  doc.setTextColor(...COLORS.text)
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Meta do Dia', margin, y)
+  y += 6
+
+  const boxW = contentWidth / 3
+  doc.setFillColor(...COLORS.cardBg)
+  doc.roundedRect(margin, y - 2, boxW, 22, 2, 2, 'F')
+
+  const goalColor = goalProgress.color === 'green' ? COLORS.emerald
+    : goalProgress.color === 'yellow' ? COLORS.amber : COLORS.red
+  doc.setFillColor(...goalColor)
+  doc.rect(margin, y, 2.5, 18, 'F')
+
+  doc.setFontSize(18)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...COLORS.text)
+  doc.text(`${goalProgress.current}/${goalProgress.target}`, margin + 7, y + 10)
+
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...COLORS.textMuted)
+  doc.text(`${goalProgress.percentage}% concluído`, margin + 7, y + 16)
+
+  const statusText = goalProgress.isComplete ? 'Concluída' : goalProgress.percentage >= 50 ? 'Em progresso' : 'Iniciar'
+  doc.setFillColor(...goalColor)
+  const badgeX = margin + boxW + 8
+  doc.roundedRect(badgeX, y + 2, doc.getTextWidth(statusText) + 8, 8, 2, 2, 'F')
+  doc.setFontSize(7)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...COLORS.white)
+  doc.text(statusText, badgeX + 4, y + 7.5)
+
+  return y + 28
+}
+
+function renderPerformanceComparison(ctx: PdfCtx, userMetrics: BrokerMetric, teamAverage: BrokerMetric, periodDays: number): number {
+  const { doc, margin } = ctx
+  let y = ensureSpace(doc, ctx.y, 30)
+  y = sectionTitle(doc, 'Você vs. Média do Time', y, margin)
+
+  const days = Math.max(1, periodDays)
+  const compRows = [
+    ['Ligações/dia', (userMetrics.totalCalls / days).toFixed(1), (teamAverage.totalCalls / days).toFixed(1)],
+    ['Taxa de Conexão', `${userMetrics.connectionRate.toFixed(0)}%`, `${teamAverage.connectionRate.toFixed(0)}%`],
+    ['Duração Média', formatDuration(userMetrics.avgDuration), formatDuration(teamAverage.avgDuration)],
+    ['Contatos Únicos', String(userMetrics.uniqueContacts), String(Math.round(teamAverage.uniqueContacts))],
+  ]
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Métrica', 'Você', 'Time']],
+    body: compRows,
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor: [...COLORS.primary], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+    columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' } },
+    margin: { left: margin, right: margin },
+  })
+
+  return (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+}
+
+function renderHeatmap(ctx: PdfCtx, activities: CallActivity[]): number {
+  const { doc, margin } = ctx
+  let y = sectionTitle(doc, 'Melhor Horário para Ligar', ctx.y, margin)
+
+  const heatmap: Record<string, Record<string, { total: number; connected: number }>> = {}
+  for (const day of HEATMAP_DAYS) {
+    heatmap[day] = {}
+    for (const slot of TIME_SLOTS) {
+      heatmap[day][slot] = { total: 0, connected: 0 }
+    }
+  }
+  for (const a of activities) {
+    const dt = new Date(a.date)
+    const dayName = HEATMAP_DAYS[dt.getDay()]
+    const slot = getTimeSlot(dt.getHours())
+    if (!slot) continue
+    const cell = heatmap[dayName][slot]
+    cell.total++
+    if (a.metadata?.outcome === 'connected') cell.connected++
+  }
+
+  const heatmapBody = HEATMAP_DAYS.map(day => {
+    const row: string[] = [day]
+    for (const slot of TIME_SLOTS) {
+      const cell = heatmap[day][slot]
+      if (cell.total === 0) {
+        row.push('—')
+      } else {
+        const rate = ((cell.connected / cell.total) * 100).toFixed(0)
+        row.push(`${rate}% (${cell.total})`)
+      }
+    }
+    return row
+  })
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Dia', '8-10h', '10-12h', '12-14h', '14-16h', '16-18h', '18-20h']],
+    body: heatmapBody,
+    styles: { fontSize: 7, cellPadding: 2, halign: 'center' },
+    headStyles: { fillColor: [...COLORS.orange], textColor: 255, fontStyle: 'bold', fontSize: 7 },
+    alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+    columnStyles: { 0: { fontStyle: 'bold', halign: 'left' } },
+    didParseCell: (data) => {
+      if (data.section === 'body' && data.column.index > 0) {
+        const text = String(data.cell.raw)
+        if (text === '—') {
+          data.cell.styles.textColor = COLORS.gray
+        } else {
+          const pctMatch = text.match(/^(\d+)%/)
+          if (pctMatch) {
+            const pct = parseInt(pctMatch[1])
+            if (pct >= 40) data.cell.styles.textColor = COLORS.emerald
+            else if (pct >= 20) data.cell.styles.textColor = COLORS.amber
+            else data.cell.styles.textColor = COLORS.red
+          }
+        }
+      }
+    },
+    margin: { left: margin, right: margin },
+  })
+
+  return (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+}
+
+function renderTopObjections(ctx: PdfCtx, activities: CallActivity[]): number {
+  const { doc, margin } = ctx
+  let y = ctx.y
+
+  const objCounts = new Map<string, number>()
+  for (const a of activities) {
+    const meta = a.metadata as Record<string, unknown> | null
+    const objections = meta?.objections as string[] | undefined
+    if (!objections || !Array.isArray(objections)) continue
+    for (const obj of objections) {
+      objCounts.set(obj, (objCounts.get(obj) || 0) + 1)
+    }
+  }
+  const topObjections = Array.from(objCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)
+
+  if (topObjections.length > 0) {
+    y = sectionTitle(doc, 'Top 5 Objeções', y, margin)
+
+    autoTable(doc, {
+      startY: y,
+      head: [['#', 'Objeção', 'Ocorrências']],
+      body: topObjections.map(([obj, count], i) => [String(i + 1), obj, `${count}x`]),
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [...COLORS.orange], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+      columnStyles: { 0: { halign: 'center', cellWidth: 10 }, 2: { halign: 'center', cellWidth: 25 } },
+      margin: { left: margin, right: margin },
+    })
+
+    y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+  }
+
+  return y
+}
+
+function renderRetryEffectiveness(ctx: PdfCtx, retryData: RetryEffectivenessData): number {
+  const { doc, margin } = ctx
+  let y = sectionTitle(doc, 'Efetividade de Retentativas', ctx.y, margin)
+
+  const retryRows = [
+    [retryData.firstAttempt.label, String(retryData.firstAttempt.total), String(retryData.firstAttempt.completed), `${Math.round(retryData.firstAttempt.rate)}%`],
+    [retryData.secondAttempt.label, String(retryData.secondAttempt.total), String(retryData.secondAttempt.completed), `${Math.round(retryData.secondAttempt.rate)}%`],
+    [retryData.thirdPlus.label, String(retryData.thirdPlus.total), String(retryData.thirdPlus.completed), `${Math.round(retryData.thirdPlus.rate)}%`],
+  ]
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Tentativa', 'Total', 'Conectaram', 'Taxa']],
+    body: retryRows,
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor: [...COLORS.primary], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+    columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' } },
+    margin: { left: margin, right: margin },
+  })
+
+  return (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+}
+
+function renderPipelineImpact(ctx: PdfCtx, impact: ProspectingImpact): number {
+  const { doc, margin, contentWidth } = ctx
+  let y = sectionTitle(doc, 'Impacto no Pipeline', ctx.y, margin)
+
+  const impactKpis = [
+    { label: 'Ligações com Deal', value: `${impact.callsWithDeal} / ${impact.totalProspectingCalls}` },
+    { label: 'Taxa de Vinculação', value: `${impact.linkageRate.toFixed(1)}%` },
+    { label: 'Pipeline Gerado', value: formatCurrency(impact.pipelineValue) },
+    { label: 'Deals Ganhos', value: String(impact.dealsWon) + (impact.dealsWonValue > 0 ? ` (${formatCurrency(impact.dealsWonValue)})` : '') },
+  ]
+
+  const impactColW = (contentWidth - 12) / 4
+  impactKpis.forEach((kpi, i) => {
+    const x = margin + i * (impactColW + 4)
+    doc.setFillColor(...COLORS.cardBg)
+    doc.roundedRect(x, y, impactColW, 18, 2, 2, 'F')
+    doc.setFontSize(6.5)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...COLORS.textMuted)
+    doc.text(kpi.label.toUpperCase(), x + 4, y + 5)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...COLORS.text)
+    doc.text(kpi.value, x + 4, y + 13)
+  })
+
+  y += 24
+
+  if (impact.byDay.length > 0) {
+    const impactDays = impact.byDay.filter(d => d.linked > 0 || d.unlinked > 0)
+    if (impactDays.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        head: [['Data', 'Com Deal', 'Sem Deal', 'Total']],
+        body: impactDays.map(d => [
+          formatDate(d.date), String(d.linked), String(d.unlinked), String(d.linked + d.unlinked),
+        ]),
+        styles: { fontSize: 7.5, cellPadding: 2.5 },
+        headStyles: { fillColor: [...COLORS.violet], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
+        alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+        columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' } },
+        margin: { left: margin, right: margin },
+      })
+      y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+    }
+  }
+
+  return y
+}
+
+function renderQueueHealth(ctx: PdfCtx, queueStats: NonNullable<GeneratePdfOptions['queueStats']>): number {
+  const { doc, margin } = ctx
+  let y = sectionTitle(doc, 'Saúde da Fila', ctx.y, margin)
+
+  const queueRows = [
+    ['Total na Fila', String(queueStats.total)],
+    ['Concluídos', String(queueStats.completed)],
+    ['Pendentes', String(queueStats.pending)],
+    ['Pulados', String(queueStats.skipped)],
+    ['Em Retry', String(queueStats.retryPending)],
+    ['Esgotados', String(queueStats.exhausted)],
+  ].filter(r => parseInt(r[1]) > 0)
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Status', 'Quantidade', '% do Total']],
+    body: queueRows.map(r => [...r, `${((parseInt(r[1]) / queueStats.total) * 100).toFixed(0)}%`]),
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor: [...COLORS.gray], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+    columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' } },
+    margin: { left: margin, right: margin },
+  })
+
+  return (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
 }
 
 // ── Main ────────────────────────────────────────────────────
@@ -336,79 +616,14 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   // Daily Goal Progress
   // ════════════════════════════════════════════
   if (goalProgress) {
-    y = ensureSpace(doc, y, 30)
-    doc.setTextColor(...COLORS.text)
-    doc.setFontSize(11)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Meta do Dia', margin, y)
-    y += 6
-
-    // Goal progress box
-    const boxW = contentWidth / 3
-    doc.setFillColor(...COLORS.cardBg)
-    doc.roundedRect(margin, y - 2, boxW, 22, 2, 2, 'F')
-
-    // Colored left border based on status
-    const goalColor = goalProgress.color === 'green' ? COLORS.emerald
-      : goalProgress.color === 'yellow' ? COLORS.amber : COLORS.red
-    doc.setFillColor(...goalColor)
-    doc.rect(margin, y, 2.5, 18, 'F')
-
-    // Progress text
-    doc.setFontSize(18)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...COLORS.text)
-    doc.text(`${goalProgress.current}/${goalProgress.target}`, margin + 7, y + 10)
-
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(...COLORS.textMuted)
-    doc.text(`${goalProgress.percentage}% concluído`, margin + 7, y + 16)
-
-    // Status badge
-    const statusText = goalProgress.isComplete ? 'Concluída' : goalProgress.percentage >= 50 ? 'Em progresso' : 'Iniciar'
-    doc.setFillColor(...goalColor)
-    const badgeX = margin + boxW + 8
-    doc.roundedRect(badgeX, y + 2, doc.getTextWidth(statusText) + 8, 8, 2, 2, 'F')
-    doc.setFontSize(7)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...COLORS.white)
-    doc.text(statusText, badgeX + 4, y + 7.5)
-
-    y += 28
+    y = renderGoalProgress({ doc, y, margin, contentWidth, pw, ph }, goalProgress)
   }
 
   // ════════════════════════════════════════════
   // Performance Comparison (non-admin only)
   // ════════════════════════════════════════════
   if (!isAdminOrDirector && userMetrics && teamAverage && periodDays && periodDays > 0) {
-    y = ensureSpace(doc, y, 30)
-    y = sectionTitle(doc, 'Você vs. Média do Time', y, margin)
-
-    const days = Math.max(1, periodDays)
-    const compRows = [
-      ['Ligações/dia', (userMetrics.totalCalls / days).toFixed(1), (teamAverage.totalCalls / days).toFixed(1)],
-      ['Taxa de Conexão', `${userMetrics.connectionRate.toFixed(0)}%`, `${teamAverage.connectionRate.toFixed(0)}%`],
-      ['Duração Média', formatDuration(userMetrics.avgDuration), formatDuration(teamAverage.avgDuration)],
-      ['Contatos Únicos', String(userMetrics.uniqueContacts), String(Math.round(teamAverage.uniqueContacts))],
-    ]
-
-    autoTable(doc, {
-      startY: y,
-      head: [['Métrica', 'Você', 'Time']],
-      body: compRows,
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [...COLORS.primary], textColor: 255, fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [...COLORS.lightBg] },
-      columnStyles: {
-        0: { fontStyle: 'bold' },
-        1: { halign: 'center' },
-        2: { halign: 'center' },
-      },
-      margin: { left: margin, right: margin },
-    })
-
-    y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+    y = renderPerformanceComparison({ doc, y, margin, contentWidth, pw, ph }, userMetrics, teamAverage, periodDays)
   }
 
   // ════════════════════════════════════════════
@@ -520,69 +735,7 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   // Connection Heatmap (computed from activities)
   // ════════════════════════════════════════════
   if (activities.length >= 10) {
-    y = sectionTitle(doc, 'Melhor Horário para Ligar', y, margin)
-
-    // Build heatmap data from activities
-    const heatmap: Record<string, Record<string, { total: number; connected: number }>> = {}
-    for (const day of HEATMAP_DAYS) {
-      heatmap[day] = {}
-      for (const slot of TIME_SLOTS) {
-        heatmap[day][slot] = { total: 0, connected: 0 }
-      }
-    }
-    for (const a of activities) {
-      const dt = new Date(a.date)
-      const dayName = HEATMAP_DAYS[dt.getDay()]
-      const slot = getTimeSlot(dt.getHours())
-      if (!slot) continue
-      const cell = heatmap[dayName][slot]
-      cell.total++
-      if (a.metadata?.outcome === 'connected') cell.connected++
-    }
-
-    // Build table: rows = days, cols = time slots
-    const heatmapBody = HEATMAP_DAYS.map(day => {
-      const row: string[] = [day]
-      for (const slot of TIME_SLOTS) {
-        const cell = heatmap[day][slot]
-        if (cell.total === 0) {
-          row.push('—')
-        } else {
-          const rate = ((cell.connected / cell.total) * 100).toFixed(0)
-          row.push(`${rate}% (${cell.total})`)
-        }
-      }
-      return row
-    })
-
-    autoTable(doc, {
-      startY: y,
-      head: [['Dia', '8-10h', '10-12h', '12-14h', '14-16h', '16-18h', '18-20h']],
-      body: heatmapBody,
-      styles: { fontSize: 7, cellPadding: 2, halign: 'center' },
-      headStyles: { fillColor: [...COLORS.orange], textColor: 255, fontStyle: 'bold', fontSize: 7 },
-      alternateRowStyles: { fillColor: [...COLORS.lightBg] },
-      columnStyles: { 0: { fontStyle: 'bold', halign: 'left' } },
-      didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index > 0) {
-          const text = String(data.cell.raw)
-          if (text === '—') {
-            data.cell.styles.textColor = COLORS.gray
-          } else {
-            const pctMatch = text.match(/^(\d+)%/)
-            if (pctMatch) {
-              const pct = parseInt(pctMatch[1])
-              if (pct >= 40) data.cell.styles.textColor = COLORS.emerald
-              else if (pct >= 20) data.cell.styles.textColor = COLORS.amber
-              else data.cell.styles.textColor = COLORS.red
-            }
-          }
-        }
-      },
-      margin: { left: margin, right: margin },
-    })
-
-    y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+    y = renderHeatmap({ doc, y, margin, contentWidth, pw, ph }, activities)
   }
 
   // ════════════════════════════════════════════
@@ -636,163 +789,27 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   // ════════════════════════════════════════════
   // Top Objections (computed from activities)
   // ════════════════════════════════════════════
-  {
-    const objCounts = new Map<string, number>()
-    for (const a of activities) {
-      const meta = a.metadata as Record<string, unknown> | null
-      const objections = meta?.objections as string[] | undefined
-      if (!objections || !Array.isArray(objections)) continue
-      for (const obj of objections) {
-        objCounts.set(obj, (objCounts.get(obj) || 0) + 1)
-      }
-    }
-    const topObjections = Array.from(objCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)
-
-    if (topObjections.length > 0) {
-      y = sectionTitle(doc, 'Top 5 Objeções', y, margin)
-
-      autoTable(doc, {
-        startY: y,
-        head: [['#', 'Objeção', 'Ocorrências']],
-        body: topObjections.map(([obj, count], i) => [String(i + 1), obj, `${count}x`]),
-        styles: { fontSize: 8, cellPadding: 3 },
-        headStyles: { fillColor: [...COLORS.orange], textColor: 255, fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: [...COLORS.lightBg] },
-        columnStyles: {
-          0: { halign: 'center', cellWidth: 10 },
-          2: { halign: 'center', cellWidth: 25 },
-        },
-        margin: { left: margin, right: margin },
-      })
-
-      y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
-    }
-  }
+  y = renderTopObjections({ doc, y, margin, contentWidth, pw, ph }, activities)
 
   // ════════════════════════════════════════════
   // Retry Effectiveness
   // ════════════════════════════════════════════
   if (retryData?.hasData) {
-    y = sectionTitle(doc, 'Efetividade de Retentativas', y, margin)
-
-    const retryRows = [
-      [retryData.firstAttempt.label, String(retryData.firstAttempt.total), String(retryData.firstAttempt.completed), `${Math.round(retryData.firstAttempt.rate)}%`],
-      [retryData.secondAttempt.label, String(retryData.secondAttempt.total), String(retryData.secondAttempt.completed), `${Math.round(retryData.secondAttempt.rate)}%`],
-      [retryData.thirdPlus.label, String(retryData.thirdPlus.total), String(retryData.thirdPlus.completed), `${Math.round(retryData.thirdPlus.rate)}%`],
-    ]
-
-    autoTable(doc, {
-      startY: y,
-      head: [['Tentativa', 'Total', 'Conectaram', 'Taxa']],
-      body: retryRows,
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [...COLORS.primary], textColor: 255, fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [...COLORS.lightBg] },
-      columnStyles: {
-        0: { fontStyle: 'bold' },
-        1: { halign: 'center' },
-        2: { halign: 'center' },
-        3: { halign: 'center' },
-      },
-      margin: { left: margin, right: margin },
-    })
-
-    y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+    y = renderRetryEffectiveness({ doc, y, margin, contentWidth, pw, ph }, retryData)
   }
 
   // ════════════════════════════════════════════
   // Pipeline Impact
   // ════════════════════════════════════════════
   if (impact && impact.totalProspectingCalls > 0) {
-    y = sectionTitle(doc, 'Impacto no Pipeline', y, margin)
-
-    // KPI row
-    const impactKpis = [
-      { label: 'Ligações com Deal', value: `${impact.callsWithDeal} / ${impact.totalProspectingCalls}` },
-      { label: 'Taxa de Vinculação', value: `${impact.linkageRate.toFixed(1)}%` },
-      { label: 'Pipeline Gerado', value: formatCurrency(impact.pipelineValue) },
-      { label: 'Deals Ganhos', value: String(impact.dealsWon) + (impact.dealsWonValue > 0 ? ` (${formatCurrency(impact.dealsWonValue)})` : '') },
-    ]
-
-    const impactColW = (contentWidth - 12) / 4
-    impactKpis.forEach((kpi, i) => {
-      const x = margin + i * (impactColW + 4)
-      doc.setFillColor(...COLORS.cardBg)
-      doc.roundedRect(x, y, impactColW, 18, 2, 2, 'F')
-
-      doc.setFontSize(6.5)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(...COLORS.textMuted)
-      doc.text(kpi.label.toUpperCase(), x + 4, y + 5)
-
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(...COLORS.text)
-      doc.text(kpi.value, x + 4, y + 13)
-    })
-
-    y += 24
-
-    // Daily breakdown table
-    if (impact.byDay.length > 0) {
-      const impactDays = impact.byDay.filter(d => d.linked > 0 || d.unlinked > 0)
-      if (impactDays.length > 0) {
-        autoTable(doc, {
-          startY: y,
-          head: [['Data', 'Com Deal', 'Sem Deal', 'Total']],
-          body: impactDays.map(d => [
-            formatDate(d.date),
-            String(d.linked),
-            String(d.unlinked),
-            String(d.linked + d.unlinked),
-          ]),
-          styles: { fontSize: 7.5, cellPadding: 2.5 },
-          headStyles: { fillColor: [...COLORS.violet], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
-          alternateRowStyles: { fillColor: [...COLORS.lightBg] },
-          columnStyles: {
-            0: { fontStyle: 'bold' },
-            1: { halign: 'center' },
-            2: { halign: 'center' },
-            3: { halign: 'center' },
-          },
-          margin: { left: margin, right: margin },
-        })
-        y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
-      }
-    }
+    y = renderPipelineImpact({ doc, y, margin, contentWidth, pw, ph }, impact)
   }
 
   // ════════════════════════════════════════════
   // Queue Health
   // ════════════════════════════════════════════
   if (queueStats && queueStats.total > 0) {
-    y = sectionTitle(doc, 'Saúde da Fila', y, margin)
-
-    const queueRows = [
-      ['Total na Fila', String(queueStats.total)],
-      ['Concluídos', String(queueStats.completed)],
-      ['Pendentes', String(queueStats.pending)],
-      ['Pulados', String(queueStats.skipped)],
-      ['Em Retry', String(queueStats.retryPending)],
-      ['Esgotados', String(queueStats.exhausted)],
-    ].filter(r => parseInt(r[1]) > 0)
-
-    autoTable(doc, {
-      startY: y,
-      head: [['Status', 'Quantidade', '% do Total']],
-      body: queueRows.map(r => [...r, `${((parseInt(r[1]) / queueStats.total) * 100).toFixed(0)}%`]),
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [...COLORS.gray], textColor: 255, fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [...COLORS.lightBg] },
-      columnStyles: {
-        0: { fontStyle: 'bold' },
-        1: { halign: 'center' },
-        2: { halign: 'center' },
-      },
-      margin: { left: margin, right: margin },
-    })
-
-    y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+    y = renderQueueHealth({ doc, y, margin, contentWidth, pw, ph }, queueStats)
   }
 
   // ════════════════════════════════════════════

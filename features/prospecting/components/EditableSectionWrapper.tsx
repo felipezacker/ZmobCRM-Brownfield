@@ -56,14 +56,6 @@ export function EditableSectionWrapper({
     opacity: isDragging ? 0.5 : 1,
   }
 
-  // Build ordered items list for the item editor
-  const orderedItems = items && items.length > 0 ? (() => {
-    // If we have a saved order, use it; otherwise use default
-    const defaultIds = items.map(i => i.id)
-    // items are already in default order, just pass them through
-    return items
-  })() : undefined
-
   const editModeProps = {
     editMode: {
       dragAttributes: attributes,
@@ -71,7 +63,7 @@ export function EditableSectionWrapper({
       isHidden,
       canHideMore,
       onToggleVisibility: () => onToggleVisibility(id),
-      items: orderedItems,
+      items,
       hiddenItems,
       onToggleItem: onToggleItem ? (itemId: string) => onToggleItem(id, itemId) : undefined,
       onReorderItems: onReorderItems ? (activeId: string, overId: string) => onReorderItems(id, activeId, overId) : undefined,

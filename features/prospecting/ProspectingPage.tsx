@@ -129,6 +129,11 @@ const SECTION_ITEMS: Record<string, ItemDef[]> = {
   ],
 }
 
+function formatDateBR(dateStr: string): string {
+  const parts = dateStr.split('-')
+  return `${parts[2]}/${parts[1]}`
+}
+
 function formatTimeAgo(timestamp: number): string {
   const diff = Math.floor((Date.now() - timestamp) / 1000)
   if (diff < 10) return 'agora'
@@ -416,8 +421,8 @@ export const ProspectingPage: React.FC = () => {
     })
   }, [layout.sectionOrder, isAdminOrDirector, metricsFilterOwnerId])
 
-  // CP-8.1: Section content renderer
-  const renderSectionContent = useCallback((sectionId: string): React.ReactNode => {
+  // CP-8.1: Section content renderer — plain function, no useCallback needed (called inline during render)
+  function renderSectionContent(sectionId: string): React.ReactNode {
     switch (sectionId) {
       case 'live-ops':
         return (
@@ -566,13 +571,7 @@ export const ProspectingPage: React.FC = () => {
       default:
         return null
     }
-  }, [
-    layout, liveOps, metricsHook, impactHook, goalsHook, retryQuery,
-    userMetrics, teamAverage, isAdminOrDirector, periodDays,
-    metricsFilterOwnerId, profiles, setDrilldownCard,
-    handleAddBatchToQueue, toast, queue, exhaustedItems, isLoading,
-    sessionHistory, isLoadingSessions,
-  ])
+  }
 
   const currentContact = sessionActive && queue[currentIndex] ? queue[currentIndex] : null
   const pendingCount = queue.filter(q => q.status === 'pending').length
@@ -811,7 +810,7 @@ export const ProspectingPage: React.FC = () => {
                 <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">
                   Métricas — {metricsPeriod === 'today' ? 'Hoje' : metricsPeriod === 'yesterday' ? 'Ontem' : metricsPeriod === '7d' ? 'Últimos 7 dias' : metricsPeriod === '30d' ? 'Últimos 30 dias' : 'Período personalizado'}
                   <span className="font-normal text-muted-foreground ml-1 text-xs">
-                    ({metricsHook.range.start.split('-').reverse().slice(0, 2).join('/')} — {metricsHook.range.end.split('-').reverse().slice(0, 2).join('/')})
+                    ({formatDateBR(metricsHook.range.start)} — {formatDateBR(metricsHook.range.end)})
                   </span>
                 </span>
                 {metricsHook.dataUpdatedAt > 0 && (

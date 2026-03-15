@@ -19,7 +19,7 @@ export function CockpitChecklist({ checklist, onPersistChecklist, onReload }: Co
   return (
     <Panel
       title="Execução"
-      icon={<ActivityIcon className="h-4 w-4 text-amber-500 dark:text-amber-200" />}
+      icon={<ActivityIcon className="h-4 w-4 text-amber-700 dark:text-amber-200" />}
       right={<Chip tone="success">Real</Chip>}
       className="flex min-h-0 flex-col"
       bodyClassName="min-h-0 flex-1 overflow-auto"
