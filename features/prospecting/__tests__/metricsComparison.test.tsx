@@ -9,6 +9,7 @@ import '@testing-library/jest-dom/vitest'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { getComparisonDateRange } from '../hooks/useProspectingMetrics'
+import { stddev } from '../utils/generateMetricsPDF'
 import type { MetricsPeriod, PeriodRange, ProspectingMetrics } from '../hooks/useProspectingMetrics'
 import { DeltaIndicator } from '../components/DeltaIndicator'
 import { MetricsCards } from '../components/MetricsCards'
@@ -226,5 +227,32 @@ describe('MetricsCards with comparisonMetrics', () => {
     const semRespostaCard = screen.getByText('Sem Resposta').closest('button')!
     const arrow = semRespostaCard.querySelector('.text-red-500')
     expect(arrow).toBeInTheDocument()
+  })
+})
+
+// ── stddev tests ────────────────────────────────────────────
+
+describe('stddev', () => {
+  it('returns 0 for empty array', () => {
+    expect(stddev([])).toBe(0)
+  })
+
+  it('returns 0 for single value', () => {
+    expect(stddev([5])).toBe(0)
+  })
+
+  it('returns 0 for identical values', () => {
+    expect(stddev([10, 10, 10, 10])).toBe(0)
+  })
+
+  it('calculates population stddev correctly', () => {
+    // [2, 4, 4, 4, 5, 5, 7, 9] → mean=5, stddev=2
+    const result = stddev([2, 4, 4, 4, 5, 5, 7, 9])
+    expect(result).toBeCloseTo(2, 5)
+  })
+
+  it('handles two values', () => {
+    // [0, 10] → mean=5, stddev=5
+    expect(stddev([0, 10])).toBe(5)
   })
 })

@@ -7,6 +7,7 @@ import type { ProspectingMetrics } from '../hooks/useProspectingMetrics'
 import type { DrilldownCardType } from '../constants'
 import { formatDuration } from '../utils/formatDuration'
 import { DeltaIndicator } from './DeltaIndicator'
+import { SortableItemContainer } from './SortableItemEditor'
 
 interface MetricsCardsProps {
   metrics: ProspectingMetrics | null
@@ -14,7 +15,16 @@ interface MetricsCardsProps {
   onCardClick?: (cardType: DrilldownCardType) => void
   comparisonMetrics?: ProspectingMetrics | null
   isComparisonLoading?: boolean
+  itemOrder?: string[]
+  hiddenItems?: Set<string>
+  isEditing?: boolean
+  onToggleItem?: (itemId: string) => void
+  onReorderItems?: (activeId: string, overId: string) => void
 }
+
+export const KPI_ITEM_IDS = [
+  'total-calls', 'connected', 'no-answer', 'voicemail', 'avg-duration', 'unique-contacts',
+] as const
 
 function KpiCard({
   icon: Icon,
@@ -75,11 +85,14 @@ function SkeletonCard() {
   )
 }
 
-export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetrics, isComparisonLoading }: MetricsCardsProps) {
+export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetrics, isComparisonLoading, itemOrder, hiddenItems, isEditing, onToggleItem, onReorderItems }: MetricsCardsProps) {
   if (isLoading) {
+    const visibleCount = itemOrder
+      ? itemOrder.filter(id => !hiddenItems?.has(id)).length
+      : 6
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-        {[1, 2, 3, 4, 5, 6].map(i => (
+        {Array.from({ length: visibleCount || 6 }, (_, i) => (
           <SkeletonCard key={i} />
         ))}
       </div>
@@ -96,7 +109,6 @@ export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetric
   const compNoAnswer = comparisonMetrics?.byOutcome?.find(o => o.outcome === 'no_answer')?.count ?? 0
   const compVoicemail = comparisonMetrics?.byOutcome?.find(o => o.outcome === 'voicemail')?.count ?? 0
 
-  // CP-6.4 AC9: Tempo Medio direction — lower is better unless connection rate improved
   const connectionImproved = (metrics?.connectionRate ?? 0) > (comparisonMetrics?.connectionRate ?? 0)
   const avgDurationInvertDirection = !connectionImproved
 
@@ -104,60 +116,67 @@ export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetric
 
   const pct = (n: number) => total > 0 ? `${((n / total) * 100).toFixed(0)}% do total` : undefined
 
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-      <KpiCard
-        icon={Phone}
-        label="Ligações Discadas"
-        value={total.toString()}
-        color="bg-blue-500"
+  const allCards: Record<string, React.ReactNode> = {
+    'total-calls': (
+      <KpiCard key="total-calls" icon={Phone} label="Ligações Discadas" value={total.toString()} color="bg-blue-500"
         onClick={() => onCardClick?.('totalCalls')}
         delta={hasDelta ? <DeltaIndicator current={total} previous={compTotal} isLoading={isComparisonLoading} /> : undefined}
       />
-      <KpiCard
-        icon={PhoneCall}
-        label="Atendidas"
-        value={connected.toString()}
-        subtitle={pct(connected)}
-        color="bg-emerald-500"
+    ),
+    'connected': (
+      <KpiCard key="connected" icon={PhoneCall} label="Atendidas" value={connected.toString()} subtitle={pct(connected)} color="bg-emerald-500"
         onClick={() => onCardClick?.('connected')}
         delta={hasDelta ? <DeltaIndicator current={connected} previous={compConnected} isLoading={isComparisonLoading} /> : undefined}
       />
-      <KpiCard
-        icon={PhoneOff}
-        label="Sem Resposta"
-        value={noAnswer.toString()}
-        subtitle={pct(noAnswer)}
-        color="bg-red-500"
+    ),
+    'no-answer': (
+      <KpiCard key="no-answer" icon={PhoneOff} label="Sem Resposta" value={noAnswer.toString()} subtitle={pct(noAnswer)} color="bg-red-500"
         onClick={() => onCardClick?.('noAnswer')}
         delta={hasDelta ? <DeltaIndicator current={noAnswer} previous={compNoAnswer} invertDirection isLoading={isComparisonLoading} /> : undefined}
       />
-      <KpiCard
-        icon={Voicemail}
-        label="Correio de Voz"
-        value={voicemailCount.toString()}
-        subtitle={pct(voicemailCount)}
-        color="bg-amber-500"
+    ),
+    'voicemail': (
+      <KpiCard key="voicemail" icon={Voicemail} label="Correio de Voz" value={voicemailCount.toString()} subtitle={pct(voicemailCount)} color="bg-amber-500"
         onClick={() => onCardClick?.('voicemail')}
         delta={hasDelta ? <DeltaIndicator current={voicemailCount} previous={compVoicemail} invertDirection isLoading={isComparisonLoading} /> : undefined}
       />
-      <KpiCard
-        icon={Clock}
-        label="Tempo Médio"
-        value={formatDuration(metrics?.avgDuration || 0)}
-        subtitle={connected > 0 ? 'por ligação conectada' : undefined}
-        color="bg-violet-500"
+    ),
+    'avg-duration': (
+      <KpiCard key="avg-duration" icon={Clock} label="Tempo Médio" value={formatDuration(metrics?.avgDuration || 0)}
+        subtitle={connected > 0 ? 'por ligação conectada' : undefined} color="bg-violet-500"
         onClick={() => onCardClick?.('avgDuration')}
         delta={hasDelta ? <DeltaIndicator current={metrics?.avgDuration || 0} previous={comparisonMetrics?.avgDuration ?? 0} invertDirection={avgDurationInvertDirection} isLoading={isComparisonLoading} /> : undefined}
       />
-      <KpiCard
-        icon={Users}
-        label="Contatos Prospectados"
-        value={metrics?.uniqueContacts?.toString() || '0'}
-        color="bg-primary-500"
+    ),
+    'unique-contacts': (
+      <KpiCard key="unique-contacts" icon={Users} label="Contatos Prospectados" value={metrics?.uniqueContacts?.toString() || '0'} color="bg-primary-500"
         onClick={() => onCardClick?.('uniqueContacts')}
         delta={hasDelta ? <DeltaIndicator current={metrics?.uniqueContacts || 0} previous={comparisonMetrics?.uniqueContacts ?? 0} isLoading={isComparisonLoading} /> : undefined}
       />
+    ),
+  }
+
+  const order = itemOrder || KPI_ITEM_IDS as unknown as string[]
+
+  // Edit mode: show all cards with drag handles and eye toggles
+  if (isEditing && onToggleItem && onReorderItems) {
+    return (
+      <SortableItemContainer
+        itemIds={order}
+        hiddenItems={hiddenItems || new Set()}
+        onToggleItem={onToggleItem}
+        onReorderItems={onReorderItems}
+        renderItem={(id) => allCards[id] || null}
+        className="grid grid-cols-2 lg:grid-cols-3 gap-3"
+      />
+    )
+  }
+
+  // Normal mode: render visible cards in order
+  const visibleCards = order.filter(id => !hiddenItems?.has(id))
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+      {visibleCards.map(id => allCards[id]).filter(Boolean)}
     </div>
   )
 }

@@ -306,7 +306,7 @@ export const CallModal: React.FC<CallModalProps> = ({
                                 </Button>
                             )}
                         </div>
-                        <div className="text-1xs text-muted-foreground text-center">
+                        <div className="text-1xs text-secondary-foreground dark:text-muted-foreground text-center">
                             {!phone ? (
                                 'Sem número de telefone para discar.'
                             ) : timerPaused ? (
@@ -318,8 +318,8 @@ export const CallModal: React.FC<CallModalProps> = ({
                             )}
                         </div>
                         {showTimerPrompt && (
-                            <div className="mt-2 flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2">
-                                <span className="text-xs text-yellow-300 font-medium">Iniciar contagem?</span>
+                            <div className="mt-2 flex items-center gap-2 bg-amber-100 dark:bg-yellow-500/10 border border-amber-300 dark:border-yellow-500/30 rounded-lg px-3 py-2">
+                                <span className="text-xs text-amber-700 dark:text-yellow-300 font-medium">Iniciar contagem?</span>
                                 <Button
                                     variant="unstyled"
                                     size="unstyled"

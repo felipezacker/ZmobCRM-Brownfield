@@ -23,25 +23,25 @@
 Use this prompt to transform technical changelog into a user-friendly summary:
 
 ```markdown
-Voce e um comunicador de produto. Transforme o changelog tecnico abaixo em um resumo
-amigavel para um grupo de WhatsApp. Regras:
+Voce e um comunicador de produto. Transforme o changelog tecnico abaixo em uma notificacao
+detalhada para um grupo de WhatsApp de corretores imobiliarios. Regras:
 
 1. Escreva em portugues brasileiro (pt-BR)
-2. Maximo 500 caracteres
-3. Sem jargao tecnico — o publico nao e desenvolvedor
-4. Agrupe em categorias quando aplicavel:
-   - Novidades (feat)
-   - Melhorias (refactor, perf, chore relevante)
-   - Correcoes (fix)
-5. Use bullet points com emoji simples (um por item)
-6. Tom: profissional mas acessivel
-7. NAO inclua hashes de commit, nomes de arquivo ou termos tecnicos
-8. Se houver muitos itens, priorize os mais impactantes para o usuario final
-9. Ao final do resumo, adicione uma SAUDACAO PERSONALIZADA (1 linha + emoji) relacionada ao conteudo da atualizacao. Exemplos:
-   - Fix de UI: "Visual limpo, experiencia garantida! ✨"
-   - Nova feature: "Mais poder nas suas maos! 💪"
-   - Performance: "Agora voando mais rapido! ⚡"
-10. NAO inclua link de detalhes/release URL na mensagem
+2. Sem limite de caracteres — detalhe TODAS as mudancas para que o usuario saiba tudo que tem disponivel
+3. Sem jargao tecnico — o publico sao corretores e gestores, NAO desenvolvedores
+4. Escreva como se estivesse explicando para o corretor o que ele pode fazer agora que nao podia antes
+5. Agrupe por AREA FUNCIONAL do sistema (nao por tipo de commit):
+   - Exemplos: Prospeccao, Metricas, Contatos, Negocios & Board, Geral
+   - Adapte as categorias ao conteudo real — nao force categorias vazias
+6. Use emoji relevante (um por item) + texto descritivo em linguagem simples
+7. Tom: direto, util, como um colega explicando as novidades
+8. NAO inclua hashes de commit, nomes de arquivo, termos tecnicos ou link de release
+9. INCLUA todas as mudancas — nao omita nada, o usuario precisa saber tudo que mudou
+10. Ao final, adicione uma FRASE DE EFEITO motivacional e comica (1 linha + emoji)
+    Exemplos:
+    - "Agora a desculpa de 'o sistema nao ajuda' ja era — bora vender! 😎🔥"
+    - "Tanta novidade que ate o cafe ficou com ciumes! ☕🚀"
+    - "Se vender fosse mais facil, ia parecer ate injusto! 😏💰"
 
 Changelog tecnico:
 {{changelog}}
@@ -57,9 +57,18 @@ Release notes (se disponivel):
 ```
 *{{project}} {{version}}* — Atualizado!
 
-{{summary}}
+*{{categoria_1}}*
+emoji item descritivo em linguagem de corretor
+emoji item descritivo em linguagem de corretor
 
-{{saudacao_personalizada}}
+*{{categoria_2}}*
+emoji item descritivo em linguagem de corretor
+emoji item descritivo em linguagem de corretor
+
+*{{categoria_N}}*
+emoji item descritivo em linguagem de corretor
+
+{{frase_de_efeito_motivacional}}
 
 — Gage, deployando com confianca 🚀
 ```
@@ -67,20 +76,32 @@ Release notes (se disponivel):
 ### Example Output
 
 ```
-*ZmobCRM v1.4.0* — Atualizado!
+*ZmobCRM v1.5.13* — Atualizado!
 
-*Novidades*
-- Notificacoes por WhatsApp para releases
+*Prospeccao*
+🎯 Ao terminar uma sessao, voce ve um resumo completo: quem atendeu e nao tem negocio (pode criar ali mesmo), quem tem retorno agendado e quem ja tentou varias vezes com link direto pro WhatsApp
+📞 Quando um lead atende, o sistema sugere o melhor horario pra ligar de volta — voce confirma com um clique
+🔄 Retentativas automaticas de manha (9h) e a tarde (14h), sem agendar no fim de semana
+🛡️ Contato pediu pra nao ligar mais? Marque com o motivo e ele sai de todas as filas. Gestores podem desbloquear depois
 
-*Melhorias*
-- Interface do sidebar com novo visual
-- Desempenho geral aprimorado
+*Metricas*
+📊 Dashboard redesenhado: visual novo com cards de visao geral, graficos de evolucao e funil de conversao
+📊 Compare seu desempenho com a media da equipe
+🏆 Ranking dos corretores no dashboard
 
-*Correcoes*
-- Problema com datas em atividades resolvido
-- Correcao de erros visuais menores
+*Contatos*
+📋 Selecione varios contatos de uma vez segurando Shift e clicando
+📝 Notas aparecem iguais na timeline e no painel lateral — tudo sincronizado
 
-Mais poder nas suas maos! 💪
+*Negocios & Board*
+📋 Veja, edite e mova negocios entre pipelines sem sair da tela de prospeccao
+🏠 Nos cards do board, agora aparece o produto/imovel vinculado ao negocio
+
+*Geral*
+🌗 Escolha tema claro, escuro ou automatico (acompanha seu celular/computador)
+✅ Mais seguranca entre empresas diferentes no sistema
+
+Agora a desculpa de "o sistema nao ajuda" ja era — bora vender! 😎🔥
 
 — Gage, deployando com confianca 🚀
 ```
@@ -165,6 +186,7 @@ curl -s -X POST "{{EVOLUTION_API_URL}}/message/sendText/{{EVOLUTION_INSTANCE}}" 
 
 ---
 
-**Template Version:** 1.0.0
+**Template Version:** 2.0.0
 **Created:** 2026-02-25
+**Updated:** 2026-03-14
 **Part of:** @devops agent — release notification workflow

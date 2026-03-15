@@ -1,7 +1,9 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
-import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock, RefreshCw, Calendar } from 'lucide-react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { PhoneOutgoing, Play, Square, Filter, Users, BarChart3, ListChecks, BookmarkPlus, FileDown, Upload, Eye, Search, Trophy, TrendingUp, Clock, RefreshCw, Calendar, Pencil, Check, X } from 'lucide-react'
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
@@ -13,7 +15,7 @@ import { ProspectingFilters } from './components/ProspectingFilters'
 import { useContactLists } from '@/lib/query/hooks/useContactListsQuery'
 import { FilteredContactsList } from './components/FilteredContactsList'
 import { BrokerFilterDropdown } from './components/BrokerFilterDropdown'
-import { MetricsCards } from './components/MetricsCards'
+import { MetricsCards, KPI_ITEM_IDS } from './components/MetricsCards'
 import { MetricsDrilldownModal } from './components/MetricsDrilldownModal'
 import { LiveOperationsPanel } from './components/LiveOperationsPanel'
 import { MetricsChart } from './components/MetricsChart'
@@ -28,10 +30,11 @@ import { ConnectionHeatmap } from './components/ConnectionHeatmap'
 import { NeglectedContactsAlert } from './components/NeglectedContactsAlert'
 import { PerformanceComparison } from './components/PerformanceComparison'
 import { TopObjections } from './components/TopObjections'
-import { SkipReasonsChart } from './components/SkipReasonsChart'
 import { RetryEffectiveness } from './components/RetryEffectiveness'
 import { QueueThroughput } from './components/QueueThroughput'
 import { MetricsSection } from './components/MetricsSection'
+import { EditableSectionWrapper } from './components/EditableSectionWrapper'
+import { SortableItemContainer, type ItemDef } from './components/SortableItemEditor'
 import { ProspectingErrorBoundary } from './components/ProspectingErrorBoundary'
 import { GoalConfigModal } from './components/GoalConfigModal'
 import { NoteTemplatesManager } from './components/NoteTemplatesManager'
@@ -45,8 +48,8 @@ import { useProspectingFilteredContacts } from './hooks/useProspectingFilteredCo
 import { useProspectingMetrics } from './hooks/useProspectingMetrics'
 import { useProspectingImpact } from './hooks/useProspectingImpact'
 import { useLiveOperations } from './hooks/useLiveOperations'
-import { useSkipReasons } from './hooks/useSkipReasons'
 import { useRetryEffectiveness } from './hooks/useRetryEffectiveness'
+import { useDashboardLayout } from './hooks/useDashboardLayout'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { useTags } from '@/hooks/useTags'
@@ -61,6 +64,75 @@ import { PROSPECTING_CONFIG } from '@/features/prospecting/prospecting-config'
 import type { DrilldownCardType } from '@/features/prospecting/constants'
 
 export type { SessionStats, SessionContact } from '@/features/prospecting/hooks/useProspectingPageState'
+
+// CP-8.1: Default section order for the dashboard
+const DEFAULT_SECTION_ORDER = [
+  'live-ops',
+  'kpi-cards',
+  'ranking',
+  'daily-goal',
+  'charts',
+  'insights',
+  'retry-effectiveness',
+  'heatmap',
+  'objections',
+  'hot-leads',
+  'queue-health',
+  'pipeline',
+  'sessions',
+]
+
+interface SectionConfig {
+  title: string
+  icon: React.ElementType
+  iconColor: string
+  defaultOpen: boolean
+}
+
+const SECTION_CONFIGS: Record<string, SectionConfig> = {
+  'live-ops': { title: 'Operação ao Vivo', icon: Users, iconColor: 'text-green-500', defaultOpen: true },
+  'kpi-cards': { title: 'KPIs', icon: BarChart3, iconColor: 'text-blue-500', defaultOpen: true },
+  'ranking': { title: 'Ranking de Corretores', icon: Trophy, iconColor: 'text-amber-500', defaultOpen: true },
+  'daily-goal': { title: 'Meta do Dia', icon: TrendingUp, iconColor: 'text-emerald-500', defaultOpen: true },
+  'charts': { title: 'Gráficos', icon: BarChart3, iconColor: 'text-blue-500', defaultOpen: true },
+  'insights': { title: 'Insights Automáticos', icon: Search, iconColor: 'text-violet-500', defaultOpen: true },
+  'retry-effectiveness': { title: 'Efetividade de Retentativas', icon: RefreshCw, iconColor: 'text-blue-500', defaultOpen: true },
+  'heatmap': { title: 'Melhor Horário para Ligar', icon: Clock, iconColor: 'text-orange-500', defaultOpen: false },
+  'objections': { title: 'Top 5 Objeções', icon: ListChecks, iconColor: 'text-red-500', defaultOpen: true },
+  'hot-leads': { title: 'Leads Quentes sem Contato', icon: PhoneOutgoing, iconColor: 'text-red-500', defaultOpen: true },
+  'queue-health': { title: 'Saúde da Fila', icon: ListChecks, iconColor: 'text-amber-500', defaultOpen: false },
+  'pipeline': { title: 'Pipeline', icon: TrendingUp, iconColor: 'text-emerald-500', defaultOpen: false },
+  'sessions': { title: 'Sessões', icon: Clock, iconColor: 'text-gray-500', defaultOpen: false },
+}
+
+// CP-8.1: Items within sections that support item-level editing
+const SECTION_ITEMS: Record<string, ItemDef[]> = {
+  'kpi-cards': [
+    { id: 'total-calls', label: 'Ligações Discadas' },
+    { id: 'connected', label: 'Atendidas' },
+    { id: 'no-answer', label: 'Sem Resposta' },
+    { id: 'voicemail', label: 'Correio de Voz' },
+    { id: 'avg-duration', label: 'Tempo Médio' },
+    { id: 'unique-contacts', label: 'Contatos Prospectados' },
+  ],
+  'daily-goal': [
+    { id: 'goal-card', label: 'Meta do Dia' },
+    { id: 'performance', label: 'Comparação de Performance' },
+  ],
+  'charts': [
+    { id: 'funnel', label: 'Funil de Conversão' },
+    { id: 'daily-chart', label: 'Ligações por Dia' },
+  ],
+  'sessions': [
+    { id: 'history', label: 'Histórico de Sessões' },
+    { id: 'details', label: 'Detalhes de Ligações' },
+  ],
+}
+
+function formatDateBR(dateStr: string): string {
+  const parts = dateStr.split('-')
+  return `${parts[2]}/${parts[1]}`
+}
 
 function formatTimeAgo(timestamp: number): string {
   const diff = Math.floor((Date.now() - timestamp) / 1000)
@@ -181,8 +253,7 @@ export const ProspectingPage: React.FC = () => {
   // CP-5.6: Live operations (admin/director only)
   const liveOps = useLiveOperations(profile?.organization_id, profiles, isAdminOrDirector)
 
-  // New metrics: skip reasons + retry effectiveness
-  const skipReasonsQuery = useSkipReasons({ filterOwnerId: metricsFilterOwnerId || undefined })
+  // Retry effectiveness metrics
   const retryQuery = useRetryEffectiveness(metricsFilterOwnerId || undefined)
 
   // CP-3.6: Team average + user metrics for PerformanceComparison
@@ -270,6 +341,22 @@ export const ProspectingPage: React.FC = () => {
   // CP-1.3: Filtered contacts
   const filteredContactsHook = useProspectingFilteredContacts()
 
+  // PDF extra data: queue stats for export
+  const pdfQueueStats = useMemo(() => {
+    const allItems = [...queue, ...exhaustedItems]
+    const total = allItems.length
+    if (total === 0) return undefined
+    const counts = { completed: 0, pending: 0, skipped: 0, retryPending: 0, exhausted: 0 }
+    for (const item of allItems) {
+      if (item.status === 'completed') counts.completed++
+      else if (item.status === 'pending') counts.pending++
+      else if (item.status === 'skipped') counts.skipped++
+      else if (item.status === 'retry_pending') counts.retryPending++
+      else if (item.status === 'exhausted') counts.exhausted++
+    }
+    return { total, ...counts }
+  }, [queue, exhaustedItems])
+
   // --- Sync deps to pageState ref ---
   useEffect(() => {
     setDeps({
@@ -280,14 +367,211 @@ export const ProspectingPage: React.FC = () => {
       metricsDeps: metricsHook,
       filteredContacts: filteredContactsHook,
       savedQueuesDeps: savedQueuesHook,
+      pdfExtraDeps: {
+        retryData: retryQuery.data,
+        impact: impactHook.impact,
+        goalProgress: goalsHook.progress,
+        userMetrics,
+        teamAverage,
+        periodDays,
+        queueStats: pdfQueueStats,
+      },
     })
-  }, [setDeps, toast, profiles, resolvedViewOwnerId, queueHook, metricsHook, filteredContactsHook, savedQueuesHook])
+  }, [setDeps, toast, profiles, resolvedViewOwnerId, queueHook, metricsHook, filteredContactsHook, savedQueuesHook,
+    retryQuery.data, impactHook.impact, goalsHook.progress, userMetrics, teamAverage, periodDays, pdfQueueStats])
 
   // CP-3.4: Compute suggested return time from heatmap data (AC6-AC8)
   const suggestedReturnTime = useMemo(
     () => suggestBestTime(metricsHook.activities),
     [metricsHook.activities],
   )
+
+  // CP-8.1: Dashboard editable layout
+  const layout = useDashboardLayout(profile?.id, DEFAULT_SECTION_ORDER)
+
+  // Initialize item orders for sections with configurable items
+  const { initItemOrder } = layout
+  useEffect(() => {
+    for (const [sectionId, items] of Object.entries(SECTION_ITEMS)) {
+      initItemOrder(sectionId, items.map(i => i.id))
+    }
+  }, [initItemOrder])
+
+  // CP-8.1: DnD sensors for section reordering
+  const sectionSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+  )
+
+  const { reorder: reorderSections } = layout
+  const handleSectionDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      reorderSections(active.id as string, over.id as string)
+    }
+  }, [reorderSections])
+
+  // CP-8.1: Filter sections by role visibility, compute rendered list
+  // QA#2 fix: Always render all sections (hidden ones use display:none to preserve collapse state)
+  const renderedSectionIds = useMemo(() => {
+    return layout.sectionOrder.filter(id => {
+      if (id === 'live-ops' && !isAdminOrDirector) return false
+      if (id === 'ranking' && (!isAdminOrDirector || metricsFilterOwnerId)) return false
+      return true
+    })
+  }, [layout.sectionOrder, isAdminOrDirector, metricsFilterOwnerId])
+
+  // CP-8.1: Section content renderer — plain function, no useCallback needed (called inline during render)
+  function renderSectionContent(sectionId: string): React.ReactNode {
+    switch (sectionId) {
+      case 'live-ops':
+        return (
+          <ProspectingErrorBoundary section="Operação Ao Vivo">
+            <LiveOperationsPanel sessions={liveOps.sessions} activeCount={liveOps.activeCount} isLoading={liveOps.isLoading} />
+          </ProspectingErrorBoundary>
+        )
+      case 'kpi-cards': {
+        const kpiOrder = layout.getItemOrder('kpi-cards', KPI_ITEM_IDS as unknown as string[])
+        const kpiHidden = layout.getHiddenItems('kpi-cards')
+        return (
+          <ProspectingErrorBoundary section="KPIs">
+            <MetricsCards
+              metrics={metricsHook.metrics}
+              isLoading={metricsHook.isLoading}
+              onCardClick={setDrilldownCard}
+              comparisonMetrics={metricsHook.comparisonMetrics}
+              isComparisonLoading={metricsHook.isComparisonLoading}
+              itemOrder={kpiOrder}
+              hiddenItems={kpiHidden}
+              isEditing={layout.isEditing}
+              onToggleItem={(itemId) => layout.toggleItemVisibility('kpi-cards', itemId)}
+              onReorderItems={(a, b) => layout.reorderItems('kpi-cards', a, b)}
+            />
+            {metricsFilterOwnerId && metricsHook.metrics && (
+              <BrokerSummaryCard
+                brokerName={profiles.find(p => p.id === metricsFilterOwnerId)?.name || 'Corretor'}
+                metrics={metricsHook.metrics}
+                impact={impactHook.impact}
+              />
+            )}
+          </ProspectingErrorBoundary>
+        )
+      }
+      case 'ranking':
+        return (
+          <CorretorRanking brokers={metricsHook.metrics?.byBroker || []} isLoading={metricsHook.isLoading} />
+        )
+      case 'daily-goal': {
+        const goalOrder = layout.getItemOrder('daily-goal', ['goal-card', 'performance'])
+        const goalHidden = layout.getHiddenItems('daily-goal')
+        const goalRenderers: Record<string, React.ReactNode> = {
+          'goal-card': (
+            <DailyGoalCard progress={goalsHook.progress} isLoading={goalsHook.isLoading}
+              isAdminOrDirector={goalsHook.isAdminOrDirector} onConfigureClick={() => goalsHook.setShowGoalModal(true)}
+            />
+          ),
+          'performance': (
+            <PerformanceComparison userMetrics={userMetrics} teamAverage={teamAverage}
+              isAdminOrDirector={isAdminOrDirector} periodDays={periodDays}
+            />
+          ),
+        }
+        if (layout.isEditing) {
+          return (
+            <SortableItemContainer itemIds={goalOrder} hiddenItems={goalHidden}
+              onToggleItem={(id) => layout.toggleItemVisibility('daily-goal', id)}
+              onReorderItems={(a, b) => layout.reorderItems('daily-goal', a, b)}
+              renderItem={(id) => goalRenderers[id] || null}
+            />
+          )
+        }
+        return <>{goalOrder.filter(id => !goalHidden.has(id)).map(id => <React.Fragment key={id}>{goalRenderers[id]}</React.Fragment>)}</>
+      }
+      case 'charts': {
+        const chartOrder = layout.getItemOrder('charts', ['funnel', 'daily-chart'])
+        const chartHidden = layout.getHiddenItems('charts')
+        const chartRenderers: Record<string, React.ReactNode> = {
+          'funnel': <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />,
+          'daily-chart': (
+            <MetricsChart data={metricsHook.metrics?.byDay || []} isLoading={metricsHook.isLoading}
+              periodStart={metricsHook.range.start} periodEnd={metricsHook.range.end}
+            />
+          ),
+        }
+        if (layout.isEditing) {
+          return (
+            <ProspectingErrorBoundary section="Gráficos">
+              <SortableItemContainer itemIds={chartOrder} hiddenItems={chartHidden}
+                onToggleItem={(id) => layout.toggleItemVisibility('charts', id)}
+                onReorderItems={(a, b) => layout.reorderItems('charts', a, b)}
+                renderItem={(id) => chartRenderers[id] || null}
+                className="grid gap-4 grid-cols-1 lg:grid-cols-2"
+              />
+            </ProspectingErrorBoundary>
+          )
+        }
+        const visibleCharts = chartOrder.filter(id => !chartHidden.has(id))
+        return (
+          <ProspectingErrorBoundary section="Gráficos">
+            <div className={`grid gap-4 ${visibleCharts.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+              {visibleCharts.map(id => <React.Fragment key={id}>{chartRenderers[id]}</React.Fragment>)}
+            </div>
+          </ProspectingErrorBoundary>
+        )
+      }
+      case 'insights':
+        return <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
+      case 'retry-effectiveness':
+        return <RetryEffectiveness data={retryQuery.data} isLoading={retryQuery.isLoading} />
+      case 'heatmap':
+        return (
+          <ProspectingErrorBoundary section="Heatmap">
+            <ConnectionHeatmap activities={metricsHook.activities} isLoading={metricsHook.isLoading} />
+          </ProspectingErrorBoundary>
+        )
+      case 'objections':
+        return <TopObjections activities={metricsHook.activities} isLoading={metricsHook.isLoading} />
+      case 'hot-leads':
+        return (
+          <NeglectedContactsAlert
+            onAddAllToQueue={handleAddBatchToQueue}
+            onError={() => toast('Erro ao buscar contatos negligenciados', 'error')}
+          />
+        )
+      case 'queue-health':
+        return <QueueThroughput queue={queue} exhaustedItems={exhaustedItems} isLoading={isLoading} />
+      case 'pipeline':
+        return (
+          <ProspectingErrorBoundary section="Impacto">
+            <ProspectingImpactSection impact={impactHook.impact} isLoading={impactHook.isLoading} />
+          </ProspectingErrorBoundary>
+        )
+      case 'sessions': {
+        const sessOrder = layout.getItemOrder('sessions', ['history', 'details'])
+        const sessHidden = layout.getHiddenItems('sessions')
+        const sessRenderers: Record<string, React.ReactNode> = {
+          'history': (
+            <ProspectingErrorBoundary section="Historico de Sessoes">
+              <SessionHistory sessions={sessionHistory} isLoading={isLoadingSessions} />
+            </ProspectingErrorBoundary>
+          ),
+          'details': <CallDetailsTable activities={metricsHook.activities} profiles={profiles} isLoading={metricsHook.isLoading} />,
+        }
+        if (layout.isEditing) {
+          return (
+            <SortableItemContainer itemIds={sessOrder} hiddenItems={sessHidden}
+              onToggleItem={(id) => layout.toggleItemVisibility('sessions', id)}
+              onReorderItems={(a, b) => layout.reorderItems('sessions', a, b)}
+              renderItem={(id) => sessRenderers[id] || null}
+            />
+          )
+        }
+        return <>{sessOrder.filter(id => !sessHidden.has(id)).map(id => <React.Fragment key={id}>{sessRenderers[id]}</React.Fragment>)}</>
+      }
+      default:
+        return null
+    }
+  }
 
   const currentContact = sessionActive && queue[currentIndex] ? queue[currentIndex] : null
   const pendingCount = queue.filter(q => q.status === 'pending').length
@@ -520,22 +804,14 @@ export const ProspectingPage: React.FC = () => {
               </div>
             )}
 
-            {/* CP-5.6: Live operations panel (admin/director only) */}
-            {isAdminOrDirector && (
-              <ProspectingErrorBoundary section="Operação Ao Vivo">
-                <LiveOperationsPanel
-                  sessions={liveOps.sessions}
-                  activeCount={liveOps.activeCount}
-                  isLoading={liveOps.isLoading}
-                />
-              </ProspectingErrorBoundary>
-            )}
-
             {/* Dashboard header with dynamic title + actions */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">
                   Métricas — {metricsPeriod === 'today' ? 'Hoje' : metricsPeriod === 'yesterday' ? 'Ontem' : metricsPeriod === '7d' ? 'Últimos 7 dias' : metricsPeriod === '30d' ? 'Últimos 30 dias' : 'Período personalizado'}
+                  <span className="font-normal text-muted-foreground ml-1 text-xs">
+                    ({formatDateBR(metricsHook.range.start)} — {formatDateBR(metricsHook.range.end)})
+                  </span>
                 </span>
                 {metricsHook.dataUpdatedAt > 0 && (
                   <span className="text-2xs text-muted-foreground">
@@ -566,6 +842,40 @@ export const ProspectingPage: React.FC = () => {
                   <FileDown size={14} />
                   {isGeneratingPdf ? 'Gerando PDF...' : 'Exportar PDF'}
                 </Button>
+                {/* CP-8.1: Edit layout / Save / Cancel buttons */}
+                {isAdminOrDirector && !layout.isEditing && (
+                  <Button
+                    variant="unstyled"
+                    size="unstyled"
+                    onClick={layout.startEditing}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors"
+                  >
+                    <Pencil size={14} />
+                    Editar layout
+                  </Button>
+                )}
+                {layout.isEditing && (
+                  <>
+                    <Button
+                      variant="unstyled"
+                      size="unstyled"
+                      onClick={layout.saveLayout}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30 transition-colors"
+                    >
+                      <Check size={14} />
+                      Salvar
+                    </Button>
+                    <Button
+                      variant="unstyled"
+                      size="unstyled"
+                      onClick={layout.cancelEditing}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-muted text-secondary-foreground hover:bg-accent dark:bg-white/10 dark:text-muted-foreground dark:hover:bg-white/15 transition-colors"
+                    >
+                      <X size={14} />
+                      Cancelar
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -631,123 +941,38 @@ export const ProspectingPage: React.FC = () => {
               )}
             </div>
 
-            {/* ═══ SECTION: Visao Geral ═══ */}
-            <MetricsSection title="Visao Geral" icon={Eye} iconColor="text-blue-500">
-              {/* CP-2.3: Daily goal card */}
-              <DailyGoalCard
-                progress={goalsHook.progress}
-                isLoading={goalsHook.isLoading}
-                isAdminOrDirector={goalsHook.isAdminOrDirector}
-                onConfigureClick={() => goalsHook.setShowGoalModal(true)}
-              />
-
-              {/* CP-3.6: PerformanceComparison — corretores only */}
-              <PerformanceComparison
-                userMetrics={userMetrics}
-                teamAverage={teamAverage}
-                isAdminOrDirector={isAdminOrDirector}
-                periodDays={periodDays}
-              />
-
-              {/* CP-3.6: NeglectedContactsAlert */}
-              <NeglectedContactsAlert
-                onAddAllToQueue={handleAddBatchToQueue}
-                onError={() => toast('Erro ao buscar contatos negligenciados', 'error')}
-              />
-
-              {/* CP-5.5: Broker summary card when filtering by corretor */}
-              {metricsFilterOwnerId && metricsHook.metrics && (
-                <BrokerSummaryCard
-                  brokerName={profiles.find(p => p.id === metricsFilterOwnerId)?.name || 'Corretor'}
-                  metrics={metricsHook.metrics}
-                  impact={impactHook.impact}
-                />
-              )}
-
-              <ProspectingErrorBoundary section="Metricas">
-                <MetricsCards
-                  metrics={metricsHook.metrics}
-                  isLoading={metricsHook.isLoading}
-                  onCardClick={setDrilldownCard}
-                  comparisonMetrics={metricsHook.comparisonMetrics}
-                  isComparisonLoading={metricsHook.isComparisonLoading}
-                />
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-                  <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
-                  <MetricsChart
-                    data={metricsHook.metrics?.byDay || []}
-                    isLoading={metricsHook.isLoading}
-                    periodStart={metricsHook.range.start}
-                    periodEnd={metricsHook.range.end}
-                  />
-                </div>
-              </ProspectingErrorBoundary>
-            </MetricsSection>
-
-            {/* ═══ SECTION: Analise Detalhada ═══ */}
-            <MetricsSection title="Analise Detalhada" icon={Search} iconColor="text-violet-500">
-              <ProspectingErrorBoundary section="Heatmap">
-                <ConnectionHeatmap
-                  activities={metricsHook.activities}
-                  isLoading={metricsHook.isLoading}
-                />
-              </ProspectingErrorBoundary>
-
-              <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <TopObjections activities={metricsHook.activities} isLoading={metricsHook.isLoading} />
-                <SkipReasonsChart data={skipReasonsQuery.data || []} isLoading={skipReasonsQuery.isLoading} />
-              </div>
-
-              <RetryEffectiveness data={retryQuery.data} isLoading={retryQuery.isLoading} />
-            </MetricsSection>
-
-            {/* ═══ SECTION: Fila ═══ */}
-            <MetricsSection title="Fila" icon={ListChecks} iconColor="text-amber-500">
-              <QueueThroughput
-                queue={queue}
-                exhaustedItems={exhaustedItems}
-                isLoading={isLoading}
-              />
-            </MetricsSection>
-
-            {/* ═══ SECTION: Equipe ═══ */}
-            {isAdminOrDirector && !metricsFilterOwnerId && (
-              <MetricsSection title="Equipe" icon={Trophy} iconColor="text-amber-500">
-                <CorretorRanking
-                  brokers={metricsHook.metrics?.byBroker || []}
-                  isLoading={metricsHook.isLoading}
-                />
-              </MetricsSection>
-            )}
-
-            {/* ═══ SECTION: Pipeline ═══ */}
-            <MetricsSection title="Pipeline" icon={TrendingUp} iconColor="text-emerald-500" defaultOpen={false}>
-              <ProspectingErrorBoundary section="Impacto">
-                <ProspectingImpactSection
-                  impact={impactHook.impact}
-                  isLoading={impactHook.isLoading}
-                />
-              </ProspectingErrorBoundary>
-            </MetricsSection>
-
-            {/* ═══ SECTION: Sessoes ═══ */}
-            <MetricsSection title="Sessoes" icon={Clock} iconColor="text-gray-500" defaultOpen={false}>
-              <ProspectingErrorBoundary section="Historico de Sessoes">
-                <SessionHistory
-                  sessions={sessionHistory}
-                  isLoading={isLoadingSessions}
-                />
-              </ProspectingErrorBoundary>
-
-              <CallDetailsTable
-                activities={metricsHook.activities}
-                profiles={profiles}
-                isLoading={metricsHook.isLoading}
-              />
-            </MetricsSection>
+            {/* CP-8.1: Dynamic sortable sections */}
+            <DndContext sensors={sectionSensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
+              <SortableContext items={renderedSectionIds} strategy={verticalListSortingStrategy}>
+                {renderedSectionIds.map(sectionId => {
+                  const config = SECTION_CONFIGS[sectionId]
+                  if (!config) return null
+                  return (
+                    <EditableSectionWrapper
+                      key={sectionId}
+                      id={sectionId}
+                      isEditing={layout.isEditing}
+                      isHidden={layout.hiddenSections.has(sectionId)}
+                      canHideMore={layout.canHideMore}
+                      onToggleVisibility={layout.toggleVisibility}
+                      items={SECTION_ITEMS[sectionId]}
+                      hiddenItems={layout.getHiddenItems(sectionId)}
+                      onToggleItem={layout.toggleItemVisibility}
+                      onReorderItems={layout.reorderItems}
+                    >
+                      <MetricsSection
+                        title={config.title}
+                        icon={config.icon}
+                        iconColor={config.iconColor}
+                        defaultOpen={config.defaultOpen}
+                      >
+                        {renderSectionContent(sectionId)}
+                      </MetricsSection>
+                    </EditableSectionWrapper>
+                  )
+                })}
+              </SortableContext>
+            </DndContext>
           </div>
         ) : (
           <div className="space-y-4">

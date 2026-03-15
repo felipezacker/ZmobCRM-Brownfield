@@ -11,17 +11,34 @@ import autoTable from 'jspdf-autotable'
 interface jsPDFWithAutoTable extends jsPDF {
   lastAutoTable: { finalY: number }
 }
-import type { ProspectingMetrics, BrokerMetric, PeriodRange } from '../hooks/useProspectingMetrics'
+import type { ProspectingMetrics, BrokerMetric, PeriodRange, CallActivity } from '../hooks/useProspectingMetrics'
+import type { RetryEffectivenessData } from '../hooks/useRetryEffectiveness'
+import type { ProspectingImpact } from '../hooks/useProspectingImpact'
+import type { GoalProgress } from '../hooks/useProspectingGoals'
 import { formatDuration } from './formatDuration'
 
 interface GeneratePdfOptions {
   metrics: ProspectingMetrics | null
-  activities: unknown[]
+  activities: CallActivity[]
   brokers: BrokerMetric[]
   range: PeriodRange
   isAdminOrDirector: boolean
   organizationName: string
   comparisonMetrics?: ProspectingMetrics
+  retryData?: RetryEffectivenessData
+  impact?: ProspectingImpact | null
+  goalProgress?: GoalProgress
+  userMetrics?: BrokerMetric | null
+  teamAverage?: BrokerMetric | null
+  periodDays?: number
+  queueStats?: {
+    total: number
+    completed: number
+    pending: number
+    skipped: number
+    retryPending: number
+    exhausted: number
+  }
 }
 
 // ── Colors ──────────────────────────────────────────────────
@@ -34,6 +51,7 @@ const COLORS: Record<string, RGB> = {
   amber: [245, 158, 11],       // amber-500
   violet: [139, 92, 246],      // violet-500
   teal: [20, 184, 166],        // teal-500
+  orange: [249, 115, 22],      // orange-500
   gray: [100, 116, 139],       // slate-500
   lightBg: [248, 250, 252],    // slate-50
   cardBg: [241, 245, 249],     // slate-100
@@ -83,9 +101,332 @@ function periodLabel(range: PeriodRange): string {
   return `${days} dias`
 }
 
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}
+
+const HEATMAP_DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
+const DAY_NAMES_FULL = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+const TIME_SLOTS = ['08-10', '10-12', '12-14', '14-16', '16-18', '18-20']
+
+function getTimeSlot(hour: number): string | null {
+  if (hour >= 8 && hour < 10) return '08-10'
+  if (hour >= 10 && hour < 12) return '10-12'
+  if (hour >= 12 && hour < 14) return '12-14'
+  if (hour >= 14 && hour < 16) return '14-16'
+  if (hour >= 16 && hour < 18) return '16-18'
+  if (hour >= 18 && hour < 20) return '18-20'
+  return null
+}
+
+function ensureSpace(doc: jsPDF, y: number, needed: number): number {
+  if (y + needed > doc.internal.pageSize.getHeight() - 20) {
+    doc.addPage()
+    return 15
+  }
+  return y
+}
+
+function sectionTitle(doc: jsPDF, title: string, y: number, margin: number): number {
+  y = ensureSpace(doc, y, 20)
+  doc.setTextColor(...COLORS.text)
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  doc.text(title, margin, y)
+  return y + 2
+}
+
+export function stddev(values: number[]): number {
+  if (values.length === 0) return 0
+  const mean = values.reduce((s, v) => s + v, 0) / values.length
+  const sqDiffs = values.map(v => (v - mean) ** 2)
+  return Math.sqrt(sqDiffs.reduce((s, v) => s + v, 0) / values.length)
+}
+
+// ── PDF Context (shared across section renderers) ───────────
+interface PdfCtx {
+  doc: jsPDF
+  y: number
+  margin: number
+  contentWidth: number
+  pw: number
+  ph: number
+}
+
+// ── Section Renderers ───────────────────────────────────────
+
+function renderGoalProgress(ctx: PdfCtx, goalProgress: GoalProgress): number {
+  const { doc, margin, contentWidth } = ctx
+  let y = ensureSpace(doc, ctx.y, 30)
+  doc.setTextColor(...COLORS.text)
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Meta do Dia', margin, y)
+  y += 6
+
+  const boxW = contentWidth / 3
+  doc.setFillColor(...COLORS.cardBg)
+  doc.roundedRect(margin, y - 2, boxW, 22, 2, 2, 'F')
+
+  const goalColor = goalProgress.color === 'green' ? COLORS.emerald
+    : goalProgress.color === 'yellow' ? COLORS.amber : COLORS.red
+  doc.setFillColor(...goalColor)
+  doc.rect(margin, y, 2.5, 18, 'F')
+
+  doc.setFontSize(18)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...COLORS.text)
+  doc.text(`${goalProgress.current}/${goalProgress.target}`, margin + 7, y + 10)
+
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...COLORS.textMuted)
+  doc.text(`${goalProgress.percentage}% concluído`, margin + 7, y + 16)
+
+  const statusText = goalProgress.isComplete ? 'Concluída' : goalProgress.percentage >= 50 ? 'Em progresso' : 'Iniciar'
+  doc.setFillColor(...goalColor)
+  const badgeX = margin + boxW + 8
+  doc.roundedRect(badgeX, y + 2, doc.getTextWidth(statusText) + 8, 8, 2, 2, 'F')
+  doc.setFontSize(7)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...COLORS.white)
+  doc.text(statusText, badgeX + 4, y + 7.5)
+
+  return y + 28
+}
+
+function renderPerformanceComparison(ctx: PdfCtx, userMetrics: BrokerMetric, teamAverage: BrokerMetric, periodDays: number): number {
+  const { doc, margin } = ctx
+  let y = ensureSpace(doc, ctx.y, 30)
+  y = sectionTitle(doc, 'Você vs. Média do Time', y, margin)
+
+  const days = Math.max(1, periodDays)
+  const compRows = [
+    ['Ligações/dia', (userMetrics.totalCalls / days).toFixed(1), (teamAverage.totalCalls / days).toFixed(1)],
+    ['Taxa de Conexão', `${userMetrics.connectionRate.toFixed(0)}%`, `${teamAverage.connectionRate.toFixed(0)}%`],
+    ['Duração Média', formatDuration(userMetrics.avgDuration), formatDuration(teamAverage.avgDuration)],
+    ['Contatos Únicos', String(userMetrics.uniqueContacts), String(Math.round(teamAverage.uniqueContacts))],
+  ]
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Métrica', 'Você', 'Time']],
+    body: compRows,
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor: [...COLORS.primary], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+    columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' } },
+    margin: { left: margin, right: margin },
+  })
+
+  return (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+}
+
+function renderHeatmap(ctx: PdfCtx, activities: CallActivity[]): number {
+  const { doc, margin } = ctx
+  let y = sectionTitle(doc, 'Melhor Horário para Ligar', ctx.y, margin)
+
+  const heatmap: Record<string, Record<string, { total: number; connected: number }>> = {}
+  for (const day of HEATMAP_DAYS) {
+    heatmap[day] = {}
+    for (const slot of TIME_SLOTS) {
+      heatmap[day][slot] = { total: 0, connected: 0 }
+    }
+  }
+  for (const a of activities) {
+    const dt = new Date(a.date)
+    const dayName = HEATMAP_DAYS[dt.getDay()]
+    const slot = getTimeSlot(dt.getHours())
+    if (!slot) continue
+    const cell = heatmap[dayName][slot]
+    cell.total++
+    if (a.metadata?.outcome === 'connected') cell.connected++
+  }
+
+  const heatmapBody = HEATMAP_DAYS.map(day => {
+    const row: string[] = [day]
+    for (const slot of TIME_SLOTS) {
+      const cell = heatmap[day][slot]
+      if (cell.total === 0) {
+        row.push('—')
+      } else {
+        const rate = ((cell.connected / cell.total) * 100).toFixed(0)
+        row.push(`${rate}% (${cell.total})`)
+      }
+    }
+    return row
+  })
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Dia', '8-10h', '10-12h', '12-14h', '14-16h', '16-18h', '18-20h']],
+    body: heatmapBody,
+    styles: { fontSize: 7, cellPadding: 2, halign: 'center' },
+    headStyles: { fillColor: [...COLORS.orange], textColor: 255, fontStyle: 'bold', fontSize: 7 },
+    alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+    columnStyles: { 0: { fontStyle: 'bold', halign: 'left' } },
+    didParseCell: (data) => {
+      if (data.section === 'body' && data.column.index > 0) {
+        const text = String(data.cell.raw)
+        if (text === '—') {
+          data.cell.styles.textColor = COLORS.gray
+        } else {
+          const pctMatch = text.match(/^(\d+)%/)
+          if (pctMatch) {
+            const pct = parseInt(pctMatch[1])
+            if (pct >= 40) data.cell.styles.textColor = COLORS.emerald
+            else if (pct >= 20) data.cell.styles.textColor = COLORS.amber
+            else data.cell.styles.textColor = COLORS.red
+          }
+        }
+      }
+    },
+    margin: { left: margin, right: margin },
+  })
+
+  return (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+}
+
+function renderTopObjections(ctx: PdfCtx, activities: CallActivity[]): number {
+  const { doc, margin } = ctx
+  let y = ctx.y
+
+  const objCounts = new Map<string, number>()
+  for (const a of activities) {
+    const meta = a.metadata as Record<string, unknown> | null
+    const objections = meta?.objections as string[] | undefined
+    if (!objections || !Array.isArray(objections)) continue
+    for (const obj of objections) {
+      objCounts.set(obj, (objCounts.get(obj) || 0) + 1)
+    }
+  }
+  const topObjections = Array.from(objCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)
+
+  if (topObjections.length > 0) {
+    y = sectionTitle(doc, 'Top 5 Objeções', y, margin)
+
+    autoTable(doc, {
+      startY: y,
+      head: [['#', 'Objeção', 'Ocorrências']],
+      body: topObjections.map(([obj, count], i) => [String(i + 1), obj, `${count}x`]),
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [...COLORS.orange], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+      columnStyles: { 0: { halign: 'center', cellWidth: 10 }, 2: { halign: 'center', cellWidth: 25 } },
+      margin: { left: margin, right: margin },
+    })
+
+    y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+  }
+
+  return y
+}
+
+function renderRetryEffectiveness(ctx: PdfCtx, retryData: RetryEffectivenessData): number {
+  const { doc, margin } = ctx
+  let y = sectionTitle(doc, 'Efetividade de Retentativas', ctx.y, margin)
+
+  const retryRows = [
+    [retryData.firstAttempt.label, String(retryData.firstAttempt.total), String(retryData.firstAttempt.completed), `${Math.round(retryData.firstAttempt.rate)}%`],
+    [retryData.secondAttempt.label, String(retryData.secondAttempt.total), String(retryData.secondAttempt.completed), `${Math.round(retryData.secondAttempt.rate)}%`],
+    [retryData.thirdPlus.label, String(retryData.thirdPlus.total), String(retryData.thirdPlus.completed), `${Math.round(retryData.thirdPlus.rate)}%`],
+  ]
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Tentativa', 'Total', 'Conectaram', 'Taxa']],
+    body: retryRows,
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor: [...COLORS.primary], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+    columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' } },
+    margin: { left: margin, right: margin },
+  })
+
+  return (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+}
+
+function renderPipelineImpact(ctx: PdfCtx, impact: ProspectingImpact): number {
+  const { doc, margin, contentWidth } = ctx
+  let y = sectionTitle(doc, 'Impacto no Pipeline', ctx.y, margin)
+
+  const impactKpis = [
+    { label: 'Ligações com Deal', value: `${impact.callsWithDeal} / ${impact.totalProspectingCalls}` },
+    { label: 'Taxa de Vinculação', value: `${impact.linkageRate.toFixed(1)}%` },
+    { label: 'Pipeline Gerado', value: formatCurrency(impact.pipelineValue) },
+    { label: 'Deals Ganhos', value: String(impact.dealsWon) + (impact.dealsWonValue > 0 ? ` (${formatCurrency(impact.dealsWonValue)})` : '') },
+  ]
+
+  const impactColW = (contentWidth - 12) / 4
+  impactKpis.forEach((kpi, i) => {
+    const x = margin + i * (impactColW + 4)
+    doc.setFillColor(...COLORS.cardBg)
+    doc.roundedRect(x, y, impactColW, 18, 2, 2, 'F')
+    doc.setFontSize(6.5)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(...COLORS.textMuted)
+    doc.text(kpi.label.toUpperCase(), x + 4, y + 5)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...COLORS.text)
+    doc.text(kpi.value, x + 4, y + 13)
+  })
+
+  y += 24
+
+  if (impact.byDay.length > 0) {
+    const impactDays = impact.byDay.filter(d => d.linked > 0 || d.unlinked > 0)
+    if (impactDays.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        head: [['Data', 'Com Deal', 'Sem Deal', 'Total']],
+        body: impactDays.map(d => [
+          formatDate(d.date), String(d.linked), String(d.unlinked), String(d.linked + d.unlinked),
+        ]),
+        styles: { fontSize: 7.5, cellPadding: 2.5 },
+        headStyles: { fillColor: [...COLORS.violet], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
+        alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+        columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' } },
+        margin: { left: margin, right: margin },
+      })
+      y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+    }
+  }
+
+  return y
+}
+
+function renderQueueHealth(ctx: PdfCtx, queueStats: NonNullable<GeneratePdfOptions['queueStats']>): number {
+  const { doc, margin } = ctx
+  let y = sectionTitle(doc, 'Saúde da Fila', ctx.y, margin)
+
+  const queueRows = [
+    ['Total na Fila', String(queueStats.total)],
+    ['Concluídos', String(queueStats.completed)],
+    ['Pendentes', String(queueStats.pending)],
+    ['Pulados', String(queueStats.skipped)],
+    ['Em Retry', String(queueStats.retryPending)],
+    ['Esgotados', String(queueStats.exhausted)],
+  ].filter(r => parseInt(r[1]) > 0)
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Status', 'Quantidade', '% do Total']],
+    body: queueRows.map(r => [...r, `${((parseInt(r[1]) / queueStats.total) * 100).toFixed(0)}%`]),
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor: [...COLORS.gray], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [...COLORS.lightBg] },
+    columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'center' }, 2: { halign: 'center' } },
+    margin: { left: margin, right: margin },
+  })
+
+  return (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+}
+
 // ── Main ────────────────────────────────────────────────────
 export async function generateMetricsPDF(options: GeneratePdfOptions) {
-  const { metrics, brokers, range, isAdminOrDirector, organizationName, comparisonMetrics } = options
+  const { metrics, activities, brokers, range, isAdminOrDirector, organizationName, comparisonMetrics,
+    retryData, impact, goalProgress, userMetrics, teamAverage, periodDays, queueStats } = options
 
   if (!metrics) throw new Error('Métricas não disponíveis')
 
@@ -272,6 +613,20 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   }
 
   // ════════════════════════════════════════════
+  // Daily Goal Progress
+  // ════════════════════════════════════════════
+  if (goalProgress) {
+    y = renderGoalProgress({ doc, y, margin, contentWidth, pw, ph }, goalProgress)
+  }
+
+  // ════════════════════════════════════════════
+  // Performance Comparison (non-admin only)
+  // ════════════════════════════════════════════
+  if (!isAdminOrDirector && userMetrics && teamAverage && periodDays && periodDays > 0) {
+    y = renderPerformanceComparison({ doc, y, margin, contentWidth, pw, ph }, userMetrics, teamAverage, periodDays)
+  }
+
+  // ════════════════════════════════════════════
   // Comparison Summary Table (when comparison is active)
   // ════════════════════════════════════════════
   if (comparisonMetrics) {
@@ -377,6 +732,13 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   }
 
   // ════════════════════════════════════════════
+  // Connection Heatmap (computed from activities)
+  // ════════════════════════════════════════════
+  if (activities.length >= 10) {
+    y = renderHeatmap({ doc, y, margin, contentWidth, pw, ph }, activities)
+  }
+
+  // ════════════════════════════════════════════
   // Broker Ranking (admin/director only)
   // ════════════════════════════════════════════
   if (isAdminOrDirector && brokers.length > 0) {
@@ -422,6 +784,32 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
     })
 
     y = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + 10
+  }
+
+  // ════════════════════════════════════════════
+  // Top Objections (computed from activities)
+  // ════════════════════════════════════════════
+  y = renderTopObjections({ doc, y, margin, contentWidth, pw, ph }, activities)
+
+  // ════════════════════════════════════════════
+  // Retry Effectiveness
+  // ════════════════════════════════════════════
+  if (retryData?.hasData) {
+    y = renderRetryEffectiveness({ doc, y, margin, contentWidth, pw, ph }, retryData)
+  }
+
+  // ════════════════════════════════════════════
+  // Pipeline Impact
+  // ════════════════════════════════════════════
+  if (impact && impact.totalProspectingCalls > 0) {
+    y = renderPipelineImpact({ doc, y, margin, contentWidth, pw, ph }, impact)
+  }
+
+  // ════════════════════════════════════════════
+  // Queue Health
+  // ════════════════════════════════════════════
+  if (queueStats && queueStats.total > 0) {
+    y = renderQueueHealth({ doc, y, margin, contentWidth, pw, ph }, queueStats)
   }
 
   // ════════════════════════════════════════════
@@ -485,74 +873,190 @@ export async function generateMetricsPDF(options: GeneratePdfOptions) {
   doc.save(filename)
 }
 
-// ── Insights Generator ──────────────────────────────────────
+// ── Insights Generator (12 rules — matches AutoInsights UI) ─
 function generateTextInsights(metrics: ProspectingMetrics, comparisonMetrics?: ProspectingMetrics): string[] {
-  const insights: string[] = []
+  const insights: { text: string; severity: number }[] = []
 
   // Comparison insights first
   if (comparisonMetrics && comparisonMetrics.totalCalls > 0) {
     const callsDelta = ((metrics.totalCalls - comparisonMetrics.totalCalls) / comparisonMetrics.totalCalls) * 100
     if (Math.abs(callsDelta) >= 10) {
-      insights.push(
-        callsDelta > 0
+      insights.push({
+        text: callsDelta > 0
           ? `Volume de ligações aumentou ${callsDelta.toFixed(0)}% em relação ao período anterior.`
           : `Volume de ligações caiu ${Math.abs(callsDelta).toFixed(0)}% em relação ao período anterior.`,
-      )
+        severity: callsDelta > 0 ? 3 : 1,
+      })
     }
 
     if (comparisonMetrics.connectionRate > 0) {
       const rateDiff = metrics.connectionRate - comparisonMetrics.connectionRate
       if (Math.abs(rateDiff) >= 5) {
-        insights.push(
-          rateDiff > 0
+        insights.push({
+          text: rateDiff > 0
             ? `Taxa de conexão melhorou ${rateDiff.toFixed(1)}pp (de ${comparisonMetrics.connectionRate.toFixed(0)}% para ${metrics.connectionRate.toFixed(0)}%).`
             : `Taxa de conexão piorou ${Math.abs(rateDiff).toFixed(1)}pp (de ${comparisonMetrics.connectionRate.toFixed(0)}% para ${metrics.connectionRate.toFixed(0)}%).`,
-        )
+          severity: rateDiff > 0 ? 3 : 0,
+        })
       }
     }
   }
 
-  // Standard insights
+  // 1. Low connection rate
   if (metrics.totalCalls >= 10 && metrics.connectionRate < 20) {
-    insights.push(
-      `Baixa taxa de resposta (${metrics.connectionRate.toFixed(0)}%). Considere revisar horários de ligação.`,
-    )
+    insights.push({
+      text: `Baixa taxa de resposta (${metrics.connectionRate.toFixed(0)}%). Considere revisar horários de ligação.`,
+      severity: 1,
+    })
   }
 
+  // 2. Good connection rate
   if (metrics.totalCalls >= 10 && metrics.connectionRate >= 30) {
-    insights.push(
-      `Boa taxa de conexão (${metrics.connectionRate.toFixed(0)}%). Continue com essa estratégia.`,
-    )
+    insights.push({
+      text: `Boa taxa de conexão (${metrics.connectionRate.toFixed(0)}%). Continue com essa estratégia.`,
+      severity: 3,
+    })
   }
 
+  // 3. High no-answer rate
   const noAnswer = metrics.byOutcome.find(o => o.outcome === 'no_answer')?.count || 0
   const noAnswerRate = metrics.totalCalls > 0 ? (noAnswer / metrics.totalCalls) * 100 : 0
   if (metrics.totalCalls >= 10 && noAnswerRate > 60) {
-    insights.push(
-      `Alto volume sem resposta (${noAnswerRate.toFixed(0)}%). Tente ligar em horários diferentes.`,
-    )
+    insights.push({
+      text: `Alto volume sem resposta (${noAnswerRate.toFixed(0)}%). Tente ligar em horários diferentes.`,
+      severity: 0,
+    })
   }
 
+  // 4. Top performer
   if (metrics.byBroker.length >= 2) {
     const top = metrics.byBroker[0]
     if (top.totalCalls > 0) {
-      insights.push(
-        `${top.ownerName} lidera com ${top.totalCalls} ligações e ${top.connectionRate.toFixed(0)}% de conexão.`,
-      )
+      insights.push({
+        text: `${top.ownerName} lidera com ${top.totalCalls} ligações e ${top.connectionRate.toFixed(0)}% de conexão.`,
+        severity: 2,
+      })
     }
   }
 
+  // 5. Short avg duration
   if (metrics.avgDuration > 0 && metrics.avgDuration < 30 && metrics.connectedCalls >= 5) {
-    insights.push(
-      `Tempo médio de ${Math.round(metrics.avgDuration)}s por ligação. Tente manter conversas mais longas.`,
-    )
+    insights.push({
+      text: `Tempo médio de ${Math.round(metrics.avgDuration)}s por ligação. Tente manter conversas mais longas.`,
+      severity: 1,
+    })
   }
 
+  // 6. Low volume
   if (metrics.totalCalls < 10 && metrics.totalCalls > 0) {
-    insights.push(
-      `Apenas ${metrics.totalCalls} ligações no período. Aumente o volume para resultados consistentes.`,
-    )
+    insights.push({
+      text: `Apenas ${metrics.totalCalls} ligações no período. Aumente o volume para resultados consistentes.`,
+      severity: 1,
+    })
   }
 
-  return insights
+  // 7. High voicemail rate
+  const voicemailCount = metrics.byOutcome.find(o => o.outcome === 'voicemail')?.count || 0
+  const voicemailRate = metrics.totalCalls > 0 ? (voicemailCount / metrics.totalCalls) * 100 : 0
+  if (voicemailRate > 15 && metrics.totalCalls >= 10) {
+    insights.push({
+      text: `Alto índice de correio de voz (${voicemailRate.toFixed(0)}%). Considere ligar em horários alternativos.`,
+      severity: 1,
+    })
+  }
+
+  // 8. Productivity by day of week
+  if (metrics.byDay.length >= 3) {
+    const dailyTotals = metrics.byDay.map(d => d.total)
+    const avgDaily = dailyTotals.reduce((s, v) => s + v, 0) / dailyTotals.length
+    if (avgDaily > 0) {
+      const bestDay = metrics.byDay.reduce((best, d) => (d.total > best.total ? d : best), metrics.byDay[0])
+      if (bestDay.total >= avgDaily * 2) {
+        const dayOfWeek = new Date(bestDay.date + 'T12:00:00').getDay()
+        const dayName = DAY_NAMES_FULL[dayOfWeek]
+        insights.push({
+          text: `Suas ${dayName}s são mais produtivas (${bestDay.total} ligações vs média de ${Math.round(avgDaily)}).`,
+          severity: 2,
+        })
+      }
+    }
+  }
+
+  // 9. Contact diversification
+  if (metrics.totalCalls >= 20 && metrics.uniqueContacts > 0) {
+    const diversificationRate = (metrics.uniqueContacts / metrics.totalCalls) * 100
+    if (diversificationRate < 50) {
+      insights.push({
+        text: `Você está ligando repetidamente para os mesmos contatos. ${diversificationRate.toFixed(0)}% das ligações são para contatos únicos.`,
+        severity: 1,
+      })
+    }
+  }
+
+  // 10. No recent activity
+  if (metrics.byDay.length >= 3) {
+    const sortedDays = [...metrics.byDay].sort((a, b) => a.date.localeCompare(b.date))
+    const firstDate = new Date(sortedDays[0].date + 'T12:00:00')
+    const lastDate = new Date(sortedDays[sortedDays.length - 1].date + 'T12:00:00')
+    const spanDays = Math.ceil((lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    if (spanDays >= 5) {
+      const today = new Date()
+      today.setHours(12, 0, 0, 0)
+      const twoDaysAgo = new Date(today)
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
+      const recentDays = sortedDays.filter(d => new Date(d.date + 'T12:00:00') >= twoDaysAgo)
+      if (recentDays.length === 0) {
+        insights.push({
+          text: 'Nenhuma ligação nos últimos 2 dias. Retome a prospecção para manter o ritmo.',
+          severity: 0,
+        })
+      }
+    }
+  }
+
+  // 11. Connection rate improvement (first half vs second half)
+  if (metrics.byDay.length >= 7) {
+    const sortedDays = [...metrics.byDay].sort((a, b) => a.date.localeCompare(b.date))
+    const mid = Math.floor(sortedDays.length / 2)
+    const firstHalf = sortedDays.slice(0, mid)
+    const secondHalf = sortedDays.slice(mid)
+
+    const calcRate = (days: typeof sortedDays) => {
+      const totalCalls = days.reduce((s, d) => s + d.total, 0)
+      const connected = days.reduce((s, d) => s + d.connected, 0)
+      return totalCalls > 0 ? (connected / totalCalls) * 100 : 0
+    }
+
+    const firstRate = calcRate(firstHalf)
+    const secondRate = calcRate(secondHalf)
+    const improvement = secondRate - firstRate
+
+    if (improvement > 10) {
+      insights.push({
+        text: `Sua taxa de conexão melhorou ${Math.round(improvement)}pp na segunda metade do período. Continue assim!`,
+        severity: 3,
+      })
+    }
+  }
+
+  // 12. Consistent volume
+  if (metrics.byDay.length >= 5) {
+    const dailyTotals = metrics.byDay.map(d => d.total)
+    const avg = dailyTotals.reduce((s, v) => s + v, 0) / dailyTotals.length
+    if (avg > 0) {
+      const sd = stddev(dailyTotals)
+      const cv = sd / avg
+      if (cv < 0.3) {
+        insights.push({
+          text: 'Volume de ligações consistente. Boa disciplina de prospecção!',
+          severity: 3,
+        })
+      }
+    }
+  }
+
+  // Sort by severity: alerts (0) first, then warnings (1), info (2), positives (3) last
+  insights.sort((a, b) => a.severity - b.severity)
+
+  return insights.map(i => i.text)
 }

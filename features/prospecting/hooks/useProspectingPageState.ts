@@ -16,7 +16,10 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useAddBatchToProspectingQueue, useQueueContactIds } from '@/lib/query/hooks/useProspectingQueueQuery'
 import { INITIAL_FILTERS, migrateFilters, type ProspectingFiltersState } from '@/features/prospecting/components/ProspectingFilters'
 import type { QuickScript } from '@/lib/supabase/quickScripts'
-import type { MetricsPeriod, PeriodRange, ProspectingMetrics, CallActivity } from '@/features/prospecting/hooks/useProspectingMetrics'
+import type { MetricsPeriod, PeriodRange, ProspectingMetrics, CallActivity, BrokerMetric } from '@/features/prospecting/hooks/useProspectingMetrics'
+import type { RetryEffectivenessData } from '@/features/prospecting/hooks/useRetryEffectiveness'
+import type { ProspectingImpact } from '@/features/prospecting/hooks/useProspectingImpact'
+import type { GoalProgress } from '@/features/prospecting/hooks/useProspectingGoals'
 import type { SavedQueue } from '@/lib/supabase/prospecting-saved-queues'
 import {
   startProspectingSession,
@@ -83,6 +86,23 @@ export interface SavedQueuesDeps {
   getFiltersFromSaved: (savedQueue: SavedQueue) => ProspectingFiltersState
 }
 
+export interface PdfExtraDeps {
+  retryData?: RetryEffectivenessData
+  impact?: ProspectingImpact | null
+  goalProgress?: GoalProgress
+  userMetrics?: BrokerMetric | null
+  teamAverage?: BrokerMetric | null
+  periodDays?: number
+  queueStats?: {
+    total: number
+    completed: number
+    pending: number
+    skipped: number
+    retryPending: number
+    exhausted: number
+  }
+}
+
 export interface PageDeps {
   toast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void
   profiles: OrgProfile[]
@@ -91,6 +111,7 @@ export interface PageDeps {
   metricsDeps: MetricsDeps
   filteredContacts: FilteredContactsDeps
   savedQueuesDeps: SavedQueuesDeps
+  pdfExtraDeps?: PdfExtraDeps
 }
 
 const INITIAL_SESSION_STATS: SessionStats = {
@@ -538,6 +559,7 @@ export function useProspectingPageState(userId?: string, organizationId?: string
     setIsGeneratingPdf(true)
     try {
       const { generateMetricsPDF } = await import('@/features/prospecting/utils/generateMetricsPDF')
+      const pdfExtras = deps.pdfExtraDeps
       await generateMetricsPDF({
         metrics: deps.metricsDeps.metrics,
         activities: deps.metricsDeps.activities,
@@ -546,6 +568,13 @@ export function useProspectingPageState(userId?: string, organizationId?: string
         isAdminOrDirector: deps.metricsDeps.isAdminOrDirector,
         organizationName: 'ZmobCRM',
         comparisonMetrics: deps.metricsDeps.comparisonMetrics ?? undefined,
+        retryData: pdfExtras?.retryData,
+        impact: pdfExtras?.impact,
+        goalProgress: pdfExtras?.goalProgress,
+        userMetrics: pdfExtras?.userMetrics,
+        teamAverage: pdfExtras?.teamAverage,
+        periodDays: pdfExtras?.periodDays,
+        queueStats: pdfExtras?.queueStats,
       })
       deps.toast('PDF exportado com sucesso', 'success')
     } catch {
