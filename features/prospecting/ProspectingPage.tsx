@@ -336,6 +336,22 @@ export const ProspectingPage: React.FC = () => {
   // CP-1.3: Filtered contacts
   const filteredContactsHook = useProspectingFilteredContacts()
 
+  // PDF extra data: queue stats for export
+  const pdfQueueStats = useMemo(() => {
+    const allItems = [...queue, ...exhaustedItems]
+    const total = allItems.length
+    if (total === 0) return undefined
+    const counts = { completed: 0, pending: 0, skipped: 0, retryPending: 0, exhausted: 0 }
+    for (const item of allItems) {
+      if (item.status === 'completed') counts.completed++
+      else if (item.status === 'pending') counts.pending++
+      else if (item.status === 'skipped') counts.skipped++
+      else if (item.status === 'retry_pending') counts.retryPending++
+      else if (item.status === 'exhausted') counts.exhausted++
+    }
+    return { total, ...counts }
+  }, [queue, exhaustedItems])
+
   // --- Sync deps to pageState ref ---
   useEffect(() => {
     setDeps({
@@ -346,8 +362,18 @@ export const ProspectingPage: React.FC = () => {
       metricsDeps: metricsHook,
       filteredContacts: filteredContactsHook,
       savedQueuesDeps: savedQueuesHook,
+      pdfExtraDeps: {
+        retryData: retryQuery.data,
+        impact: impactHook.impact,
+        goalProgress: goalsHook.progress,
+        userMetrics,
+        teamAverage,
+        periodDays,
+        queueStats: pdfQueueStats,
+      },
     })
-  }, [setDeps, toast, profiles, resolvedViewOwnerId, queueHook, metricsHook, filteredContactsHook, savedQueuesHook])
+  }, [setDeps, toast, profiles, resolvedViewOwnerId, queueHook, metricsHook, filteredContactsHook, savedQueuesHook,
+    retryQuery.data, impactHook.impact, goalsHook.progress, userMetrics, teamAverage, periodDays, pdfQueueStats])
 
   // CP-3.4: Compute suggested return time from heatmap data (AC6-AC8)
   const suggestedReturnTime = useMemo(
@@ -784,6 +810,9 @@ export const ProspectingPage: React.FC = () => {
               <div className="flex items-center gap-3">
                 <span className="text-sm font-semibold text-secondary-foreground dark:text-muted-foreground">
                   Métricas — {metricsPeriod === 'today' ? 'Hoje' : metricsPeriod === 'yesterday' ? 'Ontem' : metricsPeriod === '7d' ? 'Últimos 7 dias' : metricsPeriod === '30d' ? 'Últimos 30 dias' : 'Período personalizado'}
+                  <span className="font-normal text-muted-foreground ml-1 text-xs">
+                    ({metricsHook.range.start.split('-').reverse().slice(0, 2).join('/')} — {metricsHook.range.end.split('-').reverse().slice(0, 2).join('/')})
+                  </span>
                 </span>
                 {metricsHook.dataUpdatedAt > 0 && (
                   <span className="text-2xs text-muted-foreground">

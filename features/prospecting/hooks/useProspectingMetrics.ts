@@ -54,9 +54,16 @@ export interface ProspectingMetrics {
   byBroker: BrokerMetric[]
 }
 
+function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 export function getDateRange(period: MetricsPeriod, custom?: PeriodRange): PeriodRange {
   const now = new Date()
-  const end = now.toISOString().split('T')[0]
+  const end = toLocalDateStr(now)
 
   if (period === 'custom' && custom && custom.start && custom.end) return custom
 
@@ -67,8 +74,7 @@ export function getDateRange(period: MetricsPeriod, custom?: PeriodRange): Perio
   if (period === 'yesterday') {
     const yesterday = new Date(now)
     yesterday.setDate(yesterday.getDate() - 1)
-    const y = yesterday.toISOString().split('T')[0]
-    return { start: y, end: y }
+    return { start: toLocalDateStr(yesterday), end: toLocalDateStr(yesterday) }
   }
 
   const start = new Date(now)
@@ -77,7 +83,7 @@ export function getDateRange(period: MetricsPeriod, custom?: PeriodRange): Perio
   } else {
     start.setDate(start.getDate() - 29)
   }
-  return { start: start.toISOString().split('T')[0], end }
+  return { start: toLocalDateStr(start), end }
 }
 
 export interface CallActivity {
@@ -276,8 +282,8 @@ export function getComparisonDateRange(period: MetricsPeriod, currentRange: Peri
   compStart.setDate(compStart.getDate() - (durationDays - 1))
 
   return {
-    start: compStart.toISOString().split('T')[0],
-    end: compEnd.toISOString().split('T')[0],
+    start: toLocalDateStr(compStart),
+    end: toLocalDateStr(compEnd),
   }
 }
 
