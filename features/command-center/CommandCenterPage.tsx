@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useState, useEffect } from 'react'
+import React, { Suspense, useMemo, useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import {
@@ -13,7 +13,9 @@ import {
   Download,
 } from 'lucide-react'
 import { useCommandCenterMetrics } from '@/features/command-center/hooks'
-import { useDashboardMetrics, type PeriodFilter, COMPARISON_LABELS } from '@/features/dashboard/hooks/useDashboardMetrics'
+import { generateCommandCenterPDF, type CommandCenterPDFData } from '@/features/command-center/utils/generateCommandCenterPDF'
+import { useDashboardMetrics, type PeriodFilter, COMPARISON_LABELS, PERIOD_LABELS } from '@/features/dashboard/hooks/useDashboardMetrics'
+import { useAuth } from '@/context/AuthContext'
 import { PeriodFilterSelect } from '@/components/filters/PeriodFilterSelect'
 import { StatCard } from '@/features/dashboard/components/StatCard'
 import { ForecastBar } from '@/components/dashboard/ForecastBar'
@@ -48,9 +50,13 @@ function formatChange(value: number): { text: string; isPositive: boolean } {
 
 const CommandCenterPage: React.FC = () => {
   const router = useRouter()
+  const { user, profile } = useAuth()
   const { boards } = useBoards()
   const [period, setPeriod] = useState<PeriodFilter>('this_month')
   const [selectedBoardId, setSelectedBoardId] = useState<string>('')
+  const [isPDFGenerating, setIsPDFGenerating] = useState(false)
+
+  const isAdminOrDirector = profile?.role === 'admin' || profile?.role === 'diretor'
 
   const defaultBoardId = useMemo(() => {
     if (!boards.length) return ''
@@ -119,6 +125,39 @@ const CommandCenterPage: React.FC = () => {
   const funnelData = dashboardData.funnelData || []
   const trendData = dashboardData.trendData || []
 
+  const handleExportPDF = useCallback(async () => {
+    setIsPDFGenerating(true)
+    try {
+      const pdfData: CommandCenterPDFData = {
+        pipelineValue: metrics.pipelineValue,
+        generatedCommission: metrics.generatedCommission,
+        dealTypeSplit: metrics.dealTypeSplit,
+        winRate: metrics.winRate,
+        activeContacts: metrics.activeContacts,
+        prospectingSummary: metrics.prospectingSummary,
+        avgSalesCycle: metrics.avgSalesCycle,
+        temperatureBreakdown: metrics.temperatureBreakdown,
+        pulse: metrics.pulse,
+        changes: metrics.changes,
+        funnelData,
+        leaderboard: metrics.leaderboard,
+        alerts: metrics.alerts,
+        wonRevenue: metrics.wonRevenue,
+      }
+      await generateCommandCenterPDF({
+        data: pdfData,
+        period: PERIOD_LABELS[period] || period,
+        boardName: selectedBoard?.name,
+        generatedBy: profile?.first_name || user?.email || undefined,
+        isAdminOrDirector,
+      })
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+    } finally {
+      setIsPDFGenerating(false)
+    }
+  }, [metrics, funnelData, period, selectedBoard, profile, user, isAdminOrDirector])
+
   return (
     <div className="flex flex-col h-full space-y-6 p-6">
       {/* Header (AC-2) */}
@@ -144,12 +183,15 @@ const CommandCenterPage: React.FC = () => {
           </select>
           <PeriodFilterSelect value={period} onChange={setPeriod} />
           <Button
-            onClick={() => console.log('PDF export — coming soon')}
-            className="group flex items-center gap-2 px-3 py-2 rounded-lg glass border border-border/50 text-muted-foreground hover:text-foreground hover:border-border transition-all duration-200"
+            onClick={handleExportPDF}
+            disabled={isPDFGenerating}
+            className="group flex items-center gap-2 px-3 py-2 rounded-lg glass border border-border/50 text-muted-foreground hover:text-foreground hover:border-border transition-all duration-200 disabled:opacity-50"
             title="Exportar PDF"
           >
             <Download size={16} className="group-hover:scale-110 transition-transform" />
-            <span className="text-sm font-medium opacity-80 group-hover:opacity-100">PDF</span>
+            <span className="text-sm font-medium opacity-80 group-hover:opacity-100">
+              {isPDFGenerating ? 'Gerando...' : 'PDF'}
+            </span>
           </Button>
         </div>
       </div>

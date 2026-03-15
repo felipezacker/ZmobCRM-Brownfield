@@ -11,7 +11,8 @@ import {
   CheckSquare,
   PanelLeftClose,
   PanelLeftOpen,
-  PhoneOutgoing
+  PhoneOutgoing,
+  Command
 } from 'lucide-react';
 import { prefetchRoute, RouteName } from '@/lib/prefetch';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const NAV_ITEMS: Array<{
 }> = [
   { to: '/inbox', icon: Inbox, label: 'Inbox', prefetch: 'inbox' },
   { to: '/dashboard', icon: LayoutDashboard, label: 'Visao Geral', prefetch: 'dashboard' },
+  { to: '/command-center', icon: Command, label: 'Central de Comando', prefetch: 'command-center' },
   { to: '/boards', icon: KanbanSquare, label: 'Boards', prefetch: 'boards' },
   { to: '/contacts', icon: Users, label: 'Contatos', prefetch: 'contacts' },
   { to: '/activities', icon: CheckSquare, label: 'Atividades', prefetch: 'activities' },
