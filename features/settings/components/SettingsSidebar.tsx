@@ -6,7 +6,9 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { hasMinRole, type Role } from '@/lib/auth/roles'
 import {
-  Settings,
+  Building2,
+  Tag,
+  PenTool,
   Package,
   Plug,
   Sparkles,
@@ -32,7 +34,9 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { label: 'Meu Perfil', href: '/settings/profile', icon: UserCircle },
-  { label: 'Geral', href: '/settings', icon: Settings },
+  { label: 'Empresa', href: '/settings/empresa', icon: Building2 },
+  { label: 'Tags', href: '/settings/tags', icon: Tag, minRole: 'admin' },
+  { label: 'Campos', href: '/settings/campos', icon: PenTool, minRole: 'admin' },
   { label: 'Produtos/Serviços', href: '/settings/products', icon: Package, minRole: 'admin' },
   { label: 'Ciclos de Vida', href: '/settings/lifecycle', icon: GitBranch, minRole: 'admin' },
   { label: 'Integrações', href: '/settings/integracoes', icon: Plug, minRole: 'admin' },
@@ -58,9 +62,6 @@ export function SettingsSidebar() {
   })
 
   const isActive = (href: string) => {
-    if (href === '/settings') {
-      return pathname === '/settings' || pathname === '/settings/'
-    }
     return pathname?.startsWith(href) ?? false
   }
 

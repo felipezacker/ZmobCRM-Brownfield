@@ -38,7 +38,9 @@ describe('SettingsSidebar', () => {
     render(<SettingsSidebar />)
 
     expect(screen.getByText('Meu Perfil')).toBeInTheDocument()
-    expect(screen.getByText('Geral')).toBeInTheDocument()
+    expect(screen.getByText('Empresa')).toBeInTheDocument()
+    expect(screen.getByText('Tags')).toBeInTheDocument()
+    expect(screen.getByText('Campos')).toBeInTheDocument()
     expect(screen.getByText('Produtos/Serviços')).toBeInTheDocument()
     expect(screen.getByText('Integrações')).toBeInTheDocument()
     expect(screen.getByText('Central de I.A')).toBeInTheDocument()
@@ -55,10 +57,12 @@ describe('SettingsSidebar', () => {
     render(<SettingsSidebar />)
 
     expect(screen.getByText('Meu Perfil')).toBeInTheDocument()
-    expect(screen.getByText('Geral')).toBeInTheDocument()
+    expect(screen.getByText('Empresa')).toBeInTheDocument()
     expect(screen.getByText('Central de I.A')).toBeInTheDocument()
     expect(screen.getByText('Dados')).toBeInTheDocument()
 
+    expect(screen.queryByText('Tags')).not.toBeInTheDocument()
+    expect(screen.queryByText('Campos')).not.toBeInTheDocument()
     expect(screen.queryByText('Produtos/Serviços')).not.toBeInTheDocument()
     expect(screen.queryByText('Integrações')).not.toBeInTheDocument()
     expect(screen.queryByText('Equipe')).not.toBeInTheDocument()
@@ -78,16 +82,16 @@ describe('SettingsSidebar', () => {
     expect(screen.queryByText('Logs de Auditoria')).not.toBeInTheDocument()
   })
 
-  it('item ativo recebe classe de destaque para pathname /settings', () => {
-    mockPathname.mockReturnValue('/settings')
+  it('item ativo recebe classe de destaque para pathname /settings/empresa', () => {
+    mockPathname.mockReturnValue('/settings/empresa')
     useAuthMock.mockReturnValue({
       profile: { role: 'admin' },
     } as any)
 
     render(<SettingsSidebar />)
 
-    const geralLink = screen.getByText('Geral').closest('a')
-    expect(geralLink?.className).toContain('bg-primary-500/10')
+    const empresaLink = screen.getByText('Empresa').closest('a')
+    expect(empresaLink?.className).toContain('bg-primary-500/10')
 
     const aiLink = screen.getByText('Central de I.A').closest('a')
     expect(aiLink?.className).not.toContain('bg-primary-500/10')
@@ -104,8 +108,8 @@ describe('SettingsSidebar', () => {
     const aiLink = screen.getByText('Central de I.A').closest('a')
     expect(aiLink?.className).toContain('bg-primary-500/10')
 
-    const geralLink = screen.getByText('Geral').closest('a')
-    expect(geralLink?.className).not.toContain('bg-primary-500/10')
+    const empresaLink = screen.getByText('Empresa').closest('a')
+    expect(empresaLink?.className).not.toContain('bg-primary-500/10')
   })
 
   it('botão toggle visível em mobile (tem aria-label correto)', () => {

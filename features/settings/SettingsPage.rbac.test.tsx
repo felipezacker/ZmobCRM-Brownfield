@@ -1,9 +1,9 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/settings',
+  usePathname: () => '/settings/empresa',
   useSearchParams: () => ({
     get: () => null,
   }),
@@ -18,65 +18,74 @@ vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
 
-vi.mock('@/context/settings/SettingsContext', () => ({
-  useSettings: () => ({
-    loading: false,
-    error: null,
-    availableTags: [{ name: 'VIP', color: null }],
-    addTag: vi.fn(),
-    removeTag: vi.fn(),
-    renameTag: vi.fn(),
-    updateTagColor: vi.fn(),
-    customFieldDefinitions: [],
-    addCustomField: vi.fn(),
-    updateCustomField: vi.fn(),
-    removeCustomField: vi.fn(),
+vi.mock('@/lib/supabase/client', () => ({
+  createClient: () => ({
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          single: () => Promise.resolve({
+            data: { name: 'Test Org', cnpj: null, creci: null, phone: null },
+          }),
+        }),
+      }),
+      update: () => ({
+        eq: () => Promise.resolve({ error: null }),
+      }),
+    }),
   }),
 }))
 
-import SettingsPage from './SettingsPage'
+import { CompanySettings } from './components/CompanySettings'
 import { useAuth } from '@/context/AuthContext'
 
 const useAuthMock = vi.mocked(useAuth)
 
-describe('SettingsPage (GeneralSettings) RBAC', () => {
+describe('CompanySettings RBAC', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('corretor não vê seções de admin (Tags e Campos Personalizados)', () => {
+  it('corretor ve formulario mas campos estao desabilitados', async () => {
     useAuthMock.mockReturnValue({
-      profile: { role: 'corretor' },
+      profile: { role: 'corretor', organization_id: 'org-1' },
+      organizationId: 'org-1',
     } as any)
 
-    render(<SettingsPage />)
+    render(<CompanySettings />)
 
-    expect(
-      screen.queryByRole('heading', { name: /^Tags$/i })
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('heading', { name: /^Campos Personalizados$/i })
-    ).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Nome da Empresa')).toBeInTheDocument()
+    })
 
-    // Pagina Inicial foi movida para ProfileSettings (ST-2.1)
-    expect(screen.queryByText(/página inicial/i)).not.toBeInTheDocument()
+    // Campos existem mas disabled
+    const inputs = screen.getAllByRole('textbox')
+    inputs.forEach((input) => {
+      expect(input).toBeDisabled()
+    })
+
+    // Botao Salvar NAO aparece
+    expect(screen.queryByText('Salvar')).not.toBeInTheDocument()
   })
 
-  it('admin vê Tags e Campos Personalizados', () => {
+  it('admin ve formulario com campos editaveis e botao Salvar', async () => {
     useAuthMock.mockReturnValue({
-      profile: { role: 'admin' },
+      profile: { role: 'admin', organization_id: 'org-1' },
+      organizationId: 'org-1',
     } as any)
 
-    render(<SettingsPage />)
+    render(<CompanySettings />)
 
-    expect(
-      screen.getByRole('heading', { name: /^Tags$/i })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: /^Campos Personalizados$/i })
-    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Nome da Empresa')).toBeInTheDocument()
+    })
 
-    // Pagina Inicial foi movida para ProfileSettings (ST-2.1)
-    expect(screen.queryByText(/página inicial/i)).not.toBeInTheDocument()
+    // Campos existem e habilitados
+    const inputs = screen.getAllByRole('textbox')
+    inputs.forEach((input) => {
+      expect(input).not.toBeDisabled()
+    })
+
+    // Botao Salvar aparece
+    expect(screen.getByText('Salvar')).toBeInTheDocument()
   })
 })
