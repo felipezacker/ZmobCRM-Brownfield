@@ -16,6 +16,7 @@ import { useCommandCenterMetrics } from '@/features/command-center/hooks'
 import { generateCommandCenterPDF, type CommandCenterPDFData } from '@/features/command-center/utils/generateCommandCenterPDF'
 import { useDashboardMetrics, type PeriodFilter, COMPARISON_LABELS, PERIOD_LABELS } from '@/features/dashboard/hooks/useDashboardMetrics'
 import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import { PeriodFilterSelect } from '@/components/filters/PeriodFilterSelect'
 import { StatCard } from '@/features/dashboard/components/StatCard'
 import { ForecastBar } from '@/components/dashboard/ForecastBar'
@@ -51,6 +52,7 @@ function formatChange(value: number): { text: string; isPositive: boolean } {
 const CommandCenterPage: React.FC = () => {
   const router = useRouter()
   const { user, profile } = useAuth()
+  const { showToast } = useToast()
   const { boards } = useBoards()
   const [period, setPeriod] = useState<PeriodFilter>('this_month')
   const [selectedBoardId, setSelectedBoardId] = useState<string>('')
@@ -153,6 +155,7 @@ const CommandCenterPage: React.FC = () => {
       })
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
+      showToast('Erro ao gerar PDF. Tente novamente.', 'error')
     } finally {
       setIsPDFGenerating(false)
     }

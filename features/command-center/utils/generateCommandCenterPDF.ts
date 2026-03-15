@@ -7,7 +7,6 @@
  */
 
 import type {
-  CommandCenterMetrics,
   LeaderboardEntry,
   ProspectingSummary,
   TemperatureBreakdown,
@@ -15,7 +14,6 @@ import type {
   PulseStatus,
 } from '@/features/command-center/hooks/useCommandCenterMetrics'
 import type { Alert } from '@/features/command-center/utils/alert-rules'
-import type { PulseColor } from '@/features/command-center/utils/pulse-rules'
 
 type RGB = [number, number, number]
 
@@ -38,12 +36,6 @@ const SEVERITY_LABELS: Record<string, string> = {
   high: 'ALTO',
   medium: 'MEDIO',
   low: 'BAIXO',
-}
-
-const PULSE_LABELS: Record<PulseColor, string> = {
-  green: 'Verde',
-  yellow: 'Amarelo',
-  red: 'Vermelho',
 }
 
 export interface CommandCenterPDFData {
@@ -299,7 +291,7 @@ export async function generateCommandCenterPDF(options: GenerateCommandCenterPDF
 
   autoTable(doc, {
     startY: y,
-    head: [['#', 'Corretor', 'Negocios', 'Comissao', 'Ligacoes']],
+    head: [['#', 'Corretor', 'Negocios', 'Receita', 'Ligacoes']],
     body: rankingBody,
     theme: 'striped',
     tableWidth: contentWidth,
