@@ -16,6 +16,7 @@ import {
   GitBranch,
   Bell,
   Shield,
+  Lock,
   Menu,
   X,
 } from 'lucide-react'
@@ -39,6 +40,7 @@ const sidebarItems: SidebarItem[] = [
   { label: 'Central de I.A', href: '/settings/ai', icon: Sparkles },
   { label: 'Dados', href: '/settings/data', icon: Database },
   { label: 'Equipe', href: '/settings/equipe', icon: Users, minRole: 'diretor' },
+  { label: 'Permissoes', href: '/settings/permissions', icon: Lock, minRole: 'admin' },
   { label: 'Logs de Auditoria', href: '/settings/audit', icon: Shield, minRole: 'admin' },
 ]
 

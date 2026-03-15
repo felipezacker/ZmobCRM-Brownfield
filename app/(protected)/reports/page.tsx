@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { PageLoader } from '@/components/PageLoader'
+import { PermissionGate } from '@/components/auth/PermissionGate'
 
 const ReportsPage = dynamic(
     () => import('@/features/reports/ReportsPage'),
@@ -13,5 +14,9 @@ const ReportsPage = dynamic(
  * @returns {Element} Retorna um valor do tipo `Element`.
  */
 export default function Reports() {
-    return <ReportsPage />
+    return (
+        <PermissionGate permission="ver_relatorios">
+            <ReportsPage />
+        </PermissionGate>
+    )
 }
