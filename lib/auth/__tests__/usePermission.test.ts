@@ -3,22 +3,15 @@ import { renderHook } from '@testing-library/react'
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-// Mock supabase
-const mockSelect = vi.fn()
-const mockEq = vi.fn()
+// Mock supabase — configurable response
+let mockPermissionsData: { role: string; permission: string; enabled: boolean }[] = []
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     from: () => ({
-      select: (...args: unknown[]) => {
-        mockSelect(...args)
-        return {
-          eq: (...eqArgs: unknown[]) => {
-            mockEq(...eqArgs)
-            return Promise.resolve({ data: [], error: null })
-          },
-        }
-      },
+      select: () => ({
+        eq: () => Promise.resolve({ data: mockPermissionsData, error: null }),
+      }),
     }),
   },
 }))
@@ -117,6 +110,44 @@ describe('usePermission', () => {
       wrapper: createWrapper(),
     })
     expect(result.current).toBe(false)
+  })
+
+  it('respects custom saved permissions (6.2)', async () => {
+    // Corretor default: ver_relatorios = false
+    // Custom override: ver_relatorios = true
+    mockPermissionsData = [
+      { role: 'corretor', permission: 'ver_relatorios', enabled: true },
+    ]
+
+    const { result } = renderHook(() => usePermission('ver_relatorios'), {
+      wrapper: createWrapper(),
+    })
+
+    // Wait for query to resolve
+    await vi.waitFor(() => {
+      expect(result.current).toBe(true)
+    })
+
+    // Reset for other tests
+    mockPermissionsData = []
+  })
+
+  it('custom disabled overrides default enabled (6.2)', async () => {
+    // Corretor default: acessar_ia = true
+    // Custom override: acessar_ia = false
+    mockPermissionsData = [
+      { role: 'corretor', permission: 'acessar_ia', enabled: false },
+    ]
+
+    const { result } = renderHook(() => usePermission('acessar_ia'), {
+      wrapper: createWrapper(),
+    })
+
+    await vi.waitFor(() => {
+      expect(result.current).toBe(false)
+    })
+
+    mockPermissionsData = []
   })
 
   it('returns false when user has no role', () => {
