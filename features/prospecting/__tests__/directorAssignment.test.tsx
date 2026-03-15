@@ -22,8 +22,16 @@ vi.mock('@/context/ToastContext', () => ({
   }),
 }))
 
-vi.mock('@/hooks/useTags', () => ({
-  useTags: () => ({ tags: ['VIP'] }),
+vi.mock('@/context/settings/SettingsContext', () => ({
+  useSettings: () => ({
+    availableTags: [{ name: 'VIP', color: null, description: null }],
+    addTag: vi.fn(),
+    removeTag: vi.fn(),
+    renameTag: vi.fn(),
+    updateTagColor: vi.fn(),
+    updateTagDescription: vi.fn(),
+    customFieldDefinitions: [],
+  }),
 }))
 
 vi.mock('@/lib/supabase/client', () => ({

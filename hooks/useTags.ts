@@ -4,6 +4,12 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 
+export interface TagItem {
+  name: string;
+  color: string | null;
+  description: string | null;
+}
+
 /**
  * Hook centralizado para gerenciar tags do catálogo (tabela `tags` no Supabase).
  * Inclui organization_id para isolamento multi-tenant.
@@ -11,33 +17,34 @@ import { useAuth } from '@/context/AuthContext';
 export function useTags() {
   const supabase = createClient()!;
   const { organizationId } = useAuth();
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<TagItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!organizationId) return;
     supabase
       .from('tags')
-      .select('name')
+      .select('name, color, description')
       .eq('organization_id', organizationId)
       .then(({ data }) => {
-        if (data) setTags(data.map((t) => t.name));
+        if (data) setTags(data.map((t) => ({ name: t.name, color: (t.color && t.color.startsWith('#')) ? t.color : null, description: t.description || null })));
         setLoading(false);
       });
   }, [supabase, organizationId]);
 
-  const tagsLowerSet = useMemo(() => new Set(tags.map(t => t.toLowerCase())), [tags]);
+  const tagsLowerSet = useMemo(() => new Set(tags.map(t => t.name.toLowerCase())), [tags]);
 
   const addTag = useCallback(
-    async (name: string) => {
+    async (name: string, color?: string | null, description?: string | null) => {
       const trimmed = name.trim();
       if (!trimmed || tagsLowerSet.has(trimmed.toLowerCase())) return;
       if (!organizationId) return;
+      const desc = description?.trim() || null;
       const { error } = await supabase
         .from('tags')
-        .insert({ name: trimmed, organization_id: organizationId });
+        .insert({ name: trimmed, color: color ?? null, description: desc, organization_id: organizationId });
       if (!error) {
-        setTags((prev) => [...prev, trimmed]);
+        setTags((prev) => [...prev, { name: trimmed, color: color ?? null, description: desc }]);
       }
     },
     [tagsLowerSet, supabase, organizationId],
@@ -52,7 +59,7 @@ export function useTags() {
         .eq('name', name)
         .eq('organization_id', organizationId);
       if (!error) {
-        setTags((prev) => prev.filter((t) => t !== name));
+        setTags((prev) => prev.filter((t) => t.name !== name));
       }
     },
     [supabase, organizationId],
@@ -89,10 +96,40 @@ export function useTags() {
         }
       }
 
-      setTags((prev) => prev.map((t) => t === oldName ? trimmed : t));
+      setTags((prev) => prev.map((t) => t.name === oldName ? { ...t, name: trimmed } : t));
     },
     [supabase, organizationId, tagsLowerSet],
   );
 
-  return { tags, loading, addTag, removeTag, renameTag, tagsLowerSet };
+  const updateTagDescription = useCallback(
+    async (name: string, description: string | null) => {
+      if (!organizationId) return;
+      const { error } = await supabase
+        .from('tags')
+        .update({ description })
+        .eq('name', name)
+        .eq('organization_id', organizationId);
+      if (!error) {
+        setTags((prev) => prev.map((t) => t.name === name ? { ...t, description } : t));
+      }
+    },
+    [supabase, organizationId],
+  );
+
+  const updateTagColor = useCallback(
+    async (name: string, color: string | null) => {
+      if (!organizationId) return;
+      const { error } = await supabase
+        .from('tags')
+        .update({ color })
+        .eq('name', name)
+        .eq('organization_id', organizationId);
+      if (!error) {
+        setTags((prev) => prev.map((t) => t.name === name ? { ...t, color } : t));
+      }
+    },
+    [supabase, organizationId],
+  );
+
+  return { tags, loading, addTag, removeTag, renameTag, updateTagColor, updateTagDescription, tagsLowerSet };
 }

@@ -49,7 +49,7 @@ import { useSkipReasons } from './hooks/useSkipReasons'
 import { useRetryEffectiveness } from './hooks/useRetryEffectiveness'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
-import { useTags } from '@/hooks/useTags'
+import { useSettings } from '@/context/settings/SettingsContext'
 import { supabase } from '@/lib/supabase/client'
 import { SessionBriefing } from './components/SessionBriefing'
 import { SessionHistory } from './components/SessionHistory'
@@ -78,7 +78,8 @@ export const ProspectingPage: React.FC = () => {
   const toast = addToast || showToast
 
   // isAdminOrDirector comes from metricsHook (single source of truth)
-  const { tags: availableTags } = useTags()
+  const { availableTags: tagItems } = useSettings()
+  const availableTags = tagItems.map(t => t.name)
 
   // Org profiles for owner filter + director assignment + metrics ranking
   const { data: profiles = [] } = useQuery<OrgProfile[]>({
