@@ -48,12 +48,23 @@ export async function GET() {
 
   if (error) return json({ error: error.message }, 500);
 
-  // Get last_sign_in_at from auth.users via admin client
+  // Get last_sign_in_at from auth.users — scoped to current org only (no cross-tenant data)
   const admin = createStaticAdminClient();
-  const { data: authData } = await admin.auth.admin.listUsers({ perPage: 1000 });
-  const lastSignInMap = new Map(
-    (authData?.users || []).map((u) => [u.id, u.last_sign_in_at])
-  );
+  const profileIds = (profiles || []).map((p) => p.id);
+  const lastSignInMap = new Map<string, string | null>();
+
+  // Fetch in batches of 50 to avoid overwhelming the auth API
+  const BATCH_SIZE = 50;
+  for (let i = 0; i < profileIds.length; i += BATCH_SIZE) {
+    const batch = profileIds.slice(i, i + BATCH_SIZE);
+    const results = await Promise.all(
+      batch.map((id) => admin.auth.admin.getUserById(id).catch(() => ({ data: { user: null } })))
+    );
+    for (const result of results) {
+      const u = result.data?.user;
+      if (u) lastSignInMap.set(u.id, u.last_sign_in_at ?? null);
+    }
+  }
 
   const users = (profiles || []).map((p) => {
     const fullName = [p.first_name, p.last_name].filter(Boolean).join(' ') || null;

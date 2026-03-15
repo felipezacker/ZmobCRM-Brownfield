@@ -102,15 +102,26 @@ export async function POST(req: Request) {
     .single();
 
   if (org?.max_users !== null && org?.max_users !== undefined) {
+    // Count active users
     const { count: activeCount } = await supabase
       .from('profiles')
       .select('id', { count: 'exact', head: true })
       .eq('organization_id', me.organization_id)
       .eq('is_active', true);
 
-    if (activeCount !== null && activeCount >= org.max_users) {
+    // Count pending (unused, non-expired) invites to prevent race condition
+    const { count: pendingInvites } = await supabase
+      .from('organization_invites')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', me.organization_id)
+      .is('used_at', null)
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+
+    const totalCommitted = (activeCount ?? 0) + (pendingInvites ?? 0);
+
+    if (totalCommitted >= org.max_users) {
       return json(
-        { error: `Limite de usuarios atingido (${activeCount}/${org.max_users}). Nao e possivel convidar mais membros.` },
+        { error: `Limite de usuarios atingido (${activeCount} ativos + ${pendingInvites ?? 0} convites pendentes / ${org.max_users} max). Nao e possivel convidar mais membros.` },
         422
       );
     }

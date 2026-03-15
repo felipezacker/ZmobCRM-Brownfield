@@ -6,6 +6,7 @@ const mockSupabaseChain = () => ({
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   is: vi.fn().mockReturnThis(),
+  or: vi.fn().mockReturnThis(),
   single: vi.fn(),
   insert: vi.fn().mockReturnThis(),
   limit: vi.fn().mockReturnThis(),
@@ -62,6 +63,9 @@ describe('POST /api/admin/invites — ST-6.3 (Server-side limit)', () => {
         const innerChain = mockSupabaseChain()
         innerChain.eq.mockResolvedValue({ count: 5, error: null })
         chain.eq.mockReturnValue(innerChain)
+      } else if (fromCallCount === 4) {
+        // organization_invites count -> 0 pending (still at limit: 5+0 >= 5)
+        chain.or.mockResolvedValue({ count: 0, error: null })
       }
 
       return chain
@@ -80,6 +84,50 @@ describe('POST /api/admin/invites — ST-6.3 (Server-side limit)', () => {
 
     const body = await res.json()
     expect(body.error).toMatch(/Limite de usuarios atingido/)
+  })
+
+  it('retorna 422 quando limite atingido com invites pendentes', async () => {
+    let fromCallCount = 0
+    mockSupabaseClient.from.mockImplementation(() => {
+      fromCallCount++
+      const chain = mockSupabaseChain()
+
+      if (fromCallCount === 1) {
+        chain.single.mockResolvedValue({
+          data: { id: 'user-1', role: 'admin', organization_id: 'org-1' },
+          error: null,
+        })
+      } else if (fromCallCount === 2) {
+        chain.single.mockResolvedValue({
+          data: { max_users: 10 },
+          error: null,
+        })
+      } else if (fromCallCount === 3) {
+        // 8 active users
+        const innerChain = mockSupabaseChain()
+        innerChain.eq.mockResolvedValue({ count: 8, error: null })
+        chain.eq.mockReturnValue(innerChain)
+      } else if (fromCallCount === 4) {
+        // 2 pending invites -> 8+2 = 10 >= 10
+        chain.or.mockResolvedValue({ count: 2, error: null })
+      }
+
+      return chain
+    })
+
+    const { POST } = await import('@/app/api/admin/invites/route')
+
+    const req = new Request('http://localhost/api/admin/invites', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ role: 'corretor' }),
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(422)
+
+    const body = await res.json()
+    expect(body.error).toMatch(/convites pendentes/)
   })
 
   it('permite convite quando max_users e null (AC3)', async () => {
@@ -140,11 +188,14 @@ describe('POST /api/admin/invites — ST-6.3 (Server-side limit)', () => {
           error: null,
         })
       } else if (fromCallCount === 3) {
-        // 8 active users, limit 10 -> OK
+        // 7 active users
         const innerChain = mockSupabaseChain()
-        innerChain.eq.mockResolvedValue({ count: 8, error: null })
+        innerChain.eq.mockResolvedValue({ count: 7, error: null })
         chain.eq.mockReturnValue(innerChain)
       } else if (fromCallCount === 4) {
+        // 1 pending invite -> 7+1 = 8 < 10
+        chain.or.mockResolvedValue({ count: 1, error: null })
+      } else if (fromCallCount === 5) {
         // insert
         chain.single.mockResolvedValue({
           data: { id: 'inv-2', token: 'def456', role: 'corretor', email: null, created_at: '2026-01-01', expires_at: null, used_at: null, created_by: 'user-1' },
