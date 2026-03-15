@@ -66,25 +66,25 @@ export const InboxBriefing: React.FC<InboxBriefingProps> = ({
         {/* Stats pills */}
         <div className="flex flex-wrap gap-2">
           {stats.overdueCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 text-red-300 rounded-full text-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300 rounded-full text-sm">
               <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
               {stats.overdueCount} atrasado{stats.overdueCount > 1 ? 's' : ''}
             </div>
           )}
           {stats.todayCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 text-green-300 rounded-full text-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300 rounded-full text-sm">
               <span className="w-2 h-2 bg-green-400 rounded-full" />
               {stats.todayCount} para hoje
             </div>
           )}
           {stats.suggestionsCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-500/20 text-primary-300 rounded-full text-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300 rounded-full text-sm">
               <Sparkles size={14} />
               {stats.suggestionsCount} sugestão{stats.suggestionsCount > 1 ? 'ões' : ''}
             </div>
           )}
           {stats.totalPending === 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 text-green-300 rounded-full text-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300 rounded-full text-sm">
               ✨ Inbox Zero!
             </div>
           )}

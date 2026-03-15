@@ -453,7 +453,7 @@ export const BoardStrategyHeader: React.FC<BoardStrategyHeaderProps> = ({ board,
 
                   {/* Tooltip for Agent Behavior */}
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 hidden group-hover/agent:block w-80 p-4 bg-card text-muted-foreground text-xs rounded-lg shadow-2xl z-[100] border border-border max-h-64 overflow-y-auto">
-                    <p className="font-semibold text-purple-300 mb-1">Comportamento</p>
+                    <p className="font-semibold text-purple-700 dark:text-purple-300 mb-1">Comportamento</p>
                     {board.agentPersona?.behavior}
                   </div>
                 </div>

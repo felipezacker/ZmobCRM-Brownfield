@@ -22,33 +22,33 @@ const DAYS_OF_WEEK = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 
 const ACTIVITY_TYPE_COLORS: Record<string, { bg: string; dot: string; text: string; gradient: string }> = {
     CALL: {
-        bg: 'bg-blue-500/20',
+        bg: 'bg-blue-100 dark:bg-blue-500/20',
         dot: 'bg-blue-500',
-        text: 'text-blue-400',
+        text: 'text-blue-700 dark:text-blue-400',
         gradient: 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 border-blue-400',
     },
     MEETING: {
-        bg: 'bg-purple-500/20',
+        bg: 'bg-purple-100 dark:bg-purple-500/20',
         dot: 'bg-purple-500',
-        text: 'text-purple-400',
+        text: 'text-purple-700 dark:text-purple-400',
         gradient: 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70 border-purple-400',
     },
     EMAIL: {
-        bg: 'bg-amber-500/20',
+        bg: 'bg-amber-100 dark:bg-amber-500/20',
         dot: 'bg-amber-500',
-        text: 'text-amber-400',
+        text: 'text-amber-700 dark:text-amber-400',
         gradient: 'bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg shadow-amber-500/50 hover:shadow-amber-500/70 border-amber-400',
     },
     TASK: {
-        bg: 'bg-emerald-500/20',
+        bg: 'bg-emerald-100 dark:bg-emerald-500/20',
         dot: 'bg-emerald-500',
-        text: 'text-emerald-400',
+        text: 'text-emerald-700 dark:text-emerald-400',
         gradient: 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 border-emerald-400',
     },
     WHATSAPP: {
-        bg: 'bg-emerald-500/20',
+        bg: 'bg-emerald-100 dark:bg-emerald-500/20',
         dot: 'bg-emerald-500',
-        text: 'text-emerald-400',
+        text: 'text-emerald-700 dark:text-emerald-400',
         gradient: 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/50 hover:shadow-emerald-500/70 border-emerald-400',
     },
     NOTE: {
@@ -58,9 +58,9 @@ const ACTIVITY_TYPE_COLORS: Record<string, { bg: string; dot: string; text: stri
         gradient: 'bg-gradient-to-br from-muted-foreground to-muted-foreground/80 shadow-lg shadow-border/50 hover:shadow-border/70 border-border',
     },
     STATUS_CHANGE: {
-        bg: 'bg-cyan-500/20',
+        bg: 'bg-cyan-100 dark:bg-cyan-500/20',
         dot: 'bg-cyan-500',
-        text: 'text-cyan-400',
+        text: 'text-cyan-700 dark:text-cyan-400',
         gradient: 'bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/50 hover:shadow-cyan-500/70 border-cyan-400',
     },
 };
