@@ -276,7 +276,7 @@ export const McpSection: React.FC = () => {
                   </>
                 ) : null}
               </div>
-              <div className="mt-3 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 p-3">
+              <div className="mt-3 rounded-2xl border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 p-3">
                 <div className="text-xs text-secondary-foreground dark:text-muted-foreground mb-2">
                   O que você precisa:
                 </div>
@@ -333,7 +333,7 @@ export const McpSection: React.FC = () => {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   ref={apiKeyInputRef}
-                  className="min-w-[260px] flex-1 px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono text-xs"
+                  className="min-w-[260px] flex-1 px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground font-mono text-xs"
                   placeholder="Cole aqui sua API key"
                 />
                 <Button

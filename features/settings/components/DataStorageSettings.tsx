@@ -52,29 +52,33 @@ export const DataStorageSettings: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            <div className="mb-2">
+                <h2 className="text-xl font-semibold">Dados</h2>
+                <p className="text-muted-foreground text-sm mt-1">Estatísticas do sistema, saúde dos dados e operações avançadas.</p>
+            </div>
             {/* Data Statistics */}
-            <div className="bg-white dark:bg-dark-card rounded-lg border border-border dark:border-dark-border p-6">
+            <div className="bg-card rounded-2xl border border-border dark:border-white/10 p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                     <Database className="w-5 h-5" />
                     Estatísticas do Sistema
                 </h3>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 bg-background dark:bg-dark-bg rounded-lg text-center">
+                    <div className="p-4 bg-background dark:bg-white/5 rounded-2xl text-center">
                         <div className="text-2xl font-bold text-foreground">{stats.contacts}</div>
-                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">Contatos</div>
+                        <div className="text-sm text-muted-foreground">Contatos</div>
                     </div>
-                    <div className="p-4 bg-background dark:bg-dark-bg rounded-lg text-center">
+                    <div className="p-4 bg-background dark:bg-white/5 rounded-2xl text-center">
                         <div className="text-2xl font-bold text-foreground">{stats.deals}</div>
-                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">Negócios</div>
+                        <div className="text-sm text-muted-foreground">Negócios</div>
                     </div>
-                    <div className="p-4 bg-background dark:bg-dark-bg rounded-lg text-center">
+                    <div className="p-4 bg-background dark:bg-white/5 rounded-2xl text-center">
                         <div className="text-2xl font-bold text-foreground">{stats.activities}</div>
-                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">Atividades</div>
+                        <div className="text-sm text-muted-foreground">Atividades</div>
                     </div>
-                    <div className="p-4 bg-background dark:bg-dark-bg rounded-lg text-center">
+                    <div className="p-4 bg-background dark:bg-white/5 rounded-2xl text-center">
                         <div className="text-2xl font-bold text-foreground">{stats.boards}</div>
-                        <div className="text-sm text-muted-foreground dark:text-muted-foreground">Boards</div>
+                        <div className="text-sm text-muted-foreground">Boards</div>
                     </div>
                 </div>
             </div>
@@ -84,7 +88,7 @@ export const DataStorageSettings: React.FC = () => {
 
             {/* Danger Zone - Só para Admin */}
             {isAdmin && (
-                <div className="bg-white dark:bg-dark-card rounded-lg border border-red-200 dark:border-red-900/50 p-6">
+                <div className="bg-card rounded-2xl border border-red-200 dark:border-red-900/50 p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5" />
@@ -125,14 +129,14 @@ export const DataStorageSettings: React.FC = () => {
                                     value={confirmText}
                                     onChange={(e) => setConfirmText(e.target.value)}
                                     placeholder="DELETAR TUDO"
-                                    className="w-full px-4 py-2 bg-white dark:bg-dark-bg border border-red-300 dark:border-red-800 rounded-lg text-foreground focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 bg-white dark:bg-white/5 border border-red-300 dark:border-red-800 rounded-xl text-foreground focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                 />
                                 <Button
                                     onClick={handleNukeDatabase}
                                     disabled={confirmText !== 'DELETAR TUDO' || isDeleting}
                                     className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all ${confirmText === 'DELETAR TUDO' && !isDeleting
                                             ? 'bg-red-600 hover:bg-red-700 text-white'
-                                            : 'bg-accent dark:bg-dark-hover text-muted-foreground cursor-not-allowed'
+                                            : 'bg-accent dark:bg-white/10 text-muted-foreground cursor-not-allowed'
                                         }`}
                                 >
                                     {isDeleting ? (
@@ -178,7 +182,7 @@ const OrphanDealsSection: React.FC = () => {
 
     return (
         <>
-        <div className="bg-white dark:bg-dark-card rounded-lg border border-amber-200 dark:border-amber-900/50 p-6">
+        <div className="bg-card rounded-2xl border border-amber-200 dark:border-amber-900/50 p-6">
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-2">
                     <Unlink className="w-5 h-5" />
@@ -214,7 +218,7 @@ const OrphanDealsSection: React.FC = () => {
                                 <span className="text-xs text-muted-foreground">{selected.size} selecionado(s)</span>
                             </div>
 
-                            <div className="max-h-60 overflow-y-auto border border-border rounded-lg divide-y divide-border dark:divide-white/5">
+                            <div className="max-h-60 overflow-y-auto border border-border rounded-2xl divide-y divide-border dark:divide-white/5">
                                 {orphans.map(o => (
                                     <label key={o.id} className="flex items-center gap-3 px-3 py-2 hover:bg-background dark:hover:bg-white/5 cursor-pointer">
                                         <input type="checkbox" checked={selected.has(o.id)} onChange={() => toggleSelect(o.id)} className="rounded" />
@@ -237,7 +241,7 @@ const OrphanDealsSection: React.FC = () => {
                                         <select
                                             value={assignContactId}
                                             onChange={e => setAssignContactId(e.target.value)}
-                                            className="w-full px-3 py-2 text-sm bg-white dark:bg-dark-bg border border-border rounded-lg"
+                                            className="w-full px-3 py-2 text-sm bg-white dark:bg-white/5 border border-border dark:border-white/10 rounded-xl"
                                         >
                                             <option value="">Selecione um contato...</option>
                                             {contacts.slice(0, 100).map(c => (

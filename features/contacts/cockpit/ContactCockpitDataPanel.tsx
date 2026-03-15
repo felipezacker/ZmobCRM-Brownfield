@@ -1,6 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import type { TagItem } from '@/hooks/useTags';
+import { getTagTextColor } from '@/features/settings/components/TagsManager';
 import {
   Flame,
   Snowflake,
@@ -178,6 +180,7 @@ interface ContactCockpitDataPanelProps {
   phones: ContactPhone[];
   preferences: ContactPreference | null;
   availableTags: string[];
+  tagItems?: TagItem[];
   customFieldDefinitions: CustomFieldDefinition[];
   onAddTag: (tag: string) => void;
   onRemoveTag: (tag: string) => void;
@@ -198,6 +201,7 @@ export function ContactCockpitDataPanel({
   phones,
   preferences,
   availableTags,
+  tagItems,
   customFieldDefinitions,
   onAddTag,
   onRemoveTag,
@@ -211,6 +215,16 @@ export function ContactCockpitDataPanel({
   const [customFieldsModalOpen, setCustomFieldsModalOpen] = React.useState(false);
   const contactTags = contact.tags || [];
   const contactTagsLower = new Set(contactTags.map(t => t.toLowerCase()));
+
+  const tagColorMap = useMemo(() => {
+    const map = new Map<string, string | null>();
+    if (tagItems) {
+      for (const t of tagItems) {
+        map.set(t.name, t.color);
+      }
+    }
+    return map;
+  }, [tagItems]);
 
   const normalizeTag = (value: string) => value.trim().replace(/\s+/g, ' ');
 
@@ -471,22 +485,28 @@ export function ContactCockpitDataPanel({
           {contactTags.length === 0 ? (
             <p className="text-xs text-muted-foreground italic">Sem tags.</p>
           ) : (
-            contactTags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 text-1xs font-medium px-2 py-1 rounded-full bg-muted dark:bg-white/5 text-secondary-foreground dark:text-muted-foreground border border-border"
-              >
-                {tag}
-                <Button
-                  type="button"
-                  onClick={() => onRemoveTag(tag)}
-                  className="ml-0.5 text-muted-foreground hover:text-red-400"
-                  aria-label={`Remover tag ${tag}`}
+            contactTags.map((tag) => {
+              const tagColor = tagColorMap.get(tag);
+              const bgColor = (tagColor && tagColor.startsWith('#')) ? tagColor : '#6b7280';
+              const textColor = getTagTextColor(bgColor);
+              return (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 text-1xs font-medium px-2 py-1 rounded-full ring-1 ring-white/20"
+                  style={{ backgroundColor: bgColor, color: textColor }}
                 >
-                  <X className="h-3 w-3" />
-                </Button>
-              </span>
-            ))
+                  {tag}
+                  <Button
+                    type="button"
+                    onClick={() => onRemoveTag(tag)}
+                    className={`ml-0.5 hover:text-red-500 ${textColor === '#fff' ? 'text-white/70' : 'text-black/50'}`}
+                    aria-label={`Remover tag ${tag}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </span>
+              );
+            })
           )}
         </div>
 

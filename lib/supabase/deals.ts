@@ -18,6 +18,7 @@ import { supabase } from './client';
 import { Deal, DealItem, OrganizationId } from '@/types';
 import { sanitizeUUID, requireUUID, isValidUUID } from './utils';
 import { recalculateScore } from './lead-scoring';
+import { createBusinessNotification } from './notifications';
 
 // =============================================================================
 // Organization inference (client-side, RLS-safe)
@@ -541,6 +542,19 @@ export const dealsService = {
       if (!supabase) {
         return { error: new Error('Supabase não configurado') };
       }
+
+      // ST-4.2: Capture current owner before update to detect assignment change
+      const isOwnerChange = updates.ownerId !== undefined;
+      let prevOwnerId: string | null = null;
+      if (isOwnerChange) {
+        const { data: current } = await supabase
+          .from('deals')
+          .select('owner_id, title, organization_id, contact_id')
+          .eq('id', id)
+          .single();
+        prevOwnerId = current?.owner_id ?? null;
+      }
+
       const dbUpdates = transformDealToDb(updates);
       dbUpdates.updated_at = new Date().toISOString();
 
@@ -557,6 +571,24 @@ export const dealsService = {
           };
         }
         return { error };
+      }
+
+      // ST-4.2: Notify new owner about deal assignment
+      if (isOwnerChange && updates.ownerId && updates.ownerId !== prevOwnerId) {
+        const { data: deal } = await supabase
+          .from('deals')
+          .select('title, organization_id, contact_id')
+          .eq('id', id)
+          .single();
+        if (deal?.organization_id) {
+          createBusinessNotification(
+            supabase, deal.organization_id, updates.ownerId,
+            'DEAL_ASSIGNED',
+            `Novo deal atribuido: "${deal.title}"`,
+            undefined,
+            { dealId: id, contactId: deal.contact_id ?? undefined },
+          ).catch(() => {});
+        }
       }
 
       return { error: null };
@@ -735,7 +767,7 @@ export const dealsService = {
       if (!error) {
         const { data: deal } = await supabase
           .from('deals')
-          .select('contact_id, organization_id, value')
+          .select('contact_id, organization_id, value, owner_id, title')
           .eq('id', dealId)
           .single();
         if (deal?.contact_id && deal?.organization_id) {
@@ -749,6 +781,16 @@ export const dealsService = {
           }).then(() => undefined, (err) => {
             console.error('[LTV] Failed to increment contact total_value:', err);
           });
+        }
+        // ST-4.2: Notify deal owner about won deal
+        if (deal?.owner_id && deal?.organization_id) {
+          createBusinessNotification(
+            supabase, deal.organization_id, deal.owner_id,
+            'DEAL_WON',
+            `Deal "${deal.title}" foi ganho!`,
+            undefined,
+            { dealId, contactId: deal.contact_id ?? undefined },
+          ).catch(() => {});
         }
       }
 
@@ -784,11 +826,21 @@ export const dealsService = {
       if (!error) {
         const { data: deal } = await supabase
           .from('deals')
-          .select('contact_id, organization_id')
+          .select('contact_id, organization_id, owner_id, title')
           .eq('id', dealId)
           .single();
         if (deal?.contact_id && deal?.organization_id) {
           recalculateScore(deal.contact_id, deal.organization_id).catch(() => {});
+        }
+        // ST-4.2: Notify deal owner about lost deal
+        if (deal?.owner_id && deal?.organization_id) {
+          createBusinessNotification(
+            supabase, deal.organization_id, deal.owner_id,
+            'DEAL_LOST',
+            `Deal "${deal.title}" foi perdido`,
+            lossReason ? `Motivo: ${lossReason}` : undefined,
+            { dealId, contactId: deal.contact_id ?? undefined },
+          ).catch(() => {});
         }
       }
 

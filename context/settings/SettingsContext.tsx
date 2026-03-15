@@ -51,9 +51,12 @@ interface SettingsContextType {
   removeCustomField: (id: string) => Promise<void>;
 
   // Tags (persisted to Supabase tags table)
-  availableTags: string[];
-  addTag: (tag: string) => Promise<void>;
+  availableTags: Array<{ name: string; color: string | null; description: string | null }>;
+  addTag: (tag: string, color?: string | null, description?: string | null) => Promise<void>;
   removeTag: (tag: string) => Promise<void>;
+  renameTag: (oldName: string, newName: string) => Promise<void>;
+  updateTagColor: (name: string, color: string | null) => Promise<void>;
+  updateTagDescription: (name: string, description: string | null) => Promise<void>;
 
   // AI Config
   aiProvider: AIConfig['provider'];
@@ -200,6 +203,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       availableTags: tags.availableTags,
       addTag: tags.addTag,
       removeTag: tags.removeTag,
+      renameTag: tags.renameTag,
+      updateTagColor: tags.updateTagColor,
+      updateTagDescription: tags.updateTagDescription,
       // AI
       aiProvider: ai.aiProvider,
       setAiProvider: ai.setAiProvider,

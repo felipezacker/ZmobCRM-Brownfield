@@ -252,7 +252,7 @@ export interface DealItem {
 }
 
 // CUSTOM FIELDS DEFINITION
-export type CustomFieldType = 'text' | 'number' | 'date' | 'select';
+export type CustomFieldType = 'text' | 'number' | 'currency' | 'date' | 'select';
 
 export interface CustomFieldDefinition {
   id: string;
@@ -601,8 +601,14 @@ export type DealSortableColumn = 'title' | 'stageLabel' | 'value' | 'owner' | 'n
 // Notifications (Story 3.9 — Notificacoes Inteligentes)
 // =============================================================================
 
-/** Tipos de notificacao CRM. */
-export type NotificationType = 'BIRTHDAY' | 'CHURN_ALERT' | 'DEAL_STAGNANT' | 'SCORE_DROP';
+/** Tipos de notificacao CRM (sistema). */
+export type SystemNotificationType = 'BIRTHDAY' | 'CHURN_ALERT' | 'DEAL_STAGNANT' | 'SCORE_DROP';
+
+/** Tipos de notificacao de negocio (ST-4.2). */
+export type BusinessNotificationType = 'DEAL_ASSIGNED' | 'DEAL_WON' | 'DEAL_LOST' | 'TASK_CREATED' | 'NOTE_MENTION';
+
+/** Todos os tipos de notificacao CRM. */
+export type NotificationType = SystemNotificationType | BusinessNotificationType;
 
 /** Notificacao CRM persistida no banco. */
 export interface CrmNotification {

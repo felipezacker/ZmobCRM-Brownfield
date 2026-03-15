@@ -18,9 +18,9 @@ export const AICenterSettings: React.FC = () => {
   return (
     <div className="pb-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">
+        <h2 className="text-xl font-semibold">
           Central de I.A
-        </h1>
+        </h2>
         <p className="text-muted-foreground dark:text-muted-foreground mt-2 text-lg">
           Configure o provedor/modelo e gerencie os prompts usados no sistema.
         </p>

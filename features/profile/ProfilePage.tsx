@@ -3,8 +3,9 @@ import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { useProfileForm } from '@/features/profile/hooks/useProfileForm';
-import { Loader2, User, Mail, Shield, Calendar, Key, Check, Eye, EyeOff, Phone, Pencil, Save, Camera, X } from 'lucide-react';
+import { Loader2, Mail, Shield, Calendar, Key, Check, Eye, EyeOff, Phone, Pencil, Save, Camera, X, Sun, Moon, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTheme, type ThemeMode } from '@/context/ThemeContext';
 
 /**
  * Componente React `ProfilePage`.
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
  */
 export const ProfilePage: React.FC = () => {
     const { profile, refreshProfile } = useAuth();
+    const { themeMode, cycleTheme } = useTheme();
 
     // Em ambientes onde as variáveis de ambiente não estão configuradas,
     // nosso helper pode retornar `null` para evitar crash.
@@ -93,7 +95,7 @@ export const ProfilePage: React.FC = () => {
     } = form;
 
     return (
-        <div className="max-w-2xl mx-auto pb-10">
+        <div className="pb-10">
             {/* Header */}
             <div className="mb-10">
                 <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">
@@ -384,6 +386,48 @@ export const ProfilePage: React.FC = () => {
                         )}
                     </div>
                 )}
+            </div>
+
+            {/* Preferences Section */}
+            <div className="bg-white dark:bg-white/3 border border-border rounded-2xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">
+                    Preferências
+                </h3>
+
+                {/* Theme */}
+                <div className="mb-5">
+                    <p className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">Aparência</p>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={cycleTheme}
+                        className="flex items-center gap-3 px-4 py-2.5"
+                        aria-label={`Tema atual: ${{ system: 'Sistema', light: 'Claro', dark: 'Escuro' }[themeMode]}. Clique para alternar.`}
+                    >
+                        {{ system: <Monitor className="h-4 w-4" />, light: <Sun className="h-4 w-4" />, dark: <Moon className="h-4 w-4" /> }[themeMode]}
+                        <span className="text-sm font-medium text-foreground">{{ system: 'Sistema', light: 'Claro', dark: 'Escuro' }[themeMode]}</span>
+                    </Button>
+                </div>
+
+                {/* Default Route */}
+                <div>
+                    <p className="text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-2">Página Inicial</p>
+                    <p className="text-xs text-muted-foreground mb-2">Escolha qual tela deve abrir quando você iniciar o CRM.</p>
+                    <select
+                        aria-label="Selecionar página inicial"
+                        defaultValue={typeof window !== 'undefined' ? localStorage.getItem('zmob_default_route') || '/dashboard' : '/dashboard'}
+                        onChange={(e) => localStorage.setItem('zmob_default_route', e.target.value)}
+                        className="w-full max-w-xs px-4 py-2.5 bg-background dark:bg-black/20 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-foreground transition-all"
+                    >
+                        <option value="/dashboard">Dashboard</option>
+                        <option value="/inbox-list">Inbox (Lista)</option>
+                        <option value="/inbox-focus">Inbox (Foco)</option>
+                        <option value="/boards">Boards (Kanban)</option>
+                        <option value="/contacts">Contatos</option>
+                        <option value="/activities">Atividades</option>
+                        <option value="/reports">Relatórios</option>
+                    </select>
+                </div>
             </div>
 
             {/* Security Section */}

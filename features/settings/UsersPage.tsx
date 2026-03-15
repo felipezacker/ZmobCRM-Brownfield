@@ -1,17 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
-import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Clock, Trash2, Link, Copy } from 'lucide-react';
+import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Clock, Trash2, Link, Copy, Search, UserX, UserCheck, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import { useUserList } from './hooks/useUserList';
 import { useInviteModal } from './hooks/useInviteModal';
+import { hasMinRole, ROLE_HIERARCHY, type Role } from '@/lib/auth/roles';
 
-// Gera iniciais e cor consistente baseada no email
-const getAvatarProps = (email: string) => {
-    const initials = email.substring(0, 2).toUpperCase();
+function formatLastAccess(lastSignIn: string | null | undefined): string {
+    if (!lastSignIn) return 'Nunca acessou';
+    const date = new Date(lastSignIn);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    return `${day}/${month}`;
+}
+
+// Gera iniciais e cor consistente baseada no nome ou email
+const getAvatarProps = (name: string, email: string) => {
+    const source = name || email;
+    const parts = source.trim().split(/\s+/);
+    const initials = parts.length >= 2
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+        : source.substring(0, 2).toUpperCase();
     const colors = [
         'from-violet-500 to-purple-600',
         'from-blue-500 to-cyan-500',
@@ -20,12 +33,10 @@ const getAvatarProps = (email: string) => {
         'from-pink-500 to-rose-500',
         'from-indigo-500 to-blue-500',
     ];
-    const colorIndex = email.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+    const colorIndex = email.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) % colors.length;
     return { initials, gradient: colors[colorIndex] };
 };
 
-// Valida formato de email
-const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 /**
  * Componente React `UsersPage`.
@@ -35,18 +46,25 @@ export const UsersPage: React.FC = () => {
     const { profile: currentUserProfile } = useAuth();
     const { addToast } = useToast();
 
+    const [search, setSearch] = useState('');
+    const [userToToggle, setUserToToggle] = useState<{ id: string; email: string; isActive: boolean } | null>(null);
+
     const {
         users, loading, actionLoading,
         userToDelete, setUserToDelete,
         handleDeleteUser, confirmDeleteUser,
+        handleUpdateRole, handleToggleActive,
+        activeCount, maxUsers, isAtLimit,
     } = useUserList({ addToast });
 
     const {
         isModalOpen, setIsModalOpen,
         newUserRole, setNewUserRole,
-        sendingInvites, error,
+        sendingInvites, sendingEmail, error,
         activeInvites, expirationDays, setExpirationDays,
-        closeModal, handleGenerateLink, handleDeleteInvite, copyLink,
+        emailInput, setEmailInput, fallbackLink,
+        closeModal, handleGenerateLink, handleSendEmailInvite, handleDeleteInvite, copyLink,
+        isValidEmail,
     } = useInviteModal({ addToast });
 
     const sb = supabase;
@@ -77,7 +95,7 @@ export const UsersPage: React.FC = () => {
         );
     }
 
-    if (currentUserProfile?.role !== 'admin') {
+    if (!hasMinRole(currentUserProfile?.role as Role, 'diretor')) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="text-center">
@@ -93,6 +111,13 @@ export const UsersPage: React.FC = () => {
         );
     }
 
+    const filteredUsers = search.trim()
+        ? users.filter(u => {
+            const q = search.toLowerCase();
+            return (u.full_name ?? u.email).toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+        })
+        : users;
+
     const admins = users.filter(u => u.role === 'admin');
     const diretores = users.filter(u => u.role === 'diretor');
     const corretores = users.filter(u => u.role === 'corretor');
@@ -103,33 +128,80 @@ export const UsersPage: React.FC = () => {
             <div className="mb-10">
                 <div className="flex items-start justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">
+                        <h2 className="text-xl font-semibold">
                             Sua Equipe
-                        </h1>
-                        <p className="text-muted-foreground dark:text-muted-foreground mt-2 text-lg">
-                            {users.length} {users.length === 1 ? 'membro' : 'membros'} • {admins.length} admin{admins.length !== 1 && 's'}, {diretores.length} diretor{diretores.length !== 1 && 'es'}, {corretores.length} corretor{corretores.length !== 1 && 'es'}
+                        </h2>
+                        <p className="text-muted-foreground text-sm mt-1">
+                            {maxUsers !== null
+                                ? `${activeCount}/${maxUsers} membros`
+                                : `${activeCount} ${activeCount === 1 ? 'membro' : 'membros'}`
+                            } • {admins.length} admin{admins.length !== 1 && 's'}, {diretores.length} diretor{diretores.length !== 1 && 'es'}, {corretores.length} corretor{corretores.length !== 1 && 'es'}
                         </p>
+                        {maxUsers !== null && (
+                            <div className="mt-2 w-48">
+                                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full transition-all ${
+                                            activeCount >= maxUsers
+                                                ? 'bg-red-500'
+                                                : activeCount / maxUsers >= 0.8
+                                                    ? 'bg-amber-500'
+                                                    : 'bg-emerald-500'
+                                        }`}
+                                        style={{ width: `${Math.min((activeCount / maxUsers) * 100, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <Button
-                        onClick={() => setIsModalOpen(true)}
-                        className="group flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition-all shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5 font-medium"
-                    >
-                        <UserPlus className="w-4 h-4 transition-transform group-hover:scale-110" />
-                        Convidar
-                    </Button>
+                    <div className="flex flex-col items-end gap-1">
+                        <Button
+                            onClick={() => setIsModalOpen(true)}
+                            disabled={isAtLimit}
+                            className="group flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition-all shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+                            title={isAtLimit ? `Limite de usuarios atingido (${activeCount}/${maxUsers})` : undefined}
+                        >
+                            <UserPlus className="w-4 h-4 transition-transform group-hover:scale-110" />
+                            Convidar
+                        </Button>
+                        {isAtLimit && (
+                            <span className="text-xs text-red-500 font-medium">
+                                Limite de usuarios atingido ({activeCount}/{maxUsers})
+                            </span>
+                        )}
+                    </div>
                 </div>
+            </div>
+
+            {/* Search */}
+            <div className="relative mb-4">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <input
+                    type="text"
+                    placeholder="Buscar por nome ou email..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-sm"
+                />
             </div>
 
             {/* User Grid */}
             <div className="grid gap-3">
-                {users.map((user) => {
-                    const { initials, gradient } = getAvatarProps(user.email);
+                {filteredUsers.map((user) => {
+                    const displayName = user.full_name || user.email;
+                    const { initials, gradient } = getAvatarProps(user.full_name || '', user.email);
                     const isCurrentUser = user.id === currentUserProfile?.id;
+                    const isAdmin = currentUserProfile?.role === 'admin';
+                    const canEditRole = isAdmin && !isCurrentUser;
+                    const isInactive = user.is_active === false;
 
                     return (
                         <div
                             key={user.id}
-                            className={`group relative bg-white dark:bg-white/[0.03] border rounded-2xl p-5 transition-all duration-200 hover:shadow-lg dark:hover:bg-white/[0.05] ${isCurrentUser
+                            data-testid={`user-card-${user.id}`}
+                            className={`group relative bg-white dark:bg-white/[0.03] border rounded-2xl p-5 transition-all duration-200 hover:shadow-lg dark:hover:bg-white/[0.05] ${isInactive ? 'opacity-50' : ''} ${isCurrentUser
                                 ? 'border-primary-200 dark:border-primary-500/30 ring-1 ring-primary-100 dark:ring-primary-500/10'
                                 : 'border-border  hover:border-border dark:hover:border-white/20'
                                 }`}
@@ -149,7 +221,7 @@ export const UsersPage: React.FC = () => {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <h3 className="font-semibold text-foreground truncate">
-                                            {user.email}
+                                            {displayName}
                                         </h3>
                                         {isCurrentUser && (
                                             <span className="px-2 py-0.5 rounded-full text-2xs font-semibold uppercase tracking-wider bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
@@ -162,29 +234,53 @@ export const UsersPage: React.FC = () => {
                                                 Pendente
                                             </span>
                                         )}
+                                        {isInactive && (
+                                            <span className="px-2 py-0.5 rounded-full text-2xs font-semibold uppercase tracking-wider bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                                                Inativo
+                                            </span>
+                                        )}
                                     </div>
+                                    {user.full_name && (
+                                        <p className="text-muted-foreground text-xs truncate">{user.email}</p>
+                                    )}
                                     <div className="flex items-center gap-3 mt-1.5">
-                                        <span className={`inline-flex items-center gap-1.5 text-sm ${user.role === 'admin'
-                                            ? 'text-amber-600 dark:text-amber-400'
-                                            : 'text-muted-foreground dark:text-muted-foreground'
-                                            }`}>
-                                            {user.role === 'admin' ? (
-                                                <>
-                                                    <Crown className="h-3.5 w-3.5" />
-                                                    Administrador
-                                                </>
-                                            ) : user.role === 'diretor' ? (
-                                                <>
-                                                    <Shield className="h-3.5 w-3.5" />
-                                                    Diretor
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Briefcase className="h-3.5 w-3.5" />
-                                                    Corretor
-                                                </>
-                                            )}
-                                        </span>
+                                        {/* Role: dropdown for admin editing others, static for everyone else */}
+                                        {canEditRole ? (
+                                            <select
+                                                value={user.role}
+                                                onChange={(e) => handleUpdateRole(user.id, e.target.value)}
+                                                disabled={actionLoading === user.id}
+                                                className="text-sm bg-transparent border border-border rounded-lg px-2 py-0.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                            >
+                                                {Object.keys(ROLE_HIERARCHY).map((r) => (
+                                                    <option key={r} value={r}>
+                                                        {r === 'admin' ? 'Administrador' : r === 'diretor' ? 'Diretor' : 'Corretor'}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <span className={`inline-flex items-center gap-1.5 text-sm ${user.role === 'admin'
+                                                ? 'text-amber-600 dark:text-amber-400'
+                                                : 'text-muted-foreground dark:text-muted-foreground'
+                                                }`}>
+                                                {user.role === 'admin' ? (
+                                                    <>
+                                                        <Crown className="h-3.5 w-3.5" />
+                                                        Administrador
+                                                    </>
+                                                ) : user.role === 'diretor' ? (
+                                                    <>
+                                                        <Shield className="h-3.5 w-3.5" />
+                                                        Diretor
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Briefcase className="h-3.5 w-3.5" />
+                                                        Corretor
+                                                    </>
+                                                )}
+                                            </span>
+                                        )}
                                         <span className="text-muted-foreground dark:text-secondary-foreground">•</span>
                                         <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                                             {user.status === 'pending'
@@ -192,11 +288,15 @@ export const UsersPage: React.FC = () => {
                                                 : `Desde ${new Date(user.created_at).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}`
                                             }
                                         </span>
+                                        <span className="text-muted-foreground dark:text-secondary-foreground">•</span>
+                                        <span className="text-sm text-muted-foreground dark:text-muted-foreground">
+                                            {formatLastAccess(user.last_sign_in_at)}
+                                        </span>
                                     </div>
                                 </div>
 
                                 {/* Actions — diretor can only manage corretores */}
-                                {!isCurrentUser && (currentUserProfile?.role === 'admin' || user.role === 'corretor') && (
+                                {!isCurrentUser && (isAdmin || user.role === 'corretor') && (
                                     <div className="flex items-center gap-1">
                                         {actionLoading === user.id ? (
                                             <div className="p-2">
@@ -204,6 +304,25 @@ export const UsersPage: React.FC = () => {
                                             </div>
                                         ) : (
                                             <>
+                                                {isAdmin && (
+                                                    isInactive ? (
+                                                        <Button
+                                                            onClick={() => setUserToToggle({ id: user.id, email: user.email, isActive: true })}
+                                                            className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-green-500 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all"
+                                                            title="Reativar usuário"
+                                                        >
+                                                            <UserCheck className="h-4 w-4" />
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            onClick={() => setUserToToggle({ id: user.id, email: user.email, isActive: false })}
+                                                            className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-orange-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all"
+                                                            title="Desativar usuário"
+                                                        >
+                                                            <UserX className="h-4 w-4" />
+                                                        </Button>
+                                                    )
+                                                )}
                                                 <Button
                                                     onClick={() => handleDeleteUser(user)}
                                                     className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
@@ -423,6 +542,57 @@ export const UsersPage: React.FC = () => {
                                     </div>
                                 </div>
 
+                                {/* Email Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3">
+                                        Enviar por Email (opcional)
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="email"
+                                            placeholder="email@exemplo.com"
+                                            value={emailInput}
+                                            onChange={(e) => setEmailInput(e.target.value)}
+                                            className={`flex-1 px-3 py-2.5 border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-sm ${
+                                                emailInput && !isValidEmail(emailInput)
+                                                    ? 'border-red-400 focus:ring-red-500/50 focus:border-red-500'
+                                                    : 'border-border'
+                                            }`}
+                                        />
+                                        <Button
+                                            onClick={handleSendEmailInvite}
+                                            disabled={sendingEmail || !emailInput.trim() || !isValidEmail(emailInput.trim())}
+                                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-600/25 transition-all"
+                                        >
+                                            {sendingEmail ? (
+                                                <Loader2 className="animate-spin h-4 w-4" />
+                                            ) : (
+                                                <Mail className="h-4 w-4" />
+                                            )}
+                                            Enviar
+                                        </Button>
+                                    </div>
+                                    {emailInput && !isValidEmail(emailInput) && (
+                                        <p className="text-xs text-red-500 mt-1.5">Email invalido</p>
+                                    )}
+                                </div>
+
+                                {/* Fallback Link (when email send fails) */}
+                                {fallbackLink && (
+                                    <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-xl text-sm">
+                                        <span className="flex-1 truncate text-xs">{fallbackLink}</span>
+                                        <Button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(fallbackLink);
+                                                addToast('Link copiado!', 'success');
+                                            }}
+                                            className="p-1.5 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors flex-shrink-0"
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+
                                 {/* Error Message */}
                                 {error && (
                                     <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm">
@@ -466,6 +636,26 @@ export const UsersPage: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* Toggle Active Confirmation Modal */}
+            <ConfirmModal
+                isOpen={!!userToToggle}
+                onClose={() => setUserToToggle(null)}
+                onConfirm={() => {
+                    if (userToToggle) {
+                        handleToggleActive(userToToggle.id, userToToggle.isActive);
+                        setUserToToggle(null);
+                    }
+                }}
+                title={userToToggle?.isActive ? 'Reativar Usuário' : 'Desativar Usuário'}
+                message={userToToggle?.isActive
+                    ? `Tem certeza que deseja reativar ${userToToggle?.email}? O usuário poderá acessar o sistema novamente.`
+                    : `Tem certeza que deseja desativar ${userToToggle?.email}? O acesso será suspenso até reativação.`
+                }
+                confirmText={userToToggle?.isActive ? 'Reativar' : 'Desativar'}
+                cancelText="Voltar"
+                variant={userToToggle?.isActive ? 'primary' : 'danger'}
+            />
 
             {/* Delete Confirmation Modal */}
             <ConfirmModal

@@ -5,6 +5,7 @@ type MockUser = { id: string }
 const mocks = vi.hoisted(() => {
   const state = {
     currentUser: null as MockUser | null,
+    profileIsActive: true as boolean | null,
   }
 
   const nextResponseMock = {
@@ -26,6 +27,16 @@ const mocks = vi.hoisted(() => {
       auth: {
         getUser: vi.fn(async () => ({ data: { user: state.currentUser } })),
       },
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn(async () => ({
+              data: state.profileIsActive !== null ? { is_active: state.profileIsActive } : null,
+            })),
+          })),
+        })),
+      })),
+      rpc: vi.fn(async () => ({ data: true, error: null })),
     })),
   }
 
@@ -73,6 +84,7 @@ function makeRequest(pathname: string) {
 beforeEach(() => {
   vi.clearAllMocks()
   mocks.state.currentUser = null
+  mocks.state.profileIsActive = true
 
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://example.supabase.local')
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'anon-key')
@@ -141,5 +153,40 @@ describe('updateSession (Proxy/Supabase)', () => {
     const [urlArg] = mocks.nextResponseMock.redirect.mock.calls[0]
     expect(urlArg).toMatchObject({ pathname: '/dashboard' })
     expect(res).toMatchObject({ kind: 'redirect' })
+  })
+
+  it('redireciona para /blocked quando is_active=false', async () => {
+    mocks.state.currentUser = { id: 'user-1' }
+    mocks.state.profileIsActive = false
+    const req = makeRequest('/dashboard')
+
+    const res = await updateSession(req)
+
+    expect(mocks.nextResponseMock.redirect).toHaveBeenCalledTimes(1)
+    const [urlArg] = mocks.nextResponseMock.redirect.mock.calls[0]
+    expect(urlArg).toMatchObject({ pathname: '/blocked' })
+    expect(res).toMatchObject({ kind: 'redirect' })
+  })
+
+  it('permite acesso a /blocked sem loop de redirect', async () => {
+    mocks.state.currentUser = { id: 'user-1' }
+    mocks.state.profileIsActive = false
+    const req = makeRequest('/blocked')
+
+    const res = await updateSession(req)
+
+    // Nao deve redirecionar — /blocked e rota publica
+    expect(res).toMatchObject({ kind: 'next' })
+  })
+
+  it('permite acesso normal quando is_active=true', async () => {
+    mocks.state.currentUser = { id: 'user-1' }
+    mocks.state.profileIsActive = true
+    const req = makeRequest('/dashboard')
+
+    const res = await updateSession(req)
+
+    // Nao deve redirecionar para /blocked
+    expect(res).toMatchObject({ kind: 'next' })
   })
 })

@@ -8,8 +8,7 @@ import { useContact, useUpdateContact } from '@/lib/query/hooks/useContactsQuery
 import { supabase } from '@/lib/supabase/client';
 import { contactPhonesService } from '@/lib/supabase/contacts';
 import { contactPreferencesService } from '@/lib/supabase/contact-preferences';
-import { useTags } from '@/hooks/useTags';
-import { useSettingsController } from '@/features/settings/hooks/useSettingsController';
+import { useSettings } from '@/context/settings/SettingsContext';
 import { useResponsiveMode } from '@/hooks/useResponsiveMode';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { Button } from '@/components/ui/button';
@@ -55,8 +54,8 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
   // ---- Data hooks ----
   const { data: contact, isLoading, refetch: refetchContact } = useContact(contactId);
   const updateContactMutation = useUpdateContact();
-  const { tags: availableTags, addTag: addCatalogTag } = useTags();
-  const { customFieldDefinitions } = useSettingsController();
+  const { availableTags: availableTagItems, addTag: addCatalogTag, customFieldDefinitions } = useSettings();
+  const availableTags = availableTagItems.map(t => t.name);
 
   // ---- Parallel data state ----
   const [phones, setPhones] = useState<ContactPhone[]>([]);
@@ -489,6 +488,7 @@ function ContactDetailModalInner({ contactId, onClose }: { contactId: string; on
                 phones={phones}
                 preferences={preferences}
                 availableTags={availableTags}
+                tagItems={availableTagItems}
                 customFieldDefinitions={customFieldDefinitions}
                 onAddTag={handleAddTag}
                 onRemoveTag={handleRemoveTag}

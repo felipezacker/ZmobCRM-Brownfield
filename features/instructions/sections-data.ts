@@ -637,10 +637,12 @@ export const sections: InstructionSection[] = [
       },
       {
         type: 'feature-grid',
-        title: '6 abas de configuração:',
+        title: '8 abas de configuração:',
         cols: 3,
         items: [
-          { label: 'Geral', description: 'Página inicial, tags e campos customizados' },
+          { label: 'Empresa', description: 'Nome, CNPJ, CRECI e telefone da organização' },
+          { label: 'Tags', description: 'Crie e edite tags com cores para organizar contatos' },
+          { label: 'Campos', description: 'Campos customizados no formulário de contato' },
           { label: 'Produtos', description: 'Catálogo de imóveis e serviços' },
           { label: 'Integrações', description: 'Webhooks, API e conexões externas' },
           { label: 'Centro de IA', description: 'Provedor, chave de API e funcionalidades' },
@@ -650,11 +652,12 @@ export const sections: InstructionSection[] = [
       },
       {
         type: 'feature-list',
-        title: 'Geral:',
+        title: 'Empresa:',
         items: [
-          { title: 'Página inicial', description: 'Escolha qual tela abre ao fazer login (Dashboard, Inbox, Board)' },
-          { title: 'Tags', description: 'Crie e edite tags para organizar contatos e negócios' },
-          { title: 'Campos customizados', description: 'Adicione campos extras ao formulário de contato' },
+          { title: 'Nome da empresa', description: 'Nome oficial da organização' },
+          { title: 'CNPJ', description: 'Cadastro nacional da pessoa jurídica' },
+          { title: 'CRECI', description: 'Registro no conselho de corretores de imóveis' },
+          { title: 'Telefone', description: 'Telefone principal da empresa' },
         ],
       },
       {
@@ -688,9 +691,9 @@ export const sections: InstructionSection[] = [
         title: 'Quem pode acessar o quê:',
         color: 'slate',
         items: [
-          '**Admin:** Acesso a todas as 6 abas',
-          '**Diretor:** Geral + Equipe (sem Produtos, Integrações, IA ou Dados)',
-          '**Corretor:** Apenas Geral (tags e página inicial)',
+          '**Admin:** Acesso a todas as abas',
+          '**Diretor:** Empresa, Notificações, Centro de IA, Dados + Equipe',
+          '**Corretor:** Empresa (somente leitura), Notificações, Centro de IA e Dados',
         ],
       },
       {

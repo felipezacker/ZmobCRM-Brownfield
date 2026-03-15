@@ -1,18 +1,12 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { PageLoader } from '@/components/PageLoader'
+import { AICenterSettings } from '@/features/settings/AICenterSettings'
+import { PermissionGate } from '@/components/auth/PermissionGate'
 
-const SettingsPage = dynamic(
-  () => import('@/features/settings/SettingsPage'),
-  { loading: () => <PageLoader />, ssr: false }
-)
-
-/**
- * Componente React `SettingsAI`.
- * @returns {Element} Retorna um valor do tipo `Element`.
- */
 export default function SettingsAI() {
-  return <SettingsPage tab="ai" />
+  return (
+    <PermissionGate permission="acessar_ia">
+      <AICenterSettings />
+    </PermissionGate>
+  )
 }
-

@@ -138,7 +138,7 @@ export const AIConfigSection: React.FC = () => {
 
                 {/* Non-admin read-only summary */}
                 {!isAdmin && (
-                    <div className="bg-white dark:bg-background border border-border rounded-lg p-3">
+                    <div className="bg-white dark:bg-background border border-border rounded-2xl p-3">
                         <div className="text-sm text-secondary-foreground dark:text-muted-foreground">
                             <span className="font-semibold">Status:</span> Configurado pela organização
                         </div>
@@ -169,7 +169,7 @@ export const AIConfigSection: React.FC = () => {
                                 id="ai-provider-select"
                                 value={aiProvider}
                                 onChange={handleProviderChange}
-                                className="w-full appearance-none bg-background dark:bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+                                className="w-full appearance-none bg-background dark:bg-card border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
                             >
                                 {AI_PROVIDERS.map(p => (
                                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -191,7 +191,7 @@ export const AIConfigSection: React.FC = () => {
                                 id="ai-model-select"
                                 value={modelSelectValue}
                                 onChange={(e) => void handleModelSelectChange(e.target.value)}
-                                className="w-full appearance-none bg-background dark:bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+                                className="w-full appearance-none bg-background dark:bg-card border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
                             >
                                 {currentProvider?.models.map(m => (
                                     <option key={m.id} value={m.id}>
@@ -215,7 +215,7 @@ export const AIConfigSection: React.FC = () => {
                                         setCustomModelDirty(true);
                                     }}
                                     placeholder="Digite o ID do modelo (ex: gemini-2.5-pro)"
-                                    className="w-full bg-white dark:bg-card border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+                                    className="w-full bg-white dark:bg-card border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
                                 />
                                 <p className="text-xs text-muted-foreground mt-1">
                                     Consulte a documentação do provedor para obter o ID correto.
@@ -250,7 +250,7 @@ export const AIConfigSection: React.FC = () => {
 
                 {/* Google Thinking Config */}
                 {aiProvider === 'google' && (
-                    <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-500/20 rounded-lg p-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-500/20 rounded-2xl p-3 animate-in fade-in slide-in-from-top-2">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="font-medium text-blue-900 dark:text-blue-100 flex items-center gap-2">
@@ -276,7 +276,7 @@ export const AIConfigSection: React.FC = () => {
 
                 {/* Anthropic Prompt Caching Config */}
                 {aiProvider === 'anthropic' && (
-                    <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-500/20 rounded-lg p-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-500/20 rounded-2xl p-3 animate-in fade-in slide-in-from-top-2">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="font-medium text-orange-900 dark:text-orange-100 flex items-center gap-2">
@@ -302,7 +302,7 @@ export const AIConfigSection: React.FC = () => {
 
                 {/* Search Config (Google & Anthropic) */}
                 {(aiProvider === 'google' || aiProvider === 'anthropic') && (
-                    <div className="bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-500/20 rounded-lg p-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-500/20 rounded-2xl p-3 animate-in fade-in slide-in-from-top-2">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="font-medium text-green-900 dark:text-green-100 flex items-center gap-2">
@@ -338,7 +338,7 @@ export const AIConfigSection: React.FC = () => {
                                 value={localApiKey}
                                 onChange={(e) => handleKeyChange(e.target.value)}
                                 placeholder={`Cole sua chave ${aiProvider === 'google' ? 'AIza...' : 'sk-...'}`}
-                                className={`w-full bg-background dark:bg-card border rounded-lg px-3 py-2 text-sm text-foreground  focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-mono ${validationStatus === 'invalid'
+                                className={`w-full bg-background dark:bg-card border rounded-xl px-3 py-2 text-sm text-foreground  focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all font-mono ${validationStatus === 'invalid'
                                         ? 'border-red-300 dark:border-red-500/50'
                                         : validationStatus === 'valid'
                                             ? 'border-green-300 dark:border-green-500/50'
@@ -399,7 +399,7 @@ export const AIConfigSection: React.FC = () => {
                     </p>
 
                     {/* Seção LGPD Colapsável - Expandida por padrão */}
-                    <div className="mt-4 border border-amber-200 dark:border-amber-500/30 rounded-lg overflow-hidden">
+                    <div className="mt-4 border border-amber-200 dark:border-amber-500/30 rounded-2xl overflow-hidden">
                         <Button
                             type="button"
                             onClick={() => setLgpdExpanded(!lgpdExpanded)}
@@ -452,7 +452,7 @@ export const AIConfigSection: React.FC = () => {
                 </div>
 
                 {/* Status Banner - use localApiKey para refletir estado atual após salvar */}
-                <div className={`rounded-lg p-3 flex items-start gap-3 ${validationStatus === 'valid' && localApiKey
+                <div className={`rounded-2xl p-3 flex items-start gap-3 ${validationStatus === 'valid' && localApiKey
                         ? 'bg-green-50 dark:bg-green-900/10 text-green-800 dark:text-green-200'
                         : validationStatus === 'invalid'
                             ? 'bg-red-50 dark:bg-red-900/10 text-red-800 dark:text-red-200'

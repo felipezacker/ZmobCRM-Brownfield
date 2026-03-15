@@ -1,9 +1,9 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/settings',
+  usePathname: () => '/settings/empresa',
   useSearchParams: () => ({
     get: () => null,
   }),
@@ -18,154 +18,74 @@ vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
 
-vi.mock('./hooks/useSettingsController', () => ({
-  useSettingsController: () => ({
-    defaultRoute: '/boards',
-    setDefaultRoute: vi.fn(),
-
-    customFieldDefinitions: [],
-    newFieldLabel: '',
-    setNewFieldLabel: vi.fn(),
-    newFieldType: 'text',
-    setNewFieldType: vi.fn(),
-    newFieldOptions: '',
-    setNewFieldOptions: vi.fn(),
-    editingId: null,
-    startEditingField: vi.fn(),
-    cancelEditingField: vi.fn(),
-    handleSaveField: vi.fn(),
-    removeCustomField: vi.fn(),
-
-    availableTags: ['VIP'],
-    newTagName: '',
-    setNewTagName: vi.fn(),
-    handleAddTag: vi.fn(),
-    removeTag: vi.fn(),
-    renameTag: vi.fn(),
+vi.mock('@/lib/supabase/client', () => ({
+  createClient: () => ({
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          single: () => Promise.resolve({
+            data: { name: 'Test Org', cnpj: null, creci: null, phone: null },
+          }),
+        }),
+      }),
+      update: () => ({
+        eq: () => Promise.resolve({ error: null }),
+      }),
+    }),
   }),
 }))
 
-// Evita depender de providers (Toast/Boards/Supabase) ao renderizar a aba Integrações no teste.
-vi.mock('./components/ApiKeysSection', () => ({
-  ApiKeysSection: () => (
-    <div>
-      <h3>API (Integrações)</h3>
-    </div>
-  ),
-}))
-
-vi.mock('./components/WebhooksSection', () => ({
-  WebhooksSection: () => (
-    <div>
-      <h3>Webhooks</h3>
-    </div>
-  ),
-}))
-
-vi.mock('./components/McpSection', () => ({
-  McpSection: () => (
-    <div>
-      <h3>MCP</h3>
-    </div>
-  ),
-}))
-
-import SettingsPage from './SettingsPage'
+import { CompanySettings } from './components/CompanySettings'
 import { useAuth } from '@/context/AuthContext'
 
 const useAuthMock = vi.mocked(useAuth)
 
-describe('SettingsPage RBAC', () => {
+describe('CompanySettings RBAC', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('corretor não vê seções de configuração do sistema', () => {
+  it('corretor ve formulario mas campos estao desabilitados', async () => {
     useAuthMock.mockReturnValue({
-      profile: { role: 'corretor' },
+      profile: { role: 'corretor', organization_id: 'org-1' },
+      organizationId: 'org-1',
     } as any)
 
-    render(<SettingsPage />)
+    render(<CompanySettings />)
 
-    expect(
-      screen.queryByRole('heading', { name: /^Gerenciamento de Tags$/i })
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('heading', { name: /^Campos Personalizados$/i })
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('heading', { name: /^API \(Integrações\)$/i })
-    ).not.toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: /^Webhooks$/i })).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Nome da Empresa')).toBeInTheDocument()
+    })
 
-    // Preferências pessoais seguem visíveis
-    expect(screen.getByText(/página inicial/i)).toBeInTheDocument()
-    // Tabs pessoais seguem visíveis
-    expect(screen.getByRole('button', { name: /central de i\.a/i })).toBeInTheDocument()
+    // Campos existem mas disabled
+    const inputs = screen.getAllByRole('textbox')
+    inputs.forEach((input) => {
+      expect(input).toBeDisabled()
+    })
+
+    // Botao Salvar NAO aparece
+    expect(screen.queryByText('Salvar')).not.toBeInTheDocument()
   })
 
-  it('diretor vê aba Equipe mas NÃO vê Produtos/Integrações', () => {
+  it('admin ve formulario com campos editaveis e botao Salvar', async () => {
     useAuthMock.mockReturnValue({
-      profile: { role: 'diretor' },
+      profile: { role: 'admin', organization_id: 'org-1' },
+      organizationId: 'org-1',
     } as any)
 
-    render(<SettingsPage />)
+    render(<CompanySettings />)
 
-    // Diretor can see Equipe tab
-    expect(screen.getByRole('button', { name: /equipe/i })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Nome da Empresa')).toBeInTheDocument()
+    })
 
-    // Diretor cannot see admin-only tabs
-    expect(screen.queryByRole('button', { name: /produtos/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /integrações/i })).not.toBeInTheDocument()
+    // Campos existem e habilitados
+    const inputs = screen.getAllByRole('textbox')
+    inputs.forEach((input) => {
+      expect(input).not.toBeDisabled()
+    })
 
-    // Personal tabs still visible
-    expect(screen.getByRole('button', { name: /central de i\.a/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /dados/i })).toBeInTheDocument()
-  })
-
-  it('corretor NÃO vê aba Equipe', () => {
-    useAuthMock.mockReturnValue({
-      profile: { role: 'corretor' },
-    } as any)
-
-    render(<SettingsPage />)
-
-    expect(screen.queryByRole('button', { name: /equipe/i })).not.toBeInTheDocument()
-  })
-
-  it('admin vê seções de configuração do sistema', async () => {
-    useAuthMock.mockReturnValue({
-      profile: { role: 'admin' },
-    } as any)
-
-    render(<SettingsPage />)
-
-    expect(
-      screen.getByRole('heading', { name: /^Tags$/i })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: /^Campos Personalizados$/i })
-    ).toBeInTheDocument()
-    // Admin também vê as abas extras
-    const integrationsTab = screen.getByRole('button', { name: /integrações/i })
-    expect(integrationsTab).toBeInTheDocument()
-    fireEvent.click(integrationsTab)
-
-    // Sub-tabs dentro de Integrações
-    const apiSubTab = await screen.findByRole('button', { name: /^API$/i })
-    const webhooksSubTab = await screen.findByRole('button', { name: /^Webhooks$/i })
-    const mcpSubTab = await screen.findByRole('button', { name: /^MCP$/i })
-    expect(apiSubTab).toBeInTheDocument()
-    expect(webhooksSubTab).toBeInTheDocument()
-    expect(mcpSubTab).toBeInTheDocument()
-
-    // Default é API
-    expect(await screen.findByRole('heading', { name: /^API \(Integrações\)$/i })).toBeInTheDocument()
-
-    fireEvent.click(webhooksSubTab)
-    expect(await screen.findByRole('heading', { name: /^Webhooks$/i })).toBeInTheDocument()
-
-    fireEvent.click(mcpSubTab)
-    expect(await screen.findByRole('heading', { name: /^MCP$/i })).toBeInTheDocument()
+    // Botao Salvar aparece
+    expect(screen.getByText('Salvar')).toBeInTheDocument()
   })
 })

@@ -22,6 +22,11 @@ import {
   RefreshCw,
   Filter,
   Eye,
+  UserPlus,
+  Trophy,
+  XCircle,
+  ListPlus,
+  AtSign,
 } from 'lucide-react'
 
 // ============================================
@@ -33,6 +38,11 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ElementType> = {
   CHURN_ALERT: UserMinus,
   DEAL_STAGNANT: Clock,
   SCORE_DROP: TrendingDown,
+  DEAL_ASSIGNED: UserPlus,
+  DEAL_WON: Trophy,
+  DEAL_LOST: XCircle,
+  TASK_CREATED: ListPlus,
+  NOTE_MENTION: AtSign,
 }
 
 const NOTIFICATION_COLORS: Record<NotificationType, string> = {
@@ -40,6 +50,11 @@ const NOTIFICATION_COLORS: Record<NotificationType, string> = {
   CHURN_ALERT: 'text-orange-500 bg-orange-50 dark:bg-orange-900/20',
   DEAL_STAGNANT: 'text-amber-500 bg-amber-50 dark:bg-amber-900/20',
   SCORE_DROP: 'text-red-500 bg-red-50 dark:bg-red-900/20',
+  DEAL_ASSIGNED: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20',
+  DEAL_WON: 'text-green-500 bg-green-50 dark:bg-green-900/20',
+  DEAL_LOST: 'text-red-500 bg-red-50 dark:bg-red-900/20',
+  TASK_CREATED: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20',
+  NOTE_MENTION: 'text-purple-500 bg-purple-50 dark:bg-purple-900/20',
 }
 
 const NOTIFICATION_LABELS: Record<NotificationType, string> = {
@@ -47,6 +62,11 @@ const NOTIFICATION_LABELS: Record<NotificationType, string> = {
   CHURN_ALERT: 'Risco de Churn',
   DEAL_STAGNANT: 'Deal Estagnado',
   SCORE_DROP: 'Score Baixo',
+  DEAL_ASSIGNED: 'Deal Atribuido',
+  DEAL_WON: 'Deal Ganho',
+  DEAL_LOST: 'Deal Perdido',
+  TASK_CREATED: 'Tarefa Criada',
+  NOTE_MENTION: 'Mencao',
 }
 
 const TYPE_FILTERS: { label: string; value: NotificationType | 'ALL' }[] = [
@@ -55,6 +75,11 @@ const TYPE_FILTERS: { label: string; value: NotificationType | 'ALL' }[] = [
   { label: 'Churn', value: 'CHURN_ALERT' },
   { label: 'Deal Estagnado', value: 'DEAL_STAGNANT' },
   { label: 'Score', value: 'SCORE_DROP' },
+  { label: 'Deal Atribuido', value: 'DEAL_ASSIGNED' },
+  { label: 'Deal Ganho', value: 'DEAL_WON' },
+  { label: 'Deal Perdido', value: 'DEAL_LOST' },
+  { label: 'Tarefa', value: 'TASK_CREATED' },
+  { label: 'Mencao', value: 'NOTE_MENTION' },
 ]
 
 function getTimeGroup(dateStr: string): string {

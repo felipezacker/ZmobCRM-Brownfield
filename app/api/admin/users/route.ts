@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createStaticAdminClient } from '@/lib/supabase/server';
 import { isAllowedOrigin } from '@/lib/security/sameOrigin';
 import { hasMinRole, type Role } from '@/lib/auth/roles';
 
@@ -31,26 +31,64 @@ export async function GET() {
   if (meError || !me?.organization_id) return json({ error: 'Profile not found' }, 404);
   if (!hasMinRole(me.role as Role, 'diretor')) return json({ error: 'Forbidden' }, 403);
 
+  // Fetch org max_users for user limit indicator
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('max_users')
+    .eq('id', me.organization_id)
+    .single();
+
   // Performance: evita payload grande em organizações com muitos usuários.
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('id, email, role, organization_id, created_at')
+    .select('id, email, role, first_name, last_name, organization_id, created_at, is_active')
     .eq('organization_id', me.organization_id)
     .limit(200)
     .order('created_at', { ascending: false });
 
   if (error) return json({ error: error.message }, 500);
 
-  const users = (profiles || []).map((p) => ({
-    id: p.id,
-    email: p.email,
-    role: p.role,
-    organization_id: p.organization_id,
-    created_at: p.created_at,
-    status: 'active' as const,
-  }));
+  // Get last_sign_in_at from auth.users — scoped to current org only (no cross-tenant data)
+  const admin = createStaticAdminClient();
+  const profileIds = (profiles || []).map((p) => p.id);
+  const lastSignInMap = new Map<string, string | null>();
 
-  return json({ users });
+  // Fetch in batches of 50 to avoid overwhelming the auth API
+  const BATCH_SIZE = 50;
+  for (let i = 0; i < profileIds.length; i += BATCH_SIZE) {
+    const batch = profileIds.slice(i, i + BATCH_SIZE);
+    const results = await Promise.all(
+      batch.map((id) => admin.auth.admin.getUserById(id).catch(() => ({ data: { user: null } })))
+    );
+    for (const result of results) {
+      const u = result.data?.user;
+      if (u) lastSignInMap.set(u.id, u.last_sign_in_at ?? null);
+    }
+  }
+
+  const users = (profiles || []).map((p) => {
+    const fullName = [p.first_name, p.last_name].filter(Boolean).join(' ') || null;
+    return {
+      id: p.id,
+      email: p.email,
+      role: p.role,
+      full_name: fullName,
+      is_active: p.is_active ?? true,
+      organization_id: p.organization_id,
+      created_at: p.created_at,
+      last_sign_in_at: lastSignInMap.get(p.id) ?? null,
+      status: 'active' as const,
+    };
+  });
+
+  const usersPerRole: Record<string, number> = {};
+  for (const p of profiles || []) {
+    if (p.is_active !== false) {
+      usersPerRole[p.role] = (usersPerRole[p.role] || 0) + 1;
+    }
+  }
+
+  return json({ users, maxUsers: org?.max_users ?? null, usersPerRole });
 }
 
 /**

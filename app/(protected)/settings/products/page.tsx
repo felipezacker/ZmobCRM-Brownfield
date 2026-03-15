@@ -1,18 +1,11 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { PageLoader } from '@/components/PageLoader'
+import { ProductsCatalogManager } from '@/features/settings/components/ProductsCatalogManager'
 
-const SettingsPage = dynamic(
-  () => import('@/features/settings/SettingsPage'),
-  { loading: () => <PageLoader />, ssr: false }
-)
-
-/**
- * Componente React `SettingsProducts`.
- * @returns {Element} Retorna um valor do tipo `Element`.
- */
 export default function SettingsProducts() {
-  return <SettingsPage tab="products" />
+  return (
+    <div className="pb-10">
+      <ProductsCatalogManager />
+    </div>
+  )
 }
-

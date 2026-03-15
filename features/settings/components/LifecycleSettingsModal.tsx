@@ -6,24 +6,12 @@ import { useContacts } from '@/context/contacts/ContactsContext';
 import { LifecycleStage } from '@/types';
 import { FocusTrap, useFocusReturn } from '@/lib/a11y';
 import { MODAL_BACKDROP_CLASS } from '@/components/ui/modalStyles';
+import { STAGE_COLORS } from '@/features/settings/constants';
 
 interface LifecycleSettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
-
-const STAGE_COLORS = [
-    'bg-blue-500',
-    'bg-green-500',
-    'bg-yellow-500',
-    'bg-orange-500',
-    'bg-red-500',
-    'bg-purple-500',
-    'bg-pink-500',
-    'bg-indigo-500',
-    'bg-teal-500',
-    'bg-accent',
-];
 
 /**
  * Componente React `LifecycleSettingsModal`.
@@ -103,7 +91,7 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
                         </div>
 
                         {lifecycleStages.map((stage, index) => (
-                            <div key={stage.id} className="flex items-center gap-3 p-2 bg-background dark:bg-card/50 rounded-lg border border-border dark:border-border">
+                            <div key={stage.id} className="flex items-center gap-3 p-2 bg-background dark:bg-card/50 rounded-2xl border border-border dark:border-border">
                                 {/* Color */}
                                 <div className="relative flex-shrink-0 group">
                                     <div className={`w-6 h-6 rounded-full ${stage.color} cursor-pointer ring-2 ring-transparent hover:ring-ring dark:hover:ring-ring transition-all`} />
@@ -173,7 +161,7 @@ export const LifecycleSettingsModal: React.FC<LifecycleSettingsModalProps> = ({ 
 
                         {/* Add New */}
                         {isAdding ? (
-                            <div className="flex items-center gap-3 p-2 border border-primary-200 dark:border-primary-800 rounded-lg bg-primary-50 dark:bg-primary-900/10 animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center gap-3 p-2 border border-primary-200 dark:border-primary-800 rounded-2xl bg-primary-50 dark:bg-primary-900/10 animate-in fade-in slide-in-from-top-2">
                                 <div className={`w-6 h-6 rounded-full bg-accent dark:bg-accent`} />
                                 <input
                                     autoFocus
