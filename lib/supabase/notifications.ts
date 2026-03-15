@@ -11,7 +11,7 @@
  */
 
 import { supabase } from './client';
-import type { CrmNotification, NotificationType } from '@/types';
+import type { CrmNotification, NotificationType, SystemNotificationType } from '@/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ============================================
@@ -309,8 +309,8 @@ export async function generateScoreDropNotifications(
 export async function generateAllNotifications(
   orgId: string,
   client?: SupabaseClient
-): Promise<{ totals: Record<NotificationType, number>; error: Error | null }> {
-  const totals: Record<NotificationType, number> = {
+): Promise<{ totals: Record<SystemNotificationType, number>; error: Error | null }> {
+  const totals: Record<SystemNotificationType, number> = {
     BIRTHDAY: 0,
     CHURN_ALERT: 0,
     DEAL_STAGNANT: 0,
@@ -324,7 +324,7 @@ export async function generateAllNotifications(
     generateScoreDropNotifications(orgId, client),
   ]);
 
-  const types: NotificationType[] = ['BIRTHDAY', 'CHURN_ALERT', 'DEAL_STAGNANT', 'SCORE_DROP'];
+  const types: SystemNotificationType[] = ['BIRTHDAY', 'CHURN_ALERT', 'DEAL_STAGNANT', 'SCORE_DROP'];
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
     if (result.status === 'fulfilled') {
@@ -445,5 +445,57 @@ export async function markAllAsRead(
     return { error: error ?? null };
   } catch (e) {
     return { error: e as Error };
+  }
+}
+
+// ============================================
+// BUSINESS NOTIFICATIONS (ST-4.2)
+// ============================================
+
+import type { BusinessNotificationType } from '@/types';
+
+/**
+ * Creates a business notification for a specific user, respecting their
+ * notification_preferences. If the user has disabled this event type,
+ * no notification is created.
+ *
+ * JSONB semantics: {} or missing key = event enabled; key = false = disabled.
+ */
+export async function createBusinessNotification(
+  sb: SupabaseClient,
+  orgId: string,
+  recipientUserId: string,
+  eventKey: BusinessNotificationType,
+  title: string,
+  description?: string,
+  metadata?: { contactId?: string; dealId?: string },
+): Promise<void> {
+  try {
+    // 1. Check recipient's notification preferences
+    const { data } = await sb
+      .from('user_settings')
+      .select('notification_preferences')
+      .eq('user_id', recipientUserId)
+      .single();
+
+    const prefs = (data as { notification_preferences?: Record<string, boolean> } | null)
+      ?.notification_preferences ?? {};
+
+    // 2. If preference is explicitly false, skip
+    if (prefs[eventKey] === false) return;
+
+    // 3. Insert notification
+    await sb.from('notifications').insert({
+      organization_id: orgId,
+      owner_id: recipientUserId,
+      type: eventKey,
+      title,
+      description: description ?? null,
+      contact_id: metadata?.contactId ?? null,
+      deal_id: metadata?.dealId ?? null,
+    });
+  } catch (err) {
+    // Fire-and-forget: log but don't throw
+    console.error(`[notifications] Failed to create ${eventKey} notification:`, err);
   }
 }

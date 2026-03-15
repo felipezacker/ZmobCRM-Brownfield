@@ -14,6 +14,8 @@ import {
   Users,
   UserCircle,
   GitBranch,
+  Bell,
+  Shield,
   Menu,
   X,
 } from 'lucide-react'
@@ -33,9 +35,11 @@ const sidebarItems: SidebarItem[] = [
   { label: 'Produtos/Serviços', href: '/settings/products', icon: Package, minRole: 'admin' },
   { label: 'Ciclos de Vida', href: '/settings/lifecycle', icon: GitBranch, minRole: 'admin' },
   { label: 'Integrações', href: '/settings/integracoes', icon: Plug, minRole: 'admin' },
+  { label: 'Notificacoes', href: '/settings/notifications', icon: Bell },
   { label: 'Central de I.A', href: '/settings/ai', icon: Sparkles },
   { label: 'Dados', href: '/settings/data', icon: Database },
   { label: 'Equipe', href: '/settings/equipe', icon: Users, minRole: 'diretor' },
+  { label: 'Logs de Auditoria', href: '/settings/audit', icon: Shield, minRole: 'admin' },
 ]
 
 export function SettingsSidebar() {

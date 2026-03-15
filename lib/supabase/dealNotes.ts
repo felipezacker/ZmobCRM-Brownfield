@@ -3,6 +3,7 @@
  * CRUD operations for deal notes persisted in Supabase
  */
 import { supabase } from './client';
+import { createBusinessNotification } from './notifications';
 
 export interface DealNote {
     id: string;
@@ -66,6 +67,34 @@ export const dealNotesService = {
             })
             .select()
             .single();
+
+        // ST-4.2: Detect @mentions and notify mentioned users
+        if (!error && data && orgId) {
+            const mentions = content.match(/@([\p{L}\w\s]+?)(?=\s@|\s*$|[.,!?;])/gu);
+            if (mentions && mentions.length > 0) {
+                const mentionNames = mentions.map(m => m.slice(1).trim().toLowerCase());
+                const { data: profiles } = await supabase
+                    .from('profiles')
+                    .select('id, display_name')
+                    .eq('organization_id', orgId);
+                if (profiles) {
+                    for (const profile of profiles) {
+                        const displayName = ((profile as { display_name?: string }).display_name || '').toLowerCase();
+                        if (displayName && mentionNames.some(name => displayName === name)) {
+                            if (profile.id !== user?.id) {
+                                createBusinessNotification(
+                                    supabase, orgId, profile.id,
+                                    'NOTE_MENTION',
+                                    `Voce foi mencionado em uma nota`,
+                                    content.slice(0, 100),
+                                    { dealId },
+                                ).catch(() => {});
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         return { data: data as DealNote | null, error };
     },

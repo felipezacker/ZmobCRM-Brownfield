@@ -8,11 +8,11 @@ import {
   markAsRead as markAsReadService,
   markAllAsRead as markAllAsReadService,
 } from '@/lib/supabase/notifications'
-import type { CrmNotification, NotificationType } from '@/types'
+import type { CrmNotification, NotificationType, SystemNotificationType } from '@/types'
 
 export async function generateNotifications(
   orgId: string
-): Promise<{ totals: Record<NotificationType, number>; error: string | null }> {
+): Promise<{ totals: Record<SystemNotificationType, number>; error: string | null }> {
   try {
     const supabase = await createClient()
     const { totals, error } = await generateAllNotifications(orgId, supabase)

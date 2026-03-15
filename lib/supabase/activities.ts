@@ -17,6 +17,7 @@ import { Activity } from '@/types';
 import { sanitizeUUID } from './utils';
 import { sortActivitiesSmart } from '@/lib/utils/activitySort';
 import { recalculateScore } from './lead-scoring';
+import { createBusinessNotification } from './notifications';
 
 interface PostgrestError {
   message?: string;
@@ -260,6 +261,32 @@ export const activitiesService = {
       }
       if (contactIdSanitized && activity.completed) {
         recalculateScore(contactIdSanitized, orgId).catch(() => {});
+      }
+      // ST-4.2: Notify deal/contact owner about new task (skip self-notification)
+      if (activity.type === 'TASK' && sb) {
+        const dealIdSanitized = sanitizeUUID(activity.dealId);
+        let recipientId: string | null = null;
+        if (dealIdSanitized) {
+          const { data: deal } = await sb
+            .from('deals')
+            .select('owner_id')
+            .eq('id', dealIdSanitized)
+            .single();
+          recipientId = deal?.owner_id ?? null;
+        }
+        // Only notify if recipient is different from creator
+        if (recipientId && recipientId !== user?.id) {
+          createBusinessNotification(
+            sb, orgId, recipientId,
+            'TASK_CREATED',
+            `Nova tarefa: "${activity.title}"`,
+            undefined,
+            {
+              dealId: dealIdSanitized ?? undefined,
+              contactId: contactIdSanitized ?? undefined,
+            },
+          ).catch(() => {});
+        }
       }
       return { data: transformActivity(data as DbActivity), error: null };
     } catch (e) {
