@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { ChevronDown, GripVertical, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { SortableItemEditor, type ItemDef } from './SortableItemEditor'
+import type { ItemDef } from './SortableItemEditor'
 
 export interface MetricsSectionEditMode {
   dragAttributes: React.HTMLAttributes<HTMLElement>
@@ -71,14 +71,9 @@ export function MetricsSection({
             {editMode.isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
         </div>
-        {/* Item editor (if section has configurable items) or inert content preview */}
-        {editMode.items && editMode.items.length > 0 && editMode.onToggleItem && editMode.onReorderItems ? (
-          <SortableItemEditor
-            items={editMode.items}
-            hiddenItems={editMode.hiddenItems || new Set()}
-            onToggleItem={editMode.onToggleItem}
-            onReorderItems={editMode.onReorderItems}
-          />
+        {/* Content: items with own edit controls, or inert preview for single-item sections */}
+        {editMode.items && editMode.items.length > 0 ? (
+          <div className="mt-1 space-y-4">{children}</div>
         ) : (
           <div className="pointer-events-none opacity-50 mt-1 space-y-4">
             {children}

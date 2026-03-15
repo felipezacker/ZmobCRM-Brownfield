@@ -7,6 +7,7 @@ import type { ProspectingMetrics } from '../hooks/useProspectingMetrics'
 import type { DrilldownCardType } from '../constants'
 import { formatDuration } from '../utils/formatDuration'
 import { DeltaIndicator } from './DeltaIndicator'
+import { SortableItemContainer } from './SortableItemEditor'
 
 interface MetricsCardsProps {
   metrics: ProspectingMetrics | null
@@ -16,6 +17,9 @@ interface MetricsCardsProps {
   isComparisonLoading?: boolean
   itemOrder?: string[]
   hiddenItems?: Set<string>
+  isEditing?: boolean
+  onToggleItem?: (itemId: string) => void
+  onReorderItems?: (activeId: string, overId: string) => void
 }
 
 export const KPI_ITEM_IDS = [
@@ -81,7 +85,7 @@ function SkeletonCard() {
   )
 }
 
-export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetrics, isComparisonLoading, itemOrder, hiddenItems }: MetricsCardsProps) {
+export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetrics, isComparisonLoading, itemOrder, hiddenItems, isEditing, onToggleItem, onReorderItems }: MetricsCardsProps) {
   if (isLoading) {
     const visibleCount = itemOrder
       ? itemOrder.filter(id => !hiddenItems?.has(id)).length
@@ -153,8 +157,23 @@ export function MetricsCards({ metrics, isLoading, onCardClick, comparisonMetric
   }
 
   const order = itemOrder || KPI_ITEM_IDS as unknown as string[]
-  const visibleCards = order.filter(id => !hiddenItems?.has(id))
 
+  // Edit mode: show all cards with drag handles and eye toggles
+  if (isEditing && onToggleItem && onReorderItems) {
+    return (
+      <SortableItemContainer
+        itemIds={order}
+        hiddenItems={hiddenItems || new Set()}
+        onToggleItem={onToggleItem}
+        onReorderItems={onReorderItems}
+        renderItem={(id) => allCards[id] || null}
+        className="grid grid-cols-2 lg:grid-cols-3 gap-3"
+      />
+    )
+  }
+
+  // Normal mode: render visible cards in order
+  const visibleCards = order.filter(id => !hiddenItems?.has(id))
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
       {visibleCards.map(id => allCards[id]).filter(Boolean)}

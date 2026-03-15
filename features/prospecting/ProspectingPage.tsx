@@ -34,7 +34,7 @@ import { RetryEffectiveness } from './components/RetryEffectiveness'
 import { QueueThroughput } from './components/QueueThroughput'
 import { MetricsSection } from './components/MetricsSection'
 import { EditableSectionWrapper } from './components/EditableSectionWrapper'
-import type { ItemDef } from './components/SortableItemEditor'
+import { SortableItemContainer, type ItemDef } from './components/SortableItemEditor'
 import { ProspectingErrorBoundary } from './components/ProspectingErrorBoundary'
 import { GoalConfigModal } from './components/GoalConfigModal'
 import { NoteTemplatesManager } from './components/NoteTemplatesManager'
@@ -412,6 +412,9 @@ export const ProspectingPage: React.FC = () => {
               isComparisonLoading={metricsHook.isComparisonLoading}
               itemOrder={kpiOrder}
               hiddenItems={kpiHidden}
+              isEditing={layout.isEditing}
+              onToggleItem={(itemId) => layout.toggleItemVisibility('kpi-cards', itemId)}
+              onReorderItems={(a, b) => layout.reorderItems('kpi-cards', a, b)}
             />
             {metricsFilterOwnerId && metricsHook.metrics && (
               <BrokerSummaryCard
@@ -428,38 +431,59 @@ export const ProspectingPage: React.FC = () => {
           <CorretorRanking brokers={metricsHook.metrics?.byBroker || []} isLoading={metricsHook.isLoading} />
         )
       case 'daily-goal': {
-        const goalHidden = layout.getHiddenItems('daily-goal')
         const goalOrder = layout.getItemOrder('daily-goal', ['goal-card', 'performance'])
+        const goalHidden = layout.getHiddenItems('daily-goal')
         const goalRenderers: Record<string, React.ReactNode> = {
           'goal-card': (
-            <DailyGoalCard key="goal-card" progress={goalsHook.progress} isLoading={goalsHook.isLoading}
+            <DailyGoalCard progress={goalsHook.progress} isLoading={goalsHook.isLoading}
               isAdminOrDirector={goalsHook.isAdminOrDirector} onConfigureClick={() => goalsHook.setShowGoalModal(true)}
             />
           ),
           'performance': (
-            <PerformanceComparison key="performance" userMetrics={userMetrics} teamAverage={teamAverage}
+            <PerformanceComparison userMetrics={userMetrics} teamAverage={teamAverage}
               isAdminOrDirector={isAdminOrDirector} periodDays={periodDays}
             />
           ),
         }
-        return <>{goalOrder.filter(id => !goalHidden.has(id)).map(id => goalRenderers[id])}</>
+        if (layout.isEditing) {
+          return (
+            <SortableItemContainer itemIds={goalOrder} hiddenItems={goalHidden}
+              onToggleItem={(id) => layout.toggleItemVisibility('daily-goal', id)}
+              onReorderItems={(a, b) => layout.reorderItems('daily-goal', a, b)}
+              renderItem={(id) => goalRenderers[id] || null}
+            />
+          )
+        }
+        return <>{goalOrder.filter(id => !goalHidden.has(id)).map(id => <React.Fragment key={id}>{goalRenderers[id]}</React.Fragment>)}</>
       }
       case 'charts': {
-        const chartHidden = layout.getHiddenItems('charts')
         const chartOrder = layout.getItemOrder('charts', ['funnel', 'daily-chart'])
+        const chartHidden = layout.getHiddenItems('charts')
         const chartRenderers: Record<string, React.ReactNode> = {
-          'funnel': <ConversionFunnel key="funnel" metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />,
+          'funnel': <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />,
           'daily-chart': (
-            <MetricsChart key="daily-chart" data={metricsHook.metrics?.byDay || []} isLoading={metricsHook.isLoading}
+            <MetricsChart data={metricsHook.metrics?.byDay || []} isLoading={metricsHook.isLoading}
               periodStart={metricsHook.range.start} periodEnd={metricsHook.range.end}
             />
           ),
+        }
+        if (layout.isEditing) {
+          return (
+            <ProspectingErrorBoundary section="Gráficos">
+              <SortableItemContainer itemIds={chartOrder} hiddenItems={chartHidden}
+                onToggleItem={(id) => layout.toggleItemVisibility('charts', id)}
+                onReorderItems={(a, b) => layout.reorderItems('charts', a, b)}
+                renderItem={(id) => chartRenderers[id] || null}
+                className="grid gap-4 grid-cols-1 lg:grid-cols-2"
+              />
+            </ProspectingErrorBoundary>
+          )
         }
         const visibleCharts = chartOrder.filter(id => !chartHidden.has(id))
         return (
           <ProspectingErrorBoundary section="Gráficos">
             <div className={`grid gap-4 ${visibleCharts.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-              {visibleCharts.map(id => chartRenderers[id])}
+              {visibleCharts.map(id => <React.Fragment key={id}>{chartRenderers[id]}</React.Fragment>)}
             </div>
           </ProspectingErrorBoundary>
         )
@@ -492,17 +516,26 @@ export const ProspectingPage: React.FC = () => {
           </ProspectingErrorBoundary>
         )
       case 'sessions': {
-        const sessHidden = layout.getHiddenItems('sessions')
         const sessOrder = layout.getItemOrder('sessions', ['history', 'details'])
+        const sessHidden = layout.getHiddenItems('sessions')
         const sessRenderers: Record<string, React.ReactNode> = {
           'history': (
-            <ProspectingErrorBoundary key="history" section="Historico de Sessoes">
+            <ProspectingErrorBoundary section="Historico de Sessoes">
               <SessionHistory sessions={sessionHistory} isLoading={isLoadingSessions} />
             </ProspectingErrorBoundary>
           ),
-          'details': <CallDetailsTable key="details" activities={metricsHook.activities} profiles={profiles} isLoading={metricsHook.isLoading} />,
+          'details': <CallDetailsTable activities={metricsHook.activities} profiles={profiles} isLoading={metricsHook.isLoading} />,
         }
-        return <>{sessOrder.filter(id => !sessHidden.has(id)).map(id => sessRenderers[id])}</>
+        if (layout.isEditing) {
+          return (
+            <SortableItemContainer itemIds={sessOrder} hiddenItems={sessHidden}
+              onToggleItem={(id) => layout.toggleItemVisibility('sessions', id)}
+              onReorderItems={(a, b) => layout.reorderItems('sessions', a, b)}
+              renderItem={(id) => sessRenderers[id] || null}
+            />
+          )
+        }
+        return <>{sessOrder.filter(id => !sessHidden.has(id)).map(id => <React.Fragment key={id}>{sessRenderers[id]}</React.Fragment>)}</>
       }
       default:
         return null

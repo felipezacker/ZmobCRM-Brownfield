@@ -12,7 +12,7 @@ import {
 } from '@dnd-kit/core'
 import {
   SortableContext,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -23,63 +23,75 @@ export interface ItemDef {
   label: string
 }
 
-interface SortableItemEditorProps {
-  items: ItemDef[]
-  hiddenItems: Set<string>
-  onToggleItem: (itemId: string) => void
-  onReorderItems: (activeId: string, overId: string) => void
-}
+// --- Sortable wrapper for individual items (shows real content with controls) ---
 
-function SortableItemPill({ item, isHidden, onToggle }: {
-  item: ItemDef
+function SortableItemBlock({ id, isHidden, onToggle, children }: {
+  id: string
   isHidden: boolean
   onToggle: (id: string) => void
+  children: React.ReactNode
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : isHidden ? 0.3 : 1,
   }
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center gap-2 px-2 py-1 rounded-lg text-xs transition-colors ${
-        isHidden
-          ? 'bg-muted/30 text-muted-foreground/40 line-through dark:bg-white/5'
-          : 'bg-white text-secondary-foreground shadow-sm border border-border dark:bg-white/10 dark:text-muted-foreground dark:border-border/50'
-      }`}
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing shrink-0"
-        aria-label={`Arrastar ${item.label}`}
-      >
-        <GripVertical size={12} className="text-muted-foreground/50" />
+    <div ref={setNodeRef} style={style} className="relative group">
+      {/* Controls bar at top of each item */}
+      <div className="absolute -top-0.5 left-0 right-0 flex items-center justify-between z-10 px-1">
+        <div
+          {...attributes}
+          {...listeners}
+          className="p-0.5 rounded cursor-grab active:cursor-grabbing bg-white/80 dark:bg-black/50 shadow-sm backdrop-blur-sm"
+          aria-label="Arrastar item"
+        >
+          <GripVertical size={10} className="text-muted-foreground" />
+        </div>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onToggle(id) }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={`p-0.5 rounded shadow-sm backdrop-blur-sm transition-colors ${
+            isHidden
+              ? 'bg-red-100/90 text-red-500 dark:bg-red-500/30 dark:text-red-400'
+              : 'bg-white/80 text-muted-foreground/60 hover:text-muted-foreground dark:bg-black/50'
+          }`}
+          aria-label={isHidden ? 'Mostrar item' : 'Esconder item'}
+        >
+          {isHidden ? <EyeOff size={10} /> : <Eye size={10} />}
+        </button>
       </div>
-      <span className="truncate">{item.label}</span>
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); onToggle(item.id) }}
-        onPointerDown={(e) => e.stopPropagation()}
-        className={`shrink-0 p-0.5 rounded transition-colors ${
-          isHidden
-            ? 'text-red-400 hover:text-red-500'
-            : 'text-muted-foreground/40 hover:text-muted-foreground'
-        }`}
-        aria-label={isHidden ? `Mostrar ${item.label}` : `Esconder ${item.label}`}
-      >
-        {isHidden ? <EyeOff size={12} /> : <Eye size={12} />}
-      </button>
+      {/* Content — non-interactive during edit */}
+      <div className={`pointer-events-none ${isHidden ? 'grayscale' : ''}`}>
+        {children}
+      </div>
     </div>
   )
 }
 
-export function SortableItemEditor({ items, hiddenItems, onToggleItem, onReorderItems }: SortableItemEditorProps) {
+// --- Container for sortable items with DnD context ---
+
+interface SortableItemContainerProps {
+  itemIds: string[]
+  hiddenItems: Set<string>
+  onToggleItem: (itemId: string) => void
+  onReorderItems: (activeId: string, overId: string) => void
+  renderItem: (itemId: string) => React.ReactNode
+  className?: string
+}
+
+export function SortableItemContainer({
+  itemIds,
+  hiddenItems,
+  onToggleItem,
+  onReorderItems,
+  renderItem,
+  className = 'space-y-4',
+}: SortableItemContainerProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
@@ -94,15 +106,12 @@ export function SortableItemEditor({ items, hiddenItems, onToggleItem, onReorder
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-wrap gap-1.5 px-2 py-2">
-          {items.map(item => (
-            <SortableItemPill
-              key={item.id}
-              item={item}
-              isHidden={hiddenItems.has(item.id)}
-              onToggle={onToggleItem}
-            />
+      <SortableContext items={itemIds} strategy={rectSortingStrategy}>
+        <div className={className}>
+          {itemIds.map(id => (
+            <SortableItemBlock key={id} id={id} isHidden={hiddenItems.has(id)} onToggle={onToggleItem}>
+              {renderItem(id)}
+            </SortableItemBlock>
           ))}
         </div>
       </SortableContext>
