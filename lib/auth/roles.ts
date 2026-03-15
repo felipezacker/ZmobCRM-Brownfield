@@ -25,6 +25,15 @@ export const PERMISSION_LABELS: Record<PermissionKey, string> = {
   ver_todos_contatos: 'Ver Todos os Contatos',
 };
 
+export const PERMISSION_DESCRIPTIONS: Record<PermissionKey, string> = {
+  ver_relatorios: 'Acesso ao dashboard de metricas e relatorios de vendas',
+  editar_pipeline: 'Criar/editar boards, mover deals entre estagios, configurar lifecycle',
+  gerenciar_equipe: 'Convidar, desativar e alterar cargo de membros da equipe',
+  exportar_dados: 'Baixar contatos, deals e relatorios em CSV/Excel',
+  acessar_ia: 'Chat com IA, scripts automaticos, insights de prospeccao',
+  ver_todos_contatos: 'Ver contatos de toda a organizacao (sem isso, ve apenas os proprios)',
+};
+
 export function hasMinRole(userRole: Role, requiredRole: Role): boolean {
   return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
 }

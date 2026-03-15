@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 vi.mock('next/navigation', () => ({
@@ -34,6 +34,7 @@ vi.mock('@/lib/supabase', () => ({
 
 import { useAuth } from '@/context/AuthContext'
 import { PermissionsPage } from '../PermissionsPage'
+import { PERMISSION_DESCRIPTIONS } from '@/lib/auth/roles'
 
 const useAuthMock = vi.mocked(useAuth)
 
@@ -44,6 +45,17 @@ function createWrapper() {
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return React.createElement(QueryClientProvider, { client: queryClient }, children)
   }
+}
+
+function renderAdmin() {
+  useAuthMock.mockReturnValue({
+    profile: { role: 'admin', organization_id: 'org-1' },
+  } as any)
+
+  const Wrapper = createWrapper()
+  return render(
+    React.createElement(Wrapper, null, React.createElement(PermissionsPage))
+  )
 }
 
 describe('PermissionsPage', () => {
@@ -57,27 +69,20 @@ describe('PermissionsPage', () => {
     } as any)
 
     render(
-      React.createElement(QueryClientProvider, {
-        client: new QueryClient({ defaultOptions: { queries: { retry: false } } }),
-        children: React.createElement(PermissionsPage),
-      })
+      React.createElement(
+        QueryClientProvider,
+        { client: new QueryClient({ defaultOptions: { queries: { retry: false } } }) },
+        React.createElement(PermissionsPage)
+      )
     )
 
     expect(screen.getByText('Acesso Restrito')).toBeInTheDocument()
   })
 
-  it('shows permissions grid for admin', () => {
-    useAuthMock.mockReturnValue({
-      profile: { role: 'admin', organization_id: 'org-1' },
-    } as any)
+  it('shows permissions grid for admin with all descriptions', () => {
+    renderAdmin()
 
-    const Wrapper = createWrapper()
-    render(
-      React.createElement(Wrapper, {
-        children: React.createElement(PermissionsPage),
-      })
-    )
-
+    // Labels
     expect(screen.getByText('Permissoes por Cargo')).toBeInTheDocument()
     expect(screen.getByText('Ver Relatorios')).toBeInTheDocument()
     expect(screen.getByText('Editar Pipeline')).toBeInTheDocument()
@@ -85,19 +90,15 @@ describe('PermissionsPage', () => {
     expect(screen.getByText('Exportar Dados')).toBeInTheDocument()
     expect(screen.getByText('Acessar I.A')).toBeInTheDocument()
     expect(screen.getByText('Ver Todos os Contatos')).toBeInTheDocument()
+
+    // ST-7.1: All 6 descriptions rendered
+    for (const description of Object.values(PERMISSION_DESCRIPTIONS)) {
+      expect(screen.getByText(description)).toBeInTheDocument()
+    }
   })
 
   it('shows role column headers', () => {
-    useAuthMock.mockReturnValue({
-      profile: { role: 'admin', organization_id: 'org-1' },
-    } as any)
-
-    const Wrapper = createWrapper()
-    render(
-      React.createElement(Wrapper, {
-        children: React.createElement(PermissionsPage),
-      })
-    )
+    renderAdmin()
 
     expect(screen.getByText('Administrador')).toBeInTheDocument()
     expect(screen.getByText('Diretor')).toBeInTheDocument()
@@ -105,34 +106,68 @@ describe('PermissionsPage', () => {
   })
 
   it('has 18 toggle checkboxes (6 permissions x 3 roles)', () => {
-    useAuthMock.mockReturnValue({
-      profile: { role: 'admin', organization_id: 'org-1' },
-    } as any)
-
-    const Wrapper = createWrapper()
-    render(
-      React.createElement(Wrapper, {
-        children: React.createElement(PermissionsPage),
-      })
-    )
-
-    const checkboxes = screen.getAllByRole('checkbox')
-    expect(checkboxes).toHaveLength(18)
+    renderAdmin()
+    expect(screen.getAllByRole('checkbox')).toHaveLength(18)
   })
 
   it('save button is disabled when no changes', () => {
-    useAuthMock.mockReturnValue({
-      profile: { role: 'admin', organization_id: 'org-1' },
-    } as any)
+    renderAdmin()
+    expect(screen.getByRole('button', { name: /salvar/i })).toBeDisabled()
+  })
 
-    const Wrapper = createWrapper()
-    render(
-      React.createElement(Wrapper, {
-        children: React.createElement(PermissionsPage),
-      })
-    )
+  // ST-7.1 Subtask 5.2: Visual indicator and change counter
+  it('shows visual indicator, counter, and clears on discard', () => {
+    renderAdmin()
 
-    const saveButton = screen.getByRole('button', { name: /salvar/i })
-    expect(saveButton).toBeDisabled()
+    expect(screen.queryAllByTitle('Alterado')).toHaveLength(0)
+    expect(screen.queryByText(/alterac/)).not.toBeInTheDocument()
+
+    const checkboxes = screen.getAllByRole('checkbox')
+    fireEvent.click(checkboxes[0])
+
+    expect(screen.getAllByTitle('Alterado')).toHaveLength(1)
+    expect(screen.getByText('1 alteracao nao salva')).toBeInTheDocument()
+
+    fireEvent.click(checkboxes[1])
+    expect(screen.getByText('2 alteracoes nao salvas')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /descartar/i }))
+    expect(screen.queryAllByTitle('Alterado')).toHaveLength(0)
+  })
+
+  // ST-7.1 Subtask 5.3: Confirmation modal
+  it('opens confirmation modal with changes and can cancel', () => {
+    renderAdmin()
+
+    fireEvent.click(screen.getAllByRole('checkbox')[0])
+    fireEvent.click(screen.getByRole('button', { name: /salvar/i }))
+
+    expect(screen.getByText('Confirmar alteracoes')).toBeInTheDocument()
+    expect(screen.getByText(/1 permissao sera alterada/)).toBeInTheDocument()
+    expect(screen.getAllByText('ON').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('OFF').length).toBeGreaterThan(0)
+
+    fireEvent.click(screen.getByRole('button', { name: /cancelar/i }))
+    expect(screen.queryByText('Confirmar alteracoes')).not.toBeInTheDocument()
+  })
+
+  // ST-7.1 Subtask 5.4: Users per role count
+  it('shows users per role count in column headers', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        users: [],
+        usersPerRole: { admin: 1, diretor: 2, corretor: 3 },
+        maxUsers: 10,
+      }),
+    }) as any
+
+    renderAdmin()
+
+    await waitFor(() => {
+      expect(screen.getByText('(1 usuario)')).toBeInTheDocument()
+      expect(screen.getByText('(2 usuarios)')).toBeInTheDocument()
+      expect(screen.getByText('(3 usuarios)')).toBeInTheDocument()
+    })
   })
 })

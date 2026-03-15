@@ -31,10 +31,17 @@ export async function GET() {
   if (meError || !me?.organization_id) return json({ error: 'Profile not found' }, 404);
   if (!hasMinRole(me.role as Role, 'diretor')) return json({ error: 'Forbidden' }, 403);
 
+  // Fetch org max_users for user limit indicator
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('max_users')
+    .eq('id', me.organization_id)
+    .single();
+
   // Performance: evita payload grande em organizações com muitos usuários.
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('id, email, role, first_name, last_name, organization_id, created_at')
+    .select('id, email, role, first_name, last_name, organization_id, created_at, is_active')
     .eq('organization_id', me.organization_id)
     .limit(200)
     .order('created_at', { ascending: false });
@@ -55,6 +62,7 @@ export async function GET() {
       email: p.email,
       role: p.role,
       full_name: fullName,
+      is_active: p.is_active ?? true,
       organization_id: p.organization_id,
       created_at: p.created_at,
       last_sign_in_at: lastSignInMap.get(p.id) ?? null,
@@ -62,7 +70,14 @@ export async function GET() {
     };
   });
 
-  return json({ users });
+  const usersPerRole: Record<string, number> = {};
+  for (const p of profiles || []) {
+    if (p.is_active !== false) {
+      usersPerRole[p.role] = (usersPerRole[p.role] || 0) + 1;
+    }
+  }
+
+  return json({ users, maxUsers: org?.max_users ?? null, usersPerRole });
 }
 
 /**
