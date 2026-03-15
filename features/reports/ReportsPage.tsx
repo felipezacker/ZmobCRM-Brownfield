@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { TrendingUp, Clock, Target, DollarSign, Trophy, Users, Download, Settings } from 'lucide-react';
+import { TrendingUp, Clock, Target, DollarSign, Download } from 'lucide-react';
 import { useDashboardMetrics, PeriodFilter, COMPARISON_LABELS } from '../dashboard/hooks/useDashboardMetrics';
 import { PeriodFilterSelect } from '@/components/filters/PeriodFilterSelect';
 import { LazyRevenueTrendChart, ChartWrapper } from '@/components/charts';
 import { generateReportPDF } from './utils/generateReportPDF';
+import { ForecastBar } from '@/components/dashboard/ForecastBar';
+import { BrokerLeaderboard, type BrokerRow } from '@/components/dashboard/BrokerLeaderboard';
 import { useBoards } from '@/context/boards/BoardsContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -60,52 +61,32 @@ const ReportsPage: React.FC = () => {
 
   // Extrair meta do board selecionado
   const boardGoal = selectedBoard?.goal;
-  const goalType = boardGoal?.type || 'currency';
+  const goalType = (boardGoal?.type || 'currency') as 'currency' | 'percentage' | 'number';
   const goalTarget = parseFloat(boardGoal?.targetValue || '0') || 0;
   const goalKpi = boardGoal?.kpi || 'Receita';
-  const hasGoal = goalTarget > 0;
 
   // Calcular valor atual baseado no tipo de meta (PADRÃO HUBSPOT/SALESFORCE)
-  // Usa dados DO PERÍODO selecionado, não o total histórico
   const currentValue = React.useMemo(() => {
     switch (goalType) {
       case 'currency':
-        // Receita GANHA no período
         return wonRevenue;
       case 'percentage':
-        // Taxa de conversão do período
         return actualWinRate;
       case 'number':
       default:
-        // Quantidade de deals GANHOS no período
         return wonDeals.length;
     }
   }, [goalType, wonRevenue, actualWinRate, wonDeals.length]);
 
-  // Calcular Forecast
-  const forecastPercent = hasGoal ? Math.min((currentValue / goalTarget) * 100, 100) : 0;
-  const forecastGap = goalTarget - currentValue;
-  const isOnTrack = forecastPercent >= 75;
-
-  // Formatador baseado no tipo
-  // Performance: keep formatter stable (prevents unnecessary child rerenders when passed down).
-  const formatGoalValue = useCallback((value: number) => {
-    switch (goalType) {
-      case 'currency':
-        if (value >= 1000000) return `R$${(value / 1000000).toFixed(1)}M`;
-        if (value >= 1000) return `R$${(value / 1000).toFixed(0)}k`;
-        return `R$${value.toLocaleString()}`;
-      case 'number':
-        return value.toFixed(0);
-      case 'percentage':
-        return `${value.toFixed(1)}%`;
-      default:
-        return value.toLocaleString();
-    }
-  }, [goalType]);
+  // Formatador de moeda
+  const formatCurrency = useCallback((value: number) => {
+    if (value >= 1000000) return `R$${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `R$${(value / 1000).toFixed(0)}k`;
+    return `R$${value.toLocaleString()}`;
+  }, []);
 
   // Calcular Performance por Corretor (Leaderboard)
-  const leaderboard = React.useMemo(() => {
+  const leaderboardRows = useMemo((): BrokerRow[] => {
     const repsMap: Record<string, { name: string; avatar: string; won: number; lost: number; revenue: number }> = {};
 
     wonDeals.forEach(deal => {
@@ -147,20 +128,12 @@ const ReportsPage: React.FC = () => {
       .slice(0, 5);
   }, [wonDeals, lostDeals]);
 
-  // Formatador de moeda
-  const formatCurrency = useCallback((value: number) => {
-    if (value >= 1000000) return `R$${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `R$${(value / 1000).toFixed(0)}k`;
-    return `R$${value.toLocaleString()}`;
-  }, []);
-
   const generatedBy = useMemo(() => {
     if (profile?.first_name && profile?.last_name) return `${profile.first_name} ${profile.last_name}`;
     return profile?.first_name || profile?.email || 'Usuário';
   }, [profile?.email, profile?.first_name, profile?.last_name]);
 
   const handleExportPDF = useCallback(async () => {
-    // generateReportPDF usa dynamic imports para carregar jsPDF apenas quando necessário
     await generateReportPDF(
       {
         pipelineValue,
@@ -228,75 +201,18 @@ const ReportsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Forecast Bar - FEATURE #1 (80/20) */}
-      {hasGoal ? (
-        <div className="glass p-4 rounded-xl border border-border shadow-sm shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Target className={`${isOnTrack ? 'text-emerald-500' : 'text-amber-500'}`} size={20} />
-              <h3 className="text-sm font-bold text-foreground">
-                {goalKpi}
-              </h3>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <span className="text-xs text-muted-foreground">Realizado</span>
-                <p className="text-lg font-bold text-emerald-500">{formatGoalValue(currentValue)}</p>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-muted-foreground">Meta</span>
-                <p className="text-lg font-bold text-foreground">{formatGoalValue(goalTarget)}</p>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-muted-foreground">Gap</span>
-                <p className={`text-lg font-bold ${forecastGap > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                  {forecastGap > 0 ? `-${formatGoalValue(forecastGap)}` : '✓ Atingido'}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="w-full bg-muted dark:bg-white/10 rounded-full h-4 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${isOnTrack ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-amber-400 to-amber-500'
-                  }`}
-                style={{ width: `${forecastPercent}%` }}
-              />
-            </div>
-            <div className="absolute top-0 right-0 h-4 flex items-center">
-              <span className={`text-xs font-bold px-2 ${forecastPercent >= 50 ? 'text-white' : 'text-secondary-foreground'}`}>
-                {forecastPercent.toFixed(0)}%
-              </span>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            {isOnTrack
-              ? `🎯 No ritmo! Faltam ${formatGoalValue(Math.abs(forecastGap))} para bater a meta.`
-              : `⚠️ Atenção! Você está abaixo de 75% da meta. Faltam ${formatGoalValue(Math.abs(forecastGap))}.`
-            }
-          </p>
-        </div>
-      ) : (
-        <div className="glass p-4 rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50/50 dark:bg-amber-500/5 shadow-sm shrink-0">
-          <div className="flex items-center gap-3">
-            <Settings className="text-amber-500" size={20} />
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-foreground">Meta não configurada</h3>
-              <p className="text-xs text-muted-foreground">Defina uma meta no board para acompanhar o forecast.</p>
-            </div>
-            <Button
-              onClick={() => router.push('/boards')}
-              className="px-3 py-1.5 text-xs font-medium bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
-            >
-              Configurar
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Forecast Bar — extracted component */}
+      <ForecastBar
+        currentValue={currentValue}
+        goalTarget={goalTarget}
+        goalType={goalType}
+        goalKpi={goalKpi}
+        onConfigureClick={() => router.push('/boards')}
+        className="shrink-0"
+      />
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
-        {/* Pipeline Value - FEATURE #2 */}
         <div className="glass p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg bg-blue-500/10">
@@ -310,7 +226,6 @@ const ReportsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Win Rate */}
         <div className="glass p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg bg-emerald-500/10">
@@ -324,7 +239,6 @@ const ReportsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Ciclo Médio */}
         <div className="glass p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg bg-purple-500/10">
@@ -338,7 +252,6 @@ const ReportsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Deals Fechados */}
         <div className="glass p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-lg bg-orange-500/10">
@@ -378,53 +291,8 @@ const ReportsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Leaderboard - FEATURE #3 (Top Performers) */}
-        <div className="glass p-5 rounded-xl border border-border shadow-sm flex flex-col h-full overflow-hidden">
-          <div className="flex justify-between items-center mb-3 shrink-0">
-            <h2 className="text-lg font-bold text-foreground font-display flex items-center gap-2">
-              <Trophy className="text-amber-500" size={20} />
-              Top Corretores
-            </h2>
-          </div>
-          <div className="flex-1 overflow-y-auto min-h-0 space-y-2">
-            {leaderboard.length > 0 ? (
-              leaderboard.map((rep, index) => (
-                <div
-                  key={rep.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-background/50 dark:hover:bg-white/5 transition-colors"
-                >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-amber-100 text-amber-600' :
-                    index === 1 ? 'bg-muted text-secondary-foreground' :
-                      index === 2 ? 'bg-orange-100 text-orange-600' :
-                        'bg-background text-muted-foreground'
-                    }`}>
-                    {index + 1}
-                  </div>
-                  <Image
-                    src={rep.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${rep.name}`}
-                    alt={rep.name}
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full"
-                    unoptimized
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{rep.name}</p>
-                    <p className="text-xs text-muted-foreground">{rep.deals} deals</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-emerald-500">{formatCurrency(rep.revenue)}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-6">
-                <Users size={32} className="mb-2 opacity-50" />
-                <p className="text-sm">Nenhum deal fechado no período.</p>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Leaderboard — extracted component */}
+        <BrokerLeaderboard data={leaderboardRows} formatCurrency={formatCurrency} />
       </div>
     </div>
   );

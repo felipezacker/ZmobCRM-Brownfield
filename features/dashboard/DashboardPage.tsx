@@ -5,7 +5,8 @@ import { useBoards } from '@/context/boards/BoardsContext';
 import { useActivities } from '@/context/activities/ActivitiesContext';
 import { useSettings } from '@/context/settings/SettingsContext';
 import { useToast } from '@/context/ToastContext';
-import { TrendingUp, TrendingDown, Users, DollarSign, Target, Clock, MoreVertical, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, DollarSign, Target, Clock, AlertTriangle } from 'lucide-react';
+import { WalletHealthCard } from '@/components/dashboard/WalletHealthCard';
 import { StatCard } from './components/StatCard';
 import { ActivityFeedItem } from './components/ActivityFeedItem';
 import { PipelineAlertsModal } from './components/PipelineAlertsModal';
@@ -186,96 +187,26 @@ const DashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* Wallet Health Section - Compact */}
-      <div className="space-y-3 shrink-0">
-        <h2 className="text-lg font-bold text-foreground font-display flex items-center gap-2">
-          <Users className="text-primary-500" size={20} />
-          Saúde da Carteira
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div
-            className="glass p-5 rounded-xl border border-border shadow-sm cursor-pointer hover:border-primary-500/50 transition-colors"
-            onClick={() => router.push('/contacts')}
-          >
-            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-2">
-              Distribuição da Carteira
-            </h3>
-            <div className="flex items-end gap-2 mb-2">
-              <span className="text-2xl font-bold text-foreground">
-                {activePercent}%
-              </span>
-              <span className="text-xs text-green-500 font-bold mb-1">Ativos</span>
-            </div>
-            <div className="w-full bg-muted dark:bg-white/10 rounded-full h-2 overflow-hidden flex">
-              <div
-                className="bg-green-500 h-full"
-                style={{ width: `${activePercent}%` }}
-                title="Ativos"
-              ></div>
-              <div
-                className="bg-yellow-500 h-full"
-                style={{ width: `${inactivePercent}%` }}
-                title="Inativos"
-              ></div>
-              <div
-                className="bg-red-500 h-full"
-                style={{ width: `${churnedPercent}%` }}
-                title="Churn"
-              ></div>
-            </div>
-            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div> Ativos (
-                {activeContacts.length})
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-yellow-500"></div> Inativos (
-                {inactiveContacts.length})
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-red-500"></div> Churn (
-                {churnedContacts.length})
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="glass p-5 rounded-xl border border-border shadow-sm cursor-pointer hover:border-amber-500/50 transition-colors"
-            onClick={() => setShowPipelineAlerts(true)}
-          >
-            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-2">
-              Negócios Parados
-            </h3>
-            <div className="flex items-end gap-2">
-              <span className="text-2xl font-bold text-foreground">
-                {stagnantDealsCount} Deals
-              </span>
-              <span className={`text-xs font-bold mb-1 ${stagnantDealsCount > 0 ? 'text-amber-500' : 'text-green-500'}`}>
-                {stagnantDealsCount > 0 ? 'Atenção' : 'OK'}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Sem mudança de estágio há +10 dias.
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              ${stagnantDealsValue.toLocaleString()} em risco
-            </p>
-          </div>
-
-          <div className="glass p-5 rounded-xl border border-border shadow-sm">
-            <h3 className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-2">
-              LTV Médio
-            </h3>
-            <div className="flex items-end gap-2">
-              <span className="text-2xl font-bold text-foreground">
-                ${(avgLTV / 1000).toFixed(1)}k
-              </span>
-              <span className="text-xs text-green-500 font-bold mb-1">Médio</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">Valor médio vitalício por cliente ativo.</p>
-          </div>
-        </div>
-      </div>
+      {/* Wallet Health Section — extracted component */}
+      <WalletHealthCard
+        data={{
+          activeCount: activeContacts.length,
+          inactiveCount: inactiveContacts.length,
+          churnedCount: churnedContacts.length,
+          activePercent,
+          inactivePercent,
+          churnedPercent,
+          hot: 0,
+          warm: 0,
+          cold: 0,
+          avgLTV: avgLTV,
+          stagnantDealsCount,
+          stagnantDealsValue,
+        }}
+        className="shrink-0"
+        onContactsClick={() => router.push('/contacts')}
+        onAlertsClick={() => setShowPipelineAlerts(true)}
+      />
 
       {/* Auto-Resize Bottom Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-[300px]">
