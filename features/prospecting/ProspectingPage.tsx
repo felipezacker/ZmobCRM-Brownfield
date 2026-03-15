@@ -421,157 +421,158 @@ export const ProspectingPage: React.FC = () => {
     })
   }, [layout.sectionOrder, isAdminOrDirector, metricsFilterOwnerId])
 
-  // CP-8.1: Section content renderer — plain function, no useCallback needed (called inline during render)
-  function renderSectionContent(sectionId: string): React.ReactNode {
-    switch (sectionId) {
-      case 'live-ops':
-        return (
-          <ProspectingErrorBoundary section="Operação Ao Vivo">
-            <LiveOperationsPanel sessions={liveOps.sessions} activeCount={liveOps.activeCount} isLoading={liveOps.isLoading} />
-          </ProspectingErrorBoundary>
-        )
-      case 'kpi-cards': {
-        const kpiOrder = layout.getItemOrder('kpi-cards', KPI_ITEM_IDS as unknown as string[])
-        const kpiHidden = layout.getHiddenItems('kpi-cards')
-        return (
-          <ProspectingErrorBoundary section="KPIs">
-            <MetricsCards
-              metrics={metricsHook.metrics}
-              isLoading={metricsHook.isLoading}
-              onCardClick={setDrilldownCard}
-              comparisonMetrics={metricsHook.comparisonMetrics}
-              isComparisonLoading={metricsHook.isComparisonLoading}
-              itemOrder={kpiOrder}
-              hiddenItems={kpiHidden}
-              isEditing={layout.isEditing}
-              onToggleItem={(itemId) => layout.toggleItemVisibility('kpi-cards', itemId)}
-              onReorderItems={(a, b) => layout.reorderItems('kpi-cards', a, b)}
-            />
-            {metricsFilterOwnerId && metricsHook.metrics && (
-              <BrokerSummaryCard
-                brokerName={profiles.find(p => p.id === metricsFilterOwnerId)?.name || 'Corretor'}
-                metrics={metricsHook.metrics}
-                impact={impactHook.impact}
-              />
-            )}
-          </ProspectingErrorBoundary>
-        )
-      }
-      case 'ranking':
-        return (
-          <CorretorRanking brokers={metricsHook.metrics?.byBroker || []} isLoading={metricsHook.isLoading} />
-        )
-      case 'daily-goal': {
-        const goalOrder = layout.getItemOrder('daily-goal', ['goal-card', 'performance'])
-        const goalHidden = layout.getHiddenItems('daily-goal')
-        const goalRenderers: Record<string, React.ReactNode> = {
-          'goal-card': (
-            <DailyGoalCard progress={goalsHook.progress} isLoading={goalsHook.isLoading}
-              isAdminOrDirector={goalsHook.isAdminOrDirector} onConfigureClick={() => goalsHook.setShowGoalModal(true)}
-            />
-          ),
-          'performance': (
-            <PerformanceComparison userMetrics={userMetrics} teamAverage={teamAverage}
-              isAdminOrDirector={isAdminOrDirector} periodDays={periodDays}
-            />
-          ),
-        }
-        if (layout.isEditing) {
-          return (
-            <SortableItemContainer itemIds={goalOrder} hiddenItems={goalHidden}
-              onToggleItem={(id) => layout.toggleItemVisibility('daily-goal', id)}
-              onReorderItems={(a, b) => layout.reorderItems('daily-goal', a, b)}
-              renderItem={(id) => goalRenderers[id] || null}
-            />
-          )
-        }
-        return <>{goalOrder.filter(id => !goalHidden.has(id)).map(id => <React.Fragment key={id}>{goalRenderers[id]}</React.Fragment>)}</>
-      }
-      case 'charts': {
-        const chartOrder = layout.getItemOrder('charts', ['funnel', 'daily-chart'])
-        const chartHidden = layout.getHiddenItems('charts')
-        const chartRenderers: Record<string, React.ReactNode> = {
-          'funnel': <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />,
-          'daily-chart': (
-            <MetricsChart data={metricsHook.metrics?.byDay || []} isLoading={metricsHook.isLoading}
-              periodStart={metricsHook.range.start} periodEnd={metricsHook.range.end}
-            />
-          ),
-        }
-        if (layout.isEditing) {
-          return (
-            <ProspectingErrorBoundary section="Gráficos">
-              <SortableItemContainer itemIds={chartOrder} hiddenItems={chartHidden}
-                onToggleItem={(id) => layout.toggleItemVisibility('charts', id)}
-                onReorderItems={(a, b) => layout.reorderItems('charts', a, b)}
-                renderItem={(id) => chartRenderers[id] || null}
-                className="grid gap-4 grid-cols-1 lg:grid-cols-2"
-              />
-            </ProspectingErrorBoundary>
-          )
-        }
-        const visibleCharts = chartOrder.filter(id => !chartHidden.has(id))
-        return (
-          <ProspectingErrorBoundary section="Gráficos">
-            <div className={`grid gap-4 ${visibleCharts.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-              {visibleCharts.map(id => <React.Fragment key={id}>{chartRenderers[id]}</React.Fragment>)}
-            </div>
-          </ProspectingErrorBoundary>
-        )
-      }
-      case 'insights':
-        return <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />
-      case 'retry-effectiveness':
-        return <RetryEffectiveness data={retryQuery.data} isLoading={retryQuery.isLoading} />
-      case 'heatmap':
-        return (
-          <ProspectingErrorBoundary section="Heatmap">
-            <ConnectionHeatmap activities={metricsHook.activities} isLoading={metricsHook.isLoading} />
-          </ProspectingErrorBoundary>
-        )
-      case 'objections':
-        return <TopObjections activities={metricsHook.activities} isLoading={metricsHook.isLoading} />
-      case 'hot-leads':
-        return (
-          <NeglectedContactsAlert
-            onAddAllToQueue={handleAddBatchToQueue}
-            onError={() => toast('Erro ao buscar contatos negligenciados', 'error')}
+  // CP-8.1: Pre-computed section content map — memoized to avoid recreating JSX on unrelated state changes
+  const sectionContentMap = useMemo(() => {
+    const map = new Map<string, React.ReactNode>()
+
+    // live-ops
+    map.set('live-ops', (
+      <ProspectingErrorBoundary section="Operação Ao Vivo">
+        <LiveOperationsPanel sessions={liveOps.sessions} activeCount={liveOps.activeCount} isLoading={liveOps.isLoading} />
+      </ProspectingErrorBoundary>
+    ))
+
+    // kpi-cards
+    const kpiOrder = layout.getItemOrder('kpi-cards', KPI_ITEM_IDS as unknown as string[])
+    const kpiHidden = layout.getHiddenItems('kpi-cards')
+    map.set('kpi-cards', (
+      <ProspectingErrorBoundary section="KPIs">
+        <MetricsCards
+          metrics={metricsHook.metrics}
+          isLoading={metricsHook.isLoading}
+          onCardClick={setDrilldownCard}
+          comparisonMetrics={metricsHook.comparisonMetrics}
+          isComparisonLoading={metricsHook.isComparisonLoading}
+          itemOrder={kpiOrder}
+          hiddenItems={kpiHidden}
+          isEditing={layout.isEditing}
+          onToggleItem={(itemId) => layout.toggleItemVisibility('kpi-cards', itemId)}
+          onReorderItems={(a, b) => layout.reorderItems('kpi-cards', a, b)}
+        />
+        {metricsFilterOwnerId && metricsHook.metrics && (
+          <BrokerSummaryCard
+            brokerName={profiles.find(p => p.id === metricsFilterOwnerId)?.name || 'Corretor'}
+            metrics={metricsHook.metrics}
+            impact={impactHook.impact}
           />
-        )
-      case 'queue-health':
-        return <QueueThroughput queue={queue} exhaustedItems={exhaustedItems} isLoading={isLoading} />
-      case 'pipeline':
-        return (
-          <ProspectingErrorBoundary section="Impacto">
-            <ProspectingImpactSection impact={impactHook.impact} isLoading={impactHook.isLoading} />
-          </ProspectingErrorBoundary>
-        )
-      case 'sessions': {
-        const sessOrder = layout.getItemOrder('sessions', ['history', 'details'])
-        const sessHidden = layout.getHiddenItems('sessions')
-        const sessRenderers: Record<string, React.ReactNode> = {
-          'history': (
-            <ProspectingErrorBoundary section="Historico de Sessoes">
-              <SessionHistory sessions={sessionHistory} isLoading={isLoadingSessions} />
-            </ProspectingErrorBoundary>
-          ),
-          'details': <CallDetailsTable activities={metricsHook.activities} profiles={profiles} isLoading={metricsHook.isLoading} />,
-        }
-        if (layout.isEditing) {
-          return (
-            <SortableItemContainer itemIds={sessOrder} hiddenItems={sessHidden}
-              onToggleItem={(id) => layout.toggleItemVisibility('sessions', id)}
-              onReorderItems={(a, b) => layout.reorderItems('sessions', a, b)}
-              renderItem={(id) => sessRenderers[id] || null}
-            />
-          )
-        }
-        return <>{sessOrder.filter(id => !sessHidden.has(id)).map(id => <React.Fragment key={id}>{sessRenderers[id]}</React.Fragment>)}</>
-      }
-      default:
-        return null
+        )}
+      </ProspectingErrorBoundary>
+    ))
+
+    // ranking
+    map.set('ranking', (
+      <CorretorRanking brokers={metricsHook.metrics?.byBroker || []} isLoading={metricsHook.isLoading} />
+    ))
+
+    // daily-goal
+    const goalOrder = layout.getItemOrder('daily-goal', ['goal-card', 'performance'])
+    const goalHidden = layout.getHiddenItems('daily-goal')
+    const goalRenderers: Record<string, React.ReactNode> = {
+      'goal-card': (
+        <DailyGoalCard progress={goalsHook.progress} isLoading={goalsHook.isLoading}
+          isAdminOrDirector={goalsHook.isAdminOrDirector} onConfigureClick={() => goalsHook.setShowGoalModal(true)}
+        />
+      ),
+      'performance': (
+        <PerformanceComparison userMetrics={userMetrics} teamAverage={teamAverage}
+          isAdminOrDirector={isAdminOrDirector} periodDays={periodDays}
+        />
+      ),
     }
-  }
+    if (layout.isEditing) {
+      map.set('daily-goal', (
+        <SortableItemContainer itemIds={goalOrder} hiddenItems={goalHidden}
+          onToggleItem={(id) => layout.toggleItemVisibility('daily-goal', id)}
+          onReorderItems={(a, b) => layout.reorderItems('daily-goal', a, b)}
+          renderItem={(id) => goalRenderers[id] || null}
+        />
+      ))
+    } else {
+      map.set('daily-goal', <>{goalOrder.filter(id => !goalHidden.has(id)).map(id => <React.Fragment key={id}>{goalRenderers[id]}</React.Fragment>)}</>)
+    }
+
+    // charts
+    const chartOrder = layout.getItemOrder('charts', ['funnel', 'daily-chart'])
+    const chartHidden = layout.getHiddenItems('charts')
+    const chartRenderers: Record<string, React.ReactNode> = {
+      'funnel': <ConversionFunnel metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />,
+      'daily-chart': (
+        <MetricsChart data={metricsHook.metrics?.byDay || []} isLoading={metricsHook.isLoading}
+          periodStart={metricsHook.range.start} periodEnd={metricsHook.range.end}
+        />
+      ),
+    }
+    if (layout.isEditing) {
+      map.set('charts', (
+        <ProspectingErrorBoundary section="Gráficos">
+          <SortableItemContainer itemIds={chartOrder} hiddenItems={chartHidden}
+            onToggleItem={(id) => layout.toggleItemVisibility('charts', id)}
+            onReorderItems={(a, b) => layout.reorderItems('charts', a, b)}
+            renderItem={(id) => chartRenderers[id] || null}
+            className="grid gap-4 grid-cols-1 lg:grid-cols-2"
+          />
+        </ProspectingErrorBoundary>
+      ))
+    } else {
+      const visibleCharts = chartOrder.filter(id => !chartHidden.has(id))
+      map.set('charts', (
+        <ProspectingErrorBoundary section="Gráficos">
+          <div className={`grid gap-4 ${visibleCharts.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+            {visibleCharts.map(id => <React.Fragment key={id}>{chartRenderers[id]}</React.Fragment>)}
+          </div>
+        </ProspectingErrorBoundary>
+      ))
+    }
+
+    // simple sections
+    map.set('insights', <AutoInsights metrics={metricsHook.metrics} isLoading={metricsHook.isLoading} />)
+    map.set('retry-effectiveness', <RetryEffectiveness data={retryQuery.data} isLoading={retryQuery.isLoading} />)
+    map.set('heatmap', (
+      <ProspectingErrorBoundary section="Heatmap">
+        <ConnectionHeatmap activities={metricsHook.activities} isLoading={metricsHook.isLoading} />
+      </ProspectingErrorBoundary>
+    ))
+    map.set('objections', <TopObjections activities={metricsHook.activities} isLoading={metricsHook.isLoading} />)
+    map.set('hot-leads', (
+      <NeglectedContactsAlert
+        onAddAllToQueue={handleAddBatchToQueue}
+        onError={() => toast('Erro ao buscar contatos negligenciados', 'error')}
+      />
+    ))
+    map.set('queue-health', <QueueThroughput queue={queue} exhaustedItems={exhaustedItems} isLoading={isLoading} />)
+    map.set('pipeline', (
+      <ProspectingErrorBoundary section="Impacto">
+        <ProspectingImpactSection impact={impactHook.impact} isLoading={impactHook.isLoading} />
+      </ProspectingErrorBoundary>
+    ))
+
+    // sessions
+    const sessOrder = layout.getItemOrder('sessions', ['history', 'details'])
+    const sessHidden = layout.getHiddenItems('sessions')
+    const sessRenderers: Record<string, React.ReactNode> = {
+      'history': (
+        <ProspectingErrorBoundary section="Historico de Sessoes">
+          <SessionHistory sessions={sessionHistory} isLoading={isLoadingSessions} />
+        </ProspectingErrorBoundary>
+      ),
+      'details': <CallDetailsTable activities={metricsHook.activities} profiles={profiles} isLoading={metricsHook.isLoading} />,
+    }
+    if (layout.isEditing) {
+      map.set('sessions', (
+        <SortableItemContainer itemIds={sessOrder} hiddenItems={sessHidden}
+          onToggleItem={(id) => layout.toggleItemVisibility('sessions', id)}
+          onReorderItems={(a, b) => layout.reorderItems('sessions', a, b)}
+          renderItem={(id) => sessRenderers[id] || null}
+        />
+      ))
+    } else {
+      map.set('sessions', <>{sessOrder.filter(id => !sessHidden.has(id)).map(id => <React.Fragment key={id}>{sessRenderers[id]}</React.Fragment>)}</>)
+    }
+
+    return map
+  }, [metricsHook, layout, goalsHook, impactHook, retryQuery, liveOps, userMetrics, teamAverage,
+    isAdminOrDirector, periodDays, metricsFilterOwnerId, profiles, queue, exhaustedItems, isLoading,
+    sessionHistory, isLoadingSessions, handleAddBatchToQueue, toast])
 
   const currentContact = sessionActive && queue[currentIndex] ? queue[currentIndex] : null
   const pendingCount = queue.filter(q => q.status === 'pending').length
@@ -966,7 +967,7 @@ export const ProspectingPage: React.FC = () => {
                         iconColor={config.iconColor}
                         defaultOpen={config.defaultOpen}
                       >
-                        {renderSectionContent(sectionId)}
+                        {sectionContentMap.get(sectionId)}
                       </MetricsSection>
                     </EditableSectionWrapper>
                   )

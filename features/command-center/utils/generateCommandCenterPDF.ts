@@ -73,11 +73,18 @@ export async function generateCommandCenterPDF(options: GenerateCommandCenterPDF
   const { data, period, boardName, generatedBy, isAdminOrDirector } = options
 
   // Lazy load — keeps jsPDF out of the main bundle (~200KB)
-  const [{ jsPDF }, autoTableModule] = await Promise.all([
-    import('jspdf'),
-    import('jspdf-autotable'),
-  ])
-  const autoTable = autoTableModule.default
+  let jsPDF: typeof import('jspdf')['jsPDF']
+  let autoTable: typeof import('jspdf-autotable')['default']
+  try {
+    const [jspdfModule, autoTableModule] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ])
+    jsPDF = jspdfModule.jsPDF
+    autoTable = autoTableModule.default
+  } catch (error) {
+    throw new Error(`Falha ao carregar bibliotecas de PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
+  }
 
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.width
@@ -277,7 +284,7 @@ export async function generateCommandCenterPDF(options: GenerateCommandCenterPDF
 
   const rankingData = isAdminOrDirector
     ? data.leaderboard.slice(0, 10)
-    : data.leaderboard.slice(0, 1) // Non-admin: only own data (first entry)
+    : data.leaderboard.slice(0, 1) // Non-admin: leaderboard is pre-sorted by hook, first entry is current user
 
   const rankingBody = rankingData.length > 0
     ? rankingData.map((entry, i) => [

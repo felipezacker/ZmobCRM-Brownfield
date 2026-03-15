@@ -70,7 +70,8 @@ const CommandCenterPage: React.FC = () => {
     if (!selectedBoardId && defaultBoardId) {
       setSelectedBoardId(defaultBoardId)
     }
-  }, [defaultBoardId, selectedBoardId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when defaultBoardId becomes available, not on selectedBoardId changes
+  }, [defaultBoardId])
 
   const selectedBoard = useMemo(() => boards.find(b => b.id === selectedBoardId), [boards, selectedBoardId])
 
