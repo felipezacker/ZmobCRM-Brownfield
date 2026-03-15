@@ -4,6 +4,7 @@ export type {
   PulseStatus,
   Alert,
   AlertType,
+  AlertSeverity,
   DealTypeSplit,
   LeaderboardEntry,
   ProspectingSummary,
