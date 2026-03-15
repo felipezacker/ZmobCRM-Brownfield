@@ -22,6 +22,7 @@ export type { Profile };
 
 export function useUserList({ addToast }: UseUserListParams) {
   const [users, setUsers] = useState<Profile[]>([]);
+  const [maxUsers, setMaxUsers] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
@@ -40,6 +41,7 @@ export function useUserList({ addToast }: UseUserListParams) {
       }
 
       setUsers(data?.users || []);
+      setMaxUsers(data?.maxUsers ?? null);
     } catch (err) {
       console.error('Error fetching users:', err);
       setUsers([]);
@@ -135,6 +137,9 @@ export function useUserList({ addToast }: UseUserListParams) {
     }
   };
 
+  const activeCount = users.filter((u) => u.is_active !== false).length;
+  const isAtLimit = maxUsers !== null && activeCount >= maxUsers;
+
   return {
     users,
     loading,
@@ -145,5 +150,8 @@ export function useUserList({ addToast }: UseUserListParams) {
     confirmDeleteUser,
     handleUpdateRole,
     handleToggleActive,
+    activeCount,
+    maxUsers,
+    isAtLimit,
   };
 }

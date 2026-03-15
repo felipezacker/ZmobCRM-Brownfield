@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import ConfirmModal from '@/components/ConfirmModal';
-import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Clock, Trash2, Link, Copy, Search, UserX, UserCheck } from 'lucide-react';
+import { Loader2, UserPlus, Crown, Briefcase, Shield, KeyRound, Clock, Trash2, Link, Copy, Search, UserX, UserCheck, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MODAL_OVERLAY_CLASS } from '@/components/ui/modalStyles';
 import { useUserList } from './hooks/useUserList';
@@ -54,14 +54,17 @@ export const UsersPage: React.FC = () => {
         userToDelete, setUserToDelete,
         handleDeleteUser, confirmDeleteUser,
         handleUpdateRole, handleToggleActive,
+        activeCount, maxUsers, isAtLimit,
     } = useUserList({ addToast });
 
     const {
         isModalOpen, setIsModalOpen,
         newUserRole, setNewUserRole,
-        sendingInvites, error,
+        sendingInvites, sendingEmail, error,
         activeInvites, expirationDays, setExpirationDays,
-        closeModal, handleGenerateLink, handleDeleteInvite, copyLink,
+        emailInput, setEmailInput, fallbackLink,
+        closeModal, handleGenerateLink, handleSendEmailInvite, handleDeleteInvite, copyLink,
+        isValidEmail,
     } = useInviteModal({ addToast });
 
     const sb = supabase;
@@ -129,16 +132,44 @@ export const UsersPage: React.FC = () => {
                             Sua Equipe
                         </h2>
                         <p className="text-muted-foreground text-sm mt-1">
-                            {users.length} {users.length === 1 ? 'membro' : 'membros'} • {admins.length} admin{admins.length !== 1 && 's'}, {diretores.length} diretor{diretores.length !== 1 && 'es'}, {corretores.length} corretor{corretores.length !== 1 && 'es'}
+                            {maxUsers !== null
+                                ? `${activeCount}/${maxUsers} membros`
+                                : `${activeCount} ${activeCount === 1 ? 'membro' : 'membros'}`
+                            } • {admins.length} admin{admins.length !== 1 && 's'}, {diretores.length} diretor{diretores.length !== 1 && 'es'}, {corretores.length} corretor{corretores.length !== 1 && 'es'}
                         </p>
+                        {maxUsers !== null && (
+                            <div className="mt-2 w-48">
+                                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full transition-all ${
+                                            activeCount >= maxUsers
+                                                ? 'bg-red-500'
+                                                : activeCount / maxUsers >= 0.8
+                                                    ? 'bg-amber-500'
+                                                    : 'bg-emerald-500'
+                                        }`}
+                                        style={{ width: `${Math.min((activeCount / maxUsers) * 100, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    <Button
-                        onClick={() => setIsModalOpen(true)}
-                        className="group flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition-all shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5 font-medium"
-                    >
-                        <UserPlus className="w-4 h-4 transition-transform group-hover:scale-110" />
-                        Convidar
-                    </Button>
+                    <div className="flex flex-col items-end gap-1">
+                        <Button
+                            onClick={() => setIsModalOpen(true)}
+                            disabled={isAtLimit}
+                            className="group flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition-all shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5 font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+                            title={isAtLimit ? `Limite de usuarios atingido (${activeCount}/${maxUsers})` : undefined}
+                        >
+                            <UserPlus className="w-4 h-4 transition-transform group-hover:scale-110" />
+                            Convidar
+                        </Button>
+                        {isAtLimit && (
+                            <span className="text-xs text-red-500 font-medium">
+                                Limite de usuarios atingido ({activeCount}/{maxUsers})
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -510,6 +541,57 @@ export const UsersPage: React.FC = () => {
                                         ))}
                                     </div>
                                 </div>
+
+                                {/* Email Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-secondary-foreground dark:text-muted-foreground mb-3">
+                                        Enviar por Email (opcional)
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="email"
+                                            placeholder="email@exemplo.com"
+                                            value={emailInput}
+                                            onChange={(e) => setEmailInput(e.target.value)}
+                                            className={`flex-1 px-3 py-2.5 border rounded-xl bg-background dark:bg-card/50 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all text-sm ${
+                                                emailInput && !isValidEmail(emailInput)
+                                                    ? 'border-red-400 focus:ring-red-500/50 focus:border-red-500'
+                                                    : 'border-border'
+                                            }`}
+                                        />
+                                        <Button
+                                            onClick={handleSendEmailInvite}
+                                            disabled={sendingEmail || !emailInput.trim() || !isValidEmail(emailInput.trim())}
+                                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-600/25 transition-all"
+                                        >
+                                            {sendingEmail ? (
+                                                <Loader2 className="animate-spin h-4 w-4" />
+                                            ) : (
+                                                <Mail className="h-4 w-4" />
+                                            )}
+                                            Enviar
+                                        </Button>
+                                    </div>
+                                    {emailInput && !isValidEmail(emailInput) && (
+                                        <p className="text-xs text-red-500 mt-1.5">Email invalido</p>
+                                    )}
+                                </div>
+
+                                {/* Fallback Link (when email send fails) */}
+                                {fallbackLink && (
+                                    <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-xl text-sm">
+                                        <span className="flex-1 truncate text-xs">{fallbackLink}</span>
+                                        <Button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(fallbackLink);
+                                                addToast('Link copiado!', 'success');
+                                            }}
+                                            className="p-1.5 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors flex-shrink-0"
+                                        >
+                                            <Copy className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
 
                                 {/* Error Message */}
                                 {error && (

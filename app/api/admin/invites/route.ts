@@ -94,6 +94,28 @@ export async function POST(req: Request) {
     return json({ error: 'Diretores só podem convidar corretores' }, 403);
   }
 
+  // ST-6.3: Check user limit before creating invite
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('max_users')
+    .eq('id', me.organization_id)
+    .single();
+
+  if (org?.max_users !== null && org?.max_users !== undefined) {
+    const { count: activeCount } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', me.organization_id)
+      .eq('is_active', true);
+
+    if (activeCount !== null && activeCount >= org.max_users) {
+      return json(
+        { error: `Limite de usuarios atingido (${activeCount}/${org.max_users}). Nao e possivel convidar mais membros.` },
+        422
+      );
+    }
+  }
+
   const expiresAt = parsed.data.expiresAt ?? null;
 
   const { data: invite, error } = await supabase

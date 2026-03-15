@@ -87,6 +87,9 @@ vi.mock('../hooks/useUserList', () => ({
     confirmDeleteUser: mockConfirmDeleteUser,
     handleUpdateRole: mockHandleUpdateRole,
     handleToggleActive: mockHandleToggleActive,
+    activeCount: mockUsers.filter((u) => u.is_active !== false).length,
+    maxUsers: null,
+    isAtLimit: false,
   }),
 }))
 
