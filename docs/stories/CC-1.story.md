@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CC-1
 - **Epic:** CC (Central de Comando — Dashboard Executivo Unificado)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 8 (M)
 - **Wave:** 1
@@ -475,6 +475,7 @@ Secondary Focus:
 | 2026-03-15 | 2.1 | QA Review — Gate: PASS (with concerns). Quality score: 80/100 | @qa (Quinn) |
 | 2026-03-15 | 2.2 | Dev fixes: `$` → `R$` em WalletHealthCard, lint fix em BrokerLeaderboard test, teste atualizado | @dev (Dex) |
 | 2026-03-15 | 2.3 | QA Re-review — Gate: PASS. Todos os fixes verificados, 65 testes passando, zero regressoes | @qa (Quinn) |
+| 2026-03-15 | 3.0 | Story closed — Status: Ready for Review → Done. Epic CC fechado. | @po (Pax) |
 
 ## QA Results
 

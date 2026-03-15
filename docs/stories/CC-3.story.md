@@ -3,7 +3,7 @@
 ## Metadata
 - **Story ID:** CC-3
 - **Epic:** CC (Central de Comando — Dashboard Executivo Unificado)
-- **Status:** Ready for Review
+- **Status:** Done
 - **Priority:** P1
 - **Estimated Points:** 5 (S)
 - **Wave:** 3
@@ -398,6 +398,7 @@ Secondary Focus:
 | 2026-03-15 | 1.1 | PO review fixes: `jest.mock` → `vi.mock` (Vitest), sidebar/prefetch confirmado como escopo exclusivo de CC-3 (removido de CC-2 AC-13) | @sm (River) |
 | 2026-03-15 | 1.2 | PO re-validação: 10/10 GO — Status Draft → Ready | @po (Pax) |
 | 2026-03-15 | 2.0 | Implementation complete — all 5 tasks done, 6/6 tests passing | @dev (Dex) |
+| 2026-03-15 | 3.0 | Story closed — Status: Ready for Review → Done. Epic CC fechado. | @po (Pax) |
 
 ---
 
