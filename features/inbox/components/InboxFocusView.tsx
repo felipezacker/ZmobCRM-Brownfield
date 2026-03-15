@@ -438,10 +438,10 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
                 setShowContext(true);
               }
             }}
-            className="relative flex items-center gap-2 text-yellow-400/70 hover:text-yellow-400 transition-colors font-medium text-sm group cursor-pointer bg-transparent border-0"
+            className="relative flex items-center gap-2 text-amber-600 hover:text-amber-700 dark:text-yellow-400/70 dark:hover:text-yellow-400 transition-colors font-medium text-sm group cursor-pointer bg-transparent border-0"
           >
             <span
-              className="absolute inset-0 -inset-x-8 -inset-y-4 rounded-full bg-yellow-400/20 opacity-75 group-hover:opacity-0 blur-sm"
+              className="absolute inset-0 -inset-x-8 -inset-y-4 rounded-full bg-amber-400/15 dark:bg-yellow-400/20 opacity-75 group-hover:opacity-0 blur-sm"
               style={{
                 animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite'
               }}
@@ -449,7 +449,7 @@ export const InboxFocusView: React.FC<InboxFocusViewProps> = ({
 
             <Maximize2 size={14} className="relative z-10" />
             <span className="relative z-10">{hasResolvedContext ? 'Ver detalhes' : 'Vincular contexto'}</span>
-            <kbd className="hidden group-hover:inline-flex h-5 items-center gap-1 rounded border border-yellow-500/20 bg-yellow-500/10 px-1.5 font-mono text-2xs font-medium text-yellow-500/50 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out translate-x-1 group-hover:translate-x-0 ml-2">
+            <kbd className="hidden group-hover:inline-flex h-5 items-center gap-1 rounded border border-amber-300 dark:border-yellow-500/20 bg-amber-100 dark:bg-yellow-500/10 px-1.5 font-mono text-2xs font-medium text-amber-600 dark:text-yellow-500/50 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out translate-x-1 group-hover:translate-x-0 ml-2">
               SPACE
             </kbd>
           </Button>
