@@ -85,6 +85,14 @@ export interface CommandCenterMetrics {
   prospectingSummary: ProspectingSummary
 }
 
+/** Pure calculation extracted for testability — used in useMemo inside the hook */
+export function calculateCommission(wonDeals: Array<{ value: number; commissionRate?: number | null }>): number {
+  return wonDeals.reduce(
+    (sum, deal) => sum + (deal.value * ((deal.commissionRate ?? 5) / 100)),
+    0,
+  )
+}
+
 export function useCommandCenterMetrics(
   period: PeriodFilter = 'this_month',
   boardId?: string,
@@ -136,27 +144,29 @@ export function useCommandCenterMetrics(
     profiles,
   )
 
-  // AC4: Commission calculation
-  const generatedCommission = useMemo(() =>
-    dashboardData.wonDeals?.reduce(
-      (sum, deal) => sum + (deal.value * ((deal.commissionRate ?? 5) / 100)),
-      0,
-    ) ?? 0,
-  [dashboardData.wonDeals])
+  // AC4: Commission calculation — uses exported pure function
+  const generatedCommission = useMemo(
+    () => calculateCommission(dashboardData.wonDeals || []),
+    [dashboardData.wonDeals],
+  )
 
-  // AC5: Deal type split (VENDA vs LOCACAO)
+  // AC5: Deal type split (VENDA vs LOCACAO) — single-pass aggregation
   const dealTypeSplit = useMemo((): DealTypeSplit => {
     const wonDeals = dashboardData.wonDeals || []
-    return {
-      VENDA: {
-        count: wonDeals.filter(d => d.dealType === 'VENDA').length,
-        value: wonDeals.filter(d => d.dealType === 'VENDA').reduce((s, d) => s + d.value, 0),
-      },
-      LOCACAO: {
-        count: wonDeals.filter(d => d.dealType === 'LOCACAO').length,
-        value: wonDeals.filter(d => d.dealType === 'LOCACAO').reduce((s, d) => s + d.value, 0),
-      },
+    const split: DealTypeSplit = {
+      VENDA: { count: 0, value: 0 },
+      LOCACAO: { count: 0, value: 0 },
     }
+    for (const d of wonDeals) {
+      if (d.dealType === 'VENDA') {
+        split.VENDA.count++
+        split.VENDA.value += d.value
+      } else if (d.dealType === 'LOCACAO') {
+        split.LOCACAO.count++
+        split.LOCACAO.value += d.value
+      }
+    }
+    return split
   }, [dashboardData.wonDeals])
 
   // AC6: Pulse semaphores
@@ -247,7 +257,7 @@ export function useCommandCenterMetrics(
     return entries.sort((a, b) => b.wonValue - a.wonValue)
   }, [dashboardData.wonDeals, prospectingData?.byBroker])
 
-  // AC7: Alerts
+  // AC7: Alerts — deps list specific fields to avoid unnecessary recomputation
   const alerts = useMemo((): Alert[] => {
     const result: Alert[] = []
     const selectedBoard = boardId
@@ -264,17 +274,16 @@ export function useCommandCenterMetrics(
     if (stagnantAlert) result.push(stagnantAlert)
 
     // AC7b: HOT leads without activity — use last interaction date as proxy
-    const lastActivityMap = new Map<string, string>()
+    // activeContacts from useDashboardMetrics is Contact[] (array)
     const activeContactsArr = dashboardData.activeContacts
-    if (Array.isArray(activeContactsArr)) {
-      for (const c of activeContactsArr) {
-        if (c.lastInteraction) {
-          lastActivityMap.set(c.id, c.lastInteraction)
-        }
+    const lastActivityMap = new Map<string, string>()
+    for (const c of activeContactsArr) {
+      if (c.lastInteraction) {
+        lastActivityMap.set(c.id, c.lastInteraction)
       }
-      const hotLeadsAlert = detectHotLeadsWithoutActivity(activeContactsArr, lastActivityMap)
-      if (hotLeadsAlert) result.push(hotLeadsAlert)
     }
+    const hotLeadsAlert = detectHotLeadsWithoutActivity(activeContactsArr, lastActivityMap)
+    if (hotLeadsAlert) result.push(hotLeadsAlert)
 
     // AC7c: Underperforming brokers
     const brokerPerformances: BrokerPerformance[] = leaderboard.map(l => ({
@@ -286,18 +295,15 @@ export function useCommandCenterMetrics(
     const underperformingAlert = detectUnderperformingBrokers(brokerPerformances)
     if (underperformingAlert) result.push(underperformingAlert)
 
-    // AC7d: High churn
-    const activeCount = Array.isArray(dashboardData.activeContacts)
-      ? dashboardData.activeContacts.length
-      : (dashboardData.activeContacts as number) || 0
-    const churnedCount = Array.isArray(dashboardData.churnedContacts)
-      ? dashboardData.churnedContacts.length
-      : (dashboardData.churnedContacts as number) || 0
-    const churnAlert = detectHighChurn(activeCount, churnedCount)
+    // AC7d: High churn — activeContacts and churnedContacts are Contact[]
+    const churnAlert = detectHighChurn(
+      dashboardData.activeContacts.length,
+      dashboardData.churnedContacts.length,
+    )
     if (churnAlert) result.push(churnAlert)
 
     return result
-  }, [dashboardData, boards, defaultBoard, boardId, leaderboard])
+  }, [dashboardData.activeSnapshotDeals, dashboardData.activeContacts, dashboardData.churnedContacts, boards, defaultBoard, boardId, leaderboard])
 
   // AC10: Prospecting summary
   const prospectingSummary = useMemo((): ProspectingSummary => ({
@@ -315,9 +321,7 @@ export function useCommandCenterMetrics(
     wonRevenue: dashboardData.wonRevenue,
     winRate: dashboardData.winRate,
     pipelineValue: dashboardData.pipelineValue,
-    activeContacts: Array.isArray(dashboardData.activeContacts)
-      ? dashboardData.activeContacts.length
-      : (dashboardData.activeContacts as number) || 0,
+    activeContacts: dashboardData.activeContacts.length,
     stagnantDealsCount: dashboardData.stagnantDealsCount,
     avgSalesCycle: dashboardData.avgSalesCycle,
     changes: dashboardData.changes,

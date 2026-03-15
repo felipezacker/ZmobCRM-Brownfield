@@ -11,6 +11,7 @@ import {
   detectUnderperformingBrokers,
   detectHighChurn,
 } from '@/features/command-center/utils/alert-rules'
+import { calculateCommission } from '@/features/command-center/hooks/useCommandCenterMetrics'
 import type { Deal, Contact, BoardStage } from '@/types/types'
 
 // ============================================================
@@ -77,14 +78,7 @@ describe('pulse-rules', () => {
 // COMMISSION CALCULATION TESTS (AC4)
 // ============================================================
 
-describe('commission calculation', () => {
-  function calculateCommission(wonDeals: Array<{ value: number; commissionRate?: number | null }>): number {
-    return wonDeals.reduce(
-      (sum, deal) => sum + (deal.value * ((deal.commissionRate ?? 5) / 100)),
-      0,
-    )
-  }
-
+describe('commission calculation (using exported calculateCommission)', () => {
   it('uses explicit commissionRate when provided', () => {
     const deals = [
       { value: 100000, commissionRate: 6 },
@@ -219,6 +213,17 @@ describe('alert-rules', () => {
     it('returns null for empty stages', () => {
       const deals = [makeDeal()]
       expect(detectStagnantDeals(deals, [], 7)).toBeNull()
+    })
+
+    it('triggers at exactly 7 days (boundary)', () => {
+      const exactlySevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const deals = [
+        makeDeal({ status: 'stage-4', lastStageChangeDate: exactlySevenDaysAgo }),
+      ]
+
+      const alert = detectStagnantDeals(deals, mockStages, 7, 3)
+      expect(alert).not.toBeNull()
+      expect(alert!.affectedCount).toBe(1)
     })
 
     it('uses createdAt as fallback when lastStageChangeDate is missing', () => {
@@ -357,6 +362,11 @@ describe('alert-rules', () => {
       const alert = detectHighChurn(85, 15, 0.1) // 15% churn
       expect(alert).not.toBeNull()
       expect(alert!.severity).toBe('high')
+    })
+
+    it('does not trigger at exactly the threshold (10%)', () => {
+      const alert = detectHighChurn(90, 10, 0.1) // exactly 10% churn
+      expect(alert).toBeNull()
     })
   })
 })
