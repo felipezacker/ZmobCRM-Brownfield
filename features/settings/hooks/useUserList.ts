@@ -4,12 +4,14 @@ interface Profile {
   id: string;
   email: string;
   role: string;
+  full_name?: string | null;
+  is_active?: boolean;
   organization_id: string;
   created_at: string;
   status: 'active' | 'pending';
   invited_at?: string;
   confirmed_at?: string;
-  last_sign_in_at?: string;
+  last_sign_in_at?: string | null;
 }
 
 interface UseUserListParams {
@@ -83,6 +85,56 @@ export function useUserList({ addToast }: UseUserListParams) {
     }
   };
 
+  const handleUpdateRole = async (userId: string, newRole: string) => {
+    setActionLoading(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ role: newRole }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error || `Erro ao alterar role (HTTP ${res.status})`);
+      }
+
+      // Optimistic update
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+      addToast('Role atualizado com sucesso', 'success');
+    } catch (err: unknown) {
+      addToast(`Erro: ${err instanceof Error ? err.message : 'Erro desconhecido'}`, 'error');
+      fetchUsers(); // Re-sync on error
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleToggleActive = async (userId: string, newIsActive: boolean) => {
+    setActionLoading(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ is_active: newIsActive }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error || `Erro ao ${newIsActive ? 'reativar' : 'desativar'} usuário (HTTP ${res.status})`);
+      }
+
+      // Optimistic update
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, is_active: newIsActive } : u)));
+      addToast(newIsActive ? 'Usuário reativado' : 'Usuário desativado', 'success');
+    } catch (err: unknown) {
+      addToast(`Erro: ${err instanceof Error ? err.message : 'Erro desconhecido'}`, 'error');
+      fetchUsers(); // Re-sync on error
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   return {
     users,
     loading,
@@ -91,5 +143,7 @@ export function useUserList({ addToast }: UseUserListParams) {
     setUserToDelete,
     handleDeleteUser,
     confirmDeleteUser,
+    handleUpdateRole,
+    handleToggleActive,
   };
 }

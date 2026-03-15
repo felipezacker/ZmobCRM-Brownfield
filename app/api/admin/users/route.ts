@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createStaticAdminClient } from '@/lib/supabase/server';
 import { isAllowedOrigin } from '@/lib/security/sameOrigin';
 import { hasMinRole, type Role } from '@/lib/auth/roles';
 
@@ -34,21 +34,33 @@ export async function GET() {
   // Performance: evita payload grande em organizações com muitos usuários.
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('id, email, role, organization_id, created_at')
+    .select('id, email, role, first_name, last_name, organization_id, created_at')
     .eq('organization_id', me.organization_id)
     .limit(200)
     .order('created_at', { ascending: false });
 
   if (error) return json({ error: error.message }, 500);
 
-  const users = (profiles || []).map((p) => ({
-    id: p.id,
-    email: p.email,
-    role: p.role,
-    organization_id: p.organization_id,
-    created_at: p.created_at,
-    status: 'active' as const,
-  }));
+  // Get last_sign_in_at from auth.users via admin client
+  const admin = createStaticAdminClient();
+  const { data: authData } = await admin.auth.admin.listUsers({ perPage: 1000 });
+  const lastSignInMap = new Map(
+    (authData?.users || []).map((u) => [u.id, u.last_sign_in_at])
+  );
+
+  const users = (profiles || []).map((p) => {
+    const fullName = [p.first_name, p.last_name].filter(Boolean).join(' ') || null;
+    return {
+      id: p.id,
+      email: p.email,
+      role: p.role,
+      full_name: fullName,
+      organization_id: p.organization_id,
+      created_at: p.created_at,
+      last_sign_in_at: lastSignInMap.get(p.id) ?? null,
+      status: 'active' as const,
+    };
+  });
 
   return json({ users });
 }
