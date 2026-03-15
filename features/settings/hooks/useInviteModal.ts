@@ -8,6 +8,7 @@ interface ActiveInvite {
   id: string;
   token: string;
   role: string;
+  email?: string | null;
   expires_at: string | null;
   used_at: string | null;
 }
@@ -16,9 +17,12 @@ export function useInviteModal({ addToast }: UseInviteModalParams) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newUserRole, setNewUserRole] = useState('corretor');
   const [sendingInvites, setSendingInvites] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeInvites, setActiveInvites] = useState<ActiveInvite[]>([]);
   const [expirationDays, setExpirationDays] = useState<number | null>(7);
+  const [emailInput, setEmailInput] = useState('');
+  const [fallbackLink, setFallbackLink] = useState<string | null>(null);
 
   const fetchActiveInvites = useCallback(async () => {
     try {
@@ -53,6 +57,8 @@ export function useInviteModal({ addToast }: UseInviteModalParams) {
     setError(null);
     setNewUserRole('corretor');
     setExpirationDays(7);
+    setEmailInput('');
+    setFallbackLink(null);
   }, []);
 
   useEffect(() => {
@@ -119,19 +125,76 @@ export function useInviteModal({ addToast }: UseInviteModalParams) {
     addToast('Link copiado!', 'success');
   };
 
+  const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  const handleSendEmailInvite = async () => {
+    setFallbackLink(null);
+
+    if (!emailInput.trim() || !isValidEmail(emailInput.trim())) {
+      setError('Informe um email valido');
+      return;
+    }
+
+    setSendingEmail(true);
+    setError(null);
+    try {
+      const expiresAt = expirationDays
+        ? new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      const res = await fetch('/api/settings/invite', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: emailInput.trim(),
+          role: newUserRole,
+          expiresAt,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error || `Erro ao enviar convite (HTTP ${res.status})`);
+      }
+
+      await fetchActiveInvites();
+
+      if (data?.emailSent === false && data?.link) {
+        // AC3: Email failed but invite was created — show fallback link
+        setFallbackLink(data.link);
+        addToast('Convite criado, mas o email falhou. Copie o link manualmente.', 'error');
+      } else {
+        setEmailInput('');
+        addToast('Convite enviado por email!', 'success');
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro ao enviar convite');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   return {
     isModalOpen,
     setIsModalOpen,
     newUserRole,
     setNewUserRole,
     sendingInvites,
+    sendingEmail,
     error,
     activeInvites,
     expirationDays,
     setExpirationDays,
+    emailInput,
+    setEmailInput,
+    fallbackLink,
     closeModal,
     handleGenerateLink,
+    handleSendEmailInvite,
     handleDeleteInvite,
     copyLink,
+    isValidEmail,
   };
 }

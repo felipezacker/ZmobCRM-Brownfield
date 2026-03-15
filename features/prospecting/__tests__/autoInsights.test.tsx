@@ -203,7 +203,7 @@ describe('AutoInsights', () => {
   // 10. No recent activity
   it('shows no recent activity when last 2 days have no data in a 5+ day span', () => {
     const today = new Date()
-    const fmt = (d: Date) => d.toISOString().split('T')[0]
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     const d = (n: number) => {
       const dt = new Date(today)
       dt.setDate(dt.getDate() - n)

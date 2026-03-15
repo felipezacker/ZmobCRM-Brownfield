@@ -1,18 +1,7 @@
-'use client';
+'use client'
 
-import dynamic from 'next/dynamic';
-import { PageLoader } from '@/components/PageLoader';
+import { IntegrationsSettings } from '@/features/settings/components/IntegrationsSettings'
 
-const SettingsPage = dynamic(
-  () => import('@/features/settings/SettingsPage'),
-  { loading: () => <PageLoader />, ssr: false }
-);
-
-/**
- * Componente React `SettingsIntegracoes`.
- * @returns {Element} Retorna um valor do tipo `Element`.
- */
 export default function SettingsIntegracoes() {
-  return <SettingsPage tab="integrations" />;
+  return <IntegrationsSettings />
 }
-

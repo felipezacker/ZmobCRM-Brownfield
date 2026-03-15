@@ -204,9 +204,9 @@ export const ProductsCatalogManager: React.FC = () => {
       <div className="bg-white dark:bg-white/5 border border-border rounded-2xl p-6">
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
               <Package className="h-5 w-5" /> Produtos/Serviços
-            </h3>
+            </h2>
             <p className="text-sm text-muted-foreground dark:text-muted-foreground">
               Catálogo base da empresa. No deal você ainda pode adicionar itens personalizados quando precisar adaptar ao cliente.
             </p>
@@ -294,7 +294,7 @@ export const ProductsCatalogManager: React.FC = () => {
                             <input
                               value={editName}
                               onChange={(e) => setEditName(e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-border bg-white dark:bg-black/20 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+                              className="w-full px-3 py-2 rounded-xl border border-border bg-white dark:bg-black/20 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
                             />
                           </div>
                           <div className="sm:col-span-2">
@@ -304,7 +304,7 @@ export const ProductsCatalogManager: React.FC = () => {
                               onChange={(e) => handlePriceChange(e.target.value, setEditPrice)}
                               inputMode="numeric"
                               placeholder="550.000"
-                              className="w-full px-3 py-2 rounded-lg border border-border bg-white dark:bg-black/20 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+                              className="w-full px-3 py-2 rounded-xl border border-border bg-white dark:bg-black/20 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
                             />
                           </div>
                           <div className="sm:col-span-2">
@@ -312,7 +312,7 @@ export const ProductsCatalogManager: React.FC = () => {
                             <input
                               value={editSku}
                               onChange={(e) => setEditSku(e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-border bg-white dark:bg-black/20 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+                              className="w-full px-3 py-2 rounded-xl border border-border bg-white dark:bg-black/20 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
                             />
                           </div>
                           <div className="sm:col-span-3">
@@ -320,7 +320,7 @@ export const ProductsCatalogManager: React.FC = () => {
                             <input
                               value={editDescription}
                               onChange={(e) => setEditDescription(e.target.value)}
-                              className="w-full px-3 py-2 rounded-lg border border-border bg-white dark:bg-black/20 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+                              className="w-full px-3 py-2 rounded-xl border border-border bg-white dark:bg-black/20 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40"
                             />
                           </div>
                         </div>

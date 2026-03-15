@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, User, BookOpen } from 'lucide-react';
+import { LogOut, BookOpen } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 
@@ -52,10 +52,6 @@ export const SidebarUserCard: React.FC<SidebarUserCardProps> = ({ collapsed }) =
             <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} aria-hidden="true" />
             <div className={`absolute bottom-full mb-2 z-50 bg-white dark:bg-card rounded-xl shadow-xl border border-border overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-150 ${collapsed ? 'left-0 w-48' : 'left-0 right-0'}`}>
               <div className="p-1">
-                <Link href="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-accent/50 rounded-lg transition-colors focus-visible-ring">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  Editar Perfil
-                </Link>
                 <Link href="/instructions" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm text-secondary-foreground dark:text-muted-foreground hover:bg-background dark:hover:bg-accent/50 rounded-lg transition-colors focus-visible-ring">
                   <BookOpen className="w-4 h-4 text-muted-foreground" />
                   Instrucoes

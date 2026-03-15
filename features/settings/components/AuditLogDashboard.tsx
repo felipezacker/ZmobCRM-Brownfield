@@ -329,7 +329,7 @@ export const AuditLogDashboard: React.FC = () => {
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="px-3 py-1.5 bg-background dark:bg-black/20 border border-border rounded-lg text-sm text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-1.5 bg-background dark:bg-black/20 border border-border rounded-xl text-sm text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">Todas Severidades</option>
             <option value="critical">Crítico</option>
@@ -340,7 +340,7 @@ export const AuditLogDashboard: React.FC = () => {
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className="px-3 py-1.5 bg-background dark:bg-black/20 border border-border rounded-lg text-sm text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-1.5 bg-background dark:bg-black/20 border border-border rounded-xl text-sm text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">Todas Ações</option>
             <option value="CROSS_TENANT_ATTEMPT">Cross-Tenant</option>
@@ -352,7 +352,7 @@ export const AuditLogDashboard: React.FC = () => {
           <select
             value={timeFilter}
             onChange={(e) => setTimeFilter(e.target.value)}
-            className="px-3 py-1.5 bg-background dark:bg-black/20 border border-border rounded-lg text-sm text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-1.5 bg-background dark:bg-black/20 border border-border rounded-xl text-sm text-secondary-foreground dark:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="24h">Últimas 24h</option>
             <option value="7d">Últimos 7 dias</option>
@@ -429,7 +429,7 @@ export const AuditLogDashboard: React.FC = () => {
 
                       {/* Expanded Details */}
                       {isExpanded && (
-                        <div className="mt-4 p-4 bg-background dark:bg-black/20 rounded-lg text-sm space-y-2">
+                        <div className="mt-4 p-4 bg-background dark:bg-black/20 rounded-2xl text-sm space-y-2">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <span className="text-muted-foreground dark:text-muted-foreground">Data/Hora:</span>

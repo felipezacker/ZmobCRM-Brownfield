@@ -56,7 +56,7 @@ export const ApiKeysSection: React.FC = () => {
             <input
               value={ak.newKeyName}
               onChange={(e) => ak.setNewKeyName(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Nome (ex: n8n, make, parceiro-x)"
             />
             <Button
@@ -71,7 +71,7 @@ export const ApiKeysSection: React.FC = () => {
           </div>
 
           {ak.createdToken && (
-            <div className="mt-3 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-3">
+            <div className="mt-3 rounded-2xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-3">
               <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-2 flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4" />
                 Chave criada (copie agora)
@@ -80,7 +80,7 @@ export const ApiKeysSection: React.FC = () => {
                 <input
                   readOnly
                   value={ak.createdToken}
-                  className="w-full px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 text-foreground font-mono text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-white/70 dark:bg-black/20 text-foreground font-mono text-xs"
                 />
                 <Button
                   type="button"
@@ -97,7 +97,7 @@ export const ApiKeysSection: React.FC = () => {
             </div>
           )}
 
-          <div className="mt-3 rounded-lg border border-border bg-white/60 dark:bg-black/20 p-3">
+          <div className="mt-3 rounded-2xl border border-border bg-white/60 dark:bg-black/20 p-3">
             <div className="text-xs font-semibold text-secondary-foreground dark:text-muted-foreground mb-2">
               Para testar aqui (opcional): cole a API key completa
             </div>
@@ -105,7 +105,7 @@ export const ApiKeysSection: React.FC = () => {
               <input
                 value={ak.apiKeyToken}
                 onChange={(e) => ak.setApiKeyToken(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono text-xs"
+                className="w-full px-3 py-2 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground font-mono text-xs"
                 placeholder="ncrm_… (fica só em memória, não é salvo)"
               />
               <Button
@@ -133,7 +133,7 @@ export const ApiKeysSection: React.FC = () => {
           <select
             value={ap.action}
             onChange={(e) => ap.setAction(e.target.value as 'create_lead' | 'create_deal' | 'move_stage' | 'create_activity')}
-            className="w-full px-4 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="create_lead">Criar/Atualizar Lead (Contato)</option>
             <option value="create_deal">Criar Negócio (Deal)</option>
@@ -172,7 +172,7 @@ export const ApiKeysSection: React.FC = () => {
                 <input
                   value={ap.leadName}
                   onChange={(e) => ap.setLeadName(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="Nome do lead"
                 />
               </div>
@@ -181,7 +181,7 @@ export const ApiKeysSection: React.FC = () => {
                 <input
                   value={ap.leadSource}
                   onChange={(e) => ap.setLeadSource(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="n8n / make / webhook"
                 />
               </div>
@@ -192,7 +192,7 @@ export const ApiKeysSection: React.FC = () => {
                 <input
                   value={ap.leadEmail}
                   onChange={(e) => ap.setLeadEmail(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="email@exemplo.com"
                 />
               </div>
@@ -203,7 +203,7 @@ export const ApiKeysSection: React.FC = () => {
                 <input
                   value={ap.leadPhone}
                   onChange={(e) => ap.setLeadPhone(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground font-mono"
                   placeholder="+5511999999999"
                 />
               </div>
@@ -212,7 +212,7 @@ export const ApiKeysSection: React.FC = () => {
                 <input
                   value={ap.leadRole}
                   onChange={(e) => ap.setLeadRole(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="Ex: Gerente"
                 />
               </div>
@@ -221,7 +221,7 @@ export const ApiKeysSection: React.FC = () => {
                 <input
                   value={ap.leadCompanyName}
                   onChange={(e) => ap.setLeadCompanyName(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                   placeholder="Nome da Empresa"
                 />
               </div>
@@ -230,7 +230,7 @@ export const ApiKeysSection: React.FC = () => {
                 <textarea
                   value={ap.leadNotes}
                   onChange={(e) => ap.setLeadNotes(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground min-h-[92px]"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground min-h-[92px]"
                   placeholder="Opcional"
                 />
               </div>
@@ -245,7 +245,7 @@ export const ApiKeysSection: React.FC = () => {
                 <select
                   value={ap.selectedBoardId}
                   onChange={(e) => ap.setSelectedBoardId(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                 >
                   <option value="">Selecione…</option>
                   {boardsFromContext.map((b) => (
@@ -293,14 +293,14 @@ export const ApiKeysSection: React.FC = () => {
                     <input
                       value={ap.identityPhone}
                       onChange={(e) => ap.setIdentityPhone(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground font-mono text-sm"
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground font-mono text-sm"
                       placeholder="+5511999999999"
                     />
                   ) : (
                     <input
                       value={ap.identityEmail}
                       onChange={(e) => ap.setIdentityEmail(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                      className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                       placeholder="email@exemplo.com"
                     />
                   )}
@@ -316,7 +316,7 @@ export const ApiKeysSection: React.FC = () => {
                   <select
                     value={ap.selectedToStageId}
                     onChange={(e) => ap.setSelectedToStageId(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                    className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                   >
                     <option value="">Selecione…</option>
                     {ap.stagesForBoard.map((s) => (
@@ -337,7 +337,7 @@ export const ApiKeysSection: React.FC = () => {
                 <select
                   value={ap.activityType}
                   onChange={(e) => ap.setActivityType(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                 >
                   <option value="NOTE">Nota</option>
                   <option value="TASK">Tarefa</option>
@@ -352,7 +352,7 @@ export const ApiKeysSection: React.FC = () => {
                 <input
                   value={ap.activityTitle}
                   onChange={(e) => ap.setActivityTitle(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg border border-border bg-white dark:bg-white/5 text-foreground"
+                  className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-white/5 text-foreground"
                 />
               </div>
             </div>
@@ -390,7 +390,7 @@ export const ApiKeysSection: React.FC = () => {
           </Button>
         </div>
 
-        <pre className="text-xs font-mono whitespace-pre-wrap rounded-lg border border-border bg-white/70 dark:bg-black/20 p-3 text-foreground dark:text-muted-foreground">
+        <pre className="text-xs font-mono whitespace-pre-wrap rounded-2xl border border-border bg-white/70 dark:bg-black/20 p-3 text-foreground dark:text-muted-foreground">
           {ap.curlExample}
         </pre>
 
